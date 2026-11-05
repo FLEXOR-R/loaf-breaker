@@ -258,6 +258,11 @@ static void input(void)
                 }
     }
     for (i = 0; i < 11u; i++) {          /* black keys: the pads, held; the last one pressed has the screen */
+        if (i == PAD_FREEZE) {           /* GLOUPI BREAKS: FREEZE's key turns the kick's SUB DRIVE on and off */
+            if (kdn >> BK[PAD_KEY[i]] & 1u)
+                sub_drive_toggle();
+            continue;
+        }
         if (kdn >> BK[PAD_KEY[i]] & 1u) {
             brk_pad((int)i, 1);
             ui.pad_focus = (int8_t)i;
@@ -269,7 +274,7 @@ static void input(void)
     if (ui.pad_focus >= 0 && !(keys >> BK[PAD_KEY[ui.pad_focus]] & 1u)) {   /* let go: another pad still held, or none */
         ui.pad_focus = -1;
         for (i = 0; i < 11u; i++)
-            if (keys >> BK[PAD_KEY[i]] & 1u)
+            if (i != PAD_FREEZE && keys >> BK[PAD_KEY[i]] & 1u)
                 ui.pad_focus = (int8_t)i;
     }
     if (bdn & 1u << B_PLAY) {
@@ -551,7 +556,7 @@ static void leds(void)
     } else if (st.slice >= 0 && st.slice < 16)
         k |= 1u << WK[st.slice];
     for (i = 0; i < 11u; i++)
-        if (st.pads >> i & 1u)
+        if (i == PAD_FREEZE ? sub_drive_on() : (int)(st.pads >> i & 1u))   /* (SUB DRIVE: lit while on) */
             k |= 1u << BK[PAD_KEY[i]];
     plat_glow(1);
     plat_leds(b, k);
@@ -768,7 +773,7 @@ static void draw_foot(const brk_status_t *st)
     draw_tabs();
     cv_begin(240, 48, C_BLACK);
     for (i = 0; i < 11u; i++) {
-        int on = (st->pads >> i) & 1u;
+        int on = i == PAD_FREEZE ? sub_drive_on() : (int)((st->pads >> i) & 1u);
         int32_t x = 2 + (int32_t)PAD_KEY[i] * 21;   /* (at its key) */
         cv_rect(x, 0, 20, 14, on ? C_HI : C_BLOCK);
         cv_text(x + (20 - text_w(&FONT_T, PAD_NAME[i])) / 2, 1, &FONT_T, PAD_NAME[i], on ? C_BLACK : C_GRAY);

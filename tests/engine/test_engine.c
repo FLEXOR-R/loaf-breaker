@@ -770,6 +770,53 @@ static void test_keep_length(void)
           "pitch KEEP LENGTH: +12 runs at its own speed (%.2f) but sounds at 2 kHz (%u crossings)", adv[1], zc[1]);
 }
 
+/* GLOUPI BREAKS: HALF SPEED's master tempo: a 1 kHz tone held under HALF SPEED runs at half its speed but still
+ * sounds at 1 kHz, in SPEED and in KEEP LENGTH */
+static void test_half_master(void)
+{
+    static brk_break_t tone;
+    uint32_t i, n = 22050u, zc[2], mode;
+    float adv[2];
+    for (i = 0; i < n; i++)
+        pcm[i] = (int16_t)(12000.0f * sinf(6.2831853f * (float)i * (1000.0f / 22050.0f)));
+    for (mode = 0; mode < 2u; mode++) {
+        brk_status_t st;
+        float p0;
+        uint32_t k;
+        brk_init();
+        tone.pcm = pcm;
+        tone.len = n;
+        tone.rate = 22050u;
+        tone.bpm_x100 = 12000u;
+        tone.bars = 1u;
+        tone.nslices = 1u;
+        tone.slice[0] = 0u;
+        tone.slice[1] = n;
+        brk_set_break(&tone);
+        brk_tempo(120.0f);
+        brk_pitch(0.0f);
+        brk_pitch_mode((int)mode, 30.0f);
+        brk_key(0, 1);
+        brk_pad(PAD_HALF, 1);
+        render(buf, 4096u, 0, 0, 0);
+        brk_status(&st);
+        p0 = st.pos;
+        render(buf, 8192u, 0, 0, 0);
+        brk_status(&st);
+        adv[mode] = (st.pos - p0) / (8192.0f * 0.5f);   /* 1: the voice at its own speed */
+        for (k = 1, zc[mode] = 0; k < 8192u; k++)
+            if ((buf[k - 1] < 0.0f) != (buf[k] < 0.0f))
+                zc[mode]++;
+        brk_pad(PAD_HALF, 0);
+        brk_key(0, 0);
+    }
+    brk_pitch_mode(0, 30.0f);
+    CHECK(adv[0] > 0.45f && adv[0] < 0.55f && zc[0] > 330u && zc[0] < 410u,
+          "HALF SPEED, SPEED: half as fast (%.2f), still 1 kHz (%u crossings)", adv[0], zc[0]);
+    CHECK(adv[1] > 0.45f && adv[1] < 0.55f && zc[1] > 330u && zc[1] < 410u,
+          "HALF SPEED, KEEP LENGTH: half as fast (%.2f), still 1 kHz (%u crossings)", adv[1], zc[1]);
+}
+
 /* the gate: at 25 % each slice of the loop sounds for a quarter of its length, then it is quiet until the next */
 static void test_gate(void)
 {
@@ -1826,6 +1873,7 @@ int main(int argc, char **argv)
     test_key_loops();
     test_clock();
     test_keep_length();
+    test_half_master();
     test_gate();
     test_swap();
     test_snap();

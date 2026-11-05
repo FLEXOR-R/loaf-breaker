@@ -9,7 +9,7 @@ static const char *const PAD_KNOB[BRK_NPADS][4] = {
     {"SPEED", 0, 0, 0}, {"LENGTH", "PITCH", 0, 0}, {"SPEED", 0, 0, 0}, {"STOP", "SPIN UP", 0, 0},
     {"RATE", "LENGTH", 0, 0}, {"AMOUNT", "PITCH", 0, 0}, {"TARGET", "RESO", "SPEED", 0},
     {"TIME", "FEEDBACK", "TONE", "MIX"}};
-static const char *const PAD_TITLE[BRK_NPADS] = {"ROLL", "ROLL", "ROLL", "REVERSE", "FREEZE", "HALF SPEED",
+static const char *const PAD_TITLE[BRK_NPADS] = {"ROLL", "ROLL", "ROLL", "REVERSE", "SUB DRIVE", "HALF SPEED",
                                                   "TAPE STOP", "GATE", "RANDOM", "FILTER", "DUB"};
 static const char *const FRZ_LEN_NAME[4] = {"SLICE", "1/2", "1/4", "1/8"};
 
@@ -351,4 +351,22 @@ static void draw_fx(int pad, const brk_status_t *st, uint32_t now)
 {
     draw_fx_band(pad, st, now, 0);
     draw_fx_band(pad, st, now, FX_BAND);
+}
+
+/* GLOUPI BREAKS: the black key that was FREEZE (PAD_FREEZE, FREEZE itself gone): the kick's SUB through its DRIVE, on
+ * and off at each press (the SUB layer's effect DRIVE or OFF; its settings, EDIT's, kept; saved with SAVE) */
+static int sub_drive_on(void) { return set.kick.l[KL_SUB].fx == KFX_DRIVE; }
+static void sub_drive_toggle(void)
+{
+    kick_layer_t *l = &set.kick.l[KL_SUB];
+    if (l->fx == KFX_DRIVE)
+        l->fx = KFX_OFF;
+    else {
+        l->fx = KFX_DRIVE;
+        if (l->wet < 0.05f)              /* (a mix at nothing would make it a key that does nothing) */
+            l->wet = 1.0f;
+    }
+    changed();
+    app_say("SUB DRIVE", sub_drive_on() ? "ON" : "OFF");
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
 }

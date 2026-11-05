@@ -619,7 +619,7 @@ void brk_render(float *out, uint32_t n)
 {
     const brk_break_t *b = brk_now;
     uint32_t i, pads = p_pads;
-    float sl = step_len(), inc, pf, half, ratio, sw = brk_clampf(p_swing, 0.5f, 0.75f);
+    float sl = step_len(), inc, pf, half, hmt, ratio, sw = brk_clampf(p_swing, 0.5f, 0.75f);
     int playing = p_playing, keep = p_keep;
     n_renders++;
     if (p_swap && (!playing || !b))      /* stopped: a break waiting takes over at once */
@@ -704,6 +704,8 @@ void brk_render(float *out, uint32_t n)
             c->pos = c->lo;
     }
     half = (pads >> PAD_HALF) & 1u ? brk_clampf(p_ps.half_speed, 0.25f, 0.75f) : 1.0f;
+    hmt = 1.0f / half;                   /* GLOUPI BREAKS: HALF SPEED's master tempo, the grains read as fast as
+                                          * before: the break slower, its pitch kept */
     if ((pads >> PAD_REVERSE) & 1u)
         half *= brk_clampf(p_ps.rev_speed, 0.5f, 2.0f);
     ratio = (float)b->rate / (float)BRK_SR * (p_tempo * 100.0f / (float)b->bpm_x100);
@@ -806,6 +808,7 @@ void brk_render(float *out, uint32_t n)
                 inc *= pf;
                 pf = 1.0f;
             }
+            pf *= hmt;
         }
         voice_tick(b, &v[0], inc, pf, &acc, &ea, &va);
         voice_tick(b, &v[1], inc, pf, &acc, &ea, &va);
