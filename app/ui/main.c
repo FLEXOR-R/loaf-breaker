@@ -660,11 +660,11 @@ static void draw_tabs(void)
     else if (ui.page == PG_MIX) {
         x = tab(x, "LEVELS", !ui.mpage);
         tab(x, "GROOVE", ui.mpage);
-    } else if (ui.page == PG_SEQ)
+    } else if (ui.page == PG_SEQ) {
         for (i = 0; i < NSEQL; i++)      /* (the lanes the pattern has: K3, K4, S2 at their lengths) */
             if (sl_active(pat_now(), i))
                 x = tab(x, SEQL[i], i == ui.seq_lane);
-    else if (ui.page == PG_FX) {
+    } else if (ui.page == PG_FX) {
         for (i = 0; i < BRK_FX_SLOTS; i++)
             x = tab(x, SLOT_NUM[i], i == (ui.fx_focus & 3u));
         text_cat(part, BRK_FXT_NAME[set.fx.slot[ui.fx_focus & 3u].type]);

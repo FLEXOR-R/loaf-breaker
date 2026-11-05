@@ -73,17 +73,18 @@ jobs:
           mv "app/build/choppah-$VERSION.fwsc" "app/build/gloupi-breaks-$VERSION.fwsc"
           { echo '```'; grep -i -E 'image|flash|bank|slot' build.log | tail -15; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Screens from the host simulator
-        continue-on-error: true
+      - name: Screens from the host simulator   # (a scenario failing fails the run: no release of a build that crashes)
         env:
           PYTHON: /usr/bin/python3
         run: |
           ./build.sh --host --release "$VERSION"   # (the number on its screens too)
           mkdir -p screens
           H="$(ls app/build/host/*_host | head -1)"
-          for sc in ui kick64 lanes seq pads; do "$H" tests/scenarios/$sc.txt screens || echo "scenario $sc failed"; done
+          bad=""
+          for sc in ui kick64 lanes seq pads; do "$H" tests/scenarios/$sc.txt screens || bad="$bad $sc"; done
           ls screens
           (cd screens && zip -q -r "../app/build/gloupi-screens-$VERSION.zip" .)
+          [ -z "$bad" ] || { echo "::error::scenarios failed:$bad"; exit 1; }
 
       - uses: actions/upload-artifact@v4
         if: always()
