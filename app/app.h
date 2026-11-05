@@ -21,7 +21,11 @@ void app_splash(void);
 #define APP_BLOCK 256u                   /* frames per audio block: 5.8 ms at 44.1 kHz */
 #define APP_CANVAS_PX (240u * 60u)       /* draw in strips of 60 rows at most: the pool goes to the breaks (and the
                                           * Bluetooth audio queue) */
-#define CH_VERSION "0.01"               /* GLOUPI BREAKS: the version the screens show, whatever the build */
+#ifdef APP_VERSION                      /* GLOUPI BREAKS: the release's number (gloupi.yml: 0.02, 0.03 ...) */
+#define CH_VERSION APP_VERSION
+#else
+#define CH_VERSION "DEV"
+#endif
 
 /* MIDI and Bluetooth (PRD N-1, N-2, N-5): the GLOBAL page's clock in / out and Bluetooth MIDI. The platform calls
  * app_loop every pass of the main loop (MIDI in), app_tick at 1 kHz (clock out on time); Bluetooth starts at

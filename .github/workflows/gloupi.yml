@@ -1,7 +1,8 @@
 # GLOUPI BREAKS: CHOPPAH in red, its own name and version on the screens, its own nine breaks (breaks/breaks.txt).
-# Every push to the gloupi branch (or Actions → GLOUPI BREAKS → Run workflow) builds the firmware and puts it in the
-# "gloupi" pre-release as gloupi-breaks.fwsc, replaced each time; the host simulator's screenshots of
-# tests/scenarios/ui.txt go along, in the run's "screens" artifact and the pre-release's gloupi-screens.zip, to see the screens without flashing.
+# Every push to the gloupi branch (or Actions → GLOUPI BREAKS → Run workflow) is a release of its own, kept: the last
+# gloupi-vX.YY tag + 0.01 (the first 0.02: 0.01 was the "gloupi" pre-release), the number on the splash, the release
+# gloupi-vX.YY with gloupi-breaks-X.YY.fwsc and the host simulator's screens (gloupi-screens-X.YY.zip). A re-run of a
+# commit already released builds the same number again.
 name: GLOUPI BREAKS
 
 on:
@@ -12,6 +13,10 @@ on:
 permissions:
   contents: write
 
+concurrency:                            # one release at a time, in order: no two runs take the same number
+  group: gloupi-release
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,6 +24,24 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Version
+        run: |
+          TAGS="$(git ls-remote --tags origin 'refs/tags/gloupi-v*' | sed 's|\^{}$||')"
+          V="$(printf '%s\n' "$TAGS" | grep "^$GITHUB_SHA" | sed 's|.*refs/tags/gloupi-v||' | head -1)"
+          if [ -z "$V" ]; then
+            LAST="$(printf '%s\n' "$TAGS" | sed -n 's|.*refs/tags/gloupi-v||p' | grep -E '^[0-9]+\.[0-9]{2}$' \
+                    | sort -t. -k1,1n -k2,2n | tail -1)"
+            if [ -z "$LAST" ]; then
+              V=0.02
+            else
+              MAJ="${LAST%%.*}"; MIN=$((10#${LAST#*.} + 1))
+              [ "$MIN" -gt 99 ] && { MAJ=$((MAJ + 1)); MIN=0; }
+              V="$(printf '%d.%02d' "$MAJ" "$MIN")"
+            fi
+          fi
+          echo "VERSION=$V" >> "$GITHUB_ENV"
+          echo "GLOUPI BREAKS $V" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Pillow with raqm (the build's fonts)
         run: |
@@ -46,8 +69,8 @@ jobs:
         env:
           PYTHON: /usr/bin/python3
         run: |
-          ./build.sh | tee build.log
-          mv app/build/choppah.fwsc app/build/gloupi-breaks.fwsc
+          ./build.sh --release "$VERSION" | tee build.log
+          mv "app/build/choppah-$VERSION.fwsc" "app/build/gloupi-breaks-$VERSION.fwsc"
           { echo '```'; grep -i -E 'image|flash|bank|slot' build.log | tail -15; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Screens from the host simulator
@@ -60,27 +83,25 @@ jobs:
           H="$(ls app/build/host/*_host | head -1)"
           for sc in ui kick32 seq pads; do "$H" tests/scenarios/$sc.txt screens || echo "scenario $sc failed"; done
           ls screens
-          (cd screens && zip -q -r ../app/build/gloupi-screens.zip .)
+          (cd screens && zip -q -r "../app/build/gloupi-screens-$VERSION.zip" .)
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: screens
+          name: screens-${{ env.VERSION }}
           path: screens/
           if-no-files-found: ignore
 
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: gloupi
+          tag_name: gloupi-v${{ env.VERSION }}
           target_commitish: ${{ github.sha }}
-          name: GLOUPI BREAKS
+          name: GLOUPI BREAKS ${{ env.VERSION }}
           body: |
-            GLOUPI BREAKS: CHOPPAH in red, "GLOUPI BREAKS" at power-on, version CURRENT CUSTOM, and nine breaks:
-            THINK · NUSKOOL · JUNGLE · LO-FI · APACHE · CHOPPER · DRUMMER · THE WORM · HOT PANTS.
-            No demo and no Bluetooth (MIDI or audio): MIDI clock in over USB or the TRS jack, clock out over USB.
-            Install gloupi-breaks.fwsc with fm1-base's web installer (Chrome or Edge, the FM-1 on USB).
-          prerelease: true
-          make_latest: false
+            Install gloupi-breaks-${{ env.VERSION }}.fwsc with fm1-base's web installer (Chrome or Edge, the FM-1 on
+            USB); the splash shows ${{ env.VERSION }}. gloupi-screens-${{ env.VERSION }}.zip: the simulator's screens.
+          generate_release_notes: true
+          make_latest: true
           files: |
-            app/build/gloupi-breaks.fwsc
-            app/build/gloupi-screens.zip
+            app/build/gloupi-breaks-${{ env.VERSION }}.fwsc
+            app/build/gloupi-screens-${{ env.VERSION }}.zip
