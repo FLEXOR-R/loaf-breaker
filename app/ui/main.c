@@ -637,7 +637,7 @@ static int32_t tab(int32_t x, const char *s, int on)
 /* the pages' buttons as printed, GLOBAL's parts, SEQ's lanes: for the tabs and the header (page_say) */
 static const char *const BTN[NPAGES] = {"HOME", "HOME", "FX", "GLO", "EDIT", "LFO", "SEQ", "EDIT", "ENV", "ARP"};
 static const char *const GPART[3] = {"MIDI", "PITCH", "BT AUDIO"};
-static const char *const SEQL[NSEQL] = {"1-16", "17-32", "K1", "K2", "SNARE", "HAT"};
+static const char *const SEQL[NSEQL] = {"1-16", "17-32", "K1", "K2", "K3", "K4", "SN", "HH"};
 static void draw_tabs(void)
 {
     uint32_t i;

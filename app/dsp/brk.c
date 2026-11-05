@@ -722,7 +722,7 @@ void brk_render(float *out, uint32_t n)
                 on_step(b);
                 if (ev_cnt < EV_MAX) {
                     ev_off[ev_cnt] = (uint16_t)i;
-                    ev_idx[ev_cnt++] = (uint8_t)(steps_total & 31u);
+                    ev_idx[ev_cnt++] = (uint8_t)(steps_total & 63u);
                 }
                 steps_total++;
                 to_next += len;
@@ -849,7 +849,7 @@ void brk_render(float *out, uint32_t n)
     status.key_n = (uint16_t)key_n;
     status.key_rev = (uint8_t)(v[cur].dir < 0.0f);
     status.bar16 = steps_total ? (int8_t)((steps_total - 1u) & 15u) : (int8_t)-1;
-    status.bar32 = steps_total ? (int8_t)((steps_total - 1u) & 31u) : (int8_t)-1;
+    status.bar64 = steps_total ? (int8_t)((steps_total - 1u) & 63u) : (int8_t)-1;
 }
 
 /* -------------------------------------------------------------- main loop --- */
