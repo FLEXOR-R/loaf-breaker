@@ -59,16 +59,53 @@ static void version_text(char *t)
     text_cat(t, CH_VERSION);
 }
 
-/* fm1-base's first screen at power-on, while the breaks are decoded (APP_SPLASH): the mark and the name */
+#if CH_LOGO
+/* GLOUPI BREAKS: the picture's rows top .. top + h - 1 into the current strip at x, row top at the strip's row 0.
+ * logo_data.h: a byte a run, bits 0-4 the colour (0: the background, left as it is), 5-7 the length less one */
+static void logo_draw(int32_t x, int32_t top, int32_t h)
+{
+    uint32_t i;
+    int32_t px = 0, row = 0;
+    for (i = 0; i < sizeof LOGO_RLE && row < top + h; i++) {
+        uint32_t b = LOGO_RLE[i], c = b & 31u;
+        int32_t n = (int32_t)(b >> 5) + 1;
+        if (c && row >= top)
+            cv_rect(x + px, row - top, n, 1, LOGO_PAL[c]);
+        px += n;
+        if (px >= LOGO_W) {
+            px = 0;
+            row++;
+        }
+    }
+}
+#endif
+
+/* fm1-base's first screen at power-on, while the breaks are decoded (APP_SPLASH): the mark and the name (GLOUPI
+ * BREAKS: its picture over the name) */
 void app_splash(void)
 {
     lcd_fill(0, 0, 240, 240, C_BLACK);
+#if CH_LOGO
+    {
+        int32_t r, h;
+        for (r = 0; r < LOGO_H; r += h) {    /* in strips of 60 rows at most */
+            h = LOGO_H - r < 60 ? LOGO_H - r : 60;
+            cv_begin(240, (uint32_t)h, C_BLACK);
+            logo_draw((240 - LOGO_W) / 2, r, h);
+            cv_blit(0, (uint32_t)(4 + r));
+        }
+    }
+    cv_begin(240, 56, C_BLACK);
+    title(0);
+    cv_blit(0, 146);
+#else
     cv_begin(240, 60, C_BLACK);
     mark(10, 16u, 0);
     cv_blit(0, 50);
     cv_begin(240, 56, C_BLACK);
     title(0);
     cv_blit(0, 118);
+#endif
     {
         char t[24];
         version_text(t);

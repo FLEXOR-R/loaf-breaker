@@ -24,6 +24,9 @@
 #ifndef CH_HAVE_BANK
 #define CH_HAVE_BANK 0
 #endif
+#if CH_LOGO
+#include "logo_data.h"              /* GLOUPI BREAKS: the splash's picture (tools/make_logo.py) */
+#endif
 
 /* ------------------------------------------------------------------ settings --- */
 #define SET_MAGIC 0x37504843u            /* "CHP7" (the soundboard gone, the drums and patterns in): another magic

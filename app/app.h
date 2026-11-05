@@ -14,6 +14,7 @@
                                           * stay out of the flash (28 KB) */
 #define APP_SPLASH                       /* the first screen at power-on is the app's (app_splash) */
 void app_splash(void);
+#define CH_LOGO 1                        /* GLOUPI BREAKS: its picture on the splash (logo_data.h) */
 #define CH_DEMO 0                        /* GLOUPI BREAKS: no demo (CHOPPAH: 1, ui/demo.c) */
 #define APP_PALETTE 3u                   /* gfx.c's red (GLOUPI BREAKS; CHOPPAH: 1u, amber) */
 #define APP_BLOCK 256u                   /* frames per audio block: 5.8 ms at 44.1 kHz */
