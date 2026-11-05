@@ -1,0 +1,15 @@
+# AUDITION SET 3/6: 12 breaks, ~360 KB of the ~362 KB the flash leaves for breaks.
+# Copied over breaks/breaks.txt by .github/workflows/audition.yml (paths relative to breaks/). Same columns:
+# in  file                                        bpm     bars  of  name
+*   cw/cw_amen20_164.wav                     164     2     2   AMEN20 164
+*   huge/cw_amen_replay.wav                  164.92  2     6   REPLAY
+*   huge/cw_amen_deeptouch.wav               164.94  2     6   DEEPTOUCH
+*   cw/cw_amen02_165.wav                     165     2     2   AMEN02 165
+*   cw/cw_amen08_165.wav                     165     2     2   AMEN08 165
+*   huge/cw_amen_updown.wav                  165     2     2   UPDOWN
+*   huge/cw_amen_lo-fi.wav                   165.06  1     1   LO-FI
+*   huge/cw_amen_tick.wav                    165.55  2     4   TICK
+*   huge/cw_amen_italian.wav                 166.49  2     4   ITALIAN
+*   cw/cw_amen03_167.wav                     167     2     2   AMEN03 167
+*   cw/cw_amen16_167.wav                     167     2     4   AMEN16 167
+*   cw/cw_amen06_169.wav                     169     2     2   AMEN06 169

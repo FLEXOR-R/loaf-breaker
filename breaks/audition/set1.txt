@@ -1,0 +1,12 @@
+# AUDITION SET 1/6: 9 breaks, ~344 KB of the ~362 KB the flash leaves for breaks.
+# Copied over breaks/breaks.txt by .github/workflows/audition.yml (paths relative to breaks/). Same columns:
+# in  file                                        bpm     bars  of  name
+*   classics/rotary_connection_life_could.wav 99.81   2     4   LIFE COULD
+*   classics/skull_snaps_its_a_new_day.wav   94.81   1     4   NEW DAY
+*   huge/cw_amen_beasty.wav                  127.27  2     4   BEASTY
+*   cw/cw_amen10_135.wav                     135     2     2   AMEN10 135
+*   cw/cw_amen12_137.wav                     137     2     2   AMEN12 137
+*   huge/cw_amen_nuskool.wav                 139.99  2     4   NUSKOOL
+*   huge/cw_amen_comp.wav                    140     2     4   COMP
+*   huge/cw_amen_negative.wav                140     2     4   NEGATIVE
+*   huge/cw_amen_reride.wav                  140     2     4   RERIDE

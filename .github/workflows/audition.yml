@@ -1,0 +1,92 @@
+# Audition firmwares: one CHOPPAH build per break list in breaks/audition/setN.txt, to try every break in the repo on
+# the FM-1 and pick the ones to keep. Each build copies its list over breaks/breaks.txt (the firmware is otherwise
+# the same as main) and the six .fwsc files go to one pre-release, "audition", replaced on every run. Runs on a push
+# to the audition branch or by hand (Actions → Audition firmwares → Run workflow); never on main, never a release of
+# CHOPPAH itself.
+name: Audition firmwares
+
+on:
+  push:
+    branches: [audition]
+    paths: ["breaks/**", ".github/workflows/audition.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        set: [1, 2, 3, 4, 5, 6]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Pillow with raqm (the build's fonts)
+        run: |
+          raqm() { /usr/bin/python3 -c 'from PIL import features; raise SystemExit(not features.check("raqm"))' 2>/dev/null; }
+          raqm || /usr/bin/python3 -m pip install -q --user --break-system-packages Pillow
+          raqm || { sudo apt-get update -qq && sudo apt-get install -y -qq libfribidi0; }
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.jieli
+            ~/fw-AC79_AIoT_SDK
+          key: jieli-${{ runner.os }}-${{ hashFiles('scripts/bootstrap.sh') }}
+
+      - name: fm1-base, JieLi toolchain and AC79 SDK files
+        env:
+          PYTHON: /usr/bin/python3
+          BOOTSTRAP_USB: 0
+        run: sh scripts/bootstrap.sh
+
+      - name: Firmware with set ${{ matrix.set }}
+        env:
+          PYTHON: /usr/bin/python3
+        run: |
+          cp breaks/audition/set${{ matrix.set }}.txt breaks/breaks.txt
+          ./build.sh
+          mv app/build/choppah.fwsc app/build/choppah-audition-set${{ matrix.set }}.fwsc
+          echo "Set ${{ matrix.set }}: $(grep '^\*' breaks/breaks.txt | awk '{for (i = 6; i <= NF; i++) printf "%s%s", $i, (i < NF ? " " : ""); printf ", "}')" >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: set${{ matrix.set }}
+          path: app/build/choppah-audition-set${{ matrix.set }}.fwsc
+
+  release:
+    needs: build
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: fw
+          merge-multiple: true
+      - name: Notes
+        run: |
+          {
+            echo "Audition builds of CHOPPAH: every break in the repo, a set per firmware. Not a release."
+            echo
+            for f in breaks/audition/set*.txt; do
+              n="$(basename "$f" .txt)"
+              printf -- '- **%s**: ' "$n"
+              grep '^\*' "$f" | awk '{for (i = 6; i <= NF; i++) printf "%s%s", $i, (i < NF ? " " : ""); printf " · "}' | sed 's/ · $//'
+              echo
+            done
+          } > notes.md
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: audition
+          target_commitish: ${{ github.sha }}
+          name: CHOPPAH audition firmwares
+          body_path: notes.md
+          prerelease: true
+          make_latest: false
+          files: fw/*.fwsc
