@@ -14,13 +14,14 @@
                                           * stay out of the flash (28 KB) */
 #define APP_SPLASH                       /* the first screen at power-on is the app's (app_splash) */
 void app_splash(void);
+#define CH_TAGLINE 0                     /* GLOUPI BREAKS: no "AMEN CHOPPER  FOR THE FM-1" under the name */
 #define CH_LOGO 1                        /* GLOUPI BREAKS: its picture on the splash (logo_data.h) */
 #define CH_DEMO 0                        /* GLOUPI BREAKS: no demo (CHOPPAH: 1, ui/demo.c) */
 #define APP_PALETTE 3u                   /* gfx.c's red (GLOUPI BREAKS; CHOPPAH: 1u, amber) */
 #define APP_BLOCK 256u                   /* frames per audio block: 5.8 ms at 44.1 kHz */
 #define APP_CANVAS_PX (240u * 60u)       /* draw in strips of 60 rows at most: the pool goes to the breaks (and the
                                           * Bluetooth audio queue) */
-#define CH_VERSION "CURRENT CUSTOM"     /* GLOUPI BREAKS: the version the screens show, whatever the build */
+#define CH_VERSION "0.01"               /* GLOUPI BREAKS: the version the screens show, whatever the build */
 
 /* MIDI and Bluetooth (PRD N-1, N-2, N-5): the GLOBAL page's clock in / out and Bluetooth MIDI. The platform calls
  * app_loop every pass of the main loop (MIDI in), app_tick at 1 kHz (clock out on time); Bluetooth starts at

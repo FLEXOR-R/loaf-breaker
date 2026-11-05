@@ -46,16 +46,16 @@ static void app_sys_text(int32_t x, int32_t y, int face, const char *s, uint16_t
 static void title(int32_t y)             /* the name and the tagline, centred, into the current strip */
 {
     cv_text2((240 - text2_w(&FONT_B, APP_NAME)) / 2, y, &FONT_B, APP_NAME, C_WHITE);
+#if CH_TAGLINE
     cv_text((240 - text_w(&FONT_XS, "AMEN CHOPPER  FOR THE FM-1")) / 2, y + 36, &FONT_XS,
             "AMEN CHOPPER  FOR THE FM-1", C_HI);
+#endif
 }
 
 /* the version, as the screens show it: "V0.7" (a release), "DEV" (any other build) */
 static void version_text(char *t)
 {
-    t[0] = 0;
-    if (CH_VERSION[0] >= '0' && CH_VERSION[0] <= '9')
-        text_cat(t, "V");
+    t[0] = 0;                            /* (GLOUPI BREAKS: the number alone, no "V") */
     text_cat(t, CH_VERSION);
 }
 
@@ -95,9 +95,16 @@ void app_splash(void)
             cv_blit(0, (uint32_t)(4 + r));
         }
     }
-    cv_begin(240, 56, C_BLACK);
+    cv_begin(240, 34, C_BLACK);          /* the name under it */
     title(0);
-    cv_blit(0, 146);
+    cv_blit(0, 188);
+    {                                    /* the version, small, at the bottom */
+        char t[16];
+        version_text(t);
+        cv_begin(240, 14, C_BLACK);
+        cv_text((240 - text_w(&FONT_T, t)) / 2, 1, &FONT_T, t, C_GRAY);
+        cv_blit(0, 225);
+    }
 #else
     cv_begin(240, 60, C_BLACK);
     mark(10, 16u, 0);
@@ -105,7 +112,6 @@ void app_splash(void)
     cv_begin(240, 56, C_BLACK);
     title(0);
     cv_blit(0, 118);
-#endif
     {
         char t[24];
         version_text(t);
@@ -113,6 +119,7 @@ void app_splash(void)
         cv_text((240 - text_w(&FONT_T, t)) / 2, 2, &FONT_T, t, C_GRAY);
         cv_blit(0, 210);
     }
+#endif
 }
 
 static void intro_draw(uint32_t now)
