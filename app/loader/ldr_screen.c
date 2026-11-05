@@ -10,10 +10,10 @@
 
 #define SCR_BG 0x0000u                              /* black */
 #define SCR_FG 0xEF3Au                              /* #ede6d4 cream */
-#define SCR_AMB 0xFD83u                             /* #ffb21a amber */
+#define SCR_AMB 0xFC2Eu                             /* #ff8470 red (GLOUPI BREAKS; CHOPPAH: 0xFD83u, amber) */
 #define SCR_HOT 0xFFFFu                             /* white: the mark's two chopped bars */
-#define SCR_DIM 0x3962u                             /* #3c2c10: the mark, not yet written */
-#define SCR_EDGE 0x2944u                            /* #2f2a20: the bar's frame */
+#define SCR_DIM 0x38A2u                             /* #3c1410: the mark, not yet written */
+#define SCR_EDGE 0x2904u                            /* #2f2020: the bar's frame */
 #define SCR_NAME 0x6B2Au                            /* #6e6454 */
 #define SCR_BAR_X 30u
 #define SCR_BAR_Y 170u

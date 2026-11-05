@@ -6,23 +6,19 @@
 #include "brk.h"
 #include "brk_fx.h"
 
-#define APP_NAME "CHOPPAH"
+#define APP_NAME "GLOUPI BREAKS"    /* GLOUPI BREAKS: the name on the start screens */
 #define APP_TAGLINE "AMEN CHOPPER"
-#define APP_SPLASH_RGB RGB(255, 184, 70)
+#define APP_SPLASH_RGB RGB(255, 132, 112)   /* GLOUPI BREAKS red (gfx.c RED's brightest) */
 #define APP_SYS_TEXT                     /* the platform's own screens (crash, safe mode, update, calibration) write in
                                           * CHOPPAH's faces (app_sys_* in app.c): fm1-base's own 15- and 31-pixel ones
                                           * stay out of the flash (28 KB) */
 #define APP_SPLASH                       /* the first screen at power-on is the app's (app_splash) */
 void app_splash(void);
-#define APP_PALETTE 1u                   /* gfx.c's amber */
+#define APP_PALETTE 3u                   /* gfx.c's red (GLOUPI BREAKS; CHOPPAH: 1u, amber) */
 #define APP_BLOCK 256u                   /* frames per audio block: 5.8 ms at 44.1 kHz */
 #define APP_CANVAS_PX (240u * 60u)       /* draw in strips of 60 rows at most: the pool goes to the breaks (and the
                                           * Bluetooth audio queue) */
-#ifdef APP_VERSION
-#define CH_VERSION APP_VERSION
-#else
-#define CH_VERSION "DEV"
-#endif
+#define CH_VERSION "CURRENT CUSTOM"     /* GLOUPI BREAKS: the version the screens show, whatever the build */
 
 /* MIDI and Bluetooth (PRD N-1, N-2, N-5): the GLOBAL page's clock in / out and Bluetooth MIDI. The platform calls
  * app_loop every pass of the main loop (MIDI in), app_tick at 1 kHz (clock out on time); Bluetooth starts at

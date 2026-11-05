@@ -70,7 +70,7 @@ void app_splash(void)
     title(0);
     cv_blit(0, 118);
     {
-        char t[16];
+        char t[24];
         version_text(t);
         cv_begin(240, 20, C_BLACK);
         cv_text((240 - text_w(&FONT_T, t)) / 2, 2, &FONT_T, t, C_GRAY);
@@ -113,7 +113,7 @@ static void intro_draw(uint32_t now)
  * digits drawn as bevelled bars, the unlit ones a ghost), a metronome swinging in time (its bob lit on each beat,
  * white on the bar's first), a ripple from its pivot on each tap. The display redraws when the tempo or the taps
  * change; the metronome about 25 times a second */
-#define TP_OFF RGB(44, 30, 10)            /* an unlit segment */
+#define TP_OFF RGB(48, 16, 14)            /* an unlit segment */
 static void tp_seg(int32_t x, int32_t y, int32_t len, int horiz, uint16_t c)   /* a bevelled bar, 6 thick */
 {
     int32_t i;
@@ -184,7 +184,7 @@ static void draw_tap(const brk_status_t *st, uint32_t now, int full)
         if (band >= 1u) {                /* the metronome */
             for (i = 106; i < 190; i++) { /* its body: a tall triangle, the apex up */
                 int32_t w = (i - 106) * 52 / 84;
-                cv_rect(px - w, i, 2 * w + 1, 1, RGB(30, 26, 20));
+                cv_rect(px - w, i, 2 * w + 1, 1, RGB(32, 20, 20));
                 cv_rect(px - w - 1, i, 2, 1, C_LINE);
                 cv_rect(px + w, i, 2, 1, C_LINE);
             }
@@ -197,7 +197,7 @@ static void draw_tap(const brk_status_t *st, uint32_t now, int full)
             for (i = 0; i <= 40; i++)    /* the arm */
                 cv_rect(px + (bx - px) * i / 40 - 1, py + (by - py) * i / 40 - 1, 3, 3, C_GRAY);
             {
-                uint16_t bob = fr < 0.18f ? ((beat & 3) == 0 && st->playing ? C_WHITE : C_HI) : RGB(150, 100, 30);
+                uint16_t bob = fr < 0.18f ? ((beat & 3) == 0 && st->playing ? C_WHITE : C_HI) : RGB(150, 50, 40);
                 int32_t r;
                 for (r = -9; r <= 9; r++) {   /* the bob: a disc */
                     int32_t w = 0;

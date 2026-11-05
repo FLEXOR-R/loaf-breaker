@@ -224,7 +224,7 @@ static void times_text(float v, char *t) /* 0.5 -> "x0.50" */
 
 /* ------------------------------------------------------------- start screen --- */
 #define C_BLOCK RGB(24, 24, 30)          /* a slice block's ground */
-#define C_BLOCK_HI RGB(255, 184, 70)     /* the block sounding */
+#define C_BLOCK_HI RGB(255, 132, 112)     /* the block sounding */
 
 /* big text: a font at twice its size, each of its pixels a 2 x 2 block (blended as cv_text blends). It stands in for
  * a 31-pixel font: that one costs 20 KB of flash, which Bluetooth audio needed */

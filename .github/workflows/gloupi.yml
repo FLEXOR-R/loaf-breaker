@@ -1,0 +1,81 @@
+# GLOUPI BREAKS: CHOPPAH in red, its own name and version on the screens, its own nine breaks (breaks/breaks.txt).
+# Every push to the gloupi branch (or Actions → GLOUPI BREAKS → Run workflow) builds the firmware and puts it in the
+# "gloupi" pre-release as gloupi-breaks.fwsc, replaced each time; the host simulator's screenshots of
+# tests/scenarios/ui.txt go along as the run's "screens" artifact, to see the screens without flashing.
+name: GLOUPI BREAKS
+
+on:
+  push:
+    branches: [gloupi]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Pillow with raqm (the build's fonts)
+        run: |
+          raqm() { /usr/bin/python3 -c 'from PIL import features; raise SystemExit(not features.check("raqm"))' 2>/dev/null; }
+          raqm || /usr/bin/python3 -m pip install -q --user --break-system-packages Pillow
+          raqm || { sudo apt-get update -qq && sudo apt-get install -y -qq libfribidi0; }
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.jieli
+            ~/fw-AC79_AIoT_SDK
+          key: jieli-${{ runner.os }}-${{ hashFiles('scripts/bootstrap.sh') }}
+
+      - name: fm1-base, JieLi toolchain and AC79 SDK files
+        env:
+          PYTHON: /usr/bin/python3
+          BOOTSTRAP_USB: 0
+        run: sh scripts/bootstrap.sh
+
+      - name: Engine tests
+        run: ./build.sh test
+
+      - name: Firmware
+        env:
+          PYTHON: /usr/bin/python3
+        run: |
+          ./build.sh | tee build.log
+          mv app/build/choppah.fwsc app/build/gloupi-breaks.fwsc
+          { echo '```'; grep -i -E 'image|flash|bank|slot' build.log | tail -15; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Screens from the host simulator
+        continue-on-error: true
+        env:
+          PYTHON: /usr/bin/python3
+        run: |
+          ./build.sh --host
+          mkdir -p screens
+          "$(ls app/build/host/*_host | head -1)" tests/scenarios/ui.txt screens
+          ls screens
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screens
+          path: screens/
+          if-no-files-found: ignore
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: gloupi
+          target_commitish: ${{ github.sha }}
+          name: GLOUPI BREAKS
+          body: |
+            GLOUPI BREAKS: CHOPPAH in red, "GLOUPI BREAKS" at power-on, version CURRENT CUSTOM, and nine breaks:
+            THINK · NUSKOOL · JUNGLE · LO-FI · APACHE · CHOPPER · DRUMMER · THE WORM · HOT PANTS.
+            Install gloupi-breaks.fwsc with fm1-base's web installer (Chrome or Edge, the FM-1 on USB).
+          prerelease: true
+          make_latest: false
+          files: app/build/gloupi-breaks.fwsc
