@@ -81,7 +81,7 @@ jobs:
           ./build.sh --host --release "$VERSION"   # (the number on its screens too)
           mkdir -p screens
           H="$(ls app/build/host/*_host | head -1)"
-          for sc in ui kick64 seq pads; do "$H" tests/scenarios/$sc.txt screens || echo "scenario $sc failed"; done
+          for sc in ui kick64 lanes seq pads; do "$H" tests/scenarios/$sc.txt screens || echo "scenario $sc failed"; done
           ls screens
           (cd screens && zip -q -r "../app/build/gloupi-screens-$VERSION.zip" .)
 

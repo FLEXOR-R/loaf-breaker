@@ -208,7 +208,8 @@ static void draw_drums(const brk_status_t *st)
     for (i = 0; i < 3u; i++) {
         int32_t x = 2 + (int32_t)i * 80;
         int sel = i == ui.einst, hit = st->playing && st->bar64 >= 0 &&
-            ((i == LANE_KICK ? kick_now[st->bar64 >> 4 & 3] : lane_now[i]) >> (st->bar64 & 15) & 1u);
+            ((i == LANE_KICK ? kick_now[st->bar64 >> 4 & 3] : i == LANE_SNARE ? snare_now[st->bar64 >> 4 & 3]
+              : lane_now[i]) >> (st->bar64 & 15) & 1u);
         uint16_t ink = hit ? C_BLACK : sel ? C_HI : C_GRAY;
         cv_rect(x, 2, 76, 48, sel ? C_WHITE : C_LINE);
         cv_rect(x + 1, 3, 74, 46, hit ? C_BLOCK_HI : C_BLACK);

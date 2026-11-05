@@ -180,7 +180,8 @@ enum { LANE_KICK, LANE_SNARE, LANE_HAT, NLANES };
 typedef struct {
     uint8_t st[PAT_STEPS][4];            /* per step: slice + 2 (0 off, 1 follow the loop, 2.. slice 1..), pitch
                                           * (int8), flags (bit 0 reverse, bits 1-2 ratchet - 1), spare (GLOUPI
-                                          * BREAKS: steps 0-3's, the kick's bars 3 and 4: kick_bar) */
+                                          * BREAKS: steps 0-3's the kick's bars 3 and 4, kick_bar; 4-5's the
+                                          * snare's bar 2, snare_bar; 6's the lanes' lengths, PAT_LEN) */
     uint16_t lane[NLANES];               /* bit n: the drum hits on step n of each bar (the kick: of its first) */
     uint16_t kick2;                      /* GLOUPI BREAKS: the kick's second bar (steps 17-32); was PAT1's rsv */
 } pat_t;                                 /* 136 bytes */
@@ -190,7 +191,8 @@ static struct {
 } pats;
 _Static_assert(sizeof pats <= 3840u, "a store object holds 3840 bytes");
 static volatile uint16_t lane_now[NLANES];   /* the pattern playing's lanes, for the render */
-static volatile uint16_t kick_now[4];    /* and its kick's four bars (kick_bar) */
+static volatile uint16_t kick_now[4], snare_now[4];   /* and its kick's and snare's, bar by bar of four (their
+                                          * lengths played out: pat_lanes_out) */
 static int8_t pat_next = -1;             /* a pattern picked while playing: it starts at the loop's end */
 
 static void pat_defaults(void)
@@ -228,6 +230,23 @@ static void kick_bar_set(pat_t *p, uint32_t b, uint32_t m)
         p->st[(b - 2u) * 2u + 1u][3] = (uint8_t)(m >> 8);
     }
 }
+/* the snare over two bars: bar 1 lane[LANE_SNARE], bar 2 in the spare bytes of steps 4-5 */
+static uint32_t snare_bar(const pat_t *p, uint32_t b)
+{
+    return b & 1u ? (uint32_t)p->st[4][3] | (uint32_t)p->st[5][3] << 8 : p->lane[LANE_SNARE];
+}
+static void snare_bar_set(pat_t *p, uint32_t b, uint32_t m)
+{
+    if (b & 1u) {
+        p->st[4][3] = (uint8_t)m;
+        p->st[5][3] = (uint8_t)(m >> 8);
+    } else
+        p->lane[LANE_SNARE] = (uint16_t)m;
+}
+/* the lanes' lengths (step 6's spare byte; 0, an older save's: the kick 64 steps, the snare 16) */
+#define PAT_LEN(p) ((p)->st[6][3])
+#define PAT_KICK32 1u                    /* the kick 32 steps (bars 1-2 again and again), else 64 */
+#define PAT_SNARE32 2u                   /* the snare 32 steps (bars 1-2), else 16 (bar 1 every bar) */
 static void pat_step_out(uint32_t k)     /* step k of the pattern playing, to the engine */
 {
     const uint8_t *b = pats.p[set.pattern % NPAT].st[k];
@@ -246,8 +265,11 @@ static void pat_lanes_out(void)
     uint32_t l;
     for (l = 0; l < NLANES; l++)
         lane_now[l] = pats.p[set.pattern % NPAT].lane[l];
-    for (l = 0; l < 4u; l++)
-        kick_now[l] = (uint16_t)kick_bar(&pats.p[set.pattern % NPAT], l);
+    for (l = 0; l < 4u; l++) {
+        const pat_t *p = &pats.p[set.pattern % NPAT];
+        kick_now[l] = (uint16_t)kick_bar(p, PAT_LEN(p) & PAT_KICK32 ? l & 1u : l);
+        snare_now[l] = (uint16_t)snare_bar(p, PAT_LEN(p) & PAT_SNARE32 ? l & 1u : 0u);
+    }
 }
 static void pat_apply(void)              /* the pattern playing, all of it to the engine */
 {
@@ -453,12 +475,39 @@ static volatile uint32_t clkq_due[CLKQ]; /* clock out: when each tick is due (pl
 static volatile uint32_t clkq_w, clkq_r; /* and the 1 kHz tick sends them */
 static volatile uint32_t sync_n16, sync_ms, sync_c;   /* clock in: the outside 16th begun, when, and a count */
 static uint32_t sync_seen;
+#define EXT_FIT 96u                      /* GLOUPI BREAKS: the ticks the tempo is fitted over, four beats */
 static struct {
-    uint32_t ring[24], i;                /* the last 24 ticks' times: a beat */
+    uint32_t ring[EXT_FIT], i;           /* the last ticks' times (ms, as read); ticks in the ring's run */
     uint32_t last, n;                    /* the last tick; ticks since the start (FA) */
-    float bpm;                           /* the tempo they give, smoothed */
+    float bpm, used;                     /* the tempo they give, smoothed; the one the engine has */
     uint8_t run, port;                   /* started (FA / FB, not yet FC); where they come from */
 } ext;
+
+/* GLOUPI BREAKS: the clock's tempo and the newest tick's time, from a straight line through the ring's ticks (least
+ * squares). The ticks are read in the main loop, late now and then by a screen drawn meanwhile (several at once): one
+ * tick's time against another's a beat before swung the tempo by 2 BPM; the line through four beats of them barely
+ * moves. Returns 0 until there are two beats' worth; *at: the newest tick as the line has it (ms, from t) */
+static int ext_fit(uint32_t t, float *bpm, int32_t *at)
+{
+    uint32_t m = ext.i < EXT_FIT ? ext.i : EXT_FIT, k;
+    float sx = 0.0f, sy = 0.0f, sxx = 0.0f, sxy = 0.0f, n, per;
+    if (m < 48u)
+        return 0;
+    for (k = 0; k < m; k++) {            /* x: the tick, oldest 0; y: its time, ms before the newest */
+        float x = (float)k, y = -(float)(t - ext.ring[(ext.i - m + k) % EXT_FIT]);
+        sx += x;
+        sy += y;
+        sxx += x * x;
+        sxy += x * y;
+    }
+    n = (float)m;
+    per = (sxy - sx * sy / n) / (sxx - sx * sx / n);   /* ms a tick */
+    if (per <= 0.0f)
+        return 0;
+    *bpm = 2500.0f / per;                /* 24 ticks a beat: 60000 / (24 per) */
+    *at = (int32_t)(sy / n + per * ((n - 1.0f) - sx / n) + (sy < 0.0f ? -0.5f : 0.5f));
+    return 1;
+}
 
 static uint32_t midi_dest(void)
 {
@@ -504,24 +553,30 @@ void app_loop(void)
         if (!set.clk_in)
             continue;
         if (st == 0xF8u) {
-            uint32_t old = ext.ring[ext.i % 24u];
-            ext.ring[ext.i % 24u] = t;
+            float bpm;
+            int32_t at = 0;
+            if (ext.i && t - ext.last > 250u)   /* the clock gone a while (stopped, unplugged): a fresh fit */
+                ext.i = 0u;
+            ext.ring[ext.i % EXT_FIT] = t;
             ext.i++;
             ext.last = t;
             ext.port = (uint8_t)port;
-            if (ext.i > 24u && t != old) {
-                float bpm = 60000.0f / (float)(t - old);   /* 24 ticks: a beat */
-                if (bpm >= 40.0f && bpm <= 300.0f) {
-                    ext.bpm = ext.bpm > 0.0f ? ext.bpm + (bpm - ext.bpm) * 0.25f : bpm;
+            if (ext_fit(t, &bpm, &at) && bpm >= 40.0f && bpm <= 300.0f) {
+                float d = bpm - ext.bpm;     /* eased; a real change (over 2 BPM) followed at once */
+                ext.bpm = ext.bpm > 0.0f ? ext.bpm + d * (d > 2.0f || d < -2.0f ? 0.5f : 0.05f) : bpm;
+                d = ext.bpm - ext.used;
+                if (d >= 0.05f || d <= -0.05f) {   /* the engine's tempo moved only past a twentieth of a BPM */
+                    ext.used = ext.bpm;
                     brk_tempo(ext.bpm);
                     brk_fx_tempo(ext.bpm);
                     set.tempo_x10 = (uint16_t)(ext.bpm * 10.0f + 0.5f);   /* (shown; not a change to save) */
                 }
-            }
+            } else
+                at = 0;
             if (ext.run) {               /* each beat: where the outside clock is, for the render */
                 if (ext.n % 24u == 0u) {
                     sync_n16 = ext.n / 6u;
-                    sync_ms = t;
+                    sync_ms = t + (uint32_t)at;   /* (the beat's time as the line has it: not a late read's) */
                     sync_c++;
                 }
                 ext.n++;
@@ -604,7 +659,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             uint16_t off[8], ka[8], pa[8];
             uint8_t idx[8], who[8];
             uint32_t k, ne = brk_step_events(off, idx, 8u), nk = 0u, np = 0u;
-            uint32_t ls = lane_now[LANE_SNARE], lh = lane_now[LANE_HAT];
+            uint32_t lh = lane_now[LANE_HAT];
             nclick = 0u;
             for (k = 0; k < ne; k++) {
                 uint32_t s = idx[k] & 15u;   /* the step's place in the bar (idx: in four bars, the kick's) */
@@ -612,7 +667,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                     click_at[nclick] = off[k];
                     click_hi[nclick++] = s == 0u;
                 }
-                uint32_t w = (ls >> s & 1u) << PV_SNARE | (lh >> s & 1u) << PV_HAT;
+                uint32_t w = (snare_now[idx[k] >> 4 & 3u] >> s & 1u) << PV_SNARE | (lh >> s & 1u) << PV_HAT;
                 if (kick_now[idx[k] >> 4 & 3u] >> s & 1u)
                     ka[nk++] = off[k];
                 if (w) {

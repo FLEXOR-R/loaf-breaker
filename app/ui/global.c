@@ -65,7 +65,7 @@ static void global_turn(int i, int32_t d)
         if (!set.clk_in) {               /* the tempo is the knob's again */
             ext.i = ext.n = 0u;
             ext.run = 0u;
-            ext.bpm = 0.0f;
+            ext.bpm = ext.used = 0.0f;
         }
     } else if (i == 1)
         set.clk_out = d > 0;

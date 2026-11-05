@@ -328,7 +328,7 @@ static void input(void)
         if (ui.page != PG_SEQ)
             slices_let_go(keys);
         else
-            ui.seq_lane = (uint8_t)((ui.seq_lane + 1u) % NSEQL);
+            seq_lane_step(1);
         ui.page = PG_SEQ;
         ui.redraw |= RG_FOOT | RG_BLOCKS;
         page_say();
@@ -471,7 +471,7 @@ static void input(void)
                 kick_part_set((kick_part() + (d > 0 ? 1u : KPARTS - 1u)) % KPARTS);
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
             } else if (ui.page == PG_SEQ) {   /* SEQ: the lane its keys edit */
-                ui.seq_lane = (uint8_t)((ui.seq_lane + (d > 0 ? 1u : NSEQL - 1u)) % NSEQL);
+                seq_lane_step(d);
                 page_say();
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
             } else if (ui.page == PG_PERC) {   /* the snare or the hat: SOUND or SHAPE */
@@ -637,7 +637,7 @@ static int32_t tab(int32_t x, const char *s, int on)
 /* the pages' buttons as printed, GLOBAL's parts, SEQ's lanes: for the tabs and the header (page_say) */
 static const char *const BTN[NPAGES] = {"HOME", "HOME", "FX", "GLO", "EDIT", "LFO", "SEQ", "EDIT", "ENV", "ARP"};
 static const char *const GPART[3] = {"MIDI", "PITCH", "BT AUDIO"};
-static const char *const SEQL[NSEQL] = {"1-16", "17-32", "K1", "K2", "K3", "K4", "SN", "HH"};
+static const char *const SEQL[NSEQL] = {"1-16", "17-32", "K1", "K2", "K3", "K4", "S1", "S2", "HH"};
 static void draw_tabs(void)
 {
     uint32_t i;
@@ -661,8 +661,9 @@ static void draw_tabs(void)
         x = tab(x, "LEVELS", !ui.mpage);
         tab(x, "GROOVE", ui.mpage);
     } else if (ui.page == PG_SEQ)
-        for (i = 0; i < NSEQL; i++)
-            x = tab(x, SEQL[i], i == ui.seq_lane);
+        for (i = 0; i < NSEQL; i++)      /* (the lanes the pattern has: K3, K4, S2 at their lengths) */
+            if (sl_active(pat_now(), i))
+                x = tab(x, SEQL[i], i == ui.seq_lane);
     else if (ui.page == PG_FX) {
         for (i = 0; i < BRK_FX_SLOTS; i++)
             x = tab(x, SLOT_NUM[i], i == (ui.fx_focus & 3u));
@@ -808,7 +809,7 @@ static void draw_foot(const brk_status_t *st)
         else if (ui.page == PG_PERC)
             name = PERC_KNOB[ui.pvoice % PERC_VOICES][ui.ppage][i];
         else if (ui.page == PG_SEQ && ui.seq_lane >= SL_KICK) {
-            static const char *const KN_LANE[4] = {"FILL", "ROTATE", "CLR / 4X4", "COPY"};
+            static const char *const KN_LANE[4] = {"FILL", "ROTATE", "LENGTH", "COPY"};
             name = KN_LANE[i];
         }
         cv_text(4 + (int32_t)i * 60, 18, &FONT_T, name, ui.page == PG_FX
