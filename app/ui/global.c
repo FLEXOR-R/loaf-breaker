@@ -8,8 +8,9 @@ static const char *const MIDI_TO_NAME[3] = {"USB+BT", "USB", "BT"};
 static void global_value(int i, char *t)
 {
     t[0] = 0;
-    if (ui.gpage == 2u) {
-        ch_bta_value(i, t);
+    if (ui.gpage == 2u) {                /* GLOUPI BREAKS: MORE (in place of Bluetooth audio): K1 the skin */
+        if (i == 0)
+            text_cat(t, SKIN_NAME[set.skin % NSKINS]);
         return;
     }
     if (ui.gpage) {                      /* the pitch: speed or keep length, the grains */
@@ -36,8 +37,13 @@ static void global_turn(int i, int32_t d)
 {
     static const char *const NAME[4] = {"CLOCK IN", "CLOCK OUT", "BLUETOOTH", "MIDI TO"};
     char t[16];
-    if (ui.gpage == 2u) {
-        ch_bta_turn(i, d);
+    if (ui.gpage == 2u) {                /* MORE: K1 the skin, the whole screen in its colours at once */
+        if (i == 0) {
+            set.skin = (uint8_t)((set.skin + (d > 0 ? 1u : NSKINS - 1u)) % NSKINS);
+            changed();                   /* (settings_apply: skin_apply) */
+            app_say("SKIN", SKIN_NAME[set.skin % NSKINS]);
+            ui.redraw = RG_ALL;
+        }
         return;
     }
     if (ui.gpage) {
@@ -99,8 +105,26 @@ static void draw_global(const brk_status_t *st)
     char t[32], v[16];
     uint32_t p;
     int bs = plat_ble_state();
-    if (ui.gpage == 2u) {
-        draw_bta();
+    if (ui.gpage == 2u) {                /* MORE: the skin, and every skin's colours to pick from */
+        uint32_t s;
+        cv_begin(240, 52, C_BLACK);
+        cv_text(6, 2, &FONT_T, "SKIN", C_GRAY);
+        cv_text(96, 2, &FONT_T, SKIN_NAME[set.skin % NSKINS], C_HI);
+        cv_text(96, 16, &FONT_XS, "K1: THE SCREEN'S COLOURS", C_DIM);
+        for (s = 0; s < NSKINS; s++) {   /* a swatch each: its value colour on its ground, the one on outlined */
+            int32_t x = 6 + (int32_t)s * 29;
+            const uint8_t (*c)[3] = SKIN_RGB[s];
+            if (s == set.skin % NSKINS)
+                cv_rect(x - 2, 30, 27, 20, C_WHITE);
+            cv_rect(x, 32, 23, 16, skin_rgb(c[5], 100u));
+            cv_rect(x + 3, 35, 17, 5, skin_rgb(c[4], 100u));
+            cv_rect(x + 3, 42, 17, 3, skin_rgb(c[3], 100u));
+        }
+        cv_blit(0, 88);
+        cv_begin(240, 52, C_BLACK);
+        cv_text(6, 2, &FONT_T, "MORE SETTINGS", C_GRAY);
+        cv_text(96, 2, &FONT_T, "K2-K4: TO COME", C_DIM);
+        cv_blit(0, 140);
         return;
     }
     if (ui.gpage) {                      /* the pitch: what the mode does, the pitch now */

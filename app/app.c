@@ -75,6 +75,9 @@ typedef struct {
     brk_mbc_t mbc[BRK_FX_SLOTS];
     /* (appended 4 Nov 2026: every slot's extras, its MORE and MOD pages, PRD A-49b; they move with their slot) */
     brk_fxx_t fxx[BRK_FX_SLOTS];
+    /* (appended: GLOUPI BREAKS' skin, GLOBAL's MORE page; 0 RED, an older save's too) */
+    uint8_t skin;
+    uint8_t rsv3[3];
 } settings_t;
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");
@@ -129,6 +132,7 @@ static const char *const SNAP_NAME[SNAPS] = {"OFF", "1/8 SLICE", "1/4 SLICE", "1
 static const char *const SNAP_SHORT[SNAPS] = {"OFF", "1/8 SL", "1/4 SL", "1/2 SL", "1 SL", "2 SL", "4 SL"};
 static uint32_t snap_index(void) { return set.snap && set.snap <= SNAPS ? set.snap - 1u : 4u; }
 
+static void skin_apply(uint32_t s);    /* (ui/common.c) */
 static void settings_apply(void)
 {
     brk_tempo((float)set.tempo_x10 * 0.1f);
@@ -150,6 +154,7 @@ static void settings_apply(void)
     brk_snap(SNAP_SL[snap_index()]);
     kick_set(&set.kick);
     perc_set(&set.perc);
+    skin_apply(set.skin);
     {
         uint32_t k;
         for (k = 0; k < BRK_KEYS; k++) {
@@ -783,3 +788,5 @@ static void demo_frame(uint32_t now) { (void)now; }
 static void demo_leds(uint32_t now) { (void)now; }
 #endif
 #include "ui/main.c"
+#undef C_WHITE                           /* (gfx.c's white again after the UI: skins, common.c) */
+#define C_WHITE 0xFFFFu

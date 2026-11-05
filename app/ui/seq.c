@@ -352,11 +352,17 @@ static void draw_lanes(const brk_status_t *st, uint32_t sel)
         int live = sl_active(pat_now(), l);
         if (l == sel)                    /* (the name of the lane the keys edit only: the rows are too close) */
             cv_text(0, y - 2, &FONT_T, LABEL[l - SL_KICK], C_HI);
+        if (!live) {                     /* a bar the length leaves out: near black, its hits barely there, struck
+                                          * through */
+            for (i = 0; i < 16u; i++)
+                cv_rect(14 + (int32_t)i * 14, y, 12, 6, m >> i & 1u ? RGB(40, 40, 46) : RGB(12, 12, 14));
+            cv_rect(14, y + 2, 222, 2, RGB(70, 70, 78));
+            continue;
+        }
         for (i = 0; i < 16u; i++) {
             int on = m >> i & 1u, now = at == (int32_t)i;
             int32_t x = 14 + (int32_t)i * 14;
-            uint16_t c = now ? C_WHITE : on ? (!live ? C_DIM : l == sel ? C_BLOCK_HI : C_AMB)
-                       : (i & 3u) || !live ? C_BLOCK : C_LINE;
+            uint16_t c = now ? C_WHITE : on ? (l == sel ? C_BLOCK_HI : C_AMB) : (i & 3u) ? C_BLOCK : C_LINE;
             cv_rect(x, y, 12, 6, c);
             if (now)
                 cv_rect(x + 2, y + 2, 8, 2, on ? C_BLOCK_HI : C_BLOCK);

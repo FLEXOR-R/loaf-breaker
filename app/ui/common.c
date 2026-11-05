@@ -6,6 +6,45 @@
 #define brk_exp2f brk_exp2f_c
 #define brk_log2f brk_log2f_c
 
+/* ---------------------------------------------------------------- skins --- */
+/* GLOUPI BREAKS: the screen's colours, picked on GLOBAL's MORE page (K1) and saved (set.skin). fm1-base's palette
+ * (gfx.c pal[]: rules, dim, labels, secondary, values) and the app's own (a block's ground, the block sounding, the
+ * white, TAP TEMPO's unlit segments and metronome) from one table */
+#define NSKINS 8u
+static const char *const SKIN_NAME[NSKINS] = {"RED", "AMBER", "ICE BLUE", "PIP-BOY", "VIOLET", "PINK", "MINT",
+                                              "WHITE"};
+/* each: line, dim, gray, mid (secondary), hi (values), block, white */
+static const uint8_t SKIN_RGB[NSKINS][7][3] = {
+    {{34, 34, 40}, {74, 74, 82}, {150, 150, 158}, {232, 76, 60}, {255, 132, 112}, {24, 24, 30}, {255, 255, 255}},
+    {{34, 34, 40}, {74, 74, 82}, {150, 150, 158}, {232, 136, 30}, {255, 184, 70}, {24, 24, 30}, {255, 255, 255}},
+    {{34, 34, 40}, {74, 74, 82}, {150, 150, 158}, {60, 180, 235}, {150, 225, 255}, {24, 24, 30}, {255, 255, 255}},
+    {{14, 44, 22}, {30, 100, 54}, {80, 180, 110}, {40, 220, 100}, {140, 255, 170}, {8, 28, 14}, {200, 255, 210}},
+    {{34, 32, 44}, {76, 72, 90}, {152, 148, 166}, {150, 100, 240}, {196, 166, 255}, {24, 22, 34}, {255, 255, 255}},
+    {{40, 32, 38}, {84, 72, 80}, {160, 148, 156}, {236, 72, 150}, {255, 146, 200}, {30, 22, 28}, {255, 255, 255}},
+    {{30, 40, 38}, {68, 84, 80}, {146, 162, 158}, {40, 200, 160}, {130, 240, 205}, {20, 30, 28}, {255, 255, 255}},
+    {{34, 34, 40}, {74, 74, 82}, {150, 150, 158}, {196, 196, 202}, {236, 236, 240}, {24, 24, 30}, {255, 255, 255}}};
+static uint16_t skin_block = RGB(24, 24, 30), skin_hi = RGB(255, 132, 112), skin_white = 0xFFFFu;
+static uint16_t skin_off = RGB(48, 16, 14), skin_body = RGB(32, 20, 20), skin_bob = RGB(150, 50, 40);
+static uint16_t skin_rgb(const uint8_t *c, uint32_t pct)   /* a colour at pct % of its brightness */
+{
+    return RGB(c[0] * pct / 100u, c[1] * pct / 100u, c[2] * pct / 100u);
+}
+static void skin_apply(uint32_t s)
+{
+    const uint8_t (*c)[3] = SKIN_RGB[s % NSKINS];
+    uint32_t k;
+    for (k = 0; k < 5u; k++)             /* fm1-base's five (C_LINE .. C_HI) */
+        pal[k] = skin_rgb(c[k], 100u);
+    skin_block = skin_rgb(c[5], 100u);
+    skin_hi = skin_rgb(c[4], 100u);
+    skin_white = skin_rgb(c[6], 100u);
+    skin_off = skin_rgb(c[3], 20u);      /* TAP TEMPO: an unlit segment, the metronome's body, its bob between beats */
+    skin_body = skin_rgb(c[3], 14u);
+    skin_bob = skin_rgb(c[3], 65u);
+}
+#undef C_WHITE                           /* (the app's white is the skin's: put back after the UI, app.c's end) */
+#define C_WHITE skin_white
+
 enum { PG_HOME, PG_GEN, PG_FX, PG_GLOBAL, PG_KICK, PG_MIX, PG_SEQ, PG_PERC, PG_TAP, PG_OVL, NPAGES };
 static const char *const PAD_NAME[BRK_NPADS] = {"R8", "R16", "R32", "REV", "SUB", "HLF", "STP", "GAT", "RND",
                                                 "FLT", "DUB"};
@@ -227,8 +266,8 @@ static void times_text(float v, char *t) /* 0.5 -> "x0.50" */
 }
 
 /* ------------------------------------------------------------- start screen --- */
-#define C_BLOCK RGB(24, 24, 30)          /* a slice block's ground */
-#define C_BLOCK_HI RGB(255, 132, 112)     /* the block sounding */
+#define C_BLOCK skin_block              /* a slice block's ground (the skin's) */
+#define C_BLOCK_HI skin_hi                /* the block sounding */
 
 /* big text: a font at twice its size, each of its pixels a 2 x 2 block (blended as cv_text blends). It stands in for
  * a 31-pixel font: that one costs 20 KB of flash, which Bluetooth audio needed */

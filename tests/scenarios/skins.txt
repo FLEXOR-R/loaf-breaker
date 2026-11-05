@@ -1,0 +1,58 @@
+# GLOUPI BREAKS: GLOBAL's MORE page (third GLO press) and its skins, K1 through all eight: each skin's slicer
+#   app/build/host/choppah_host tests/scenarios/skins.txt app/build/scenarios
+wait 2600
+tapkey w0
+wait 300
+tap GLO
+tap GLO
+tap GLO
+wait 300
+shot s_more.png
+turn K1 1 10
+tap HOME
+wait 300
+shot s_1.png
+tap GLO
+tap GLO
+tap GLO
+turn K1 1 10
+tap HOME
+wait 300
+shot s_2.png
+tap GLO
+tap GLO
+tap GLO
+turn K1 1 10
+wait 300
+shot s_3more.png
+tap HOME
+wait 300
+shot s_3.png
+tap GLO
+tap GLO
+tap GLO
+turn K1 1 10
+tap HOME
+wait 300
+shot s_4.png
+tap GLO
+tap GLO
+tap GLO
+turn K1 1 10
+tap HOME
+wait 300
+shot s_5.png
+tap GLO
+tap GLO
+tap GLO
+turn K1 1 10
+tap HOME
+wait 300
+shot s_6.png
+tap GLO
+tap GLO
+tap GLO
+turn K1 1 10
+tap HOME
+wait 300
+shot s_7.png

@@ -645,7 +645,7 @@ static int32_t tab(int32_t x, const char *s, int on)
 }
 /* the pages' buttons as printed, GLOBAL's parts, SEQ's lanes: for the tabs and the header (page_say) */
 static const char *const BTN[NPAGES] = {"HOME", "HOME", "FX", "GLO", "EDIT", "LFO", "SEQ", "EDIT", "ENV", "ARP"};
-static const char *const GPART[3] = {"MIDI", "PITCH", "BT AUDIO"};
+static const char *const GPART[3] = {"MIDI", "PITCH", "MORE"};
 static const char *const SEQL[NSEQL] = {"1-16", "17-32", "K1", "K2", "K3", "K4", "S1", "S2", "HH"};
 static void draw_tabs(void)
 {
@@ -785,10 +785,8 @@ static void draw_foot(const brk_status_t *st)
     for (i = 0; i < 4u; i++) {
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "RESET ALL"};
         static const char *const KN_GROOVE[4] = {"SWING", "DRUMS", "", ""};
-        static const char *const KN_BTA[4] = {"BT AUDIO", "DEVICE", "SCAN", "CONNECT"};
-        int bst = ui.page == PG_GLOBAL && ui.gpage == 2u && ch_bta_state() == PLAT_BTA_STREAMING;
-        const char *name = ui.page == PG_GLOBAL && ui.gpage == 2u ? (bst && i == 2 ? "TEST L/R" : bst && i == 1
-                           ? "CODEC" : KN_BTA[i]) : ui.page == PG_GLOBAL && ui.gpage
+        static const char *const KN_MORE[4] = {"SKIN", "", "", ""};   /* GLOUPI BREAKS: GLOBAL's MORE */
+        const char *name = ui.page == PG_GLOBAL && ui.gpage == 2u ? KN_MORE[i] : ui.page == PG_GLOBAL && ui.gpage
                            ? KN_PITCH[i] : ui.page == PG_MIX && ui.mpage
                            ? KN_GROOVE[i] : KN[ui.page][i];
         if (ui.shown >= 100) {           /* a white key held: its loop, or its slice's effect */
