@@ -21,7 +21,11 @@ static void global_value(int i, char *t)
         } else if (i == 2)
             text_cat(t, SNAP_SHORT[snap_index()]);
         else
-            text_cat(t, ui.reset_t && plat_ms() - ui.reset_t < 3000u ? "AGAIN!" : "TURN 2X");
+            if (ui.reset_t && plat_ms() - ui.reset_t < 3000u) {   /* GLOUPI BREAKS: 15 turns, the count so far */
+                int_text((int32_t)ui.reset_n, t);
+                text_cat(t, " / " CH_RESET_TEXT);
+            } else
+                text_cat(t, "TURN " CH_RESET_TEXT "X");
         return;
     }
     text_cat(t, i == 0 ? (set.clk_in ? "FOLLOW" : "OFF") : i == 1 ? (set.clk_out ? "ON" : "OFF")
@@ -43,13 +47,19 @@ static void global_turn(int i, int32_t d)
             set.grain_ms = (uint8_t)clamp((int32_t)(set.grain_ms ? set.grain_ms : 30u) + d * 5, 10, 80);
         else if (i == 2)
             set.snap = (uint8_t)(clamp((int32_t)snap_index() + (d > 0 ? 1 : -1), 0, SNAPS - 1) + 1);
-        else {                           /* RESET ALL: a turn asks, a second within 3 s clears */
-            if (ui.reset_t && plat_ms() - ui.reset_t < 3000u) {
+        else {                           /* RESET ALL: GLOUPI BREAKS, 15 turns of K4, each within 3 s of the last
+                                          * (CHOPPAH: 2); a pause starts the count again */
+            char n[12];
+            ui.reset_n = (uint8_t)(ui.reset_t && plat_ms() - ui.reset_t < 3000u ? ui.reset_n + 1u : 1u);
+            ui.reset_t = plat_ms() | 1u;
+            if (ui.reset_n >= CH_RESET_TURNS) {
                 ui.reset_t = 0u;
+                ui.reset_n = 0u;
                 reset_all();
             } else {
-                ui.reset_t = plat_ms() | 1u;
-                app_say("RESET ALL?", "TURN K4 AGAIN");
+                int_text((int32_t)ui.reset_n, n);
+                text_cat(n, " / " CH_RESET_TEXT " TURNS");
+                app_say("RESET ALL?", n);
             }
             foot_dirty = 1u;
             return;

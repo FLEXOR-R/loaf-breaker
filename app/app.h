@@ -14,6 +14,8 @@
                                           * stay out of the flash (28 KB) */
 #define APP_SPLASH                       /* the first screen at power-on is the app's (app_splash) */
 void app_splash(void);
+#define CH_RESET_TURNS 15u              /* GLOUPI BREAKS: RESET ALL wants K4 turned 15 times (CHOPPAH: 2) */
+#define CH_RESET_TEXT "15"
 #define CH_TAGLINE 0                     /* GLOUPI BREAKS: no "AMEN CHOPPER  FOR THE FM-1" under the name */
 #define CH_LOGO 1                        /* GLOUPI BREAKS: its picture on the splash (logo_data.h) */
 #define CH_DEMO 0                        /* GLOUPI BREAKS: no demo (CHOPPAH: 1, ui/demo.c) */

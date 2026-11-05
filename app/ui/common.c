@@ -54,7 +54,8 @@ static struct {
     uint8_t fx_page;                     /* the focused slot's part: MAIN, MORE, MOD (an MB COMP: MBP_*) */
     float mb_hold[3];                    /* its bands' reduction peaks held (dB), and since when */
     uint32_t mb_hold_t[3];
-    uint32_t reset_t;                    /* GLOBAL's RESET ALL: when it was first turned (it asks twice) */
+    uint32_t reset_t;                    /* GLOBAL's RESET ALL: when it was last turned */
+    uint8_t reset_n;                     /* GLOUPI BREAKS: its turns so far, each within 3 s of the last (it wants 15) */
     uint32_t mix_drawn;                  /* its faders' meters: when last drawn */
     int16_t meter_x;                     /* the header's level meter: where (0: not shown now, a message is) */
     uint32_t meter_drawn;
