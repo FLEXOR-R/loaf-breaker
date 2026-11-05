@@ -76,6 +76,7 @@ jobs:
           body: |
             GLOUPI BREAKS: CHOPPAH in red, "GLOUPI BREAKS" at power-on, version CURRENT CUSTOM, and nine breaks:
             THINK · NUSKOOL · JUNGLE · LO-FI · APACHE · CHOPPER · DRUMMER · THE WORM · HOT PANTS.
+            No demo and no Bluetooth (MIDI or audio): MIDI clock in over USB or the TRS jack, clock out over USB.
             Install gloupi-breaks.fwsc with fm1-base's web installer (Chrome or Edge, the FM-1 on USB).
           prerelease: true
           make_latest: false

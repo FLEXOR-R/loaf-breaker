@@ -853,8 +853,10 @@ void app_frame(void)
             demo_frame(now);
             return;
         }
-    } else if (!ui.intro && !ui.lobo_t &&
-               (int32_t)(now - ui.idle_t) > (int32_t)(playing_now() ? DEMO_IDLE_PLAY_MS : DEMO_IDLE_MS)) {
+    }
+#if CH_DEMO
+    else if (!ui.intro && !ui.lobo_t &&
+             (int32_t)(now - ui.idle_t) > (int32_t)(playing_now() ? DEMO_IDLE_PLAY_MS : DEMO_IDLE_MS)) {
         slices_let_go(ui.keys);
         ui.help = 0u;
         demo_start(now);
@@ -862,6 +864,7 @@ void app_frame(void)
         demo_frame(now);
         return;
     }
+#endif
     leds();
     if (ui.intro) {                      /* any key or button opens the slicer (PLAY also starts the break) */
         if (ui.touched || now - ui.intro_t0 > 16u * INTRO_STEP + INTRO_HOLD)

@@ -675,5 +675,13 @@ void app_panic(void)
 #include "ui/perc.c"
 #include "ui/mixer.c"
 #include "ui/screen.c"
+#if CH_DEMO
 #include "ui/demo.c"
+#else                                    /* GLOUPI BREAKS: no demo (ui/demo.c left out): what main.c calls of it, empty */
+static const struct { uint8_t on; } demo = {0u};
+static void demo_start(uint32_t now) { (void)now; }
+static void demo_end(void) {}
+static void demo_frame(uint32_t now) { (void)now; }
+static void demo_leds(uint32_t now) { (void)now; }
+#endif
 #include "ui/main.c"
