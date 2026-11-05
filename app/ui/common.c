@@ -10,6 +10,9 @@ enum { PG_HOME, PG_GEN, PG_FX, PG_GLOBAL, PG_KICK, PG_MIX, PG_SEQ, PG_PERC, PG_T
 static const char *const PAD_NAME[BRK_NPADS] = {"R8", "R16", "R32", "REV", "FRZ", "HLF", "STP", "GAT", "RND",
                                                 "FLT", "DUB"};
 static const uint8_t WK[16] = PLAT_WHITE_KEYS, BK[11] = PLAT_BLACK_KEYS;
+/* GLOUPI BREAKS: the black key (0..10, left to right) of each pad (PAD_*): DUB on the fifth key, FREEZE's in CHOPPAH,
+ * and FREEZE on the last, DUB's. BK[PAD_KEY[pad]] is the pad's key; the strip of names follows the keys */
+static const uint8_t PAD_KEY[BRK_NPADS] = {0, 1, 2, 3, 10, 5, 6, 7, 8, 9, 4};
 
 #define TAPS 8u                          /* tap tempo: the last eight taps (seven intervals) average */
 static struct {

@@ -1,0 +1,26 @@
+# GLOUPI BREAKS: the kick over two bars. On SEQ, ALGORITHM to KICK 1-16 (K1): four on the floor; to KICK 17-32 (K2):
+# another bar; then playing, each bar's kick lit in turn
+#   app/build/host/choppah_host tests/scenarios/kick32.txt app/build/scenarios
+wait 2600
+tap SEQ
+wait 300
+turn ALGO 2 10
+tapkey w0
+tapkey w4
+tapkey w8
+tapkey w12
+wait 200
+shot k_bar1.png
+turn ALGO 1 10
+tapkey w0
+tapkey w3
+tapkey w6
+tapkey w10
+tapkey w14
+wait 200
+shot k_bar2.png
+tap PLAY
+wait 1200
+shot k_play_a.png
+wait 1500
+shot k_play_b.png

@@ -121,7 +121,8 @@ typedef struct {
     float key_phase;                     /* how far into this repeat, 0..1 */
     uint16_t key_n;                      /* repeats since the key went down */
     uint8_t key_rev;                     /* this repeat plays backwards */
-    int8_t bar16;                        /* the step's place in the bar, 0..15 (as brk_step_events), -1 none yet */
+    int8_t bar16;                        /* the step's place in the bar, 0..15, -1 none yet */
+    int8_t bar32;                        /* its place in two bars, 0..31 (as brk_step_events), -1 none yet */
 } brk_status_t;
 
 void brk_init(void);
@@ -180,8 +181,8 @@ void brk_randomize(void);                /* writes random slices into the patter
 uint32_t brk_clock_ticks(uint16_t *off, uint32_t max);
 void brk_sync(uint32_t n16, float age);
 /* the steps begun in the last render (called after brk_render, in its context): their sample offsets, and each one's
- * place in the bar (0..15, counted from the reset like the outside clock's, whatever the loop's length). The kick's
- * lane (kick.h) plays from these. */
+ * place in two bars (0..31: & 15 its place in the bar; counted from the reset like the outside clock's, whatever the
+ * loop's length). The drums' lanes play from these (the kick's over two bars). */
 uint32_t brk_step_events(uint16_t *off, uint8_t *idx, uint32_t max);
 
 /* audio interrupt: n mono frames into out[] (-1..1 floats). The FX and the output stage are the caller's

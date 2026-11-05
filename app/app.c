@@ -173,13 +173,14 @@ static void changed(void)
  * loop */
 #define NPAT 16u
 #define PAT_STEPS 32u
-#define PAT_MAGIC 0x31544150u            /* "PAT1" */
+#define PAT_MAGIC 0x32544150u            /* "PAT2" (GLOUPI BREAKS: the kick over two bars) */
+#define PAT1_MAGIC 0x31544150u           /* "PAT1": the same, the kick one bar; loaded with its bar twice */
 enum { LANE_KICK, LANE_SNARE, LANE_HAT, NLANES };
 typedef struct {
     uint8_t st[PAT_STEPS][4];            /* per step: slice + 2 (0 off, 1 follow the loop, 2.. slice 1..), pitch
                                           * (int8), flags (bit 0 reverse, bits 1-2 ratchet - 1), 0 */
-    uint16_t lane[NLANES];               /* bit n: the drum hits on step n of each bar */
-    uint16_t rsv;
+    uint16_t lane[NLANES];               /* bit n: the drum hits on step n of each bar (the kick: of its first) */
+    uint16_t kick2;                      /* GLOUPI BREAKS: the kick's second bar (steps 17-32); was PAT1's rsv */
 } pat_t;                                 /* 136 bytes */
 static struct {
     uint32_t magic;
@@ -187,6 +188,7 @@ static struct {
 } pats;
 _Static_assert(sizeof pats <= 3840u, "a store object holds 3840 bytes");
 static volatile uint16_t lane_now[NLANES];   /* the pattern playing's lanes, for the render */
+static volatile uint16_t kick2_now;      /* and its kick's second bar */
 static int8_t pat_next = -1;             /* a pattern picked while playing: it starts at the loop's end */
 
 static void pat_defaults(void)
@@ -200,7 +202,7 @@ static void pat_defaults(void)
             p->st[k][1] = p->st[k][2] = p->st[k][3] = 0u;
         }
         p->lane[LANE_KICK] = p->lane[LANE_SNARE] = p->lane[LANE_HAT] = 0u;   /* the drums start empty */
-        p->rsv = 0u;
+        p->kick2 = 0u;
     }
 }
 static void pat_step_out(uint32_t k)     /* step k of the pattern playing, to the engine */
@@ -221,6 +223,7 @@ static void pat_lanes_out(void)
     uint32_t l;
     for (l = 0; l < NLANES; l++)
         lane_now[l] = pats.p[set.pattern % NPAT].lane[l];
+    kick2_now = pats.p[set.pattern % NPAT].kick2;
 }
 static void pat_apply(void)              /* the pattern playing, all of it to the engine */
 {
@@ -394,8 +397,15 @@ void app_init(void)
     }
     if (set.brk >= n_breaks)
         set.brk = 0u;
-    if (plat_store_load(OBJ_PAT, &pats, sizeof pats) != (int)sizeof pats || pats.magic != PAT_MAGIC)
+    if (plat_store_load(OBJ_PAT, &pats, sizeof pats) != (int)sizeof pats ||
+        (pats.magic != PAT_MAGIC && pats.magic != PAT1_MAGIC))
         pat_defaults();
+    else if (pats.magic == PAT1_MAGIC) { /* a CHOPPAH save: each kick lane played every bar, so twice now */
+        uint32_t i;
+        for (i = 0; i < NPAT; i++)
+            pats.p[i].kick2 = pats.p[i].lane[LANE_KICK];
+        pats.magic = PAT_MAGIC;
+    }
     brk_set_break(break_load(set.brk));  /* boot: the audio isn't running yet */
     settings_apply();
     pat_apply();
@@ -565,15 +575,17 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             uint16_t off[8], ka[8], pa[8];
             uint8_t idx[8], who[8];
             uint32_t k, ne = brk_step_events(off, idx, 8u), nk = 0u, np = 0u;
-            uint32_t lk = lane_now[LANE_KICK], ls = lane_now[LANE_SNARE], lh = lane_now[LANE_HAT];
+            uint32_t lk = lane_now[LANE_KICK] | (uint32_t)kick2_now << 16, ls = lane_now[LANE_SNARE],
+                     lh = lane_now[LANE_HAT];
             nclick = 0u;
             for (k = 0; k < ne; k++) {
-                if (set.click && !(idx[k] & 3u) && nclick < 4u) {   /* the metronome: each beat, the bar's first higher */
+                uint32_t s = idx[k] & 15u;   /* the step's place in the bar (idx: in two bars, the kick's) */
+                if (set.click && !(s & 3u) && nclick < 4u) {   /* the metronome: each beat, the bar's first higher */
                     click_at[nclick] = off[k];
-                    click_hi[nclick++] = idx[k] == 0u;
+                    click_hi[nclick++] = s == 0u;
                 }
-                uint32_t w = (ls >> idx[k] & 1u) << PV_SNARE | (lh >> idx[k] & 1u) << PV_HAT;
-                if (lk >> idx[k] & 1u)
+                uint32_t w = (ls >> s & 1u) << PV_SNARE | (lh >> s & 1u) << PV_HAT;
+                if (lk >> (idx[k] & 31u) & 1u)
                     ka[nk++] = off[k];
                 if (w) {
                     pa[np] = off[k];

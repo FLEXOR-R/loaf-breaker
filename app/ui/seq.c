@@ -2,9 +2,20 @@
 /* CHOPPAH: the pattern sequencer (SEQ), the drum lanes and REC. (Part of app.c's unity: included there in order.) */
 
 /* ---- the pattern sequencer (SEQ) and the drum lanes: the white keys on the SEQ, KICK and SNARE / HAT pages, REC */
-enum { SL_BREAK1, SL_BREAK2, SL_KICK, SL_SNARE, SL_HAT, NSEQL };
-static const char *const SEQ_LANE_NAME[NSEQL] = {"STEPS 1-16", "STEPS 17-32", "KICK", "SNARE", "HAT"};
+enum { SL_BREAK1, SL_BREAK2, SL_KICK, SL_KICK2, SL_SNARE, SL_HAT, NSEQL };   /* GLOUPI BREAKS: the kick over two bars */
+static const char *const SEQ_LANE_NAME[NSEQL] = {"STEPS 1-16", "STEPS 17-32", "KICK 1-16", "KICK 17-32", "SNARE", "HAT"};
 static const char *const LANE_NAME[NLANES] = {"KICK", "SNARE", "HAT"};
+static uint16_t *sl_bits(pat_t *p, uint32_t sl)   /* the 16 steps a drum lane of SEQ (SL_KICK..SL_HAT) edits */
+{
+    return sl == SL_KICK2 ? &p->kick2 : &p->lane[sl <= SL_KICK ? LANE_KICK : sl - SL_KICK2];
+}
+static uint32_t sl_drum(uint32_t sl) { return sl <= SL_KICK2 ? LANE_KICK : sl - SL_KICK2; }   /* its drum, LANE_* */
+static int sl_now(const brk_status_t *st, uint32_t sl)   /* the step playing in that lane's 16, -1 another bar or none */
+{
+    if (!st->playing || st->bar32 < 0 || ((sl == SL_KICK || sl == SL_KICK2) && (st->bar32 >= 16) != (sl == SL_KICK2)))
+        return -1;
+    return st->bar32 & 15;
+}
 static void seq_value(int i, char *t);
 enum { UNDO_RANDOM = 1, UNDO_CLEAR, UNDO_LANE };   /* (UNDO_LANE + the knob) */
 static void undo_mark(uint32_t what);
@@ -55,12 +66,12 @@ static uint32_t pat_len(void)            /* the steps the engine plays of a patt
     uint32_t n = (b ? b->bars : 2u) * BRK_STEPS_PER_BAR;
     return n < PAT_STEPS ? n : PAT_STEPS;
 }
-static void lane_toggle(uint32_t l, uint32_t i)
+static void lane_toggle(uint32_t sl, uint32_t i)   /* sl: SL_KICK..SL_HAT */
 {
-    pat_t *p = pat_now();
-    p->lane[l] ^= (uint16_t)(1u << i);
+    uint16_t *m = sl_bits(pat_now(), sl);
+    *m ^= (uint16_t)(1u << i);
     pat_lanes_out();
-    say_int(p->lane[l] >> i & 1u ? LANE_NAME[l] : "OFF", (int32_t)i + 1, "");
+    say_int(*m >> i & 1u ? LANE_NAME[sl_drum(sl)] : "OFF", (int32_t)i + 1 + (sl == SL_KICK2 ? 16 : 0), "");
     ui.redraw |= RG_BLOCKS | RG_FOOT;
     set_dirty = 1u;
 }
@@ -101,7 +112,14 @@ static void midi_drum(uint32_t l)        /* a drum note: the hit now, and with R
     else
         perc_hit(l == LANE_SNARE ? PV_SNARE : PV_HAT);
     if (ui.rec && playing_now()) {
-        pat_now()->lane[l] |= (uint16_t)(1u << rec_at(16u, 1));
+        brk_status_t st;
+        uint32_t k;
+        brk_status(&st);                 /* (the kick: into the bar playing, of two) */
+        k = ((uint32_t)(st.bar32 < 0 ? 0 : st.bar32) + (st.phase > 0.5f ? 1u : 0u)) % 32u;
+        if (l == LANE_KICK && k >= 16u)
+            pat_now()->kick2 |= (uint16_t)(1u << (k - 16u));
+        else
+            pat_now()->lane[l] |= (uint16_t)(1u << (k & 15u));
         pat_lanes_out();
         set_dirty = 1u;
     }
@@ -111,7 +129,7 @@ static void midi_drum(uint32_t l)        /* a drum note: the hit now, and with R
 static void lane_knob(int i, int32_t d)
 {
     static const char *const NAME[4] = {"FILL", "ROTATE", "LANE", "COPY"};
-    uint32_t l = ui.seq_lane - SL_KICK, m = pat_now()->lane[l], n = 0u, k;
+    uint32_t m = *sl_bits(pat_now(), ui.seq_lane), n = 0u, k;
     char t[16];
     if (i != 1)
         undo_mark(UNDO_LANE + (uint32_t)i);
@@ -127,8 +145,8 @@ static void lane_knob(int i, int32_t d)
     else if (i == 2)
         m = d > 0 ? 0x1111u : 0u;
     else
-        m = pats.p[(set.pattern + NPAT - 1u) % NPAT].lane[l];
-    pat_now()->lane[l] = (uint16_t)m;
+        m = *sl_bits(&pats.p[(set.pattern + NPAT - 1u) % NPAT], ui.seq_lane);
+    *sl_bits(pat_now(), ui.seq_lane) = (uint16_t)m;
     pat_lanes_out();
     set_dirty = 1u;
     seq_value(i, t);
@@ -139,7 +157,7 @@ static void seq_key(uint32_t i)          /* a white key on SEQ: the step to edit
 {
     char t[8];
     if (ui.seq_lane >= SL_KICK) {
-        lane_toggle(ui.seq_lane - SL_KICK, i);
+        lane_toggle(ui.seq_lane, i);
         return;
     }
     ui.seq_step = (uint8_t)(ui.seq_lane * 16u + i);
@@ -159,9 +177,9 @@ static void seq_clear(int lane_only)     /* SEL + REC: on SEQ the lane, else the
                 p->st[k][1] = p->st[k][2] = 0u;
             }
     if (!lane_only)
-        p->lane[LANE_KICK] = p->lane[LANE_SNARE] = p->lane[LANE_HAT] = 0u;
+        p->lane[LANE_KICK] = p->kick2 = p->lane[LANE_SNARE] = p->lane[LANE_HAT] = 0u;
     else if (ui.seq_lane >= SL_KICK)
-        p->lane[ui.seq_lane - SL_KICK] = 0u;
+        *sl_bits(p, ui.seq_lane) = 0u;
     pat_apply();
     set_dirty = 1u;
     app_say("CLEARED", lane_only ? SEQ_LANE_NAME[ui.seq_lane] : "PATTERN");
@@ -172,7 +190,7 @@ static void seq_value(int i, char *t)    /* the step edited: SLICE, PITCH, HITS,
     const uint8_t *b = pat_now()->st[ui.seq_step % PAT_STEPS];
     t[0] = 0;
     if (ui.seq_lane >= SL_KICK) {        /* a drum lane: FILL (its hits), ROTATE, CLEAR / 4X4, COPY (from) */
-        uint32_t m = pat_now()->lane[ui.seq_lane - SL_KICK], n = 0u;
+        uint32_t m = *sl_bits(pat_now(), ui.seq_lane), n = 0u;
         while (m) {
             n += m & 1u;
             m >>= 1;
@@ -247,11 +265,12 @@ static uint32_t keys_lit(const brk_status_t *st)   /* the white keys' lights on 
         return st->playing && st->bar16 >= 0 && !(st->bar16 & 3) ? 0xFFFFu : 0u;
     if (ui.page == PG_OVL)               /* ARP: the overlays on */
         return ovl_held | ovl_latched;
-    uint32_t m = 0u, l = ui.seq_lane >= SL_KICK ? ui.seq_lane - SL_KICK : NLANES, i;
-    if (l < NLANES) {
-        m = pat_now()->lane[l];
-        if (st->playing && st->bar16 >= 0)
-            m ^= 1u << st->bar16;
+    uint32_t m = 0u, i;
+    if (ui.seq_lane >= SL_KICK) {
+        int now = sl_now(st, ui.seq_lane);
+        m = *sl_bits(pat_now(), ui.seq_lane);
+        if (now >= 0)
+            m ^= 1u << now;
         return m;
     }
     for (i = 0; i < 16u; i++)            /* SEQ's break steps: the ones with a slice of their own */
@@ -261,21 +280,22 @@ static uint32_t keys_lit(const brk_status_t *st)   /* the white keys' lights on 
         m ^= 1u << (st->step % 16);
     return m;
 }
-/* the drum lanes of the pattern playing (the SEQ, KICK and SNARE / HAT pages' lower strip): kick, snare and hat, 16
- * steps each, the lane the keys edit outlined, the step playing white */
+/* the drum lanes of the pattern playing (the SEQ, KICK and SNARE / HAT pages' lower strip): the kick's two bars, the
+ * snare and the hat, 16 steps each, the lane the keys edit (SL_*) lit, the step playing white */
 static void draw_lanes(const brk_status_t *st, uint32_t sel)
 {
+    static const char LABEL[4] = {'K', '2', 'S', 'H'};
     uint32_t l, i;
     char t[2];
     cv_begin(240, 52, C_BLACK);
-    for (l = 0; l < NLANES; l++) {
-        uint32_t m = pat_now()->lane[l];
-        int32_t y = (int32_t)l * 12;
-        t[0] = LANE_NAME[l][0];
+    for (l = SL_KICK; l <= SL_HAT; l++) {
+        uint32_t m = *sl_bits(pat_now(), l);
+        int32_t y = (int32_t)(l - SL_KICK) * 12, at = sl_now(st, l);
+        t[0] = LABEL[l - SL_KICK];
         t[1] = 0;
         cv_text(2, y, &FONT_XS, t, l == sel ? C_HI : C_DIM);
         for (i = 0; i < 16u; i++) {
-            int on = m >> i & 1u, now = st->playing && st->bar16 == (int8_t)i;
+            int on = m >> i & 1u, now = at == (int32_t)i;
             int32_t x = 14 + (int32_t)i * 14;
             uint16_t c = now ? C_WHITE : on ? (l == sel ? C_BLOCK_HI : C_AMB) : (i & 3u) ? C_BLOCK : C_LINE;
             cv_rect(x, y + 1, 12, 10, c);
@@ -321,5 +341,5 @@ static void draw_seq(const brk_status_t *st)
     else
         cv_text(6, 22, &FONT_XS, "THE KEYS: THIS LANE'S STEPS", C_DIM);
     cv_blit(0, 88);
-    draw_lanes(st, ui.seq_lane >= SL_KICK ? ui.seq_lane - SL_KICK : NLANES);
+    draw_lanes(st, ui.seq_lane >= SL_KICK ? ui.seq_lane : NSEQL);
 }

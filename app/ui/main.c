@@ -213,7 +213,7 @@ static void input(void)
             if (kup >> WK[i] & 1u)
                 brk_key((int)i, 0);
         for (i = 0; i < 11u; i++)
-            if (kup >> BK[i] & 1u)
+            if (kup >> BK[PAD_KEY[i]] & 1u)
                 brk_pad((int)i, 0);
         for (k = 0; k < NE; k++)
             if (plat_enc(k))
@@ -258,18 +258,18 @@ static void input(void)
                 }
     }
     for (i = 0; i < 11u; i++) {          /* black keys: the pads, held; the last one pressed has the screen */
-        if (kdn >> BK[i] & 1u) {
+        if (kdn >> BK[PAD_KEY[i]] & 1u) {
             brk_pad((int)i, 1);
             ui.pad_focus = (int8_t)i;
             ui.pad_since = now;
         }
-        if (kup >> BK[i] & 1u)
+        if (kup >> BK[PAD_KEY[i]] & 1u)
             brk_pad((int)i, 0);
     }
-    if (ui.pad_focus >= 0 && !(keys >> BK[ui.pad_focus] & 1u)) {   /* let go: another pad still held, or none */
+    if (ui.pad_focus >= 0 && !(keys >> BK[PAD_KEY[ui.pad_focus]] & 1u)) {   /* let go: another pad still held, or none */
         ui.pad_focus = -1;
         for (i = 0; i < 11u; i++)
-            if (keys >> BK[i] & 1u)
+            if (keys >> BK[PAD_KEY[i]] & 1u)
                 ui.pad_focus = (int8_t)i;
     }
     if (bdn & 1u << B_PLAY) {
@@ -552,7 +552,7 @@ static void leds(void)
         k |= 1u << WK[st.slice];
     for (i = 0; i < 11u; i++)
         if (st.pads >> i & 1u)
-            k |= 1u << BK[i];
+            k |= 1u << BK[PAD_KEY[i]];
     plat_glow(1);
     plat_leds(b, k);
 }
@@ -637,7 +637,7 @@ static int32_t tab(int32_t x, const char *s, int on)
 /* the pages' buttons as printed, GLOBAL's parts, SEQ's lanes: for the tabs and the header (page_say) */
 static const char *const BTN[NPAGES] = {"HOME", "HOME", "FX", "GLO", "EDIT", "LFO", "SEQ", "EDIT", "ENV", "ARP"};
 static const char *const GPART[3] = {"MIDI", "PITCH", "BT AUDIO"};
-static const char *const SEQL[NSEQL] = {"1-16", "17-32", "KICK", "SNARE", "HAT"};
+static const char *const SEQL[NSEQL] = {"1-16", "17-32", "K1", "K2", "SNARE", "HAT"};
 static void draw_tabs(void)
 {
     uint32_t i;
@@ -768,7 +768,7 @@ static void draw_foot(const brk_status_t *st)
     cv_begin(240, 48, C_BLACK);
     for (i = 0; i < 11u; i++) {
         int on = (st->pads >> i) & 1u;
-        int32_t x = 2 + (int32_t)i * 21;
+        int32_t x = 2 + (int32_t)PAD_KEY[i] * 21;   /* (at its key) */
         cv_rect(x, 0, 20, 14, on ? C_HI : C_BLOCK);
         cv_text(x + (20 - text_w(&FONT_T, PAD_NAME[i])) / 2, 1, &FONT_T, PAD_NAME[i], on ? C_BLACK : C_GRAY);
     }

@@ -57,7 +57,8 @@ jobs:
         run: |
           ./build.sh --host
           mkdir -p screens
-          "$(ls app/build/host/*_host | head -1)" tests/scenarios/ui.txt screens
+          H="$(ls app/build/host/*_host | head -1)"
+          for sc in ui kick32 seq pads; do "$H" tests/scenarios/$sc.txt screens || echo "scenario $sc failed"; done
           ls screens
           (cd screens && zip -q -r ../app/build/gloupi-screens.zip .)
 
