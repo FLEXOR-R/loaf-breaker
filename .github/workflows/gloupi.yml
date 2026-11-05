@@ -78,7 +78,7 @@ jobs:
         env:
           PYTHON: /usr/bin/python3
         run: |
-          ./build.sh --host
+          ./build.sh --host --release "$VERSION"   # (the number on its screens too)
           mkdir -p screens
           H="$(ls app/build/host/*_host | head -1)"
           for sc in ui kick32 seq pads; do "$H" tests/scenarios/$sc.txt screens || echo "scenario $sc failed"; done
