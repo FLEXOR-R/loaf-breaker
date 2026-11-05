@@ -128,6 +128,8 @@ static void intro_draw(uint32_t now)
     char t[32];
     if (shown > 16u)
         shown = 16u;
+    if (!ui.intro_drawn)                 /* GLOUPI BREAKS: the splash's picture away first (this screen draws in bands) */
+        lcd_fill(0, 0, 240, 240, C_BLACK);
     if (shown != ui.intro_drawn) {       /* the loaded break drops in, slice by slice */
         ui.intro_drawn = (uint8_t)shown;
         cv_begin(240, 60, C_BLACK);
