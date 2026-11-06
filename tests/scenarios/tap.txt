@@ -2,7 +2,7 @@
 # follows from the second tap (the mean of the last eight); a 2 s pause starts again; K1 / K2 set it, K3 halves or
 # doubles. SEL taps nothing now: pressed alone it opens the SEL combinations card
 #   app/build/host/choppah_host tests/scenarios/tap.txt app/build/scenarios
-wait 2600
+wait 4200
 tap PLAY
 wait 300
 tap ENV

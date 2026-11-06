@@ -1,6 +1,6 @@
 # CHOPPAH: ALGORITHM steps through every break, and each one sounds (the 8 of breaks/breaks.txt), round to the first again.
 # The name shows at once (amber), the break itself comes in at the next bar
-wait 2600
+wait 4200
 tap PLAY
 wait 600
 shot a_start.png

@@ -1,8 +1,8 @@
-# CHOPPAH's screens: the splash, the start screen, the slicer block view, playing
+# CHOPPAH's screens (LOAF BREAKER: the splash held 1.5 s): the splash, the start screen, the slicer block view, playing
 #   app/build/host/choppah_host tests/scenarios/ui.txt app/build/scenarios
 splash
 shot u0_splash.png
-wait 120
+wait 1620
 shot u1_intro_early.png
 wait 500
 shot u2_intro_mid.png

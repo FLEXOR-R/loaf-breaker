@@ -1,7 +1,7 @@
 # CHOPPAH: MB COMP's detail (PRD A-49a): its six parts on FX again, their knobs, the spectrum and the bands' curves,
 # its detail moving with its slot
 #   app/build/host/choppah_host tests/scenarios/mbcomp.txt app/build/scenarios
-wait 2600
+wait 4200
 tap PLAY
 wait 400
 tap FX

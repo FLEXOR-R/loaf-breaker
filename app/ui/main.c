@@ -835,7 +835,12 @@ static void draw_foot(const brk_status_t *st)
 
 void app_ui_init(void)
 {
+#if CH_LOGO
+    if (splash_t <= 1u)                  /* LOAF BREAKER: the splash stays (no clock when it was drawn: from now) */
+        splash_t = plat_ms() | 1u;
+#else
     lcd_fill(0, 0, 240, 240, C_BLACK);
+#endif
     ui.last_step = ui.last_slice = -2;
     ui.intro = 1u;                       /* the start screen first */
     ui.intro_t0 = plat_ms();
@@ -854,6 +859,16 @@ void app_frame(void)
     uint32_t now = plat_ms(), hdr;
     input();
     break_poll();
+    if (splash_t) {                      /* LOAF BREAKER: the splash 1.5 s, then the start screen from its start */
+        if (now - splash_t < 1500u) {
+            ui.touched = 0u;
+            return;
+        }
+        splash_t = 0u;
+        ui.intro_t0 = now;
+        ui.intro_drawn = 0u;
+        ui.redraw = RG_ALL;
+    }
     if (ui.touched)                      /* (the time itself: "now | 1" was a millisecond ahead half the time, and
                                           * now - idle_t then wrapped round to the demo at once) */
         ui.idle_t = now;

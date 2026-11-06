@@ -3,7 +3,7 @@
 # the SEQ drum lanes' K1-K4 (FILL, ROTATE, CLR / 4X4, COPY); SEL + SAVE undoes (and redoes); HOME K3 FX, K4
 # COMPLEXITY; SEL pressed alone shows its combinations; the drums' route lives on the MIXER only
 #   app/build/host/choppah_host tests/scenarios/controls.txt app/build/scenarios
-wait 2600
+wait 4200
 tap GLO
 wait 100
 expect page 3

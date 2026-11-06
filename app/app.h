@@ -6,7 +6,7 @@
 #include "brk.h"
 #include "brk_fx.h"
 
-#define APP_NAME "GLOUPI BREAKS"    /* GLOUPI BREAKS: the name on the start screens */
+#define APP_NAME "LOAF BREAKER"     /* LOAF BREAKER (was GLOUPI BREAKS): the name on the platform's screens */
 #define APP_TAGLINE "AMEN CHOPPER"
 #define APP_SPLASH_RGB RGB(255, 132, 112)   /* GLOUPI BREAKS red (gfx.c RED's brightest) */
 #define APP_SYS_TEXT                     /* the platform's own screens (crash, safe mode, update, calibration) write in
@@ -17,7 +17,8 @@ void app_splash(void);
 #define CH_RESET_TURNS 15u              /* GLOUPI BREAKS: RESET ALL wants K4 turned 15 times (CHOPPAH: 2) */
 #define CH_RESET_TEXT "15"
 #define CH_TAGLINE 0                     /* GLOUPI BREAKS: no "AMEN CHOPPER  FOR THE FM-1" under the name */
-#define CH_LOGO 1                        /* GLOUPI BREAKS: its picture on the splash (logo_data.h) */
+#define CH_LOGO 1                        /* LOAF BREAKER: its picture on the splash, 1.5 s (splash_data.h), its
+                                          * lettering on the start screen (title_data.h) */
 #define CH_DEMO 0                        /* GLOUPI BREAKS: no demo (CHOPPAH: 1, ui/demo.c) */
 #define APP_PALETTE 3u                   /* gfx.c's red (GLOUPI BREAKS; CHOPPAH: 1u, amber) */
 #define APP_BLOCK 256u                   /* frames per audio block: 5.8 ms at 44.1 kHz */

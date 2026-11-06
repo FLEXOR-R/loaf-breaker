@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: MPL-2.0 */
-/* GLOUPI BREAKS' easter egg, made by tools/make_egg.py from loaf_lord.webp: 240 x 240, 16 greys, 11698 bytes. Regenerate it, don't edit it. */
+/* GLOUPI BREAKS: EGG, made by tools/make_egg.py from loaf_lord.webp: 240 x 240, 16 greys, 11698 bytes. Regenerate it, don't edit it. */
 #pragma once
 #include <stdint.h>
 #define EGG_W 240

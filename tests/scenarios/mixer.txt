@@ -2,7 +2,7 @@
 # with its meter; LFO again, GROOVE: K1 swing, K2 the drums through the chain or around it. The DJ filter is HOME's
 # K2 and filters the break alone. The kick lane starts empty: four to the floor put in on SEQ's KICK lane first
 #   app/build/host/choppah_host tests/scenarios/mixer.txt app/build/scenarios
-wait 2600
+wait 4200
 tap SEQ
 tap SEQ
 tap SEQ

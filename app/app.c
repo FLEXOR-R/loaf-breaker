@@ -26,7 +26,8 @@
 #endif
 #include "egg_data.h"                /* GLOUPI BREAKS: LOAF LORD (tools/make_egg.py) */
 #if CH_LOGO
-#include "logo_data.h"              /* GLOUPI BREAKS: the splash's picture (tools/make_logo.py) */
+#include "splash_data.h"            /* LOAF BREAKER: the splash and the title (tools/make_egg.py) */
+#include "title_data.h"
 #endif
 
 /* ------------------------------------------------------------------ settings --- */

@@ -1,7 +1,7 @@
 # CHOPPAH: every page button, again for its next part, and ALGORITHM where it picks a part: each one says the button
 # and the part in the header (as its tabs show), and lights its button
 #   app/build/host/choppah_host tests/scenarios/pages.txt app/build/scenarios
-wait 2600
+wait 4200
 expect page 0
 tap HOME
 wait 120

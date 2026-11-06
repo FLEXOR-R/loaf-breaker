@@ -1,6 +1,6 @@
 # CHOPPAH: each slice's own effect (a key held, FX: its effect layer) and the chain's DELAY (the DUB pad throws into it)
 #   app/build/host/choppah_host tests/scenarios/slicefx.txt app/build/scenarios
-wait 2600
+wait 4200
 tap PLAY
 wait 400
 key w4 down

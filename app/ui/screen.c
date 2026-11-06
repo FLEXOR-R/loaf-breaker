@@ -59,80 +59,59 @@ static void version_text(char *t)
     text_cat(t, CH_VERSION);
 }
 
-#if CH_LOGO
-/* GLOUPI BREAKS: the picture's rows top .. top + h - 1 into the current strip at x, row top at the strip's row 0.
- * logo_data.h: a byte a run, bits 0-4 the colour (0: the background, left as it is), 5-7 the length less one */
-static void logo_draw(int32_t x, int32_t top, int32_t h)
-{
-    uint32_t i;
-    int32_t px = 0, row = 0;
-    for (i = 0; i < sizeof LOGO_RLE && row < top + h; i++) {
-        uint32_t b = LOGO_RLE[i], c = b & 31u;
-        int32_t n = (int32_t)(b >> 5) + 1;
-        if (c && row >= top)
-            cv_rect(x + px, row - top, n, 1, LOGO_PAL[c]);
-        px += n;
-        if (px >= LOGO_W) {
-            px = 0;
-            row++;
-        }
-    }
-}
-#endif
 
-/* GLOUPI BREAKS: LOAF LORD, the whole screen (egg_data.h: a byte a run, bits 0-3 the grey, 4-7 the length less one),
- * in strips of 60 rows, the blessing small at the bottom */
-static void egg_draw(void)
+/* GLOUPI BREAKS: a grey picture (tools/make_egg.py: a byte a run, bits 0-3 the grey, 4-7 the length less one) at
+ * x0, y0 on the screen, w x h, in strips of 60 rows, each the screen's width (its sides black) */
+static void grey_draw(const uint8_t *rle, uint32_t len, const uint16_t *pal, int32_t w, int32_t h, int32_t x0,
+                      int32_t y0)
 {
-    int32_t r, h;
-    for (r = 0; r < EGG_H; r += h) {
+    int32_t r, sh;
+    for (r = 0; r < h; r += sh) {
         uint32_t i;
         int32_t x = 0, row = 0;
-        h = EGG_H - r < 60 ? EGG_H - r : 60;
-        cv_begin(240, (uint32_t)h, C_BLACK);
-        for (i = 0; i < sizeof EGG_RLE && row < r + h; i++) {
-            uint32_t b = EGG_RLE[i], c = b & 15u;
+        sh = h - r < 60 ? h - r : 60;
+        cv_begin(240, (uint32_t)sh, C_BLACK);
+        for (i = 0; i < len && row < r + sh; i++) {
+            uint32_t b = rle[i], c = b & 15u;
             int32_t n = (int32_t)(b >> 4) + 1;
             if (c && row >= r)
-                cv_rect(x, row - r, n, 1, EGG_PAL[c]);
+                cv_rect(x0 + x, row - r, n, 1, pal[c]);
             x += n;
-            if (x >= EGG_W) {
+            if (x >= w) {
                 x = 0;
                 row++;
             }
         }
-        if (r + h >= 240)
-            cv_text((240 - text_w(&FONT_T, "MAY THE LOAF BE WITH YOU")) / 2, 226 - r, &FONT_T,
-                    "MAY THE LOAF BE WITH YOU", RGB(190, 190, 190));
-        cv_blit(0, (uint32_t)r);
+        cv_blit(0, (uint32_t)(y0 + r));
     }
 }
 
-/* fm1-base's first screen at power-on, while the breaks are decoded (APP_SPLASH): the mark and the name (GLOUPI
- * BREAKS: its picture over the name) */
+/* GLOUPI BREAKS: LOAF LORD, the whole screen, the blessing small at the bottom */
+static void egg_draw(void)
+{
+    grey_draw(EGG_RLE, sizeof EGG_RLE, EGG_PAL, EGG_W, EGG_H, (240 - EGG_W) / 2, 0);
+    cv_begin(240, 12, C_BLACK);
+    cv_text((240 - text_w(&FONT_T, "MAY THE LOAF BE WITH YOU")) / 2, 1, &FONT_T, "MAY THE LOAF BE WITH YOU",
+            RGB(190, 190, 190));
+    cv_blit(0, 226);
+}
+
+/* fm1-base's first screen at power-on, while the breaks are decoded (APP_SPLASH): the mark and the name (LOAF
+ * BREAKER: its picture, nearly the whole screen, the version at the top right; held 1.5 s, app_frame) */
+static uint32_t splash_t;                /* when it was drawn (0: gone) */
 void app_splash(void)
 {
     lcd_fill(0, 0, 240, 240, C_BLACK);
 #if CH_LOGO
+    grey_draw(SPLASH_RLE, sizeof SPLASH_RLE, SPLASH_PAL, SPLASH_W, SPLASH_H, (240 - SPLASH_W) / 2, 240 - SPLASH_H);
     {
-        int32_t r, h;
-        for (r = 0; r < LOGO_H; r += h) {    /* in strips of 60 rows at most */
-            h = LOGO_H - r < 60 ? LOGO_H - r : 60;
-            cv_begin(240, (uint32_t)h, C_BLACK);
-            logo_draw((240 - LOGO_W) / 2, r, h);
-            cv_blit(0, (uint32_t)(4 + r));
-        }
-    }
-    cv_begin(240, 34, C_BLACK);          /* the name under it */
-    title(0);
-    cv_blit(0, 188);
-    {                                    /* the version, small, at the bottom */
         char t[16];
         version_text(t);
-        cv_begin(240, 14, C_BLACK);
-        cv_text((240 - text_w(&FONT_T, t)) / 2, 1, &FONT_T, t, C_GRAY);
-        cv_blit(0, 225);
+        cv_begin(240, 240 - SPLASH_H, C_BLACK);
+        cv_text(234 - text_w(&FONT_T, t), 1, &FONT_T, t, C_GRAY);
+        cv_blit(0, 0);
     }
+    splash_t = plat_ms() | 1u;
 #else
     cv_begin(240, 60, C_BLACK);
     mark(10, 16u, 0);
@@ -170,14 +149,19 @@ static void intro_draw(uint32_t now)
         version_text(t);
         cv_text((240 - text_w(&FONT_T, t)) / 2, 2, &FONT_T, t, C_GRAY);
         cv_blit(0, 16);
+#if CH_LOGO                              /* LOAF BREAKER: its lettering */
+        grey_draw(TITLE_RLE, sizeof TITLE_RLE, TITLE_PAL, TITLE_W, TITLE_H, (240 - TITLE_W) / 2, 114);
+#else
         cv_begin(240, 56, C_BLACK);
         title(0);
         cv_blit(0, 118);
-        cv_begin(240, 40, C_BLACK);
+#endif
+        cv_begin(240, 50, C_BLACK);
         t[0] = 0;
         text_cat(t, b ? b->name : "");
         cv_text((240 - text_w(&FONT_XS, t)) / 2, 2, &FONT_XS, t, C_GRAY);
-        cv_text((240 - text_w(&FONT_T, "PRESS PLAY")) / 2, 22, &FONT_T, "PRESS PLAY", C_AMB);
+        cv_text((240 - text_w(&FONT_T, "PRESS PLAY")) / 2, 20, &FONT_T, "PRESS PLAY", C_AMB);
+        cv_text((240 - text_w(&FONT_T, "MODIFIED BY FLEXOR")) / 2, 36, &FONT_T, "MODIFIED BY FLEXOR", C_DIM);
         cv_blit(0, 190);
         ui.redraw = 0u;
     }

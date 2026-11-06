@@ -2,7 +2,7 @@
 # step (K1 slice, K2 pitch, K3 hits, K4 reverse) or a drum lane's steps; PRESETS the pattern (playing: at the loop's
 # end); REC records keys and MIDI notes (48.. the slices) into it; SEL + REC clears; SAVE keeps the patterns
 #   app/build/host/choppah_host tests/scenarios/seq.txt app/build/scenarios
-wait 2600
+wait 4200
 tap SEQ
 wait 300
 shot q_seq.png

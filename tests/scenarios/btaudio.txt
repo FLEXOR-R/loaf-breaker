@@ -3,7 +3,7 @@
 # streaming after 1.3 s; then K3 while streaming plays the left / right test: b_lr_test.wav, a low beep left, a high
 # one right, twice; K2 while streaming: the SBC coding, joint or plain stereo)
 #   app/build/host/choppah_host tests/scenarios/btaudio.txt app/build/scenarios
-wait 2600
+wait 4200
 tap FX
 wait 100
 turn ALGO 2 10
