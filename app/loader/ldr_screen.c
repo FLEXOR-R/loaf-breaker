@@ -1,30 +1,25 @@
 /* SPDX-License-Identifier: MPL-2.0
- * Copyright (C) 2026 Charles Vestal (felucca-bsp loader/ldr_screen.c); CHOPPAH's look, 2026 */
-/* CHOPPAH's update screen: the update loader's own (felucca-bsp loader/ldr_screen.c, which build.sh swaps this in for
- * while the firmware builds), in CHOPPAH's colours: black, the slice mark (sixteen bars, two chopped out of line)
- * filling in amber as the app area is written, "UPDATING" in cream, "DO NOT UNPLUG" in amber, a bar of amber
- * segments, CHOPPAH small under it. Only the drawing differs from the original: the panel's start (reset, sleep
- * out, RGB565, IPS inversion), ldr_screen_init and ldr_screen_progress are the same, and every buffer is in RAM (the
- * SPI DMA reads RAM only). Part of loader.c's single unit. */
+ * Copyright (C) 2026 Charles Vestal (felucca-bsp loader/ldr_screen.c); CHOPPAH's look, 2026; LOAF BREAKER's, 2026 */
+/* LOAF BREAKER's update screen: the update loader's own (felucca-bsp loader/ldr_screen.c, which build.sh swaps this in
+ * for while the firmware builds, ldr_loaf.h beside it). White: LOAF BREAKER (its face and lettering, ldr_loaf.h,
+ * tools/make_egg.py) at the top, "UPDATING" in black and "DO NOT UNPLUG" in red under it, and at the very bottom the
+ * slice mark (sixteen bars, two chopped out of line) filling in black as the app area is written: the progress (the
+ * segmented bar and CHOPPAH's name are gone). Only the drawing differs from the original: the panel's start (reset,
+ * sleep out, RGB565, IPS inversion), ldr_screen_init and ldr_screen_progress are the same, and every buffer is in RAM
+ * (the SPI DMA reads RAM only; the picture is decoded into scr_strip). Part of loader.c's single unit. */
 #include "../boards/fm1/fm1_lcd_hw.h"
+#include "ldr_loaf.h"
 
-#define SCR_BG 0x0000u                              /* black */
-#define SCR_FG 0xEF3Au                              /* #ede6d4 cream */
-#define SCR_AMB 0xFC2Eu                             /* #ff8470 red (GLOUPI BREAKS; CHOPPAH: 0xFD83u, amber) */
-#define SCR_HOT 0xFFFFu                             /* white: the mark's two chopped bars */
-#define SCR_DIM 0x38A2u                             /* #3c1410: the mark, not yet written */
-#define SCR_EDGE 0x2904u                            /* #2f2020: the bar's frame */
-#define SCR_NAME 0x6B2Au                            /* #6e6454 */
-#define SCR_BAR_X 30u
-#define SCR_BAR_Y 170u
-#define SCR_BAR_W 180u
-#define SCR_BAR_H 12u
-#define SCR_SEG 12u                                 /* a segment of the bar: 10 lit, 2 gap */
+#define SCR_BG 0xFFFFu                              /* white */
+#define SCR_FG 0x0000u                              /* black: UPDATING, the mark written */
+#define SCR_AMB 0xF8C3u                             /* #ff1818 red: DO NOT UNPLUG, the two chopped bars */
+#define SCR_DIM 0xD69Au                             /* #d0d0d0: the mark, not yet written */
+#define SCR_LOAF_Y 2u                               /* the picture's top */
+#define SCR_MARK_B 236u                             /* the mark's bars' foot (the chopped two 8 px higher) */
 #define SCR_ROWS 21u                                /* the tallest line: 5x7 glyphs at 3x */
 
 static uint16_t scr_strip[240u * SCR_ROWS];         /* one line of text, byte-swapped (the panel takes MSB first) */
 static uint8_t scr_small[8];
-static uint32_t scr_shown;                          /* bar pixels drawn */
 static uint32_t scr_marks;                          /* the mark's bars lit */
 static uint8_t scr_on;
 
@@ -121,8 +116,34 @@ static void scr_text(uint32_t y, const char *s, uint32_t scale, uint16_t fg)   /
 
 static void scr_mark(uint32_t k, int lit)          /* bar k of the mark, written (lit) or still to come */
 {
-    uint32_t h = SCR_MARK_H[k], chop = k == 5u || k == 11u, y = (chop ? 58u : 68u) - h / 2u;
-    scr_fill(8u + k * 14u, y, 12u, h, lit ? (chop ? SCR_HOT : SCR_AMB) : SCR_DIM);
+    uint32_t h = SCR_MARK_H[k], chop = k == 5u || k == 11u, y = SCR_MARK_B - (chop ? 8u : 0u) - h;
+    scr_fill(8u + k * 14u, y, 12u, h, lit ? (chop ? SCR_AMB : SCR_FG) : SCR_DIM);
+}
+
+/* LOAF BREAKER, centred at the top: ldr_loaf.h's runs (a byte a run: bits 0-3 the grey, 4-7 the length less one),
+ * decoded into scr_strip as many rows at a time as it holds, each batch sent as one window */
+static void scr_loaf(void)
+{
+    uint32_t per = 240u * SCR_ROWS / LDR_LOAF_W, i = 0, x = 0, y = 0, n = 0;
+    uint32_t x0 = (240u - LDR_LOAF_W) / 2u;
+    while (y < LDR_LOAF_H) {
+        uint32_t rows = LDR_LOAF_H - y < per ? LDR_LOAF_H - y : per, row = 0;
+        n = 0;
+        while (row < rows && i < sizeof LDR_LOAF_RLE) {
+            uint32_t b = LDR_LOAF_RLE[i++], k = (b >> 4) + 1u;
+            uint16_t c = scr_swap(LDR_LOAF_PAL[b & 15u]);
+            while (k--) {
+                scr_strip[n++] = c;
+                if (++x == LDR_LOAF_W) {
+                    x = 0;
+                    row++;
+                }
+            }
+        }
+        scr_window(x0, SCR_LOAF_Y + y, x0 + LDR_LOAF_W - 1u, SCR_LOAF_Y + y + rows - 1u);
+        scr_data(scr_strip, n * 2u);
+        y += rows;
+    }
 }
 
 static void ldr_screen_init(void)
@@ -143,36 +164,21 @@ static void ldr_screen_init(void)
     scr_cmd(0x21);                                  /* INVON: IPS panel */
     scr_cmd(0x13);                                  /* NORON */
     scr_fill(0, 0, 240, 240, SCR_BG);
+    scr_loaf();
+    scr_text(SCR_LOAF_Y + LDR_LOAF_H + 3u, "UPDATING", 3, SCR_FG);
+    scr_text(SCR_LOAF_Y + LDR_LOAF_H + 28u, "DO NOT UNPLUG", 2, SCR_AMB);
     for (k = 0; k < 16u; k++)
         scr_mark(k, 0);
-    scr_text(100, "UPDATING", 3, SCR_FG);
-    scr_text(134, "DO NOT UNPLUG", 2, SCR_AMB);
-    scr_fill(SCR_BAR_X - 2u, SCR_BAR_Y - 2u, SCR_BAR_W + 4u, 1u, SCR_EDGE);             /* the bar's frame */
-    scr_fill(SCR_BAR_X - 2u, SCR_BAR_Y + SCR_BAR_H + 1u, SCR_BAR_W + 4u, 1u, SCR_EDGE);
-    scr_fill(SCR_BAR_X - 2u, SCR_BAR_Y - 1u, 1u, SCR_BAR_H + 2u, SCR_EDGE);
-    scr_fill(SCR_BAR_X + SCR_BAR_W + 1u, SCR_BAR_Y - 1u, 1u, SCR_BAR_H + 2u, SCR_EDGE);
-    scr_text(202, "CHOPPAH", 1, SCR_NAME);
     scr_cmd(0x29);                                  /* DISPON */
     scr_on = 1;
 }
 
 static void ldr_screen_progress(uint32_t done, uint32_t total)
 {
-    uint32_t px, marks;
+    uint32_t marks;
     if (!scr_on || !total)
         return;
-    px = done >= total ? SCR_BAR_W : done * SCR_BAR_W / total;     /* < 2^32: total <= 2 MiB */
-    marks = done >= total ? 16u : done * 16u / total;
-    while (scr_marks < marks)                       /* the mark fills in, a bar a sixteenth */
+    marks = done >= total ? 16u : done * 16u / total;   /* < 2^32: total <= 2 MiB */
+    while (scr_marks < marks)                       /* the mark fills in, a bar a sixteenth: the progress */
         scr_mark(scr_marks++, 1);
-    if (px <= scr_shown)
-        return;
-    while (scr_shown < px) {                        /* the bar: its segments' lit part, the gaps left dark */
-        uint32_t in = scr_shown % SCR_SEG, end = scr_shown - in + SCR_SEG - 2u, to = end < px ? end : px;
-        if (in < SCR_SEG - 2u && to > scr_shown)
-            scr_fill(SCR_BAR_X + scr_shown, SCR_BAR_Y, to - scr_shown, SCR_BAR_H, SCR_AMB);
-        scr_shown = to > scr_shown ? to : scr_shown - in + SCR_SEG;
-        if (scr_shown > px)
-            scr_shown = px;
-    }
 }

@@ -53,9 +53,11 @@ case "$1" in
         if [ -f app/loader/ldr_screen.c ] && [ -f "$LS" ]; then
             mkdir -p app/build
             cp "$LS" app/build/ldr_screen.felucca.c
-            trap 'cp app/build/ldr_screen.felucca.c "$LS"' EXIT
+            # (LOAF BREAKER: its picture beside it, ldr_loaf.h, taken away again after)
+            trap 'cp app/build/ldr_screen.felucca.c "$LS"; rm -f base/bsp/loader/ldr_loaf.h' EXIT
             trap 'exit 1' INT TERM
             cp app/loader/ldr_screen.c "$LS"
+            [ -f app/loader/ldr_loaf.h ] && cp app/loader/ldr_loaf.h base/bsp/loader/ldr_loaf.h
         fi ;;
 esac
 "$PY" base/tools/build.py app "$@"

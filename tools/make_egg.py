@@ -8,7 +8,7 @@
 
 --rows A:B keeps the source's rows A..B-1 (before anything else); --trim cuts the transparent margins (alpha over 40);
 --fit WxH scales it to fit W x H, aspect kept, and the picture is that size (without --fit: centred in SIZE x SIZE).
-Transparent parts are black. Greys reduced to LEVELS (2..16, black to white, dithered), run-length coded a byte a
+Transparent parts are --bg's grey (black at first). Greys reduced to LEVELS (2..16, black to white, dithered), run-length coded a byte a
 run: bits 0-3 the grey, bits 4-7 the run's length less one (1..16 pixels), rows one after another, no run crossing a
 row. The header defines NAME_W, NAME_H, NAME_PAL[], NAME_RLE[]. Needs Pillow.
 """
@@ -28,6 +28,7 @@ def main():
     ap.add_argument("--rows", help="A:B: only the source's rows A..B-1")
     ap.add_argument("--trim", action="store_true", help="cut the transparent margins")
     ap.add_argument("--levels", type=int, default=16)
+    ap.add_argument("--bg", type=int, default=0, help="the grey under its transparent parts and in the margins (0 black)")
     ap.add_argument("--preview", type=Path)
     a = ap.parse_args()
     n = max(2, min(16, a.levels))
@@ -44,12 +45,12 @@ def main():
         k = min(fw / src.width, fh / src.height)
         src = src.resize((max(1, round(src.width * k)), max(1, round(src.height * k))), Image.LANCZOS)
         w, h = src.width, src.height
-        img = Image.new("RGBA", (w, h), (0, 0, 0, 255))
+        img = Image.new("RGBA", (w, h), (a.bg, a.bg, a.bg, 255))
         img.alpha_composite(src)
     else:
         src.thumbnail((a.size, a.size), Image.LANCZOS)
         w = h = a.size
-        img = Image.new("RGBA", (w, h), (0, 0, 0, 255))   # its transparent parts, and the margins: black
+        img = Image.new("RGBA", (w, h), (a.bg, a.bg, a.bg, 255))   # its transparent parts, and the margins
         img.alpha_composite(src, ((w - src.width) // 2, (h - src.height) // 2))
     img = img.convert("L")
     pal = Image.new("P", (1, 1))
