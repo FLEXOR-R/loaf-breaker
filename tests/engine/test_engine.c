@@ -775,15 +775,16 @@ static void test_keep_length(void)
 static void test_half_master(void)
 {
     static brk_break_t tone;
-    uint32_t i, n = 22050u, zc[2], mode;
-    float adv[2];
+    uint32_t i, n = 22050u, zc[3], mode;
+    float adv[3];
     for (i = 0; i < n; i++)
         pcm[i] = (int16_t)(12000.0f * sinf(6.2831853f * (float)i * (1000.0f / 22050.0f)));
-    for (mode = 0; mode < 2u; mode++) {
+    for (mode = 0; mode < 3u; mode++) {  /* SPEED, KEEP LENGTH; and SPEED with the master tempo off */
         brk_status_t st;
         float p0;
         uint32_t k;
         brk_init();
+        brk_half_master(mode < 2u);
         tone.pcm = pcm;
         tone.len = n;
         tone.rate = 22050u;
@@ -795,7 +796,7 @@ static void test_half_master(void)
         brk_set_break(&tone);
         brk_tempo(120.0f);
         brk_pitch(0.0f);
-        brk_pitch_mode((int)mode, 30.0f);
+        brk_pitch_mode((int)(mode == 1u), 30.0f);
         brk_key(0, 1);
         brk_pad(PAD_HALF, 1);
         render(buf, 4096u, 0, 0, 0);
@@ -815,6 +816,9 @@ static void test_half_master(void)
           "HALF SPEED, SPEED: half as fast (%.2f), still 1 kHz (%u crossings)", adv[0], zc[0]);
     CHECK(adv[1] > 0.45f && adv[1] < 0.55f && zc[1] > 330u && zc[1] < 410u,
           "HALF SPEED, KEEP LENGTH: half as fast (%.2f), still 1 kHz (%u crossings)", adv[1], zc[1]);
+    CHECK(adv[2] > 0.45f && adv[2] < 0.55f && zc[2] > 150u && zc[2] < 220u,
+          "HALF SPEED, master tempo off: half as fast (%.2f), an octave down (%u crossings)", adv[2], zc[2]);
+    brk_half_master(1);
 }
 
 /* the gate: at 25 % each slice of the loop sounds for a quarter of its length, then it is quiet until the next */

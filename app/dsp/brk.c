@@ -19,6 +19,7 @@ static volatile int p_playing;
 static volatile uint32_t p_pads;         /* bit PAD_*: held */
 static volatile uint32_t p_reset;        /* a count: changed = reset at the next render */
 static volatile int p_keep;              /* pitch keeps the length (granular), not the speed */
+static volatile int p_half_mt = 1;       /* GLOUPI BREAKS: HALF SPEED keeps the pitch (master tempo) */
 static volatile float p_gate = 1.0f;     /* how much of each of the loop's slices sounds */
 static volatile float p_snap = 0.5f;     /* where a key pressed while playing begins: slices (0 at once) */
 static volatile float p_grain = 1323.0f; /* its grains, samples (30 ms) */
@@ -704,8 +705,8 @@ void brk_render(float *out, uint32_t n)
             c->pos = c->lo;
     }
     half = (pads >> PAD_HALF) & 1u ? brk_clampf(p_ps.half_speed, 0.25f, 0.75f) : 1.0f;
-    hmt = 1.0f / half;                   /* GLOUPI BREAKS: HALF SPEED's master tempo, the grains read as fast as
-                                          * before: the break slower, its pitch kept */
+    hmt = p_half_mt ? 1.0f / half : 1.0f;   /* GLOUPI BREAKS: HALF SPEED's master tempo, the grains read as fast
+                                          * as before: the break slower, its pitch kept (off: an octave down) */
     if ((pads >> PAD_REVERSE) & 1u)
         half *= brk_clampf(p_ps.rev_speed, 0.5f, 2.0f);
     ratio = (float)b->rate / (float)BRK_SR * (p_tempo * 100.0f / (float)b->bpm_x100);
@@ -1006,6 +1007,8 @@ BRK_COLD void brk_reset(void) { p_reset++; }
 BRK_COLD void brk_tempo(float bpm) { p_tempo = brk_clampf(bpm, 40.0f, 300.0f); }
 float brk_get_tempo(void) { return p_tempo; }
 BRK_COLD void brk_pitch(float st) { p_pitch = brk_clampf(st, -24.0f, 24.0f); }
+BRK_COLD void brk_half_master(int on) { p_half_mt = on != 0; }
+
 BRK_COLD void brk_pitch_mode(int keep_length, float grain_ms)
 {
     p_grain = brk_clampf(grain_ms, 10.0f, 80.0f) * ((float)BRK_SR / 1000.0f);

@@ -6,7 +6,7 @@
 /* what K1-K4 tune while a pad is held, by pad (brk.h PAD_*); 0: that knob does nothing for it */
 static const char *const PAD_KNOB[BRK_NPADS][4] = {
     {"RATE", "DECAY", "PITCH", "LEVEL"}, {"RATE", "DECAY", "PITCH", "LEVEL"}, {"RATE", "DECAY", "PITCH", "LEVEL"},
-    {"SPEED", 0, 0, 0}, {"LENGTH", "PITCH", 0, 0}, {"SPEED", 0, 0, 0}, {"STOP", "SPIN UP", 0, 0},
+    {"SPEED", 0, 0, 0}, {"LENGTH", "PITCH", 0, 0}, {"SPEED", "M. TEMPO", 0, 0}, {"STOP", "SPIN UP", 0, 0},
     {"RATE", "LENGTH", 0, 0}, {"AMOUNT", "PITCH", 0, 0}, {"TARGET", "RESO", "SPEED", 0},
     {"TIME", "FEEDBACK", "TONE", "MIX"}};
 static const char *const PAD_TITLE[BRK_NPADS] = {"ROLL", "ROLL", "ROLL", "REVERSE", "SUB DRIVE", "HALF SPEED",
@@ -59,7 +59,10 @@ static void pad_knob_value(int pad, int k, char *t)
         if (k == 0) text_cat(t, FRZ_LEN_NAME[p->frz_len & 3u]);
         else signed_tenths(p->frz_pitch, "ST", t);
         break;
-    case PAD_HALF: times_text(p->half_speed, t); break;
+    case PAD_HALF:                       /* (GLOUPI BREAKS: K2 its master tempo) */
+        if (k == 0) times_text(p->half_speed, t);
+        else text_cat(t, set.half_mt_off ? "OFF" : "ON");
+        break;
     case PAD_TAPESTOP:
         if (k == 0) { signed_tenths(p->stop_beats, " BT", t); if (t[0] == '+') t[0] = ' '; }
         else { signed_tenths(p->spin_steps, " ST", t); if (t[0] == '+') t[0] = ' '; }
@@ -113,7 +116,10 @@ static void pad_knob_turn(int pad, int k, int32_t d)
         if (k == 0) p->frz_len = (uint8_t)clamp((int32_t)p->frz_len + d, 0, 3);
         else p->frz_pitch = knob_f(p->frz_pitch, d, 1.0f, -12.0f, 12.0f);
         break;
-    case PAD_HALF: p->half_speed = knob_f(p->half_speed, d, 0.05f, 0.25f, 0.75f); break;
+    case PAD_HALF:                       /* GLOUPI BREAKS: K2 MASTER TEMPO, right on (the pitch kept), left off */
+        if (k == 0) p->half_speed = knob_f(p->half_speed, d, 0.05f, 0.25f, 0.75f);
+        else set.half_mt_off = d < 0;
+        break;
     case PAD_TAPESTOP:
         if (k == 0) p->stop_beats = knob_f(p->stop_beats, d, 0.25f, 0.25f, 4.0f);
         else p->spin_steps = knob_f(p->spin_steps, d, 0.25f, 0.25f, 8.0f);
