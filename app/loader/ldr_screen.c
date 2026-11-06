@@ -1,10 +1,9 @@
 /* SPDX-License-Identifier: MPL-2.0
  * Copyright (C) 2026 Charles Vestal (felucca-bsp loader/ldr_screen.c); CHOPPAH's look, 2026; LOAF BREAKER's, 2026 */
 /* LOAF BREAKER's update screen: the update loader's own (felucca-bsp loader/ldr_screen.c, which build.sh swaps this in
- * for while the firmware builds, ldr_loaf.h beside it). Black, in BLOOD: LOAF BREAKER (its face and lettering, blood
- * tinted, ldr_loaf.h, tools/make_egg.py) at the top, "UPDATING" in bone and "DO NOT UNPLUG" in blood under it, and
- * at the very bottom the slice mark (sixteen bars, two chopped out of line) filling in blood (the two bone) from
- * dried blood as the app area is written: the progress (the
+ * for while the firmware builds, ldr_loaf.h beside it). Black: LOAF BREAKER (its face and lettering, ldr_loaf.h,
+ * tools/make_egg.py) at the top, "UPDATING" in white and "DO NOT UNPLUG" in red under it, and at the very bottom the
+ * slice mark (sixteen bars, two chopped out of line) filling in white as the app area is written: the progress (the
  * segmented bar and CHOPPAH's name are gone). Only the drawing differs from the original: the panel's start (reset,
  * sleep out, RGB565, IPS inversion), ldr_screen_init and ldr_screen_progress are the same, and every buffer is in RAM
  * (the SPI DMA reads RAM only; the picture is decoded into scr_strip). Part of loader.c's single unit. */
@@ -12,9 +11,9 @@
 #include "ldr_loaf.h"
 
 #define SCR_BG 0x0000u                              /* black */
-#define SCR_FG 0xEEF8u                              /* #e8dcc4 bone: UPDATING, the chopped two written */
-#define SCR_AMB 0xE0E4u                             /* #e61e24 blood: DO NOT UNPLUG, the mark written */
-#define SCR_DIM 0x2841u                             /* #2e0a0c dried blood: the mark, not yet written */
+#define SCR_FG 0xFFFFu                              /* white: UPDATING, the mark written */
+#define SCR_AMB 0xF8C3u                             /* #ff1818 red: DO NOT UNPLUG, the two chopped bars */
+#define SCR_DIM 0x2945u                             /* #282828: the mark, not yet written */
 #define SCR_LOAF_Y 2u                               /* the picture's top */
 #define SCR_MARK_B 236u                             /* the mark's bars' foot (the chopped two 8 px higher) */
 #define SCR_ROWS 21u                                /* the tallest line: 5x7 glyphs at 3x */
@@ -118,7 +117,7 @@ static void scr_text(uint32_t y, const char *s, uint32_t scale, uint16_t fg)   /
 static void scr_mark(uint32_t k, int lit)          /* bar k of the mark, written (lit) or still to come */
 {
     uint32_t h = SCR_MARK_H[k], chop = k == 5u || k == 11u, y = SCR_MARK_B - (chop ? 8u : 0u) - h;
-    scr_fill(8u + k * 14u, y, 12u, h, lit ? (chop ? SCR_FG : SCR_AMB) : SCR_DIM);
+    scr_fill(8u + k * 14u, y, 12u, h, lit ? (chop ? SCR_AMB : SCR_FG) : SCR_DIM);
 }
 
 /* LOAF BREAKER, centred at the top: ldr_loaf.h's runs (a byte a run: bits 0-3 the grey, 4-7 the length less one),

@@ -11,7 +11,6 @@
  * (gfx.c pal[]: rules, dim, labels, secondary, values) and the app's own (a block's ground, the block sounding, the
  * white, TAP TEMPO's unlit segments and metronome) from one table */
 #define NSKINS 9u
-#define SKIN_BLOOD 8u                    /* LOAF BREAKER: the start screen's, whatever the skin (app_ui_init, intro_end) */
 static const char *const SKIN_NAME[NSKINS] = {"RED", "AMBER", "ICE BLUE", "PIP-BOY", "VIOLET", "PINK", "MINT",
                                               "WHITE", "BLOOD"};
 /* each: line, dim, gray, mid (secondary), hi (values), block, white */

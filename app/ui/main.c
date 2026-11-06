@@ -836,7 +836,6 @@ static void draw_foot(const brk_status_t *st)
 
 void app_ui_init(void)
 {
-    skin_apply(SKIN_BLOOD);              /* LOAF BREAKER: the start screen in BLOOD (intro_end: the skin again) */
 #if CH_LOGO
     if (splash_t <= 1u)                  /* LOAF BREAKER: the splash stays (no clock when it was drawn: from now) */
         splash_t = plat_ms() | 1u;

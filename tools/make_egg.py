@@ -29,8 +29,6 @@ def main():
     ap.add_argument("--trim", action="store_true", help="cut the transparent margins")
     ap.add_argument("--levels", type=int, default=16)
     ap.add_argument("--bg", type=int, default=0, help="the grey under its transparent parts and in the margins (0 black)")
-    ap.add_argument("--tint", choices=["grey", "blood"], default="grey",
-                    help="the greys' colours: grey, or blood (black, dried blood, fresh blood, bone)")
     ap.add_argument("--preview", type=Path)
     a = ap.parse_args()
     n = max(2, min(16, a.levels))
@@ -71,19 +69,7 @@ def main():
             data.append((r - 1) << 4 | c)
             x += r
     N = a.name.upper()
-    # (LOAF BREAKER's BLOOD: each grey through black, dried blood, fresh blood and bone)
-    STOPS = [(0.0, (0, 0, 0)), (0.35, (70, 6, 10)), (0.65, (200, 22, 30)), (0.85, (236, 120, 100)), (1.0, (240, 226, 204))]
-    def tint(g):
-        if a.tint == "grey":
-            return (g, g, g)
-        t = g / 255
-        for (t0, c0), (t1, c1) in zip(STOPS, STOPS[1:]):
-            if t <= t1:
-                k = (t - t0) / (t1 - t0)
-                return tuple(round(c0[j] + (c1[j] - c0[j]) * k) for j in range(3))
-        return STOPS[-1][1]
-    cols = [tint(g) for g in greys]
-    pal565 = ", ".join(f"0x{((r >> 3) << 11) | ((gg >> 2) << 5) | (b >> 3):04X}u" for r, gg, b in cols)
+    pal565 = ", ".join(f"0x{((g >> 3) << 11) | ((g >> 2) << 5) | (g >> 3):04X}u" for g in greys)
     body = ",".join(("\n    " if i % 24 == 0 else " ") + f"0x{b:02X}" for i, b in enumerate(data))
     a.header.write_text(
         "/* SPDX-License-Identifier: MPL-2.0 */\n"
@@ -94,8 +80,8 @@ def main():
         f"static const uint16_t {N}_PAL[{n}] = {{{pal565}}};\n"
         f"static const uint8_t {N}_RLE[{len(data)}] = {{{body}\n}};\n")
     if a.preview:
-        prev = Image.new("RGB", (w, h))
-        prev.putdata([cols[px[x, y]] for y in range(h) for x in range(w)])
+        prev = Image.new("L", (w, h))
+        prev.putdata([greys[px[x, y]] for y in range(h) for x in range(w)])
         prev.save(a.preview)
     print(f"{a.header}: {N} {w} x {h}, {n} greys, {len(data)} bytes")
 

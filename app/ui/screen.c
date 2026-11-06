@@ -108,7 +108,7 @@ void app_splash(void)
         char t[16];
         version_text(t);
         cv_begin(240, 240 - SPLASH_H, C_BLACK);
-        cv_text(234 - text_w(&FONT_T, t), 1, &FONT_T, t, RGB(232, 220, 196));   /* (BLOOD's bone) */
+        cv_text(234 - text_w(&FONT_T, t), 1, &FONT_T, t, C_GRAY);
         cv_blit(0, 0);
     }
     splash_t = plat_ms() | 1u;
@@ -390,7 +390,6 @@ static int intro_leds(uint32_t now)
 static void intro_end(void)
 {
     ui.intro = 0u;
-    skin_apply(set.skin);                /* LOAF BREAKER: the start screen was BLOOD; the skin picked from here */
     lcd_fill(0, 0, 240, 240, C_BLACK);
     ui.redraw = RG_ALL;
 }
