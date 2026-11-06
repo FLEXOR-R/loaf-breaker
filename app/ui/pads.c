@@ -6,6 +6,7 @@
 static void ovl_push(void);              /* (ovl.c) */
 static void egg_draw(void);              /* (screen.c) */
 static uint8_t ovlpad_held, ovlpad_lat;  /* (the ARP key's: below) */
+static int ovl_pad_on(void);
 /* what K1-K4 tune while a pad is held, by pad (brk.h PAD_*); 0: that knob does nothing for it */
 static const char *const PAD_KNOB[BRK_NPADS][4] = {
     {"RATE", "DECAY", "PITCH", "LEVEL"}, {"RATE", "DECAY", "PITCH", "LEVEL"}, {"RATE", "DECAY", "PITCH", "LEVEL"},
