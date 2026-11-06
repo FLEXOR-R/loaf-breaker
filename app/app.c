@@ -82,7 +82,7 @@ typedef struct {
     int8_t kick_dj;                      /* GLOUPI BREAKS: HOME's KICK FLT, -100 low-pass .. 100 high-pass, 0 off */
     uint8_t half_mt_off;                 /* GLOUPI BREAKS: HALF SPEED's K2, 1 MASTER TEMPO off (0, older saves: on) */
     uint8_t ovl_pad;                     /* GLOUPI BREAKS: the ARP black key, bits 0-3 its OVERLAY effect (OV_*),
-                                          * bit 4 its LATCH */
+                                          * bit 4 its LATCH, bit 5 OFF (K3: the effects browsed silent) */
 } settings_t;
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");
