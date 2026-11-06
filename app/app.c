@@ -77,7 +77,8 @@ typedef struct {
     brk_fxx_t fxx[BRK_FX_SLOTS];
     /* (appended: GLOUPI BREAKS' skin, GLOBAL's MORE page; 0 RED, an older save's too) */
     uint8_t skin;
-    uint8_t rsv3[3];
+    int8_t kick_dj;                      /* GLOUPI BREAKS: HOME's KICK FLT, -100 low-pass .. 100 high-pass, 0 off */
+    uint8_t rsv3[2];
 } settings_t;
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");
@@ -681,7 +682,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                 }
             }
             kick_render(kick, m, ka, nk);
-            brk_fx_kick_dj(kick, m);       /* GLOUPI BREAKS: HOME's filter, the kick's alone */
+            brk_fx_kick_dj(kick, m, (float)set.kick_dj * 0.01f);   /* GLOUPI BREAKS: HOME's KICK FLT */
             perc_render(perc, m, pa, who, np);
             meter_kick = meter(kick, m, meter_kick);
             meter_perc = meter(perc, m, meter_perc);

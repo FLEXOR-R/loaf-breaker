@@ -1159,8 +1159,9 @@ static void test_eq_tape(void)
     }
 }
 
-/* GLOUPI BREAKS: HOME's DJ filter is the kick's: low-passed, the break and the drums through the chain or around it
- * stay bright and the kick goes dark (brk_fx_kick_dj); FILTER THROW still darkens the break */
+/* the DJ filter is the break's: a low-passed break goes dark while the kick joining through the chain and the
+ * drums around it stay bright; GLOUPI BREAKS: the kick's own (brk_fx_kick_dj) darkens the kick; FILTER THROW the
+ * break */
 static void test_dj_break(void)
 {
     static float tone[BLOCK], z[BLOCK], k[BLOCK];
@@ -1185,7 +1186,7 @@ static void test_dj_break(void)
             if (which == 3) {
                 for (i = 0; i < BLOCK; i++)
                     k[i] = tone[i];
-                brk_fx_kick_dj(k, BLOCK);
+                brk_fx_kick_dj(k, BLOCK, -1.0f);
                 for (i = 0; i < BLOCK; i++)
                     bl[i] = k[i];
             } else
@@ -1197,8 +1198,8 @@ static void test_dj_break(void)
                         pk[which] = fabsf(bl[i]);
         }
     }
-    CHECK(pk[0] > 0.2f && pk[1] > 0.2f && pk[2] > 0.2f && pk[3] < 0.01f,
-          "HOME's filter low-passed: the break %.3f, drums through the chain %.3f, around it %.3f, the kick %.3f",
+    CHECK(pk[0] < 0.01f && pk[1] > 0.2f && pk[2] > 0.2f && pk[3] < 0.01f,
+          "DJ filter low-passed: the break %.3f, drums through the chain %.3f, around it %.3f; the kick's: %.3f",
           pk[0], pk[1], pk[2], pk[3]);
     CHECK(pk[4] < 0.01f, "FILTER THROW held: the break low-passed (%.3f)", pk[4]);
 }

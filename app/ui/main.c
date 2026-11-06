@@ -102,14 +102,15 @@ static void knob_turn(int k, int32_t d)
                 say_int("GATE", set.gate, "%");
         } else if (k == EN_K2) {         /* the break's DJ filter: left low-pass, right high-pass */
             f->dj = knob_f(f->dj, d, 0.02f, -1.0f, 1.0f);
-            say_int("KICK FILTER", (int32_t)(f->dj * 100.0f), "");
-        } else if (k == EN_K3) {         /* GLOUPI BREAKS: the kick's SUB decay (EDIT's), here to ride (CHOPPAH: FX) */
+            say_int("DJ FILTER", (int32_t)(f->dj * 100.0f), "");
+        } else if (k == EN_K3) {         /* GLOUPI BREAKS: the kick's own DJ filter (CHOPPAH: FX) */
+            set.kick_dj = (int8_t)clamp((int32_t)set.kick_dj + d * 2, -100, 100);
+            say_int("KICK FILTER", set.kick_dj, "");
+        } else {                         /* GLOUPI BREAKS: the kick's SUB decay (EDIT's; CHOPPAH: COMPLEXITY, on
+                                          * GENERATOR alone now) */
             kick_layer_t *l = &set.kick.l[KL_SUB];
             l->decay = knob_f(l->decay, d, 0.02f, 0.0f, 1.0f);
             say_int("SUB DECAY", (int32_t)(kick_decay_ms(KL_SUB, l->decay) + 0.5f), " MS");
-        } else {                         /* COMPLEXITY: the GENERATOR's */
-            set.gen.complexity = knob_f(set.gen.complexity, d, 0.02f, 0.0f, 1.0f);
-            say_int("COMPLEXITY", (int32_t)(set.gen.complexity * 100.0f), "%");
         }
     } else if (ui.page == PG_GEN) {
         float *p = k == EN_K1 ? &set.gen.complexity : k == EN_K2 ? &set.gen.anchor : k == EN_K3 ? &set.gen.roll
@@ -611,20 +612,17 @@ static void knob_value(int i, char *t)  /* the page's knob i (0..3), as shown un
                 int_text(set.gate, t);
                 text_cat(t, "%");
             }
-        } else if (i == 1) {
-            int32_t v = (int32_t)(set.fx.dj * 100.0f);
+        } else if (i == 1 || i == 2) {   /* the break's DJ filter; GLOUPI BREAKS: the kick's */
+            int32_t v = i == 1 ? (int32_t)(set.fx.dj * 100.0f) : set.kick_dj;
             if (v > -2 && v < 2)
                 text_cat(t, "OFF");
             else {
                 text_cat(t, v < 0 ? "LP " : "HP ");
                 int_text(v < 0 ? -v : v, t + 3);
             }
-        } else if (i == 2) {             /* GLOUPI BREAKS: the kick's SUB decay */
+        } else {                         /* GLOUPI BREAKS: the kick's SUB decay */
             int_text((int32_t)(kick_decay_ms(KL_SUB, set.kick.l[KL_SUB].decay) + 0.5f), t);
             text_cat(t, " MS");
-        } else {
-            int_text((int32_t)(set.gen.complexity * 100.0f), t);
-            text_cat(t, "%");
         }
     } else if (ui.page == PG_GEN) {
         float v = i == 0 ? set.gen.complexity : i == 1 ? set.gen.anchor : i == 2 ? set.gen.roll : set.gen.fill;
@@ -762,7 +760,7 @@ static void draw_help(void)
 /* the foot: the pads, then the page and its knobs with their values */
 static void draw_foot(const brk_status_t *st)
 {
-    static const char *const KN[NPAGES][4] = {{"GATE", "KICK FLT", "SUB DECAY", "CMPLX"},
+    static const char *const KN[NPAGES][4] = {{"GATE", "FILTER", "KICK FLT", "SUB DECAY"},
                                               {"CMPLX", "ANCHOR", "ROLL", "FILL"},
                                               {"P1", "P2", "P3", "MIX"},
                                               {"CLOCK IN", "CLOCK OUT", "BLUETOOTH", "MIDI TO"},
