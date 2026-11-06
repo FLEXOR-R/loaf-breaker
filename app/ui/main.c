@@ -342,9 +342,10 @@ static void input(void)
         }
     }
     if (bdn & 1u << B_SEQ) {             /* SEQ: the pattern's steps and lanes; again, the next lane */
-        if (ui.page != PG_SEQ)
+        if (ui.page != PG_SEQ) {
             slices_let_go(keys);
-        else
+            ui.seq_lane = SL_KICK;       /* LOAF BREAKER: back on SEQ from another page, always K1 */
+        } else
             seq_lane_step(1);
         ui.page = PG_SEQ;
         ui.redraw |= RG_FOOT | RG_BLOCKS;

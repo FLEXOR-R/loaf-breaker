@@ -4,7 +4,6 @@
 wait 4200
 tap SEQ
 wait 300
-turn ALGO 2 10
 tapkey w0
 tapkey w4
 tapkey w8
