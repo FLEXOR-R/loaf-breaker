@@ -1,19 +1,19 @@
 /* SPDX-License-Identifier: MPL-2.0
  * Copyright (C) 2026 Charles Vestal (felucca-bsp loader/ldr_screen.c); CHOPPAH's look, 2026; LOAF BREAKER's, 2026 */
 /* LOAF BREAKER's update screen: the update loader's own (felucca-bsp loader/ldr_screen.c, which build.sh swaps this in
- * for while the firmware builds, ldr_loaf.h beside it). White: LOAF BREAKER (its face and lettering, ldr_loaf.h,
- * tools/make_egg.py) at the top, "UPDATING" in black and "DO NOT UNPLUG" in red under it, and at the very bottom the
- * slice mark (sixteen bars, two chopped out of line) filling in black as the app area is written: the progress (the
+ * for while the firmware builds, ldr_loaf.h beside it). Black: LOAF BREAKER (its face and lettering, ldr_loaf.h,
+ * tools/make_egg.py) at the top, "UPDATING" in white and "DO NOT UNPLUG" in red under it, and at the very bottom the
+ * slice mark (sixteen bars, two chopped out of line) filling in white as the app area is written: the progress (the
  * segmented bar and CHOPPAH's name are gone). Only the drawing differs from the original: the panel's start (reset,
  * sleep out, RGB565, IPS inversion), ldr_screen_init and ldr_screen_progress are the same, and every buffer is in RAM
  * (the SPI DMA reads RAM only; the picture is decoded into scr_strip). Part of loader.c's single unit. */
 #include "../boards/fm1/fm1_lcd_hw.h"
 #include "ldr_loaf.h"
 
-#define SCR_BG 0xFFFFu                              /* white */
-#define SCR_FG 0x0000u                              /* black: UPDATING, the mark written */
+#define SCR_BG 0x0000u                              /* black */
+#define SCR_FG 0xFFFFu                              /* white: UPDATING, the mark written */
 #define SCR_AMB 0xF8C3u                             /* #ff1818 red: DO NOT UNPLUG, the two chopped bars */
-#define SCR_DIM 0xD69Au                             /* #d0d0d0: the mark, not yet written */
+#define SCR_DIM 0x2945u                             /* #282828: the mark, not yet written */
 #define SCR_LOAF_Y 2u                               /* the picture's top */
 #define SCR_MARK_B 236u                             /* the mark's bars' foot (the chopped two 8 px higher) */
 #define SCR_ROWS 21u                                /* the tallest line: 5x7 glyphs at 3x */
