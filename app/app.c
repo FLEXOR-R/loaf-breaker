@@ -24,6 +24,7 @@
 #ifndef CH_HAVE_BANK
 #define CH_HAVE_BANK 0
 #endif
+#include "egg_data.h"                /* GLOUPI BREAKS: LOAF LORD (tools/make_egg.py) */
 #if CH_LOGO
 #include "logo_data.h"              /* GLOUPI BREAKS: the splash's picture (tools/make_logo.py) */
 #endif
@@ -79,7 +80,8 @@ typedef struct {
     uint8_t skin;
     int8_t kick_dj;                      /* GLOUPI BREAKS: HOME's KICK FLT, -100 low-pass .. 100 high-pass, 0 off */
     uint8_t half_mt_off;                 /* GLOUPI BREAKS: HALF SPEED's K2, 1 MASTER TEMPO off (0, older saves: on) */
-    uint8_t rsv3[1];
+    uint8_t ovl_pad;                     /* GLOUPI BREAKS: the ARP black key, bits 0-3 its OVERLAY effect (OV_*),
+                                          * bit 4 its LATCH */
 } settings_t;
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");

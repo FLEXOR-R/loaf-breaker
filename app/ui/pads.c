@@ -3,14 +3,17 @@
  * included there in order.) */
 
 /* -------------------------------------------------- the pads' own settings --- */
+static void ovl_push(void);              /* (ovl.c) */
+static void egg_draw(void);              /* (screen.c) */
+static uint8_t ovlpad_held, ovlpad_lat;  /* (the ARP key's: below) */
 /* what K1-K4 tune while a pad is held, by pad (brk.h PAD_*); 0: that knob does nothing for it */
 static const char *const PAD_KNOB[BRK_NPADS][4] = {
     {"RATE", "DECAY", "PITCH", "LEVEL"}, {"RATE", "DECAY", "PITCH", "LEVEL"}, {"RATE", "DECAY", "PITCH", "LEVEL"},
     {"SPEED", 0, 0, 0}, {"LENGTH", "PITCH", 0, 0}, {"SPEED", "M. TEMPO", 0, 0}, {"STOP", "SPIN UP", 0, 0},
     {"RATE", "LENGTH", 0, 0}, {"AMOUNT", "PITCH", 0, 0}, {"TARGET", "RESO", "SPEED", 0},
-    {"TIME", "FEEDBACK", "TONE", "MIX"}};
+    {"EFFECT", "LATCH", 0, "LOAF LORD"}};   /* (GLOUPI BREAKS: PAD_DUB is the ARP key) */
 static const char *const PAD_TITLE[BRK_NPADS] = {"ROLL", "ROLL", "ROLL", "REVERSE", "SUB DRIVE", "HALF SPEED",
-                                                  "TAPE STOP", "GATE", "RANDOM", "FILTER", "DUB"};
+                                                  "TAPE STOP", "GATE", "RANDOM", "FILTER", "OVERLAY"};
 static const char *const FRZ_LEN_NAME[4] = {"SLICE", "1/2", "1/4", "1/8"};
 
 /* -1..1 as the DJ filter's frequency: "LP 340HZ" / "HP 1.2K" */
@@ -80,10 +83,10 @@ static void pad_knob_value(int pad, int k, char *t)
         else if (k == 1) pct_text(f->flt_res, t);
         else pct_text(f->flt_speed, t);
         break;
-    case PAD_DUB:                        /* with a DELAY in the chain, the pad throws into it: its settings */
-        if (delay_slot() >= 0) fx_value((uint32_t)delay_slot(), k, t);
-        else if (k == 0) text_cat(t, BRK_DUB_DIV_NAME[f->dub_div % BRK_DUB_DIVS]);
-        else pct_text(k == 1 ? f->dub_fb : k == 2 ? f->dub_tone : f->dub_mix, t);
+    case PAD_DUB:                        /* GLOUPI BREAKS: the ARP key: its OVERLAY effect, its LATCH, LOAF LORD */
+        if (k == 0) text_cat(t, OVL_NAME[set.ovl_pad & 15u]);
+        else if (k == 1) text_cat(t, set.ovl_pad & 16u ? "ON" : "OFF");
+        else text_cat(t, "TURN ME");
         break;
     default: break;
     }
@@ -137,15 +140,21 @@ static void pad_knob_turn(int pad, int k, int32_t d)
         else if (k == 1) f->flt_res = knob_f(f->flt_res, d, 0.02f, 0.0f, 0.95f);
         else f->flt_speed = knob_f(f->flt_speed, d, 0.02f, 0.0f, 1.0f);
         break;
-    case PAD_DUB:
-        if (delay_slot() >= 0) {         /* the DELAY slot's own settings */
-            fx_knob_turn((uint32_t)delay_slot(), k, d);
+    case PAD_DUB:                        /* GLOUPI BREAKS: the ARP key. K1 which OVERLAY effect (the ARP page's
+                                          * settings: amount, rate, sweep), K2 LATCH, K4 LOAF LORD */
+        if (k == 0)
+            set.ovl_pad = (uint8_t)((set.ovl_pad & ~15u) | ((set.ovl_pad + (d > 0 ? 1u : 15u)) & 15u));
+        else if (k == 1) {
+            set.ovl_pad = (uint8_t)(d > 0 ? set.ovl_pad | 16u : set.ovl_pad & ~16u);
+            if (!(set.ovl_pad & 16u))
+                ovlpad_lat = 0u;         /* (back to held: a latched effect lets go) */
+        } else {
+            ui.egg_t = plat_ms() | 1u;   /* the easter egg: app_frame shows it 1.5 s */
+            egg_draw();
             return;
         }
-        if (k == 0) f->dub_div = (uint8_t)clamp((int32_t)f->dub_div + d, 0, BRK_DUB_DIVS - 1);
-        else if (k == 1) f->dub_fb = knob_f(f->dub_fb, d, 0.02f, 0.0f, 0.95f);
-        else if (k == 2) f->dub_tone = knob_f(f->dub_tone, d, 0.02f, 0.0f, 1.0f);
-        else f->dub_mix = knob_f(f->dub_mix, d, 0.02f, 0.0f, 1.0f);
+        ovl_push();
+        ui.redraw |= RG_BLOCKS;
         break;
     default: break;
     }
@@ -331,19 +340,14 @@ static void draw_fx_band(int pad, const brk_status_t *st, uint32_t now, int32_t 
         cv_text(234 - text_w(&FONT_XS, t), 2, &FONT_XS, t, C_WHITE);
         break;
     }
-    case PAD_DUB: {                      /* DUB: echoes marching out, each one fainter and darker */
-        static const uint8_t SP[BRK_DUB_DIVS] = {2, 3, 4, 6};
-        float tempo = (float)set.tempo_x10 * 0.1f, step_ms = 60000.0f / (tempo * 4.0f);
-        float per = step_ms * (float)SP[f->dub_div % BRK_DUB_DIVS], ph = (float)(held % (uint32_t)per) / per;
-        int32_t sp = 26 + 8 * (int32_t)SP[f->dub_div % BRK_DUB_DIVS] / 2;
-        float g = 1.0f;
-        for (i = 0; i < 10; i++) {
-            int32_t x = 6 + i * sp + (int32_t)(ph * (float)sp);
-            if (x > 236)
-                break;
-            fx_slice(s, x, 18, g, g > 0.6f ? C_DUB : g > 0.3f ? C_GRAY : C_LINE);
-            g *= f->dub_fb;
-        }
+    case PAD_DUB: {                      /* GLOUPI BREAKS: the ARP key: its effect, big, lit while on */
+        int on = ovlpad_held || ovlpad_lat;
+        const char *n = OVL_NAME[set.ovl_pad & 15u];
+        cv_rect(6, 30, 228, 40, on ? C_HI : C_BLOCK);
+        cv_text((240 - text_w(&FONT_B, n)) / 2, 38, &FONT_B, n, on ? C_BLACK : C_GRAY);
+        cv_text(6, 78, &FONT_XS, set.ovl_pad & 16u ? (on ? "LATCHED: PRESS AGAIN TO STOP" : "LATCH: A PRESS SWITCHES IT ON")
+                : "ON WHILE HELD", C_DIM);
+        (void)held;
         break;
     }
     default: break;
@@ -358,6 +362,11 @@ static void draw_fx(int pad, const brk_status_t *st, uint32_t now)
     draw_fx_band(pad, st, now, 0);
     draw_fx_band(pad, st, now, FX_BAND);
 }
+
+/* GLOUPI BREAKS: the ARP black key (PAD_DUB's, DUB itself gone): one OVERLAY effect (set.ovl_pad: bits 0-3 which,
+ * bit 4 LATCH), held or switched on, over what the ARP page has on, with the ARP page's settings (ovl.c) */
+static uint8_t ovlpad_held, ovlpad_lat;
+static int ovl_pad_on(void) { return ovlpad_held || ovlpad_lat; }
 
 /* GLOUPI BREAKS: the black key that was FREEZE (PAD_FREEZE, FREEZE itself gone): the kick's SUB through its DRIVE, on
  * and off at each press (the SUB layer's effect DRIVE or OFF; its settings, EDIT's, kept; saved with SAVE) */

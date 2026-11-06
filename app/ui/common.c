@@ -47,11 +47,12 @@ static void skin_apply(uint32_t s)
 
 enum { PG_HOME, PG_GEN, PG_FX, PG_GLOBAL, PG_KICK, PG_MIX, PG_SEQ, PG_PERC, PG_TAP, PG_OVL, NPAGES };
 static const char *const PAD_NAME[BRK_NPADS] = {"R8", "R16", "R32", "REV", "SUB", "HLF", "STP", "GAT", "RND",
-                                                "FLT", "DUB"};
+                                                "FLT", "ARP"};
 static const uint8_t WK[16] = PLAT_WHITE_KEYS, BK[11] = PLAT_BLACK_KEYS;
 /* GLOUPI BREAKS: the black key (0..10, left to right) of each pad (PAD_*): DUB on the fifth key, FREEZE's in CHOPPAH,
  * and FREEZE on the last, DUB's. BK[PAD_KEY[pad]] is the pad's key; the strip of names follows the keys */
-static const uint8_t PAD_KEY[BRK_NPADS] = {0, 1, 2, 3, 10, 5, 6, 7, 8, 9, 4};
+static const uint8_t PAD_KEY[BRK_NPADS] = {0, 1, 2, 3, 10, 5, 6, 7, 8, 4, 9};   /* (and FILTER on the fifth key,
+                                          * DUB's; PAD_DUB the ARP key on the tenth, FILTER's: DUB itself gone) */
 
 #define TAPS 8u                          /* tap tempo: the last eight taps (seven intervals) average */
 static struct {
@@ -94,6 +95,7 @@ static struct {
     float mb_hold[3];                    /* its bands' reduction peaks held (dB), and since when */
     uint32_t mb_hold_t[3];
     uint32_t reset_t;                    /* GLOBAL's RESET ALL: when it was last turned */
+    uint32_t egg_t;                      /* GLOUPI BREAKS: LOAF LORD on the screen since (0: not) */
     uint8_t reset_n;                     /* GLOUPI BREAKS: its turns so far, each within 3 s of the last (it wants 15) */
     uint32_t mix_drawn;                  /* its faders' meters: when last drawn */
     int16_t meter_x;                     /* the header's level meter: where (0: not shown now, a message is) */

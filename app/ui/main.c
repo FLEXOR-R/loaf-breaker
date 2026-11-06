@@ -265,6 +265,16 @@ static void input(void)
                 sub_drive_toggle();
             continue;
         }
+        if (i == PAD_DUB) {              /* GLOUPI BREAKS: DUB's is the ARP key, an OVERLAY effect (ovl.c) */
+            if (kdn >> BK[PAD_KEY[i]] & 1u) {
+                ovl_pad_key(1);
+                ui.pad_focus = (int8_t)i;
+                ui.pad_since = now;
+            }
+            if (kup >> BK[PAD_KEY[i]] & 1u)
+                ovl_pad_key(0);
+            continue;
+        }
         if (kdn >> BK[PAD_KEY[i]] & 1u) {
             brk_pad((int)i, 1);
             ui.pad_focus = (int8_t)i;
@@ -558,7 +568,7 @@ static void leds(void)
     } else if (st.slice >= 0 && st.slice < 16)
         k |= 1u << WK[st.slice];
     for (i = 0; i < 11u; i++)
-        if (i == PAD_FREEZE ? sub_drive_on() : (int)(st.pads >> i & 1u))   /* (SUB DRIVE: lit while on) */
+        if (i == PAD_FREEZE ? sub_drive_on() : i == PAD_DUB ? ovl_pad_on() : (int)(st.pads >> i & 1u))
             k |= 1u << BK[PAD_KEY[i]];
     plat_glow(1);
     plat_leds(b, k);
@@ -775,7 +785,7 @@ static void draw_foot(const brk_status_t *st)
     draw_tabs();
     cv_begin(240, 48, C_BLACK);
     for (i = 0; i < 11u; i++) {
-        int on = i == PAD_FREEZE ? sub_drive_on() : (int)((st->pads >> i) & 1u);
+        int on = i == PAD_FREEZE ? sub_drive_on() : i == PAD_DUB ? ovl_pad_on() : (int)((st->pads >> i) & 1u);
         int32_t x = 2 + (int32_t)PAD_KEY[i] * 21;   /* (at its key) */
         cv_rect(x, 0, 20, 14, on ? C_HI : C_BLOCK);
         cv_text(x + (20 - text_w(&FONT_T, PAD_NAME[i])) / 2, 1, &FONT_T, PAD_NAME[i], on ? C_BLACK : C_GRAY);
@@ -800,8 +810,6 @@ static void draw_foot(const brk_status_t *st)
             name = PAD_KNOB[ui.shown][i];
             if (!name)
                 continue;
-            if (ui.shown == PAD_DUB && delay_slot() >= 0)
-                name = fx_param_name((uint32_t)delay_slot(), (int)i);   /* (TIME FEEDBK TONE SEND) */
             cv_text(4 + (int32_t)i * 60, 18, &FONT_T, name, C_HI);
             pad_knob_value(ui.shown, (int)i, t);
             cv_text(4 + (int32_t)i * 60, 30, &FONT_XS, t, C_WHITE);
@@ -890,6 +898,17 @@ void app_frame(void)
     if (ui.ntaps && now - ui.taps[(ui.ntaps - 1u) % TAPS] > 2000u) {   /* a pause: the run is over */
         ui.ntaps = 0u;
         ui.redraw |= ui.page == PG_TAP ? RG_BLOCKS : 0;
+    }
+    if (ui.egg_t) {                      /* GLOUPI BREAKS: LOAF LORD, 1.5 s (drawn when K4 turned: egg_draw) */
+        if (now - ui.egg_t > 1500u) {
+            ui.egg_t = 0u;
+            lcd_fill(0, 0, 240, 240, C_BLACK);
+            ui.redraw = RG_ALL;
+        } else {
+            leds();
+            ui.touched = 0u;
+            return;
+        }
     }
     if (ui.lobo_t) {                     /* RESET ALL's screen: 3 s, or until a key or button (after its own turn) */
         if (now - ui.lobo_t > 3000u || (ui.touched && now - ui.lobo_t > 500u)) {

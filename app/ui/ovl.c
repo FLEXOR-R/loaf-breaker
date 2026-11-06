@@ -7,7 +7,24 @@
 static uint32_t ovl_held, ovl_latched;   /* bit OV_*: held down on this page; switched on (LATCH) */
 static uint8_t ovl_last;                 /* the effect touched last: K1 its amount */
 
-static void ovl_push(void) { ovl_set(ovl_held | ovl_latched, set.ovl_amt, set.ovl_rate, set.ovl_sweep); }
+static uint32_t ovl_pad_bits(void) { return ovl_pad_on() ? 1u << (set.ovl_pad & 15u) : 0u; }   /* the ARP key's */
+static void ovl_push(void)
+{
+    ovl_set(ovl_held | ovl_latched | ovl_pad_bits(), set.ovl_amt, set.ovl_rate, set.ovl_sweep);
+}
+static void ovl_pad_key(int down)        /* GLOUPI BREAKS: the ARP black key down or up */
+{
+    if (set.ovl_pad & 16u) {             /* LATCH: a press switches it on and off */
+        if (down)
+            ovlpad_lat ^= 1u;
+        ovlpad_held = 0u;
+    } else {
+        ovlpad_held = (uint8_t)(down != 0);
+        ovlpad_lat = 0u;
+    }
+    ovl_push();
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
 
 static void ovl_keys(uint32_t keys, uint32_t kdn)   /* every input: the white keys on the page, then the engine */
 {
@@ -68,7 +85,7 @@ static void ovl_turn(int i, int32_t d)
  * the one K1 tunes outlined white; each with a bar of its amount and its key */
 static void draw_ovl(void)
 {
-    uint32_t band, i, on = ovl_sounding() | ovl_held | ovl_latched;
+    uint32_t band, i, on = ovl_sounding() | ovl_held | ovl_latched | ovl_pad_bits();
     char t[4];
     for (band = 0; band < 2u; band++) {
         cv_begin(240, 52, C_BLACK);

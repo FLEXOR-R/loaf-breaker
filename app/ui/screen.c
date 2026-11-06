@@ -80,6 +80,34 @@ static void logo_draw(int32_t x, int32_t top, int32_t h)
 }
 #endif
 
+/* GLOUPI BREAKS: LOAF LORD, the whole screen (egg_data.h: a byte a run, bits 0-3 the grey, 4-7 the length less one),
+ * in strips of 60 rows, the blessing small at the bottom */
+static void egg_draw(void)
+{
+    int32_t r, h;
+    for (r = 0; r < EGG_H; r += h) {
+        uint32_t i;
+        int32_t x = 0, row = 0;
+        h = EGG_H - r < 60 ? EGG_H - r : 60;
+        cv_begin(240, (uint32_t)h, C_BLACK);
+        for (i = 0; i < sizeof EGG_RLE && row < r + h; i++) {
+            uint32_t b = EGG_RLE[i], c = b & 15u;
+            int32_t n = (int32_t)(b >> 4) + 1;
+            if (c && row >= r)
+                cv_rect(x, row - r, n, 1, EGG_PAL[c]);
+            x += n;
+            if (x >= EGG_W) {
+                x = 0;
+                row++;
+            }
+        }
+        if (r + h >= 240)
+            cv_text((240 - text_w(&FONT_T, "MAY THE LOAF BE WITH YOU")) / 2, 226 - r, &FONT_T,
+                    "MAY THE LOAF BE WITH YOU", RGB(190, 190, 190));
+        cv_blit(0, (uint32_t)r);
+    }
+}
+
 /* fm1-base's first screen at power-on, while the breaks are decoded (APP_SPLASH): the mark and the name (GLOUPI
  * BREAKS: its picture over the name) */
 void app_splash(void)
