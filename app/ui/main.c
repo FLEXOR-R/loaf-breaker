@@ -102,7 +102,7 @@ static void knob_turn(int k, int32_t d)
                 say_int("GATE", set.gate, "%");
         } else if (k == EN_K2) {         /* the break's DJ filter: left low-pass, right high-pass */
             f->dj = knob_f(f->dj, d, 0.02f, -1.0f, 1.0f);
-            say_int("DJ FILTER", (int32_t)(f->dj * 100.0f), "");
+            say_int("KICK FILTER", (int32_t)(f->dj * 100.0f), "");
         } else if (k == EN_K3) {         /* GLOUPI BREAKS: the kick's SUB decay (EDIT's), here to ride (CHOPPAH: FX) */
             kick_layer_t *l = &set.kick.l[KL_SUB];
             l->decay = knob_f(l->decay, d, 0.02f, 0.0f, 1.0f);
@@ -762,7 +762,7 @@ static void draw_help(void)
 /* the foot: the pads, then the page and its knobs with their values */
 static void draw_foot(const brk_status_t *st)
 {
-    static const char *const KN[NPAGES][4] = {{"GATE", "FILTER", "SUB DECAY", "CMPLX"},
+    static const char *const KN[NPAGES][4] = {{"GATE", "KICK FLT", "SUB DECAY", "CMPLX"},
                                               {"CMPLX", "ANCHOR", "ROLL", "FILL"},
                                               {"P1", "P2", "P3", "MIX"},
                                               {"CLOCK IN", "CLOCK OUT", "BLUETOOTH", "MIDI TO"},

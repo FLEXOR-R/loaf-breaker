@@ -1159,37 +1159,48 @@ static void test_eq_tape(void)
     }
 }
 
-/* the DJ filter is the break's: a low-passed break goes dark while the kick joining through the chain and the
- * drums around it stay bright */
+/* GLOUPI BREAKS: HOME's DJ filter is the kick's: low-passed, the break and the drums through the chain or around it
+ * stay bright and the kick goes dark (brk_fx_kick_dj); FILTER THROW still darkens the break */
 static void test_dj_break(void)
 {
-    static float tone[BLOCK], z[BLOCK];
+    static float tone[BLOCK], z[BLOCK], k[BLOCK];
     brk_fx_t p;
     uint32_t i, b;
-    float pk[3];
+    float pk[5];
     int which;
     for (i = 0; i < BLOCK; i++) {
         tone[i] = 0.25f * sinf(6.2831853f * 4000.0f * (float)i / (float)BRK_SR);
         z[i] = 0.0f;
     }
-    for (which = 0; which < 3; which++) {   /* the tone as the break, as thru (drums through the chain), as post
-                                             * (drums around it) */
+    for (which = 0; which < 5; which++) {   /* the tone as the break, as thru, as post, as the kick, as the break with
+                                             * FILTER THROW held */
         brk_fx_init();
         brk_fx_defaults(&p);
         p.dj = -1.0f;
+        p.flt_target = -1.0f;
+        p.flt_speed = 1.0f;
         brk_fx_set(&p);
         pk[which] = 0.0f;
         for (b = 0; b < 60u; b++) {
-            brk_fx_process(which == 0 ? tone : z, which == 1 ? tone : 0, 0, 0, which == 2 ? tone : 0, bl, br, BLOCK, 0u);
+            if (which == 3) {
+                for (i = 0; i < BLOCK; i++)
+                    k[i] = tone[i];
+                brk_fx_kick_dj(k, BLOCK);
+                for (i = 0; i < BLOCK; i++)
+                    bl[i] = k[i];
+            } else
+                brk_fx_process(which == 0 || which == 4 ? tone : z, which == 1 ? tone : 0, 0, 0, which == 2 ? tone : 0,
+                               bl, br, BLOCK, which == 4 ? 1u << PAD_FILTER : 0u);
             if (b > 40u)
                 for (i = 0; i < BLOCK; i++)
                     if (fabsf(bl[i]) > pk[which])
                         pk[which] = fabsf(bl[i]);
         }
     }
-    CHECK(pk[0] < 0.01f && pk[1] > 0.2f && pk[2] > 0.2f,
-          "DJ filter low-passed: the break %.3f, drums through the chain %.3f, drums around it %.3f", pk[0], pk[1],
-          pk[2]);
+    CHECK(pk[0] > 0.2f && pk[1] > 0.2f && pk[2] > 0.2f && pk[3] < 0.01f,
+          "HOME's filter low-passed: the break %.3f, drums through the chain %.3f, around it %.3f, the kick %.3f",
+          pk[0], pk[1], pk[2], pk[3]);
+    CHECK(pk[4] < 0.01f, "FILTER THROW held: the break low-passed (%.3f)", pk[4]);
 }
 
 /* MULTIBAND: the bands sum back to the input untouched; a band pressed holds its level, the others don't move; CLIP:

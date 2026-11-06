@@ -26,6 +26,8 @@ static volatile brk_fx_t p_fx;
 static brk_fx_t fx;                      /* the render's copy */
 static float lim_gain = 1.0f, dj_s;      /* the limiter; the DJ filter's smoothed position */
 static svf_t dj_b, dj_e, dj_v;           /* the DJ filter: on the break, its echo throw, its reverb throw */
+static svf_t dj_k;                       /* GLOUPI BREAKS: HOME's DJ filter, on the kick (brk_fx_kick_dj) */
+static float djk_s;                      /* its smoothed position */
 const char *const BRK_FXT_NAME[BRK_NFXT] = {"EMPTY", "FILTER", "CRUNCH", "DRIVE", "PUNCH", "FLANGER", "RING MOD",
                                             "TREMOLO", "REVERB", "DELAY", "EQ", "TAPE", "MB COMP", "CLIP"};
 const char *const BRK_DLY_DIV_NAME[BRK_DLY_DIVS] = {"1/16", "1/8", "3/16", "1/4", "3/8", "1/2", "1/8T", "1/4T"};
@@ -432,6 +434,26 @@ void brk_fx_delay_buffer(int16_t *buf, uint32_t n)
 }
 void brk_fx_tempo(float bpm) { p_bpm = brk_clampf(bpm, 40.0f, 300.0f); }
 float brk_fx_dj_now(void) { return dj_s; }
+
+/* GLOUPI BREAKS: HOME's DJ filter (fx.dj) on the kick alone, in place (the render's kick, before the snare and the
+ * hat join it): left low-pass, right high-pass, as the break's was; the break's own is FILTER THROW's alone now */
+BRK_COLD void brk_fx_kick_dj(float *x, uint32_t n)
+{
+    float d = brk_clampf(((const brk_fx_t *)&p_fx)->dj, -1.0f, 1.0f), hz, lp, h;
+    svf_c c;
+    uint32_t i;
+    int hp;
+    djk_s += (d - djk_s) * 0.3f;
+    if (djk_s > -0.01f && djk_s < 0.01f)
+        return;
+    hp = djk_s > 0.0f;
+    hz = hp ? 20.0f * brk_exp2f(djk_s * 8.2f) : 18000.0f * brk_exp2f(djk_s * 7.8f);
+    c = svf_coef(hz, 0.35f);
+    for (i = 0; i < n; i++) {
+        h = svf_run(&dj_k, &c, x[i], &lp);
+        x[i] = hp ? h : lp;
+    }
+}
 
 BRK_COLD void brk_fx_init(void)
 {
@@ -1088,8 +1110,9 @@ void brk_fx_process(const float *in, const float *thru, const float *echo, const
     int dj_hp, throw = (pads >> PAD_FILTER) & 1u, dub_on = (pads >> PAD_DUB) & 1u;
     fx = *(const brk_fx_t *)&p_fx;
     wet = brk_clampf(fx.wet, 0.0f, 1.0f);
-    /* the FILTER pad throws the DJ filter to its target at its speed, with its resonance */
-    dj = throw ? brk_clampf(fx.flt_target, -1.0f, 1.0f) : brk_clampf(fx.dj, -1.0f, 1.0f);
+    /* the FILTER pad throws the DJ filter to its target at its speed, with its resonance (GLOUPI BREAKS: the break's
+     * DJ filter is the pad's alone; HOME's knob filters the kick, brk_fx_kick_dj) */
+    dj = throw ? brk_clampf(fx.flt_target, -1.0f, 1.0f) : 0.0f;
     dj_s += (dj - dj_s) * (throw ? 0.01f + 0.3f * brk_clampf(fx.flt_speed, 0.0f, 1.0f) : 0.3f);
     dj_hp = dj_s > 0.0f;
     /* -1 .. 0: low-pass 18 kHz down to 80 Hz; 0 .. 1: high-pass 20 Hz up to 6 kHz (exponential sweeps) */

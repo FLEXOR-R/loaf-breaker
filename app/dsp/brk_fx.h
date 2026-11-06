@@ -212,6 +212,7 @@ void brk_fx_set(const brk_fx_t *p);
 void brk_fx_delay_buffer(int16_t *buf, uint32_t n);
 void brk_fx_tempo(float bpm);
 float brk_fx_dj_now(void);               /* where the DJ filter is right now, -1..1 (for the screen) */
+void brk_fx_kick_dj(float *x, uint32_t n);   /* GLOUPI BREAKS: HOME's DJ filter (dj) on the kick, in place (render) */
 /* in: the break, through the DJ filter, then the chain; thru: joins it after the DJ filter, into the chain (the drums
  * through the chain; 0 for none); echo, verb: the slices' throws into the delay and the reverb (brk_sends, the DJ
  * filter on them too; 0 for none); post: joined after the chain, into the limiter, thrown nowhere (the drums around

@@ -681,6 +681,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                 }
             }
             kick_render(kick, m, ka, nk);
+            brk_fx_kick_dj(kick, m);       /* GLOUPI BREAKS: HOME's filter, the kick's alone */
             perc_render(perc, m, pa, who, np);
             meter_kick = meter(kick, m, meter_kick);
             meter_perc = meter(perc, m, meter_perc);
