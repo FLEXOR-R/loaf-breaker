@@ -263,7 +263,12 @@ static void seq_value(int i, char *t)    /* the step edited: SLICE, PITCH, HITS,
             int_text((int32_t)n, t);
             text_cat(t, " HITS");
         } else if (i == 1)
-            dj_text((float)set.kick_dj * 0.01f, t);
+        {
+            if (set.kick_dj > -2 && set.kick_dj < 2)   /* (OFF at the centre, as on HOME) */
+                text_cat(t, "OFF");
+            else
+                dj_text((float)set.kick_dj * 0.01f, t);
+        }
         else if (i == 2)
             text_cat(t, "L CLR R 4X4");
         else {
