@@ -23,10 +23,10 @@ static void sl_set(pat_t *p, uint32_t sl, uint32_t m)
     else
         p->lane[LANE_HAT] = (uint16_t)m;
 }
-static uint32_t sl_bars(const pat_t *p, uint32_t sl)   /* the bars its drum's lane has now: 4 or 2, 2 or 1, 1 */
+static uint32_t sl_bars(const pat_t *p, uint32_t sl)   /* the bars its drum's lane has now: 4, 2 or 1; 2 or 1; 1 */
 {
     if (sl_kick(sl))
-        return PAT_LEN(p) & PAT_KICK32 ? 2u : 4u;
+        return kick_bars(p);
     return sl_snare(sl) && (PAT_LEN(p) & PAT_SNARE32) ? 2u : 1u;
 }
 static int sl_active(const pat_t *p, uint32_t sl)   /* a lane of SEQ the pattern has (K3, K4, S2 only at their length) */
@@ -170,7 +170,7 @@ static void midi_drum(uint32_t l)        /* a drum note: the hit now, and with R
 }
 /* K1-K4 on a drum lane (SEQ): FILL n hits spread evenly (Euclidean, from the downbeat), KICK FLT (LOAF BREAKER, in
  * place of ROTATE: the kick's DJ filter, HOME's K3's),
- * CLEAR (left) or four on the floor (right), LENGTH (GLOUPI BREAKS, in place of COPY: the kick 32 or 64 steps, the
+ * CLEAR (left) or four on the floor (right), LENGTH (GLOUPI BREAKS, in place of COPY: the kick 16, 32 or 64 steps, the
  * snare 16 or 32) */
 static void lane_knob(int i, int32_t d)
 {
@@ -185,11 +185,14 @@ static void lane_knob(int i, int32_t d)
         ui.redraw |= RG_FOOT;
         return;
     }
-    if (i == 3) {                        /* GLOUPI BREAKS: LENGTH, the kick 32 or 64 steps, the snare 16 or 32 */
+    if (i == 3) {                        /* GLOUPI BREAKS: LENGTH, the kick 16, 32 or 64 steps, the snare 16 or 32 */
         uint8_t *len = &PAT_LEN(pat_now());
-        uint32_t f = sl_kick(ui.seq_lane) ? PAT_KICK32 : sl_snare(ui.seq_lane) ? PAT_SNARE32 : 0u;
-        if (f)
-            *len = (uint8_t)((d > 0) == (f == PAT_SNARE32) ? *len | f : *len & ~f);
+        if (sl_kick(ui.seq_lane)) {      /* the kick: 16, 32 or 64 steps, right longer */
+            uint32_t at = kick_bars(pat_now()) == 1u ? 0u : kick_bars(pat_now()) == 2u ? 1u : 2u;
+            at = (uint32_t)clamp((int32_t)at + (d > 0 ? 1 : -1), 0, 2);
+            *len = (uint8_t)((*len & ~(PAT_KICK16 | PAT_KICK32)) | (at == 0u ? PAT_KICK16 : at == 1u ? PAT_KICK32 : 0u));
+        } else if (sl_snare(ui.seq_lane))   /* the snare: 16 or 32, right longer */
+            *len = (uint8_t)(d > 0 ? *len | PAT_SNARE32 : *len & ~PAT_SNARE32);
         pat_lanes_out();
         seq_lane_fix();
         set_dirty = 1u;

@@ -32,3 +32,8 @@ wait 1410
 shot l_play_2.png
 wait 1410
 shot l_play_3.png
+tap PLAY
+wait 200
+turn K4 -1 10
+wait 300
+shot l_kick16.png

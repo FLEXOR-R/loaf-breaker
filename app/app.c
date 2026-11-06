@@ -263,6 +263,11 @@ static void snare_bar_set(pat_t *p, uint32_t b, uint32_t m)
 #define PAT_LEN(p) ((p)->st[6][3])
 #define PAT_KICK32 1u                    /* the kick 32 steps (bars 1-2 again and again), else 64 */
 #define PAT_SNARE32 2u                   /* the snare 32 steps (bars 1-2), else 16 (bar 1 every bar) */
+#define PAT_KICK16 4u                    /* LOAF BREAKER: the kick 16 steps (bar 1 every bar), over PAT_KICK32 */
+static uint32_t kick_bars(const pat_t *p)   /* the kick's bars played: 1, 2 or 4 */
+{
+    return PAT_LEN(p) & PAT_KICK16 ? 1u : PAT_LEN(p) & PAT_KICK32 ? 2u : 4u;
+}
 static void pat_step_out(uint32_t k)     /* step k of the pattern playing, to the engine */
 {
     const uint8_t *b = pats.p[set.pattern % NPAT].st[k];
@@ -283,7 +288,7 @@ static void pat_lanes_out(void)
         lane_now[l] = pats.p[set.pattern % NPAT].lane[l];
     for (l = 0; l < 4u; l++) {
         const pat_t *p = &pats.p[set.pattern % NPAT];
-        kick_now[l] = (uint16_t)kick_bar(p, PAT_LEN(p) & PAT_KICK32 ? l & 1u : l);
+        kick_now[l] = (uint16_t)kick_bar(p, l % kick_bars(p));
         snare_now[l] = (uint16_t)snare_bar(p, PAT_LEN(p) & PAT_SNARE32 ? l & 1u : 0u);
     }
 }
