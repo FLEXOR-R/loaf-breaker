@@ -119,13 +119,13 @@ static void draw_global(const brk_status_t *st)
         cv_text(96, 2, &FONT_T, SKIN_NAME[set.skin % NSKINS], C_HI);
         cv_text(96, 16, &FONT_XS, "K1: THE SCREEN'S COLOURS", C_DIM);
         for (s = 0; s < NSKINS; s++) {   /* a swatch each: its value colour on its ground, the one on outlined */
-            int32_t x = 6 + (int32_t)s * 26;
+            int32_t x = 6 + (int32_t)s * 23;
             const uint8_t (*c)[3] = SKIN_RGB[s];
             if (s == set.skin % NSKINS)
-                cv_rect(x - 2, 30, 25, 20, C_WHITE);
-            cv_rect(x, 32, 21, 16, skin_rgb(c[5], 100u));
-            cv_rect(x + 3, 35, 15, 5, skin_rgb(c[4], 100u));
-            cv_rect(x + 3, 42, 15, 3, skin_rgb(c[3], 100u));
+                cv_rect(x - 2, 30, 23, 20, C_WHITE);
+            cv_rect(x, 32, 19, 16, skin_rgb(c[5], 100u));
+            cv_rect(x + 3, 35, 13, 5, skin_rgb(c[4], 100u));
+            cv_rect(x + 3, 42, 13, 3, skin_rgb(c[3], 100u));
         }
         cv_blit(0, 88);
         cv_begin(240, 52, C_BLACK);

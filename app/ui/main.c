@@ -955,6 +955,18 @@ void app_frame(void)
             app_say("AUTO SAVE", ok ? "DONE" : "FAILED");
         }
     }
+    {                                    /* LOAF BREAKER: the battery's level, looked at every 2 s (the header) */
+        static uint32_t bat_t;
+        static int bat_seen = -2;
+        if (now - bat_t >= 2000u) {
+            int bat = plat_battery();
+            bat_t = now;
+            if (bat != bat_seen) {
+                bat_seen = bat;
+                ui.redraw |= RG_HEAD;
+            }
+        }
+    }
     if (pat_next >= 0 && (!st.playing || (st.step >= 0 && (uint32_t)st.step + 1u >= pat_len()))) {
         set.pattern = (uint8_t)pat_next;  /* the pattern picked: in for the loop's next round (its last step plays) */
         pat_next = -1;

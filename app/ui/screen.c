@@ -448,6 +448,19 @@ static void draw_head(const brk_status_t *st, const brk_break_t *b, uint32_t now
         cv_text(228 - text_w(&FONT_B, t) - text_w(&FONT_T, ext_active() ? "EXT" : "BPM"), 10, &FONT_T,
                 ext_active() ? "EXT" : "BPM", ext_active() ? C_AMB : C_GRAY);
     }
+    {                                    /* LOAF BREAKER: the battery, small, in the top right corner, always (over
+                                          * the BPM's rows' top: rows 0-5 are free). Its fill a third a level, amber
+                                          * at a third or less, white on USB power; only its outline unread */
+        int bat = plat_battery();
+        uint16_t edge = bat < 0 ? C_DIM : bat == 0 ? C_AMB : C_GRAY;
+        cv_rect(224, 0, 12, 1, edge);
+        cv_rect(224, 5, 12, 1, edge);
+        cv_rect(224, 0, 1, 6, edge);
+        cv_rect(235, 0, 1, 6, edge);
+        cv_rect(236, 2, 2, 2, edge);
+        if (bat > 0)
+            cv_rect(226, 2, bat >= 3 ? 8 : bat * 3 - 1, 2, bat >= 4 ? C_WHITE : bat == 1 ? C_AMB : C_HI);
+    }
     cv_rect(0, 27, 240, 1, C_LINE);
     cv_blit(0, 0);
 }
