@@ -12,7 +12,7 @@ static const char *const PAD_KNOB[BRK_NPADS][4] = {
     {"RATE", "DECAY", "PITCH", "LEVEL"}, {"RATE", "DECAY", "PITCH", "LEVEL"}, {"RATE", "DECAY", "PITCH", "LEVEL"},
     {"SPEED", 0, 0, 0}, {"LENGTH", "PITCH", 0, 0}, {"SPEED", "M. TEMPO", 0, 0}, {"STOP", "SPIN UP", 0, 0},
     {"RATE", "LENGTH", 0, 0}, {"AMOUNT", "PITCH", 0, 0}, {"TARGET", "RESO", "SPEED", 0},
-    {"EFFECT", "LATCH", "ON / OFF", "LOAF LORD"}};   /* (GLOUPI BREAKS: PAD_DUB is the ARP key) */
+    {"EFFECT", 0, "ON / OFF", "LOAF LORD"}};   /* (LOAF BREAKER: no LATCH, held only) */   /* (GLOUPI BREAKS: PAD_DUB is the ARP key) */
 static const char *const PAD_TITLE[BRK_NPADS] = {"ROLL", "ROLL", "ROLL", "REVERSE", "SUB DRIVE", "HALF SPEED",
                                                   "TAPE STOP", "GATE", "RANDOM", "FILTER", "OVERLAY"};
 static const char *const FRZ_LEN_NAME[4] = {"SLICE", "1/2", "1/4", "1/8"};
@@ -349,9 +349,7 @@ static void draw_fx_band(int pad, const brk_status_t *st, uint32_t now, int32_t 
         const char *n = OVL_NAME[set.ovl_pad & 15u];
         cv_rect(6, 30, 228, 40, on ? C_HI : C_BLOCK);
         cv_text((240 - text_w(&FONT_B, n)) / 2, 38, &FONT_B, n, on ? C_BLACK : C_GRAY);
-        cv_text(6, 78, &FONT_XS, set.ovl_pad & 32u ? "OFF (K3): K1 BROWSES, SILENT"
-                : set.ovl_pad & 16u ? (on ? "LATCHED: PRESS AGAIN TO STOP" : "LATCH: A PRESS SWITCHES IT ON")
-                : "ON WHILE HELD", C_DIM);
+        cv_text(6, 78, &FONT_XS, set.ovl_pad & 32u ? "OFF (K3): K1 BROWSES, SILENT" : "ON WHILE HELD", C_DIM);
         (void)held;
         break;
     }

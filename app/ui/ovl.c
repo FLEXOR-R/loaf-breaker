@@ -14,14 +14,8 @@ static void ovl_push(void)
 }
 static void ovl_pad_key(int down)        /* GLOUPI BREAKS: the ARP black key down or up */
 {
-    if (set.ovl_pad & 16u) {             /* LATCH: a press switches it on and off */
-        if (down)
-            ovlpad_lat ^= 1u;
-        ovlpad_held = 0u;
-    } else {
-        ovlpad_held = (uint8_t)(down != 0);
-        ovlpad_lat = 0u;
-    }
+    ovlpad_held = (uint8_t)(down != 0);  /* (LOAF BREAKER: held only, its LATCH gone) */
+    ovlpad_lat = 0u;
     ovl_push();
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }

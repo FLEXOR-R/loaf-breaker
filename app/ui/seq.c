@@ -168,14 +168,23 @@ static void midi_drum(uint32_t l)        /* a drum note: the hit now, and with R
         set_dirty = 1u;
     }
 }
-/* K1-K4 on a drum lane (SEQ): FILL n hits spread evenly (Euclidean, from the downbeat), ROTATE it a step,
+/* K1-K4 on a drum lane (SEQ): FILL n hits spread evenly (Euclidean, from the downbeat), KICK FLT (LOAF BREAKER, in
+ * place of ROTATE: the kick's DJ filter, HOME's K3's),
  * CLEAR (left) or four on the floor (right), LENGTH (GLOUPI BREAKS, in place of COPY: the kick 32 or 64 steps, the
  * snare 16 or 32) */
 static void lane_knob(int i, int32_t d)
 {
-    static const char *const NAME[4] = {"FILL", "ROTATE", "LANE", "LENGTH"};
+    static const char *const NAME[4] = {"FILL", "KICK FILTER", "LANE", "LENGTH"};
     uint32_t m = sl_get(pat_now(), ui.seq_lane), n = 0u, k;
     char t[16];
+    if (i == 1) {                        /* LOAF BREAKER: KICK FLT, the kick's own DJ filter (HOME's K3 too) */
+        set.kick_dj = (int8_t)clamp((int32_t)set.kick_dj + d * 2, -100, 100);
+        changed();
+        seq_value(i, t);
+        app_say(NAME[i], t);
+        ui.redraw |= RG_FOOT;
+        return;
+    }
     if (i == 3) {                        /* GLOUPI BREAKS: LENGTH, the kick 32 or 64 steps, the snare 16 or 32 */
         uint8_t *len = &PAT_LEN(pat_now());
         uint32_t f = sl_kick(ui.seq_lane) ? PAT_KICK32 : sl_snare(ui.seq_lane) ? PAT_SNARE32 : 0u;
@@ -189,8 +198,7 @@ static void lane_knob(int i, int32_t d)
         ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
         return;
     }
-    if (i != 1)
-        undo_mark(UNDO_LANE + (uint32_t)i);
+    undo_mark(UNDO_LANE + (uint32_t)i);
     if (i == 0) {
         for (k = m; k; k >>= 1)
             n += k & 1u;
@@ -198,9 +206,7 @@ static void lane_knob(int i, int32_t d)
         for (m = 0u, k = 0u; k < 16u; k++)
             if (k * n % 16u < n)
                 m |= 1u << k;
-    } else if (i == 1)                   /* right: later */
-        m = (d > 0 ? m << 1 | m >> 15 : m >> 1 | m << 15) & 0xFFFFu;
-    else
+    } else
         m = d > 0 ? 0x1111u : 0u;
     sl_set(pat_now(), ui.seq_lane, m);
     pat_lanes_out();
@@ -247,7 +253,7 @@ static void seq_value(int i, char *t)    /* the step edited: SLICE, PITCH, HITS,
 {
     const uint8_t *b = pat_now()->st[ui.seq_step % PAT_STEPS];
     t[0] = 0;
-    if (ui.seq_lane >= SL_KICK) {        /* a drum lane: FILL (its hits), ROTATE, CLEAR / 4X4, LENGTH */
+    if (ui.seq_lane >= SL_KICK) {        /* a drum lane: FILL (its hits), KICK FLT, CLEAR / 4X4, LENGTH */
         uint32_t m = sl_get(pat_now(), ui.seq_lane), n = 0u;
         while (m) {
             n += m & 1u;
@@ -257,7 +263,7 @@ static void seq_value(int i, char *t)    /* the step edited: SLICE, PITCH, HITS,
             int_text((int32_t)n, t);
             text_cat(t, " HITS");
         } else if (i == 1)
-            text_cat(t, "< >");
+            dj_text((float)set.kick_dj * 0.01f, t);
         else if (i == 2)
             text_cat(t, "L CLR R 4X4");
         else {
