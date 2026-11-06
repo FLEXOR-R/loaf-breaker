@@ -212,7 +212,8 @@ void brk_fx_set(const brk_fx_t *p);
 void brk_fx_delay_buffer(int16_t *buf, uint32_t n);
 void brk_fx_tempo(float bpm);
 float brk_fx_dj_now(void);               /* where the DJ filter is right now, -1..1 (for the screen) */
-void brk_fx_add_dry(float *l, float *r, const float *x, uint32_t n);   /* LOAF BREAKER: x into l and r after it all */
+void brk_fx_add_dry(float *l, float *r, const float *xl, const float *xr, uint32_t n);   /* LOAF BREAKER: xl, xr
+                                          * into l and r after it all */
 void brk_fx_kick_dj(float *x, uint32_t n, float pos);   /* GLOUPI BREAKS: a DJ filter on the kick (-1 LP .. 1 HP),
                                           * in place (render) */
 /* in: the break, through the DJ filter, then the chain; thru: joins it after the DJ filter, into the chain (the drums

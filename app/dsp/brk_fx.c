@@ -435,14 +435,15 @@ void brk_fx_delay_buffer(int16_t *buf, uint32_t n)
 void brk_fx_tempo(float bpm) { p_bpm = brk_clampf(bpm, 40.0f, 300.0f); }
 float brk_fx_dj_now(void) { return dj_s; }
 
-/* LOAF BREAKER: x added to both sides after everything (the chain, the limiter, the overlays), softly held under
- * full scale as the limiter's knee holds the rest (the kick when the ARP key's KICK THRU is OFF) */
-BRK_COLD void brk_fx_add_dry(float *l, float *r, const float *x, uint32_t n)
+/* LOAF BREAKER: xl, xr added after everything (the chain, the limiter, the overlays), softly held under full scale
+ * as the limiter's knee holds the rest (the ARP key's THRU: the part kept out of the overlays, or the one alone in
+ * them) */
+BRK_COLD void brk_fx_add_dry(float *l, float *r, const float *xl, const float *xr, uint32_t n)
 {
     uint32_t i;
     for (i = 0; i < n; i++) {
-        l[i] = knee(l[i] + x[i]);
-        r[i] = knee(r[i] + x[i]);
+        l[i] = knee(l[i] + xl[i]);
+        r[i] = knee(r[i] + xr[i]);
     }
 }
 

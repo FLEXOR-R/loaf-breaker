@@ -83,7 +83,8 @@ typedef struct {
     uint8_t half_mt_off;                 /* GLOUPI BREAKS: HALF SPEED's K2, 1 MASTER TEMPO off (0, older saves: on) */
     uint8_t ovl_pad;                     /* GLOUPI BREAKS: the ARP black key, bits 0-3 its OVERLAY effect (OV_*),
                                           * bit 4 its LATCH (gone), bit 5 OFF (K3: the effects browsed silent),
-                                          * bit 6 KICK THRU OFF (K2: the kick around the chain and the overlays) */
+                                          * bits 6-7 THRU (K2): 0 BOTH, 1 BREAK (the kick around the chain and
+                                          * the overlays), 2 KICK (the overlays on the kick alone) */
 } settings_t;
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");
@@ -634,7 +635,9 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
 {
     static float mono[APP_BLOCK], l[APP_BLOCK], r[APP_BLOCK], echo[APP_BLOCK], verb[APP_BLOCK];
     static float kick[APP_BLOCK], perc[APP_BLOCK];
-    int kick_dry = (set.ovl_pad & 64u) != 0;   /* LOAF BREAKER: the ARP key's KICK THRU OFF */
+    static float kl[APP_BLOCK], kr[APP_BLOCK];   /* LOAF BREAKER: the kick through the overlays alone (THRU KICK) */
+    uint32_t thru = (set.ovl_pad >> 6) & 3u;   /* the ARP key's THRU: 0 BOTH, 1 BREAK, 2 KICK */
+    int kick_dry = thru != 0u;           /* the kick apart from the chain (BREAK: around the overlays too) */
     float gain = muted ? 0.0f : (float)master_q12 * (1.0f / 4096.0f) * 8300000.0f;
     brk_status_t st;
     uint32_t t0 = plat_ms(), done = 0u, total = n;
@@ -693,14 +696,14 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             perc_render(perc, m, pa, who, np);
             meter_kick = meter(kick, m, meter_kick);
             meter_perc = meter(perc, m, meter_perc);
-            if (!kick_dry)               /* (LOAF BREAKER: KICK THRU OFF, the kick joins after the overlays) */
+            if (!kick_dry)               /* (LOAF BREAKER: THRU BREAK or KICK, the kick joins after the chain) */
                 for (i = 0; i < m; i++)
                     kick[i] += perc[i];
         }
         brk_status(&st);
         /* the break through the DJ filter, the drums joining it into the chain (or around it) */
         {
-            const float *drums = kick_dry ? perc : kick;   /* (KICK THRU OFF: the snare and the hat alone here) */
+            const float *drums = kick_dry ? perc : kick;   /* (the kick apart: the snare and the hat alone here) */
             brk_fx_process(mono, set.drums_chain ? drums : 0, echo, verb, set.drums_chain ? 0 : drums, l, r, m,
                            st.pads);
         }
@@ -710,9 +713,16 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             float spb = (float)BRK_SR * 600.0f / (float)(set.tempo_x10 ? set.tempo_x10 : 1700u);
             if (st.playing)
                 beat = (float)(st.bar % 64u) * 4.0f + ((float)(st.bar16 < 0 ? 0 : st.bar16) + st.phase) * 0.25f;
-            ovl_process(l, r, m, beat, spb);
-            if (kick_dry)                /* LOAF BREAKER: the kick around the chain and the overlays, clean */
-                brk_fx_add_dry(l, r, kick, m);
+            if (thru == 2u) {            /* LOAF BREAKER: THRU KICK, the overlays on the kick alone, the rest clean */
+                for (i = 0; i < m; i++)
+                    kl[i] = kr[i] = kick[i];
+                ovl_process(kl, kr, m, beat, spb);
+                brk_fx_add_dry(l, r, kl, kr, m);
+            } else {
+                ovl_process(l, r, m, beat, spb);
+                if (kick_dry)            /* THRU BREAK: the kick around the chain and the overlays, clean */
+                    brk_fx_add_dry(l, r, kick, kick, m);
+            }
             if (!st.playing) {
                 beat += (float)m / spb;
                 if (beat >= 256.0f)
