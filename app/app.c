@@ -82,7 +82,8 @@ typedef struct {
     int8_t kick_dj;                      /* GLOUPI BREAKS: HOME's KICK FLT, -100 low-pass .. 100 high-pass, 0 off */
     uint8_t half_mt_off;                 /* GLOUPI BREAKS: HALF SPEED's K2, 1 MASTER TEMPO off (0, older saves: on) */
     uint8_t ovl_pad;                     /* GLOUPI BREAKS: the ARP black key, bits 0-3 its OVERLAY effect (OV_*),
-                                          * bit 4 its LATCH, bit 5 OFF (K3: the effects browsed silent) */
+                                          * bit 4 its LATCH (gone), bit 5 OFF (K3: the effects browsed silent),
+                                          * bit 6 KICK THRU OFF (K2: the kick around the chain and the overlays) */
 } settings_t;
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");
@@ -633,6 +634,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
 {
     static float mono[APP_BLOCK], l[APP_BLOCK], r[APP_BLOCK], echo[APP_BLOCK], verb[APP_BLOCK];
     static float kick[APP_BLOCK], perc[APP_BLOCK];
+    int kick_dry = (set.ovl_pad & 64u) != 0;   /* LOAF BREAKER: the ARP key's KICK THRU OFF */
     float gain = muted ? 0.0f : (float)master_q12 * (1.0f / 4096.0f) * 8300000.0f;
     brk_status_t st;
     uint32_t t0 = plat_ms(), done = 0u, total = n;
@@ -691,12 +693,17 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             perc_render(perc, m, pa, who, np);
             meter_kick = meter(kick, m, meter_kick);
             meter_perc = meter(perc, m, meter_perc);
-            for (i = 0; i < m; i++)
-                kick[i] += perc[i];
+            if (!kick_dry)               /* (LOAF BREAKER: KICK THRU OFF, the kick joins after the overlays) */
+                for (i = 0; i < m; i++)
+                    kick[i] += perc[i];
         }
         brk_status(&st);
         /* the break through the DJ filter, the drums joining it into the chain (or around it) */
-        brk_fx_process(mono, set.drums_chain ? kick : 0, echo, verb, set.drums_chain ? 0 : kick, l, r, m, st.pads);
+        {
+            const float *drums = kick_dry ? perc : kick;   /* (KICK THRU OFF: the snare and the hat alone here) */
+            brk_fx_process(mono, set.drums_chain ? drums : 0, echo, verb, set.drums_chain ? 0 : drums, l, r, m,
+                           st.pads);
+        }
         {                                /* the overlays (ARP's white keys), on the whole mix: on the engine's beat while
                                           * playing, a clock of their own stopped */
             static float beat;
@@ -704,6 +711,8 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             if (st.playing)
                 beat = (float)(st.bar % 64u) * 4.0f + ((float)(st.bar16 < 0 ? 0 : st.bar16) + st.phase) * 0.25f;
             ovl_process(l, r, m, beat, spb);
+            if (kick_dry)                /* LOAF BREAKER: the kick around the chain and the overlays, clean */
+                brk_fx_add_dry(l, r, kick, m);
             if (!st.playing) {
                 beat += (float)m / spb;
                 if (beat >= 256.0f)

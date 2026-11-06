@@ -435,6 +435,17 @@ void brk_fx_delay_buffer(int16_t *buf, uint32_t n)
 void brk_fx_tempo(float bpm) { p_bpm = brk_clampf(bpm, 40.0f, 300.0f); }
 float brk_fx_dj_now(void) { return dj_s; }
 
+/* LOAF BREAKER: x added to both sides after everything (the chain, the limiter, the overlays), softly held under
+ * full scale as the limiter's knee holds the rest (the kick when the ARP key's KICK THRU is OFF) */
+BRK_COLD void brk_fx_add_dry(float *l, float *r, const float *x, uint32_t n)
+{
+    uint32_t i;
+    for (i = 0; i < n; i++) {
+        l[i] = knee(l[i] + x[i]);
+        r[i] = knee(r[i] + x[i]);
+    }
+}
+
 /* GLOUPI BREAKS: a DJ filter of its own on the kick (HOME's KICK FLT, pos -1..1), in place (the render's kick, before
  * the snare and the hat join it): left low-pass, right high-pass, as the break's */
 BRK_COLD void brk_fx_kick_dj(float *x, uint32_t n, float pos)

@@ -12,7 +12,8 @@ static const char *const PAD_KNOB[BRK_NPADS][4] = {
     {"RATE", "DECAY", "PITCH", "LEVEL"}, {"RATE", "DECAY", "PITCH", "LEVEL"}, {"RATE", "DECAY", "PITCH", "LEVEL"},
     {"SPEED", 0, 0, 0}, {"LENGTH", "PITCH", 0, 0}, {"SPEED", "M. TEMPO", 0, 0}, {"STOP", "SPIN UP", 0, 0},
     {"RATE", "LENGTH", 0, 0}, {"AMOUNT", "PITCH", 0, 0}, {"TARGET", "RESO", "SPEED", 0},
-    {"EFFECT", 0, "ON / OFF", "LOAF LORD"}};   /* (LOAF BREAKER: no LATCH, held only) */   /* (GLOUPI BREAKS: PAD_DUB is the ARP key) */
+    {"EFFECT", "KICK THRU", "ON / OFF", "LOAF LORD"}};   /* (LOAF BREAKER: held only; K2 the kick through the
+                                          * ARP effects or around them) */   /* (GLOUPI BREAKS: PAD_DUB is the ARP key) */
 static const char *const PAD_TITLE[BRK_NPADS] = {"ROLL", "ROLL", "ROLL", "REVERSE", "SUB DRIVE", "HALF SPEED",
                                                   "TAPE STOP", "GATE", "RANDOM", "FILTER", "OVERLAY"};
 static const char *const FRZ_LEN_NAME[4] = {"SLICE", "1/2", "1/4", "1/8"};
@@ -86,7 +87,7 @@ static void pad_knob_value(int pad, int k, char *t)
         break;
     case PAD_DUB:                        /* GLOUPI BREAKS: the ARP key: its OVERLAY effect, its LATCH, LOAF LORD */
         if (k == 0) text_cat(t, OVL_NAME[set.ovl_pad & 15u]);
-        else if (k == 1) text_cat(t, set.ovl_pad & 16u ? "ON" : "OFF");
+        else if (k == 1) text_cat(t, set.ovl_pad & 64u ? "OFF" : "ON");
         else if (k == 2) text_cat(t, set.ovl_pad & 32u ? "OFF" : "ON");
         else text_cat(t, "TURN ME");
         break;
@@ -146,11 +147,10 @@ static void pad_knob_turn(int pad, int k, int32_t d)
                                           * settings: amount, rate, sweep), K2 LATCH, K4 LOAF LORD */
         if (k == 0)
             set.ovl_pad = (uint8_t)((set.ovl_pad & ~15u) | ((set.ovl_pad + (d > 0 ? 1u : 15u)) & 15u));
-        else if (k == 1) {
-            set.ovl_pad = (uint8_t)(d > 0 ? set.ovl_pad | 16u : set.ovl_pad & ~16u);
-            if (!(set.ovl_pad & 16u))
-                ovlpad_lat = 0u;         /* (back to held: a latched effect lets go) */
-        } else if (k == 2)               /* K3: ON, the key sounds its effect; OFF, K1 browses them silent */
+        else if (k == 1)                 /* K2 KICK THRU: ON the kick through the ARP effects (and the chain), OFF
+                                          * around both, clean (app.c's render) */
+            set.ovl_pad = (uint8_t)(d > 0 ? set.ovl_pad & ~64u : set.ovl_pad | 64u);
+        else if (k == 2)               /* K3: ON, the key sounds its effect; OFF, K1 browses them silent */
             set.ovl_pad = (uint8_t)(d > 0 ? set.ovl_pad & ~32u : set.ovl_pad | 32u);
         else {
             ui.egg_t = plat_ms() | 1u;   /* the easter egg: app_frame shows it 1.5 s */
