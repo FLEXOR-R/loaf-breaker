@@ -85,6 +85,9 @@ typedef struct {
                                           * bit 4 its LATCH (gone), bit 5 OFF (K3: the effects browsed silent),
                                           * bits 6-7 THRU (K2): 0 BOTH, 1 BREAK (the kick around the chain and
                                           * the overlays), 2 KICK (the overlays on the kick alone) */
+    /* (appended: LOAF BREAKER's MORE page; 0, older saves: off) */
+    uint8_t auto_save;                   /* K2 AUTO SAVE: 1, a minute after a change, saved once stopped */
+    uint8_t rsv4[3];
 } settings_t;
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");

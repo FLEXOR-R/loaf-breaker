@@ -10,9 +10,9 @@
 /* GLOUPI BREAKS: the screen's colours, picked on GLOBAL's MORE page (K1) and saved (set.skin). fm1-base's palette
  * (gfx.c pal[]: rules, dim, labels, secondary, values) and the app's own (a block's ground, the block sounding, the
  * white, TAP TEMPO's unlit segments and metronome) from one table */
-#define NSKINS 8u
+#define NSKINS 9u
 static const char *const SKIN_NAME[NSKINS] = {"RED", "AMBER", "ICE BLUE", "PIP-BOY", "VIOLET", "PINK", "MINT",
-                                              "WHITE"};
+                                              "WHITE", "BLOOD"};
 /* each: line, dim, gray, mid (secondary), hi (values), block, white */
 static const uint8_t SKIN_RGB[NSKINS][7][3] = {
     {{34, 34, 40}, {74, 74, 82}, {150, 150, 158}, {232, 76, 60}, {255, 132, 112}, {24, 24, 30}, {255, 255, 255}},
@@ -22,7 +22,9 @@ static const uint8_t SKIN_RGB[NSKINS][7][3] = {
     {{34, 32, 44}, {76, 72, 90}, {152, 148, 166}, {150, 100, 240}, {196, 166, 255}, {24, 22, 34}, {255, 255, 255}},
     {{40, 32, 38}, {84, 72, 80}, {160, 148, 156}, {236, 72, 150}, {255, 146, 200}, {30, 22, 28}, {255, 255, 255}},
     {{30, 40, 38}, {68, 84, 80}, {146, 162, 158}, {40, 200, 160}, {130, 240, 205}, {20, 30, 28}, {255, 255, 255}},
-    {{34, 34, 40}, {74, 74, 82}, {150, 150, 158}, {196, 196, 202}, {236, 236, 240}, {24, 24, 30}, {255, 255, 255}}};
+    {{34, 34, 40}, {74, 74, 82}, {150, 150, 158}, {196, 196, 202}, {236, 236, 240}, {24, 24, 30}, {255, 255, 255}},
+    /* LOAF BREAKER's BLOOD: dried blood for the grounds, fresh blood for the values, bone for the words */
+    {{46, 10, 12}, {100, 20, 24}, {168, 140, 128}, {160, 0, 12}, {230, 30, 36}, {26, 4, 6}, {232, 220, 196}}};
 static uint16_t skin_block = RGB(24, 24, 30), skin_hi = RGB(255, 132, 112), skin_white = 0xFFFFu;
 static uint16_t skin_off = RGB(48, 16, 14), skin_body = RGB(32, 20, 20), skin_bob = RGB(150, 50, 40);
 static uint16_t skin_rgb(const uint8_t *c, uint32_t pct)   /* a colour at pct % of its brightness */

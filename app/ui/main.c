@@ -794,7 +794,7 @@ static void draw_foot(const brk_status_t *st)
     for (i = 0; i < 4u; i++) {
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "RESET ALL"};
         static const char *const KN_GROOVE[4] = {"SWING", "DRUMS", "", ""};
-        static const char *const KN_MORE[4] = {"SKIN", "", "", ""};   /* GLOUPI BREAKS: GLOBAL's MORE */
+        static const char *const KN_MORE[4] = {"SKIN", "AUTO SAVE", "", ""};   /* GLOUPI BREAKS: GLOBAL's MORE */
         const char *name = ui.page == PG_GLOBAL && ui.gpage == 2u ? KN_MORE[i] : ui.page == PG_GLOBAL && ui.gpage
                            ? KN_PITCH[i] : ui.page == PG_MIX && ui.mpage
                            ? KN_GROOVE[i] : KN[ui.page][i];
@@ -940,6 +940,21 @@ void app_frame(void)
     ch_bta_poll(now);
     brk_status(&st);
     b = brk_get_break();
+    {                                    /* LOAF BREAKER: AUTO SAVE. A change waits a minute, then is saved once the
+                                          * break is stopped (a flash write stalls the sound: never while playing) */
+        static uint32_t dirty_t;
+        if (!set_dirty || !set.auto_save)
+            dirty_t = 0u;
+        else if (!dirty_t)
+            dirty_t = now | 1u;
+        else if (now - dirty_t >= 60000u && !st.playing && !ui.egg_t && !ui.lobo_t) {
+            int ok = plat_store_save(OBJ_SETTINGS, &set, sizeof set) == 0 &&
+                     plat_store_save(OBJ_PAT, &pats, sizeof pats) == 0;
+            set_dirty = 0u;
+            dirty_t = 0u;
+            app_say("AUTO SAVE", ok ? "DONE" : "FAILED");
+        }
+    }
     if (pat_next >= 0 && (!st.playing || (st.step >= 0 && (uint32_t)st.step + 1u >= pat_len()))) {
         set.pattern = (uint8_t)pat_next;  /* the pattern picked: in for the loop's next round (its last step plays) */
         pat_next = -1;

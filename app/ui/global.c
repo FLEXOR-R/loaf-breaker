@@ -11,6 +11,8 @@ static void global_value(int i, char *t)
     if (ui.gpage == 2u) {                /* GLOUPI BREAKS: MORE (in place of Bluetooth audio): K1 the skin */
         if (i == 0)
             text_cat(t, SKIN_NAME[set.skin % NSKINS]);
+        else if (i == 1)                 /* LOAF BREAKER: K2 AUTO SAVE */
+            text_cat(t, set.auto_save ? "ON" : "OFF");
         return;
     }
     if (ui.gpage) {                      /* the pitch: speed or keep length, the grains */
@@ -43,6 +45,11 @@ static void global_turn(int i, int32_t d)
             changed();                   /* (settings_apply: skin_apply) */
             app_say("SKIN", SKIN_NAME[set.skin % NSKINS]);
             ui.redraw = RG_ALL;
+        } else if (i == 1) {             /* K2 AUTO SAVE: right on, left off */
+            set.auto_save = d > 0 ? 1u : 0u;
+            changed();
+            app_say("AUTO SAVE", set.auto_save ? "ON" : "OFF");
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
         }
         return;
     }
@@ -112,18 +119,20 @@ static void draw_global(const brk_status_t *st)
         cv_text(96, 2, &FONT_T, SKIN_NAME[set.skin % NSKINS], C_HI);
         cv_text(96, 16, &FONT_XS, "K1: THE SCREEN'S COLOURS", C_DIM);
         for (s = 0; s < NSKINS; s++) {   /* a swatch each: its value colour on its ground, the one on outlined */
-            int32_t x = 6 + (int32_t)s * 29;
+            int32_t x = 6 + (int32_t)s * 26;
             const uint8_t (*c)[3] = SKIN_RGB[s];
             if (s == set.skin % NSKINS)
-                cv_rect(x - 2, 30, 27, 20, C_WHITE);
-            cv_rect(x, 32, 23, 16, skin_rgb(c[5], 100u));
-            cv_rect(x + 3, 35, 17, 5, skin_rgb(c[4], 100u));
-            cv_rect(x + 3, 42, 17, 3, skin_rgb(c[3], 100u));
+                cv_rect(x - 2, 30, 25, 20, C_WHITE);
+            cv_rect(x, 32, 21, 16, skin_rgb(c[5], 100u));
+            cv_rect(x + 3, 35, 15, 5, skin_rgb(c[4], 100u));
+            cv_rect(x + 3, 42, 15, 3, skin_rgb(c[3], 100u));
         }
         cv_blit(0, 88);
         cv_begin(240, 52, C_BLACK);
-        cv_text(6, 2, &FONT_T, "MORE SETTINGS", C_GRAY);
-        cv_text(96, 2, &FONT_T, "K2-K4: TO COME", C_DIM);
+        cv_text(6, 2, &FONT_T, "AUTO SAVE", C_GRAY);   /* LOAF BREAKER: K2 */
+        cv_text(96, 2, &FONT_T, set.auto_save ? "ON" : "OFF", set.auto_save ? C_HI : C_DIM);
+        cv_text(96, 16, &FONT_XS, "A MINUTE AFTER A CHANGE,", C_DIM);
+        cv_text(96, 28, &FONT_XS, "ONCE STOPPED", C_DIM);
         cv_blit(0, 140);
         return;
     }

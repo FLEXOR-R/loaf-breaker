@@ -1,4 +1,4 @@
-# GLOUPI BREAKS: GLOBAL's MORE page (third GLO press) and its skins, K1 through all eight: each skin's slicer
+# GLOUPI BREAKS: GLOBAL's MORE page (third GLO press) and its skins, K1 through all nine (BLOOD the last), K2 AUTO SAVE: each skin's slicer
 #   app/build/host/choppah_host tests/scenarios/skins.txt app/build/scenarios
 wait 4200
 tapkey w0
@@ -56,3 +56,13 @@ turn K1 1 10
 tap HOME
 wait 300
 shot s_7.png
+tap GLO
+tap GLO
+tap GLO
+turn K1 1 10
+turn K2 1 10
+wait 300
+shot s_8more.png
+tap HOME
+wait 300
+shot s_8.png
