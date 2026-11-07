@@ -510,10 +510,16 @@ static void input(void)
             app_say(PERC_VOICE_NAME[ui.pvoice % PERC_VOICES], PERC_PRESET_NAME[ui.pvoice % PERC_VOICES][*pr]);
             ui.redraw |= RG_BLOCKS | RG_FOOT;
             changed();
-        } else if (k == EN_PRESET && ui.page == PG_KICK) {   /* a built-in kick (its volume kept) */
-            ui.kpreset = (uint8_t)((ui.kpreset + (d > 0 ? 1u : KICK_PRESETS - 1u)) % KICK_PRESETS);
-            kick_preset(&set.kick, ui.kpreset);
-            app_say("KICK", KICK_PRESET_NAME[ui.kpreset]);
+        } else if (k == EN_PRESET && ui.page == PG_KICK) {   /* LOAF BREAKER: the kick memories, KICK 1..6: the one
+                                          * playing kept as it is, the next as it was left (the volume kept) */
+            float vol = set.kick.volume;
+            char t[4] = {0, 0, 0, 0};
+            set.kmem[set.kslot % KICK_PRESETS] = set.kick;
+            set.kslot = (uint8_t)((set.kslot % KICK_PRESETS + (d > 0 ? 1u : KICK_PRESETS - 1u)) % KICK_PRESETS);
+            set.kick = set.kmem[set.kslot];
+            set.kick.volume = vol;
+            t[0] = (char)('1' + set.kslot);
+            app_say("KICK", t);
             ui.redraw |= RG_BLOCKS | RG_FOOT;
             changed();
         }
