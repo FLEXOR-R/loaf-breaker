@@ -504,8 +504,8 @@ static void input(void)
             ui.fx_turned = 1u;           /* (FX + a knob: not the next slot) */
         if (!(btn & 1u << B_SEL))
             ui.help = 0u;                /* (a knob closes the card) */
-        if (k == EN_K1 && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K1, on any page: the next or previous kick
-                                          * (its memories, KICK 1..10) */
+        if (k == EN_SELECT && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + SELECT, on any page: the next or previous
+                                          * kick (its memories, KICK 1..10; was the tempo by tenths: TAP's K2) */
             kick_mem_turn(d);
             continue;
         }
@@ -519,8 +519,8 @@ static void input(void)
         }
         else if (k == EN_SELECT && ext_active()) {
             app_say("TEMPO", "EXT CLOCK");   /* the outside clock has the tempo */
-        } else if (k == EN_SELECT) {     /* tempo: 1 BPM a detent, 0.1 with SEL held */
-            set.tempo_x10 = (uint16_t)clamp((int32_t)set.tempo_x10 + d * (btn & 1u << B_SEL ? 1 : 10), 400, 3000);
+        } else if (k == EN_SELECT) {     /* tempo: 1 BPM a detent (SEL held: the kick, above) */
+            set.tempo_x10 = (uint16_t)clamp((int32_t)set.tempo_x10 + d * 10, 400, 3000);
             changed();
             {
                 char t[16];
@@ -796,9 +796,9 @@ static void page_say(void)
 /* SEL held alone: its combinations, on the strip (FX page: its own two) */
 static void draw_help(void)
 {
-    static const char *const L[8][2] = {{"+ K1", "KICK 1-10"}, {"+ ALGO", "BREAK"}, {"+ PRESETS", "PATTERN"},
+    static const char *const L[8][2] = {{"SEL", "THIS CARD"}, {"+ ALGO", "BREAK"}, {"+ PRESETS", "PATTERN"},
                                         {"+ REC", "CLEAR PATTERN"}, {"+ ARP", "RANDOM PATTERN"},
-                                        {"+ SAVE", "UNDO / REDO"}, {"+ SELECT", "FINE TEMPO"},
+                                        {"+ SAVE", "UNDO / REDO"}, {"+ SELECT", "KICK 1-10"},
                                         {"KEY + SEL", "RESET THE KEY"}};
     uint32_t i, band;
     for (band = 0; band < 2u; band++) {
