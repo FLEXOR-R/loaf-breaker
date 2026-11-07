@@ -351,7 +351,8 @@ static uint32_t keys_lit(const brk_status_t *st)   /* the white keys' lights on 
     return m;
 }
 /* LOAF BREAKER: the SEQ page, everything at once. Under the tabs (y 44..191, drawn in three bands), a row of 16 steps
- * each: the break's two halves (each step its slice, LOOP a dot, off a dash; the one edited outlined), then every drum
+ * each: the break's half the keys edit, when they edit it (each step its slice, LOOP a dot, off a dash; the one edited
+ * outlined; gone while a drum lane is picked), then every drum
  * over the length it has (the kick's 1, 2 or 4 bars, the snare's, hat's and clap's 1 or 2), named with that length
  * ("K64", "SN32"; its other bars "2", "3", "4"). The rows share the height: fewer rows, bigger steps. The step playing
  * white; the lane the keys edit named lit, a line under it */
@@ -360,8 +361,8 @@ static uint32_t keys_lit(const brk_status_t *st)   /* the white keys' lights on 
 static uint32_t seq_rows(uint8_t *row)   /* the rows, top to bottom (SL_*); their count */
 {
     uint32_t sl, n = 0u;
-    for (sl = 0; sl < NSEQL; sl++)
-        if (sl >= SL_KICK ? sl_active(pat_now(), sl) : sl * 16u < pat_len())
+    for (sl = 0; sl < NSEQL; sl++)       /* (the break's half: only while the keys edit it) */
+        if (sl >= SL_KICK ? sl_active(pat_now(), sl) : sl == ui.seq_lane)
             row[n++] = (uint8_t)sl;
     return n;
 }
@@ -370,17 +371,18 @@ static void seq_picture(const brk_status_t *st, int32_t top)
     static const char *const TAG[NDRUMS] = {"K", "SN", "HH", "CP"};
     const pat_t *p = pat_now();
     uint8_t row[NSEQL];
-    uint32_t i, r, n = seq_rows(row);
-    int32_t pitch = SQ_H / (int32_t)(n ? n : 1u), ch = pitch > 4 ? pitch - 2 : pitch;
+    uint32_t i, r, n = seq_rows(row), nb = n && row[0] < SL_KICK ? 1u : 0u;
+    int32_t y0 = nb ? 24 : 0, pitch = (SQ_H - y0) / (int32_t)(n - nb ? n - nb : 1u);
     char t[8];
     cv_oy = -top;
     for (r = 0; r < n; r++) {
         uint32_t sl = row[r], brk = sl < SL_KICK, m = brk ? 0u : sl_get(p, sl);
-        int32_t y = (int32_t)r * pitch, at = brk ? -1 : sl_now(st, sl);
+        int32_t y = brk ? 0 : y0 + (int32_t)(r - nb) * pitch, at = brk ? -1 : sl_now(st, sl);
+        int32_t ch = brk ? 21 : pitch > 4 ? pitch - 2 : pitch;   /* (the break's half: tall enough for its numbers) */
         int picked = sl == ui.seq_lane;
         t[0] = 0;                        /* the row's name: the drum and its length on its first bar, else the bar */
         if (brk)
-            text_cat(t, sl ? "2" : "BRK");
+            text_cat(t, sl ? "BRK2" : "BRK1");
         else if (SL_BAR[sl]) {
             t[0] = (char)('1' + SL_BAR[sl]);
             t[1] = 0;
@@ -420,7 +422,7 @@ static void seq_picture(const brk_status_t *st, int32_t top)
             if (at == (int32_t)i && ch > 6)
                 cv_rect(x + 2, y + 2, w - 4, ch - 4, m >> i & 1u ? C_BLOCK_HI : C_BLOCK);
         }
-        if (picked && pitch - ch >= 2)   /* the lane the keys edit: a line under it */
+        if (picked && !brk && pitch - ch >= 2)   /* the lane the keys edit: a line under it */
             cv_rect(SQ_X, y + ch, 240 - SQ_X - 2, 1, C_HI);
     }
     cv_oy = 0;

@@ -43,3 +43,9 @@ turn ALGO 1 10
 turn K3 1 10
 wait 200
 shot c_preset.png
+tap SEQ
+wait 300
+turn ALGO -1 10
+tapkey w3
+wait 200
+shot c_break.png
