@@ -13,7 +13,7 @@
 # tests (breaks/tests, the Break Picks checklist): AMEN02 165, UPDOWN and AMEN19 172 in, JUNGLE and LO-FI out
 *   classics/lyn_collins_think_about_it.wav     113.78  2     4   THINK 114
 *   huge/cw_amen_nuskool.wav                    139.99  2     4   NUSKOOL 140
-*   cw/cw_amen02_165.wav                        165     2     2   AMEN02 165
+-   cw/cw_amen02_165.wav                        165     2     2   AMEN02 165
 *   huge/cw_amen_updown.wav                     165     2     2   UPDOWN 165
 *   classics/incredible_bongo_band_apache.wav   114.78  2     4   APACHE 115
 *   huge/cw_amen_chopper.wav                    171.78  2     2   CHOPPER 172
