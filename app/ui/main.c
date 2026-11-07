@@ -586,15 +586,7 @@ static void input(void)
             ui.redraw |= RG_BLOCKS | RG_FOOT;
             continue;
         }
-        if (k == EN_SELECT && ui.page == PG_SEQ) {   /* LOAF BREAKER: on SEQ, SELECT picks the drum's memory (the
-                                          * lane's: a snare, hat or clap lane its own, else the kick); the tempo on
-                                          * any other page */
-            if (ui.seq_lane >= SL_KICK && sl_drum(ui.seq_lane) != DR_KICK)
-                perc_mem_turn(sl_drum(ui.seq_lane) - 1u, d);
-            else
-                kick_mem_turn(d);
-        }
-        else if (k == EN_SELECT && ext_active()) {
+        if (k == EN_SELECT && ext_active()) {
             app_say("TEMPO", "EXT CLOCK");   /* the outside clock has the tempo */
         } else if (k == EN_SELECT) {     /* tempo: 1 BPM a detent (SEL held: the kick, above) */
             set.tempo_x10 = (uint16_t)clamp((int32_t)set.tempo_x10 + d * 10, 400, 3000);
