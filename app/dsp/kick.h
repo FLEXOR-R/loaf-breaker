@@ -29,6 +29,11 @@ typedef struct {
 /* LOAF BREAKER: TERROR, after INTENSITY: the kick's mids and highs driven hard into a wavefolder and a clip, the sub
  * under them kept clean; 0 off .. 100. In the SUB layer's first spare byte (a kick saved before it: 0, off) */
 #define KICK_TERROR(k) ((k)->l[KL_SUB].rsv[0])
+/* LOAF BREAKER: TERROR 2, the violent one, after TERROR, 0 off .. 100: the whole kick driven up to ~80x through a
+ * sine folder (it folds round and round: a screech), its mids pushed (~1-3 kHz, the scream), clipped hard; the sub
+ * under ~110 Hz laid back under it, the folded part following the kick's level. In the PUNCH layer's first spare
+ * byte (a kick saved before it: off) */
+#define KICK_TERROR2(k) ((k)->l[KL_PUNCH].rsv[0])
 
 typedef struct {
     kick_layer_t l[KICK_LAYERS];

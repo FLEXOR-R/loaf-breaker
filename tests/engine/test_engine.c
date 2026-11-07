@@ -2029,6 +2029,32 @@ static void test_kick_notes(void)
           zc[0], zc[1]);
 }
 
+/* LOAF BREAKER: TERROR 2 changes the kick and stays in range */
+static void test_terror2(void)
+{
+    kick_t k;
+    float pk[2], df = 0.0f;
+    static float dry[35u * BLOCK];
+    uint32_t m, i;
+    for (m = 0; m < 2u; m++) {
+        uint16_t at = 0u;
+        kick_preset(&k, 0u);
+        k.volume = 0.8f;
+        KICK_TERROR2(&k) = m ? 100u : 0u;
+        kick_set(&k);
+        kick_init();
+        for (i = 0; i < 35u * BLOCK; i += BLOCK)
+            kick_render(kick_buf + i, BLOCK, &at, i == 0u ? 1u : 0u);
+        for (i = 0, pk[m] = 0.0f; i < 35u * BLOCK; i++) {
+            if (fabsf(kick_buf[i]) > pk[m]) pk[m] = fabsf(kick_buf[i]);
+            if (!m) dry[i] = kick_buf[i];
+            else df += fabsf(kick_buf[i] - dry[i]);
+        }
+    }
+    df /= (float)(35u * BLOCK);
+    CHECK(pk[1] <= 1.0f && pk[1] > 0.3f && df > 0.05f, "TERROR 2: bounded (%.3f) and far from the dry kick (%.3f)", pk[1], df);
+}
+
 int main(int argc, char **argv)
 {
     if (argc > 1)
@@ -2045,6 +2071,7 @@ int main(int argc, char **argv)
     test_vinyl();
     test_kick_hp();
     test_rewind();
+    test_terror2();
     test_kick_notes();
     test_gate();
     test_swap();
