@@ -141,11 +141,12 @@ static inline float clap_tick(pv_t *v, const pc_t *c)
         if (v->ph[0] >= c->crack) {
             v->ph[0] = 0.0f;
             v->ph[1] += 1.0f;
-            v->pe = 1.0f;
+            v->pe = 0.7f;                /* (the first burst the loudest) */
         }
         x = v->lp * v->pe;
-    } else {
-        x = v->lp * (v->pe + 0.6f * v->env);
+    } else {                             /* the tail under the last burst */
+        float t = 0.5f * v->env;
+        x = v->lp * (v->pe > t ? v->pe : t);
         v->env *= c->dec;
     }
     v->pe *= c->dec2;
@@ -161,8 +162,9 @@ BRK_COLD void perc_init(void)
 {
     uint32_t k;
     for (k = 0; k < PERC_VOICES; k++) {
-        pv[k].env = pv[k].env2 = 0.0f;
+        pv[k].env = pv[k].env2 = pv[k].pe = 0.0f;
         pv[k].last = pv[k].declick = 0.0f;
+        pv[k].ph[1] = 3.0f;              /* (LOAF BREAKER: the clap's bursts done: none until a hit) */
         hits_seen[k] = p_hits[k];
     }
 }
