@@ -21,16 +21,28 @@ static const char *const PAD_TITLE[BRK_NPADS] = {"ROLL", "ROLL", "ROLL", "REVERS
 /* -1..1 as the DJ filter's frequency: "LP 340HZ" / "HP 1.2K" */
 static void dj_text(float dj, char *t)
 {
-    float hz = dj > 0.0f ? 20.0f * brk_exp2f(dj * 8.2f) : 18000.0f * brk_exp2f(dj * 7.8f);
     t[0] = 0;
     text_cat(t, dj > 0.0f ? "HP " : "LP ");
-    if (hz >= 1000.0f) {
-        tenths_text((int32_t)(hz / 100.0f), t + 3);
-        text_cat(t, "K");
-    } else {
-        int_text((int32_t)hz, t + 3);
-        text_cat(t, "HZ");
-    }
+    hz_text(dj > 0.0f ? 20.0f * brk_exp2f(dj * 8.2f) : 18000.0f * brk_exp2f(dj * 7.8f), t + 3);   /* (common.c's) */
+}
+
+/* LOAF BREAKER: the kick's filter, HOME's K3 and SEQ's K2 one setting: high-pass alone, OFF then 5 % a detent (20
+ * detents to the top, the first already in the kick's body: 64 Hz) */
+static void kick_flt_text(char *t)
+{
+    t[0] = 0;
+    text_cat(t, set.kick_dj > 0 ? "HP " : "OFF");
+    if (set.kick_dj > 0)
+        hz_text(BRK_KICK_HP_HZ((float)set.kick_dj * 0.01f), t + 3);
+}
+
+static void kick_flt_turn(int32_t d)
+{
+    char t[16];
+    set.kick_dj = (int8_t)clamp((set.kick_dj < 0 ? 0 : (int32_t)set.kick_dj) + d * 5, 0, 100);
+    changed();
+    kick_flt_text(t);
+    app_say("KICK FILTER", t);
 }
 
 /* the roll's decay: "DOWN 20%" each repeat quieter, "UP 20%" a swell, "OFF" */

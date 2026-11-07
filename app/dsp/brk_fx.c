@@ -451,19 +451,18 @@ BRK_COLD void brk_fx_add_dry(float *l, float *r, const float *xl, const float *x
  * the snare and the hat join it): left low-pass, right high-pass, as the break's */
 BRK_COLD void brk_fx_kick_dj(float *x, uint32_t n, float pos)
 {
-    float d = brk_clampf(pos, -1.0f, 1.0f), hz, lp, h;
+    float d = brk_clampf(pos, 0.0f, 1.0f), w, lp, h;   /* (LOAF BREAKER: high-pass alone; below 0, an older
+                                          * save's low-pass: off) */
     svf_c c;
     uint32_t i;
-    int hp;
     djk_s += (d - djk_s) * 0.3f;
-    if (djk_s > -0.01f && djk_s < 0.01f)
+    if (djk_s < 0.01f)
         return;
-    hp = djk_s > 0.0f;
-    hz = hp ? 20.0f * brk_exp2f(djk_s * 8.2f) : 18000.0f * brk_exp2f(djk_s * 7.8f);
-    c = svf_coef(hz, 0.35f);
+    w = djk_s < 0.05f ? djk_s * 20.0f : 1.0f;   /* (coming in: faded in over its first step, no thump) */
+    c = svf_coef(BRK_KICK_HP_HZ(djk_s), 0.35f);
     for (i = 0; i < n; i++) {
         h = svf_run(&dj_k, &c, x[i], &lp);
-        x[i] = hp ? h : lp;
+        x[i] += (h - x[i]) * w;
     }
 }
 

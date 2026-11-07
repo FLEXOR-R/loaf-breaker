@@ -79,7 +79,8 @@ typedef struct {
     brk_fxx_t fxx[BRK_FX_SLOTS];
     /* (appended: GLOUPI BREAKS' skin, GLOBAL's MORE page; 0 RED, an older save's too) */
     uint8_t skin;
-    int8_t kick_dj;                      /* GLOUPI BREAKS: HOME's KICK FLT, -100 low-pass .. 100 high-pass, 0 off */
+    int8_t kick_dj;                      /* GLOUPI BREAKS: HOME's KICK FLT (SEQ's K2 too), LOAF BREAKER: 0 off .. 100
+                                          * high-pass (an older save's low-pass, below 0: off) */
     uint8_t half_mt_off;                 /* GLOUPI BREAKS: HALF SPEED's K2, 1 MASTER TEMPO off (0, older saves: on) */
     uint8_t ovl_pad;                     /* GLOUPI BREAKS: the ARP black key, bits 0-3 its OVERLAY effect (OV_*),
                                           * bit 4 its LATCH (gone), bit 5 OFF (K3: the effects browsed silent),

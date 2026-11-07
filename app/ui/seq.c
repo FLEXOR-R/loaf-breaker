@@ -177,11 +177,8 @@ static void lane_knob(int i, int32_t d)
     static const char *const NAME[4] = {"FILL", "KICK FILTER", "LANE", "LENGTH"};
     uint32_t m = sl_get(pat_now(), ui.seq_lane), n = 0u, k;
     char t[16];
-    if (i == 1) {                        /* LOAF BREAKER: KICK FLT, the kick's own DJ filter (HOME's K3 too) */
-        set.kick_dj = (int8_t)clamp((int32_t)set.kick_dj + d * 2, -100, 100);
-        changed();
-        seq_value(i, t);
-        app_say(NAME[i], t);
+    if (i == 1) {                        /* LOAF BREAKER: KICK FLT, the kick's high-pass (HOME's K3: the same) */
+        kick_flt_turn(d);
         ui.redraw |= RG_FOOT;
         return;
     }
@@ -266,12 +263,7 @@ static void seq_value(int i, char *t)    /* the step edited: SLICE, PITCH, HITS,
             int_text((int32_t)n, t);
             text_cat(t, " HITS");
         } else if (i == 1)
-        {
-            if (set.kick_dj > -2 && set.kick_dj < 2)   /* (OFF at the centre, as on HOME) */
-                text_cat(t, "OFF");
-            else
-                dj_text((float)set.kick_dj * 0.01f, t);
-        }
+            kick_flt_text(t);            /* (as on HOME) */
         else if (i == 2)
             text_cat(t, "L CLR R 4X4");
         else {

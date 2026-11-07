@@ -104,8 +104,7 @@ static void knob_turn(int k, int32_t d)
             f->dj = knob_f(f->dj, d, 0.02f, -1.0f, 1.0f);
             say_int("DJ FILTER", (int32_t)(f->dj * 100.0f), "");
         } else if (k == EN_K3) {         /* GLOUPI BREAKS: the kick's own DJ filter (CHOPPAH: FX) */
-            set.kick_dj = (int8_t)clamp((int32_t)set.kick_dj + d * 2, -100, 100);
-            say_int("KICK FILTER", set.kick_dj, "");
+            kick_flt_turn(d);            /* (LOAF BREAKER: SEQ's K2 the same) */
         } else {                         /* GLOUPI BREAKS: the kick's SUB decay (EDIT's; CHOPPAH: COMPLEXITY, on
                                           * GENERATOR alone now) */
             kick_layer_t *l = &set.kick.l[KL_SUB];
@@ -623,8 +622,10 @@ static void knob_value(int i, char *t)  /* the page's knob i (0..3), as shown un
                 int_text(set.gate, t);
                 text_cat(t, "%");
             }
-        } else if (i == 1 || i == 2) {   /* the break's DJ filter; GLOUPI BREAKS: the kick's */
-            int32_t v = i == 1 ? (int32_t)(set.fx.dj * 100.0f) : set.kick_dj;
+        } else if (i == 2)               /* GLOUPI BREAKS: the kick's filter (SEQ's K2 the same) */
+            kick_flt_text(t);
+        else if (i == 1) {               /* the break's DJ filter */
+            int32_t v = (int32_t)(set.fx.dj * 100.0f);
             if (v > -2 && v < 2)
                 text_cat(t, "OFF");
             else {

@@ -1202,10 +1202,33 @@ static void test_dj_break(void)
                         pk[which] = fabsf(bl[i]);
         }
     }
-    CHECK(pk[0] < 0.01f && pk[1] > 0.2f && pk[2] > 0.2f && pk[3] < 0.01f,
-          "DJ filter low-passed: the break %.3f, drums through the chain %.3f, around it %.3f; the kick's: %.3f",
-          pk[0], pk[1], pk[2], pk[3]);
+    CHECK(pk[0] < 0.01f && pk[1] > 0.2f && pk[2] > 0.2f && pk[3] > 0.2f,
+          "DJ filter low-passed: the break %.3f, drums through the chain %.3f, around it %.3f; the kick's: no low-pass "
+          "(LOAF BREAKER) %.3f", pk[0], pk[1], pk[2], pk[3]);
     CHECK(pk[4] < 0.01f, "FILTER THROW held: the break low-passed (%.3f)", pk[4]);
+}
+
+/* LOAF BREAKER: the kick's filter is a high-pass: off at 0, a 40 Hz sub well down at 20 %, a low-pass asked: off */
+static void test_kick_hp(void)
+{
+    static float k[BLOCK];
+    static const float POS[3] = {0.0f, 0.2f, -1.0f};
+    float pk[3];
+    uint32_t i, b, w;
+    for (w = 0; w < 3u; w++) {
+        pk[w] = 0.0f;
+        for (b = 0; b < 200u; b++) {
+            for (i = 0; i < BLOCK; i++)
+                k[i] = 0.25f * sinf(6.2831853f * 40.0f * (float)(b * BLOCK + i) / (float)BRK_SR);
+            brk_fx_kick_dj(k, BLOCK, POS[w]);
+            if (b > 150u)
+                for (i = 0; i < BLOCK; i++)
+                    if (fabsf(k[i]) > pk[w])
+                        pk[w] = fabsf(k[i]);
+        }
+    }
+    CHECK(pk[0] > 0.24f && pk[1] < 0.1f && pk[2] > 0.24f,
+          "KICK FILTER: a high-pass (40 Hz: off %.3f, at 20 %% %.3f, a low-pass asked %.3f)", pk[0], pk[1], pk[2]);
 }
 
 /* MULTIBAND: the bands sum back to the input untouched; a band pressed holds its level, the others don't move; CLIP:
@@ -1966,6 +1989,7 @@ int main(int argc, char **argv)
     test_keep_length();
     test_half_master();
     test_vinyl();
+    test_kick_hp();
     test_gate();
     test_swap();
     test_snap();
