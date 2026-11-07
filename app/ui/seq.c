@@ -218,11 +218,37 @@ static void midi_drum(uint32_t d)        /* a drum note (DR_*): the hit now, and
  * place of ROTATE: the kick's DJ filter, HOME's K3's),
  * CLEAR (left) or four on the floor (right), LENGTH (GLOUPI BREAKS, in place of COPY: the kick 16, 32 or 64 steps, the
  * snare 16 or 32) */
+/* K3's grooves by kind of drum (kick; snare and clap; hat): cleared, 4X4, 8X8, 16X16, then (LOAF BREAKER, crossbreed)
+ * drum & bass's 2-STEP (the kick on 1 and 11, the snare on 5 and 13, the hat off the beat) and HALF-TIME (the kick on
+ * 1, the snare on 9, the hat on 3 and 11) */
+static const uint16_t GROOVE[3][6] = {{0u, 0x1111u, 0x5555u, 0xFFFFu, 0x0401u, 0x0001u},
+                                      {0u, 0x1111u, 0x5555u, 0xFFFFu, 0x1010u, 0x0100u},
+                                      {0u, 0x1111u, 0x5555u, 0xFFFFu, 0x4444u, 0x0404u}};
+static const char *const GROOVE_NAME[6] = {"CLEARED", "4X4", "8X8", "16X16", "2-STEP", "HALF-TIME"};
 static void lane_knob(int i, int32_t d)
 {
     static const char *const NAME[4] = {"FILL", "DRUM FILTER", "LANE", "LENGTH"};
-    uint32_t m = sl_get(pat_now(), ui.seq_lane), n = 0u, k;
+    uint32_t m = sl_get(pat_now(), ui.seq_lane), n = 0u, k, kind;
+    int32_t at = 0;
     char t[16];
+    if (i == 0 && ui.note_key && sl_kick(ui.seq_lane)) {   /* LOAF BREAKER (crossbreed): a kick step held, K1: its
+                                          * note, -8 .. +7 semitones (every bar's step alike) */
+        uint32_t s = ui.note_key - 1u;
+        int32_t v = kick_note(pat_now(), s) + (d > 0 ? 1 : -1);
+        kick_note_set(pat_now(), s, v);
+        ui.note_turned = 1u;
+        set_dirty = 1u;
+        t[0] = 0;
+        v = kick_note(pat_now(), s);
+        if (v > 0)
+            text_cat(t, "+");
+        int_text(v, t + (v > 0 ? 1 : 0));
+        text_cat(t, " ST");
+        say_int("KICK NOTE", (int32_t)s + 1, "");
+        app_say(ui.msg[0], t);
+        ui.redraw |= RG_BLOCKS;
+        return;
+    }
     if (i == 1) {                        /* LOAF BREAKER: KICK FLT, the kick's high-pass (HOME's K3: the same) */
         kick_flt_turn(d);
         ui.redraw |= RG_FOOT;
@@ -254,15 +280,19 @@ static void lane_knob(int i, int32_t d)
                 m |= 1u << k;
     } else {                             /* CLR / 4X4: left clear; right, a detent at a time (LOAF BREAKER): four on
                                           * the floor, then eighths, then every step */
-        static const uint16_t GRID[4] = {0u, 0x1111u, 0x5555u, 0xFFFFu};
-        int32_t at = m == 0xFFFFu ? 3 : m == 0x5555u ? 2 : m == 0x1111u ? 1 : 0;
-        m = d > 0 ? GRID[clamp(at + d, 1, 3)] : 0u;
+        int32_t x;                       /* (LOAF BREAKER, crossbreed: then 2-STEP and HALF-TIME, drum & bass's) */
+        kind = sl_drum(ui.seq_lane) == DR_KICK ? 0u : sl_drum(ui.seq_lane) == DR_HAT ? 2u : 1u;
+        for (x = 1; x < 6; x++)
+            if (m == GROOVE[kind][x])
+                at = x;
+        at = d > 0 ? clamp(at + d, 1, 5) : 0;
+        m = GROOVE[kind][at];
     }
     sl_set(pat_now(), ui.seq_lane, m);
     pat_lanes_out();
     set_dirty = 1u;
     seq_value(i, t);
-    app_say(NAME[i], i == 2 ? (m == 0xFFFFu ? "16X16" : m == 0x5555u ? "8X8" : m ? "4X4" : "CLEARED") : t);
+    app_say(NAME[i], i == 2 ? GROOVE_NAME[at] : t);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
 static void seq_key(uint32_t i)          /* a white key on SEQ: the step to edit, or a drum step on and off */
@@ -468,6 +498,8 @@ static void seq_picture(const brk_status_t *st, int32_t top)
             cv_rect(x, y, w, ch, c);
             if (at == (int32_t)i && ch > 6)
                 cv_rect(x + 2, y + 2, w - 4, ch - 4, m >> i & 1u ? C_BLOCK_HI : C_BLOCK);
+            if (sl_kick(sl) && ch > 5 && kick_note(p, i))   /* (crossbreed: a step with a note: a white line on top) */
+                cv_rect(x + 1, y, w - 2, 2, C_WHITE);
         }
         if (picked && !brk && pitch - ch >= 2)   /* the lane the keys edit: a line under it */
             cv_rect(SQ_X, y + ch, 240 - SQ_X - 2, 1, C_HI);

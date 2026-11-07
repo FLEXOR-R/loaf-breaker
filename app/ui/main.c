@@ -236,10 +236,12 @@ static void build_click(void)
                 drum_next[d][b] = (uint16_t)drum_bar(p, d, b % drum_bars(p, d));
         drum_next_ok = 1u;
         ui.build_said = plat_ms();
+        ui.drop_early = ui.drop_asked = 0u;
         int_text((int32_t)ui.drop_pat + 1, t + 3);
         app_say("BUILD", t);
     } else
         app_say("DROP", "NEXT BAR");
+        ui.drop_early = 1u;
     build_n++;
 }
 
@@ -275,6 +277,19 @@ static void input(void)
             continue;
         }
         if (ui.page == PG_SEQ) {         /* the SEQ page: a break step to edit, or a drum lane's steps */
+            if (sl_kick(ui.seq_lane)) {  /* LOAF BREAKER (crossbreed): a kick lane's key acts as it comes up, unless
+                                          * K1 turned meanwhile (then that step's note: lane_knob) */
+                if (kdn >> WK[i] & 1u) {
+                    ui.note_key = (uint8_t)(i + 1u);
+                    ui.note_turned = 0u;
+                }
+                if (kup >> WK[i] & 1u && ui.note_key == i + 1u) {
+                    if (!ui.note_turned)
+                        seq_key(i);
+                    ui.note_key = 0u;
+                }
+                continue;
+            }
             if (kdn >> WK[i] & 1u)
                 seq_key(i);
             continue;
@@ -573,6 +588,20 @@ static void input(void)
         if (k == EN_SELECT && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + SELECT, on any page: the next or previous
                                           * kick (its memories, KICK 1..10; was the tempo by tenths: TAP's K2) */
             kick_mem_turn(d);
+            continue;
+        }
+        if (k == EN_K1 && btn & 1u << B_SEL) {   /* LOAF BREAKER (crossbreed): SEL + K1, on any page: DUCK, the break
+                                          * under the kick */
+            char t[8];
+            set.duck = (uint8_t)clamp((int32_t)set.duck + d * 2, 0, 100);
+            t[0] = 0;
+            if (set.duck) {
+                int_text(set.duck, t);
+                text_cat(t, "%");
+            } else
+                text_cat(t, "OFF");
+            app_say("DUCK", t);
+            changed();
             continue;
         }
         if (k == EN_K4 && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K4, on any page: the kick's TERROR (EDIT's
@@ -913,7 +942,7 @@ static void draw_foot(const brk_status_t *st)
     for (i = 0; i < 4u; i++) {
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "RESET ALL"};
         static const char *const KN_GROOVE[4] = {"SWING", "DRUMS", "", ""};
-        static const char *const KN_MORE[4] = {"SKIN", "AUTO SAVE", "LOAF LORD", ""};   /* GLOUPI BREAKS: GLOBAL's MORE */
+        static const char *const KN_MORE[4] = {"SKIN", "AUTO SAVE", "LOAF LORD", "DROP BRK"};   /* GLOUPI BREAKS: GLOBAL's MORE */
         const char *name = ui.page == PG_GLOBAL && ui.gpage == 2u ? KN_MORE[i] : ui.page == PG_GLOBAL && ui.gpage
                            ? KN_PITCH[i] : ui.page == PG_MIX && ui.mpage
                            ? KN_GROOVE[i] : KN[ui.page][i];
@@ -1033,6 +1062,17 @@ void app_frame(void)
     if (ui.ntaps && now - ui.taps[(ui.ntaps - 1u) % TAPS] > 2000u) {   /* a pause: the run is over */
         ui.ntaps = 0u;
         ui.redraw |= ui.page == PG_TAP ? RG_BLOCKS : 0;
+    }
+    if (build_p >= 0.0f && set.drop_brk && set.drop_brk <= n_breaks && !ui.drop_asked) {   /* LOAF BREAKER
+                                          * (crossbreed): MORE's DROP BRK asked for in the bar that ends in the drop
+                                          * (break_poll swaps it in on the drop's step) */
+        brk_status_t bs;
+        brk_status(&bs);
+        if (bs.bar16 >= 0 && (ui.drop_early || build_p * (float)BUILD_STEPS + (float)(15 - bs.bar16) >= (float)BUILD_STEPS)) {
+            ui.drop_asked = 1u;
+            if (set.drop_brk - 1u != set.brk)
+                break_ask(set.drop_brk - 1u);
+        }
     }
     if (build_p >= 0.0f && now - ui.build_said >= 250u) {   /* LOAF BREAKER: the build, how far */
         char t[8];

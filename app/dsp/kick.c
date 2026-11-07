@@ -15,6 +15,7 @@ typedef struct {
     float ph[KICK_LAYERS], ph2, env[KICK_LAYERS], pe, pe2;
     float lp;                            /* CLICK: its noise's low-pass (what it keeps is above it) */
     float tlo, tlp, tenv;                /* LOAF BREAKER: TERROR's low split, its fizz's low-pass, the kick's level */
+    float pm;                            /* (crossbreed) this hit's pitch, a factor (kick_pitches): 1 as set */
     float s1[KICK_LAYERS], s2[KICK_LAYERS], fph[KICK_LAYERS], fhold[KICK_LAYERS];   /* the layers' effects */
     uint32_t rng;
     float last, declick;
@@ -193,15 +194,15 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
     uint32_t i;
     /* SUB: a sine dropping an octave and a half to its pitch, saturated by its tone */
     x[KL_SUB] = soft(brk_sin_turns(v->ph[KL_SUB]) * c->sub_sat) * (1.0f + c->sub_sat) / c->sub_sat;
-    v->ph[KL_SUB] += c->f[KL_SUB] * (1.0f + 2.0f * v->pe);
+    v->ph[KL_SUB] += c->f[KL_SUB] * v->pm * (1.0f + 2.0f * v->pe);
     /* PUNCH: a sine swept down fast from far above */
     x[KL_PUNCH] = brk_sin_turns(v->ph[KL_PUNCH]);
-    v->ph[KL_PUNCH] += c->f[KL_PUNCH] * (1.0f + c->punch_sweep * v->pe2);
+    v->ph[KL_PUNCH] += c->f[KL_PUNCH] * v->pm * (1.0f + c->punch_sweep * v->pe2);
     /* GRIT: FM (the modulator at 1.41x), driven, noise by its tone */
     x[KL_GRIT] = soft(4.0f * (brk_sin_turns(v->ph[KL_GRIT] + c->grit_index * 0.159f * brk_sin_turns(v->ph2)) +
                               c->grit_noise * noise(v)));
-    v->ph[KL_GRIT] += c->f[KL_GRIT] * (1.0f + v->pe);
-    v->ph2 += c->f[KL_GRIT] * 1.41f * (1.0f + v->pe);
+    v->ph[KL_GRIT] += c->f[KL_GRIT] * v->pm * (1.0f + v->pe);
+    v->ph2 += c->f[KL_GRIT] * v->pm * 1.41f * (1.0f + v->pe);
     /* CLICK: noise high-passed at its pitch, and a click ringing there; tone between them */
     {
         float n = noise(v), ring = brk_sin_turns(v->ph[KL_CLICK]);
@@ -254,6 +255,7 @@ BRK_COLD void kick_init(void)
     kv.declick = kv.last = 0.0f;
     kv.rng = 0x5eed1u;
     kv.tlo = kv.tlp = kv.tenv = 0.0f;
+    kv.pm = 1.0f;
     ks_last = 0.0f;
     ks_on = 0u;
     hits_seen = p_hits;
@@ -262,6 +264,8 @@ BRK_COLD void kick_init(void)
 BRK_COLD void kick_set(const kick_t *k) { *(kick_t *)&p_k = *k; }
 void kick_hit(void) { p_hits++; }
 void kick_speed(const float *sp) { ks_sp = sp; }
+static const float *ks_pm;               /* (crossbreed) the next render's hits' pitches (kick_pitches), 0 none */
+void kick_pitches(const float *pm) { ks_pm = pm; }
 
 void kick_render(float *out, uint32_t n, const uint16_t *at, uint32_t nat)
 {
@@ -271,6 +275,7 @@ void kick_render(float *out, uint32_t n, const uint16_t *at, uint32_t nat)
     if (p_hits != hits_seen) {           /* a MIDI note: now */
         hits_seen = p_hits;
         kv_hit(&kv);
+        kv.pm = 1.0f;
     } else if (!nat && kv.env[KL_SUB] < 3e-5f && kv.env[KL_PUNCH] < 3e-5f && kv.env[KL_GRIT] < 3e-5f &&
                kv.env[KL_CLICK] < 3e-5f && brk_absf(kv.declick) < 1e-5f) {
         for (i = 0; i < n; i++)          /* gone quiet, nothing coming: no work */
@@ -288,6 +293,7 @@ void kick_render(float *out, uint32_t n, const uint16_t *at, uint32_t nat)
     for (i = 0; i < n; i++) {
         while (j < nat && at[j] <= i) {  /* the steps' kicks, on their samples */
             kv_hit(&kv);
+            kv.pm = ks_pm ? ks_pm[j] : 1.0f;   /* (crossbreed: this step's note) */
             j++;
         }
         if (!ks_sp)
@@ -314,6 +320,7 @@ BRK_COLD void kick_shape(const kick_t *k, uint8_t *px, uint32_t n, uint32_t ms, 
     kc_make(k, &c);
     v.rng = 0x5eed1u;
     v.tlo = v.tlp = v.tenv = 0.0f;
+    v.pm = 1.0f;
     v.last = v.declick = 0.0f;
     kv_hit(&v);
     v.declick = 0.0f;

@@ -104,6 +104,8 @@ static struct {
     uint32_t drop_t, build_said;         /* LOAF BREAKER: the DROP's flash since (0: not); the build's last word */
     uint8_t drop_seen;                   /* the drops shown (drop_n's) */
     uint8_t drop_pat;                    /* the pattern the drop moves to (0xFF: none) */
+    uint8_t drop_early, drop_asked;      /* (crossbreed) the drop asked early; its break asked for */
+    uint8_t note_key, note_turned;       /* (crossbreed) SEQ, a kick lane: the key held + 1 (0 none); K1 turned since */
     uint8_t sel_clicks;                  /* SEL's clicks in a row (three: the build) */
     uint32_t sel_click_t;
     uint8_t reset_n;                     /* GLOUPI BREAKS: its turns so far, each within 3 s of the last (it wants 15) */

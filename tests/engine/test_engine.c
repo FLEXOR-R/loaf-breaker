@@ -2003,6 +2003,32 @@ static void test_rewind(void)
           (int)st.step, (int)st.bar16, (int)st.bar64);
 }
 
+/* LOAF BREAKER (crossbreed): a kick hit at a note an octave up (kick_pitches 2) has about twice the cycles */
+static void test_kick_notes(void)
+{
+    kick_t k;
+    float pm = 2.0f;
+    uint32_t m, i, zc[2];
+    for (m = 0; m < 2u; m++) {
+        uint16_t at = 0u;
+        kick_defaults(&k);
+        k.intensity = 0.0f;
+        k.l[KL_GRIT].level = k.l[KL_CLICK].level = 0.0f;
+        kick_set(&k);
+        kick_init();
+        for (i = 0; i < 35u * BLOCK; i += BLOCK) {
+            kick_pitches(m ? &pm : 0);
+            kick_render(kick_buf + i, BLOCK, &at, i == 0u ? 1u : 0u);
+        }
+        kick_pitches(0);
+        for (i = 1, zc[m] = 0; i < 35u * BLOCK; i++)
+            if ((kick_buf[i - 1] < 0.0f) != (kick_buf[i] < 0.0f))
+                zc[m]++;
+    }
+    CHECK(zc[1] * 10u > zc[0] * 15u && zc[1] * 10u < zc[0] * 25u, "KICK NOTE: an octave up, about twice the cycles (%u, %u)",
+          zc[0], zc[1]);
+}
+
 int main(int argc, char **argv)
 {
     if (argc > 1)
@@ -2019,6 +2045,7 @@ int main(int argc, char **argv)
     test_vinyl();
     test_kick_hp();
     test_rewind();
+    test_kick_notes();
     test_gate();
     test_swap();
     test_snap();

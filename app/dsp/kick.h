@@ -54,5 +54,8 @@ void kick_render(float *out, uint32_t n, const uint16_t *at, uint32_t nat);
 /* LOAF BREAKER: the next render's speed, a sample each (0..1: the VINYL BREAK slowing the kick like a record), or 0
  * (as it is). Set from the render, before kick_render */
 void kick_speed(const float *sp);
+/* LOAF BREAKER (crossbreed): the next render's hits' pitches, a factor each (pm[k] for at[k]; 0: as set). Set from the
+ * render, before kick_render */
+void kick_pitches(const float *pm);
 /* the kick's shape, for the screen: n peaks (0..1) of the first ms milliseconds, rendered offline (main loop) */
 void kick_shape(const kick_t *k, uint8_t *px, uint32_t n, uint32_t ms, uint32_t height);

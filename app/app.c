@@ -94,7 +94,8 @@ typedef struct {
     uint8_t vinyl;                       /* the VINYL BREAK key's THRU (K3): 0 BOTH (older saves too), 1 BREAK, 2 KICK
                                           * (the kick, the snare and the hat) */
     uint8_t kslot;                       /* the kick memory playing, 0..9 (KICK 1..10): set.kick is it */
-    uint8_t rsv4[1];
+    uint8_t duck;                        /* LOAF BREAKER (crossbreed): DUCK, the break down under each kick, 0 off .. 100
+                                          * (SEL + K1) */
     /* (appended: LOAF BREAKER's kick memories; an older save's: the built-in kicks, its own kick KICK 1; one of six
      * kept them, KICK 7..10 begin anew) */
 #define KICK_MEMS 10u
@@ -105,7 +106,8 @@ typedef struct {
      * sound each one's first) */
 #define PERC_MEMS 10u
     uint8_t pslot[PERC_VOICES];          /* the memory playing, PV_* 0..9 (SNARE 1..10...): perc_voice() is it */
-    uint8_t rsv5[1];
+    uint8_t drop_brk;                    /* LOAF BREAKER (crossbreed): the break a drop brings in, 1.. (0: the same one;
+                                          * MORE's K4) */
     perc_voice_t pmem[PERC_VOICES][PERC_MEMS];   /* each as left (PRESETS on EDIT, SELECT on its SEQ lane) */
 } settings_t;
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
@@ -361,6 +363,19 @@ static void drum_bar_set(pat_t *p, uint32_t d, uint32_t b, uint32_t m)
         p->st[k][3] = (uint8_t)m;
         p->st[k + 1u][3] = (uint8_t)(m >> 8);
     }
+}
+/* LOAF BREAKER (crossbreed): the kick's notes, one a step of the bar (every bar alike), -8 .. +7 semitones, four bits
+ * each in the spare bytes of steps 13-20 (0: as the kick is) */
+static int32_t kick_note(const pat_t *p, uint32_t s)
+{
+    uint32_t b = p->st[13u + (s & 15u) / 2u][3], v = s & 1u ? b >> 4 : b & 15u;
+    return v >= 8u ? (int32_t)v - 16 : (int32_t)v;
+}
+static void kick_note_set(pat_t *p, uint32_t s, int32_t v)
+{
+    uint8_t *b = &p->st[13u + (s & 15u) / 2u][3];
+    uint32_t n = (uint32_t)(v < -8 ? -8 : v > 7 ? 7 : v) & 15u;
+    *b = (uint8_t)(s & 1u ? (*b & 0x0Fu) | n << 4 : (*b & 0xF0u) | n);
 }
 static uint32_t drum_bars(const pat_t *p, uint32_t d)   /* its bars played: the kick 1, 2 or 4, the rest 1 or 2 */
 {
@@ -791,6 +806,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
         done += m;
         {                                /* the drums: on the steps of the bar their lanes have, at their samples */
             uint16_t off[8], ka[8], pa[8];
+            float kpm[8];                /* (crossbreed: each kick's note, a factor) */
             uint8_t idx[8], who[8];
             uint32_t k, ne = brk_step_events(off, idx, 8u), nk = 0u, np = 0u;
             nclick = 0u;
@@ -859,8 +875,11 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                 uint32_t w = 0u, d, bar = idx[k] >> 4 & 3u;
                 for (d = DR_SNARE; d < NDRUMS; d++)   /* (LOAF BREAKER: every drum, its bar) */
                     w |= (uint32_t)(drum_now[d][bar] >> s & 1u) << (d - 1u);
-                if (drum_now[DR_KICK][bar] >> s & 1u)
+                if (drum_now[DR_KICK][bar] >> s & 1u) {
+                    int32_t kn = kick_note(&pats.p[set.pattern % NPAT], s);
+                    kpm[nk] = kn ? brk_exp2f((float)kn * (1.0f / 12.0f)) : 1.0f;
                     ka[nk++] = off[k];
+                }
                 if (w) {
                     pa[np] = off[k];
                     who[np++] = (uint8_t)w;
@@ -875,8 +894,28 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             tape0 = st.tape;
             kick_speed(vs ? spd : 0);
             perc_speed(vs ? spd : 0);
+            kick_pitches(kpm);
             kick_render(kick, m, ka, nk);
             perc_render(perc, m, pa, who, np);
+            if (set.duck) {              /* LOAF BREAKER (crossbreed): DUCK: the break (and its throws) pushed down at
+                                          * each kick, in ~0.3 ms, back up over ~150 ms */
+                static float dt, de;
+                float depth = (float)(set.duck > 100u ? 100u : set.duck) * 0.01f;
+                uint32_t j = 0u;
+                for (i = 0; i < m; i++) {
+                    float g;
+                    while (j < nk && ka[j] <= i) {
+                        dt = 1.0f;
+                        j++;
+                    }
+                    de += (dt - de) * 0.08f;
+                    dt *= 0.9997f;
+                    g = 1.0f - depth * de;
+                    mono[i] *= g;
+                    echo[i] *= g;
+                    verb[i] *= g;
+                }
+            }
             brk_fx_drums_dj(kick, perc, m, (float)set.kick_dj * 0.01f);   /* HOME's DRUM FLT (LOAF BREAKER: every drum,
                                           * not the break) */
             build_p = b_on ? (float)b_steps / (float)BUILD_STEPS : -1.0f;

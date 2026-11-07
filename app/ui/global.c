@@ -15,6 +15,8 @@ static void global_value(int i, char *t)
             text_cat(t, set.auto_save ? "ON" : "OFF");
         else if (i == 2)                 /* K3 LOAF LORD (was the ARP key's K4) */
             text_cat(t, "TURN ME");
+        else                             /* K4 DROP BRK (crossbreed): the break a drop brings in */
+            text_cat(t, set.drop_brk && set.drop_brk <= n_breaks ? break_name(set.drop_brk - 1u) : "SAME");
         return;
     }
     if (ui.gpage) {                      /* the pitch: speed or keep length, the grains */
@@ -55,6 +57,13 @@ static void global_turn(int i, int32_t d)
         } else if (i == 2) {             /* LOAF BREAKER: K3 LOAF LORD, the easter egg (app_frame shows it 1.5 s) */
             ui.egg_t = plat_ms() | 1u;
             egg_draw();
+        } else {                         /* K4 DROP BRK (crossbreed): SAME, then each break of the bank */
+            global_value(3, t);
+            set.drop_brk = (uint8_t)((set.drop_brk + (d > 0 ? 1u : n_breaks)) % (n_breaks + 1u));
+            global_value(3, t);
+            app_say("DROP BREAK", t);
+            changed();
+            ui.redraw |= RG_FOOT;
         }
         return;
     }
