@@ -1,0 +1,91 @@
+# LOAF BREAKER's break tests: the firmware as it is (this branch), each build with one list of breaks/tests/testN.txt
+# (the breaks not on the machine, tools from breaks/breaks.txt's '-' lines) in place of breaks/breaks.txt, to try them
+# on the FM-1 and pick. The six .fwsc go to one pre-release, "break-tests", replaced on every run. Runs when the lists or
+# this file change on gloupi, or by hand (Actions → Break tests → Run workflow). Not a release of LOAF BREAKER itself.
+name: Break tests
+
+on:
+  push:
+    branches: [gloupi]
+    paths: ["breaks/tests/**", ".github/workflows/tests.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        set: [1, 2, 3, 4, 5, 6]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Pillow with raqm (the build's fonts)
+        run: |
+          raqm() { /usr/bin/python3 -c 'from PIL import features; raise SystemExit(not features.check("raqm"))' 2>/dev/null; }
+          raqm || /usr/bin/python3 -m pip install -q --user --break-system-packages Pillow
+          raqm || { sudo apt-get update -qq && sudo apt-get install -y -qq libfribidi0; }
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.jieli
+            ~/fw-AC79_AIoT_SDK
+          key: jieli-${{ runner.os }}-${{ hashFiles('scripts/bootstrap.sh') }}
+
+      - name: fm1-base, JieLi toolchain and AC79 SDK files
+        env:
+          PYTHON: /usr/bin/python3
+          BOOTSTRAP_USB: 0
+        run: sh scripts/bootstrap.sh
+
+      - name: Firmware with test ${{ matrix.set }}
+        env:
+          PYTHON: /usr/bin/python3
+        run: |
+          cp breaks/tests/test${{ matrix.set }}.txt breaks/breaks.txt
+          ./build.sh
+          mv app/build/choppah.fwsc app/build/loaf-breaker-test${{ matrix.set }}.fwsc
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test${{ matrix.set }}
+          path: app/build/loaf-breaker-test${{ matrix.set }}.fwsc
+
+  release:
+    needs: build
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: fw
+          merge-multiple: true
+      - name: Notes
+        run: |
+          {
+            echo "LOAF BREAKER as it is, with the breaks not on the machine: a set per firmware, to try and pick. Each"
+            echo "shows DEV at power-on; ALGORITHM steps through its breaks. Not a release of LOAF BREAKER."
+            echo
+            for f in breaks/tests/test*.txt; do
+              n="$(basename "$f" .txt)"
+              printf -- '- **%s**: ' "$n"
+              grep '^\*' "$f" | awk '{for (i = 6; i <= NF; i++) printf "%s%s", $i, (i < NF ? " " : ""); printf " · "}' | sed 's/ · $//'
+              echo
+            done
+          } > notes.md
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: break-tests
+          target_commitish: ${{ github.sha }}
+          name: LOAF BREAKER break tests
+          body_path: notes.md
+          prerelease: true
+          make_latest: false
+          files: fw/*.fwsc

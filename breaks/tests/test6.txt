@@ -1,0 +1,14 @@
+# LOAF BREAKER break test 6/6: 11 breaks not on the machine, ~321 KB of the bank.
+# Copied over breaks/breaks.txt by .github/workflows/tests.yml (paths relative to breaks/). Same columns:
+# in  file                                        bpm     bars  of  name
+*   cw/cw_amen17_175.wav                     175     2     4   AMEN17 175
+*   huge/cw_amen_breaking.wav                175     2     2   BREAKING
+*   huge/cw_amen_rough.wav                   175     2     3   ROUGH
+*   huge/cw_amen_zinc.wav                    175     2     2   ZINC
+*   huge/cw_amen_funk2.wav                   175.01  2     2   FUNK2
+*   cw/cw_amen18_178.wav                     178     2     4   AMEN18 178
+*   huge/cw_amen_downstratch.wav             179.22  2     3   DOWNSTRATCH
+*   huge/cw_amen_vinyl.wav                   179.81  2     6   VINYL
+*   huge/cw_amen_downtempo.wav               180     2     3   DOWNTEMPO
+*   huge/cw_amen_drumroll.wav                181.32  2     2   DRUMROLL
+*   huge/cw_amen_downshift.wav               183.96  2     3   DOWNSHIFT

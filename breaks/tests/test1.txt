@@ -1,0 +1,11 @@
+# LOAF BREAKER break test 1/6: 8 breaks not on the machine, ~321 KB of the bank.
+# Copied over breaks/breaks.txt by .github/workflows/tests.yml (paths relative to breaks/). Same columns:
+# in  file                                        bpm     bars  of  name
+*   classics/skull_snaps_its_a_new_day.wav   94.81   1     4   NEW DAY
+*   classics/rotary_connection_life_could.wav 99.81   2     4   LIFE COULD
+*   classics/james_brown_cold_sweat.wav      114     2     4   COLD SWEAT
+*   classics/lightnin_rod_sport.wav          120.69  2     4   SPORT
+*   classics/the_winstons_amen_brother.wav   141.82  2     4   AMEN
+*   huge/cw_amen_beasty.wav                  127.27  2     4   BEASTY
+*   cw/cw_amen10_135.wav                     135     2     2   AMEN10 135
+*   cw/cw_amen12_137.wav                     137     2     2   AMEN12 137

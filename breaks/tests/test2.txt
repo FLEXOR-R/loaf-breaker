@@ -1,0 +1,12 @@
+# LOAF BREAKER break test 2/6: 9 breaks not on the machine, ~319 KB of the bank.
+# Copied over breaks/breaks.txt by .github/workflows/tests.yml (paths relative to breaks/). Same columns:
+# in  file                                        bpm     bars  of  name
+*   huge/cw_amen_comp.wav                    140     2     4   COMP
+*   huge/cw_amen_negative.wav                140     2     4   NEGATIVE
+*   huge/cw_amen_reride.wav                  140     2     4   RERIDE
+*   huge/cw_amen_tape.wav                    140     2     4   TAPE
+*   cw/cw_amen11_145.wav                     145     2     2   AMEN11 145
+*   huge/cw_amen_overlimit.wav               147.37  2     4   OVERLIMIT
+*   huge/cw_amen_freak.wav                   150.3   2     2   FREAK
+*   huge/cw_amen_apache.wav                  157.19  2     4   CW APACHE
+*   cw/cw_amen05_158.wav                     158     2     4   AMEN05 158
