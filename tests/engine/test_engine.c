@@ -1992,6 +1992,33 @@ static void test_rewind(void)
           (int)st.step, (int)st.bar16, (int)st.bar64);
 }
 
+/* LOAF BREAKER: EARLY UPTEMPO cuts the kick's tail short; INDUSTRIAL changes it (and both stay in range) */
+static void test_kick_styles(void)
+{
+    kick_t k;
+    float tail[3], pk[3];
+    uint32_t m, i;
+    for (m = 0; m < 3u; m++) {
+        uint16_t at = 0u;
+        kick_defaults(&k);
+        if (m == 1u)
+            KICK_EARLY(&k) = 100u;
+        if (m == 2u)
+            KICK_INDUS(&k) = 100u;
+        kick_set(&k);
+        kick_init();
+        for (i = 0; i < 150u * BLOCK; i += BLOCK)   /* (0.87 s) */
+            kick_render(kick_buf + i, BLOCK, &at, i == 0u ? 1u : 0u);
+        for (i = 0, tail[m] = pk[m] = 0.0f; i < 150u * BLOCK; i++) {
+            float a = fabsf(kick_buf[i]);
+            if (a > pk[m]) pk[m] = a;
+            if (i > (uint32_t)BRK_SR * 3u / 10u && a > tail[m]) tail[m] = a;   /* after 300 ms */
+        }
+    }
+    CHECK(tail[1] < tail[0] * 0.3f && pk[1] <= 1.0f && pk[2] <= 1.0f && pk[2] > 0.2f,
+          "EARLY UPTEMPO: the tail cut (%.3f vs %.3f at 300 ms); INDUSTRIAL in range (%.3f)", tail[1], tail[0], pk[2]);
+}
+
 int main(int argc, char **argv)
 {
     if (argc > 1)
@@ -2008,6 +2035,7 @@ int main(int argc, char **argv)
     test_vinyl();
     test_kick_hp();
     test_rewind();
+    test_kick_styles();
     test_gate();
     test_swap();
     test_snap();

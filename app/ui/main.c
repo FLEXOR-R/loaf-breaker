@@ -575,13 +575,16 @@ static void input(void)
             kick_mem_turn(d);
             continue;
         }
-        if (k == EN_K4 && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K4, on any page: the kick's TERROR (EDIT's
-                                          * OUT K2) */
-            KICK_TERROR(&set.kick) = (uint8_t)clamp((int32_t)KICK_TERROR(&set.kick) + d * 2, 0, 100);
-            if (KICK_TERROR(&set.kick))
-                say_int("TERROR", KICK_TERROR(&set.kick), "%");
-            else
-                app_say("TERROR", "OFF");
+        if (k >= EN_K2 && k <= EN_K4 && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K2 EARLY UPTEMPO, K3
+                                          * INDUSTRIAL, K4 TERROR, on any page: the kick's hardcore styles (EDIT's
+                                          * OUT K3, K4, K2) */
+            static const char *const HC[3] = {"EARLY UPTEMPO", "INDUSTRIAL", "TERROR"};
+            int i = k == EN_K2 ? 2 : k == EN_K3 ? 3 : 1;
+            uint8_t *p = kick_hc(&set.kick, i);
+            char t[8];
+            *p = (uint8_t)clamp((int32_t)*p + d * 2, 0, 100);
+            kick_hc_text(&set.kick, i, t);
+            app_say(HC[k - EN_K2], t);
             changed();
             ui.redraw |= RG_BLOCKS | RG_FOOT;
             continue;
@@ -873,10 +876,10 @@ static void page_say(void)
 /* SEL held alone: its combinations, on the strip (FX page: its own two) */
 static void draw_help(void)
 {
-    static const char *const L[8][2] = {{"SEL X3", "BUILD / DROP"}, {"+ ALGO", "BREAK"}, {"+ PRESETS", "PATTERN"},
-                                        {"+ REC", "CLEAR PATTERN"}, {"+ ARP", "RANDOM PATTERN"},
-                                        {"+ SAVE", "UNDO / REDO"}, {"+ SELECT", "KICK 1-10"},
-                                        {"+ K4", "TERROR"}};   /* (LOAF BREAKER: the live ones) */
+    static const char *const L[8][2] = {{"SEL X3", "BUILD / DROP"}, {"+ SELECT", "KICK 1-10"},
+                                        {"+ K2", "EARLY UPTEMPO"}, {"+ K3", "INDUSTRIAL"}, {"+ K4", "TERROR"},
+                                        {"+ ALGO", "BREAK"}, {"+ PRESETS", "PATTERN"},
+                                        {"+ SEQ", "COPY / PASTE"}};   /* (LOAF BREAKER: the live ones) */
     uint32_t i, band;
     for (band = 0; band < 2u; band++) {
         cv_begin(240, 52, C_BLACK);

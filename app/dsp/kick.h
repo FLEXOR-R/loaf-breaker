@@ -29,6 +29,13 @@ typedef struct {
 /* LOAF BREAKER: TERROR, after INTENSITY: the kick's mids and highs driven hard into a wavefolder and a clip, the sub
  * under them kept clean; 0 off .. 100. In the SUB layer's first spare byte (a kick saved before it: 0, off) */
 #define KICK_TERROR(k) ((k)->l[KL_SUB].rsv[0])
+/* LOAF BREAKER: two more, 0 off .. 100, in the next spare bytes (a kick saved before them: off):
+ *   EARLY UPTEMPO  the tail cut short (2 s down to 150 ms) and a "tok" on the attack (a sine dropping from ~1.7 kHz
+ *                  in a few ms): the tight, punchy kick of early uptempo
+ *   INDUSTRIAL     rung against a ~216 Hz metal tone, crushed (fewer levels, a lower rate) and darkened: the
+ *                  grinding kick of industrial hardcore */
+#define KICK_EARLY(k) ((k)->l[KL_SUB].rsv[1])
+#define KICK_INDUS(k) ((k)->l[KL_SUB].rsv[2])
 
 typedef struct {
     kick_layer_t l[KICK_LAYERS];

@@ -15,6 +15,8 @@ typedef struct {
     float ph[KICK_LAYERS], ph2, env[KICK_LAYERS], pe, pe2;
     float lp;                            /* CLICK: its noise's low-pass (what it keeps is above it) */
     float tlo, tlp, tenv;                /* LOAF BREAKER: TERROR's low split, its fizz's low-pass, the kick's level */
+    float egate, tph, tpe, tenv2;        /* EARLY UPTEMPO: the tail's gate; the tok's phase, sweep, level */
+    float iph, icnt, ihold, ilp;         /* INDUSTRIAL: the metal tone's phase; the crush's count and value; dark */
     float s1[KICK_LAYERS], s2[KICK_LAYERS], fph[KICK_LAYERS], fhold[KICK_LAYERS];   /* the layers' effects */
     uint32_t rng;
     float last, declick;
@@ -34,6 +36,8 @@ typedef struct {
     float ga[KICK_LAYERS], gb[KICK_LAYERS], gc[KICK_LAYERS];   /* the effect's own coefficients */
     float g, hard, make, vol;            /* the sum: drive, how hard the clip, make-up, volume */
     float tmix, tg;                      /* LOAF BREAKER: TERROR, its mix and its drive (0 mix: off) */
+    float e_on, e_gate, e_tok;           /* EARLY UPTEMPO: on (0 off), the tail's factor, the tok's level */
+    float i_on, i_hold, i_q, i_lp, i_ring;   /* INDUSTRIAL: on, samples held, levels, its low-pass, the ring's mix */
 } kc_t;
 
 static volatile kick_t p_k;
@@ -127,6 +131,18 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c)
         c->tmix = t * 3.0f > 1.0f ? 1.0f : t * 3.0f;
         c->tg = 2.0f + 60.0f * t * t;
     }
+    {                                    /* LOAF BREAKER: EARLY UPTEMPO and INDUSTRIAL */
+        float e = (float)(KICK_EARLY(k) > 100u ? 100u : KICK_EARLY(k)) * 0.01f;
+        float n = (float)(KICK_INDUS(k) > 100u ? 100u : KICK_INDUS(k)) * 0.01f;
+        c->e_on = e;
+        c->e_gate = decay_factor(2000.0f - 1850.0f * e);   /* the tail to -40 dB in 2 s .. 150 ms */
+        c->e_tok = 0.7f * e;
+        c->i_on = n;
+        c->i_hold = 1.0f + 9.0f * n;     /* 44.1 kHz down to 4.4 kHz */
+        c->i_q = brk_exp2f_c(11.0f - 7.0f * n);   /* 2048 levels down to 16 */
+        c->i_lp = 1.0f - brk_exp2f_c(-9.0647f * 12000.0f * brk_exp2f_c(-2.7f * n) / (float)BRK_SR);   /* 12 .. 1.8 kHz */
+        c->i_ring = 0.55f * n;
+    }
     c->vol = brk_clampf(k->volume, 0.0f, 1.0f);
 }
 
@@ -142,6 +158,8 @@ static void kv_hit(kv_t *v)
     v->ph2 = 0.0f;
     v->pe = v->pe2 = 1.0f;
     v->lp = 0.0f;
+    v->egate = v->tpe = v->tenv2 = 1.0f; /* (LOAF BREAKER: EARLY UPTEMPO's gate open, its tok from the top) */
+    v->tph = 0.0f;
 }
 
 static inline float noise(kv_t *v)
@@ -239,6 +257,29 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
         z = brk_clampf(v->tlo * 1.2f + v->tlp * 0.85f * (a < 1.0f ? a : 1.0f), -1.0f, 1.0f);
         out += (z - out) * c->tmix;
     }
+    if (c->e_on > 0.0f) {                /* LOAF BREAKER: EARLY UPTEMPO: the tail gated short, a tok on the attack */
+        float tok = brk_sin_turns(v->tph) * v->tenv2;
+        v->tph += (180.0f + 1500.0f * v->tpe) * (1.0f / (float)BRK_SR);
+        if (v->tph >= 1.0f)
+            v->tph -= 1.0f;
+        v->tpe *= 0.9965f;               /* (the tok's drop: ~6 ms) */
+        v->tenv2 *= 0.9975f;             /* (its level: ~10 ms) */
+        out = brk_clampf(out * v->egate + tok * c->e_tok, -1.0f, 1.0f);
+        v->egate *= c->e_gate;
+    }
+    if (c->i_on > 0.0f) {                /* LOAF BREAKER: INDUSTRIAL: rung against a metal tone, crushed, darkened */
+        float x = out * (1.0f - c->i_ring + c->i_ring * 1.6f * brk_sin_turns(v->iph));
+        v->iph += 0.0049f;               /* (~216 Hz) */
+        if (v->iph >= 1.0f)
+            v->iph -= 1.0f;
+        v->icnt += 1.0f;
+        if (v->icnt >= c->i_hold) {
+            v->icnt -= c->i_hold;
+            v->ihold = (float)(int32_t)(x * c->i_q) / c->i_q;
+        }
+        v->ilp += (v->ihold - v->ilp) * c->i_lp;
+        out = brk_clampf(out + (v->ilp * 1.3f - out) * c->i_on, -1.0f, 1.0f);
+    }
     out *= c->vol;
     v->last = out;
     out += v->declick;
@@ -254,6 +295,7 @@ BRK_COLD void kick_init(void)
     kv.declick = kv.last = 0.0f;
     kv.rng = 0x5eed1u;
     kv.tlo = kv.tlp = kv.tenv = 0.0f;
+    kv.egate = kv.tph = kv.tpe = kv.tenv2 = kv.iph = kv.icnt = kv.ihold = kv.ilp = 0.0f;
     ks_last = 0.0f;
     ks_on = 0u;
     hits_seen = p_hits;
@@ -314,6 +356,7 @@ BRK_COLD void kick_shape(const kick_t *k, uint8_t *px, uint32_t n, uint32_t ms, 
     kc_make(k, &c);
     v.rng = 0x5eed1u;
     v.tlo = v.tlp = v.tenv = 0.0f;
+    v.egate = v.tph = v.tpe = v.tenv2 = v.iph = v.icnt = v.ihold = v.ilp = 0.0f;
     v.last = v.declick = 0.0f;
     kv_hit(&v);
     v.declick = 0.0f;
