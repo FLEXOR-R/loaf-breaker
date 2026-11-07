@@ -14,7 +14,7 @@ static inline float soft(float x) { return x / (1.0f + brk_absf(x)); }
 typedef struct {
     float ph[KICK_LAYERS], ph2, env[KICK_LAYERS], pe, pe2;
     float lp;                            /* CLICK: its noise's low-pass (what it keeps is above it) */
-    float tlo, tlp;                      /* LOAF BREAKER: TERROR's low split, its fizz's low-pass */
+    float tlo, tlp, tenv;                /* LOAF BREAKER: TERROR's low split, its fizz's low-pass, the kick's level */
     float s1[KICK_LAYERS], s2[KICK_LAYERS], fph[KICK_LAYERS], fhold[KICK_LAYERS];   /* the layers' effects */
     uint32_t rng;
     float last, declick;
@@ -225,7 +225,8 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
     if (c->tmix > 0.0f) {                /* LOAF BREAKER: TERROR: the sub (below ~110 Hz) kept, the rest driven into a
                                           * triangle fold (it folds back instead of flattening: the scream), then
                                           * clipped and its fizz rounded */
-        float h, t, z;
+        float h, t, z, a = brk_absf(out);
+        v->tenv += (a - v->tenv) * (a > v->tenv ? 0.05f : 0.0012f);   /* (the kick's level: fast up, ~20 ms down) */
         v->tlo += (out - v->tlo) * 0.0155f;
         h = (out - v->tlo) * c->tg;
         t = h * 0.25f + 0.25f;
@@ -234,7 +235,8 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
             t += 1.0f;
         z = 1.0f - 4.0f * brk_absf(t - 0.5f);   /* (the fold: h within +-1 untouched, beyond it back and forth) */
         v->tlp += (z - v->tlp) * 0.45f;
-        z = brk_clampf(v->tlo * 1.2f + v->tlp * 0.85f, -1.0f, 1.0f);
+        a = v->tenv * 2.5f;              /* (the fold follows the kick down: its punch and its tail kept, not a wall) */
+        z = brk_clampf(v->tlo * 1.2f + v->tlp * 0.85f * (a < 1.0f ? a : 1.0f), -1.0f, 1.0f);
         out += (z - out) * c->tmix;
     }
     out *= c->vol;
@@ -251,7 +253,7 @@ BRK_COLD void kick_init(void)
         kv.env[i] = 0.0f;
     kv.declick = kv.last = 0.0f;
     kv.rng = 0x5eed1u;
-    kv.tlo = kv.tlp = 0.0f;
+    kv.tlo = kv.tlp = kv.tenv = 0.0f;
     ks_last = 0.0f;
     ks_on = 0u;
     hits_seen = p_hits;
@@ -311,7 +313,7 @@ BRK_COLD void kick_shape(const kick_t *k, uint8_t *px, uint32_t n, uint32_t ms, 
     uint32_t i, total = ms * (BRK_SR / 1000u), per = total / (n ? n : 1u);
     kc_make(k, &c);
     v.rng = 0x5eed1u;
-    v.tlo = v.tlp = 0.0f;
+    v.tlo = v.tlp = v.tenv = 0.0f;
     v.last = v.declick = 0.0f;
     kv_hit(&v);
     v.declick = 0.0f;
