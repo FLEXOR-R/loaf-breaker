@@ -879,8 +879,9 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             kick_speed(vs ? spd : 0);
             perc_speed(vs ? spd : 0);
             kick_render(kick, m, ka, nk);
-            brk_fx_kick_dj(kick, m, (float)set.kick_dj * 0.01f);   /* GLOUPI BREAKS: HOME's KICK FLT */
             perc_render(perc, m, pa, who, np);
+            brk_fx_drums_dj(kick, perc, m, (float)set.kick_dj * 0.01f);   /* HOME's DRUM FLT (LOAF BREAKER: every drum,
+                                          * not the break) */
             build_p = b_on ? (float)b_steps / (float)BUILD_STEPS : -1.0f;
             if (b_on) {                  /* (the roll louder as it builds) */
                 float g = 0.35f + 0.65f * build_p;

@@ -27,6 +27,7 @@ static brk_fx_t fx;                      /* the render's copy */
 static float lim_gain = 1.0f, dj_s;      /* the limiter; the DJ filter's smoothed position */
 static svf_t dj_b, dj_e, dj_v;           /* the DJ filter: on the break, its echo throw, its reverb throw */
 static svf_t dj_k;                       /* GLOUPI BREAKS: HOME's DJ filter, on the kick (brk_fx_kick_dj) */
+static svf_t dj_p;                       /* LOAF BREAKER: the same on the snare, the hat and the clap */
 static float djk_s;                      /* its smoothed position */
 const char *const BRK_FXT_NAME[BRK_NFXT] = {"EMPTY", "FILTER", "CRUNCH", "DRIVE", "PUNCH", "FLANGER", "RING MOD",
                                             "TREMOLO", "REVERB", "DELAY", "EQ", "TAPE", "MB COMP", "CLIP"};
@@ -449,7 +450,7 @@ BRK_COLD void brk_fx_add_dry(float *l, float *r, const float *xl, const float *x
 
 /* GLOUPI BREAKS: a DJ filter of its own on the kick (HOME's KICK FLT, pos -1..1), in place (the render's kick, before
  * the snare and the hat join it): left low-pass, right high-pass, as the break's */
-BRK_COLD void brk_fx_kick_dj(float *x, uint32_t n, float pos)
+BRK_COLD void brk_fx_drums_dj(float *x, float *y, uint32_t n, float pos)
 {
     float d = brk_clampf(pos, 0.0f, 1.0f), w, lp, h;   /* (LOAF BREAKER: high-pass alone; below 0, an older
                                           * save's low-pass: off) */
@@ -461,10 +462,17 @@ BRK_COLD void brk_fx_kick_dj(float *x, uint32_t n, float pos)
     w = djk_s < 0.05f ? djk_s * 20.0f : 1.0f;   /* (coming in: faded in over its first step, no thump) */
     c = svf_coef(BRK_KICK_HP_HZ(djk_s), 0.35f);
     for (i = 0; i < n; i++) {
-        h = svf_run(&dj_k, &c, x[i], &lp);
-        x[i] += (h - x[i]) * w;
+        if (x) {
+            h = svf_run(&dj_k, &c, x[i], &lp);
+            x[i] += (h - x[i]) * w;
+        }
+        if (y) {                         /* (LOAF BREAKER: the rest of the drums, their own state) */
+            h = svf_run(&dj_p, &c, y[i], &lp);
+            y[i] += (h - y[i]) * w;
+        }
     }
 }
+BRK_COLD void brk_fx_kick_dj(float *x, uint32_t n, float pos) { brk_fx_drums_dj(x, 0, n, pos); }
 
 BRK_COLD void brk_fx_init(void)
 {

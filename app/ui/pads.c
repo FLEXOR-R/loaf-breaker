@@ -10,7 +10,7 @@ static uint8_t ovlpad_held, ovlpad_lat;  /* (the ARP key's: below) */
 static int ovl_pad_on(void);
 /* what K1-K4 tune while a pad is held, by pad (brk.h PAD_*); 0: that knob does nothing for it */
 static const char *const PAD_KNOB[BRK_NPADS][4] = {
-    {"RATE", "FILTER", "KICK FLT", "DECAY"}, {"RATE", "FILTER", "KICK FLT", "DECAY"}, {"RATE", "FILTER", "KICK FLT", "DECAY"},
+    {"RATE", "FILTER", "DRUM FLT", "DECAY"}, {"RATE", "FILTER", "DRUM FLT", "DECAY"}, {"RATE", "FILTER", "DRUM FLT", "DECAY"},
     {"SPEED", 0, 0, 0}, {"LENGTH", "PITCH", 0, 0}, {"SPEED", "M. TEMPO", 0, 0}, {"STOP", "SPIN UP", "THRU", 0},
     {"RATE", "LENGTH", 0, 0}, {"AMOUNT", "PITCH", 0, 0}, {"TARGET", "RESO", "SPEED", 0},
     {"EFFECT", "THRU", "ON / OFF", "LOAF LORD"}};   /* (LOAF BREAKER: held only; K2 what goes through the ARP
@@ -42,7 +42,7 @@ static void kick_flt_turn(int32_t d)     /* (up 2 % a detent, as it was; back do
     set.kick_dj = (int8_t)clamp((set.kick_dj < 0 ? 0 : (int32_t)set.kick_dj) + d * (d > 0 ? 2 : 5), 0, 100);
     changed();
     kick_flt_text(t);
-    app_say("KICK FILTER", t);
+    app_say("DRUM FILTER", t);
 }
 
 /* LOAF BREAKER: HOME's DJ FILTER on the break, as the kick's but a low-pass: OFF, then at once 7.5 kHz (the first

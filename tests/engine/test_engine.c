@@ -1229,6 +1229,16 @@ static void test_kick_hp(void)
     }
     CHECK(pk[0] > 0.24f && pk[1] < 0.1f && pk[2] > 0.24f,
           "KICK FILTER: a high-pass (40 Hz: off %.3f, at 20 %% %.3f, a low-pass asked %.3f)", pk[0], pk[1], pk[2]);
+    for (b = 0, pk[0] = 0.0f; b < 200u; b++) {   /* LOAF BREAKER: the same filter on the other drums */
+        for (i = 0; i < BLOCK; i++)
+            k[i] = 0.25f * sinf(6.2831853f * 40.0f * (float)(b * BLOCK + i) / (float)BRK_SR);
+        brk_fx_drums_dj(0, k, BLOCK, 0.2f);
+        if (b > 150u)
+            for (i = 0; i < BLOCK; i++)
+                if (fabsf(k[i]) > pk[0])
+                    pk[0] = fabsf(k[i]);
+    }
+    CHECK(pk[0] < 0.1f, "DRUM FILTER: the snare, hat and clap high-passed too (40 Hz at 20 %%: %.3f)", pk[0]);
 }
 
 /* MULTIBAND: the bands sum back to the input untouched; a band pressed holds its level, the others don't move; CLIP:

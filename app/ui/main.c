@@ -890,7 +890,7 @@ static void draw_help(void)
 /* the foot: the pads, then the page and its knobs with their values */
 static void draw_foot(const brk_status_t *st)
 {
-    static const char *const KN[NPAGES][4] = {{"GATE", "FILTER", "KICK FLT", "SUB DECAY"},
+    static const char *const KN[NPAGES][4] = {{"GATE", "FILTER", "DRUM FLT", "SUB DECAY"},
                                               {"CMPLX", "ANCHOR", "ROLL", "FILL"},
                                               {"P1", "P2", "P3", "MIX"},
                                               {"CLOCK IN", "CLOCK OUT", "BLUETOOTH", "MIDI TO"},
@@ -942,7 +942,7 @@ static void draw_foot(const brk_status_t *st)
         else if (ui.page == PG_PERC)
             name = PERC_KNOB[ui.pvoice % PERC_VOICES][ui.ppage][i];
         else if (ui.page == PG_SEQ && ui.seq_lane >= SL_KICK) {
-            static const char *const KN_LANE[4] = {"FILL", "KICK FLT", "CLR / 4X4", "LENGTH"};
+            static const char *const KN_LANE[4] = {"FILL", "DRUM FLT", "CLR / 4X4", "LENGTH"};
             name = KN_LANE[i];
         }
         cv_text(4 + (int32_t)i * 60, 18, &FONT_T, name, ui.page == PG_FX

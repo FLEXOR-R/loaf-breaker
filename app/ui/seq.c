@@ -220,7 +220,7 @@ static void midi_drum(uint32_t d)        /* a drum note (DR_*): the hit now, and
  * snare 16 or 32) */
 static void lane_knob(int i, int32_t d)
 {
-    static const char *const NAME[4] = {"FILL", "KICK FILTER", "LANE", "LENGTH"};
+    static const char *const NAME[4] = {"FILL", "DRUM FILTER", "LANE", "LENGTH"};
     uint32_t m = sl_get(pat_now(), ui.seq_lane), n = 0u, k;
     char t[16];
     if (i == 1) {                        /* LOAF BREAKER: KICK FLT, the kick's high-pass (HOME's K3: the same) */
