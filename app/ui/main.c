@@ -1064,6 +1064,12 @@ void app_frame(void)
         draw_meter();
         ui.meter_drawn = now;
     }
+    {                                    /* LOAF BREAKER: SEQ left, its grid's top goes: the waveform back */
+        static uint8_t last_page;
+        if (ui.page != last_page && last_page == PG_SEQ)
+            ui.redraw |= RG_WAVE;
+        last_page = ui.page;
+    }
     if (!ui.redraw)
         return;
     if (ui.redraw & RG_WAVE && ui.page != PG_TAP && ui.page != PG_SEQ)   /* (LOAF BREAKER: SEQ is a grid there) */
