@@ -202,6 +202,7 @@ static void settings_apply(void)
         }
     }
     brk_fx_tempo((float)set.tempo_x10 * 0.1f);
+    set.pads.roll_pitch = 0.0f;          /* LOAF BREAKER: the rolls' pitch gone (an older save's: off) */
     brk_padset(&set.pads);
     brk_pitch_mode(pitch_keeps(), (float)(set.grain_ms ? set.grain_ms : 30u));
     brk_half_master(!set.half_mt_off);
