@@ -8,6 +8,7 @@ ble_stack = "own"              # fm1-base's own stack: nothing of JieLi's, ~40 K
 bt_audio = false               # GLOUPI BREAKS: no Bluetooth audio out (CHOPPAH: true, PRD A-72)
 usb_audio_in = true            # the FM-1 recordable over USB (PRD A-50)
 usb_audio_out = false
+midi_stamp = true             # LOAF BREAKER: MIDI in (the clock) stamped where it lands, USB and TRS (fm1-base)
 words = "words.tsv"
 include = ["dsp"]
 o2 = ["dsp/*.c"]               # the engine, at -O2
@@ -16,6 +17,12 @@ boot_pack = true               # the start-up's RAM images stored LZMA-packed: s
 # the site (tools/make_site.py)
 install_app = "site/install_app.js"   # confetti when the install is done
 tagline = "An Amen chopper for the FM-1"
-repo = "https://github.com/profikid/fm1-break-choppah"
+repo = "https://github.com/FLEXOR-R/gloupi-breaks"   # LOAF BREAKER (CHOPPAH: https://github.com/profikid/fm1-break-choppah)
 licence = "MPL-2.0"
 credits = "Built on fm1-base and felucca-bsp, from Felucca by Leo Kuroshita (Hügelton Instruments)."
+# firmware.json (required by fm1-base for a --release build: the releases of gloupi.yml)
+author = "FLEXOR (LOAF BREAKER), from CHOPPAH by Laurens Profittlich"
+description = "LOAF BREAKER is FLEXOR's CHOPPAH: an Amen break chopper for the M-VAVE FM-1 with its own breaks, a kick sequenced over 16, 32 or 64 steps, a snare over 16 or 32, an ARP key for the overlay effects, skins and a steady MIDI clock in over the TRS jack."
+tags = ["drum-machine", "sampler"]
+install = "https://charlesvestal.github.io/fm1-base/install/"
+screenshot = "docs/img/loaf_breaker_card.png"

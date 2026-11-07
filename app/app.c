@@ -498,7 +498,7 @@ static volatile uint32_t sync_n16, sync_ms, sync_c;   /* clock in: the outside 1
 static uint32_t sync_seen;
 #define EXT_FIT 96u                      /* GLOUPI BREAKS: the ticks the tempo is fitted over, four beats */
 static struct {
-    uint32_t ring[EXT_FIT], i;           /* the last ticks' times (ms, as read); ticks in the ring's run */
+    uint32_t ring[EXT_FIT], i;           /* the last ticks' stamps (plat_ticks24's); ticks in the ring's run */
     uint32_t last, n;                    /* the last tick; ticks since the start (FA) */
     float bpm, used;                     /* the tempo they give, smoothed; the one the engine has */
     uint8_t run, port;                   /* started (FA / FB, not yet FC); where they come from */
@@ -507,15 +507,17 @@ static struct {
 /* GLOUPI BREAKS: the clock's tempo and the newest tick's time, from a straight line through the ring's ticks (least
  * squares). The ticks are read in the main loop, late now and then by a screen drawn meanwhile (several at once): one
  * tick's time against another's a beat before swung the tempo by 2 BPM; the line through four beats of them barely
- * moves. Returns 0 until there are two beats' worth; *at: the newest tick as the line has it (ms, from t) */
-static int ext_fit(uint32_t t, float *bpm, int32_t *at)
+ * moves. LOAF BREAKER: the ring holds where each tick landed (plat_midi_in_t24, fm1.toml midi_stamp: 24 MHz, within
+ * 0.05 ms of its landing), the line through them steadier still. Returns 0 until there are two beats' worth; *at: the
+ * newest tick as the line has it (ms, from t24, the newest's own stamp) */
+static int ext_fit(uint32_t t24, float *bpm, int32_t *at)
 {
     uint32_t m = ext.i < EXT_FIT ? ext.i : EXT_FIT, k;
     float sx = 0.0f, sy = 0.0f, sxx = 0.0f, sxy = 0.0f, n, per;
     if (m < 48u)
         return 0;
     for (k = 0; k < m; k++) {            /* x: the tick, oldest 0; y: its time, ms before the newest */
-        float x = (float)k, y = -(float)(t - ext.ring[(ext.i - m + k) % EXT_FIT]);
+        float x = (float)k, y = -(float)(t24 - ext.ring[(ext.i - m + k) % EXT_FIT]) * (1.0f / 24000.0f);
         sx += x;
         sy += y;
         sxx += x * x;
@@ -561,7 +563,7 @@ void app_loop(void)
     uint32_t pkt;
     int port;
     while (plat_midi_in(&pkt, &port)) {
-        uint32_t st = pkt >> 8 & 0xFFu, t = plat_ms();
+        uint32_t st = pkt >> 8 & 0xFFu, t = plat_ms(), t24 = plat_midi_in_t24();   /* (t24: where it landed) */
         if ((st & 0xE0u) == 0x80u) {     /* notes, any channel: 48..63 (C3..D#4) the slices, held as the white keys;
                                           * 36 the kick, 38 the snare, 42 / 44 / 46 the hat (a drum machine's) */
             uint32_t note = pkt >> 16 & 0x7Fu, on = (st & 0xF0u) == 0x90u && (pkt >> 24 & 0x7Fu);
@@ -578,11 +580,11 @@ void app_loop(void)
             int32_t at = 0;
             if (ext.i && t - ext.last > 250u)   /* the clock gone a while (stopped, unplugged): a fresh fit */
                 ext.i = 0u;
-            ext.ring[ext.i % EXT_FIT] = t;
+            ext.ring[ext.i % EXT_FIT] = t24;
             ext.i++;
             ext.last = t;
             ext.port = (uint8_t)port;
-            if (ext_fit(t, &bpm, &at) && bpm >= 40.0f && bpm <= 300.0f) {
+            if (ext_fit(t24, &bpm, &at) && bpm >= 40.0f && bpm <= 300.0f) {
                 float d = bpm - ext.bpm;     /* eased; a real change (over 2 BPM) followed at once */
                 ext.bpm = ext.bpm > 0.0f ? ext.bpm + d * (d > 2.0f || d < -2.0f ? 0.5f : 0.05f) : bpm;
                 d = ext.bpm - ext.used;
@@ -597,7 +599,8 @@ void app_loop(void)
             if (ext.run) {               /* each beat: where the outside clock is, for the render */
                 if (ext.n % 24u == 0u) {
                     sync_n16 = ext.n / 6u;
-                    sync_ms = t + (uint32_t)at;   /* (the beat's time as the line has it: not a late read's) */
+                    sync_ms = t - (plat_ticks24() - t24) / 24000u + (uint32_t)at;   /* (the beat's time as the
+                                          * line has it, from where it landed: not when it was read) */
                     sync_c++;
                 }
                 ext.n++;

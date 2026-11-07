@@ -86,7 +86,7 @@ jobs:
           # (LOAF BREAKER: the update loader's screen, its drawing on a stand-in panel)
           cc -std=c99 -Wall -I tests/loader/src tests/loader/src/preview.c -o app/build/ldr_preview \
             && (cd screens && ../app/build/ldr_preview) \
-            && /usr/bin/python3 -c 'import sys; from PIL import Image; [Image.open(f"screens/{n}.ppm").save(f"screens/{n}.png") for n in ("ldr_0", "ldr_50", "ldr_100")]' \
+            && /usr/bin/python3 -c 'import sys; from PIL import Image; [Image.open(f"screens/{n}.ppm").save(f"screens/{n}.png") for n in ("ldr_wait", "ldr_0", "ldr_50", "ldr_lost", "ldr_100", "ldr_done")]' \
             && rm -f screens/*.ppm || bad="$bad loader"
           ls screens
           (cd screens && zip -q -r "../app/build/loaf-breaker-screens-$VERSION.zip" .)
