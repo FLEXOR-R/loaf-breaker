@@ -216,6 +216,10 @@ void brk_fx_add_dry(float *l, float *r, const float *xl, const float *xr, uint32
                                           * into l and r after it all */
 void brk_fx_kick_dj(float *x, uint32_t n, float pos);   /* GLOUPI BREAKS: the kick's filter, in place (render).
                                           * LOAF BREAKER: high-pass alone, 0 off .. 1 (below 0: off) */
+/* LOAF BREAKER: HOME's KICK EQ, the chain's EQ on the kick alone (p: LOW, MID, HIGH, FREQ, LO FREQ, MID Q, HI FREQ,
+ * LEVEL, 0..1, 0.5 flat), in place (render) */
+void brk_fx_set_kick_eq(const float *p);
+void brk_fx_kick_eq(float *x, uint32_t n);
 void brk_fx_drums_dj(float *kick, float *perc, uint32_t n, float pos);   /* LOAF BREAKER: that filter on the kick
                                           * and on the snare, hat and clap (either 0: not that one) */
 #define BRK_KICK_HP_HZ(pos) (50.0f * brk_exp2f((pos) * 7.0f))

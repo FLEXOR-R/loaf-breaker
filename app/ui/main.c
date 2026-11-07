@@ -67,6 +67,10 @@ static void knob_turn(int k, int32_t d)
         perc_turn(k - EN_K1, d);
         return;
     }
+    if (ui.page == PG_KEQ) {             /* LOAF BREAKER: HOME's KICK EQ */
+        keq_turn(k - EN_K1, d);
+        return;
+    }
     if (ui.page == PG_MIX) {             /* LEVELS: break, kick, snare and hat, FX; GROOVE: swing, the drums' route */
         char t[16];
         if (ui.mpage) {
@@ -357,7 +361,7 @@ static void input(void)
         muted = 0u;
     }
     if (bdn & 1u << B_HOME) {            /* HOME: PERFORM; again (let go alone), GENERATOR, and back */
-        if (ui.page == PG_HOME || ui.page == PG_GEN) {
+        if (ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_KEQ) {
             ui.home_hold = 1u;
             ui.home_combo = 0u;
         } else {
@@ -368,8 +372,9 @@ static void input(void)
     }
     if (ui.home_hold && !(btn & 1u << B_HOME)) {
         ui.home_hold = 0u;
-        if (!ui.home_combo && (ui.page == PG_HOME || ui.page == PG_GEN)) {
-            ui.page = ui.page == PG_HOME ? PG_GEN : PG_HOME;
+        if (!ui.home_combo && (ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_KEQ)) {
+            ui.page = ui.page == PG_HOME ? PG_GEN : ui.page == PG_GEN ? PG_KEQ : PG_HOME;   /* (LOAF BREAKER: KICK EQ
+                                          * third) */
             ui.redraw |= RG_FOOT | RG_BLOCKS;
             page_say();
         }
@@ -668,6 +673,10 @@ static void input(void)
                 seq_lane_step(d);
                 page_say();
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
+            } else if (ui.page == PG_KEQ) {   /* LOAF BREAKER: the KICK EQ: its bands or their shape */
+                ui.keq_part ^= 1u;
+                app_say("KICK EQ", ui.keq_part ? "SHAPE" : "BANDS");
+                ui.redraw |= RG_BLOCKS | RG_FOOT;
             } else if (ui.page == PG_PERC) {   /* the snare or the hat: SOUND or SHAPE */
                 ui.ppage ^= 1u;
                 page_say();
@@ -721,7 +730,8 @@ static void leds(void)
     brk_status(&st);
     if (st.playing)
         b |= 1u << B_PLAY;
-    static const uint8_t PAGE_BTN[NPAGES] = {B_HOME, B_HOME, B_FX, B_GLO, B_EDIT, B_LFO, B_SEQ, B_EDIT, B_ENV, B_ARP};
+    static const uint8_t PAGE_BTN[NPAGES] = {B_HOME, B_HOME, B_FX, B_GLO, B_EDIT, B_LFO, B_SEQ, B_EDIT, B_ENV, B_ARP,
+                                             B_HOME};
     b |= 1u << PAGE_BTN[ui.page];
     if (ui.rec)
         b |= 1u << B_REC;
@@ -808,7 +818,9 @@ static void knob_value(int i, char *t)  /* the page's knob i (0..3), as shown un
             int_text((int32_t)(kick_decay_ms(KL_SUB, set.kick.l[KL_SUB].decay) + 0.5f), t);
             text_cat(t, " MS");
         }
-    } else if (ui.page == PG_GEN) {
+    } else if (ui.page == PG_KEQ)
+        keq_value(i, t);
+    else if (ui.page == PG_GEN) {
         float v = i == 0 ? set.gen.complexity : i == 1 ? set.gen.anchor : i == 2 ? set.gen.roll : set.gen.fill;
         int_text((int32_t)(v * 100.0f), t);
         text_cat(t, "%");
@@ -826,7 +838,8 @@ static int32_t tab(int32_t x, const char *s, int on)
     return x + w + 3;
 }
 /* the pages' buttons as printed, GLOBAL's parts, SEQ's lanes: for the tabs and the header (page_say) */
-static const char *const BTN[NPAGES] = {"HOME", "HOME", "FX", "GLO", "EDIT", "LFO", "SEQ", "EDIT", "ENV", "ARP"};
+static const char *const BTN[NPAGES] = {"HOME", "HOME", "FX", "GLO", "EDIT", "LFO", "SEQ", "EDIT", "ENV", "ARP",
+                                        "HOME"};
 static const char *const GPART[3] = {"MIDI", "PITCH", "MORE"};
 static const char *const SEQL[NSEQL] = {"1-16", "17-32", "K1", "K2", "K3", "K4", "S1", "S2", "H1", "H2", "C1", "C2"};
 static void draw_tabs(void)
@@ -837,9 +850,10 @@ static void draw_tabs(void)
     part[0] = 0;
     cv_begin(240, 14, C_BLACK);
     x = cv_text(4, 1, &FONT_T, BTN[ui.page % NPAGES], C_WHITE) + 6;
-    if (ui.page == PG_HOME || ui.page == PG_GEN) {   /* HOME: PERFORM, GENERATOR */
+    if (ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_KEQ) {   /* HOME: PERFORM, GENERATOR, KICK EQ */
         x = tab(x, "PERFORM", ui.page == PG_HOME);
-        tab(x, "GENERATOR", ui.page == PG_GEN);
+        x = tab(x, "GENERATOR", ui.page == PG_GEN);
+        tab(x, "KICK EQ", ui.page == PG_KEQ);
     }
     else if (ui.page == PG_TAP)
         tab(x, "TAP TEMPO", 1);
@@ -893,6 +907,7 @@ static void page_say(void)
     switch (ui.page) {
     case PG_HOME: text_cat(t, "PERFORM"); break;
     case PG_GEN: text_cat(t, "GENERATOR"); break;
+    case PG_KEQ: text_cat(t, "KICK EQ"); break;
     case PG_GLOBAL: text_cat(t, GPART[ui.gpage % 3u]); break;
     case PG_MIX: text_cat(t, ui.mpage ? "GROOVE" : "LEVELS"); break;
     case PG_SEQ: text_cat(t, SEQL[ui.seq_lane % NSEQL]); break;
@@ -957,7 +972,8 @@ static void draw_foot(const brk_status_t *st)
                                               {"SLICE", "PITCH", "HITS", "REVERSE"},
                                               {"", "", "", ""},
                                               {"TEMPO", "FINE", "HALF / X2", "CLICK"},
-                                              {"AMOUNT", "RATE", "SWEEP", "LATCH"}};
+                                              {"AMOUNT", "RATE", "SWEEP", "LATCH"},
+                                              {"LOW", "MID", "HIGH", "FREQ"}};
     uint32_t i;
     char t[16];
     draw_tabs();
@@ -999,6 +1015,8 @@ static void draw_foot(const brk_status_t *st)
             name = kick_knob_name((int)i);
         else if (ui.page == PG_PERC)
             name = PERC_KNOB[ui.pvoice % PERC_VOICES][ui.ppage][i];
+        else if (ui.page == PG_KEQ)
+            name = KEQ_NAME[ui.keq_part & 1u][i];
         else if (ui.page == PG_SEQ && ui.seq_lane >= SL_KICK) {
             static const char *const KN_LANE[4] = {"FILL", "DRUM FLT", "CLR / 4X4", "LENGTH"};
             name = KN_LANE[i];
@@ -1297,6 +1315,8 @@ void app_frame(void)
             draw_seq(&st);
         else if (ui.page == PG_PERC)
             draw_perc(&st);
+        else if (ui.page == PG_KEQ)
+            draw_keq();
         else if (ui.page == PG_GLOBAL) {
             draw_global(&st);
             ui.panel_drawn = now;

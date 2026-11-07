@@ -49,7 +49,8 @@ static void skin_apply(uint32_t s)
 #undef C_WHITE                           /* (the app's white is the skin's: put back after the UI, app.c's end) */
 #define C_WHITE skin_white
 
-enum { PG_HOME, PG_GEN, PG_FX, PG_GLOBAL, PG_KICK, PG_MIX, PG_SEQ, PG_PERC, PG_TAP, PG_OVL, NPAGES };
+enum { PG_HOME, PG_GEN, PG_FX, PG_GLOBAL, PG_KICK, PG_MIX, PG_SEQ, PG_PERC, PG_TAP, PG_OVL, PG_KEQ, NPAGES };
+                                         /* (LOAF BREAKER: PG_KEQ, HOME's third part, the KICK EQ) */
 static const char *const PAD_NAME[BRK_NPADS] = {"R8", "R16", "R32", "REV", "SUB", "HLF", "VNL", "GAT", "RND",
                                                 "FLT", "ARP"};
 static const uint8_t WK[16] = PLAT_WHITE_KEYS, BK[11] = PLAT_BLACK_KEYS;
@@ -106,7 +107,8 @@ static struct {
     uint8_t drop_pat;                    /* the pattern the drop moves to (0xFF: none) */
     uint8_t drop_early, drop_asked;      /* (crossbreed) the drop asked early; its break asked for */
     uint8_t note_key, note_turned;
-    uint8_t fx_open;                     /* (FX pressed off its page: the page at its release, if not held) */       /* (crossbreed) SEQ, a kick lane: the key held + 1 (0 none); K1 turned since */
+    uint8_t fx_open;
+    uint8_t keq_part;                    /* (the KICK EQ page: 0 its bands, 1 their shape) */                     /* (FX pressed off its page: the page at its release, if not held) */       /* (crossbreed) SEQ, a kick lane: the key held + 1 (0 none); K1 turned since */
     uint8_t sel_clicks;                  /* SEL's clicks in a row (three: the build) */
     uint32_t sel_click_t;
     uint8_t reset_n;                     /* GLOUPI BREAKS: its turns so far, each within 3 s of the last (it wants 15) */

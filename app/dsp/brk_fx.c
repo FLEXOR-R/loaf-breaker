@@ -536,6 +536,40 @@ BRK_INL float eq_run(svf_t *s, const svf_c *c, const float *m, float x)
     return m[0] * x + m[1] * v1 + m[2] * v2;
 }
 
+/* LOAF BREAKER: HOME's KICK EQ, the FX chain's EQ on the kick alone: the same three bands and level, mapped the same
+ * (p: LOW, MID, HIGH, the mid's FREQ; then the low's freq, the mid's Q, the high's freq, LEVEL; 0..1, 0.5 flat) */
+static volatile float p_keq[8] = {0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f};
+static svf_t keq_s[3];
+BRK_COLD void brk_fx_set_kick_eq(const float *p)
+{
+    uint32_t i;
+    for (i = 0; i < 8u; i++)
+        p_keq[i] = brk_clampf(p[i], 0.0f, 1.0f);
+}
+BRK_COLD void brk_fx_kick_eq(float *x, uint32_t n)
+{
+    float p[8], m[3][3], lvl, y;
+    svf_c c[3];
+    uint32_t i, b, flat = 1u;
+    for (i = 0; i < 8u; i++) {
+        p[i] = p_keq[i];
+        if ((i < 3u || i == 7u) && (p[i] < 0.49f || p[i] > 0.51f))
+            flat = 0u;                   /* (the gains and the level all at 0 dB: nothing to do) */
+    }
+    if (flat)
+        return;
+    eq_band(&c[0], m[0], BAND_LOWSHELF, 40.0f * c_exp2(p[4] * 3.3219f), 0.707f, (p[0] - 0.5f) * 24.0f);
+    eq_band(&c[1], m[1], BAND_BELL, 200.0f * c_exp2(p[3] * 4.64f), 0.3f * c_exp2(p[5] * 3.737f), (p[1] - 0.5f) * 24.0f);
+    eq_band(&c[2], m[2], BAND_HIGHSHELF, 2000.0f * c_exp2(p[6] * 3.0f), 0.707f, (p[2] - 0.5f) * 24.0f);
+    lvl = c_exp2((p[7] - 0.5f) * 24.0f * 0.16610f);
+    for (i = 0; i < n; i++) {
+        y = x[i];
+        for (b = 0; b < 3u; b++)
+            y = eq_run(&keq_s[b], &c[b], m[b], y);
+        x[i] = y * lvl;
+    }
+}
+
 /* a slot's settings for this block, mapped from 0..1 */
 typedef struct {
     uint8_t on, type;

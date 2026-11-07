@@ -65,3 +65,18 @@ wait 3000
 wavstop
 shot x_after.png
 tap PLAY
+tap HOME
+wait 200
+tap HOME
+wait 200
+tap HOME
+wait 300
+turn K1 8 10
+turn K2 -6 10
+turn K4 -10 10
+wait 200
+shot x_keq.png
+turn ALGO 1 10
+turn K1 -10 10
+wait 200
+shot x_keq_shape.png

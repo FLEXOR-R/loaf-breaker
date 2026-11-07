@@ -112,6 +112,8 @@ typedef struct {
     /* (appended: LOAF BREAKER's LIMIT; an older save's: off) */
     uint8_t limit;                       /* SEL + K3: the mix driven into a limiter, 0 off .. 100 (+18 dB in) */
     uint8_t rsv6[3];
+    /* (appended: LOAF BREAKER's KICK EQ; an older save's: flat) */
+    float keq[8];                        /* HOME's third part: LOW, MID, HIGH, FREQ, LO FREQ, MID Q, HI FREQ, LEVEL */
 } settings_t;
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");
@@ -157,6 +159,8 @@ static void settings_defaults(void)
         set.kmem[k].volume = set.kick.volume;
     }
     set.kslot = 3u;                      /* (ROTTERDAM's, set.kick's) */
+    for (k = 0; k < 8u; k++)
+        set.keq[k] = 0.5f;               /* (LOAF BREAKER: the KICK EQ flat) */
     {                                    /* (the snare and the hat where saves have them, the rest in pmore) */
         perc_t d;
         perc_defaults(&d);
@@ -209,7 +213,8 @@ static void settings_apply(void)
     brk_pitch_mode(pitch_keeps(), (float)(set.grain_ms ? set.grain_ms : 30u));
     brk_half_master(!set.half_mt_off);
     brk_vinyl((set.vinyl & 3u) != 2u);
-    ovl_reese_hz(kick_pitch_hz(KL_SUB, set.kick.l[KL_SUB].pitch));   /* (the ARP's REESE in the kick's key) */
+    ovl_reese_hz(kick_pitch_hz(KL_SUB, set.kick.l[KL_SUB].pitch));
+    brk_fx_set_kick_eq(set.keq);   /* (the ARP's REESE in the kick's key) */
     brk_gate((float)(set.gate ? set.gate : 100u) * 0.01f);
     brk_snap(SNAP_SL[snap_index()]);
     kick_set(&set.kick);
@@ -900,6 +905,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             perc_speed(vs ? spd : 0);
             kick_pitches(kpm);
             kick_render(kick, m, ka, nk);
+            brk_fx_kick_eq(kick, m);    /* LOAF BREAKER: HOME's KICK EQ */
             perc_render(perc, m, pa, who, np);
             if (set.duck) {              /* LOAF BREAKER (crossbreed): DUCK: the break (and its throws) pushed down at
                                           * each kick, in ~0.3 ms, back up over ~150 ms */
