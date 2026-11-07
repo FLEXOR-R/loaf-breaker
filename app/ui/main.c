@@ -204,6 +204,7 @@ static void slices_let_go(uint32_t keys)
 static uint32_t seq_t;                   /* LOAF BREAKER: SEQ pressed: when, and waiting (1, 3: and the next lane)
                                           * for its release */
 static uint8_t seq_wait;
+static uint32_t fxl_t;                   /* LOAF BREAKER: FX pressed: when (held 0.7 s: the FX fader) */
 static uint32_t clr_t;                   /* LOAF BREAKER: SEQ held: the clear asked, waiting for SEQ again (3 s) */
 static uint8_t clr_arm;
 static uint32_t rec_t;                   /* LOAF BREAKER: REC pressed on SEQ: when, and waiting for its release */
@@ -485,19 +486,32 @@ static void input(void)
             changed();
         }
         ui.redraw |= RG_FOOT | RG_BLOCKS;
-    } else if (bdn & 1u << B_FX) {       /* FX: the chain's page; again (let go alone): the next slot */
-        if (ui.page == PG_FX) {
-            ui.fx_hold = 1u;
-            ui.fx_turned = 0u;
-        }
-        ui.page = PG_FX;
-        page_say();
-        ui.redraw |= RG_FOOT | RG_BLOCKS;
+    } else if (bdn & 1u << B_FX) {       /* FX: the chain's page; again (let go alone): the next slot (LOAF BREAKER:
+                                          * both at its release; held 0.7 s, the MIXER's FX fader 0 % or 100 %) */
+        ui.fx_hold = 1u;
+        ui.fx_turned = 0u;
+        ui.fx_open = (uint8_t)(ui.page != PG_FX);
+        fxl_t = now;
     }
-    if (ui.fx_hold && !(btn & 1u << B_FX)) {   /* FX let go: alone, the next slot; with ALGORITHM turned, a move */
+    if (ui.fx_hold && !ui.fx_turned && btn & 1u << B_FX && now - fxl_t >= 700u) {   /* LOAF BREAKER: FX held: the
+                                          * effects' fader all off, or all on */
+        set.fx.wet = set.fx.wet > 0.001f ? 0.0f : 1.0f;
+        changed();
+        app_say("FX FADER", set.fx.wet > 0.0f ? "100%" : "0%");
+        ui.fx_turned = 1u;               /* (no slot, no page at its release) */
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+    }
+    if (ui.fx_hold && !(btn & 1u << B_FX)) {   /* FX let go: alone, the page or the next slot; with ALGORITHM turned, a
+                                          * move */
         ui.fx_hold = 0u;
-        if (!ui.fx_turned && ui.page == PG_FX)
-            fx_next_part();              /* (an MB COMP: its next part first) */
+        if (!ui.fx_turned) {
+            if (ui.fx_open) {
+                ui.page = PG_FX;
+                page_say();
+                ui.redraw |= RG_FOOT | RG_BLOCKS;
+            } else if (ui.page == PG_FX)
+                fx_next_part();          /* (an MB COMP: its next part first) */
+        }
     }
     if (bdn & 1u << B_SEL && key_tuned() >= 0) {   /* SEL while a key is held: its loop back to the defaults */
         if (ui.key_layer)
