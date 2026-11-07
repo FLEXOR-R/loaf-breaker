@@ -1,7 +1,9 @@
 /* SPDX-License-Identifier: MPL-2.0 */
 /* CHOPPAH's snare and hi-hat (PRD K-10): two synthesised voices beside the kick (kick.h), each with six settings
  * (0..1), presets, and a lane of the pattern's 16 steps (the app's). LOAF BREAKER: a third, the CLAP: four bursts of
- * band-passed noise (TUNE its band, SNAP how far apart), then a tail (DECAY); TONE brighter.
+ * band-passed noise (TUNE its band, SNAP how far apart), then a tail (DECAY); TONE brighter. And the RAVE STAB: a chord
+ * of saws (TUNE its root, SNAP minor, major or power), detuned, through a low-pass that closes with it (TONE), each
+ * hit at its own note (perc_pitches).
  *   SNARE  a body of two detuned sines dropping onto TUNE, and noise band-passed by TONE; SNAP is how much noise and
  *          crack against the body; DECAY both their tails; DRIVE a soft clip
  *   HAT    six square oscillators at an 808's ratios (TUNE) against noise (TONE), high-passed at CUT; DECAY from a
@@ -11,7 +13,7 @@
 #pragma once
 #include <stdint.h>
 
-enum { PV_SNARE, PV_HAT, PV_CLAP, PERC_VOICES };
+enum { PV_SNARE, PV_HAT, PV_CLAP, PV_STAB, PERC_VOICES };
 extern const char *const PERC_VOICE_NAME[PERC_VOICES];
 typedef struct {
     float level, tune, decay, tone, snap, drive;   /* 0..1; snap is the hat's CUT */
@@ -19,7 +21,7 @@ typedef struct {
 typedef struct {
     perc_voice_t v[PERC_VOICES];
     float volume;                        /* 0..1: the MIXER's PERC fader */
-} perc_t;                                /* 76 bytes (the app saves the clap apart: perc2_t) */
+} perc_t;                                /* 100 bytes (the app saves the clap and the stab apart: perc2_t) */
 
 #define PERC_PRESETS 4u
 extern const char *const PERC_PRESET_NAME[PERC_VOICES][PERC_PRESETS];
@@ -37,6 +39,8 @@ void perc_hit(uint32_t voice);           /* main loop (a MIDI note): at the next
  * (bit PV_*) hit there */
 void perc_render(float *out, uint32_t n, const uint16_t *at, const uint8_t *who, uint32_t nat);
 void perc_speed(const float *sp);        /* LOAF BREAKER: the VINYL BREAK's, as kick_speed */
+void perc_pitches(const float *pm);      /* LOAF BREAKER: the next render's hits' pitches for the stab (pm[k] for at[k],
+                                          * a factor; 0: as set) */
 /* main loop: one hit of the voice as the screen draws it, offline: px[i] the peak (0..height) of the ith of n columns
  * over its first ms milliseconds, at its level (not the volume) */
 void perc_shape(uint32_t voice, const perc_voice_t *v, uint8_t *px, uint32_t n, uint32_t ms, uint32_t height);

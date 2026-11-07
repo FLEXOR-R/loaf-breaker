@@ -101,19 +101,25 @@ typedef struct {
 #define KICK_MEMS 10u
     kick_t kmem[KICK_MEMS];              /* KICK 1..10, each as left (PRESETS on KICK, SELECT on SEQ: nothing lost) */
     /* (appended: LOAF BREAKER's drums; an older save's: their first presets) */
-    perc_voice_t pmore[PERC_VOICES - 2u];   /* the CLAP's sound (PV_CLAP) */
+    perc_voice_t pmore[1];               /* the CLAP's sound (PV_CLAP; the STAB's: pstab) */
     /* (appended: LOAF BREAKER's snare, hat and clap memories, as the kick's; an older save's: their presets, its own
      * sound each one's first) */
 #define PERC_MEMS 10u
-    uint8_t pslot[PERC_VOICES];          /* the memory playing, PV_* 0..9 (SNARE 1..10...): perc_voice() is it */
+    uint8_t pslot[3];                    /* the memory playing, PV_SNARE..PV_CLAP 0..9 (SNARE 1..10...): perc_voice() is
+                                          * it (the stab's: sslot) */
     uint8_t drop_brk;                    /* LOAF BREAKER (crossbreed): the break a drop brings in, 1.. (0: the same one;
                                           * MORE's K4) */
-    perc_voice_t pmem[PERC_VOICES][PERC_MEMS];   /* each as left (PRESETS on EDIT, SELECT on its SEQ lane) */
+    perc_voice_t pmem[3][PERC_MEMS];     /* each as left (PRESETS on EDIT; the stab's: smem) */
     /* (appended: LOAF BREAKER's LIMIT; an older save's: off) */
     uint8_t limit;                       /* SEL + K3: the mix driven into a limiter, 0 off .. 100 (+18 dB in) */
     uint8_t rsv6[3];
     /* (appended: LOAF BREAKER's KICK EQ; an older save's: flat) */
     float keq[8];                        /* HOME's third part: LOW, MID, HIGH, FREQ, LO FREQ, MID Q, HI FREQ, LEVEL */
+    /* (appended: LOAF BREAKER's RAVE STAB; an older save's: its first preset) */
+    perc_voice_t pstab;                  /* its sound (PV_STAB) */
+    uint8_t sslot;                       /* its memory playing, 0..9 */
+    uint8_t rsv8[3];
+    perc_voice_t smem[PERC_MEMS];        /* its memories */
 } settings_t;
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");
@@ -122,7 +128,18 @@ static perc_voice_t *perc_voice(uint32_t v)   /* LOAF BREAKER: a drum's sound, P
                                           * the rest in pmore) */
 {
     v %= PERC_VOICES;
-    return v < 2u ? &set.perc.v[v] : &set.pmore[v - 2u];
+    return v < 2u ? &set.perc.v[v] : v == PV_CLAP ? &set.pmore[0] : &set.pstab;
+}
+static uint8_t *perc_slot(uint32_t v)    /* its memory playing */
+{
+    v %= PERC_VOICES;
+    return v == PV_STAB ? &set.sslot : &set.pslot[v];
+}
+static perc_voice_t *perc_mem(uint32_t v, uint32_t i)   /* its memory i */
+{
+    v %= PERC_VOICES;
+    i %= PERC_MEMS;
+    return v == PV_STAB ? &set.smem[i] : &set.pmem[v][i];
 }
 static uint8_t set_dirty;
 static uint8_t foot_dirty;               /* a setting changed: the slicer's foot shows the new value */
@@ -167,10 +184,10 @@ static void settings_defaults(void)
         set.perc.v[0] = d.v[0];
         set.perc.v[1] = d.v[1];
         set.perc.volume = d.volume;
-        for (k = 2u; k < PERC_VOICES; k++)
-            set.pmore[k - 2u] = d.v[k];
+        set.pmore[0] = d.v[PV_CLAP];
+        set.pstab = d.v[PV_STAB];
         for (k = 0; k < PERC_VOICES * PERC_MEMS; k++)   /* (the memories begin as the presets, again and again) */
-            perc_preset(&set.pmem[k / PERC_MEMS][k % PERC_MEMS], k / PERC_MEMS, k % PERC_MEMS % PERC_PRESETS);
+            perc_preset(perc_mem(k / PERC_MEMS, k % PERC_MEMS), k / PERC_MEMS, k % PERC_MEMS % PERC_PRESETS);
     }
     for (k = 0; k < 16u; k++)            /* the overlays: full, the sweeps and the dirt a little less */
         set.ovl_amt[k] = k == OV_DIVE || k == OV_RISE || k == OV_CRUSH || k == OV_DIST || k == OV_BOOM ? 70u : 100u;
@@ -255,7 +272,7 @@ static void changed(void)
 #define PAT1_MAGIC 0x31544150u           /* "PAT1": the kick one bar; loaded with it four times */
 enum { LANE_KICK, LANE_SNARE, LANE_HAT, NLANES };
 /* LOAF BREAKER: the drums the pattern plays (LANE_* the first three, pat_t's lane[]), DR_SNARE.. the PV_* voices + 1 */
-enum { DR_KICK, DR_SNARE, DR_HAT, DR_CLAP, NDRUMS };
+enum { DR_KICK, DR_SNARE, DR_HAT, DR_CLAP, DR_STAB, NDRUMS };
 typedef struct {
     uint8_t st[PAT_STEPS][4];            /* per step: slice + 2 (0 off, 1 follow the loop, 2.. slice 1..), pitch
                                           * (int8), flags (bit 0 reverse, bits 1-2 ratchet - 1), spare (GLOUPI
@@ -344,7 +361,19 @@ static uint32_t kick_bars(const pat_t *p)   /* the kick's bars played: 1, 2 or 4
 }
 /* LOAF BREAKER: every drum, bar b of its two (the kick's four): the hat's second in the spare bytes of steps 7-8, the
  * clap's two in 9-12; 32 steps or 16: step 6's spare byte, bit 3 the hat, bit 4 the clap */
-static const uint8_t LEN_BIT[NDRUMS] = {0u, PAT_SNARE32, 8u, 16u};
+static const uint8_t LEN_BIT[NDRUMS] = {0u, PAT_SNARE32, 8u, 16u, 32u};   /* (the stab: bit 5) */
+/* LOAF BREAKER: the rave stab, in each step's flags byte (st[k][2], its bits 0-2 the break's): bit 7 its hit, bits
+ * 3-6 its note (-8 .. +7 semitones), for each of the 32 steps (its two bars) */
+static int32_t stab_note(const pat_t *p, uint32_t k)
+{
+    uint32_t v = (uint32_t)p->st[k % PAT_STEPS][2] >> 3 & 15u;
+    return v >= 8u ? (int32_t)v - 16 : (int32_t)v;
+}
+static void stab_note_set(pat_t *p, uint32_t k, int32_t v)
+{
+    uint8_t *b = &p->st[k % PAT_STEPS][2];
+    *b = (uint8_t)((*b & 0x87u) | ((uint32_t)(v < -8 ? -8 : v > 7 ? 7 : v) & 15u) << 3);
+}
 static uint32_t drum_at(uint32_t d, uint32_t b) { return d == DR_HAT ? 7u : 9u + (b & 1u) * 2u; }
 static uint32_t drum_bar(const pat_t *p, uint32_t d, uint32_t b)
 {
@@ -355,6 +384,12 @@ static uint32_t drum_bar(const pat_t *p, uint32_t d, uint32_t b)
         return snare_bar(p, b);
     if (d == DR_HAT && !(b & 1u))
         return p->lane[LANE_HAT];
+    if (d == DR_STAB) {                  /* (its hits: bit 7 of the bar's steps) */
+        uint32_t m = 0u, s;
+        for (s = 0; s < 16u; s++)
+            m |= (uint32_t)(p->st[(b & 1u) * 16u + s][2] >> 7) << s;
+        return m;
+    }
     k = drum_at(d, b);
     return (uint32_t)p->st[k][3] | (uint32_t)p->st[k + 1u][3] << 8;
 }
@@ -367,7 +402,13 @@ static void drum_bar_set(pat_t *p, uint32_t d, uint32_t b, uint32_t m)
         snare_bar_set(p, b, m);
     else if (d == DR_HAT && !(b & 1u))
         p->lane[LANE_HAT] = (uint16_t)m;
-    else {
+    else if (d == DR_STAB) {
+        uint32_t s;
+        for (s = 0; s < 16u; s++) {
+            uint8_t *f = &p->st[(b & 1u) * 16u + s][2];
+            *f = (uint8_t)((*f & 0x7Fu) | (m >> s & 1u) << 7);
+        }
+    } else {
         k = drum_at(d, b);
         p->st[k][3] = (uint8_t)m;
         p->st[k + 1u][3] = (uint8_t)(m >> 8);
@@ -430,7 +471,8 @@ static void pat_read_back(void)          /* the engine's steps into the pattern 
         brk_step_get(k, &s);
         b[0] = (uint8_t)(!s.on ? 0u : s.slice >= 0 ? (uint32_t)s.slice + 2u : 1u);
         b[1] = (uint8_t)s.pitch;
-        b[2] = (uint8_t)((s.flags & STEP_REVERSE ? 1u : 0u) | ((uint32_t)(s.ratchet ? s.ratchet - 1u : 0u) & 3u) << 1);
+        b[2] = (uint8_t)((b[2] & 0xF8u) | (s.flags & STEP_REVERSE ? 1u : 0u) |   /* (bits 3-7: the stab's, kept) */
+                         ((uint32_t)(s.ratchet ? s.ratchet - 1u : 0u) & 3u) << 1);
     }
 }
 
@@ -691,8 +733,9 @@ void app_loop(void)
             uint32_t note = pkt >> 16 & 0x7Fu, on = (st & 0xF0u) == 0x90u && (pkt >> 24 & 0x7Fu);
             if (note >= MIDI_SLICE0 && note < MIDI_SLICE0 + 16u)
                 midi_slice((int)(note - MIDI_SLICE0), (int)on);
-            else if (on && (note == 36u || note == 38u || note == 39u || note == 42u || note == 44u || note == 46u))
-                midi_drum(note == 36u ? DR_KICK : note == 38u ? DR_SNARE : note == 39u ? DR_CLAP : DR_HAT);   /* (LOAF
+            else if (on && (note == 36u || (note >= 38u && note <= 40u) || note == 42u || note == 44u || note == 46u))
+                midi_drum(note == 36u ? DR_KICK : note == 38u ? DR_SNARE : note == 39u ? DR_CLAP : note == 40u ? DR_STAB
+                          : DR_HAT);     /* (LOAF BREAKER: 39 the clap, 40 the stab) */   /* (LOAF
                                           * BREAKER: 39 the clap) */
             continue;
         }
@@ -816,6 +859,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
         {                                /* the drums: on the steps of the bar their lanes have, at their samples */
             uint16_t off[8], ka[8], pa[8];
             float kpm[8];                /* (crossbreed: each kick's note, a factor) */
+            float spm[8];                /* (each stab's note, a factor, by its hit) */
             uint8_t idx[8], who[8];
             uint32_t k, ne = brk_step_events(off, idx, 8u), nk = 0u, np = 0u;
             nclick = 0u;
@@ -889,6 +933,11 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                     kpm[nk] = kn ? brk_exp2f((float)kn * (1.0f / 12.0f)) : 1.0f;
                     ka[nk++] = off[k];
                 }
+                if (w >> PV_STAB & 1u) {     /* the stab: its step's note (its bars: its length) */
+                    int32_t sn = stab_note(&pats.p[set.pattern % NPAT],
+                                           (bar % drum_bars(&pats.p[set.pattern % NPAT], DR_STAB)) * 16u + s);
+                    spm[np] = sn ? brk_exp2f((float)sn * (1.0f / 12.0f)) : 1.0f;
+                }
                 if (w) {
                     pa[np] = off[k];
                     who[np++] = (uint8_t)w;
@@ -906,6 +955,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             kick_pitches(kpm);
             kick_render(kick, m, ka, nk);
             brk_fx_kick_eq(kick, m);    /* LOAF BREAKER: HOME's KICK EQ */
+            perc_pitches(spm);
             perc_render(perc, m, pa, who, np);
             if (set.duck) {              /* LOAF BREAKER (crossbreed): DUCK: the break (and its throws) pushed down at
                                           * each kick, in ~0.3 ms, back up over ~150 ms */

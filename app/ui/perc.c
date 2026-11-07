@@ -5,19 +5,20 @@
 static const char *const PERC_KNOB[PERC_VOICES][2][4] = {
     {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SNAP", "DRIVE", "PRESET", ""}},
     {{"LEVEL", "TUNE", "DECAY", "METAL/NZ"}, {"CUT", "DRIVE", "PRESET", ""}},
-    {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SPREAD", "DRIVE", "PRESET", ""}}};   /* (LOAF BREAKER: the clap's; SHAPE's K3
+    {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SPREAD", "DRIVE", "PRESET", ""}},
+    {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"CHORD", "DRIVE", "PRESET", ""}}};   /* (LOAF BREAKER: the rave stab's) */   /* (LOAF BREAKER: the clap's; SHAPE's K3
                                           * PRESET, the memory back to a built-in sound) */
 
 /* LOAF BREAKER: the snare's, the hat's and the clap's memories, as the kick's (kick_mem_turn): SNARE 1..10, the one
  * playing kept as it is, the next as it was left (PRESETS on EDIT, SELECT on the drum's SEQ lane) */
 static void perc_mem_turn(uint32_t v, int32_t d)
 {
-    uint8_t *s = &set.pslot[v % PERC_VOICES];
+    uint8_t *s = perc_slot(v);
     char t[4];
     v %= PERC_VOICES;
-    set.pmem[v][*s % PERC_MEMS] = *perc_voice(v);
+    *perc_mem(v, *s) = *perc_voice(v);
     *s = (uint8_t)((*s % PERC_MEMS + (d > 0 ? 1u : PERC_MEMS - 1u)) % PERC_MEMS);
-    *perc_voice(v) = set.pmem[v][*s];
+    *perc_voice(v) = *perc_mem(v, *s);
     int_text((int32_t)*s + 1, t);
     app_say(PERC_VOICE_NAME[v], t);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
@@ -83,7 +84,7 @@ static void draw_perc(const brk_status_t *st)
     text_cat(t, PERC_VOICE_NAME[ui.pvoice % PERC_VOICES]);
     {                                    /* (LOAF BREAKER: its memory, "CLAP 3") */
         char u[4];
-        int_text((int32_t)set.pslot[ui.pvoice % PERC_VOICES] + 1, u);
+        int_text((int32_t)*perc_slot(ui.pvoice) + 1, u);
         text_cat(t, " ");
         text_cat(t, u);
     }

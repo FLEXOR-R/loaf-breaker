@@ -228,9 +228,9 @@ static void kick_knob_turn(int i, int32_t d)
 
 /* EDIT's lower strip: the drums side by side (LOAF BREAKER: the clap too), each its own waveform (one hit, worked out
  * again when its sound changes), the one edited outlined, lit on its hits */
-#define DW 48u                           /* a drum's waveform: its columns */
+#define DW 36u                           /* a drum's waveform: its columns */
 static uint8_t drum_px[NDRUMS][DW];
-static uint32_t drum_sig[NDRUMS] = {1u, 1u, 1u, 1u};
+static uint32_t drum_sig[NDRUMS] = {1u, 1u, 1u, 1u, 1u};
 static uint32_t sig_of(const void *p, uint32_t n)
 {
     uint32_t i, h = 2166136261u;
@@ -259,12 +259,12 @@ static void draw_drums(const brk_status_t *st)
     }
     cv_begin(240, 52, C_BLACK);
     for (i = 0; i < NDRUMS; i++) {
-        int32_t x = 1 + (int32_t)i * 60;
+        int32_t x = 1 + (int32_t)i * 48;
         int sel = i == ui.einst, hit = st->playing && st->bar64 >= 0 &&
             (drum_now[i][st->bar64 >> 4 & 3] >> (st->bar64 & 15) & 1u);
         uint16_t ink = hit ? C_BLACK : sel ? C_HI : C_GRAY;
-        cv_rect(x, 2, 58, 48, sel ? C_WHITE : C_LINE);
-        cv_rect(x + 1, 3, 56, 46, hit ? C_BLOCK_HI : C_BLACK);
+        cv_rect(x, 2, 46, 48, sel ? C_WHITE : C_LINE);
+        cv_rect(x + 1, 3, 44, 46, hit ? C_BLOCK_HI : C_BLACK);
         cv_text(x + 5, 4, &FONT_T, DRUM_NAME[i], hit ? C_BLACK : sel ? C_HI : C_GRAY);
         cv_rect(x + 5, 33, DW, 1, hit ? C_BLACK : C_LINE);   /* the centre line, the hit mirrored about it */
         for (c = 0; c < DW; c++)

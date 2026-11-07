@@ -3,16 +3,20 @@
 
 /* ---- the pattern sequencer (SEQ) and the drum lanes: the white keys on the SEQ, KICK and SNARE / HAT pages, REC */
 enum { SL_BREAK1, SL_BREAK2, SL_KICK, SL_KICK2, SL_KICK3, SL_KICK4, SL_SNARE, SL_SNARE2, SL_HAT, SL_HAT2, SL_CLAP,
-       SL_CLAP2, NSEQL };                /* GLOUPI BREAKS: the kick's four bars and the snare's two, a lane each;
+       SL_CLAP2, SL_STAB, SL_STAB2, NSEQL };   /* (LOAF BREAKER: the rave stab's two) */                /* GLOUPI BREAKS: the kick's four bars and the snare's two, a lane each;
                                           * LOAF BREAKER: the hat's two, the clap's two */
 static const char *const SEQ_LANE_NAME[NSEQL] = {"STEPS 1-16", "STEPS 17-32", "KICK 1-16", "KICK 17-32", "KICK 33-48",
                                                  "KICK 49-64", "SNARE 1-16", "SNARE 17-32", "HAT 1-16", "HAT 17-32",
-                                                 "CLAP 1-16", "CLAP 17-32"};
-static const char *const DRUM_NAME[NDRUMS] = {"KICK", "SNARE", "HAT", "CLAP"};
-static const char *const DRUM_TAG[NDRUMS] = {"KICK", "SN", "HH", "CP"};   /* (EDIT's tabs) */
+                                                 "CLAP 1-16", "CLAP 17-32", "STAB 1-16", "STAB 17-32"};
+static const char *const DRUM_NAME[NDRUMS] = {"KICK", "SNARE", "HAT", "CLAP", "STAB"};
+static const char *const DRUM_TAG[NDRUMS] = {"KICK", "SN", "HH", "CP", "ST"};   /* (EDIT's tabs) */
 static const uint8_t SL_DR[NSEQL] = {0u, 0u, DR_KICK, DR_KICK, DR_KICK, DR_KICK, DR_SNARE, DR_SNARE, DR_HAT, DR_HAT,
-                                     DR_CLAP, DR_CLAP};   /* a drum lane's drum, and its bar */
-static const uint8_t SL_BAR[NSEQL] = {0u, 1u, 0u, 1u, 2u, 3u, 0u, 1u, 0u, 1u, 0u, 1u};
+                                     DR_CLAP, DR_CLAP, DR_STAB, DR_STAB};   /* a drum lane's drum, and its bar */
+static const uint8_t SL_BAR[NSEQL] = {0u, 1u, 0u, 1u, 2u, 3u, 0u, 1u, 0u, 1u, 0u, 1u, 0u, 1u};
+static int sl_notes(uint32_t sl)         /* LOAF BREAKER: a lane whose steps take a note (a step held, K1) */
+{
+    return (sl >= SL_KICK && sl <= SL_KICK4) || sl == SL_STAB || sl == SL_STAB2;
+}
 static int sl_kick(uint32_t sl) { return sl >= SL_KICK && sl <= SL_KICK4; }
 static uint32_t sl_drum(uint32_t sl) { return SL_DR[sl % NSEQL]; }
 static uint32_t sl_get(const pat_t *p, uint32_t sl)   /* the 16 steps a drum lane of SEQ (SL_KICK..) edits */
@@ -231,20 +235,24 @@ static void lane_knob(int i, int32_t d)
     uint32_t m = sl_get(pat_now(), ui.seq_lane), n = 0u, k, kind;
     int32_t at = 0;
     char t[16];
-    if (i == 0 && ui.note_key && sl_kick(ui.seq_lane)) {   /* LOAF BREAKER (crossbreed): a kick step held, K1: its
-                                          * note, -8 .. +7 semitones (every bar's step alike) */
-        uint32_t s = ui.note_key - 1u;
-        int32_t v = kick_note(pat_now(), s) + (d > 0 ? 1 : -1);
-        kick_note_set(pat_now(), s, v);
+    if (i == 0 && ui.note_key && sl_notes(ui.seq_lane)) {   /* LOAF BREAKER: a kick or stab step held, K1: its note,
+                                          * -8 .. +7 semitones (the kick: every bar's step alike; the stab: that step of
+                                          * its two bars) */
+        uint32_t s = ui.note_key - 1u, stab = sl_drum(ui.seq_lane) == DR_STAB, ks = SL_BAR[ui.seq_lane % NSEQL] * 16u + s;
+        int32_t v = (stab ? stab_note(pat_now(), ks) : kick_note(pat_now(), s)) + (d > 0 ? 1 : -1);
+        if (stab)
+            stab_note_set(pat_now(), ks, v);
+        else
+            kick_note_set(pat_now(), s, v);
         ui.note_turned = 1u;
         set_dirty = 1u;
         t[0] = 0;
-        v = kick_note(pat_now(), s);
+        v = stab ? stab_note(pat_now(), ks) : kick_note(pat_now(), s);
         if (v > 0)
             text_cat(t, "+");
         int_text(v, t + (v > 0 ? 1 : 0));
         text_cat(t, " ST");
-        say_int("KICK NOTE", (int32_t)s + 1, "");
+        say_int(stab ? "STAB NOTE" : "KICK NOTE", (int32_t)ks + 1, "");
         app_say(ui.msg[0], t);
         ui.redraw |= RG_BLOCKS;
         return;
@@ -319,11 +327,15 @@ static void seq_clear(int mode)
         for (k = 0; k < PAT_STEPS; k++)
             if (mode != 1 || k / 16u == ui.seq_lane) {
                 p->st[k][0] = 1u;
-                p->st[k][1] = p->st[k][2] = 0u;
+                p->st[k][1] = 0u;
+                p->st[k][2] &= 0xF8u;    /* (bits 3-7: the stab's) */
             }
-    if (!mode)
+    if (!mode) {
         for (k = SL_KICK; k < NSEQL; k++)
             sl_set(p, k, 0u);
+        for (k = 0; k < PAT_STEPS; k++)  /* (LOAF BREAKER: the stab's notes too) */
+            p->st[k][2] &= 0x87u;
+    }
     else if (mode == 1 && ui.seq_lane >= SL_KICK)
         sl_set(p, ui.seq_lane, 0u);
     pat_apply();
@@ -382,7 +394,7 @@ static void seq_turn(int i, int32_t d)
     else if (i == 1)
         b[1] = (uint8_t)(int8_t)clamp((int8_t)b[1] + d, -12, 12);
     else if (i == 2)
-        b[2] = (uint8_t)((b[2] & 1u) | (uint32_t)clamp((int32_t)((b[2] >> 1) & 3u) + (d > 0 ? 1 : -1), 0, 3) << 1);
+        b[2] = (uint8_t)((b[2] & ~6u) | (uint32_t)clamp((int32_t)((b[2] >> 1) & 3u) + (d > 0 ? 1 : -1), 0, 3) << 1);
     else
         b[2] = (uint8_t)((b[2] & ~1u) | (d > 0 ? 1u : 0u));
     pat_step_out(ui.seq_step % PAT_STEPS);
@@ -445,7 +457,7 @@ static uint32_t seq_rows(uint8_t *row)   /* the rows, top to bottom (SL_*); thei
 }
 static void seq_picture(const brk_status_t *st, int32_t top)
 {
-    static const char *const TAG[NDRUMS] = {"K", "SN", "HH", "CP"};
+    static const char *const TAG[NDRUMS] = {"K", "SN", "HH", "CP", "ST"};
     const pat_t *p = pat_now();
     uint8_t row[NSEQL];
     uint32_t i, r, n = seq_rows(row), nb = n && row[0] < SL_KICK ? 1u : 0u;
@@ -498,7 +510,8 @@ static void seq_picture(const brk_status_t *st, int32_t top)
             cv_rect(x, y, w, ch, c);
             if (at == (int32_t)i && ch > 6)
                 cv_rect(x + 2, y + 2, w - 4, ch - 4, m >> i & 1u ? C_BLOCK_HI : C_BLOCK);
-            if (sl_kick(sl) && ch > 5 && kick_note(p, i))   /* (crossbreed: a step with a note: a white line on top) */
+            if (ch > 5 && (sl_kick(sl) ? kick_note(p, i) : sl_drum(sl) == DR_STAB ? stab_note(p, SL_BAR[sl] * 16u + i) : 0))
+                                          /* (a step with a note: a white line on top) */
                 cv_rect(x + 1, y, w - 2, 2, C_WHITE);
         }
         if (picked && !brk && pitch - ch >= 2)   /* the lane the keys edit: a line under it */

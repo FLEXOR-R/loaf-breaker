@@ -282,7 +282,7 @@ static void input(void)
             continue;
         }
         if (ui.page == PG_SEQ) {         /* the SEQ page: a break step to edit, or a drum lane's steps */
-            if (sl_kick(ui.seq_lane)) {  /* LOAF BREAKER (crossbreed): a kick lane's key acts as it comes up, unless
+            if (sl_notes(ui.seq_lane)) { /* LOAF BREAKER: a kick or stab lane's key acts as it comes up, unless
                                           * K1 turned meanwhile (then that step's note: lane_knob) */
                 if (kdn >> WK[i] & 1u) {
                     ui.note_key = (uint8_t)(i + 1u);
@@ -841,7 +841,8 @@ static int32_t tab(int32_t x, const char *s, int on)
 static const char *const BTN[NPAGES] = {"HOME", "HOME", "FX", "GLO", "EDIT", "LFO", "SEQ", "EDIT", "ENV", "ARP",
                                         "HOME"};
 static const char *const GPART[3] = {"MIDI", "PITCH", "MORE"};
-static const char *const SEQL[NSEQL] = {"1-16", "17-32", "K1", "K2", "K3", "K4", "S1", "S2", "H1", "H2", "C1", "C2"};
+static const char *const SEQL[NSEQL] = {"1-16", "17-32", "K1", "K2", "K3", "K4", "S1", "S2", "H1", "H2", "C1", "C2",
+                                         "T1", "T2"};
 static void draw_tabs(void)
 {
     uint32_t i;
