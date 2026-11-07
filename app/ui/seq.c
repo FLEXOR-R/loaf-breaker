@@ -178,6 +178,19 @@ static void rec_slice(uint32_t s)
         ui.redraw |= RG_BLOCKS;
     }
 }
+/* LOAF BREAKER: REC stopped, step by step: OCT+ a REST (the step left as it is, on to the next), OCT- a step back */
+static void rec_move(int32_t d)
+{
+    char t[12], u[4];
+    uint32_t n = pat_len();
+    rec_step = (uint8_t)((rec_step % n + (d > 0 ? 1u : n - 1u)) % n);
+    int_text((int32_t)rec_step + 1, t);
+    int_text((int32_t)n, u);
+    text_cat(t, " / ");
+    text_cat(t, u);
+    app_say(d > 0 ? "REST" : "BACK", t);
+    ui.redraw |= RG_BLOCKS;
+}
 static void midi_slice(int s, int on)    /* a note 48..63: as the white key, recorded with REC */
 {
     if (on && ui.rec)

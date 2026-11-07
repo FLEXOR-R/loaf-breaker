@@ -530,8 +530,14 @@ static void input(void)
                         plat_store_save(OBJ_PAT, &pats, sizeof pats) == 0 ? "DONE" : "FAILED");
         set_dirty = 0u;
     }
-    /* OCT- / OCT+: pitch in semitones, repeating faster while held; both: back to 0 */
-    if ((btn & (1u << B_OCTDN | 1u << B_OCTUP)) == (1u << B_OCTDN | 1u << B_OCTUP)) {
+    /* OCT- / OCT+: pitch in semitones, repeating faster while held; both: back to 0. LOAF BREAKER: REC stopped (step by
+     * step), OCT+ a REST (the step kept, the next one), OCT- a step back */
+    if (ui.rec && !playing_now()) {
+        if (bdn & 1u << B_OCTUP)
+            rec_move(1);
+        if (bdn & 1u << B_OCTDN)
+            rec_move(-1);
+    } else if ((btn & (1u << B_OCTDN | 1u << B_OCTUP)) == (1u << B_OCTDN | 1u << B_OCTUP)) {
         if (bdn & (1u << B_OCTDN | 1u << B_OCTUP) && set.pitch) {
             set.pitch = 0;
             changed();
