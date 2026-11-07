@@ -84,8 +84,16 @@ static float kick_macro_value(int m)
         v += *kick_macro(m, j);
     return v * (1.0f / (float)KM_N);
 }
+/* LOAF BREAKER: a layer's FX page, K3 empty (no effect, or RING's one setting): PRESET, the kick back to a built-in
+ * one (909 .. DISTORTO, its volume kept) */
+static int kick_preset_knob(int i)
+{
+    return ui.kpage == KP_FX && i == 2 && !KFX_PARAM[set.kick.l[ui.klayer % KICK_LAYERS].fx % KICK_FX][1][0];
+}
 static const char *kick_knob_name(int i)
 {
+    if (kick_preset_knob(i))
+        return "PRESET";
     if (ui.kpage == KP_FX && (i == 1 || i == 2))
         return KFX_PARAM[set.kick.l[ui.klayer % KICK_LAYERS].fx % KICK_FX][i - 1];
     return KN_KICK[ui.kpage % KPAGES][i];
@@ -109,7 +117,9 @@ static void kick_value(int i, char *t)
             pct_text(i == 0 ? l->level : l->tone, t);
         break;
     case KP_FX:
-        if (i == 0)
+        if (kick_preset_knob(i))
+            text_cat(t, KICK_PRESET_NAME[ui.kpreset % KICK_PRESETS]);
+        else if (i == 0)
             text_cat(t, KICK_FX_NAME[l->fx % KICK_FX]);
         else if (i == 3)
             pct_text(l->wet, t);
@@ -147,6 +157,15 @@ static void kick_knob_turn(int i, int32_t d)
         break;
     }
     case KP_FX:
+        if (kick_preset_knob(i)) {       /* (the whole kick: every layer, its effects, INTENSITY) */
+            ui.kpreset = (uint8_t)((ui.kpreset + (d > 0 ? 1u : KICK_PRESETS - 1u)) % KICK_PRESETS);
+            kick_preset(k, ui.kpreset);
+            kick_value(i, t);
+            app_say("KICK PRESET", t);
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
+            changed();
+            return;
+        }
         if (i == 0)
             l->fx = (uint8_t)clamp((int32_t)l->fx + (d > 0 ? 1 : -1), 0, KICK_FX - 1);
         else if (i == 3)
