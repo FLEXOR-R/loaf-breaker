@@ -36,13 +36,43 @@ static void kick_flt_text(char *t)
         hz_text(BRK_KICK_HP_HZ((float)set.kick_dj * 0.01f), t + 3);
 }
 
-static void kick_flt_turn(int32_t d)
+static void kick_flt_turn(int32_t d)     /* (up 2 % a detent, as it was; back down 5 %, quickly) */
 {
     char t[16];
-    set.kick_dj = (int8_t)clamp((set.kick_dj < 0 ? 0 : (int32_t)set.kick_dj) + d * 5, 0, 100);
+    set.kick_dj = (int8_t)clamp((set.kick_dj < 0 ? 0 : (int32_t)set.kick_dj) + d * (d > 0 ? 2 : 5), 0, 100);
     changed();
     kick_flt_text(t);
     app_say("KICK FILTER", t);
+}
+
+/* LOAF BREAKER: HOME's DJ FILTER on the break, as the kick's but a low-pass: OFF, then at once 7.5 kHz (the first
+ * detent heard), down 2 % a detent as it was (to 80 Hz); back 5 % a detent, OFF past the first */
+#define BRK_LP_START (-0.16f)
+static void brk_flt_text(char *t)
+{
+    if (set.fx.dj < -0.01f)
+        dj_text(set.fx.dj, t);
+    else {
+        t[0] = 0;
+        text_cat(t, "OFF");
+    }
+}
+
+static void brk_flt_turn(int32_t d)
+{
+    char t[16];
+    float v = set.fx.dj > 0.0f ? 0.0f : set.fx.dj;
+    if (d > 0)
+        v = v > BRK_LP_START ? BRK_LP_START + 0.02f - 0.02f * (float)d : v - 0.02f * (float)d;
+    else {
+        v -= 0.05f * (float)d;
+        if (v > BRK_LP_START + 0.001f)
+            v = 0.0f;
+    }
+    set.fx.dj = brk_clampf(v, -1.0f, 0.0f);
+    changed();
+    brk_flt_text(t);
+    app_say("DJ FILTER", t);
 }
 
 /* the roll's decay: "DOWN 20%" each repeat quieter, "UP 20%" a swell, "OFF" */
