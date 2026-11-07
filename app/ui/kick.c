@@ -208,11 +208,11 @@ static void kick_knob_turn(int i, int32_t d)
 /* the KICK page's strip: the kick's shape and its layers' levels; then its 16 steps (the one playing outlined),
  * what the page edits and where the kick goes */
 
-/* EDIT's lower strip: the three drums side by side, each its own waveform (one hit, worked out again when its sound
- * changes), the one edited outlined, lit on its hits */
-#define DW 66u                           /* a drum's waveform: its columns */
-static uint8_t drum_px[3][DW];
-static uint32_t drum_sig[3] = {1u, 1u, 1u};
+/* EDIT's lower strip: the drums side by side (LOAF BREAKER: the clap too), each its own waveform (one hit, worked out
+ * again when its sound changes), the one edited outlined, lit on its hits */
+#define DW 48u                           /* a drum's waveform: its columns */
+static uint8_t drum_px[NDRUMS][DW];
+static uint32_t drum_sig[NDRUMS] = {1u, 1u, 1u, 1u};
 static uint32_t sig_of(const void *p, uint32_t n)
 {
     uint32_t i, h = 2166136261u;
@@ -223,14 +223,14 @@ static uint32_t sig_of(const void *p, uint32_t n)
 static void draw_drums(const brk_status_t *st)
 {
     uint32_t i, c;
-    for (i = 0; i < 3u; i++) {
-        uint32_t sig = i ? sig_of(&set.perc.v[i - 1u], sizeof set.perc.v[0]) : sig_of(&set.kick, sizeof set.kick);
+    for (i = 0; i < NDRUMS; i++) {
+        uint32_t sig = i ? sig_of(perc_voice(i - 1u), sizeof(perc_voice_t)) : sig_of(&set.kick, sizeof set.kick);
         if (sig != drum_sig[i]) {        /* its hit again, over a window that fits its decay, as tall as the box */
             uint32_t pk = 0u;
             drum_sig[i] = sig;
             if (i) {
-                float d = perc_decay_ms(i - 1u, set.perc.v[i - 1u].decay) * 1.4f;
-                perc_shape(i - 1u, &set.perc.v[i - 1u], drum_px[i], DW, (uint32_t)brk_clampf(d, 60.0f, 900.0f), 120u);
+                float d = perc_decay_ms(i - 1u, perc_voice(i - 1u)->decay) * 1.4f;
+                perc_shape(i - 1u, perc_voice(i - 1u), drum_px[i], DW, (uint32_t)brk_clampf(d, 60.0f, 900.0f), 120u);
             } else
                 kick_shape(&set.kick, drum_px[0], DW, 600u, 120u);
             for (c = 0; c < DW; c++)
@@ -240,15 +240,14 @@ static void draw_drums(const brk_status_t *st)
         }
     }
     cv_begin(240, 52, C_BLACK);
-    for (i = 0; i < 3u; i++) {
-        int32_t x = 2 + (int32_t)i * 80;
+    for (i = 0; i < NDRUMS; i++) {
+        int32_t x = 1 + (int32_t)i * 60;
         int sel = i == ui.einst, hit = st->playing && st->bar64 >= 0 &&
-            ((i == LANE_KICK ? kick_now[st->bar64 >> 4 & 3] : i == LANE_SNARE ? snare_now[st->bar64 >> 4 & 3]
-              : lane_now[i]) >> (st->bar64 & 15) & 1u);
+            (drum_now[i][st->bar64 >> 4 & 3] >> (st->bar64 & 15) & 1u);
         uint16_t ink = hit ? C_BLACK : sel ? C_HI : C_GRAY;
-        cv_rect(x, 2, 76, 48, sel ? C_WHITE : C_LINE);
-        cv_rect(x + 1, 3, 74, 46, hit ? C_BLOCK_HI : C_BLACK);
-        cv_text(x + 5, 4, &FONT_T, LANE_NAME[i], hit ? C_BLACK : sel ? C_HI : C_GRAY);   /* (seq.c: KICK SNARE HAT) */
+        cv_rect(x, 2, 58, 48, sel ? C_WHITE : C_LINE);
+        cv_rect(x + 1, 3, 56, 46, hit ? C_BLOCK_HI : C_BLACK);
+        cv_text(x + 5, 4, &FONT_T, DRUM_NAME[i], hit ? C_BLACK : sel ? C_HI : C_GRAY);
         cv_rect(x + 5, 33, DW, 1, hit ? C_BLACK : C_LINE);   /* the centre line, the hit mirrored about it */
         for (c = 0; c < DW; c++)
             if (drum_px[i][c])

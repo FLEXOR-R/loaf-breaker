@@ -4,9 +4,10 @@
 #include "brk.h"
 #include "brk_math.h"
 
-const char *const PERC_VOICE_NAME[PERC_VOICES] = {"SNARE", "HAT"};
+const char *const PERC_VOICE_NAME[PERC_VOICES] = {"SNARE", "HAT", "CLAP"};
 const char *const PERC_PRESET_NAME[PERC_VOICES][PERC_PRESETS] = {{"909", "TIGHT", "FAT", "GABBER"},
-                                                                 {"CLOSED", "808", "OPEN", "TRASH"}};
+                                                                 {"CLOSED", "808", "OPEN", "TRASH"},
+                                                                 {"808", "909", "TIGHT", "BIG"}};
 
 static inline float soft(float x) { return x / (1.0f + brk_absf(x)); }
 static float decay_factor(float ms) { return brk_exp2f_c(-6.644f / (ms * 0.001f * (float)BRK_SR)); }   /* -40 dB */
@@ -18,12 +19,13 @@ static const float HAT_RATIO[6] = {1.0f, 1.4827f, 1.8003f, 2.5460f, 2.6303f, 3.8
 BRK_COLD float perc_tune_hz(uint32_t voice, float t)
 {
     t = brk_clampf(t, 0.0f, 1.0f);
-    return voice == PV_SNARE ? 120.0f * brk_exp2f_c(t * 1.737f) : 100.0f * brk_exp2f_c(t * 3.0f);
+    return voice == PV_SNARE ? 120.0f * brk_exp2f_c(t * 1.737f) : voice == PV_CLAP ? 700.0f * brk_exp2f_c(t * 1.8f)
+           : 100.0f * brk_exp2f_c(t * 3.0f);
 }
 BRK_COLD float perc_decay_ms(uint32_t voice, float d)
 {
     d = brk_clampf(d, 0.0f, 1.0f);
-    return voice == PV_SNARE ? 60.0f + 640.0f * d * d : 15.0f + 885.0f * d * d;
+    return voice == PV_SNARE ? 60.0f + 640.0f * d * d : voice == PV_CLAP ? 60.0f + 840.0f * d * d : 15.0f + 885.0f * d * d;
 }
 
 typedef struct {                         /* a voice sounding */
@@ -62,6 +64,15 @@ BRK_COLD static void pc_make(uint32_t voice, const perc_voice_t *s, float volume
         c->body = 1.0f - 0.6f * snap;
         c->noise = 0.35f + 0.85f * snap;
         c->crack = snap;
+    } else if (voice == PV_CLAP) {       /* LOAF BREAKER: the bursts' band, their spacing, the tail */
+        float hz = c->f * (float)BRK_SR;
+        c->dec = decay_factor(ms);
+        c->dec2 = decay_factor(14.0f);   /* a burst: gone in 14 ms */
+        c->hpk = onepole(hz * 0.6f);
+        c->lpk = onepole(hz * (1.2f + 1.5f * tone));
+        c->body = 0.0f;
+        c->crack = (4.0f + 14.0f * snap) * 0.001f * (float)BRK_SR;   /* samples between bursts */
+        c->noise = 2.5f;
     } else {
         c->dec = c->dec2 = decay_factor(ms);
         c->hpk = onepole(3000.0f * brk_exp2f_c(snap * 1.74f));
@@ -119,6 +130,33 @@ static inline float hat_tick(pv_t *v, const pc_t *c)
     return x;
 }
 
+/* LOAF BREAKER: the clap: three more bursts c->crack samples apart (ph[0] counting, ph[1] how many), then the tail */
+static inline float clap_tick(pv_t *v, const pc_t *c)
+{
+    float n = noise(), x;
+    v->hp1 += (n - v->hp1) * c->hpk;
+    v->lp += ((n - v->hp1) - v->lp) * c->lpk;
+    if (v->ph[1] < 3.0f) {
+        v->ph[0] += 1.0f;
+        if (v->ph[0] >= c->crack) {
+            v->ph[0] = 0.0f;
+            v->ph[1] += 1.0f;
+            v->pe = 1.0f;
+        }
+        x = v->lp * v->pe;
+    } else {
+        x = v->lp * (v->pe + 0.6f * v->env);
+        v->env *= c->dec;
+    }
+    v->pe *= c->dec2;
+    return x * c->noise;
+}
+
+static inline float voice_tick(uint32_t k, pv_t *v, const pc_t *c)
+{
+    return k == PV_SNARE ? snare_tick(v, c) : k == PV_CLAP ? clap_tick(v, c) : hat_tick(v, c);
+}
+
 BRK_COLD void perc_init(void)
 {
     uint32_t k;
@@ -147,11 +185,11 @@ void perc_render(float *out, uint32_t n, const uint16_t *at, const uint8_t *who,
             pv_hit(&pv[k]);
             hit = 1u;
         }
-    if (!hit && pv[0].env < 3e-5f && pv[0].env2 < 3e-5f && pv[1].env < 3e-5f &&
-        brk_absf(pv[0].declick) + brk_absf(pv[1].declick) < 1e-5f) {
+    if (!hit && pv[0].env < 3e-5f && pv[0].env2 < 3e-5f && pv[1].env < 3e-5f && pv[2].env < 3e-5f &&
+        pv[2].pe < 3e-5f && brk_absf(pv[0].declick) + brk_absf(pv[1].declick) + brk_absf(pv[2].declick) < 1e-5f) {
         for (i = 0; i < n; i++)          /* quiet, nothing coming: no work */
             out[i] = 0.0f;
-        pv[0].last = pv[1].last = vs_last = 0.0f;
+        pv[0].last = pv[1].last = pv[2].last = vs_last = 0.0f;
         vs_on = 0u;
         return;
     }
@@ -181,7 +219,7 @@ void perc_render(float *out, uint32_t n, const uint16_t *at, const uint8_t *who,
         }
         for (k = 0; k < PERC_VOICES; k++) {
             pv_t *v = &pv[k];
-            float x = k == PV_SNARE ? snare_tick(v, &c[k]) : hat_tick(v, &c[k]);
+            float x = voice_tick(k, v, &c[k]);
             x = soft(x * c[k].g) * c[k].make * c[k].lvl;
             v->last = x;
             y += x + v->declick;
@@ -213,7 +251,7 @@ BRK_COLD void perc_shape(uint32_t voice, const perc_voice_t *s, uint8_t *px, uin
         uint32_t j;
         float pk = 0.0f;
         for (j = 0; j < per; j++) {
-            float x = voice == PV_SNARE ? snare_tick(&v, &c) : hat_tick(&v, &c);
+            float x = voice_tick(voice, &v, &c);
             x = brk_absf(soft(x * c.g) * c.make * c.lvl);
             if (x > pk)
                 pk = x;
@@ -232,6 +270,10 @@ static const float PRESET[PERC_VOICES][PERC_PRESETS][6] = {
      {0.60f, 0.35f, 0.18f, 0.20f, 0.45f, 0.10f},    /* 808 */
      {0.55f, 0.50f, 0.75f, 0.50f, 0.50f, 0.05f},    /* OPEN */
      {0.65f, 0.80f, 0.15f, 0.85f, 0.70f, 0.80f}},   /* TRASH */
+    {{0.75f, 0.35f, 0.45f, 0.40f, 0.45f, 0.10f},    /* CLAP 808 (snap: the bursts' spread) */
+     {0.75f, 0.55f, 0.35f, 0.60f, 0.35f, 0.15f},    /* 909 */
+     {0.70f, 0.60f, 0.15f, 0.55f, 0.20f, 0.10f},    /* TIGHT */
+     {0.80f, 0.30f, 0.65f, 0.35f, 0.70f, 0.30f}},   /* BIG */
 };
 
 BRK_COLD void perc_preset(perc_voice_t *v, uint32_t voice, uint32_t i)

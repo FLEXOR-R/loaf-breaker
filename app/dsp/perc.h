@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: MPL-2.0 */
 /* CHOPPAH's snare and hi-hat (PRD K-10): two synthesised voices beside the kick (kick.h), each with six settings
- * (0..1), presets, and a lane of the pattern's 16 steps (the app's).
+ * (0..1), presets, and a lane of the pattern's 16 steps (the app's). LOAF BREAKER: a third, the CLAP: four bursts of
+ * band-passed noise (TUNE its band, SNAP how far apart), then a tail (DECAY); TONE brighter.
  *   SNARE  a body of two detuned sines dropping onto TUNE, and noise band-passed by TONE; SNAP is how much noise and
  *          crack against the body; DECAY both their tails; DRIVE a soft clip
  *   HAT    six square oscillators at an 808's ratios (TUNE) against noise (TONE), high-passed at CUT; DECAY from a
@@ -10,7 +11,7 @@
 #pragma once
 #include <stdint.h>
 
-enum { PV_SNARE, PV_HAT, PERC_VOICES };
+enum { PV_SNARE, PV_HAT, PV_CLAP, PERC_VOICES };
 extern const char *const PERC_VOICE_NAME[PERC_VOICES];
 typedef struct {
     float level, tune, decay, tone, snap, drive;   /* 0..1; snap is the hat's CUT */
@@ -18,14 +19,16 @@ typedef struct {
 typedef struct {
     perc_voice_t v[PERC_VOICES];
     float volume;                        /* 0..1: the MIXER's PERC fader */
-} perc_t;                                /* 52 bytes */
+} perc_t;                                /* 76 bytes (the app saves the clap apart: perc2_t) */
 
 #define PERC_PRESETS 4u
 extern const char *const PERC_PRESET_NAME[PERC_VOICES][PERC_PRESETS];
 void perc_preset(perc_voice_t *v, uint32_t voice, uint32_t i);
 void perc_defaults(perc_t *p);           /* each voice's first preset, volume 0.8 */
-float perc_tune_hz(uint32_t voice, float tune);   /* SNARE 120..400 Hz; HAT the lowest of its six, 100..800 Hz */
-float perc_decay_ms(uint32_t voice, float decay); /* to -40 dB: SNARE 60..700 ms, HAT 15..900 ms */
+float perc_tune_hz(uint32_t voice, float tune);   /* SNARE 120..400 Hz; HAT the lowest of its six, 100..800 Hz;
+                                          * CLAP its band, 700..2440 Hz */
+float perc_decay_ms(uint32_t voice, float decay); /* to -40 dB: SNARE 60..700 ms, HAT 15..900 ms, CLAP's tail
+                                          * 60..900 ms */
 
 void perc_init(void);
 void perc_set(const perc_t *p);          /* main loop: read at the next render */

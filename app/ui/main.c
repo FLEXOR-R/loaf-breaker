@@ -330,7 +330,9 @@ static void input(void)
         global_part(ui.page == PG_GLOBAL ? (ui.gpage + 1u) % 3u : 0u);
     if (bdn & 1u << B_EDIT) {            /* EDIT: the drums' sounds, the one edited last; again, the next drum */
         if (ui.page == PG_KICK || ui.page == PG_PERC)
-            ui.einst = (uint8_t)((ui.einst + 1u) % 3u);
+            ui.einst = (uint8_t)((ui.einst + 1u) % NDRUMS);
+        else if (ui.page == PG_SEQ && ui.seq_lane >= SL_KICK)
+            ui.einst = (uint8_t)sl_drum(ui.seq_lane);   /* LOAF BREAKER: from SEQ, the drum of the lane shown */
         edit_open();
     }
     if (bdn & 1u << B_LFO) {             /* LFO: the MIXER (the break, the kick, FX main, FX overlay); again, groove */
@@ -529,7 +531,7 @@ static void input(void)
         else if (k == EN_PRESET && ui.page == PG_PERC) {   /* a built-in snare or hat */
             uint8_t *pr = &ui.ppreset[ui.pvoice % PERC_VOICES];
             *pr = (uint8_t)((*pr + (d > 0 ? 1u : PERC_PRESETS - 1u)) % PERC_PRESETS);
-            perc_preset(&set.perc.v[ui.pvoice % PERC_VOICES], ui.pvoice, *pr);
+            perc_preset(perc_voice(ui.pvoice), ui.pvoice, *pr);
             app_say(PERC_VOICE_NAME[ui.pvoice % PERC_VOICES], PERC_PRESET_NAME[ui.pvoice % PERC_VOICES][*pr]);
             ui.redraw |= RG_BLOCKS | RG_FOOT;
             changed();
@@ -667,7 +669,7 @@ static int32_t tab(int32_t x, const char *s, int on)
 /* the pages' buttons as printed, GLOBAL's parts, SEQ's lanes: for the tabs and the header (page_say) */
 static const char *const BTN[NPAGES] = {"HOME", "HOME", "FX", "GLO", "EDIT", "LFO", "SEQ", "EDIT", "ENV", "ARP"};
 static const char *const GPART[3] = {"MIDI", "PITCH", "MORE"};
-static const char *const SEQL[NSEQL] = {"1-16", "17-32", "K1", "K2", "K3", "K4", "S1", "S2", "HH"};
+static const char *const SEQL[NSEQL] = {"1-16", "17-32", "K1", "K2", "K3", "K4", "S1", "S2", "H1", "H2", "C1", "C2"};
 static void draw_tabs(void)
 {
     uint32_t i;
@@ -691,9 +693,13 @@ static void draw_tabs(void)
         x = tab(x, "LEVELS", !ui.mpage);
         tab(x, "GROOVE", ui.mpage);
     } else if (ui.page == PG_SEQ) {
-        for (i = 0; i < NSEQL; i++)      /* (the lanes the pattern has: K3, K4, S2 at their lengths) */
-            if (sl_active(pat_now(), i))
-                x = tab(x, SEQL[i], i == ui.seq_lane);
+        char pn[6] = "P";                /* LOAF BREAKER: the pattern, then the lane the keys edit (SEQ again, or
+                                          * ALGORITHM: the next); the lanes themselves on the page */
+        int_text((int32_t)set.pattern + 1, pn + 1);
+        if (pat_next >= 0)
+            text_cat(pn, ">");
+        x = tab(x, pn, 0);
+        tab(x, SEQ_LANE_NAME[ui.seq_lane % NSEQL], 1);
     } else if (ui.page == PG_FX) {
         for (i = 0; i < BRK_FX_SLOTS; i++)
             x = tab(x, SLOT_NUM[i], i == (ui.fx_focus & 3u));
@@ -703,8 +709,8 @@ static void draw_tabs(void)
             text_cat(part, fx_part_name());
         }
     } else {                             /* EDIT: the drum, and its part */
-        for (i = 0; i < 3u; i++)
-            x = tab(x, LANE_NAME[i], i == ui.einst);   /* (KICK SNARE HAT) */
+        for (i = 0; i < NDRUMS; i++)
+            x = tab(x, DRUM_TAG[i], i == ui.einst);   /* (KICK SN HH CP) */
         if (ui.page == PG_KICK)
             kick_part_name(kick_part(), part);
         else
@@ -1060,7 +1066,7 @@ void app_frame(void)
     }
     if (!ui.redraw)
         return;
-    if (ui.redraw & RG_WAVE && ui.page != PG_TAP)
+    if (ui.redraw & RG_WAVE && ui.page != PG_TAP && ui.page != PG_SEQ)   /* (LOAF BREAKER: SEQ is a grid there) */
         draw_wave(&st, b);
     if (ui.redraw & RG_FX) {
         if (ui.shown >= 100)

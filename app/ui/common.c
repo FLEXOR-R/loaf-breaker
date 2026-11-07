@@ -86,7 +86,8 @@ static struct {
     uint8_t mpage;                       /* the MIXER's half: 0 LEVELS (break, kick, perc, FX), 1 GROOVE */
     uint8_t seq_lane, seq_step;          /* the SEQ page: the lane (SL_*) and the break step (0..31) it edits */
     uint8_t pvoice, ppage, ppreset[PERC_VOICES];   /* the SNARE / HAT page: its voice, sub-page, presets */
-    uint8_t einst;                       /* EDIT, the drums' design: 0 the kick (PG_KICK), 1 the snare, 2 the hat (PG_PERC) */
+    uint8_t einst;                       /* EDIT, the drums' design: DR_*: the kick (PG_KICK), the snare, the hat, the
+                                          * clap (PG_PERC) */
     uint8_t rec;                         /* REC: white keys and MIDI notes write into the pattern as it plays */
     uint8_t help;                        /* SEL pressed alone: the SEL combinations on the strip, until the next press */
     uint32_t help_t, tap_last;           /* when the card opened; the last tap (TAP's flash) */

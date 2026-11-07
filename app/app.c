@@ -36,6 +36,8 @@
 /* From CHP7 on the settings only grow at the end: a shorter save (an older firmware's) loads into the front and the
  * fields after it keep their defaults (SET_SIZE_MIN: CHP7's size; an append keeps it). A change that isn't an append
  * needs a new magic (and loses the saves). */
+typedef struct { perc_voice_t v[2]; float volume; } perc2_t;   /* LOAF BREAKER: the snare's and the hat's, as saves
+                                          * have them (perc_t has every drum now) */
 typedef struct {
     uint32_t magic;
     uint16_t tempo_x10;                  /* 400..3000 */
@@ -65,7 +67,8 @@ typedef struct {
     brk_keyset_t keys[BRK_KEYS];         /* each white key's loop: length, pitch, start, mode (K1-K4 while held) */
     brk_slicefx_t slx[BRK_KEYS];         /* each slice's own effect and level (a key held, FX: its other layer) */
     kick_t kick;                         /* the kick (PRD K-*): its sound and level */
-    perc_t perc;                         /* the snare and the hat (PRD K-10): their sounds and level */
+    perc2_t perc;                        /* the snare and the hat (PRD K-10): their sounds and level (LOAF BREAKER:
+                                          * the others in pmore) */
     uint8_t rsv2[8];                     /* (v0.52's fills, gone; their bytes kept: older saves still load) */
     /* (appended 3 Nov 2026: the overlay effects, ARP's page, PRD B-52) */
     uint8_t ovl_amt[16];                 /* each white key's effect's amount, 0..100 (OV_*) */
@@ -96,10 +99,18 @@ typedef struct {
      * kept them, KICK 7..10 begin anew) */
 #define KICK_MEMS 10u
     kick_t kmem[KICK_MEMS];              /* KICK 1..10, each as left (PRESETS on KICK, SELECT on SEQ: nothing lost) */
+    /* (appended: LOAF BREAKER's drums; an older save's: their first presets) */
+    perc_voice_t pmore[PERC_VOICES - 2u];   /* the CLAP's sound (PV_CLAP) */
 } settings_t;
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");
 static settings_t set;
+static perc_voice_t *perc_voice(uint32_t v)   /* LOAF BREAKER: a drum's sound, PV_* (the snare and the hat in perc,
+                                          * the rest in pmore) */
+{
+    v %= PERC_VOICES;
+    return v < 2u ? &set.perc.v[v] : &set.pmore[v - 2u];
+}
 static uint8_t set_dirty;
 static uint8_t foot_dirty;               /* a setting changed: the slicer's foot shows the new value */
 
@@ -135,7 +146,15 @@ static void settings_defaults(void)
         set.kmem[k].volume = set.kick.volume;
     }
     set.kslot = 3u;                      /* (ROTTERDAM's, set.kick's) */
-    perc_defaults(&set.perc);
+    {                                    /* (the snare and the hat where saves have them, the rest in pmore) */
+        perc_t d;
+        perc_defaults(&d);
+        set.perc.v[0] = d.v[0];
+        set.perc.v[1] = d.v[1];
+        set.perc.volume = d.volume;
+        for (k = 2u; k < PERC_VOICES; k++)
+            set.pmore[k - 2u] = d.v[k];
+    }
     for (k = 0; k < 16u; k++)            /* the overlays: full, the sweeps and the dirt a little less */
         set.ovl_amt[k] = k == OV_DIVE || k == OV_RISE || k == OV_CRUSH || k == OV_DIST || k == OV_BOOM ? 70u : 100u;
     set.ovl_rate = 2u;                   /* 1/16 */
@@ -182,7 +201,14 @@ static void settings_apply(void)
     brk_gate((float)(set.gate ? set.gate : 100u) * 0.01f);
     brk_snap(SNAP_SL[snap_index()]);
     kick_set(&set.kick);
-    perc_set(&set.perc);
+    {
+        perc_t pa;                       /* (all the drums' voices for the engine) */
+        uint32_t k;
+        for (k = 0; k < PERC_VOICES; k++)
+            pa.v[k] = *perc_voice(k);
+        pa.volume = set.perc.volume;
+        perc_set(&pa);
+    }
     skin_apply(set.skin);
     {
         uint32_t k;
@@ -211,6 +237,8 @@ static void changed(void)
 #define PAT2_MAGIC 0x32544150u           /* "PAT2": the kick two bars; loaded with them twice */
 #define PAT1_MAGIC 0x31544150u           /* "PAT1": the kick one bar; loaded with it four times */
 enum { LANE_KICK, LANE_SNARE, LANE_HAT, NLANES };
+/* LOAF BREAKER: the drums the pattern plays (LANE_* the first three, pat_t's lane[]), DR_SNARE.. the PV_* voices + 1 */
+enum { DR_KICK, DR_SNARE, DR_HAT, DR_CLAP, NDRUMS };
 typedef struct {
     uint8_t st[PAT_STEPS][4];            /* per step: slice + 2 (0 off, 1 follow the loop, 2.. slice 1..), pitch
                                           * (int8), flags (bit 0 reverse, bits 1-2 ratchet - 1), spare (GLOUPI
@@ -224,9 +252,8 @@ static struct {
     pat_t p[NPAT];
 } pats;
 _Static_assert(sizeof pats <= 3840u, "a store object holds 3840 bytes");
-static volatile uint16_t lane_now[NLANES];   /* the pattern playing's lanes, for the render */
-static volatile uint16_t kick_now[4], snare_now[4];   /* and its kick's and snare's, bar by bar of four (their
-                                          * lengths played out: pat_lanes_out) */
+static volatile uint16_t drum_now[NDRUMS][4];   /* the pattern playing's drums, bar by bar of four (their lengths
+                                          * played out: pat_lanes_out), for the render */
 static int8_t pat_next = -1;             /* a pattern picked while playing: it starts at the loop's end */
 
 static void pat_defaults(void)
@@ -286,6 +313,43 @@ static uint32_t kick_bars(const pat_t *p)   /* the kick's bars played: 1, 2 or 4
 {
     return PAT_LEN(p) & PAT_KICK16 ? 1u : PAT_LEN(p) & PAT_KICK32 ? 2u : 4u;
 }
+/* LOAF BREAKER: every drum, bar b of its two (the kick's four): the hat's second in the spare bytes of steps 7-8, the
+ * clap's two in 9-12; 32 steps or 16: step 6's spare byte, bit 3 the hat, bit 4 the clap */
+static const uint8_t LEN_BIT[NDRUMS] = {0u, PAT_SNARE32, 8u, 16u};
+static uint32_t drum_at(uint32_t d, uint32_t b) { return d == DR_HAT ? 7u : 9u + (b & 1u) * 2u; }
+static uint32_t drum_bar(const pat_t *p, uint32_t d, uint32_t b)
+{
+    uint32_t k;
+    if (d == DR_KICK)
+        return kick_bar(p, b);
+    if (d == DR_SNARE)
+        return snare_bar(p, b);
+    if (d == DR_HAT && !(b & 1u))
+        return p->lane[LANE_HAT];
+    k = drum_at(d, b);
+    return (uint32_t)p->st[k][3] | (uint32_t)p->st[k + 1u][3] << 8;
+}
+static void drum_bar_set(pat_t *p, uint32_t d, uint32_t b, uint32_t m)
+{
+    uint32_t k;
+    if (d == DR_KICK)
+        kick_bar_set(p, b, m);
+    else if (d == DR_SNARE)
+        snare_bar_set(p, b, m);
+    else if (d == DR_HAT && !(b & 1u))
+        p->lane[LANE_HAT] = (uint16_t)m;
+    else {
+        k = drum_at(d, b);
+        p->st[k][3] = (uint8_t)m;
+        p->st[k + 1u][3] = (uint8_t)(m >> 8);
+    }
+}
+static uint32_t drum_bars(const pat_t *p, uint32_t d)   /* its bars played: the kick 1, 2 or 4, the rest 1 or 2 */
+{
+    if (d == DR_KICK)
+        return kick_bars(p);
+    return PAT_LEN(p) & LEN_BIT[d] ? 2u : 1u;
+}
 static void pat_step_out(uint32_t k)     /* step k of the pattern playing, to the engine */
 {
     const uint8_t *b = pats.p[set.pattern % NPAT].st[k];
@@ -301,14 +365,11 @@ static void pat_step_out(uint32_t k)     /* step k of the pattern playing, to th
 }
 static void pat_lanes_out(void)
 {
-    uint32_t l;
-    for (l = 0; l < NLANES; l++)
-        lane_now[l] = pats.p[set.pattern % NPAT].lane[l];
-    for (l = 0; l < 4u; l++) {
-        const pat_t *p = &pats.p[set.pattern % NPAT];
-        kick_now[l] = (uint16_t)kick_bar(p, l % kick_bars(p));
-        snare_now[l] = (uint16_t)snare_bar(p, PAT_LEN(p) & PAT_SNARE32 ? l & 1u : 0u);
-    }
+    const pat_t *p = &pats.p[set.pattern % NPAT];
+    uint32_t l, d;
+    for (d = 0; d < NDRUMS; d++)
+        for (l = 0; l < 4u; l++)
+            drum_now[d][l] = (uint16_t)drum_bar(p, d, l % drum_bars(p, d));
 }
 static void pat_apply(void)              /* the pattern playing, all of it to the engine */
 {
@@ -587,8 +648,9 @@ void app_loop(void)
             uint32_t note = pkt >> 16 & 0x7Fu, on = (st & 0xF0u) == 0x90u && (pkt >> 24 & 0x7Fu);
             if (note >= MIDI_SLICE0 && note < MIDI_SLICE0 + 16u)
                 midi_slice((int)(note - MIDI_SLICE0), (int)on);
-            else if (on && (note == 36u || note == 38u || note == 42u || note == 44u || note == 46u))
-                midi_drum(note == 36u ? LANE_KICK : note == 38u ? LANE_SNARE : LANE_HAT);
+            else if (on && (note == 36u || note == 38u || note == 39u || note == 42u || note == 44u || note == 46u))
+                midi_drum(note == 36u ? DR_KICK : note == 38u ? DR_SNARE : note == 39u ? DR_CLAP : DR_HAT);   /* (LOAF
+                                          * BREAKER: 39 the clap) */
             continue;
         }
         if (!set.clk_in)
@@ -707,7 +769,6 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             uint16_t off[8], ka[8], pa[8];
             uint8_t idx[8], who[8];
             uint32_t k, ne = brk_step_events(off, idx, 8u), nk = 0u, np = 0u;
-            uint32_t lh = lane_now[LANE_HAT];
             nclick = 0u;
             for (k = 0; k < ne; k++) {
                 uint32_t s = idx[k] & 15u;   /* the step's place in the bar (idx: in four bars, the kick's) */
@@ -715,8 +776,10 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                     click_at[nclick] = off[k];
                     click_hi[nclick++] = s == 0u;
                 }
-                uint32_t w = (snare_now[idx[k] >> 4 & 3u] >> s & 1u) << PV_SNARE | (lh >> s & 1u) << PV_HAT;
-                if (kick_now[idx[k] >> 4 & 3u] >> s & 1u)
+                uint32_t w = 0u, d, bar = idx[k] >> 4 & 3u;
+                for (d = DR_SNARE; d < NDRUMS; d++)   /* (LOAF BREAKER: every drum, its bar) */
+                    w |= (uint32_t)(drum_now[d][bar] >> s & 1u) << (d - 1u);
+                if (drum_now[DR_KICK][bar] >> s & 1u)
                     ka[nk++] = off[k];
                 if (w) {
                     pa[np] = off[k];

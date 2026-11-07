@@ -2,11 +2,13 @@
 /* CHOPPAH: the SNARE / HAT page (ENV). (Part of app.c's unity: included there in order.) */
 
 /* ---- the SNARE / HAT page (ENV): ALGORITHM the voice, ENV again SOUND or SHAPE, PRESETS its presets */
-static const char *const PERC_KNOB[2][2][4] = {{{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SNAP", "DRIVE", "", ""}},
-                                               {{"LEVEL", "TUNE", "DECAY", "METAL/NZ"}, {"CUT", "DRIVE", "", ""}}};
+static const char *const PERC_KNOB[PERC_VOICES][2][4] = {
+    {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SNAP", "DRIVE", "", ""}},
+    {{"LEVEL", "TUNE", "DECAY", "METAL/NZ"}, {"CUT", "DRIVE", "", ""}},
+    {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SPREAD", "DRIVE", "", ""}}};   /* (LOAF BREAKER: the clap's) */
 static float *perc_param(int i)
 {
-    perc_voice_t *v = &set.perc.v[ui.pvoice % PERC_VOICES];
+    perc_voice_t *v = perc_voice(ui.pvoice);
     float *P[6] = {&v->level, &v->tune, &v->decay, &v->tone, &v->snap, &v->drive};
     int k = ui.ppage ? 4 + i : i;
     return k < 6 ? P[k] : 0;
@@ -41,7 +43,7 @@ static void perc_turn(int i, int32_t d)
 /* the SNARE / HAT page (EDIT): the voice's six settings as bars (the part's lit); then the three drums */
 static void draw_perc(const brk_status_t *st)
 {
-    const perc_voice_t *v = &set.perc.v[ui.pvoice % PERC_VOICES];
+    const perc_voice_t *v = perc_voice(ui.pvoice);
     const float P[6] = {v->level, v->tune, v->decay, v->tone, v->snap, v->drive};
     uint32_t i;
     char t[24];
