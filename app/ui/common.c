@@ -11,7 +11,7 @@
  * (gfx.c pal[]: rules, dim, labels, secondary, values) and the app's own (a block's ground, the block sounding, the
  * white, TAP TEMPO's unlit segments and metronome) from one table */
 #define NSKINS 10u
-static const char *const SKIN_NAME[NSKINS] = {"RED", "AMBER", "ICE BLUE", "PIP-BOY", "VIOLET", "PINK", "MINT",
+static const char *const SKIN_NAME[NSKINS] = {"RED", "AMBER", "ICE BLUE", "PIP-BOY", "IRIS", "PINK", "MINT",
                                               "WHITE", "BLOOD", "MAXENCE"};
 /* each: line, dim, gray, mid (secondary), hi (values), block, white */
 static const uint8_t SKIN_RGB[NSKINS][7][3] = {
