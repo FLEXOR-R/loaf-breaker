@@ -539,9 +539,11 @@ static void pads_changed(const brk_break_t *b, uint32_t now, float sl)
                                           * no ratchet, no slice's end (a gated, reversed or one-shot slice ended
                                           * there: the stop cut off) */
         rat_count = 0u;
+        if (p_playing && c->slice >= 0)
+            c->active = 1u;              /* (gated quiet already, playing: the record goes on, back in) */
         if (c->active) {
             c->gate_left = -1.0f;
-            if (c->amp_to <= 0.0f) {     /* (fading already: back) */
+            if (c->amp_to <= 0.0f) {     /* (fading or faded: back) */
                 c->amp_to = 1.0f;
                 c->amp_step = 1.0f / FADE_IN;
             }
