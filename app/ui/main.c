@@ -201,6 +201,16 @@ static void slices_let_go(uint32_t keys)
             brk_key((int)i, 0);
 }
 
+static uint32_t rec_t;                   /* LOAF BREAKER: REC pressed on SEQ: when, and waiting for its release */
+static uint8_t rec_wait;
+static void rec_toggle(void)
+{
+    ui.rec ^= 1u;
+    rec_step = 0u;                       /* (stopped: step by step from step 1) */
+    app_say("REC", ui.rec ? (playing_now() ? "ON" : "ON  STEP 1") : "OFF");
+    ui.redraw |= RG_HEAD | RG_BLOCKS;
+}
+
 static void input(void)
 {
     uint32_t keys = plat_keys(), btn = plat_buttons(), now = plat_ms(), i;
@@ -238,8 +248,8 @@ static void input(void)
             continue;
         }
         if (kdn >> WK[i] & 1u) {
-            if (ui.rec && playing_now())
-                rec_slice(i);            /* REC: into the pattern too */
+            if (ui.rec)
+                rec_slice(i);            /* REC: into the pattern too (stopped: step by step, LOAF BREAKER) */
             brk_key((int)i, 1);
             ui.key_focus = (int8_t)i;    /* the engine loops the key pressed last */
             ui.key_since = now;
@@ -352,9 +362,20 @@ static void input(void)
     if (bdn & 1u << B_REC && btn & 1u << B_SEL) {   /* SEL + REC: clear (on SEQ its lane; else the pattern) */
         seq_clear(ui.page == PG_SEQ);
     } else if (bdn & 1u << B_REC) {      /* REC: record the keys and MIDI notes into the pattern while playing */
-        ui.rec ^= 1u;
-        app_say("REC", ui.rec ? "ON" : "OFF");
-        ui.redraw |= RG_HEAD;
+        rec_t = now;                     /* (LOAF BREAKER: on SEQ, at its release: held, it clears the break) */
+        rec_wait = ui.page == PG_SEQ;
+        if (!rec_wait)
+            rec_toggle();
+    }
+    if (rec_wait) {                      /* LOAF BREAKER: REC on SEQ: let go, REC on or off; held, the break's steps
+                                          * cleared (both halves; SEL + SAVE takes it back) */
+        if (!(btn & 1u << B_REC)) {
+            rec_wait = 0u;
+            rec_toggle();
+        } else if (now - rec_t >= 700u) {
+            rec_wait = 0u;
+            seq_clear(2);
+        }
     }
     if (bdn & 1u << B_ARP && btn & 1u << B_SEL) {   /* SEL + ARP: a random pattern (SEL + SAVE takes it back) */
         undo_mark(UNDO_RANDOM);              /* (the generator itself is HOME's second part) */

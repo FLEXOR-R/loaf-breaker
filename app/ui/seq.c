@@ -128,22 +128,34 @@ static uint32_t rec_at(uint32_t len, int bar)
         k = 0;
     return ((uint32_t)k + (st.phase > 0.5f ? 1u : 0u)) % len;
 }
-static void rec_slice(uint32_t s)
-{
-    uint32_t k = rec_at(pat_len(), 0);
-    pat_now()->st[k][0] = (uint8_t)(s + 2u);
-    pat_step_out(k);
-    set_dirty = 1u;
-}
 static int playing_now(void)
 {
     brk_status_t st;
     brk_status(&st);
     return st.playing;
 }
+static uint8_t rec_step;                 /* LOAF BREAKER: REC stopped, step by step: the step the next key writes */
+static void rec_slice(uint32_t s)
+{
+    int live = playing_now();
+    uint32_t n = pat_len(), k = live ? rec_at(n, 0) : rec_step % n;   /* (stopped: the step shown, then the next) */
+    pat_now()->st[k][0] = (uint8_t)(s + 2u);
+    pat_step_out(k);
+    set_dirty = 1u;
+    if (!live) {
+        char t[12], u[4];
+        rec_step = (uint8_t)((k + 1u) % n);
+        int_text((int32_t)rec_step + 1, t);
+        int_text((int32_t)n, u);
+        text_cat(t, " / ");
+        text_cat(t, u);
+        app_say("REC STEP", t);
+        ui.redraw |= RG_BLOCKS;
+    }
+}
 static void midi_slice(int s, int on)    /* a note 48..63: as the white key, recorded with REC */
 {
-    if (on && ui.rec && playing_now())
+    if (on && ui.rec)
         rec_slice((uint32_t)s);
     brk_key(s, on);
 }
@@ -228,25 +240,27 @@ static void seq_key(uint32_t i)          /* a white key on SEQ: the step to edit
     say_int("STEP", (int32_t)ui.seq_step + 1, "");
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
-static void seq_clear(int lane_only)     /* SEL + REC: on SEQ the lane, else the whole pattern */
+/* SEL + REC: 0 the whole pattern (elsewhere), 1 on SEQ the lane shown; LOAF BREAKER: 2 REC held on SEQ, the break's
+ * steps, both halves (1-16, 17-32), the drums kept */
+static void seq_clear(int mode)
 {
     pat_t *p = pat_now();
     uint32_t k;
     undo_mark(UNDO_CLEAR);
-    if (!lane_only || ui.seq_lane < SL_KICK)
+    if (mode != 1 || ui.seq_lane < SL_KICK)
         for (k = 0; k < PAT_STEPS; k++)
-            if (!lane_only || k / 16u == ui.seq_lane) {
+            if (mode != 1 || k / 16u == ui.seq_lane) {
                 p->st[k][0] = 1u;
                 p->st[k][1] = p->st[k][2] = 0u;
             }
-    if (!lane_only)
+    if (!mode)
         for (k = SL_KICK; k <= SL_HAT; k++)
             sl_set(p, k, 0u);
-    else if (ui.seq_lane >= SL_KICK)
+    else if (mode == 1 && ui.seq_lane >= SL_KICK)
         sl_set(p, ui.seq_lane, 0u);
     pat_apply();
     set_dirty = 1u;
-    app_say("CLEARED", lane_only ? SEQ_LANE_NAME[ui.seq_lane] : "PATTERN");
+    app_say("CLEARED", mode == 1 ? SEQ_LANE_NAME[ui.seq_lane] : mode ? "BREAK 1-32" : "PATTERN");
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
 static void seq_value(int i, char *t)    /* the step edited: SLICE, PITCH, HITS, REVERSE */

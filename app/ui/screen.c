@@ -511,7 +511,9 @@ static void draw_blocks(const brk_status_t *st, uint32_t keys)
         cv_begin(240, 52, C_BLACK);
         for (k = row * 8u; k < row * 8u + 8u; k++) {
             int32_t x = 1 + (int32_t)(k % 8u) * 30, held = (keys >> WK[k]) & 1u;
-            int on = st->slice == (int32_t)k, have = k < blk_n;
+            int on = ui.rec && !st->playing ? k == rec_step % 16u   /* LOAF BREAKER: REC stopped, the step the
+                                          * next key writes (its half: REC STEP's popup) */
+                                            : st->slice == (int32_t)k, have = k < blk_n;
             uint16_t ground = on ? C_BLOCK_HI : C_BLOCK, ink = on ? C_BLACK : have ? C_GRAY : C_LINE;
             cv_rect(x, 0, 28, 50, held ? C_WHITE : ground);
             if (held)
