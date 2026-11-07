@@ -10,7 +10,7 @@ static uint8_t ovlpad_held, ovlpad_lat;  /* (the ARP key's: below) */
 static int ovl_pad_on(void);
 /* what K1-K4 tune while a pad is held, by pad (brk.h PAD_*); 0: that knob does nothing for it */
 static const char *const PAD_KNOB[BRK_NPADS][4] = {
-    {"RATE", "DECAY", "KICK FLT", "LEVEL"}, {"RATE", "DECAY", "KICK FLT", "LEVEL"}, {"RATE", "DECAY", "KICK FLT", "LEVEL"},
+    {"RATE", "FILTER", "KICK FLT", "DECAY"}, {"RATE", "FILTER", "KICK FLT", "DECAY"}, {"RATE", "FILTER", "KICK FLT", "DECAY"},
     {"SPEED", 0, 0, 0}, {"LENGTH", "PITCH", 0, 0}, {"SPEED", "M. TEMPO", 0, 0}, {"STOP", "SPIN UP", "THRU", 0},
     {"RATE", "LENGTH", 0, 0}, {"AMOUNT", "PITCH", 0, 0}, {"TARGET", "RESO", "SPEED", 0},
     {"EFFECT", "THRU", "ON / OFF", "LOAF LORD"}};   /* (LOAF BREAKER: held only; K2 what goes through the ARP
@@ -97,9 +97,9 @@ static void pad_knob_value(int pad, int k, char *t)
     switch (pad <= PAD_ROLL32 ? 0 : pad) {
     case 0:
         if (k == 0) text_cat(t, BRK_ROLL_DIV_NAME[p->roll_div[pad] % BRK_ROLL_DIVS]);
-        else if (k == 1) roll_decay_text(p->roll_decay, t);
-        else if (k == 2) kick_flt_text(t);   /* LOAF BREAKER: the kick's filter (HOME K3, SEQ K2), not the pitch */
-        else pct_text((float)(p->roll_level ? p->roll_level : 100u) * 0.01f, t);
+        else if (k == 1) brk_flt_text(t);    /* LOAF BREAKER: HOME's two filters on K2 and K3, as there (the break's */
+        else if (k == 2) kick_flt_text(t);   /* low-pass, the kick's), DECAY on K4 (the pitch and LEVEL gone) */
+        else roll_decay_text(p->roll_decay, t);
         break;
     case PAD_REVERSE: times_text(p->rev_speed, t); break;
     case PAD_HALF:                       /* (GLOUPI BREAKS: K2 its master tempo) */
@@ -151,12 +151,14 @@ static void pad_knob_turn(int pad, int k, int32_t d)
     switch (pad <= PAD_ROLL32 ? 0 : pad) {
     case 0:
         if (k == 0) p->roll_div[pad] = (uint8_t)clamp((int32_t)p->roll_div[pad] + d, 0, BRK_ROLL_DIVS - 1);
-        else if (k == 1) p->roll_decay = knob_f(p->roll_decay, d, 0.02f, -0.9f, 0.9f);
-        else if (k == 2) {               /* LOAF BREAKER: K3 the kick's filter, HOME's and SEQ's (the rolls' pitch gone) */
-            kick_flt_turn(d);
+        else if (k == 1 || k == 2) {     /* LOAF BREAKER: K2 the break's filter, K3 the kick's: HOME's (and SEQ's) */
+            if (k == 1)
+                brk_flt_turn(d);
+            else
+                kick_flt_turn(d);
             return;
         }
-        else p->roll_level = (uint8_t)clamp((int32_t)(p->roll_level ? p->roll_level : 100u) + d * 5, 5, 100);
+        else p->roll_decay = knob_f(p->roll_decay, d, 0.02f, -0.9f, 0.9f);
         break;
     case PAD_REVERSE: p->rev_speed = knob_f(p->rev_speed, d, 0.05f, 0.5f, 2.0f); break;
     case PAD_HALF:                       /* GLOUPI BREAKS: K2 MASTER TEMPO, right on (the pitch kept), left off */
