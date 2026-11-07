@@ -190,9 +190,6 @@ static void settings_apply(void)
     brk_pitch((float)set.pitch);
     brk_swing((float)set.swing * 0.01f);
     brk_gen(&set.gen);
-    if (set.fx.dj > 0.0f)                /* LOAF BREAKER: HOME's DJ FILTER is a low-pass alone (an older save's
-                                          * high-pass: off) */
-        set.fx.dj = 0.0f;
     brk_fx_set(&set.fx);
     {
         uint32_t k;

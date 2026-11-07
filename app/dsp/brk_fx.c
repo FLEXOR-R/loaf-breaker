@@ -452,23 +452,26 @@ BRK_COLD void brk_fx_add_dry(float *l, float *r, const float *xl, const float *x
  * the snare and the hat join it): left low-pass, right high-pass, as the break's */
 BRK_COLD void brk_fx_drums_dj(float *x, float *y, uint32_t n, float pos)
 {
-    float d = brk_clampf(pos, 0.0f, 1.0f), w, lp, h;   /* (LOAF BREAKER: high-pass alone; below 0, an older
-                                          * save's low-pass: off) */
+    float d = brk_clampf(pos, -1.0f, 1.0f), w, lp, h, a;   /* (LOAF BREAKER: above 0 its high-pass, below its
+                                          * low-pass) */
     svf_c c;
     uint32_t i;
+    int hp;
     djk_s += (d - djk_s) * 0.3f;
-    if (djk_s < 0.01f)
+    a = brk_absf(djk_s);
+    if (a < 0.01f)
         return;
-    w = djk_s < 0.05f ? djk_s * 20.0f : 1.0f;   /* (coming in: faded in over its first step, no thump) */
-    c = svf_coef(BRK_KICK_HP_HZ(djk_s), 0.35f);
+    hp = djk_s > 0.0f;
+    w = a < 0.05f ? a * 20.0f : 1.0f;    /* (coming in: faded in over its first step, no thump) */
+    c = svf_coef(hp ? BRK_KICK_HP_HZ(djk_s) : BRK_DRUM_LP_HZ(djk_s), 0.35f);
     for (i = 0; i < n; i++) {
         if (x) {
             h = svf_run(&dj_k, &c, x[i], &lp);
-            x[i] += (h - x[i]) * w;
+            x[i] += ((hp ? h : lp) - x[i]) * w;
         }
         if (y) {                         /* (LOAF BREAKER: the rest of the drums, their own state) */
             h = svf_run(&dj_p, &c, y[i], &lp);
-            y[i] += (h - y[i]) * w;
+            y[i] += ((hp ? h : lp) - y[i]) * w;
         }
     }
 }

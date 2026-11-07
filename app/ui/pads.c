@@ -26,31 +26,68 @@ static void dj_text(float dj, char *t)
     hz_text(dj > 0.0f ? 20.0f * brk_exp2f(dj * 8.2f) : 18000.0f * brk_exp2f(dj * 7.8f), t + 3);   /* (common.c's) */
 }
 
-/* LOAF BREAKER: the kick's filter, HOME's K3 and SEQ's K2 one setting: high-pass alone, OFF then 5 % a detent (20
- * detents to the top, the first already in the kick's body: 64 Hz) */
+/* LOAF BREAKER: HOME's two filters, K2 the break's and K3 the drums' (SEQ's K2 and the roll pads' the same), work
+ * alike: from OFF at the centre, right is each one's own (the break's low-pass, the drums' high-pass, as they were),
+ * left the other kind; away from OFF 2 % a detent, the first already heard; back towards OFF 5 % a detent (out faster
+ * than in), OFF once past the first. Back at OFF it holds: turning on the same way stays OFF until the knob rests half a
+ * second (no sliding into the other kind); the other way, at once. u: + right of OFF, - left; s_right, s_left: the
+ * first detent's place; lk: that knob's hold */
+typedef struct { uint32_t t; int8_t dir; } flt_lock_t;
+static flt_lock_t lock_brk, lock_drum;
+static float flt_turn(float u, int32_t d, float s_right, float s_left, flt_lock_t *lk)
+{
+    uint32_t now = plat_ms();
+    if (u > -0.001f && u < 0.001f) {
+        if (lk->dir && (d > 0) == (lk->dir > 0) && now - lk->t < 500u) {   /* still turning on past OFF: held */
+            lk->t = now;
+            return 0.0f;
+        }
+        lk->dir = 0;
+        u = d > 0 ? s_right + 0.02f * (float)(d - 1) : -(s_left + 0.02f * (float)(-d - 1));
+    } else if (u > 0.0f) {
+        u += (d > 0 ? 0.02f : 0.05f) * (float)d;
+        if (u < s_right - 0.001f) {
+            u = 0.0f;
+            lk->dir = -1;
+            lk->t = now;
+        }
+    } else {
+        u += (d < 0 ? 0.02f : 0.05f) * (float)d;
+        if (u > -(s_left - 0.001f)) {
+            u = 0.0f;
+            lk->dir = 1;
+            lk->t = now;
+        }
+    }
+    return brk_clampf(u, -1.0f, 1.0f);
+}
+
+/* the drums' (set.kick_dj, -100 low-pass .. 100 high-pass): right the high-pass from 55 Hz, left the low-pass from
+ * 7.6 kHz */
 static void kick_flt_text(char *t)
 {
     t[0] = 0;
-    text_cat(t, set.kick_dj > 0 ? "HP " : "OFF");
-    if (set.kick_dj > 0)
-        hz_text(BRK_KICK_HP_HZ((float)set.kick_dj * 0.01f), t + 3);
+    text_cat(t, set.kick_dj > 0 ? "HP " : set.kick_dj < 0 ? "LP " : "OFF");
+    if (set.kick_dj)
+        hz_text(set.kick_dj > 0 ? BRK_KICK_HP_HZ((float)set.kick_dj * 0.01f)
+                                : BRK_DRUM_LP_HZ((float)set.kick_dj * 0.01f), t + 3);
 }
 
-static void kick_flt_turn(int32_t d)     /* (up 2 % a detent, as it was; back down 5 %, quickly) */
+static void kick_flt_turn(int32_t d)
 {
     char t[16];
-    set.kick_dj = (int8_t)clamp((set.kick_dj < 0 ? 0 : (int32_t)set.kick_dj) + d * (d > 0 ? 2 : 5), 0, 100);
+    float v = flt_turn((float)set.kick_dj * 0.01f, d, 0.02f, 0.16f, &lock_drum);
+    set.kick_dj = (int8_t)(int32_t)(v * 100.0f + (v < 0.0f ? -0.5f : 0.5f));
     changed();
     kick_flt_text(t);
     app_say("DRUM FILTER", t);
 }
 
-/* LOAF BREAKER: HOME's DJ FILTER on the break, as the kick's but a low-pass: OFF, then at once 7.5 kHz (the first
- * detent heard), down 2 % a detent as it was (to 80 Hz); back 5 % a detent, OFF past the first */
-#define BRK_LP_START (-0.16f)
+/* the break's (set.fx.dj, -1 low-pass .. 1 high-pass): right the low-pass from 7.6 kHz, left the high-pass from
+ * 110 Hz */
 static void brk_flt_text(char *t)
 {
-    if (set.fx.dj < -0.01f)
+    if (set.fx.dj < -0.01f || set.fx.dj > 0.01f)
         dj_text(set.fx.dj, t);
     else {
         t[0] = 0;
@@ -61,15 +98,7 @@ static void brk_flt_text(char *t)
 static void brk_flt_turn(int32_t d)
 {
     char t[16];
-    float v = set.fx.dj > 0.0f ? 0.0f : set.fx.dj;
-    if (d > 0)
-        v = v > BRK_LP_START ? BRK_LP_START + 0.02f - 0.02f * (float)d : v - 0.02f * (float)d;
-    else {
-        v -= 0.05f * (float)d;
-        if (v > BRK_LP_START + 0.001f)
-            v = 0.0f;
-    }
-    set.fx.dj = brk_clampf(v, -1.0f, 0.0f);
+    set.fx.dj = -flt_turn(-set.fx.dj, d, 0.16f, 0.3f, &lock_brk);
     changed();
     brk_flt_text(t);
     app_say("DJ FILTER", t);

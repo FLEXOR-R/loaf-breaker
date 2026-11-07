@@ -1202,24 +1202,25 @@ static void test_dj_break(void)
                         pk[which] = fabsf(bl[i]);
         }
     }
-    CHECK(pk[0] < 0.01f && pk[1] > 0.2f && pk[2] > 0.2f && pk[3] > 0.2f,
-          "DJ filter low-passed: the break %.3f, drums through the chain %.3f, around it %.3f; the kick's: no low-pass "
-          "(LOAF BREAKER) %.3f", pk[0], pk[1], pk[2], pk[3]);
+    CHECK(pk[0] < 0.01f && pk[1] > 0.2f && pk[2] > 0.2f && pk[3] < 0.01f,
+          "DJ filter low-passed: the break %.3f, drums through the chain %.3f, around it %.3f; the drums' own: %.3f",
+          pk[0], pk[1], pk[2], pk[3]);
     CHECK(pk[4] < 0.01f, "FILTER THROW held: the break low-passed (%.3f)", pk[4]);
 }
 
-/* LOAF BREAKER: the kick's filter is a high-pass: off at 0, a 40 Hz sub well down at 20 %, a low-pass asked: off */
+/* LOAF BREAKER: the drums' filter: off at 0, a 40 Hz sub well down at 20 % (its high-pass), a 4 kHz tone well down at
+ * -50 % (its low-pass) */
 static void test_kick_hp(void)
 {
     static float k[BLOCK];
-    static const float POS[3] = {0.0f, 0.2f, -1.0f};
+    static const float POS[3] = {0.0f, 0.2f, -0.5f};
     float pk[3];
     uint32_t i, b, w;
     for (w = 0; w < 3u; w++) {
         pk[w] = 0.0f;
         for (b = 0; b < 200u; b++) {
             for (i = 0; i < BLOCK; i++)
-                k[i] = 0.25f * sinf(6.2831853f * 40.0f * (float)(b * BLOCK + i) / (float)BRK_SR);
+                k[i] = 0.25f * sinf(6.2831853f * (w == 2u ? 4000.0f : 40.0f) * (float)(b * BLOCK + i) / (float)BRK_SR);
             brk_fx_kick_dj(k, BLOCK, POS[w]);
             if (b > 150u)
                 for (i = 0; i < BLOCK; i++)
@@ -1227,8 +1228,8 @@ static void test_kick_hp(void)
                         pk[w] = fabsf(k[i]);
         }
     }
-    CHECK(pk[0] > 0.24f && pk[1] < 0.1f && pk[2] > 0.24f,
-          "KICK FILTER: a high-pass (40 Hz: off %.3f, at 20 %% %.3f, a low-pass asked %.3f)", pk[0], pk[1], pk[2]);
+    CHECK(pk[0] > 0.24f && pk[1] < 0.1f && pk[2] < 0.1f,
+          "DRUM FILTER: 40 Hz off %.3f, high-passed at 20 %% %.3f; 4 kHz low-passed at -50 %% %.3f", pk[0], pk[1], pk[2]);
     for (b = 0, pk[0] = 0.0f; b < 200u; b++) {   /* LOAF BREAKER: the same filter on the other drums */
         for (i = 0; i < BLOCK; i++)
             k[i] = 0.25f * sinf(6.2831853f * 40.0f * (float)(b * BLOCK + i) / (float)BRK_SR);

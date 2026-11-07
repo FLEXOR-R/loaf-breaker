@@ -218,7 +218,9 @@ void brk_fx_kick_dj(float *x, uint32_t n, float pos);   /* GLOUPI BREAKS: the ki
                                           * LOAF BREAKER: high-pass alone, 0 off .. 1 (below 0: off) */
 void brk_fx_drums_dj(float *kick, float *perc, uint32_t n, float pos);   /* LOAF BREAKER: that filter on the kick
                                           * and on the snare, hat and clap (either 0: not that one) */
-#define BRK_KICK_HP_HZ(pos) (50.0f * brk_exp2f((pos) * 7.0f))   /* its cutoff: 50 Hz up to 6.4 kHz (the screen's too) */
+#define BRK_KICK_HP_HZ(pos) (50.0f * brk_exp2f((pos) * 7.0f))
+#define BRK_DRUM_LP_HZ(pos) (18000.0f * brk_exp2f((pos) * 7.8f))   /* LOAF BREAKER: pos < 0, its low-pass: 18 kHz down
+                                          * to 80 Hz (the break's DJ filter's) */   /* its cutoff: 50 Hz up to 6.4 kHz (the screen's too) */
 /* in: the break, through the DJ filter, then the chain; thru: joins it after the DJ filter, into the chain (the drums
  * through the chain; 0 for none); echo, verb: the slices' throws into the delay and the reverb (brk_sends, the DJ
  * filter on them too; 0 for none); post: joined after the chain, into the limiter, thrown nowhere (the drums around
