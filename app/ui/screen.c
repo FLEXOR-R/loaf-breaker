@@ -416,6 +416,29 @@ static void draw_meter(void)
 }
 
 /* the header: the break and the tempo, a play / stop mark; or a message for a moment */
+/* the battery (CHOPPAH 1.0's, plat_battery): three bars from the foot, red at one or none, a USB host powering the
+ * FM-1 shows a bolt instead. 9 wide, rows 4..20 (the header's canvas); -1 (not read yet): nothing */
+#define BATT_W 9                         /* the body's width (the nub 3 wide on top of it) */
+#define BATT_LOW RGB(255, 104, 72)       /* one bar or none: red */
+static void draw_batt(int32_t x, int b)
+{
+    uint16_t c = b >= 0 && b <= 1 ? BATT_LOW : C_DIM;
+    int32_t i;
+    if (b < 0)
+        return;
+    cv_rect(x + 3, 4, 3, 2, c);           /* the nub */
+    cv_rect(x, 6, BATT_W, 14, c);         /* the body's frame */
+    cv_rect(x + 1, 7, BATT_W - 2, 12, C_BLACK);
+    if (b == 4) {                        /* a USB host powers the FM-1: a bolt */
+        cv_line(x + 5, 7, x + 2, 12, C_HI);
+        cv_line(x + 2, 12, x + 6, 12, C_HI);
+        cv_line(x + 6, 12, x + 3, 18, C_HI);
+        return;
+    }
+    for (i = 0; i < b && i < 3; i++)      /* the bars from the foot up */
+        cv_rect(x + 2, 15 - i * 4, BATT_W - 4, 3, b <= 1 ? BATT_LOW : C_HI);
+}
+
 static void draw_head(const brk_status_t *st, const brk_break_t *b, uint32_t now)
 {
     char t[24];
@@ -448,19 +471,9 @@ static void draw_head(const brk_status_t *st, const brk_break_t *b, uint32_t now
         cv_text(228 - text_w(&FONT_B, t) - text_w(&FONT_T, ext_active() ? "EXT" : "BPM"), 10, &FONT_T,
                 ext_active() ? "EXT" : "BPM", ext_active() ? C_AMB : C_GRAY);
     }
-    {                                    /* LOAF BREAKER: the battery, small, in the top right corner, always (over
-                                          * the BPM's rows' top: rows 0-5 are free). Its fill a third a level, amber
-                                          * at a third or less, white on USB power; only its outline unread */
-        int bat = plat_battery();
-        uint16_t edge = bat < 0 ? C_DIM : bat == 0 ? C_AMB : C_GRAY;
-        cv_rect(224, 0, 12, 1, edge);
-        cv_rect(224, 5, 12, 1, edge);
-        cv_rect(224, 0, 1, 6, edge);
-        cv_rect(235, 0, 1, 6, edge);
-        cv_rect(236, 2, 2, 2, edge);
-        if (bat > 0)
-            cv_rect(226, 2, bat >= 3 ? 8 : bat * 3 - 1, 2, bat >= 4 ? C_WHITE : bat == 1 ? C_AMB : C_HI);
-    }
+    /* LOAF BREAKER: the battery, as CHOPPAH 1.0 draws it, always: left of the level meter, or at the right end while
+     * a message hides the tempo */
+    draw_batt(now < ui.msg_until || !ui.meter_x ? 229 : ui.meter_x - 12, plat_battery());
     cv_rect(0, 27, 240, 1, C_LINE);
     cv_blit(0, 0);
 }
