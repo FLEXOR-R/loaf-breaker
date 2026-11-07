@@ -9,16 +9,22 @@
 #
 # in  file                                        bpm     bars  of  name
 #
-# GLOUPI BREAKS: the 9 breaks in the firmware, in ALGORITHM's order (THINK at power-on), as in 0.93.5-FLEXOR
+# LOAF BREAKER's base: the 10 breaks in the firmware, in ALGORITHM's order (THINK at power-on), from the break
+# tests (breaks/tests, the Break Picks checklist): AMEN02 165, UPDOWN and AMEN19 172 in, JUNGLE and LO-FI out
 *   classics/lyn_collins_think_about_it.wav     113.78  2     4   THINK
 *   huge/cw_amen_nuskool.wav                    139.99  2     4   NUSKOOL
-*   huge/cw_amen_jungle.wav                     175     2     2   JUNGLE
-*   huge/cw_amen_lo-fi.wav                      165.06  1     1   LO-FI
+*   cw/cw_amen02_165.wav                        165     2     2   AMEN02 165
+*   huge/cw_amen_updown.wav                     165     2     2   UPDOWN
 *   classics/incredible_bongo_band_apache.wav   114.78  2     4   APACHE
 *   huge/cw_amen_chopper.wav                    171.78  2     2   CHOPPER
 *   classics/james_brown_funky_drummer.wav      99.81   2     4   DRUMMER
 *   classics/jimmy_mcgriff_the_worm.wav         109.79  2     4   THE WORM
 *   classics/bobby_byrd_hot_pants.wav           114.78  2     4   HOT PANTS
+*   cw/cw_amen19_172.wav                        172     2     4   AMEN19 172
+#
+# out of the base (were in it until 0.35):
+-   huge/cw_amen_jungle.wav                     175     2     2   JUNGLE
+-   huge/cw_amen_lo-fi.wav                      165.06  1     1   LO-FI
 #
 # classics/: ten breaks from the records (32-bit float WAV, 4 bars each, tempos from their lengths)
 -   classics/the_winstons_amen_brother.wav      141.82  2     4   AMEN
@@ -47,9 +53,7 @@
 -   cw/cw_amen20_164.wav                        164     2     2   AMEN20 164
 -   huge/cw_amen_replay.wav                     164.92  2     6   REPLAY
 -   huge/cw_amen_deeptouch.wav                  164.94  2     6   DEEPTOUCH
--   cw/cw_amen02_165.wav                        165     2     2   AMEN02 165
 -   cw/cw_amen08_165.wav                        165     2     2   AMEN08 165
--   huge/cw_amen_updown.wav                     165     2     2   UPDOWN
 -   huge/cw_amen_tick.wav                       165.55  2     4   TICK
 -   huge/cw_amen_italian.wav                    166.49  2     4   ITALIAN
 -   cw/cw_amen03_167.wav                        167     2     2   AMEN03 167
@@ -60,7 +64,6 @@
 -   huge/cw_amen_early.wav                      170     2     2   EARLY
 -   huge/cw_amen_finger.wav                     170     2     2   FINGER
 -   cw/cw_amen07_172.wav                        172     2     2   AMEN07 172
--   cw/cw_amen19_172.wav                        172     2     4   AMEN19 172
 -   huge/cw_amen_onbreak.wav                    172     1     1   ONBREAK
 -   huge/cw_amen_highpass.wav                   172.01  2     2   HIGHPASS
 -   huge/cw_amen_distorted.wav                  172.94  1     1   DISTORTED
