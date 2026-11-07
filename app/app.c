@@ -268,6 +268,7 @@ _Static_assert(sizeof pats <= 3840u, "a store object holds 3840 bytes");
 #define BUILD_STEPS 64u                  /* the build's four bars */
 static volatile uint8_t build_n;         /* three clicks: a build, or (building) the drop */
 static volatile uint16_t drum_next[NDRUMS][4];   /* the next pattern's drums, for the drop */
+static volatile uint8_t drop_to = 0xFFu; /* the pattern the drop brings in (its break's steps, at the bar before) */
 static volatile uint8_t drum_next_ok;
 static volatile uint8_t drop_n;
 static volatile float build_p = -1.0f;   /* the build's progress 0..1, -1 none (the screen's and the lights') */
@@ -369,9 +370,9 @@ static uint32_t drum_bars(const pat_t *p, uint32_t d)   /* its bars played: the 
         return kick_bars(p);
     return PAT_LEN(p) & LEN_BIT[d] ? 2u : 1u;
 }
-static void pat_step_out(uint32_t k)     /* step k of the pattern playing, to the engine */
+static void pat_step_of(uint32_t pi, uint32_t k)   /* step k of pattern pi, to the engine */
 {
-    const uint8_t *b = pats.p[set.pattern % NPAT].st[k];
+    const uint8_t *b = pats.p[pi % NPAT].st[k];
     brk_step_t s;
     s.slice = (int8_t)(b[0] >= 2u ? (int32_t)b[0] - 2 : BRK_NO_SLICE);
     s.on = (uint8_t)(b[0] != 0u);
@@ -382,6 +383,7 @@ static void pat_step_out(uint32_t k)     /* step k of the pattern playing, to th
     s.rsv[0] = s.rsv[1] = 0u;
     brk_step_set(k, &s);
 }
+static void pat_step_out(uint32_t k) { pat_step_of(set.pattern, k); }   /* step k of the pattern playing */
 static void pat_lanes_out(void)
 {
     const pat_t *p = &pats.p[set.pattern % NPAT];
@@ -747,7 +749,8 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
     static float kick[APP_BLOCK], perc[APP_BLOCK];
     static float kl[APP_BLOCK], kr[APP_BLOCK];   /* LOAF BREAKER: the kick through the overlays alone (THRU KICK) */
     static float spd[APP_BLOCK], tape0 = 1.0f;   /* LOAF BREAKER: the VINYL BREAK's speed on the drums, a sample each */
-    static uint8_t b_on, b_drop;         /* LOAF BREAKER: building; let go, the drop waits for the bar */
+    static uint8_t b_on, b_drop, b_rew;  /* LOAF BREAKER: building; the drop asked; the drop armed for the next
+                                          * step (the engine rewound to the pattern's first: brk_rewind) */
     static uint32_t b_steps;             /* steps built */
     static int32_t half_due = -1;        /* the roll's 32nd between two steps: samples from this block's start */
     static float crash;                  /* the drop's crash, its level */
@@ -801,14 +804,14 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                         b_drop = 1u;
                     else if (st.playing) {
                         b_on = 1u;
-                        b_drop = 0u;
+                        b_drop = b_rew = 0u;
                         b_steps = 0u;
                         half_due = -1;
                     }
                 }
             }
             if (!st.playing)
-                b_on = b_drop = 0u;      /* (stopped: no build) */
+                b_on = b_drop = b_rew = 0u;   /* (stopped: no build) */
             if (b_on && half_due >= 0 && half_due < (int32_t)m) {   /* (the 32nd between two steps) */
                 pa[np] = (uint16_t)half_due;
                 who[np++] = 1u << PV_SNARE;
@@ -822,10 +825,10 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                     click_hi[nclick++] = s == 0u;
                 }
                 if (b_on) {              /* LOAF BREAKER: the build's roll in the drums' place */
-                    if ((b_drop || b_steps >= BUILD_STEPS) && s == 0u) {   /* the drop: this bar's first step,
-                                          * everything back, the next pattern's drums at once */
+                    if (b_rew && s == 0u) {   /* the drop: the new pattern's first step (rewound at the bar's
+                                          * last), everything back, its drums at once */
                         uint32_t dd, bb;
-                        b_on = b_drop = 0u;
+                        b_on = b_drop = b_rew = 0u;
                         half_due = -1;
                         if (drum_next_ok)
                             for (dd = 0; dd < NDRUMS; dd++)
@@ -835,7 +838,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                         drop_n++;
                         crash = 1.0f;
                     } else {
-                        uint32_t div = b_steps < 16u ? 4u : b_steps < 32u ? 2u : 1u;
+                        uint32_t div = b_steps < 16u ? 4u : b_steps < 32u ? 2u : 1u, q;
                         if (!(b_steps % div) && np < 8u) {
                             pa[np] = off[k];
                             who[np++] = 1u << PV_SNARE;
@@ -844,6 +847,14 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                         }
                         if (b_steps < BUILD_STEPS)
                             b_steps++;
+                        if (s == 15u && (b_drop || b_steps >= BUILD_STEPS)) {   /* the bar's last step: the next
+                                          * is the drop, the new pattern's step 1 (its break's steps in now) */
+                            b_rew = 1u;
+                            brk_rewind();
+                            if (drop_to < NPAT)
+                                for (q = 0; q < PAT_STEPS; q++)
+                                    pat_step_of(drop_to, q);
+                        }
                         continue;
                     }
                 }

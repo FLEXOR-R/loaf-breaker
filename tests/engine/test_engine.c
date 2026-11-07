@@ -1975,6 +1975,23 @@ static void test_vinyl(void)
           zc[0], zc[1]);
 }
 
+/* LOAF BREAKER: brk_rewind: at the next step (on time), the pattern's first: step 0, the drums' first bar */
+static void test_rewind(void)
+{
+    brk_status_t st;
+    uint32_t s;
+    fresh(2);
+    brk_play(1);
+    s = brk_step_len_samples();
+    render(buf, s * 21u + s / 2u, 0, 0, 0);   /* step 21 playing */
+    brk_rewind();
+    render(buf, s, 0, 0, 0);
+    brk_status(&st);
+    brk_play(0);
+    CHECK(st.step == 0 && st.bar64 == 0 && st.bar16 == 0, "REWIND: the next step is the pattern's first (step %d, bar %d / %d)",
+          (int)st.step, (int)st.bar16, (int)st.bar64);
+}
+
 int main(int argc, char **argv)
 {
     if (argc > 1)
@@ -1990,6 +2007,7 @@ int main(int argc, char **argv)
     test_half_master();
     test_vinyl();
     test_kick_hp();
+    test_rewind();
     test_gate();
     test_swap();
     test_snap();

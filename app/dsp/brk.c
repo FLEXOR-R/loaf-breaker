@@ -107,6 +107,10 @@ static uint16_t ev_off[EV_MAX];          /* the last render's steps: offsets and
 static uint8_t ev_idx[EV_MAX];
 static uint32_t ev_cnt;
 static uint32_t steps_total;             /* steps begun since the reset (the outside clock counts from its start) */
+static uint32_t pat_org;                 /* LOAF BREAKER: steps_total at the pattern's first step (brk_rewind): the
+                                          * steps' places (the drums' bars, bar16, bar64) count from it */
+static volatile uint32_t p_rewind;       /* a count: changed = the next step is the pattern's first */
+static uint32_t rewind_seen;
 static int was_playing;                  /* the transport at the last render: a stop fades the break out */
 static volatile uint32_t n_renders;
 
@@ -655,7 +659,8 @@ void brk_render(float *out, uint32_t n)
         step = -1;
         bar = 0u;
         to_next = 0.0f;
-        steps_total = 0u;
+        steps_total = pat_org = 0u;
+        rewind_seen = p_rewind;
     }
     clk_cnt = 0u;
     ev_cnt = 0u;
@@ -724,8 +729,14 @@ void brk_render(float *out, uint32_t n)
         if (playing) {
             to_next -= 1.0f;
             if (to_next <= 0.0f) {
+                float len;
+                if (p_rewind != rewind_seen) {   /* LOAF BREAKER: a new pattern: this step is its first */
+                    rewind_seen = p_rewind;
+                    step = -1;
+                    pat_org = steps_total;
+                }
                 /* swing: the even 16th takes sw of the pair, the odd one the rest */
-                float len = 2.0f * sl * ((((uint32_t)(step + 1)) & 1u) ? 1.0f - sw : sw);
+                len = 2.0f * sl * ((((uint32_t)(step + 1)) & 1u) ? 1.0f - sw : sw);
                 step_in_len = (uint32_t)len;
                 if (p_swap) {            /* a break waiting: in on this step (the main loop asks at a bar's end) */
                     b = swap_now();
@@ -734,7 +745,7 @@ void brk_render(float *out, uint32_t n)
                 on_step(b);
                 if (ev_cnt < EV_MAX) {
                     ev_off[ev_cnt] = (uint16_t)i;
-                    ev_idx[ev_cnt++] = (uint8_t)(steps_total & 63u);
+                    ev_idx[ev_cnt++] = (uint8_t)((steps_total - pat_org) & 63u);
                 }
                 steps_total++;
                 to_next += len;
@@ -859,8 +870,8 @@ void brk_render(float *out, uint32_t n)
                        ? brk_clampf(1.0f - key_left / (key_steps * sl), 0.0f, 1.0f) : 0.0f;
     status.key_n = (uint16_t)key_n;
     status.key_rev = (uint8_t)(v[cur].dir < 0.0f);
-    status.bar16 = steps_total ? (int8_t)((steps_total - 1u) & 15u) : (int8_t)-1;
-    status.bar64 = steps_total ? (int8_t)((steps_total - 1u) & 63u) : (int8_t)-1;
+    status.bar16 = steps_total ? (int8_t)((steps_total - pat_org - 1u) & 15u) : (int8_t)-1;
+    status.bar64 = steps_total ? (int8_t)((steps_total - pat_org - 1u) & 63u) : (int8_t)-1;
 }
 
 /* -------------------------------------------------------------- main loop --- */
@@ -902,7 +913,8 @@ BRK_COLD void brk_init(void)
     key_slice = -1;
     key_pitch = 0.0f;
     key_n = 0u;
-    steps_total = 0u;
+    steps_total = pat_org = 0u;
+    rewind_seen = p_rewind;
     was_playing = 0;
     clk_cnt = 0u;
     clk_k = 12u;
@@ -1011,6 +1023,7 @@ BRK_COLD void brk_play(int on)
     p_playing = on ? 1 : 0;
 }
 BRK_COLD void brk_reset(void) { p_reset++; }
+BRK_COLD void brk_rewind(void) { p_rewind++; }
 BRK_COLD void brk_tempo(float bpm) { p_tempo = brk_clampf(bpm, 40.0f, 300.0f); }
 float brk_get_tempo(void) { return p_tempo; }
 BRK_COLD void brk_pitch(float st) { p_pitch = brk_clampf(st, -24.0f, 24.0f); }
@@ -1108,7 +1121,8 @@ void brk_sync(uint32_t n16, float age)
     if (err > 1.5f || err < -1.5f) {     /* far off (a start missed, a tempo jump): the next step is the clock's */
         uint32_t n = loop_steps(brk_now);
         uint32_t want = n16 + (uint32_t)(age / sl) + 1u;   /* the 16th that begins next */
-        step = (int32_t)((want + n - 1u) % n);   /* on_step's +1 makes it want's place in the pattern */
+        step = (int32_t)((want - pat_org + n - 1u) % n);   /* on_step's +1 makes it want's place in the pattern
+                                          * (counted from the pattern's start) */
         steps_total = want;              /* and the ++ after it makes the count want + 1 (number want playing) */
         to_next = 1.0f;
         clk_k = 12u;

@@ -229,6 +229,7 @@ static void build_click(void)
         uint32_t d, b;
         char t[8] = "> P";
         ui.drop_pat = (uint8_t)((set.pattern + 1u) % NPAT);
+        drop_to = ui.drop_pat;
         p = &pats.p[ui.drop_pat];
         for (d = 0; d < NDRUMS; d++)
             for (b = 0; b < 4u; b++)
@@ -1121,6 +1122,9 @@ void app_frame(void)
     if (pat_next >= 0 && (!st.playing || (st.step >= 0 && (uint32_t)st.step + 1u >= pat_len()))) {
         set.pattern = (uint8_t)pat_next;  /* the pattern picked: in for the loop's next round (its last step plays) */
         pat_next = -1;
+        if (st.playing)
+            brk_rewind();                /* LOAF BREAKER: from its step 1 and the drums' first bar, whatever the
+                                          * lengths were */
         pat_apply();
         set_dirty = 1u;
         ui.redraw |= RG_BLOCKS | RG_FOOT;

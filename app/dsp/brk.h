@@ -135,6 +135,9 @@ const brk_break_t *brk_get_break(void);
 
 void brk_play(int on);
 void brk_reset(void);                    /* to the pattern's first step (the next step played is step 0) */
+/* LOAF BREAKER: the next step (at its time: no jump) is the pattern's first, step 0, and the drums' first bar: a new
+ * pattern starts at its step 1, not where the old one was */
+void brk_rewind(void);
 void brk_tempo(float bpm);               /* 40..300 */
 float brk_get_tempo(void);
 void brk_pitch(float semitones);         /* -24..+24, on top of the tempo's repitch */
