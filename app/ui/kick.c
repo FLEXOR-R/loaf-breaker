@@ -59,22 +59,7 @@ static const char *const KN_KICK[KPAGES][4] = {{"SUB", "PUNCH", "GRIT", "CLICK"}
                                                {"LEVEL", "PITCH", "DECAY", "TONE"},
                                                {"EFFECT", "", "", "WET"},
                                                {"SUB", "PUNCH", "GRIT", "INTENSITY"},
-                                               {"VOLUME", "TERROR", "EARLY", "INDUS"}};   /* (LOAF BREAKER: OUT's K2-K4,
-                                          * the hardcore styles: kick_hc) */
-/* LOAF BREAKER: the kick's hardcore styles, 0..100 each (kick.h): OUT's K2 TERROR, K3 EARLY UPTEMPO, K4 INDUSTRIAL;
- * SEL + K4, K2, K3 on any page (main.c) */
-static uint8_t *kick_hc(kick_t *k, int i) { return &k->l[KL_SUB].rsv[i == 1 ? 0 : i == 2 ? 1 : 2]; }
-static void kick_hc_text(const kick_t *k, int i, char *t)
-{
-    uint8_t v = *kick_hc((kick_t *)k, i);
-    t[0] = 0;
-    if (!v) {
-        text_cat(t, "OFF");
-        return;
-    }
-    int_text(v, t);
-    text_cat(t, "%");
-}
+                                               {"VOLUME", "TERROR", "", ""}};   /* (LOAF BREAKER: OUT's K2) */
 static const char *const KFX_PARAM[KICK_FX][2] = {{"", ""}, {"GAIN", "TONE"}, {"BITS", "RATE"},
                                                   {"CUTOFF", "RESO"}, {"FREQ", ""}};
 /* the macros: each moves a few of the sound's settings together */
@@ -154,8 +139,13 @@ static void kick_value(int i, char *t)
     default:
         if (i == 0)
             pct_text(k->volume, t);
-        else                             /* LOAF BREAKER: TERROR, EARLY, INDUS */
-            kick_hc_text(k, i, t);
+        else if (i == 1) {               /* LOAF BREAKER: TERROR */
+            if (KICK_TERROR(k)) {
+                int_text(KICK_TERROR(k), t);
+                text_cat(t, "%");
+            } else
+                text_cat(t, "OFF");
+        }
         break;
     }
 }
@@ -204,10 +194,10 @@ static void kick_knob_turn(int i, int32_t d)
     default:
         if (i == 0)
             k->volume = knob_f(k->volume, d, 0.02f, 0.0f, 1.0f);
-        else {                           /* LOAF BREAKER: TERROR, EARLY, INDUS, 2 % a detent */
-            uint8_t *p = kick_hc(k, i);
-            *p = (uint8_t)clamp((int32_t)*p + d * 2, 0, 100);
-        }
+        else if (i == 1)                 /* LOAF BREAKER: TERROR, 2 % a detent */
+            KICK_TERROR(k) = (uint8_t)clamp((int32_t)KICK_TERROR(k) + d * 2, 0, 100);
+        else
+            return;
         break;
     }
     kick_value(i, t);
@@ -291,7 +281,7 @@ static float kick_knob_f(int i)          /* the part's knob i, 0..1 (as its bar)
     case KP_MACRO:
         return i == 3 ? k->intensity : kick_macro_value(i);
     default:
-        return i == 0 ? k->volume : (float)*kick_hc((kick_t *)k, i) * 0.01f;
+        return i == 0 ? k->volume : i == 1 ? (float)KICK_TERROR(k) * 0.01f : 0.0f;
     }
 }
 static void draw_kick(const brk_status_t *st)
