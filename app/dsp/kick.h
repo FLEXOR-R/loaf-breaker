@@ -26,6 +26,9 @@ typedef struct {
     uint8_t rsv[3];
     float fa, fb, wet;                   /* the effect's two settings and its mix, 0..1 */
 } kick_layer_t;                          /* 32 bytes */
+/* LOAF BREAKER: TERROR, after INTENSITY: the kick's mids and highs driven hard into a wavefolder and a clip, the sub
+ * under them kept clean; 0 off .. 100. In the SUB layer's first spare byte (a kick saved before it: 0, off) */
+#define KICK_TERROR(k) ((k)->l[KL_SUB].rsv[0])
 
 typedef struct {
     kick_layer_t l[KICK_LAYERS];

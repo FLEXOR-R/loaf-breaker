@@ -101,6 +101,8 @@ static struct {
     uint32_t mb_hold_t[3];
     uint32_t reset_t;                    /* GLOBAL's RESET ALL: when it was last turned */
     uint32_t egg_t;                      /* GLOUPI BREAKS: LOAF LORD on the screen since (0: not) */
+    uint32_t drop_t, build_said;         /* LOAF BREAKER: the DROP's flash since (0: not); the build's last word */
+    uint8_t drop_seen;                   /* the drops shown (drop_n's) */
     uint8_t reset_n;                     /* GLOUPI BREAKS: its turns so far, each within 3 s of the last (it wants 15) */
     uint32_t mix_drawn;                  /* its faders' meters: when last drawn */
     int16_t meter_x;                     /* the header's level meter: where (0: not shown now, a message is) */

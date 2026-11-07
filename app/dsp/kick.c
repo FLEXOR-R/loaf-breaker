@@ -14,6 +14,7 @@ static inline float soft(float x) { return x / (1.0f + brk_absf(x)); }
 typedef struct {
     float ph[KICK_LAYERS], ph2, env[KICK_LAYERS], pe, pe2;
     float lp;                            /* CLICK: its noise's low-pass (what it keeps is above it) */
+    float tlo, tlp;                      /* LOAF BREAKER: TERROR's low split, its fizz's low-pass */
     float s1[KICK_LAYERS], s2[KICK_LAYERS], fph[KICK_LAYERS], fhold[KICK_LAYERS];   /* the layers' effects */
     uint32_t rng;
     float last, declick;
@@ -32,6 +33,7 @@ typedef struct {
     float fa[KICK_LAYERS], fb[KICK_LAYERS], wet[KICK_LAYERS];
     float ga[KICK_LAYERS], gb[KICK_LAYERS], gc[KICK_LAYERS];   /* the effect's own coefficients */
     float g, hard, make, vol;            /* the sum: drive, how hard the clip, make-up, volume */
+    float tmix, tg;                      /* LOAF BREAKER: TERROR, its mix and its drive (0 mix: off) */
 } kc_t;
 
 static volatile kick_t p_k;
@@ -119,6 +121,11 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c)
         c->hard = in > 0.5f ? (in - 0.5f) * 1.6f : 0.0f;
         sg = c->g / (1.0f + c->g);       /* a full-scale sum through the clip: kept there */
         c->make = 0.95f / (sg * (1.0f - c->hard) + c->hard);
+    }
+    {                                    /* LOAF BREAKER: TERROR, in fully by a third of the way, the drive on up */
+        float t = (float)(KICK_TERROR(k) > 100u ? 100u : KICK_TERROR(k)) * 0.01f;
+        c->tmix = t * 3.0f > 1.0f ? 1.0f : t * 3.0f;
+        c->tg = 2.0f + 60.0f * t * t;
     }
     c->vol = brk_clampf(k->volume, 0.0f, 1.0f);
 }
@@ -214,7 +221,23 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
     v->pe2 *= c->pe2_dec;
     /* the sum: a drive into a clip, soft and then (INTENSITY over half) hard: the distorted kick */
     d = y * c->g;
-    out = (soft(d) * (1.0f - c->hard) + brk_clampf(d, -1.0f, 1.0f) * c->hard) * c->make * c->vol;
+    out = (soft(d) * (1.0f - c->hard) + brk_clampf(d, -1.0f, 1.0f) * c->hard) * c->make;
+    if (c->tmix > 0.0f) {                /* LOAF BREAKER: TERROR: the sub (below ~110 Hz) kept, the rest driven into a
+                                          * triangle fold (it folds back instead of flattening: the scream), then
+                                          * clipped and its fizz rounded */
+        float h, t, z;
+        v->tlo += (out - v->tlo) * 0.0155f;
+        h = (out - v->tlo) * c->tg;
+        t = h * 0.25f + 0.25f;
+        t -= (float)(int32_t)t;
+        if (t < 0.0f)
+            t += 1.0f;
+        z = 1.0f - 4.0f * brk_absf(t - 0.5f);   /* (the fold: h within +-1 untouched, beyond it back and forth) */
+        v->tlp += (z - v->tlp) * 0.45f;
+        z = brk_clampf(v->tlo * 1.2f + v->tlp * 0.85f, -1.0f, 1.0f);
+        out += (z - out) * c->tmix;
+    }
+    out *= c->vol;
     v->last = out;
     out += v->declick;
     v->declick *= 0.985f;
@@ -228,6 +251,7 @@ BRK_COLD void kick_init(void)
         kv.env[i] = 0.0f;
     kv.declick = kv.last = 0.0f;
     kv.rng = 0x5eed1u;
+    kv.tlo = kv.tlp = 0.0f;
     ks_last = 0.0f;
     ks_on = 0u;
     hits_seen = p_hits;
@@ -287,6 +311,7 @@ BRK_COLD void kick_shape(const kick_t *k, uint8_t *px, uint32_t n, uint32_t ms, 
     uint32_t i, total = ms * (BRK_SR / 1000u), per = total / (n ? n : 1u);
     kc_make(k, &c);
     v.rng = 0x5eed1u;
+    v.tlo = v.tlp = 0.0f;
     v.last = v.declick = 0.0f;
     kv_hit(&v);
     v.declick = 0.0f;

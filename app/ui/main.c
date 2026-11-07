@@ -104,6 +104,12 @@ static void knob_turn(int k, int32_t d)
             brk_flt_turn(d);             /* (LOAF BREAKER: a low-pass alone, pads.c) */
         } else if (k == EN_K3) {         /* GLOUPI BREAKS: the kick's own DJ filter (CHOPPAH: FX) */
             kick_flt_turn(d);            /* (LOAF BREAKER: SEQ's K2 the same) */
+        } else if (ui.btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K4, the kick's TERROR (EDIT's OUT K2) */
+            KICK_TERROR(&set.kick) = (uint8_t)clamp((int32_t)KICK_TERROR(&set.kick) + d * 2, 0, 100);
+            if (KICK_TERROR(&set.kick))
+                say_int("TERROR", KICK_TERROR(&set.kick), "%");
+            else
+                app_say("TERROR", "OFF");
         } else {                         /* GLOUPI BREAKS: the kick's SUB decay (EDIT's; CHOPPAH: COMPLEXITY, on
                                           * GENERATOR alone now) */
             kick_layer_t *l = &set.kick.l[KL_SUB];
@@ -304,9 +310,18 @@ static void input(void)
             transport(st.playing, 1);
             app_say("RESET", "");
             ui.home_combo = 1u;          /* (not HOME's next part) */
+        } else if (btn & 1u << B_SEL && st.playing) {   /* LOAF BREAKER: SEL + PLAY: the BUILD, while PLAY is held;
+                                          * let go, the DROP at the next bar (app.c's render) */
+            build_held = 1u;
+            ui.build_said = 0u;
+            app_say("BUILD", "HOLD PLAY");
         } else
             transport(!st.playing, 0);
         muted = 0u;
+    }
+    if (build_held && !(btn & 1u << B_PLAY)) {   /* LOAF BREAKER: PLAY let go: the drop */
+        build_held = 0u;
+        app_say("DROP", "NEXT BAR");
     }
     if (bdn & 1u << B_HOME) {            /* HOME: PERFORM; again (let go alone), GENERATOR, and back */
         if (ui.page == PG_HOME || ui.page == PG_GEN) {
@@ -590,6 +605,17 @@ static void leds(void)
     for (i = 0; i < 11u; i++)
         if (i == PAD_FREEZE ? sub_drive_on() : i == PAD_DUB ? ovl_pad_on() : (int)(st.pads >> i & 1u))
             k |= 1u << BK[PAD_KEY[i]];
+    if (build_p >= 0.0f) {               /* LOAF BREAKER: the build: the white keys fill up left to right */
+        uint32_t n = 1u + (uint32_t)(build_p * 15.0f);
+        for (i = 0; i < 16u; i++)
+            k = i < n ? k | 1u << WK[i] : k & ~(1u << WK[i]);
+    } else if (ui.drop_t) {
+        if ((plat_ms() / 60u) & 1u) {    /* the drop: every light strobing */
+            b = 0x3FFFu;
+            k = 0x7FFFFFFu;
+        } else
+            b = k = 0u;
+    }
     plat_glow(1);
     plat_leds(b, k);
 }
@@ -933,6 +959,29 @@ void app_frame(void)
     if (ui.ntaps && now - ui.taps[(ui.ntaps - 1u) % TAPS] > 2000u) {   /* a pause: the run is over */
         ui.ntaps = 0u;
         ui.redraw |= ui.page == PG_TAP ? RG_BLOCKS : 0;
+    }
+    if (build_held && build_p >= 0.0f && now - ui.build_said >= 250u) {   /* LOAF BREAKER: the build, how far */
+        char t[8];
+        ui.build_said = now;
+        int_text((int32_t)(build_p * 100.0f + 0.5f), t);
+        text_cat(t, "%");
+        app_say("BUILD", t);
+    }
+    if (drop_n != ui.drop_seen) {        /* LOAF BREAKER: a DROP: the screen's flash, 0.9 s */
+        ui.drop_seen = drop_n;
+        ui.drop_t = now | 1u;
+    }
+    if (ui.drop_t) {
+        if (now - ui.drop_t > 900u) {
+            ui.drop_t = 0u;
+            lcd_fill(0, 0, 240, 240, C_BLACK);
+            ui.redraw = RG_ALL;
+        } else {
+            drop_draw(now - ui.drop_t);
+            leds();
+            ui.touched = 0u;
+            return;
+        }
     }
     if (ui.egg_t) {                      /* GLOUPI BREAKS: LOAF LORD, 1.5 s (drawn when K4 turned: egg_draw) */
         if (now - ui.egg_t > 1500u) {

@@ -260,6 +260,14 @@ static struct {
     pat_t p[NPAT];
 } pats;
 _Static_assert(sizeof pats <= 3840u, "a store object holds 3840 bytes");
+/* LOAF BREAKER: BUILD and DROP. SEL + PLAY, playing, then PLAY held (build_held, the main loop): the drums' steps give
+ * way to a snare roll that speeds up (quarters, eighths, 16ths, then 32nds after three bars), louder and louder, the
+ * whole mix high-passed higher and higher under a rising noise; PLAY let go, the DROP: at the next bar everything back
+ * at once, a crash on it (drop_n counts them, for the screen) */
+#define BUILD_STEPS 64u                  /* the build's four bars (then it holds at 32nds) */
+static volatile uint8_t build_held;
+static volatile uint8_t drop_n;
+static volatile float build_p = -1.0f;   /* the build's progress 0..1, -1 none (the screen's and the lights') */
 static volatile uint16_t drum_now[NDRUMS][4];   /* the pattern playing's drums, bar by bar of four (their lengths
                                           * played out: pat_lanes_out), for the render */
 static int8_t pat_next = -1;             /* a pattern picked while playing: it starts at the loop's end */
@@ -736,6 +744,10 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
     static float kick[APP_BLOCK], perc[APP_BLOCK];
     static float kl[APP_BLOCK], kr[APP_BLOCK];   /* LOAF BREAKER: the kick through the overlays alone (THRU KICK) */
     static float spd[APP_BLOCK], tape0 = 1.0f;   /* LOAF BREAKER: the VINYL BREAK's speed on the drums, a sample each */
+    static uint8_t b_on, b_drop;         /* LOAF BREAKER: building; let go, the drop waits for the bar */
+    static uint32_t b_steps;             /* steps built */
+    static int32_t half_due = -1;        /* the roll's 32nd between two steps: samples from this block's start */
+    static float crash;                  /* the drop's crash, its level */
     int vin = (set.vinyl & 3u) != 1u;    /* (THRU BOTH or KICK: the drums slow too) */
     uint32_t thru = (set.ovl_pad >> 6) & 3u;   /* the ARP key's THRU: 0 BOTH, 1 BREAK, 2 KICK */
     int kick_dry = thru != 0u;           /* the kick apart from the chain (BREAK: around the overlays too) */
@@ -778,11 +790,46 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             uint8_t idx[8], who[8];
             uint32_t k, ne = brk_step_events(off, idx, 8u), nk = 0u, np = 0u;
             nclick = 0u;
+            if (b_on && !build_held)
+                b_drop = 1u;             /* LOAF BREAKER: PLAY let go: the drop at the next bar */
+            if (!st.playing)
+                b_on = b_drop = 0u;      /* (stopped: no build) */
+            if (build_held && !b_on && st.playing) {
+                b_on = 1u;
+                b_drop = 0u;
+                b_steps = 0u;
+                half_due = -1;
+            }
+            if (b_on && half_due >= 0 && half_due < (int32_t)m) {   /* (the 32nd between two steps) */
+                pa[np] = (uint16_t)half_due;
+                who[np++] = 1u << PV_SNARE;
+            }
+            if (half_due >= 0 && (half_due -= (int32_t)m) < 0)
+                half_due = -1;
             for (k = 0; k < ne; k++) {
                 uint32_t s = idx[k] & 15u;   /* the step's place in the bar (idx: in four bars, the kick's) */
                 if (set.click && !(s & 3u) && nclick < 4u) {   /* the metronome: each beat, the bar's first higher */
                     click_at[nclick] = off[k];
                     click_hi[nclick++] = s == 0u;
+                }
+                if (b_on) {              /* LOAF BREAKER: the build's roll in the drums' place */
+                    if (b_drop && s == 0u) {   /* the drop: this bar's first step, everything back */
+                        b_on = b_drop = 0u;
+                        half_due = -1;
+                        drop_n++;
+                        crash = 1.0f;
+                    } else {
+                        uint32_t div = b_steps < 16u ? 4u : b_steps < 32u ? 2u : 1u;
+                        if (!(b_steps % div) && np < 8u) {
+                            pa[np] = off[k];
+                            who[np++] = 1u << PV_SNARE;
+                            if (b_steps >= 48u)
+                                half_due = (int32_t)off[k] + (int32_t)((float)BRK_SR * 7.5f / brk_get_tempo());
+                        }
+                        if (b_steps < BUILD_STEPS)
+                            b_steps++;
+                        continue;
+                    }
                 }
                 uint32_t w = 0u, d, bar = idx[k] >> 4 & 3u;
                 for (d = DR_SNARE; d < NDRUMS; d++)   /* (LOAF BREAKER: every drum, its bar) */
@@ -806,6 +853,12 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             kick_render(kick, m, ka, nk);
             brk_fx_kick_dj(kick, m, (float)set.kick_dj * 0.01f);   /* GLOUPI BREAKS: HOME's KICK FLT */
             perc_render(perc, m, pa, who, np);
+            build_p = b_on ? (float)b_steps / (float)BUILD_STEPS : -1.0f;
+            if (b_on) {                  /* (the roll louder as it builds) */
+                float g = 0.35f + 0.65f * build_p;
+                for (i = 0; i < m; i++)
+                    perc[i] *= g;
+            }
             meter_kick = meter(kick, m, meter_kick);
             meter_perc = meter(perc, m, meter_perc);
             if (!kick_dry)               /* (LOAF BREAKER: THRU BREAK or KICK, the kick joins after the chain) */
@@ -838,6 +891,35 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                 beat += (float)m / spb;
                 if (beat >= 256.0f)
                     beat -= 256.0f;
+            }
+        }
+        if (b_on || crash > 1e-4f) {     /* LOAF BREAKER: the build's high-pass and riser over everything; the
+                                          * drop's crash */
+            static float h1l, h1r, h2l, h2r, cl;
+            static uint32_t nz = 0x1234567u;
+            float p = b_on ? build_p : 0.0f, rz = 0.22f * p * p;
+            float kk = brk_clampf(6.2832f * 30.0f * brk_exp2f(p * 6.5f) / (float)BRK_SR, 0.0f, 0.9f);
+            for (i = 0; i < m; i++) {
+                float n;
+                nz = nz * 1664525u + 1013904223u;
+                n = (float)(int32_t)nz * (1.0f / 2147483648.0f);
+                if (b_on) {              /* (30 Hz up to ~2.7 kHz, two poles) */
+                    float xl = l[i] + n * rz, xr = r[i] + n * rz;
+                    h1l += (xl - h1l) * kk;
+                    xl -= h1l;
+                    h2l += (xl - h2l) * kk;
+                    l[i] = xl - h2l;
+                    h1r += (xr - h1r) * kk;
+                    xr -= h1r;
+                    h2r += (xr - h2r) * kk;
+                    r[i] = xr - h2r;
+                }
+                if (crash > 1e-4f) {     /* the crash: noise above ~4 kHz, a long fall */
+                    cl += (n - cl) * 0.45f;
+                    l[i] += (n - cl) * crash * 0.3f;
+                    r[i] += (n - cl) * crash * 0.3f;
+                    crash *= 0.99993f;
+                }
             }
         }
         if (nclick || click_env > 1e-3f) {   /* the metronome's click: dry, over everything, both sides */
