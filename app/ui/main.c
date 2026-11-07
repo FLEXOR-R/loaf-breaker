@@ -504,6 +504,11 @@ static void input(void)
             ui.fx_turned = 1u;           /* (FX + a knob: not the next slot) */
         if (!(btn & 1u << B_SEL))
             ui.help = 0u;                /* (a knob closes the card) */
+        if (k == EN_K1 && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K1, on any page: the next or previous kick
+                                          * (its memories, KICK 1..10) */
+            kick_mem_turn(d);
+            continue;
+        }
         if (k == EN_SELECT && ui.page == PG_SEQ) {   /* LOAF BREAKER: on SEQ, SELECT picks the drum's memory (the
                                           * lane's: a snare, hat or clap lane its own, else the kick); the tempo on
                                           * any other page */
@@ -791,7 +796,7 @@ static void page_say(void)
 /* SEL held alone: its combinations, on the strip (FX page: its own two) */
 static void draw_help(void)
 {
-    static const char *const L[8][2] = {{"SEL", "THIS CARD"}, {"+ ALGO", "BREAK"}, {"+ PRESETS", "PATTERN"},
+    static const char *const L[8][2] = {{"+ K1", "KICK 1-10"}, {"+ ALGO", "BREAK"}, {"+ PRESETS", "PATTERN"},
                                         {"+ REC", "CLEAR PATTERN"}, {"+ ARP", "RANDOM PATTERN"},
                                         {"+ SAVE", "UNDO / REDO"}, {"+ SELECT", "FINE TEMPO"},
                                         {"KEY + SEL", "RESET THE KEY"}};
