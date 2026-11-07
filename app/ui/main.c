@@ -104,12 +104,6 @@ static void knob_turn(int k, int32_t d)
             brk_flt_turn(d);             /* (LOAF BREAKER: a low-pass alone, pads.c) */
         } else if (k == EN_K3) {         /* GLOUPI BREAKS: the kick's own DJ filter (CHOPPAH: FX) */
             kick_flt_turn(d);            /* (LOAF BREAKER: SEQ's K2 the same) */
-        } else if (ui.btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K4, the kick's TERROR (EDIT's OUT K2) */
-            KICK_TERROR(&set.kick) = (uint8_t)clamp((int32_t)KICK_TERROR(&set.kick) + d * 2, 0, 100);
-            if (KICK_TERROR(&set.kick))
-                say_int("TERROR", KICK_TERROR(&set.kick), "%");
-            else
-                app_say("TERROR", "OFF");
         } else {                         /* GLOUPI BREAKS: the kick's SUB decay (EDIT's; CHOPPAH: COMPLEXITY, on
                                           * GENERATOR alone now) */
             kick_layer_t *l = &set.kick.l[KL_SUB];
@@ -217,6 +211,32 @@ static void rec_toggle(void)
     ui.redraw |= RG_HEAD | RG_BLOCKS;
 }
 
+/* LOAF BREAKER: SEL clicked three times. Playing: the BUILD (app.c's render: four bars, then the DROP into the next
+ * pattern, its drums ready here); building: the DROP at the next bar */
+static void build_click(void)
+{
+    if (!playing_now()) {
+        app_say("BUILD", "PLAY FIRST");
+        return;
+    }
+    if (build_p < 0.0f) {
+        const pat_t *p;
+        uint32_t d, b;
+        char t[8] = "> P";
+        ui.drop_pat = (uint8_t)((set.pattern + 1u) % NPAT);
+        p = &pats.p[ui.drop_pat];
+        for (d = 0; d < NDRUMS; d++)
+            for (b = 0; b < 4u; b++)
+                drum_next[d][b] = (uint16_t)drum_bar(p, d, b % drum_bars(p, d));
+        drum_next_ok = 1u;
+        ui.build_said = plat_ms();
+        int_text((int32_t)ui.drop_pat + 1, t + 3);
+        app_say("BUILD", t);
+    } else
+        app_say("DROP", "NEXT BAR");
+    build_n++;
+}
+
 static void input(void)
 {
     uint32_t keys = plat_keys(), btn = plat_buttons(), now = plat_ms(), i;
@@ -310,18 +330,9 @@ static void input(void)
             transport(st.playing, 1);
             app_say("RESET", "");
             ui.home_combo = 1u;          /* (not HOME's next part) */
-        } else if (btn & 1u << B_SEL && st.playing) {   /* LOAF BREAKER: SEL + PLAY: the BUILD, while PLAY is held;
-                                          * let go, the DROP at the next bar (app.c's render) */
-            build_held = 1u;
-            ui.build_said = 0u;
-            app_say("BUILD", "HOLD PLAY");
         } else
             transport(!st.playing, 0);
         muted = 0u;
-    }
-    if (build_held && !(btn & 1u << B_PLAY)) {   /* LOAF BREAKER: PLAY let go: the drop */
-        build_held = 0u;
-        app_say("DROP", "NEXT BAR");
     }
     if (bdn & 1u << B_HOME) {            /* HOME: PERFORM; again (let go alone), GENERATOR, and back */
         if (ui.page == PG_HOME || ui.page == PG_GEN) {
@@ -454,14 +465,27 @@ static void input(void)
         ui.tap_combo = 1u;               /* another button with SEL held */
     if (ui.help && ((bdn & ~(1u << B_SEL)) || kdn))
         ui.help = 0u;                    /* the card open: any other button or key closes it */
-    if (ui.tap_pend && !(btn & 1u << B_SEL)) {   /* SEL up alone: the combinations card, open or closed */
+    if (ui.tap_pend && !(btn & 1u << B_SEL)) {   /* SEL up alone: counted (LOAF BREAKER: three, the build) */
         ui.tap_pend = 0u;
         if (!ui.tap_combo) {
+            ui.sel_clicks = (uint8_t)(now - ui.sel_click_t < 400u ? ui.sel_clicks + 1u : 1u);
+            ui.sel_click_t = now;
+            if (ui.sel_clicks >= 3u) {
+                ui.sel_clicks = 0u;
+                build_click();
+            }
+        } else
+            ui.sel_clicks = 0u;
+    }
+    if (ui.sel_clicks && now - ui.sel_click_t >= 400u) {   /* one click alone: the combinations card, open or
+                                          * closed (two: nothing) */
+        if (ui.sel_clicks == 1u) {
             ui.help ^= 1u;
             ui.help_t = now;
             if (ui.help)
                 app_say("SEL", "COMBINATIONS");
         }
+        ui.sel_clicks = 0u;
     }
     if (bdn & 1u << B_SAVE && btn & 1u << B_SEL)   /* SEL + SAVE: undo (again: redo) */
         undo_swap();
@@ -507,6 +531,17 @@ static void input(void)
         if (k == EN_SELECT && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + SELECT, on any page: the next or previous
                                           * kick (its memories, KICK 1..10; was the tempo by tenths: TAP's K2) */
             kick_mem_turn(d);
+            continue;
+        }
+        if (k == EN_K4 && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K4, on any page: the kick's TERROR (EDIT's
+                                          * OUT K2) */
+            KICK_TERROR(&set.kick) = (uint8_t)clamp((int32_t)KICK_TERROR(&set.kick) + d * 2, 0, 100);
+            if (KICK_TERROR(&set.kick))
+                say_int("TERROR", KICK_TERROR(&set.kick), "%");
+            else
+                app_say("TERROR", "OFF");
+            changed();
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
             continue;
         }
         if (k == EN_SELECT && ui.page == PG_SEQ) {   /* LOAF BREAKER: on SEQ, SELECT picks the drum's memory (the
@@ -796,10 +831,10 @@ static void page_say(void)
 /* SEL held alone: its combinations, on the strip (FX page: its own two) */
 static void draw_help(void)
 {
-    static const char *const L[8][2] = {{"SEL", "THIS CARD"}, {"+ ALGO", "BREAK"}, {"+ PRESETS", "PATTERN"},
+    static const char *const L[8][2] = {{"SEL X3", "BUILD / DROP"}, {"+ ALGO", "BREAK"}, {"+ PRESETS", "PATTERN"},
                                         {"+ REC", "CLEAR PATTERN"}, {"+ ARP", "RANDOM PATTERN"},
                                         {"+ SAVE", "UNDO / REDO"}, {"+ SELECT", "KICK 1-10"},
-                                        {"KEY + SEL", "RESET THE KEY"}};
+                                        {"+ K4", "TERROR"}};   /* (LOAF BREAKER: the live ones) */
     uint32_t i, band;
     for (band = 0; band < 2u; band++) {
         cv_begin(240, 52, C_BLACK);
@@ -965,16 +1000,24 @@ void app_frame(void)
         ui.ntaps = 0u;
         ui.redraw |= ui.page == PG_TAP ? RG_BLOCKS : 0;
     }
-    if (build_held && build_p >= 0.0f && now - ui.build_said >= 250u) {   /* LOAF BREAKER: the build, how far */
+    if (build_p >= 0.0f && now - ui.build_said >= 250u) {   /* LOAF BREAKER: the build, how far */
         char t[8];
         ui.build_said = now;
         int_text((int32_t)(build_p * 100.0f + 0.5f), t);
         text_cat(t, "%");
         app_say("BUILD", t);
     }
-    if (drop_n != ui.drop_seen) {        /* LOAF BREAKER: a DROP: the screen's flash, 0.9 s */
+    if (drop_n != ui.drop_seen) {        /* LOAF BREAKER: a DROP: the screen's flash, 0.9 s; the next pattern (its
+                                          * drums already playing: the render took them at the drop) */
         ui.drop_seen = drop_n;
         ui.drop_t = now | 1u;
+        if (ui.drop_pat < NPAT) {
+            set.pattern = ui.drop_pat;
+            pat_next = -1;
+            pat_apply();
+            set_dirty = 1u;
+            ui.drop_pat = 0xFFu;
+        }
     }
     if (ui.drop_t) {
         if (now - ui.drop_t > 900u) {

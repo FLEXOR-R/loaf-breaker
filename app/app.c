@@ -260,12 +260,15 @@ static struct {
     pat_t p[NPAT];
 } pats;
 _Static_assert(sizeof pats <= 3840u, "a store object holds 3840 bytes");
-/* LOAF BREAKER: BUILD and DROP. SEL + PLAY, playing, then PLAY held (build_held, the main loop): the drums' steps give
- * way to a snare roll that speeds up (quarters, eighths, 16ths, then 32nds after three bars), louder and louder, the
- * whole mix high-passed higher and higher under a rising noise; PLAY let go, the DROP: at the next bar everything back
- * at once, a crash on it (drop_n counts them, for the screen) */
-#define BUILD_STEPS 64u                  /* the build's four bars (then it holds at 32nds) */
-static volatile uint8_t build_held;
+/* LOAF BREAKER: BUILD and DROP. SEL clicked three times, playing (build_n, the main loop): the drums' steps give way
+ * to a snare roll that speeds up (quarters, eighths, 16ths, then 32nds in the last bar), louder and louder, the whole
+ * mix high-passed higher and higher under a rising noise; after four bars (or three clicks again: at the next bar),
+ * the DROP: everything back at once, the next pattern's drums from its first step (drum_next, ready from the main
+ * loop), a crash on it (drop_n counts them: the screen flashes and moves to that pattern) */
+#define BUILD_STEPS 64u                  /* the build's four bars */
+static volatile uint8_t build_n;         /* three clicks: a build, or (building) the drop */
+static volatile uint16_t drum_next[NDRUMS][4];   /* the next pattern's drums, for the drop */
+static volatile uint8_t drum_next_ok;
 static volatile uint8_t drop_n;
 static volatile float build_p = -1.0f;   /* the build's progress 0..1, -1 none (the screen's and the lights') */
 static volatile uint16_t drum_now[NDRUMS][4];   /* the pattern playing's drums, bar by bar of four (their lengths
@@ -790,16 +793,22 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             uint8_t idx[8], who[8];
             uint32_t k, ne = brk_step_events(off, idx, 8u), nk = 0u, np = 0u;
             nclick = 0u;
-            if (b_on && !build_held)
-                b_drop = 1u;             /* LOAF BREAKER: PLAY let go: the drop at the next bar */
+            {                            /* LOAF BREAKER: three clicks: a build, or (building) the drop at the bar */
+                static uint8_t seen;
+                if (build_n != seen) {
+                    seen = build_n;
+                    if (b_on)
+                        b_drop = 1u;
+                    else if (st.playing) {
+                        b_on = 1u;
+                        b_drop = 0u;
+                        b_steps = 0u;
+                        half_due = -1;
+                    }
+                }
+            }
             if (!st.playing)
                 b_on = b_drop = 0u;      /* (stopped: no build) */
-            if (build_held && !b_on && st.playing) {
-                b_on = 1u;
-                b_drop = 0u;
-                b_steps = 0u;
-                half_due = -1;
-            }
             if (b_on && half_due >= 0 && half_due < (int32_t)m) {   /* (the 32nd between two steps) */
                 pa[np] = (uint16_t)half_due;
                 who[np++] = 1u << PV_SNARE;
@@ -813,9 +822,16 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                     click_hi[nclick++] = s == 0u;
                 }
                 if (b_on) {              /* LOAF BREAKER: the build's roll in the drums' place */
-                    if (b_drop && s == 0u) {   /* the drop: this bar's first step, everything back */
+                    if ((b_drop || b_steps >= BUILD_STEPS) && s == 0u) {   /* the drop: this bar's first step,
+                                          * everything back, the next pattern's drums at once */
+                        uint32_t dd, bb;
                         b_on = b_drop = 0u;
                         half_due = -1;
+                        if (drum_next_ok)
+                            for (dd = 0; dd < NDRUMS; dd++)
+                                for (bb = 0; bb < 4u; bb++)
+                                    drum_now[dd][bb] = drum_next[dd][bb];
+                        drum_next_ok = 0u;
                         drop_n++;
                         crash = 1.0f;
                     } else {
