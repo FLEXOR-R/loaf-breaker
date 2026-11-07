@@ -209,13 +209,17 @@ static void lane_knob(int i, int32_t d)
         for (m = 0u, k = 0u; k < 16u; k++)
             if (k * n % 16u < n)
                 m |= 1u << k;
-    } else
-        m = d > 0 ? 0x1111u : 0u;
+    } else {                             /* CLR / 4X4: left clear; right, a detent at a time (LOAF BREAKER): four on
+                                          * the floor, then eighths, then every step */
+        static const uint16_t GRID[4] = {0u, 0x1111u, 0x5555u, 0xFFFFu};
+        int32_t at = m == 0xFFFFu ? 3 : m == 0x5555u ? 2 : m == 0x1111u ? 1 : 0;
+        m = d > 0 ? GRID[clamp(at + d, 1, 3)] : 0u;
+    }
     sl_set(pat_now(), ui.seq_lane, m);
     pat_lanes_out();
     set_dirty = 1u;
     seq_value(i, t);
-    app_say(NAME[i], i == 2 ? (m ? "4X4" : "CLEARED") : t);
+    app_say(NAME[i], i == 2 ? (m == 0xFFFFu ? "16X16" : m == 0x5555u ? "8X8" : m ? "4X4" : "CLEARED") : t);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
 static void seq_key(uint32_t i)          /* a white key on SEQ: the step to edit, or a drum step on and off */
