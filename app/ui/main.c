@@ -204,6 +204,8 @@ static void slices_let_go(uint32_t keys)
 static uint32_t seq_t;                   /* LOAF BREAKER: SEQ pressed: when, and waiting (1, 3: and the next lane)
                                           * for its release */
 static uint8_t seq_wait;
+static uint32_t clr_t;                   /* LOAF BREAKER: SEQ held: the clear asked, waiting for SEQ again (3 s) */
+static uint8_t clr_arm;
 static uint32_t rec_t;                   /* LOAF BREAKER: REC pressed on SEQ: when, and waiting for its release */
 static uint8_t rec_wait;
 static void rec_toggle(void)
@@ -380,7 +382,15 @@ static void input(void)
             page_say();
         }
     }
-    if (bdn & 1u << B_SEQ && btn & 1u << B_SEL)   /* LOAF BREAKER: SEL + SEQ: copy the pattern; on another: paste */
+    if (clr_arm && (now - clr_t >= 3000u || bdn & ~(1u << B_SEQ) || kdn)) {   /* LOAF BREAKER: not confirmed */
+        clr_arm = 0u;
+        app_say("CLEAR", "CANCELLED");
+    }
+    if (bdn & 1u << B_SEQ && clr_arm) {  /* LOAF BREAKER: SEQ again: the clear confirmed (SEL + SAVE takes it back) */
+        clr_arm = 0u;
+        seq_clear(0);
+    } else if (bdn & 1u << B_SEQ && btn & 1u << B_SEL)   /* LOAF BREAKER: SEL + SEQ: copy the pattern; on another:
+                                          * paste */
         pat_copy_paste();
     else if (bdn & 1u << B_SEQ) {        /* SEQ: the pattern's steps and lanes; again, the next lane (LOAF BREAKER:
                                           * at its release; held 0.7 s, anywhere: the whole pattern cleared) */
@@ -402,9 +412,14 @@ static void input(void)
                 page_say();
             }
             seq_wait = 0u;
-        } else if (now - seq_t >= 700u) {   /* held: the pattern playing, all of it (SEL + SAVE takes it back) */
+        } else if (now - seq_t >= 700u) {   /* held: the pattern playing, all of it, once SEQ is pressed again */
+            char t[12] = "CLEAR P";
             seq_wait = 0u;
-            seq_clear(0);
+            clr_arm = 1u;
+            clr_t = now;
+            int_text((int32_t)set.pattern % NPAT + 1, t + 7);
+            text_cat(t, "?");
+            app_say(t, "SEQ AGAIN");
         }
     }
     if (bdn & 1u << B_REC && btn & 1u << B_SEL) {   /* SEL + REC: clear (on SEQ its lane; else the pattern) */
