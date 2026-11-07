@@ -64,7 +64,7 @@ typedef struct {
     float rev_speed;                     /* 0.5..2 */
     float frz_pitch;                     /* -12..+12 semitones */
     float half_speed;                    /* 0.25..0.75 */
-    float stop_beats;                    /* tape stop: 0.25..4 beats down */
+    float stop_beats;                    /* tape stop: 0.25..16 beats down (LOAF BREAKER: 4 bars) */
     float spin_steps;                    /* and 0.25..8 16ths back up */
     float gate_len;                      /* 0.1..0.9 of each gate */
     float rnd_amount;                    /* 0..1: the chance a step plays a random slice */

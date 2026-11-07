@@ -127,7 +127,10 @@ static void pad_knob_turn(int pad, int k, int32_t d)
         else set.half_mt_off = d < 0;
         break;
     case PAD_TAPESTOP:
-        if (k == 0) p->stop_beats = knob_f(p->stop_beats, d, 0.25f, 0.25f, 4.0f);
+        if (k == 0)                      /* (LOAF BREAKER: to 16 beats, a beat a detent past 4) */
+            p->stop_beats = knob_f(p->stop_beats, d, p->stop_beats > 4.0f || (p->stop_beats > 3.9f && d > 0) ? 1.0f
+                                                                                                             : 0.25f,
+                                   0.25f, 16.0f);
         else if (k == 1) p->spin_steps = knob_f(p->spin_steps, d, 0.25f, 0.25f, 8.0f);
         else set.vinyl = (uint8_t)thru_turn(set.vinyl, d);
         break;

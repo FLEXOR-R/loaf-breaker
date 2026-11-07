@@ -797,7 +797,7 @@ void brk_render(float *out, uint32_t n)
         }
         /* tape stop: stop_beats down to nothing, spin_steps back up */
         if ((pads_now >> PAD_TAPESTOP) & 1u) {
-            tape -= 1.0f / (brk_clampf(p_ps.stop_beats, 0.25f, 4.0f) * 4.0f * sl);
+            tape -= 1.0f / (brk_clampf(p_ps.stop_beats, 0.25f, 16.0f) * 4.0f * sl);
             if (tape < 0.0f)
                 tape = 0.0f;
         } else if (tape < 1.0f) {

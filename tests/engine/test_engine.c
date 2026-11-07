@@ -1916,6 +1916,20 @@ static void test_vinyl(void)
     brk_gate(1.0f);
     CHECK(before < 0.02f && after > 0.1f, "VINYL BREAK: a gated slice plays on as it slows (%.3f, then %.3f)", before,
           after);
+    ps.stop_beats = 16.0f;               /* 16 beats: still turning after 8, stopped after 16 */
+    brk_padset(&ps);
+    brk_play(1);
+    render(buf, 2u * s, 0, 0, 0);
+    brk_pad(PAD_TAPESTOP, 1);
+    render(buf, 32u * s, 0, 0, 0);
+    before = render(buf, BLOCK, 0, 0, 0);
+    render(buf, 32u * s, 0, 0, 0);
+    after = render(buf, BLOCK, 0, 0, 0);
+    brk_pad(PAD_TAPESTOP, 0);
+    brk_play(0);
+    brk_padset_defaults(&ps);
+    brk_padset(&ps);
+    CHECK(before > 0.05f && after < 0.01f, "VINYL BREAK: 16 beats long (%.3f at 8, %.3f at 16)", before, after);
     for (m = 0; m < 2u; m++) {
         uint16_t at = 0u;
         kick_defaults(&k);
