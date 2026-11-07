@@ -618,6 +618,20 @@ static void input(void)
             changed();
             continue;
         }
+        if (k == EN_K2 && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K2, on any page: LIMIT, the whole mix louder,
+                                          * never over (+0.18 dB in a step) */
+            char t[12];
+            set.limit = (uint8_t)clamp((int32_t)set.limit + d * 2, 0, 100);
+            t[0] = 0;
+            if (set.limit) {
+                tenths_text((int32_t)set.limit * 18 / 10, t);
+                text_cat(t, " DB");
+            } else
+                text_cat(t, "OFF");
+            app_say("LIMIT", t);
+            changed();
+            continue;
+        }
         if ((k == EN_K3 || k == EN_K4) && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K4 TERROR, SEL + K3 TERROR 2,
                                           * on any page (EDIT's OUT K2, K3) */
             int hi = k == EN_K3 ? 2 : 1;
@@ -911,7 +925,7 @@ static void draw_help(void)
 {
     static const char *const L[8][2] = {{"SEL X3", "BUILD / DROP"}, {"+ SELECT", "KICK 1-10"}, {"+ K1", "DUCK"},
                                         {"+ K3", "TERROR 2"}, {"+ K4", "TERROR"}, {"+ ALGO", "BREAK"},
-                                        {"+ PRESETS", "PATTERN"}, {"+ SEQ", "COPY / PASTE"}};   /* (LOAF BREAKER: the
+                                        {"+ PRESETS", "PATTERN"}, {"+ K2", "LIMIT"}};   /* (LOAF BREAKER: the
                                           * live ones) */
     uint32_t i, band;
     for (band = 0; band < 2u; band++) {

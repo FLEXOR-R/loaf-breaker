@@ -109,6 +109,9 @@ typedef struct {
     uint8_t drop_brk;                    /* LOAF BREAKER (crossbreed): the break a drop brings in, 1.. (0: the same one;
                                           * MORE's K4) */
     perc_voice_t pmem[PERC_VOICES][PERC_MEMS];   /* each as left (PRESETS on EDIT, SELECT on its SEQ lane) */
+    /* (appended: LOAF BREAKER's LIMIT; an older save's: off) */
+    uint8_t limit;                       /* SEL + K2: the mix driven into a limiter, 0 off .. 100 (+18 dB in) */
+    uint8_t rsv6[3];
 } settings_t;
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");
@@ -1026,6 +1029,23 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                     left--;
             }
             lr_test = left > 1u ? left : 0u;
+        }
+        if (set.limit) {                 /* LOAF BREAKER: LIMIT: the whole mix driven in (up to +18 dB) and held under
+                                          * its ceiling: louder, never over (the peak followed at once, let go over
+                                          * ~75 ms) */
+            static float lenv;
+            float gin = brk_exp2f((float)(set.limit > 100u ? 100u : set.limit) * 0.03f);
+            for (i = 0; i < m; i++) {
+                float xl = l[i] * gin, xr = r[i] * gin, a = brk_absf(xl) > brk_absf(xr) ? brk_absf(xl) : brk_absf(xr);
+                float gr;
+                if (a > lenv)
+                    lenv = a;
+                else
+                    lenv += (a - lenv) * 0.0003f;
+                gr = lenv > 0.9f ? 0.9f / lenv : 1.0f;
+                l[i] = brk_clampf(xl * gr, -0.95f, 0.95f);
+                r[i] = brk_clampf(xr * gr, -0.95f, 0.95f);
+            }
         }
         {                                /* the header's meter: as it leaves, after MASTER */
             float out = gain * (1.0f / 8388608.0f), a = meter(l, m, 0.0f) * out, b = meter(r, m, 0.0f) * out;
