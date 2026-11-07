@@ -1,4 +1,4 @@
-# LOAF BREAKER (TERROR prototype): four on the floor on the kick (SEQ, K3 right), TERROR at 60 % (SEL + K4 on HOME),
+# LOAF BREAKER: four on the floor on the kick (SEQ, K3 right), TERROR at 60 % (SEL + K4 on HOME),
 # playing; then SEL + PLAY, PLAY held: the BUILD (four bars: the roll speeding up, the high-pass, the riser); PLAY let
 # go: the DROP at the next bar (the flash). The sound of it all: t_build_drop.wav
 #   app/build/host/choppah_host tests/scenarios/terror.txt app/build/scenarios
