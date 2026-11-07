@@ -68,8 +68,6 @@ tap PLAY
 tap HOME
 wait 200
 tap HOME
-wait 200
-tap HOME
 wait 300
 turn K1 8 10
 turn K2 -6 10
