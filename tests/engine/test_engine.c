@@ -1855,7 +1855,7 @@ static void test_kick(void)
 }
 
 /* the overlay effects (ARP): nothing on passes the sound through as it is; each one changes it and stays bounded;
- * CUT silences, DIVE darkens over its sweep, RISE thins; let go, it fades back to the dry sound */
+ * REESE (LOAF BREAKER, was CUT) adds its bass, DIVE darkens over its sweep, RISE thins; let go, it fades back to the dry sound */
 static int16_t ovl_buf[2u * OVL_LINE];
 static float ovl_tone(uint32_t i, float hz) { return 0.4f * sinf(6.2831853f * hz * (float)i / (float)BRK_SR); }
 static void ovl_run(uint32_t on, uint32_t from, uint32_t n, float hz, float *peak, float *diff)
@@ -1899,8 +1899,8 @@ static void test_ovl(void)
         CHECK(df > 0.01f, "OVERLAY %s: audible (%.4f off the dry sound)", OVL_NAME[k], df);
     }
     ovl_init(ovl_buf);
-    ovl_run(1u << OV_CUT, 0u, 22050u, 2000.0f, &pk, &df);
-    CHECK(pk < 0.001f, "OVERLAY CUT: silence (peak %.4f)", pk);
+    ovl_run(1u << OV_REESE, 0u, 22050u, 2000.0f, &pk, &df);
+    CHECK(df > 0.1f && pk < 1.5f, "OVERLAY REESE: a bass under the tone (%.3f off it, peak %.2f)", df, pk);
     ovl_init(ovl_buf);
     ovl_run(1u << OV_DIVE, 0u, 88200u, 8000.0f, &pk, &df);
     CHECK(pk < 0.15f, "OVERLAY DIVE: an 8 kHz tone down past the sweep (peak %.3f of ~0.6)", pk);

@@ -9,7 +9,7 @@
 
 enum {
     OV_DIVE, OV_RISE, OV_RADIO, OV_WAH, OV_CRUSH, OV_LOFI, OV_DIST, OV_RING,
-    OV_CHOP, OV_GATE, OV_DUCK, OV_PAN, OV_BOOM, OV_WOBBLE, OV_JET, OV_CUT, OVL_N
+    OV_CHOP, OV_GATE, OV_DUCK, OV_PAN, OV_BOOM, OV_WOBBLE, OV_JET, OV_REESE, OVL_N   /* (LOAF BREAKER: REESE, was CUT) */
 };
 extern const char *const OVL_NAME[OVL_N];
 extern const char *const OVL_RATE_NAME[4];   /* 1/4 1/8 1/16 1/32 */
@@ -25,5 +25,9 @@ void ovl_set(uint32_t on, const uint8_t *amount, uint32_t rate, uint32_t sweep);
  * its own); spb: samples a beat */
 void ovl_process(float *l, float *r, uint32_t n, float beat, float spb);
 uint32_t ovl_sounding(void);             /* bit OV_*: sounding now (fading out too) */
+/* LOAF BREAKER: REESE, a fat bass added under the mix while it's on: three saws detuned against each other and a sine
+ * an octave down, through a low-pass that opens and closes once a bar, driven (AMOUNT: louder, brighter, dirtier).
+ * Its note: hz (the app gives the kick's SUB pitch, so it sits in the kick's key; 55 Hz at the start) */
+void ovl_reese_hz(float hz);
 
 #endif

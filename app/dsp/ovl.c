@@ -5,7 +5,7 @@
 #include "brk_math.h"
 
 const char *const OVL_NAME[OVL_N] = {"DIVE", "RISE", "RADIO", "WAH", "CRUSH", "LO-FI", "DIST", "RING",
-                                     "CHOP", "GATE", "DUCK", "PAN", "BOOM", "WOBBLE", "JET", "CUT"};
+                                     "CHOP", "GATE", "DUCK", "PAN", "BOOM", "WOBBLE", "JET", "REESE"};
 const char *const OVL_RATE_NAME[4] = {"1/4", "1/8", "1/16", "1/32"};
 const char *const OVL_SWEEP_NAME[4] = {"1/4 BAR", "1/2 BAR", "1 BAR", "2 BARS"};
 
@@ -24,6 +24,10 @@ static float boom_lp[2], hold_v[2], chop_g = 1.0f, gate_g = 1.0f;
 static uint32_t hold_n;
 static float ring_ph, wob_ph, jet_ph;
 static uint32_t sounding;
+static volatile float p_reese_hz = 55.0f;   /* LOAF BREAKER: REESE's note */
+static float rs_ph[4];                   /* its three saws and its sub */
+static svf_t rs_sv;
+BRK_COLD void ovl_reese_hz(float hz) { p_reese_hz = brk_clampf(hz, 25.0f, 200.0f); }
 
 typedef struct { float a1, a2, a3, k; } svc_t;
 static void svc(svc_t *c, float hz, float q)
@@ -84,7 +88,7 @@ void ovl_process(float *l, float *r, uint32_t n, float beat, float spb)
 {
     uint32_t on = p_on, i, k, act = 0u, rate = p_rate;
     float amt[OVL_N], div = (float)(1u << rate), sweep_n = (float)(1u << p_sweep) * spb, inv = spb > 1.0f ? 1.0f / spb : 0.0f;
-    svc_t c_dive, c_rise, c_radio, c_wah;
+    svc_t c_dive, c_rise, c_radio, c_wah, c_reese;
     for (k = 0; k < OVL_N; k++) {
         amt[k] = (float)p_amt[k] * 0.01f;
         if ((on >> k) & 1u || env[k] > 0.0f)
@@ -109,6 +113,8 @@ void ovl_process(float *l, float *r, uint32_t n, float beat, float spb)
         svc(&c_rise, 20.0f * brk_exp2f(tr * (3.0f + 5.5f * amt[OV_RISE])), 0.8f + 0.9f * amt[OV_RISE]);
         svc(&c_radio, 1300.0f, 1.2f + 3.0f * amt[OV_RADIO]);
         svc(&c_wah, 350.0f * brk_exp2f(wah * 2.8f), 2.0f + 4.0f * amt[OV_WAH]);
+        svc(&c_reese, (160.0f + 500.0f * amt[OV_REESE]) * brk_exp2f(1.6f * (0.5f + 0.5f * brk_sin_turns(beat * 0.25f))),
+            1.4f);                       /* (REESE's filter: opening and closing once a bar) */
     }
     for (i = 0; i < n; i++) {
         float x[2], bp_ = beat + (float)i * inv, ph;
@@ -207,10 +213,21 @@ void ovl_process(float *l, float *r, uint32_t n, float beat, float spb)
                     for (c = 0; c < 2u; c++)
                         x[c] += ((x[c] + tap(c, 8.0f + 200.0f * ph)) * 0.6f - x[c]) * w;
                 break;
-            default:                         /* CUT */
+            default: {                       /* REESE (LOAF BREAKER, was CUT): saws at 1, 1.007, 0.993 and a sine an
+                                              * octave down, low-passed (once a bar), driven, under the mix */
+                float f = p_reese_hz / SR, s, lp, bp, hp, g = 2.0f + 10.0f * amt[k];
+                rs_ph[0] = frac(rs_ph[0] + f);
+                rs_ph[1] = frac(rs_ph[1] + f * 1.007f);
+                rs_ph[2] = frac(rs_ph[2] + f * 0.993f);
+                rs_ph[3] = frac(rs_ph[3] + f * 0.5f);
+                s = (rs_ph[0] + rs_ph[1] + rs_ph[2]) * (2.0f / 3.0f) - 1.0f;
+                svf(&rs_sv, &c_reese, s, &lp, &bp, &hp);
+                s = soft(lp * g) * (1.0f + g) / g * 0.4f + 0.3f * brk_sin_turns(rs_ph[3]);
+                s *= e * (0.5f + 0.5f * amt[k]);
                 for (c = 0; c < 2u; c++)
-                    x[c] -= x[c] * w;
+                    x[c] += s;
                 break;
+            }
             }
         }
         if (line)
