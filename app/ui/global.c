@@ -13,6 +13,8 @@ static void global_value(int i, char *t)
             text_cat(t, SKIN_NAME[set.skin % NSKINS]);
         else if (i == 1)                 /* LOAF BREAKER: K2 AUTO SAVE */
             text_cat(t, set.auto_save ? "ON" : "OFF");
+        else if (i == 2)                 /* K3 LOAF LORD (was the ARP key's K4) */
+            text_cat(t, "TURN ME");
         return;
     }
     if (ui.gpage) {                      /* the pitch: speed or keep length, the grains */
@@ -50,6 +52,9 @@ static void global_turn(int i, int32_t d)
             changed();
             app_say("AUTO SAVE", set.auto_save ? "ON" : "OFF");
             ui.redraw |= RG_BLOCKS | RG_FOOT;
+        } else if (i == 2) {             /* LOAF BREAKER: K3 LOAF LORD, the easter egg (app_frame shows it 1.5 s) */
+            ui.egg_t = plat_ms() | 1u;
+            egg_draw();
         }
         return;
     }

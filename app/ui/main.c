@@ -913,7 +913,7 @@ static void draw_foot(const brk_status_t *st)
     for (i = 0; i < 4u; i++) {
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "RESET ALL"};
         static const char *const KN_GROOVE[4] = {"SWING", "DRUMS", "", ""};
-        static const char *const KN_MORE[4] = {"SKIN", "AUTO SAVE", "", ""};   /* GLOUPI BREAKS: GLOBAL's MORE */
+        static const char *const KN_MORE[4] = {"SKIN", "AUTO SAVE", "LOAF LORD", ""};   /* GLOUPI BREAKS: GLOBAL's MORE */
         const char *name = ui.page == PG_GLOBAL && ui.gpage == 2u ? KN_MORE[i] : ui.page == PG_GLOBAL && ui.gpage
                            ? KN_PITCH[i] : ui.page == PG_MIX && ui.mpage
                            ? KN_GROOVE[i] : KN[ui.page][i];

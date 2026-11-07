@@ -13,7 +13,7 @@ static const char *const PAD_KNOB[BRK_NPADS][4] = {
     {"RATE", "FILTER", "DRUM FLT", "DECAY"}, {"RATE", "FILTER", "DRUM FLT", "DECAY"}, {"RATE", "FILTER", "DRUM FLT", "DECAY"},
     {"SPEED", 0, 0, 0}, {"LENGTH", "PITCH", 0, 0}, {"SPEED", "M. TEMPO", 0, 0}, {"STOP", "SPIN UP", "THRU", 0},
     {"RATE", "LENGTH", 0, 0}, {"AMOUNT", "PITCH", 0, 0}, {"TARGET", "RESO", "SPEED", 0},
-    {"EFFECT", "THRU", "ON / OFF", "LOAF LORD"}};   /* (LOAF BREAKER: held only; K2 what goes through the ARP
+    {"EFFECT", "THRU", "ON / OFF", "LATCH"}};   /* (LOAF BREAKER: held only; K2 what goes through the ARP
                                           * effects: the kick, the break, or both) */   /* (GLOUPI BREAKS: PAD_DUB is the ARP key) */
 static const char *const PAD_TITLE[BRK_NPADS] = {"ROLL", "ROLL", "ROLL", "REVERSE", "SUB DRIVE", "HALF SPEED",
                                                   "VINYL BREAK", "GATE", "RANDOM", "FILTER", "OVERLAY"};
@@ -156,7 +156,7 @@ static void pad_knob_value(int pad, int k, char *t)
         if (k == 0) text_cat(t, OVL_NAME[set.ovl_pad & 15u]);
         else if (k == 1) text_cat(t, THRU_NAME[(set.ovl_pad >> 6) & 3u]);
         else if (k == 2) text_cat(t, set.ovl_pad & 32u ? "OFF" : "ON");
-        else text_cat(t, "TURN ME");
+        else text_cat(t, set.ovl_pad & 16u ? "ON" : "OFF");   /* (LOAF BREAKER: K4 LATCH; LOAF LORD on MORE) */
         break;
     default: break;
     }
@@ -222,10 +222,10 @@ static void pad_knob_turn(int pad, int k, int32_t d)
             set.ovl_pad = (uint8_t)((set.ovl_pad & 0x3Fu) | thru_turn(set.ovl_pad >> 6, d) << 6);
         else if (k == 2)               /* K3: ON, the key sounds its effect; OFF, K1 browses them silent */
             set.ovl_pad = (uint8_t)(d > 0 ? set.ovl_pad & ~32u : set.ovl_pad | 32u);
-        else {
-            ui.egg_t = plat_ms() | 1u;   /* the easter egg: app_frame shows it 1.5 s */
-            egg_draw();
-            return;
+        else {                           /* LOAF BREAKER: K4 LATCH, right on (each press on or off), left off */
+            set.ovl_pad = (uint8_t)(d > 0 ? set.ovl_pad | 16u : set.ovl_pad & ~16u);
+            if (!(set.ovl_pad & 16u))
+                ovlpad_lat = 0u;         /* (latched on: off with it) */
         }
         ovl_push();
         ui.redraw |= RG_BLOCKS;
@@ -424,7 +424,8 @@ static void draw_fx_band(int pad, const brk_status_t *st, uint32_t now, int32_t 
         const char *n = OVL_NAME[set.ovl_pad & 15u];
         cv_rect(6, 30, 228, 40, on ? C_HI : C_BLOCK);
         cv_text((240 - text_w(&FONT_B, n)) / 2, 38, &FONT_B, n, on ? C_BLACK : C_GRAY);
-        cv_text(6, 78, &FONT_XS, set.ovl_pad & 32u ? "OFF (K3): K1 BROWSES, SILENT" : "ON WHILE HELD", C_DIM);
+        cv_text(6, 78, &FONT_XS, set.ovl_pad & 32u ? "OFF (K3): K1 BROWSES, SILENT"
+                                 : set.ovl_pad & 16u ? "LATCH: EACH PRESS ON OR OFF" : "ON WHILE HELD", C_DIM);
         (void)held;
         break;
     }
