@@ -38,6 +38,9 @@ static volatile kick_t p_k;
 static volatile uint32_t p_hits;         /* a count: kick_hit */
 static uint32_t hits_seen;
 static kv_t kv;
+static const float *ks_sp;               /* LOAF BREAKER: the vinyl's speed (kick_speed), 0 none */
+static float ks_ph, ks_a, ks_b, ks_last; /* its phase between two of the kick's samples, the two; the last out */
+static uint8_t ks_on;
 
 /* the factor a sample that falls 40 dB (to where a kick is heard as gone) in ms milliseconds */
 static float decay_factor(float ms) { return brk_exp2f_c(-6.644f / (ms * 0.001f * (float)BRK_SR)); }
@@ -225,11 +228,14 @@ BRK_COLD void kick_init(void)
         kv.env[i] = 0.0f;
     kv.declick = kv.last = 0.0f;
     kv.rng = 0x5eed1u;
+    ks_last = 0.0f;
+    ks_on = 0u;
     hits_seen = p_hits;
 }
 
 BRK_COLD void kick_set(const kick_t *k) { *(kick_t *)&p_k = *k; }
 void kick_hit(void) { p_hits++; }
+void kick_speed(const float *sp) { ks_sp = sp; }
 
 void kick_render(float *out, uint32_t n, const uint16_t *at, uint32_t nat)
 {
@@ -243,17 +249,35 @@ void kick_render(float *out, uint32_t n, const uint16_t *at, uint32_t nat)
                kv.env[KL_CLICK] < 3e-5f && brk_absf(kv.declick) < 1e-5f) {
         for (i = 0; i < n; i++)          /* gone quiet, nothing coming: no work */
             out[i] = 0.0f;
-        kv.last = 0.0f;
+        kv.last = ks_last = 0.0f;
+        ks_on = 0u;
         return;
     }
     kc_make(&k, &c);
+    if (ks_sp && !ks_on) {               /* the vinyl begins: from the kick as it is */
+        ks_a = ks_b = ks_last;
+        ks_ph = 0.0f;
+    }
+    ks_on = ks_sp != 0;
     for (i = 0; i < n; i++) {
         while (j < nat && at[j] <= i) {  /* the steps' kicks, on their samples */
             kv_hit(&kv);
             j++;
         }
-        out[i] = kv_tick(&kv, &c);
+        if (!ks_sp)
+            out[i] = kv_tick(&kv, &c);
+        else {                           /* the vinyl: the kick's own time runs at the speed, read between */
+            float s = ks_sp[i];
+            ks_ph += s;
+            if (ks_ph >= 1.0f) {
+                ks_ph -= 1.0f;
+                ks_a = ks_b;
+                ks_b = kv_tick(&kv, &c);
+            }
+            out[i] = (ks_a + (ks_b - ks_a) * ks_ph) * (s < 0.02f ? s * 50.0f : 1.0f);
+        }
     }
+    ks_last = out[n - 1u];
 }
 
 BRK_COLD void kick_shape(const kick_t *k, uint8_t *px, uint32_t n, uint32_t ms, uint32_t height)

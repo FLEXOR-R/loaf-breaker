@@ -144,6 +144,9 @@ void brk_pitch(float semitones);         /* -24..+24, on top of the tempo's repi
  * repitch, HALF, REVERSE's speed and the tape stop stay speed */
 void brk_pitch_mode(int keep_length, float grain_ms);
 void brk_half_master(int on);            /* GLOUPI BREAKS: HALF SPEED keeps the pitch (1, the start) or drops it */
+/* LOAF BREAKER: the VINYL BREAK pad (PAD_TAPESTOP) slows the break (1, the start), or not (0: the drums alone, the
+ * app's kick_speed / perc_speed; the status's tape still runs) */
+void brk_vinyl(int on);
 void brk_swing(float s);                 /* 0.5 straight .. 0.75 */
 /* the gate (PRD B-30): how much of each slice the loop plays sounds, 0.05..1 (1: all of it). A slice gated at g
  * fades out once it has played g of its own length (at whatever speed), so it follows the tempo and the pitch. For

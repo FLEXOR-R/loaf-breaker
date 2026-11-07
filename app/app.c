@@ -87,7 +87,9 @@ typedef struct {
                                           * the overlays), 2 KICK (the overlays on the kick alone) */
     /* (appended: LOAF BREAKER's MORE page; 0, older saves: off) */
     uint8_t auto_save;                   /* K2 AUTO SAVE: 1, a minute after a change, saved once stopped */
-    uint8_t rsv4[3];
+    uint8_t vinyl;                       /* the VINYL BREAK key's THRU (K3): 0 BOTH (older saves too), 1 BREAK, 2 KICK
+                                          * (the kick, the snare and the hat) */
+    uint8_t rsv4[2];
 } settings_t;
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");
@@ -161,6 +163,7 @@ static void settings_apply(void)
     brk_padset(&set.pads);
     brk_pitch_mode(pitch_keeps(), (float)(set.grain_ms ? set.grain_ms : 30u));
     brk_half_master(!set.half_mt_off);
+    brk_vinyl((set.vinyl & 3u) != 2u);
     brk_gate((float)(set.gate ? set.gate : 100u) * 0.01f);
     brk_snap(SNAP_SL[snap_index()]);
     kick_set(&set.kick);
@@ -647,6 +650,8 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
     static float mono[APP_BLOCK], l[APP_BLOCK], r[APP_BLOCK], echo[APP_BLOCK], verb[APP_BLOCK];
     static float kick[APP_BLOCK], perc[APP_BLOCK];
     static float kl[APP_BLOCK], kr[APP_BLOCK];   /* LOAF BREAKER: the kick through the overlays alone (THRU KICK) */
+    static float spd[APP_BLOCK], tape0 = 1.0f;   /* LOAF BREAKER: the VINYL BREAK's speed on the drums, a sample each */
+    int vin = (set.vinyl & 3u) != 1u;    /* (THRU BOTH or KICK: the drums slow too) */
     uint32_t thru = (set.ovl_pad >> 6) & 3u;   /* the ARP key's THRU: 0 BOTH, 1 BREAK, 2 KICK */
     int kick_dry = thru != 0u;           /* the kick apart from the chain (BREAK: around the overlays too) */
     float gain = muted ? 0.0f : (float)master_q12 * (1.0f / 4096.0f) * 8300000.0f;
@@ -662,6 +667,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
         uint32_t m = n < APP_BLOCK ? n : APP_BLOCK, i;
         brk_sends(echo, verb);           /* the slices' throws into the delay and the reverb */
         brk_render(mono, m);
+        brk_status(&st);
         {                                /* the MIXER's BREAK fader (eased: no zipper), on the break and its throws */
             static float lvl = 1.0f;
             float want = (float)set.brk_level * 0.01f;
@@ -702,6 +708,15 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                     who[np++] = (uint8_t)w;
                 }
             }
+            if (vin && (st.pads >> PAD_TAPESTOP & 1u))
+                nk = np = 0u;            /* the vinyl held: the drums' steps quiet, as the break's */
+            int vs = vin && (tape0 < 1.0f || st.tape < 1.0f);
+            if (vs)
+                for (i = 0; i < m; i++)  /* (the engine's ramp, this block's end; between, straight) */
+                    spd[i] = tape0 + (st.tape - tape0) * (float)(i + 1u) / (float)m;
+            tape0 = st.tape;
+            kick_speed(vs ? spd : 0);
+            perc_speed(vs ? spd : 0);
             kick_render(kick, m, ka, nk);
             brk_fx_kick_dj(kick, m, (float)set.kick_dj * 0.01f);   /* GLOUPI BREAKS: HOME's KICK FLT */
             perc_render(perc, m, pa, who, np);
@@ -711,7 +726,6 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                 for (i = 0; i < m; i++)
                     kick[i] += perc[i];
         }
-        brk_status(&st);
         /* the break through the DJ filter, the drums joining it into the chain (or around it) */
         {
             const float *drums = kick_dry ? perc : kick;   /* (the kick apart: the snare and the hat alone here) */

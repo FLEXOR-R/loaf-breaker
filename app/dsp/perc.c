@@ -131,6 +131,11 @@ BRK_COLD void perc_init(void)
 BRK_COLD void perc_set(const perc_t *p) { *(perc_t *)&p_p = *p; }
 void perc_hit(uint32_t voice) { p_hits[voice % PERC_VOICES]++; }
 
+static const float *vs_sp;               /* LOAF BREAKER: the vinyl's speed (perc_speed), as the kick's */
+static float vs_ph, vs_a, vs_b, vs_last;
+static uint8_t vs_on;
+void perc_speed(const float *sp) { vs_sp = sp; }
+
 void perc_render(float *out, uint32_t n, const uint16_t *at, const uint8_t *who, uint32_t nat)
 {
     perc_t s = *(const perc_t *)&p_p;
@@ -146,18 +151,33 @@ void perc_render(float *out, uint32_t n, const uint16_t *at, const uint8_t *who,
         brk_absf(pv[0].declick) + brk_absf(pv[1].declick) < 1e-5f) {
         for (i = 0; i < n; i++)          /* quiet, nothing coming: no work */
             out[i] = 0.0f;
-        pv[0].last = pv[1].last = 0.0f;
+        pv[0].last = pv[1].last = vs_last = 0.0f;
+        vs_on = 0u;
         return;
     }
     for (k = 0; k < PERC_VOICES; k++)
         pc_make(k, &s.v[k], s.volume, &c[k]);
+    if (vs_sp && !vs_on) {               /* the vinyl begins: from the drums as they are */
+        vs_a = vs_b = vs_last;
+        vs_ph = 0.0f;
+    }
+    vs_on = vs_sp != 0;
     for (i = 0, j = 0; i < n; i++) {
-        float y = 0.0f;
+        float y = 0.0f, f = 1.0f;
         while (j < nat && at[j] <= i) {
             for (k = 0; k < PERC_VOICES; k++)
                 if ((who[j] >> k) & 1u)
                     pv_hit(&pv[k]);
             j++;
+        }
+        if (vs_sp) {                     /* the vinyl: their own time at the speed, read between two samples */
+            f = vs_sp[i] < 0.02f ? vs_sp[i] * 50.0f : 1.0f;
+            vs_ph += vs_sp[i];
+            if (vs_ph < 1.0f) {
+                out[i] = (vs_a + (vs_b - vs_a) * vs_ph) * f;
+                continue;
+            }
+            vs_ph -= 1.0f;
         }
         for (k = 0; k < PERC_VOICES; k++) {
             pv_t *v = &pv[k];
@@ -167,8 +187,14 @@ void perc_render(float *out, uint32_t n, const uint16_t *at, const uint8_t *who,
             y += x + v->declick;
             v->declick *= 0.985f;
         }
+        if (vs_sp) {
+            vs_a = vs_b;
+            vs_b = y;
+            y = (vs_a + (vs_b - vs_a) * vs_ph) * f;
+        }
         out[i] = y;
     }
+    vs_last = out[n - 1u];
 }
 
 BRK_COLD void perc_shape(uint32_t voice, const perc_voice_t *s, uint8_t *px, uint32_t n, uint32_t ms, uint32_t height)

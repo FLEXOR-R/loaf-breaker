@@ -11,13 +11,12 @@ static int ovl_pad_on(void);
 /* what K1-K4 tune while a pad is held, by pad (brk.h PAD_*); 0: that knob does nothing for it */
 static const char *const PAD_KNOB[BRK_NPADS][4] = {
     {"RATE", "DECAY", "PITCH", "LEVEL"}, {"RATE", "DECAY", "PITCH", "LEVEL"}, {"RATE", "DECAY", "PITCH", "LEVEL"},
-    {"SPEED", 0, 0, 0}, {"LENGTH", "PITCH", 0, 0}, {"SPEED", "M. TEMPO", 0, 0}, {"STOP", "SPIN UP", 0, 0},
+    {"SPEED", 0, 0, 0}, {"LENGTH", "PITCH", 0, 0}, {"SPEED", "M. TEMPO", 0, 0}, {"STOP", "SPIN UP", "THRU", 0},
     {"RATE", "LENGTH", 0, 0}, {"AMOUNT", "PITCH", 0, 0}, {"TARGET", "RESO", "SPEED", 0},
     {"EFFECT", "THRU", "ON / OFF", "LOAF LORD"}};   /* (LOAF BREAKER: held only; K2 what goes through the ARP
                                           * effects: the kick, the break, or both) */   /* (GLOUPI BREAKS: PAD_DUB is the ARP key) */
 static const char *const PAD_TITLE[BRK_NPADS] = {"ROLL", "ROLL", "ROLL", "REVERSE", "SUB DRIVE", "HALF SPEED",
-                                                  "TAPE STOP", "GATE", "RANDOM", "FILTER", "OVERLAY"};
-static const char *const FRZ_LEN_NAME[4] = {"SLICE", "1/2", "1/4", "1/8"};
+                                                  "VINYL BREAK", "GATE", "RANDOM", "FILTER", "OVERLAY"};
 
 /* -1..1 as the DJ filter's frequency: "LP 340HZ" / "HP 1.2K" */
 static void dj_text(float dj, char *t)
@@ -61,17 +60,14 @@ static void pad_knob_value(int pad, int k, char *t)
         else pct_text((float)(p->roll_level ? p->roll_level : 100u) * 0.01f, t);
         break;
     case PAD_REVERSE: times_text(p->rev_speed, t); break;
-    case PAD_FREEZE:
-        if (k == 0) text_cat(t, FRZ_LEN_NAME[p->frz_len & 3u]);
-        else signed_tenths(p->frz_pitch, "ST", t);
-        break;
     case PAD_HALF:                       /* (GLOUPI BREAKS: K2 its master tempo) */
         if (k == 0) times_text(p->half_speed, t);
         else text_cat(t, set.half_mt_off ? "OFF" : "ON");
         break;
-    case PAD_TAPESTOP:
-        if (k == 0) { signed_tenths(p->stop_beats, " BT", t); if (t[0] == '+') t[0] = ' '; }
-        else { signed_tenths(p->spin_steps, " ST", t); if (t[0] == '+') t[0] = ' '; }
+    case PAD_TAPESTOP:                   /* (LOAF BREAKER: the VINYL BREAK; K3 its THRU, as the ARP key's) */
+        if (k == 2) { text_cat(t, THRU_NAME[set.vinyl & 3u]); break; }
+        signed_tenths(k ? p->spin_steps : p->stop_beats, k ? " ST" : " BT", t);
+        if (t[0] == '+') t[0] = ' ';
         break;
     case PAD_GATE:
         if (k == 0) text_cat(t, BRK_GATE_DIV_NAME[p->gate_div % BRK_GATE_DIVS]);
@@ -94,6 +90,13 @@ static void pad_knob_value(int pad, int k, char *t)
         break;
     default: break;
     }
+}
+
+/* THRU's knob (the ARP key's, the VINYL BREAK's): left to right KICK, BREAK, BOTH; code 0 BOTH, 1 BREAK, 2 KICK */
+static uint32_t thru_turn(uint32_t code, int32_t d)
+{
+    static const uint8_t AT[3] = {2u, 1u, 0u}, POS[4] = {2u, 1u, 0u, 0u};   /* place <-> code */
+    return AT[clamp((int32_t)POS[code & 3u] + (d > 0 ? 1 : -1), 0, 2)];
 }
 
 static void pad_knob_turn(int pad, int k, int32_t d)
@@ -119,17 +122,14 @@ static void pad_knob_turn(int pad, int k, int32_t d)
         else p->roll_level = (uint8_t)clamp((int32_t)(p->roll_level ? p->roll_level : 100u) + d * 5, 5, 100);
         break;
     case PAD_REVERSE: p->rev_speed = knob_f(p->rev_speed, d, 0.05f, 0.5f, 2.0f); break;
-    case PAD_FREEZE:
-        if (k == 0) p->frz_len = (uint8_t)clamp((int32_t)p->frz_len + d, 0, 3);
-        else p->frz_pitch = knob_f(p->frz_pitch, d, 1.0f, -12.0f, 12.0f);
-        break;
     case PAD_HALF:                       /* GLOUPI BREAKS: K2 MASTER TEMPO, right on (the pitch kept), left off */
         if (k == 0) p->half_speed = knob_f(p->half_speed, d, 0.05f, 0.25f, 0.75f);
         else set.half_mt_off = d < 0;
         break;
     case PAD_TAPESTOP:
         if (k == 0) p->stop_beats = knob_f(p->stop_beats, d, 0.25f, 0.25f, 4.0f);
-        else p->spin_steps = knob_f(p->spin_steps, d, 0.25f, 0.25f, 8.0f);
+        else if (k == 1) p->spin_steps = knob_f(p->spin_steps, d, 0.25f, 0.25f, 8.0f);
+        else set.vinyl = (uint8_t)thru_turn(set.vinyl, d);
         break;
     case PAD_GATE:
         if (k == 0) p->gate_div = (uint8_t)clamp((int32_t)p->gate_div + d, 0, BRK_GATE_DIVS - 1);
@@ -148,11 +148,8 @@ static void pad_knob_turn(int pad, int k, int32_t d)
                                           * settings: amount, rate, sweep), K2 LATCH, K4 LOAF LORD */
         if (k == 0)
             set.ovl_pad = (uint8_t)((set.ovl_pad & ~15u) | ((set.ovl_pad + (d > 0 ? 1u : 15u)) & 15u));
-        else if (k == 1) {               /* K2 THRU, left to right KICK, BREAK, BOTH (app.c's render) */
-            static const uint8_t AT[3] = {2u, 1u, 0u}, POS[4] = {2u, 1u, 0u, 0u};   /* place <-> ovl_pad's code */
-            int32_t at = clamp((int32_t)POS[(set.ovl_pad >> 6) & 3u] + (d > 0 ? 1 : -1), 0, 2);
-            set.ovl_pad = (uint8_t)((set.ovl_pad & 0x3Fu) | AT[at] << 6);
-        }
+        else if (k == 1)                 /* K2 THRU (app.c's render) */
+            set.ovl_pad = (uint8_t)((set.ovl_pad & 0x3Fu) | thru_turn(set.ovl_pad >> 6, d) << 6);
         else if (k == 2)               /* K3: ON, the key sounds its effect; OFF, K1 browses them silent */
             set.ovl_pad = (uint8_t)(d > 0 ? set.ovl_pad & ~32u : set.ovl_pad | 32u);
         else {
@@ -193,6 +190,17 @@ static void fx_ring(int32_t cx, int32_t cy, int32_t r, uint16_t c)   /* a circle
         float t = (float)a / 64.0f;
         cv_rect(cx + (int32_t)((float)r * brk_sin_turns(t + 0.25f)), cy + (int32_t)((float)r * brk_sin_turns(t)),
                 2, 2, c);
+    }
+}
+
+static void fx_disc(int32_t cx, int32_t cy, int32_t r, uint16_t c)   /* LOAF BREAKER: a filled disc */
+{
+    int32_t dy, w = r;
+    for (dy = 0; dy <= r; dy++) {
+        while (w * w + dy * dy > r * r)
+            w--;
+        cv_rect(cx - w, cy - dy, 2 * w + 1, 1, c);
+        cv_rect(cx - w, cy + dy, 2 * w + 1, 1, c);
     }
 }
 
@@ -263,21 +271,6 @@ static void draw_fx_band(int pad, const brk_status_t *st, uint32_t now, int32_t 
         }
         break;
     }
-    case PAD_FREEZE: {                   /* FREEZE: the slice iced over, its loop bracketed, a cursor going round */
-        int32_t loop = 240 >> (p->frz_len & 3u), cx;
-        fx_slice(s, 0, 240, 1.0f, C_LINE);
-        fx_slice(s, 0, 240, 1.0f, C_ICE);
-        cv_rect(0, 22, loop, 2, C_WHITE);
-        cv_rect(0, 92, loop, 2, C_WHITE);
-        cv_rect(loop - 2, 22, 2, 72, C_WHITE);
-        cx = (int32_t)(held % 700u) * loop / 700;
-        cv_rect(cx, 22, 2, 72, C_HI);
-        for (i = 0; i < 24; i++) {       /* frost: dots that twinkle */
-            uint32_t r = fx_hash((uint32_t)i * 977u + held / 180u);
-            cv_rect((int32_t)(r % 236u), 24 + (int32_t)((r >> 8) % 66u), 2, 2, (r >> 20) & 1u ? C_WHITE : C_ICE);
-        }
-        break;
-    }
     case PAD_HALF: {                     /* HALF SPEED: the break stretched, crawling */
         int32_t off = (int32_t)((float)held * 0.05f * p->half_speed);
         for (i = 0; i < 240; i++) {
@@ -288,21 +281,30 @@ static void draw_fx_band(int pad, const brk_status_t *st, uint32_t now, int32_t 
         cv_text(234 - text_w(&FONT_B, t), 0, &FONT_B, t, C_WHITE);
         break;
     }
-    case PAD_TAPESTOP: {                 /* TAPE STOP: two reels slowing to a stop, the tape between them */
-        int32_t k;
-        for (k = 0; k < 2; k++) {
-            int32_t cx = k ? 176 : 64, j;
-            fx_ring(cx, FX_MID + 2, 30, C_GRAY);
-            fx_ring(cx, FX_MID + 2, 6, C_HI);
-            for (j = 0; j < 3; j++) {    /* the spokes, turning with the tape */
-                float a = ui.reel + (float)j / 3.0f + (k ? 0.1f : 0.0f);
-                fx_line(cx, FX_MID + 2, cx + (int32_t)(27.0f * brk_sin_turns(a + 0.25f)),
-                        FX_MID + 2 + (int32_t)(27.0f * brk_sin_turns(a)), C_HI);
-            }
+    case PAD_TAPESTOP: {                 /* LOAF BREAKER: the VINYL BREAK, a record slowing to a stop under the
+                                          * tonearm (ui.reel: its turns) */
+        int32_t j, cx = 92, cy = FX_MID + 2;
+        fx_disc(cx, cy, 37, C_BLOCK);    /* the record, its grooves, its label */
+        for (j = 33; j > 13; j -= 5)
+            fx_ring(cx, cy, j, C_DIM);
+        fx_disc(cx, cy, 12, C_HI);
+        fx_disc(cx, cy, 2, C_BLACK);
+        for (j = 0; j < 2; j++) {        /* the turning: a mark across the label, a glint in the grooves */
+            float a = ui.reel + (float)j * 0.5f, sa = brk_sin_turns(a), ca = brk_sin_turns(a + 0.25f);
+            fx_line(cx + (int32_t)(4.0f * ca), cy + (int32_t)(4.0f * sa), cx + (int32_t)(11.0f * ca),
+                    cy + (int32_t)(11.0f * sa), C_BLACK);
+            cv_rect(cx + (int32_t)(29.0f * ca) - 1, cy + (int32_t)(29.0f * sa) - 1, 3, 3, C_WHITE);
         }
-        cv_rect(64, FX_MID + 32, 112, 2, C_GRAY);
+        fx_disc(162, 30, 7, C_GRAY);     /* the tonearm: its pivot and weight, the arm, the head on the groove */
+        cv_rect(160, 14, 5, 9, C_GRAY);
+        for (j = 0; j < 3; j++)
+            fx_line(161 + j, 30, 146 + j, 78, C_WHITE);
+        fx_line(146, 78, 118, 84, C_WHITE);
+        cv_rect(112, 80, 9, 7, C_WHITE);
         pct_text(st->tape, t);
-        cv_text(120 - text_w(&FONT_XS, t) / 2, 22, &FONT_XS, t, C_WHITE);
+        text_cat(t, " ");
+        text_cat(t, THRU_NAME[set.vinyl & 3u]);
+        cv_text(234 - text_w(&FONT_XS, t), 2, &FONT_XS, t, C_GRAY);
         break;
     }
     case PAD_GATE: {                     /* GATE: the bar's gates, open part lit, the one playing bright */

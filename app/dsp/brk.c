@@ -20,6 +20,7 @@ static volatile uint32_t p_pads;         /* bit PAD_*: held */
 static volatile uint32_t p_reset;        /* a count: changed = reset at the next render */
 static volatile int p_keep;              /* pitch keeps the length (granular), not the speed */
 static volatile int p_half_mt = 1;       /* GLOUPI BREAKS: HALF SPEED keeps the pitch (master tempo) */
+static volatile int p_vinyl = 1;         /* LOAF BREAKER: the VINYL BREAK pad slows the break (0: the drums alone) */
 static volatile float p_gate = 1.0f;     /* how much of each of the loop's slices sounds */
 static volatile float p_snap = 0.5f;     /* where a key pressed while playing begins: slices (0 at once) */
 static volatile float p_grain = 1323.0f; /* its grains, samples (30 ms) */
@@ -365,10 +366,10 @@ static int32_t generate(const brk_break_t *b, int32_t f)
 
 static int suppressed(void)              /* pads that own the voice: the sequencer counts on but stays quiet */
 {
+    uint32_t ts = p_vinyl ? 1u << PAD_TAPESTOP : 0u;   /* (the vinyl on the drums alone: the break plays on) */
     if (roll_arm)
-        return (pads_now & (1u << PAD_FREEZE | 1u << PAD_TAPESTOP)) != 0u;
-    return (pads_now & (1u << PAD_ROLL8 | 1u << PAD_ROLL16 | 1u << PAD_ROLL32 | 1u << PAD_FREEZE |
-                        1u << PAD_TAPESTOP)) != 0u;
+        return (pads_now & (1u << PAD_FREEZE | ts)) != 0u;
+    return (pads_now & (1u << PAD_ROLL8 | 1u << PAD_ROLL16 | 1u << PAD_ROLL32 | 1u << PAD_FREEZE | ts)) != 0u;
 }
 
 static void roll_begin(const brk_break_t *b)   /* the roll repeats the slice sounding, from its start */
@@ -534,6 +535,25 @@ static void pads_changed(const brk_break_t *b, uint32_t now, float sl)
     }
     if (off & 1u << PAD_FREEZE)
         v[0].loop = v[1].loop = 0;
+    if (on & 1u << PAD_TAPESTOP && p_vinyl) {   /* LOAF BREAKER: the vinyl slows what plays down to nothing: no gate,
+                                          * no ratchet, no slice's end (a gated, reversed or one-shot slice ended
+                                          * there: the stop cut off) */
+        rat_count = 0u;
+        if (c->active) {
+            c->gate_left = -1.0f;
+            if (c->amp_to <= 0.0f) {     /* (fading already: back) */
+                c->amp_to = 1.0f;
+                c->amp_step = 1.0f / FADE_IN;
+            }
+            c->hi = (float)b->len;
+            if (c->dir > 0.0f)
+                c->wrap = 1u;
+            else {                       /* backwards: round the whole break */
+                c->lo = 0.0f;
+                c->loop = 1u;
+            }
+        }
+    }
 }
 
 static inline float grain_at(const brk_break_t *b, float p)   /* (round the break: a loop's grains run on) */
@@ -804,7 +824,7 @@ void brk_render(float *out, uint32_t n)
                 fxp += p_ps.frz_pitch;
             fxp += key_pitch;
             pf = brk_exp2f((p_pitch + step_pitch + fxp) * (1.0f / 12.0f));
-            inc = ratio * half * tape;
+            inc = ratio * half * (p_vinyl ? tape : 1.0f);
             if (!keep) {                 /* SPEED: the pitch is the speed */
                 inc *= pf;
                 pf = 1.0f;
@@ -825,7 +845,7 @@ void brk_render(float *out, uint32_t n)
         gate_amp += (g - gate_amp) * 0.02f;
         mute_amp += ((p_mute ? 0.0f : 1.0f) - mute_amp) * 0.02f;   /* (-60 dB in 8 ms) */
         {
-            float k = (1.0f / 32768.0f) * gate_amp * mute_amp * (tape < 0.02f ? tape * 50.0f : 1.0f);
+            float k = (1.0f / 32768.0f) * gate_amp * mute_amp * (p_vinyl && tape < 0.02f ? tape * 50.0f : 1.0f);
             out[i] = acc * k;
             if (send_echo)               /* the slices' throws, for the effects' delay and reverb */
                 send_echo[i] = ea * k;
@@ -1008,6 +1028,7 @@ BRK_COLD void brk_tempo(float bpm) { p_tempo = brk_clampf(bpm, 40.0f, 300.0f); }
 float brk_get_tempo(void) { return p_tempo; }
 BRK_COLD void brk_pitch(float st) { p_pitch = brk_clampf(st, -24.0f, 24.0f); }
 BRK_COLD void brk_half_master(int on) { p_half_mt = on != 0; }
+BRK_COLD void brk_vinyl(int on) { p_vinyl = on != 0; }
 
 BRK_COLD void brk_pitch_mode(int keep_length, float grain_ms)
 {

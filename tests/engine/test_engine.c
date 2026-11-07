@@ -1877,6 +1877,67 @@ static void test_ovl(void)
     CHECK(df < 0.002f && ovl_sounding() == 0u, "OVERLAY: let go, back to the dry sound (%.4f off)", df);
 }
 
+/* LOAF BREAKER: the VINYL BREAK. A gated slice gone quiet comes back and slows (the stop no longer cuts off), and the
+ * kick at half speed has half its cycles */
+static void test_vinyl(void)
+{
+    static brk_break_t tone;
+    static float sp[BLOCK];
+    brk_padset_t ps;
+    kick_t k;
+    uint32_t i, n = 22050u, s, m, zc[2];
+    float before, after;
+    for (i = 0; i < n; i++)
+        pcm[i] = (int16_t)(12000.0f * sinf(6.2831853f * (float)i * (500.0f / 22050.0f)));
+    brk_init();
+    brk_padset_defaults(&ps);
+    brk_padset(&ps);
+    tone.pcm = pcm;
+    tone.len = n;
+    tone.rate = 22050u;
+    tone.bpm_x100 = 24000u;
+    tone.bars = 1u;
+    tone.nslices = 16u;
+    for (i = 0; i <= 16u; i++)
+        tone.slice[i] = i * n / 16u;
+    brk_set_break(&tone);
+    brk_tempo(240.0f);
+    brk_pitch(0.0f);
+    brk_gate(0.25f);
+    brk_play(1);
+    s = brk_step_len_samples();
+    render(buf, 2u * s + s / 2u, 0, 0, 0);   /* half a step in: the gated slice quiet */
+    before = render(buf, BLOCK, 0, 0, 0);
+    brk_pad(PAD_TAPESTOP, 1);
+    render(buf, BLOCK, 0, 0, 0);
+    after = render(buf, BLOCK, 0, 0, 0);
+    brk_pad(PAD_TAPESTOP, 0);
+    brk_play(0);
+    brk_gate(1.0f);
+    CHECK(before < 0.02f && after > 0.1f, "VINYL BREAK: a gated slice plays on as it slows (%.3f, then %.3f)", before,
+          after);
+    for (m = 0; m < 2u; m++) {
+        uint16_t at = 0u;
+        kick_defaults(&k);
+        k.intensity = 0.0f;
+        k.l[KL_GRIT].level = k.l[KL_CLICK].level = 0.0f;
+        kick_set(&k);
+        kick_init();
+        for (i = 0; i < BLOCK; i++)
+            sp[i] = 0.5f;
+        for (i = 0; i < 35u * BLOCK; i += BLOCK) {
+            kick_speed(m ? sp : 0);
+            kick_render(kick_buf + i, BLOCK, &at, i == 0u ? 1u : 0u);
+        }
+        kick_speed(0);
+        for (i = 1, zc[m] = 0; i < 35u * BLOCK; i++)
+            if ((kick_buf[i - 1] < 0.0f) != (kick_buf[i] < 0.0f))
+                zc[m]++;
+    }
+    CHECK(zc[1] * 10u > zc[0] * 3u && zc[1] * 10u < zc[0] * 7u, "VINYL BREAK: the kick at half speed (%u cycles, %u)",
+          zc[0], zc[1]);
+}
+
 int main(int argc, char **argv)
 {
     if (argc > 1)
@@ -1890,6 +1951,7 @@ int main(int argc, char **argv)
     test_clock();
     test_keep_length();
     test_half_master();
+    test_vinyl();
     test_gate();
     test_swap();
     test_snap();
