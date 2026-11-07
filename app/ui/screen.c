@@ -466,14 +466,12 @@ static void draw_head(const brk_status_t *st, const brk_break_t *b, uint32_t now
                 cv_text(x + 5, 10, &FONT_T, "REC", C_AMB);
         }
         tenths_text(set.tempo_x10, t);
-        cv_text(232 - text_w(&FONT_B, t), 6, &FONT_B, t, C_HI);
-        ui.meter_x = (int16_t)(228 - text_w(&FONT_B, t) - text_w(&FONT_T, "BPM") - 12);   /* left of BPM */
-        cv_text(228 - text_w(&FONT_B, t) - text_w(&FONT_T, ext_active() ? "EXT" : "BPM"), 10, &FONT_T,
+        cv_text(222 - text_w(&FONT_B, t), 6, &FONT_B, t, C_HI);   /* (LOAF BREAKER: 10 left, the battery's room) */
+        ui.meter_x = (int16_t)(218 - text_w(&FONT_B, t) - text_w(&FONT_T, "BPM") - 12);   /* left of BPM */
+        cv_text(218 - text_w(&FONT_B, t) - text_w(&FONT_T, ext_active() ? "EXT" : "BPM"), 10, &FONT_T,
                 ext_active() ? "EXT" : "BPM", ext_active() ? C_AMB : C_GRAY);
     }
-    /* LOAF BREAKER: the battery, as CHOPPAH 1.0 draws it, always: left of the level meter, or at the right end while
-     * a message hides the tempo */
-    draw_batt(now < ui.msg_until || !ui.meter_x ? 229 : ui.meter_x - 12, plat_battery());
+    draw_batt(229, plat_battery());      /* LOAF BREAKER: the battery (CHOPPAH 1.0's), always at the right end */
     cv_rect(0, 27, 240, 1, C_LINE);
     cv_blit(0, 0);
 }
