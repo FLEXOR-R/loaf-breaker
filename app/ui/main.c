@@ -201,6 +201,9 @@ static void slices_let_go(uint32_t keys)
             brk_key((int)i, 0);
 }
 
+static uint32_t seq_t;                   /* LOAF BREAKER: SEQ pressed: when, and waiting (1, 3: and the next lane)
+                                          * for its release */
+static uint8_t seq_wait;
 static uint32_t rec_t;                   /* LOAF BREAKER: REC pressed on SEQ: when, and waiting for its release */
 static uint8_t rec_wait;
 static void rec_toggle(void)
@@ -377,15 +380,30 @@ static void input(void)
             page_say();
         }
     }
-    if (bdn & 1u << B_SEQ) {             /* SEQ: the pattern's steps and lanes; again, the next lane */
+    if (bdn & 1u << B_SEQ) {             /* SEQ: the pattern's steps and lanes; again, the next lane (LOAF BREAKER:
+                                          * at its release; held 0.7 s, anywhere: the whole pattern cleared) */
+        seq_t = now;
+        seq_wait = (uint8_t)(ui.page == PG_SEQ ? 3u : 1u);
         if (ui.page != PG_SEQ) {
             slices_let_go(keys);
             ui.seq_lane = SL_KICK;       /* LOAF BREAKER: back on SEQ from another page, always K1 */
-        } else
-            seq_lane_step(1);
-        ui.page = PG_SEQ;
-        ui.redraw |= RG_FOOT | RG_BLOCKS;
-        page_say();
+            ui.page = PG_SEQ;
+            ui.redraw |= RG_FOOT | RG_BLOCKS;
+            page_say();
+        }
+    }
+    if (seq_wait) {
+        if (!(btn & 1u << B_SEQ)) {      /* let go: on SEQ already, the next lane */
+            if (seq_wait & 2u) {
+                seq_lane_step(1);
+                ui.redraw |= RG_FOOT | RG_BLOCKS;
+                page_say();
+            }
+            seq_wait = 0u;
+        } else if (now - seq_t >= 700u) {   /* held: the pattern playing, all of it (SEL + SAVE takes it back) */
+            seq_wait = 0u;
+            seq_clear(0);
+        }
     }
     if (bdn & 1u << B_REC && btn & 1u << B_SEL) {   /* SEL + REC: clear (on SEQ its lane; else the pattern) */
         seq_clear(ui.page == PG_SEQ);
