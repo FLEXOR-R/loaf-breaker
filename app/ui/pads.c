@@ -27,8 +27,7 @@ static void dj_text(float dj, char *t)
 }
 
 /* LOAF BREAKER: HOME's two filters, K2 the break's and K3 the drums' (SEQ's K2 and the roll pads' the same), work
- * alike: from OFF at the centre, right is each one's own (the break's low-pass, the drums' high-pass, as they were),
- * left the other kind; away from OFF 2 % a detent, the first already heard; back towards OFF 5 % a detent (out faster
+ * alike: from OFF at the centre, left a low-pass, right a high-pass; away from OFF 2 % a detent, the first already heard; back towards OFF 5 % a detent (out faster
  * than in), OFF once past the first. Back at OFF it holds: turning on the same way stays OFF until the knob rests half a
  * second (no sliding into the other kind); the other way, at once. u: + right of OFF, - left; s_right, s_left: the
  * first detent's place; lk: that knob's hold */
@@ -83,8 +82,8 @@ static void kick_flt_turn(int32_t d)
     app_say("DRUM FILTER", t);
 }
 
-/* the break's (set.fx.dj, -1 low-pass .. 1 high-pass): right the low-pass from 7.6 kHz, left the high-pass from
- * 110 Hz */
+/* the break's (set.fx.dj, -1 low-pass .. 1 high-pass): left the low-pass from 7.6 kHz, right the high-pass from
+ * 110 Hz (as the drums': low-pass left, high-pass right) */
 static void brk_flt_text(char *t)
 {
     if (set.fx.dj < -0.01f || set.fx.dj > 0.01f)
@@ -98,7 +97,7 @@ static void brk_flt_text(char *t)
 static void brk_flt_turn(int32_t d)
 {
     char t[16];
-    set.fx.dj = -flt_turn(-set.fx.dj, d, 0.16f, 0.3f, &lock_brk);
+    set.fx.dj = flt_turn(set.fx.dj, d, 0.3f, 0.16f, &lock_brk);   /* (left the low-pass, right the high-pass) */
     changed();
     brk_flt_text(t);
     app_say("DJ FILTER", t);
