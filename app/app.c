@@ -90,10 +90,12 @@ typedef struct {
     uint8_t auto_save;                   /* K2 AUTO SAVE: 1, a minute after a change, saved once stopped */
     uint8_t vinyl;                       /* the VINYL BREAK key's THRU (K3): 0 BOTH (older saves too), 1 BREAK, 2 KICK
                                           * (the kick, the snare and the hat) */
-    uint8_t kslot;                       /* the kick memory playing, 0..5 (KICK 1..6): set.kick is it */
+    uint8_t kslot;                       /* the kick memory playing, 0..9 (KICK 1..10): set.kick is it */
     uint8_t rsv4[1];
-    /* (appended: LOAF BREAKER's kick memories; an older save's: the built-in kicks, its own kick KICK 1) */
-    kick_t kmem[KICK_PRESETS];           /* KICK 1..6, each as left (PRESETS turns through them, nothing lost) */
+    /* (appended: LOAF BREAKER's kick memories; an older save's: the built-in kicks, its own kick KICK 1; one of six
+     * kept them, KICK 7..10 begin anew) */
+#define KICK_MEMS 10u
+    kick_t kmem[KICK_MEMS];              /* KICK 1..10, each as left (PRESETS on KICK, SELECT on SEQ: nothing lost) */
 } settings_t;
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");
@@ -127,8 +129,9 @@ static void settings_defaults(void)
         brk_slicefx_defaults(&set.slx[k]);
     }
     kick_defaults(&set.kick);
-    for (k = 0; k < KICK_PRESETS; k++) { /* LOAF BREAKER: the kick memories begin as the built-in kicks */
-        kick_preset(&set.kmem[k], k);
+    for (k = 0; k < KICK_MEMS; k++) {    /* LOAF BREAKER: the kick memories begin as the built-in kicks (7..10: the
+                                          * first four again) */
+        kick_preset(&set.kmem[k], k % KICK_PRESETS);
         set.kmem[k].volume = set.kick.volume;
     }
     set.kslot = 3u;                      /* (ROTTERDAM's, set.kick's) */

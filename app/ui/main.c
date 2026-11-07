@@ -487,7 +487,9 @@ static void input(void)
             ui.fx_turned = 1u;           /* (FX + a knob: not the next slot) */
         if (!(btn & 1u << B_SEL))
             ui.help = 0u;                /* (a knob closes the card) */
-        if (k == EN_SELECT && ext_active()) {
+        if (k == EN_SELECT && ui.page == PG_SEQ)
+            kick_mem_turn(d);            /* LOAF BREAKER: on SEQ, SELECT picks the kick (the tempo: any other page) */
+        else if (k == EN_SELECT && ext_active()) {
             app_say("TEMPO", "EXT CLOCK");   /* the outside clock has the tempo */
         } else if (k == EN_SELECT) {     /* tempo: 1 BPM a detent, 0.1 with SEL held */
             set.tempo_x10 = (uint16_t)clamp((int32_t)set.tempo_x10 + d * (btn & 1u << B_SEL ? 1 : 10), 400, 3000);
@@ -531,20 +533,9 @@ static void input(void)
             app_say(PERC_VOICE_NAME[ui.pvoice % PERC_VOICES], PERC_PRESET_NAME[ui.pvoice % PERC_VOICES][*pr]);
             ui.redraw |= RG_BLOCKS | RG_FOOT;
             changed();
-        } else if (k == EN_PRESET && ui.page == PG_KICK) {   /* LOAF BREAKER: the kick memories, KICK 1..6: the one
-                                          * playing kept as it is, the next as it was left (the volume kept) */
-            float vol = set.kick.volume;
-            char t[4] = {0, 0, 0, 0};
-            set.kmem[set.kslot % KICK_PRESETS] = set.kick;
-            set.kslot = (uint8_t)((set.kslot % KICK_PRESETS + (d > 0 ? 1u : KICK_PRESETS - 1u)) % KICK_PRESETS);
-            set.kick = set.kmem[set.kslot];
-            set.kick.volume = vol;
-            t[0] = (char)('1' + set.kslot);
-            app_say("KICK", t);
-            ui.redraw |= RG_BLOCKS | RG_FOOT;
-            changed();
-        }
-        else if (k == EN_PRESET)
+        } else if (k == EN_PRESET && ui.page == PG_KICK) {   /* LOAF BREAKER: the kick memories (SEQ's SELECT too) */
+            kick_mem_turn(d);
+        } else if (k == EN_PRESET)
             pattern_pick(d);             /* elsewhere: the pattern */
         else if (key_tuned() >= 0)       /* a white key held: K1-K4 tune its loop */
             key_knob_turn(key_tuned(), k - EN_K1, d);

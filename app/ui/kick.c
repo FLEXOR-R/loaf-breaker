@@ -5,6 +5,22 @@
 /* ---- the KICK page (PRD K-*): EDIT opens it, EDIT again the next sub-page. The white keys are the kick's 16
  * steps, ALGORITHM the layer, PRESETS the built-in kicks, SEL + EDIT through the FX chain or around it */
 enum { KP_MIX, KP_LAYER, KP_FX, KP_MACRO, KP_OUT, KPAGES };
+
+/* LOAF BREAKER: the kick memories, KICK 1..10 (KICK's PRESETS, SEQ's SELECT): the one playing kept as it is, the next
+ * as it was left (the volume kept) */
+static void kick_mem_turn(int32_t d)
+{
+    float vol = set.kick.volume;
+    char t[4];
+    set.kmem[set.kslot % KICK_MEMS] = set.kick;
+    set.kslot = (uint8_t)((set.kslot % KICK_MEMS + (d > 0 ? 1u : KICK_MEMS - 1u)) % KICK_MEMS);
+    set.kick = set.kmem[set.kslot];
+    set.kick.volume = vol;
+    int_text((int32_t)set.kslot + 1, t);
+    app_say("KICK", t);
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+    changed();
+}
 static const char *const KPAGE_NAME[KPAGES] = {"MIX", "LAYER", "LAYER FX", "MACRO", "OUT"};
 /* the kick's parts in a row, as ALGORITHM turns through them: MIX, SUB, SUB FX, PUNCH, PUNCH FX, GRIT, GRIT FX,
  * CLICK, CLICK FX, MACRO, OUT (each a sub-page, and for a layer its layer) */
