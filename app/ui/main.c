@@ -618,7 +618,7 @@ static void input(void)
             changed();
             continue;
         }
-        if (k == EN_K2 && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K2, on any page: LIMIT, the whole mix louder,
+        if (k == EN_K3 && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K3, on any page: LIMIT, the whole mix louder,
                                           * never over (+0.18 dB in a step) */
             char t[12];
             set.limit = (uint8_t)clamp((int32_t)set.limit + d * 2, 0, 100);
@@ -632,9 +632,9 @@ static void input(void)
             changed();
             continue;
         }
-        if ((k == EN_K3 || k == EN_K4) && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K4 TERROR, SEL + K3 TERROR 2,
+        if ((k == EN_K2 || k == EN_K4) && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K4 TERROR, SEL + K2 TERROR 2,
                                           * on any page (EDIT's OUT K2, K3) */
-            int hi = k == EN_K3 ? 2 : 1;
+            int hi = k == EN_K2 ? 2 : 1;
             uint8_t *p = kick_hc(&set.kick, hi);
             char t[8];
             *p = (uint8_t)clamp((int32_t)*p + d * 2, 0, 100);
@@ -924,8 +924,8 @@ static void page_say(void)
 static void draw_help(void)
 {
     static const char *const L[8][2] = {{"SEL X3", "BUILD / DROP"}, {"+ SELECT", "KICK 1-10"}, {"+ K1", "DUCK"},
-                                        {"+ K3", "TERROR 2"}, {"+ K4", "TERROR"}, {"+ ALGO", "BREAK"},
-                                        {"+ PRESETS", "PATTERN"}, {"+ K2", "LIMIT"}};   /* (LOAF BREAKER: the
+                                        {"+ K2", "TERROR 2"}, {"+ K4", "TERROR"}, {"+ ALGO", "BREAK"},
+                                        {"+ PRESETS", "PATTERN"}, {"+ K3", "LIMIT"}};   /* (LOAF BREAKER: the
                                           * live ones) */
     uint32_t i, band;
     for (band = 0; band < 2u; band++) {

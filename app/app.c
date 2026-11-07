@@ -110,7 +110,7 @@ typedef struct {
                                           * MORE's K4) */
     perc_voice_t pmem[PERC_VOICES][PERC_MEMS];   /* each as left (PRESETS on EDIT, SELECT on its SEQ lane) */
     /* (appended: LOAF BREAKER's LIMIT; an older save's: off) */
-    uint8_t limit;                       /* SEL + K2: the mix driven into a limiter, 0 off .. 100 (+18 dB in) */
+    uint8_t limit;                       /* SEL + K3: the mix driven into a limiter, 0 off .. 100 (+18 dB in) */
     uint8_t rsv6[3];
 } settings_t;
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
