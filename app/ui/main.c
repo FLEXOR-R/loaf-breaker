@@ -380,7 +380,9 @@ static void input(void)
             page_say();
         }
     }
-    if (bdn & 1u << B_SEQ) {             /* SEQ: the pattern's steps and lanes; again, the next lane (LOAF BREAKER:
+    if (bdn & 1u << B_SEQ && btn & 1u << B_SEL)   /* LOAF BREAKER: SEL + SEQ: copy the pattern; on another: paste */
+        pat_copy_paste();
+    else if (bdn & 1u << B_SEQ) {        /* SEQ: the pattern's steps and lanes; again, the next lane (LOAF BREAKER:
                                           * at its release; held 0.7 s, anywhere: the whole pattern cleared) */
         seq_t = now;
         seq_wait = (uint8_t)(ui.page == PG_SEQ ? 3u : 1u);

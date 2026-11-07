@@ -97,6 +97,36 @@ static void undo_swap(void)
     app_say("UNDO", n);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
+/* LOAF BREAKER: SEL + SEQ copies the pattern playing; SEL + SEQ on another pattern pastes it there (all of it: the
+ * break's steps, every drum and its length), once (SEL + SAVE takes it back) */
+static pat_t clip_pat;
+static int8_t clip_from = -1;            /* the pattern copied, -1 none */
+static void pat_copy_paste(void)
+{
+    char t[16] = "P";
+    uint32_t cur = set.pattern % NPAT;
+    if (clip_from < 0 || (uint32_t)clip_from == cur) {
+        clip_pat = pats.p[cur];
+        clip_from = (int8_t)cur;
+        int_text((int32_t)cur + 1, t + 1);
+        app_say("COPIED", t);
+        return;
+    }
+    undo_mark(UNDO_CLEAR);
+    pats.p[cur] = clip_pat;
+    pat_apply();
+    set_dirty = 1u;
+    {
+        char u[4];
+        int_text(clip_from + 1, t + 1);
+        int_text((int32_t)cur + 1, u);
+        text_cat(t, " > P");
+        text_cat(t, u);
+    }
+    clip_from = -1;
+    app_say("PASTED", t);
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
 static uint32_t pat_len(void)            /* the steps the engine plays of a pattern: the break's (2 bars: 32) */
 {
     const brk_break_t *b = brk_get_break();
