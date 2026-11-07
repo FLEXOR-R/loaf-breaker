@@ -101,6 +101,12 @@ typedef struct {
     kick_t kmem[KICK_MEMS];              /* KICK 1..10, each as left (PRESETS on KICK, SELECT on SEQ: nothing lost) */
     /* (appended: LOAF BREAKER's drums; an older save's: their first presets) */
     perc_voice_t pmore[PERC_VOICES - 2u];   /* the CLAP's sound (PV_CLAP) */
+    /* (appended: LOAF BREAKER's snare, hat and clap memories, as the kick's; an older save's: their presets, its own
+     * sound each one's first) */
+#define PERC_MEMS 10u
+    uint8_t pslot[PERC_VOICES];          /* the memory playing, PV_* 0..9 (SNARE 1..10...): perc_voice() is it */
+    uint8_t rsv5[1];
+    perc_voice_t pmem[PERC_VOICES][PERC_MEMS];   /* each as left (PRESETS on EDIT, SELECT on its SEQ lane) */
 } settings_t;
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");
@@ -154,6 +160,8 @@ static void settings_defaults(void)
         set.perc.volume = d.volume;
         for (k = 2u; k < PERC_VOICES; k++)
             set.pmore[k - 2u] = d.v[k];
+        for (k = 0; k < PERC_VOICES * PERC_MEMS; k++)   /* (the memories begin as the presets, again and again) */
+            perc_preset(&set.pmem[k / PERC_MEMS][k % PERC_MEMS], k / PERC_MEMS, k % PERC_MEMS % PERC_PRESETS);
     }
     for (k = 0; k < 16u; k++)            /* the overlays: full, the sweeps and the dirt a little less */
         set.ovl_amt[k] = k == OV_DIVE || k == OV_RISE || k == OV_CRUSH || k == OV_DIST || k == OV_BOOM ? 70u : 100u;

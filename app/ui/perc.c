@@ -3,9 +3,26 @@
 
 /* ---- the SNARE / HAT page (ENV): ALGORITHM the voice, ENV again SOUND or SHAPE, PRESETS its presets */
 static const char *const PERC_KNOB[PERC_VOICES][2][4] = {
-    {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SNAP", "DRIVE", "", ""}},
-    {{"LEVEL", "TUNE", "DECAY", "METAL/NZ"}, {"CUT", "DRIVE", "", ""}},
-    {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SPREAD", "DRIVE", "", ""}}};   /* (LOAF BREAKER: the clap's) */
+    {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SNAP", "DRIVE", "PRESET", ""}},
+    {{"LEVEL", "TUNE", "DECAY", "METAL/NZ"}, {"CUT", "DRIVE", "PRESET", ""}},
+    {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SPREAD", "DRIVE", "PRESET", ""}}};   /* (LOAF BREAKER: the clap's; SHAPE's K3
+                                          * PRESET, the memory back to a built-in sound) */
+
+/* LOAF BREAKER: the snare's, the hat's and the clap's memories, as the kick's (kick_mem_turn): SNARE 1..10, the one
+ * playing kept as it is, the next as it was left (PRESETS on EDIT, SELECT on the drum's SEQ lane) */
+static void perc_mem_turn(uint32_t v, int32_t d)
+{
+    uint8_t *s = &set.pslot[v % PERC_VOICES];
+    char t[4];
+    v %= PERC_VOICES;
+    set.pmem[v][*s % PERC_MEMS] = *perc_voice(v);
+    *s = (uint8_t)((*s % PERC_MEMS + (d > 0 ? 1u : PERC_MEMS - 1u)) % PERC_MEMS);
+    *perc_voice(v) = set.pmem[v][*s];
+    int_text((int32_t)*s + 1, t);
+    app_say(PERC_VOICE_NAME[v], t);
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+    changed();
+}
 static float *perc_param(int i)
 {
     perc_voice_t *v = perc_voice(ui.pvoice);
@@ -17,6 +34,10 @@ static void perc_value(int i, char *t)
 {
     float *p = perc_param(i);
     t[0] = 0;
+    if (ui.ppage && i == 2) {            /* PRESET: the built-in sound it last put back */
+        text_cat(t, PERC_PRESET_NAME[ui.pvoice % PERC_VOICES][ui.ppreset[ui.pvoice % PERC_VOICES] % PERC_PRESETS]);
+        return;
+    }
     if (!p)
         return;
     if (!ui.ppage && i == 1)
@@ -31,6 +52,16 @@ static void perc_turn(int i, int32_t d)
 {
     float *p = perc_param(i);
     char t[12];
+    if (ui.ppage && i == 2) {            /* PRESET: the memory back to a built-in sound, by name (no undo) */
+        uint8_t *pr = &ui.ppreset[ui.pvoice % PERC_VOICES];
+        *pr = (uint8_t)((*pr + (d > 0 ? 1u : PERC_PRESETS - 1u)) % PERC_PRESETS);
+        perc_preset(perc_voice(ui.pvoice), ui.pvoice, *pr);
+        perc_value(i, t);
+        app_say("PRESET", t);
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        changed();
+        return;
+    }
     if (!p)
         return;
     *p = knob_f(*p, d, 0.02f, 0.0f, 1.0f);
@@ -50,6 +81,12 @@ static void draw_perc(const brk_status_t *st)
     cv_begin(240, 52, C_BLACK);
     t[0] = 0;
     text_cat(t, PERC_VOICE_NAME[ui.pvoice % PERC_VOICES]);
+    {                                    /* (LOAF BREAKER: its memory, "CLAP 3") */
+        char u[4];
+        int_text((int32_t)set.pslot[ui.pvoice % PERC_VOICES] + 1, u);
+        text_cat(t, " ");
+        text_cat(t, u);
+    }
     text_cat(t, ui.ppage ? "  SHAPE" : "  SOUND");
     cv_text(6, 0, &FONT_XS, t, C_GRAY);
     for (i = 0; i < 6u; i++) {

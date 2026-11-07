@@ -489,8 +489,14 @@ static void input(void)
             ui.fx_turned = 1u;           /* (FX + a knob: not the next slot) */
         if (!(btn & 1u << B_SEL))
             ui.help = 0u;                /* (a knob closes the card) */
-        if (k == EN_SELECT && ui.page == PG_SEQ)
-            kick_mem_turn(d);            /* LOAF BREAKER: on SEQ, SELECT picks the kick (the tempo: any other page) */
+        if (k == EN_SELECT && ui.page == PG_SEQ) {   /* LOAF BREAKER: on SEQ, SELECT picks the drum's memory (the
+                                          * lane's: a snare, hat or clap lane its own, else the kick); the tempo on
+                                          * any other page */
+            if (ui.seq_lane >= SL_KICK && sl_drum(ui.seq_lane) != DR_KICK)
+                perc_mem_turn(sl_drum(ui.seq_lane) - 1u, d);
+            else
+                kick_mem_turn(d);
+        }
         else if (k == EN_SELECT && ext_active()) {
             app_say("TEMPO", "EXT CLOCK");   /* the outside clock has the tempo */
         } else if (k == EN_SELECT) {     /* tempo: 1 BPM a detent, 0.1 with SEL held */
@@ -528,14 +534,9 @@ static void input(void)
             pattern_pick(d);             /* SEL held: the pattern, on any page */
         else if (k == EN_PRESET && ui.page == PG_FX)
             fx_type_turn(d);             /* the focused slot's effect */
-        else if (k == EN_PRESET && ui.page == PG_PERC) {   /* a built-in snare or hat */
-            uint8_t *pr = &ui.ppreset[ui.pvoice % PERC_VOICES];
-            *pr = (uint8_t)((*pr + (d > 0 ? 1u : PERC_PRESETS - 1u)) % PERC_PRESETS);
-            perc_preset(perc_voice(ui.pvoice), ui.pvoice, *pr);
-            app_say(PERC_VOICE_NAME[ui.pvoice % PERC_VOICES], PERC_PRESET_NAME[ui.pvoice % PERC_VOICES][*pr]);
-            ui.redraw |= RG_BLOCKS | RG_FOOT;
-            changed();
-        } else if (k == EN_PRESET && ui.page == PG_KICK) {   /* LOAF BREAKER: the kick memories (SEQ's SELECT too) */
+        else if (k == EN_PRESET && ui.page == PG_PERC)   /* LOAF BREAKER: the snare's, hat's or clap's memories */
+            perc_mem_turn(ui.pvoice, d);
+        else if (k == EN_PRESET && ui.page == PG_KICK) {   /* LOAF BREAKER: the kick memories (SEQ's SELECT too) */
             kick_mem_turn(d);
         } else if (k == EN_PRESET)
             pattern_pick(d);             /* elsewhere: the pattern */
