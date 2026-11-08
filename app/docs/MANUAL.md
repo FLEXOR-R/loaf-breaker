@@ -112,7 +112,7 @@ back. That touch only ends the demo: it doesn't play a slice or start the break.
   EQ BANDS, EQ SHAPE (its EQ), FX 1, FX 2 (its two FX slots), TERROR, TERROR + (DRIVE, TYPE, SCREECH, TAIL), TERROR 2.
   The TERRORs' settings are the kick's own: they go with its memory.
 - **LFO** (the MIXER): LEVELS, GROOVE, MASTER (K1 COMP, K2 its RATIO, K3 DUCK, K4 MAX OUT; COMP's reduction metered).
-- **ENV**: the track and the live. TRACKS, PLAY, DROP, KNOB (what SEL + each knob does).
+- **ENV**: the track and the live. TRACKS, PLAY, DROP, BUILD, KNOB (what SEL + each knob does), RESET.
 - **GLO**: MIDI, PITCH, MORE (SKIN, AUTO SAVE).
 
 ### The CDJ view (HOME)
@@ -149,6 +149,9 @@ metronome and tap tempo are gone).
   RANDOM (each build picks one). **K2 SWEEP**: HIGH-PASS (as ever), LOW-PASS (closing down to ~400 Hz), NONE, RANDOM.
   **K3 RISER**: the rising noise, OFF to 200 % (100 %: as it was). **K4 GAP**: silence just before the drop (none, a
   16th, an 8th, a beat, half a bar), so the drop hits out of nothing.
+- **RESET** (ENV's last part): puts a part back as it starts. **K1** picks what (DROP, BUILD, KNOB for now: each
+  says on the right what it puts back), **K4** turned right twice within 3 s resets it (once only arms it: "TURN K4
+  AGAIN TO RESET").
 - **KNOB**: what SEL + each knob does, on any page. **ALGORITHM** (or white keys 1–4) picks the knob, **PRESETS**
   gives it its function: DUCK, TERROR 2, COMP, TERROR, T+ DRIVE, T+ TYPE, T+ SCREECH, T+ TAIL (TERROR +'s settings, one
   each) or DRIVE (the kick's INTENSITY). They start as K1 DUCK, K2 TERROR 2, K3 COMP, K4 TERROR. K1–K4 then set the

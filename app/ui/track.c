@@ -7,8 +7,39 @@
  * there in order.) */
 
 static void page_say(void);
-static const char *const TPART[5] = {"TRACKS", "PLAY", "DROP", "KNOB", "BUILD"};
-static const uint8_t TORDER[5] = {0u, 1u, 2u, 4u, 3u};   /* (ENV's parts in order: BUILD after DROP) */
+#define NTPART 6u
+static const char *const TPART[NTPART] = {"TRACKS", "PLAY", "DROP", "KNOB", "BUILD", "RESET"};
+static const uint8_t TORDER[NTPART] = {0u, 1u, 2u, 4u, 3u, 5u};   /* (ENV's parts in order: BUILD after DROP, RESET last) */
+/* RESET (ENV's last part): K1 what (a list: more to come), K4 turned right twice within 3 s: back to the start */
+enum { RST_DROP, RST_BUILD, RST_KNOB, NRST };
+static const char *const RST_NAME[NRST] = {"DROP", "BUILD", "KNOB"};
+static const char *const RST_WHAT[NRST] = {"BUILD 4 BARS, NEXT PATTERN, SAME BREAK, CRASH 100%",
+                                          "SNARE ROLL, HIGH-PASS, RISER 100%, NO GAP",
+                                          "THE FOUR KNOBS AS AT FIRST, DUCK AND COMP OFF"};
+static void reset_do(uint32_t w)
+{
+    if (w == RST_DROP) {
+        set.drop_bars = 3u;
+        set.drop_after = 0u;
+        set.drop_brk = 0u;
+        set.drop_crash = 100u;
+    } else if (w == RST_BUILD) {
+        set.drop_style = DS_SNARE;
+        set.drop_sweep = 0u;
+        set.drop_riser = 50u;
+        set.drop_gap = 0u;
+    } else {                             /* KNOB: the knobs' functions, DUCK's and COMP's settings */
+        set.selk_asg = set.selk_asg2 = 0u;
+        set.duck = set.comp = 0u;
+        set.duck_att = 19u;
+        set.duck_rel = 36u;
+        set.duck_what = 0u;
+        set.comp_ratio = 3u;
+        set.comp_att = 59u;
+        set.comp_rel = 55u;
+    }
+    changed();
+}
 static const char *const DS_NAME[DS_N] = {"SNARE ROLL", "KICK ROLL", "KICK+SNARE", "STUTTER", "SWEEP ONLY", "RANDOM"};
 static const char *const SWEEP_NAME[4] = {"HIGH-PASS", "LOW-PASS", "NONE", "RANDOM"};
 static uint32_t drop_rng = 0x2545F491u;
@@ -420,6 +451,13 @@ static void track_value(int i, char *t)
     const track_t *tr = trk_now();
     char r[6];
     t[0] = 0;
+    if (ui.tpage == 5u) {                /* RESET: what, and K4's state */
+        if (i == 0)
+            text_cat(t, RST_NAME[ui.rst_sel % NRST]);
+        else if (i == 3)
+            text_cat(t, ui.rst_arm && plat_ms() - ui.rst_arm < 3000u ? "AGAIN!" : "TURN >");
+        return;
+    }
     if (ui.tpage == 4u) {                /* BUILD: its style, its filter, its noise, the gap before the drop */
         if (i == 0)
             text_cat(t, DS_NAME[set.drop_style % DS_N]);
@@ -495,12 +533,12 @@ static void track_value(int i, char *t)
 }
 static void track_say(int i)             /* the knob turned, on the strip */
 {
-    static const char *const N[5][4] = {{"ITEM", "PUT", "LOOPS", "AT THE END"}, {"PLAY", "FROM ITEM", "AT THE END", ""},
+    static const char *const N[NTPART][4] = {{"ITEM", "PUT", "LOOPS", "AT THE END"}, {"PLAY", "FROM ITEM", "AT THE END", ""},
                                         {"BUILD", "AFTER DROP", "DROP BREAK", "CRASH"}, {"", "", "", ""},
-                                        {"BUILD STYLE", "SWEEP", "RISER", "GAP"}};
+                                        {"BUILD STYLE", "SWEEP", "RISER", "GAP"}, {"RESET", "", "", "RESET"}};
     char t[20];
     track_value(i, t);
-    app_say(N[ui.tpage % 5u][i & 3], t);
+    app_say(N[ui.tpage % NTPART][i & 3], t);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
 static void track_turn(int i, int32_t d)
@@ -508,6 +546,25 @@ static void track_turn(int i, int32_t d)
     track_t *t = trk_now();
     uint32_t c = ui.trk_cur % TRK_ITEMS;
     int dir = d > 0 ? 1 : -1;
+    if (ui.tpage == 5u) {                /* RESET: K1 what, K4 right twice: done */
+        uint32_t now = plat_ms();
+        if (i == 0) {
+            ui.rst_sel = (uint8_t)clamp((int32_t)ui.rst_sel + dir, 0, NRST - 1);
+            ui.rst_arm = 0u;
+            app_say("RESET", RST_NAME[ui.rst_sel % NRST]);
+        } else if (i == 3 && d > 0) {
+            if (ui.rst_arm && now - ui.rst_arm < 3000u) {
+                reset_do(ui.rst_sel % NRST);
+                ui.rst_arm = 0u;
+                app_say(RST_NAME[ui.rst_sel % NRST], "RESET: DONE");
+            } else {
+                ui.rst_arm = now | 1u;
+                app_say(RST_NAME[ui.rst_sel % NRST], "K4 AGAIN: RESET");
+            }
+        }
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        return;
+    }
     if (ui.tpage == 4u) {                /* BUILD */
         if (i == 0)
             set.drop_style = (uint8_t)clamp((int32_t)set.drop_style + dir, 0, DS_N - 1);
@@ -666,6 +723,42 @@ static void track_picture(int32_t top)
     uint32_t i, n = trk_len(t);
     char s[20], r[8];
     cv_oy = -top;
+    if (ui.tpage == 5u) {                /* RESET: the list (K1), what it puts back, K4 */
+        uint32_t w = ui.rst_sel % NRST;
+        int arm = ui.rst_arm && plat_ms() - ui.rst_arm < 3000u;
+        for (i = 0; i < NRST; i++) {
+            int32_t y = 6 + (int32_t)i * 20;
+            cv_rect(6, y, 108, 17, i == w ? C_HI : C_BLOCK);
+            cv_text(12, y + 2, &FONT_T, RST_NAME[i], i == w ? C_BLACK : C_GRAY);
+        }
+        cv_text(124, 8, &FONT_XS, "BACK TO THE START:", C_GRAY);
+        {                                /* (what it puts back, in lines of ~18) */
+            const char *p = RST_WHAT[w];
+            int32_t y = 22;
+            while (*p && y < 100) {
+                char line[20];
+                uint32_t n = 0u, cut = 0u;
+                while (p[n] && n < 18u) {
+                    if (p[n] == ' ')
+                        cut = n;
+                    n++;
+                }
+                if (p[n] && cut)
+                    n = cut;
+                memcpy(line, p, n);
+                line[n] = 0;
+                cv_text(124, y, &FONT_XS, line, C_WHITE);
+                p += n;
+                while (*p == ' ' || *p == ',')
+                    p++;
+                y += 12;
+            }
+        }
+        cv_rect(6, 104, 228, 24, arm ? C_HI : C_BLOCK);
+        cv_text(12, 110, &FONT_T, arm ? "TURN K4 AGAIN TO RESET" : "K4 RIGHT, TWICE: RESET", arm ? C_BLACK : C_GRAY);
+        cv_oy = 0;
+        return;
+    }
     if (ui.tpage == 4u) {                /* BUILD: its four settings, large */
         static const char *const N[4] = {"BUILD STYLE", "SWEEP", "RISER", "GAP BEFORE THE DROP"};
         for (i = 0; i < 4u; i++) {
@@ -790,9 +883,9 @@ static void track_open(void)
 {
     if (ui.page == PG_TRACK) {
         uint32_t k;
-        for (k = 0; k < 5u && TORDER[k] != ui.tpage; k++)
+        for (k = 0; k < NTPART && TORDER[k] != ui.tpage; k++)
             ;
-        ui.tpage = TORDER[(k + 1u) % 5u];
+        ui.tpage = TORDER[(k + 1u) % NTPART];
     }
     else {
         ui.page = PG_TRACK;

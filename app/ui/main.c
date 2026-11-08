@@ -787,13 +787,13 @@ static void draw_tabs(void)
     char part[20];
     part[0] = 0;
     cv_begin(240, 14, C_BLACK);
-    x = cv_text(4, 1, &FONT_T, IS_KFX() ? "EDIT" : BTN[ui.page % NPAGES], C_WHITE) + 6;
+    x = ui.page == PG_TRACK ? 2 : cv_text(4, 1, &FONT_T, IS_KFX() ? "EDIT" : BTN[ui.page % NPAGES], C_WHITE) + 6;
     if (ui.page == PG_HOME || ui.page == PG_GEN) {   /* HOME: PERFORM, GENERATOR (TEST: the kick's EQ and FX on EDIT) */
         x = tab(x, "PERFORM", ui.page == PG_HOME);
         tab(x, "GENERATOR", ui.page == PG_GEN);
     }
     else if (ui.page == PG_TRACK)        /* LOAF BREAKER: ENV: TRACKS, PLAY, DROP */
-        for (i = 0; i < 5u; i++)         /* (TRACKS, PLAY, DROP, BUILD, KNOB) */
+        for (i = 0; i < NTPART; i++)   /* (TRACKS, PLAY, DROP, BUILD, KNOB, RESET: no "ENV" before them, for the room) */
             x = tab(x, TPART[TORDER[i]], TORDER[i] == ui.tpage);
     else if (ui.page == PG_OVL)
         tab(x, "OVERLAY", 1);
@@ -850,7 +850,7 @@ static void page_say(void)
     case PG_GLOBAL: text_cat(t, GPART[ui.gpage % 3u]); break;
     case PG_MIX: text_cat(t, ui.mpage == 2u ? "MASTER" : ui.mpage ? "GROOVE" : "LEVELS"); break;
     case PG_SEQ: text_cat(t, SEQL[ui.seq_lane % NSEQL]); break;
-    case PG_TRACK: text_cat(t, TPART[ui.tpage % 5u]); break;
+    case PG_TRACK: text_cat(t, TPART[ui.tpage % NTPART]); break;
     case PG_OVL: text_cat(t, "OVERLAY"); break;
     case PG_FX:
         text_cat(t, IS_KFX() ? "KICK FX " : "SLOT ");
@@ -933,10 +933,10 @@ static void draw_foot(const brk_status_t *st)
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "RESET ALL"};
         static const char *const KN_GROOVE[2][4] = {{"SWING", "DRUMS", "", ""}, {"COMP", "RATIO", "DUCK", "MAX OUT"}};
         static const char *const KN_MORE[4] = {"SKIN", "AUTO SAVE", "", ""};   /* GLOUPI BREAKS: GLOBAL's MORE */
-        static const char *const KN_TRK[3][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
-                                                 {"STYLE", "SWEEP", "RISER", "GAP"}};
+        static const char *const KN_TRK[4][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
+                                                 {"STYLE", "SWEEP", "RISER", "GAP"}, {"WHAT", "", "", "RESET"}};
         const char *name = ui.page == PG_TRACK && ui.tpage == 3u ? SK_KNOB[selk_fn(ui.knfn & 3u)][i] : ui.page == PG_TRACK &&
-                           ui.tpage ? KN_TRK[ui.tpage == 4u ? 2u : (ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
+                           ui.tpage ? KN_TRK[ui.tpage == 5u ? 3u : ui.tpage == 4u ? 2u : (ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
                            ui.gpage == 2u ? KN_MORE[i] : ui.page == PG_GLOBAL && ui.gpage
                            ? KN_PITCH[i] : ui.page == PG_MIX && ui.mpage
                            ? KN_GROOVE[ui.mpage == 2u][i] : KN[ui.page][i];
@@ -1329,8 +1329,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech"};
-    int v[36];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1"};
+    int v[38];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1373,7 +1373,9 @@ int app_expect(const char *what, int *got)
     v[33] = ui.kpage;
     v[34] = KICK_T_TYPE(&set.kick);
     v[35] = KICK_T_SCREECH(&set.kick);
-    for (i = 0; i < 36u; i++)
+    v[36] = set.drop_style;
+    v[37] = set.selk_asg2 & 15u;
+    for (i = 0; i < 38u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;
