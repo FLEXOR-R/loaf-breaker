@@ -274,7 +274,7 @@ comes round (the header shows "P2>").
 | Lane | White keys | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- | --- |
 | STEPS 1-16, STEPS 17-32 | Pick a step to edit (outlined) | SLICE: OFF · LOOP · 1–16 | PITCH: −12 … +12 | HITS: ×1–×4 (a ratchet in the step) | REVERSE |
-| KICK, SNARE, HAT | That lane's 16 steps, on and off | FILL: 0–16 hits spread evenly from the downbeat (Euclidean) | ROTATE: the lane a step later (right) or earlier | Left CLEAR, right four on the floor | COPY the previous pattern's lane |
+| KICK, SNARE, HAT, CLAP, HOOVER | That lane's 16 steps, on and off | FILL: 0–16 hits spread evenly from the downbeat (Euclidean); a kick or hoover step held: its note | **HITS**: 1–4, each of the drum's steps taps that many times in its step (a roll inside the step; the grid splits the steps that tap); the pattern's, drum by drum | Left CLEAR, right 4X4, 8X8, 16X16, 2-STEP, HALF-TIME | LENGTH: 16 or 32 steps (the kick: 16, 32, 64) |
 
 The upper strip shows the half's 16 steps (a number: its own slice; a dot: LOOP; a dash: off; a mark under it: hits
 or reverse), the step playing lit; the lower strip all three drum lanes.

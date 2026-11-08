@@ -1025,7 +1025,8 @@ static void draw_foot(const brk_status_t *st)
         else if (ui.page == PG_KEQ)
             name = KEQ_NAME[ui.keq_part & 1u][i];
         else if (ui.page == PG_SEQ && ui.seq_lane >= SL_KICK) {
-            static const char *const KN_LANE[4] = {"FILL", "DRUM FLT", "CLR / 4X4", "LENGTH"};
+            static const char *const KN_LANE[4] = {"FILL", "HITS", "CLR / 4X4", "LENGTH"};   /* (LOAF BREAKER: HITS,
+                                          * was DRUM FLT: HOME's K3 has it) */
             name = KN_LANE[i];
         }
         cv_text(4 + (int32_t)i * 60, 18, &FONT_T, name, ui.page == PG_FX

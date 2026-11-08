@@ -365,12 +365,15 @@ typedef struct {
     uint16_t kfm[BRK_NFXT][FXM_N];       /* KICK FX's effects as left (its own: not the chain's) */
     uint16_t kfm_ok, kfm_rsv;
     uint8_t kn[NPAT][13];                /* LOAF BREAKER: the kick's notes past its 38th step (kick_note) */
+    uint8_t hits[NPAT][NDRUMS];          /* LOAF BREAKER: each drum's HITS in the pattern (SEQ's K2): 0, 1 once a step
+                                          * (as ever), 2..4 that many times in its step */
 } pats_t;
 static pats_t pats PLAT_POOL;            /* (LOAF BREAKER: in the pool, 3.7 KB of RAM freed) */
 #define PATS_SIZE_OLD offsetof(pats_t, trk)   /* (a save before the tracks) */
 #define PATS_SIZE_TRK offsetof(pats_t, mem)   /* (one before the effects' memory) */
 #define PATS_SIZE_MEM offsetof(pats_t, kfm)   /* (one before KICK FX's) */
 #define PATS_SIZE_KFM offsetof(pats_t, kn)    /* (one before the kick's notes on every step) */
+#define PATS_SIZE_KN offsetof(pats_t, hits)   /* (one before the drums' HITS) */
 _Static_assert(sizeof pats <= 3840u, "a store object holds 3840 bytes");
 /* LOAF BREAKER: BUILD and DROP. SEL clicked three times, playing (build_n, the main loop): from the next bar the
  * drums' steps give way to a snare roll that speeds up (quarters, eighths, 16ths, then 32nds, a quarter of the build
@@ -390,6 +393,20 @@ static volatile float b_riser = 1.0f;    /* its noise's level (1: as it always w
  * render hits the kick at that pad's rate from the next step, the pattern's kicks out meanwhile */
 static volatile uint8_t kroll;
 static volatile uint32_t kick_hit_n;     /* (the kick's hits so far: the simulator's checks) */
+/* LOAF BREAKER: the drums' HITS (pats.hits): a hit's repeats still to come, samples from this block's start */
+#define HQ_N 16u
+static struct { int32_t at; uint8_t kick, who; float pm; } hq[HQ_N];
+static uint32_t hq_n;
+static void hq_push(int32_t at, uint8_t kick, uint8_t who, float pm)
+{
+    if (hq_n < HQ_N) {
+        hq[hq_n].at = at;
+        hq[hq_n].kick = kick;
+        hq[hq_n].who = who;
+        hq[hq_n].pm = pm;
+        hq_n++;
+    }
+}
 static volatile uint8_t build_n;         /* three clicks: a build, or (building) the drop */
 static volatile uint16_t drum_next[NDRUMS][4];   /* the next pattern's drums, for the drop */
 static volatile uint8_t drop_to = 0xFFu; /* the pattern the drop brings in (its break's steps, at the bar before) */
@@ -433,9 +450,12 @@ static void pat_defaults(void)
     }
     trk_defaults();
     pats.mem.fx_ok = pats.mem.kfx_ok = pats.kfm_ok = 0u;
-    for (i = 0; i < NPAT; i++)
+    for (i = 0; i < NPAT; i++) {
         for (k = 0; k < 13u; k++)
             pats.kn[i][k] = 0u;
+        for (k = 0; k < NDRUMS; k++)
+            pats.hits[i][k] = 0u;
+    }
 }
 /* GLOUPI BREAKS: the kick over four bars (64 steps), bar b (0..3) 16 bits: lane[LANE_KICK], kick2, and bars 3 and 4
  * in the spare bytes of steps 0-3 (st[0..3][3], low byte first) */
@@ -763,7 +783,7 @@ void app_init(void)
     {
         int sz = plat_store_size(OBJ_PAT);   /* (LOAF BREAKER: a save from before the tracks: its patterns) */
         if ((sz != (int)sizeof pats && sz != (int)PATS_SIZE_OLD && sz != (int)PATS_SIZE_TRK &&
-             sz != (int)PATS_SIZE_MEM && sz != (int)PATS_SIZE_KFM) ||
+             sz != (int)PATS_SIZE_MEM && sz != (int)PATS_SIZE_KFM && sz != (int)PATS_SIZE_KN) ||
             plat_store_load(OBJ_PAT, &pats, (uint32_t)sz) != sz)
             pats.magic = 0u;
     }
@@ -1119,6 +1139,12 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                     int32_t kn = kick_note(pp, (bar % drum_bars(pp, DR_KICK)) * 16u + s);
                     kpm[nk] = kn ? brk_exp2f((float)kn * (1.0f / 12.0f)) : 1.0f;
                     ka[nk++] = off[k];
+                    {                    /* (its HITS: the others in its step) */
+                        uint32_t hn = pats.hits[set.pattern % NPAT][DR_KICK], j;
+                        int32_t len = (int32_t)((float)BRK_SR * 15.0f / brk_get_tempo());
+                        for (j = 1; hn > 1u && hn <= 4u && j < hn; j++)
+                            hq_push((int32_t)off[k] + len * (int32_t)j / (int32_t)hn, 1u, 0u, kpm[nk - 1u]);
+                    }
                 }
                 if (w >> PV_STAB & 1u) {     /* the stab: its step's note (its bars: its length) */
                     int32_t sn = stab_note(&pats.p[set.pattern % NPAT],
@@ -1126,9 +1152,60 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                     spm[np] = sn ? brk_exp2f((float)sn * (1.0f / 12.0f)) : 1.0f;
                 }
                 if (w) {
+                    uint32_t dd2, j;
+                    int32_t len = (int32_t)((float)BRK_SR * 15.0f / brk_get_tempo());
                     pa[np] = off[k];
+                    for (dd2 = DR_SNARE; dd2 < NDRUMS; dd2++) {   /* (each drum's HITS: its others in the step) */
+                        uint32_t hn = pats.hits[set.pattern % NPAT][dd2];
+                        if (w >> (dd2 - 1u) & 1u)
+                            for (j = 1; hn > 1u && hn <= 4u && j < hn; j++)
+                                hq_push((int32_t)off[k] + len * (int32_t)j / (int32_t)hn, 0u,
+                                        (uint8_t)(1u << (dd2 - 1u)), dd2 == DR_STAB ? spm[np] : 1.0f);
+                    }
                     who[np++] = (uint8_t)w;
                 }
+            }
+            {                            /* LOAF BREAKER: the HITS due in this block, in with the steps' (in order) */
+                uint32_t q = 0u, a, b;
+                if (!st.playing)
+                    hq_n = 0u;
+                while (q < hq_n) {
+                    if (hq[q].at < (int32_t)m) {
+                        if (hq[q].kick && nk < 8u) {
+                            kpm[nk] = hq[q].pm;
+                            ka[nk++] = (uint16_t)(hq[q].at < 0 ? 0 : hq[q].at);
+                        } else if (!hq[q].kick && np < 8u) {
+                            spm[np] = hq[q].pm;
+                            pa[np] = (uint16_t)(hq[q].at < 0 ? 0 : hq[q].at);
+                            who[np++] = hq[q].who;
+                        }
+                        hq[q] = hq[--hq_n];
+                    } else {
+                        hq[q].at -= (int32_t)m;
+                        q++;
+                    }
+                }
+                for (a = 1; a < nk; a++)         /* (the kick's hits rising) */
+                    for (b = a; b > 0u && ka[b - 1u] > ka[b]; b--) {
+                        uint16_t to = ka[b];
+                        float tp = kpm[b];
+                        ka[b] = ka[b - 1u];
+                        kpm[b] = kpm[b - 1u];
+                        ka[b - 1u] = to;
+                        kpm[b - 1u] = tp;
+                    }
+                for (a = 1; a < np; a++)         /* (the others' rising) */
+                    for (b = a; b > 0u && pa[b - 1u] > pa[b]; b--) {
+                        uint16_t to = pa[b];
+                        uint8_t tw = who[b];
+                        float tp = spm[b];
+                        pa[b] = pa[b - 1u];
+                        who[b] = who[b - 1u];
+                        spm[b] = spm[b - 1u];
+                        pa[b - 1u] = to;
+                        who[b - 1u] = tw;
+                        spm[b - 1u] = tp;
+                    }
             }
             if (krp && st.playing) {     /* the KICK ROLL's hits in this block, at its pad's rate */
                 static const float RS[BRK_ROLL_DIVS] = {4.0f, 2.0f, 1.0f, 0.5f, 0.25f, 4.0f / 3.0f, 2.0f / 3.0f,

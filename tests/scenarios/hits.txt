@@ -1,0 +1,20 @@
+# LOAF BREAKER: SEQ's HITS (K2 on a drum lane): the kick 4X4 (K3), its HITS to 2: each of its kicks twice in its step.
+# Four bars at 1 hit, then four at 2: twice the kicks.
+#   app/build/host/choppah_host tests/scenarios/hits.txt app/build/scenarios
+wait 4200
+tap SEQ
+wait 200
+turn K3 1 10
+wait 100
+tap PLAY
+wait 600
+expect khits >0
+wait 5648
+expect khits <6
+turn K2 1 10
+wait 300
+shot h_hits.png
+expect khits >0
+wait 5648
+expect khits >6
+tap PLAY

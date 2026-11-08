@@ -210,9 +210,9 @@
     { id: "seq", btn: "SEQ", name: "SEQUENCER", sub: "16 patterns, all the steps", again: "next lane (5)", subs: [
       { n: "1-16", k: ["SLICE", "PITCH", "HITS", "REVERSE"], strip: "16 STEPS · THE DRUM LANES", note: "the step edited outlined" },
       { n: "17-32", k: ["SLICE", "PITCH", "HITS", "REVERSE"], strip: "16 STEPS · THE DRUM LANES", note: "" },
-      { n: "KICK", k: ["FILL", "ROTATE", "CLR / 4X4", "COPY"], strip: "THE KEYS: THIS LANE'S STEPS · LANES", note: "Euclidean fill, rotate, clear, copy" },
-      { n: "SNARE", k: ["FILL", "ROTATE", "CLR / 4X4", "COPY"], strip: "THE KEYS: THIS LANE'S STEPS · LANES", note: "" },
-      { n: "HAT", k: ["FILL", "ROTATE", "CLR / 4X4", "COPY"], strip: "THE KEYS: THIS LANE'S STEPS · LANES", note: "" } ],
+      { n: "KICK", k: ["FILL", "HITS", "CLR / 4X4", "LENGTH"], strip: "THE KEYS: THIS LANE'S STEPS · LANES", note: "Euclidean fill; HITS: each step taps 1-4 times" },
+      { n: "SNARE", k: ["FILL", "HITS", "CLR / 4X4", "LENGTH"], strip: "THE KEYS: THIS LANE'S STEPS · LANES", note: "" },
+      { n: "HAT", k: ["FILL", "HITS", "CLR / 4X4", "LENGTH"], strip: "THE KEYS: THIS LANE'S STEPS · LANES", note: "" } ],
       algo: "Lane", presets: "Pattern P1–P16", keys: "steps",
       notes: [["REC", "Record keys and MIDI notes into the pattern"], ["SEL + REC", "Clear: the lane here, the pattern elsewhere"]] }
   ];
