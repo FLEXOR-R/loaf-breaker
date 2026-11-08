@@ -2,44 +2,6 @@
 /* CHOPPAH: the controls (knobs, keys, buttons), the lights, the foot and the frame. (Part of app.c's unity:
  * included there in order.) */
 
-static void tap_or_ext(uint32_t now)     /* a tap (ENV on TAP, a white key on TAP); an outside clock has the tempo */
-{
-    if (ext_active())
-        app_say("TEMPO", "EXT CLOCK");
-    else
-        tap_tempo(now);
-}
-static void tap_knob(int k, int32_t d)   /* TAP: K1 the tempo, K2 finer, K3 half or double */
-{
-    char t[16];
-    int32_t v = set.tempo_x10;
-    if (ext_active()) {
-        app_say("TEMPO", "EXT CLOCK");
-        return;
-    }
-    if (k == EN_K1)
-        v += d * 10;
-    else if (k == EN_K2)
-        v += d;
-    else if (k == EN_K3)
-        v = d > 0 ? v * 2 : v / 2;
-    else {                               /* K4: the metronome's click, its level: 0 off .. 100 % */
-        set.click = (uint8_t)clamp((int32_t)set.click + d * 5, 0, 100);
-        changed();
-        if (set.click)
-            say_int("CLICK", set.click, "%");
-        else
-            app_say("CLICK", "OFF");
-        ui.redraw |= RG_BLOCKS;
-        return;
-    }
-    set.tempo_x10 = (uint16_t)clamp(v, 400, 3000);
-    changed();
-    tenths_text(set.tempo_x10, t);
-    app_say("BPM", t);
-    ui.redraw |= RG_BLOCKS;
-}
-
 static void knob_turn(int k, int32_t d)
 {
     brk_fx_t *f = &set.fx;
@@ -47,8 +9,8 @@ static void knob_turn(int k, int32_t d)
         ovl_turn(k - EN_K1, d);
         return;
     }
-    if (ui.page == PG_TAP) {
-        tap_knob(k, d);
+    if (ui.page == PG_TRACK) {           /* LOAF BREAKER: ENV's TRACKS, PLAY, DROP */
+        track_turn(k - EN_K1, d);
         return;
     }
     if (ui.page == PG_GLOBAL) {
@@ -221,35 +183,6 @@ static void rec_toggle(void)
     ui.redraw |= RG_HEAD | RG_BLOCKS;
 }
 
-/* LOAF BREAKER: SEL clicked three times. Playing: the BUILD (app.c's render: four bars, then the DROP into the next
- * pattern, its drums ready here); building: the DROP at the next bar */
-static void build_click(void)
-{
-    if (!playing_now()) {
-        app_say("BUILD", "PLAY FIRST");
-        return;
-    }
-    if (build_p < 0.0f) {
-        const pat_t *p;
-        uint32_t d, b;
-        char t[8] = "> P";
-        ui.drop_pat = (uint8_t)((set.pattern + 1u) % NPAT);
-        drop_to = ui.drop_pat;
-        p = &pats.p[ui.drop_pat];
-        for (d = 0; d < NDRUMS; d++)
-            for (b = 0; b < 4u; b++)
-                drum_next[d][b] = (uint16_t)drum_bar(p, d, b % drum_bars(p, d));
-        drum_next_ok = 1u;
-        ui.build_said = plat_ms();
-        ui.drop_early = ui.drop_asked = 0u;
-        int_text((int32_t)ui.drop_pat + 1, t + 3);
-        app_say("BUILD", t);
-    } else
-        app_say("DROP", "NEXT BAR");
-        ui.drop_early = 1u;
-    build_n++;
-}
-
 static void input(void)
 {
     uint32_t keys = plat_keys(), btn = plat_buttons(), now = plat_ms(), i;
@@ -276,9 +209,9 @@ static void input(void)
     for (i = 0; i < 16u; i++) {          /* white keys: slices, or a page's own */
         if (ui.page == PG_OVL)
             continue;
-        if (ui.page == PG_TAP) {         /* the TAP page: every white key taps */
+        if (ui.page == PG_TRACK) {       /* LOAF BREAKER: ENV: a pattern into the track, or a track played */
             if (kdn >> WK[i] & 1u)
-                tap_or_ext(now);
+                track_key(i);
             continue;
         }
         if (ui.page == PG_SEQ) {         /* the SEQ page: a break step to edit, or a drum lane's steps */
@@ -356,7 +289,9 @@ static void input(void)
             transport(st.playing, 1);
             app_say("RESET", "");
             ui.home_combo = 1u;          /* (not HOME's next part) */
-        } else
+        } else if (ui.page == PG_TRACK && ui.tpage == 1u && !(st.playing && ui.trk_on))
+            track_play();                /* LOAF BREAKER: ENV's PLAY: the track, then HOME */
+        else
             transport(!st.playing, 0);
         muted = 0u;
     }
@@ -394,15 +329,10 @@ static void input(void)
         ui.redraw |= RG_FOOT | RG_BLOCKS;
         page_say();
     }
-    if (bdn & 1u << B_ENV) {             /* ENV: TAP TEMPO, the whole screen; again: a tap */
-        if (ui.page == PG_TAP)
-            tap_or_ext(now);
-        else {
+    if (bdn & 1u << B_ENV) {             /* LOAF BREAKER: ENV: TRACKS; again, PLAY, DROP (TAP TEMPO gone) */
+        if (ui.page != PG_TRACK)
             slices_let_go(keys);
-            ui.page = PG_TAP;
-            ui.redraw |= RG_FOOT | RG_BLOCKS;
-            page_say();
-        }
+        track_open();
     }
     if (clr_arm && (now - clr_t >= 3000u || bdn & ~(1u << B_SEQ) || kdn)) {   /* LOAF BREAKER: not confirmed */
         clr_arm = 0u;
@@ -694,7 +624,9 @@ static void input(void)
             perc_mem_turn(ui.pvoice, d);
         else if (k == EN_PRESET && ui.page == PG_KICK) {   /* LOAF BREAKER: the kick memories (SEQ's SELECT too) */
             kick_mem_turn(d);
-        } else if (k == EN_PRESET)
+        } else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage < 2u)
+            track_pick(d);               /* LOAF BREAKER: ENV: the track */
+        else if (k == EN_PRESET)
             pattern_pick(d);             /* elsewhere: the pattern */
         else if (key_tuned() >= 0)       /* a white key held: K1-K4 tune its loop */
             key_knob_turn(key_tuned(), k - EN_K1, d);
@@ -770,16 +702,8 @@ static void knob_value(int i, char *t)  /* the page's knob i (0..3), as shown un
         ovl_value(i, t);
         return;
     }
-    if (ui.page == PG_TAP) {
-        if (i < 2)
-            tenths_text(set.tempo_x10, t);
-        else if (i == 2)
-            text_cat(t, "L / R");
-        else if (set.click) {
-            int_text(set.click, t);
-            text_cat(t, "%");
-        } else
-            text_cat(t, "OFF");
+    if (ui.page == PG_TRACK) {
+        track_value(i, t);
         return;
     }
     if (ui.page == PG_GLOBAL) {
@@ -856,8 +780,9 @@ static void draw_tabs(void)
         x = tab(x, "GENERATOR", ui.page == PG_GEN);
         tab(x, "KICK EQ", ui.page == PG_KEQ);
     }
-    else if (ui.page == PG_TAP)
-        tab(x, "TAP TEMPO", 1);
+    else if (ui.page == PG_TRACK)        /* LOAF BREAKER: ENV: TRACKS, PLAY, DROP */
+        for (i = 0; i < 3u; i++)
+            x = tab(x, TPART[i], i == ui.tpage);
     else if (ui.page == PG_OVL)
         tab(x, "OVERLAY", 1);
     else if (ui.page == PG_GLOBAL)
@@ -912,7 +837,7 @@ static void page_say(void)
     case PG_GLOBAL: text_cat(t, GPART[ui.gpage % 3u]); break;
     case PG_MIX: text_cat(t, ui.mpage ? "GROOVE" : "LEVELS"); break;
     case PG_SEQ: text_cat(t, SEQL[ui.seq_lane % NSEQL]); break;
-    case PG_TAP: text_cat(t, "TAP TEMPO"); break;
+    case PG_TRACK: text_cat(t, TPART[ui.tpage % 3u]); break;
     case PG_OVL: text_cat(t, "OVERLAY"); break;
     case PG_FX:
         text_cat(t, "SLOT ");
@@ -972,7 +897,7 @@ static void draw_foot(const brk_status_t *st)
                                               {"BREAK", "KICK", "PERC", "FX"},
                                               {"SLICE", "PITCH", "HITS", "REVERSE"},
                                               {"", "", "", ""},
-                                              {"TEMPO", "FINE", "HALF / X2", "CLICK"},
+                                              {"ITEM", "PUT", "LOOPS", "END"},
                                               {"AMOUNT", "RATE", "SWEEP", "LATCH"},
                                               {"LOW", "MID", "HIGH", "FREQ"}};
     uint32_t i;
@@ -989,7 +914,9 @@ static void draw_foot(const brk_status_t *st)
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "RESET ALL"};
         static const char *const KN_GROOVE[4] = {"SWING", "DRUMS", "", ""};
         static const char *const KN_MORE[4] = {"SKIN", "AUTO SAVE", "LOAF LORD", "DROP BRK"};   /* GLOUPI BREAKS: GLOBAL's MORE */
-        const char *name = ui.page == PG_GLOBAL && ui.gpage == 2u ? KN_MORE[i] : ui.page == PG_GLOBAL && ui.gpage
+        static const char *const KN_TRK[2][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"}};
+        const char *name = ui.page == PG_TRACK && ui.tpage ? KN_TRK[(ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
+                           ui.gpage == 2u ? KN_MORE[i] : ui.page == PG_GLOBAL && ui.gpage
                            ? KN_PITCH[i] : ui.page == PG_MIX && ui.mpage
                            ? KN_GROOVE[i] : KN[ui.page][i];
         if (ui.shown >= 100) {           /* a white key held: its loop, or its slice's effect */
@@ -1100,23 +1027,17 @@ void app_frame(void)
             return;
         }
     }
-    if ((ui.page == PG_TAP) != (ui.drawn_page == PG_TAP)) {   /* into or out of TAP: the whole screen again */
+    if ((ui.page == PG_TRACK) != (ui.drawn_page == PG_TRACK)) {   /* into or out of ENV: the whole screen again */
         lcd_fill(0, 44, 240, 148, C_BLACK);
         ui.redraw = RG_ALL;
     }
     ui.drawn_page = ui.page;
-    if (ui.page == PG_TAP && now - ui.panel_drawn >= 40u)   /* TAP: the metronome swings, ~25 times a second */
-        ui.redraw |= RG_BLOCKS;
-    if (ui.ntaps && now - ui.taps[(ui.ntaps - 1u) % TAPS] > 2000u) {   /* a pause: the run is over */
-        ui.ntaps = 0u;
-        ui.redraw |= ui.page == PG_TAP ? RG_BLOCKS : 0;
-    }
     if (build_p >= 0.0f && set.drop_brk && set.drop_brk <= n_breaks && !ui.drop_asked) {   /* LOAF BREAKER
                                           * (crossbreed): MORE's DROP BRK asked for in the bar that ends in the drop
                                           * (break_poll swaps it in on the drop's step) */
         brk_status_t bs;
         brk_status(&bs);
-        if (bs.bar16 >= 0 && (ui.drop_early || build_p * (float)BUILD_STEPS + (float)(15 - bs.bar16) >= (float)BUILD_STEPS)) {
+        if (bs.bar16 >= 0 && (ui.drop_early || build_p * (float)build_len + (float)(15 - bs.bar16) >= (float)build_len)) {
             ui.drop_asked = 1u;
             if (set.drop_brk - 1u != set.brk)
                 break_ask(set.drop_brk - 1u);
@@ -1140,6 +1061,7 @@ void app_frame(void)
             set_dirty = 1u;
             ui.drop_pat = 0xFFu;
         }
+        track_dropped();                 /* (a track: on from there) */
     }
     if (ui.drop_t) {
         if (now - ui.drop_t > 900u) {
@@ -1205,6 +1127,7 @@ void app_frame(void)
             }
         }
     }
+    track_poll(&st);                     /* LOAF BREAKER: a track playing: its next item */
     if (pat_next >= 0 && (!st.playing || (st.step >= 0 && (uint32_t)st.step + 1u >= pat_len()))) {
         set.pattern = (uint8_t)pat_next;  /* the pattern picked: in for the loop's next round (its last step plays) */
         pat_next = -1;
@@ -1279,7 +1202,7 @@ void app_frame(void)
           (uint32_t)(pat_next >= 0) << 27;
     if (hdr != ui.last_hdr) {
         ui.last_hdr = hdr;
-        ui.redraw |= RG_HEAD | (ui.page == PG_TAP ? RG_BLOCKS : 0);
+        ui.redraw |= RG_HEAD;
     }
     if (ui.redraw & RG_HEAD)
         draw_head(&st, b, now);
@@ -1295,7 +1218,7 @@ void app_frame(void)
     }
     if (!ui.redraw)
         return;
-    if (ui.redraw & RG_WAVE && ui.page != PG_TAP && ui.page != PG_SEQ)   /* (LOAF BREAKER: SEQ is a grid there) */
+    if (ui.redraw & RG_WAVE && ui.page != PG_TRACK && ui.page != PG_SEQ)   /* (LOAF BREAKER: SEQ is a grid there) */
         draw_wave(&st, b);
     if (ui.redraw & RG_FX) {
         if (ui.shown >= 100)
@@ -1309,10 +1232,9 @@ void app_frame(void)
     if (ui.redraw & RG_BLOCKS) {
         if (ui.page == PG_OVL)
             draw_ovl();
-        else if (ui.page == PG_TAP) {
-            draw_tap(&st, now, (ui.redraw & RG_ALL) == RG_ALL);
-            ui.panel_drawn = now;
-        } else if (ui.page == PG_SEQ)
+        else if (ui.page == PG_TRACK)
+            draw_track();
+        else if (ui.page == PG_SEQ)
             draw_seq(&st);
         else if (ui.page == PG_PERC)
             draw_perc(&st);
@@ -1367,8 +1289,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low"};
-    int v[23];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos"};
+    int v[25];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1393,7 +1315,9 @@ int app_expect(const char *what, int *got)
     v[20] = set.mbc[ui.fx_focus & 3u].solo;
     v[21] = (int)(brk_mb_thr_db(set.mbc[ui.fx_focus & 3u].thr[MB_LOW]) - 0.5f);   /* whole dB */
     v[22] = (int)(brk_mb_thr_db(set.mbc[1].thr[MB_LOW]) - 0.5f);
-    for (i = 0; i < 23u; i++)
+    v[23] = ui.trk_on;
+    v[24] = ui.trk_pos;
+    for (i = 0; i < 25u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

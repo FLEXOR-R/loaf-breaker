@@ -149,7 +149,7 @@
     <h3>Who owns K1–K4</h3>
     <p>First match wins.</p>
     <div class="stack">
-      <div class="layer"><div class="rank">1</div><b>A white key held</b><ul><li>Anywhere but SEQ and ENV (tap tempo)</li><li>Its loop: LENGTH, PITCH, START, MODE</li><li>FX flips to its slice effect: EFFECT, AMOUNT, TONE, LEVEL</li><li>SEL resets the key</li></ul></div>
+      <div class="layer"><div class="rank">1</div><b>A white key held</b><ul><li>Anywhere but SEQ and ENV (tracks)</li><li>Its loop: LENGTH, PITCH, START, MODE</li><li>FX flips to its slice effect: EFFECT, AMOUNT, TONE, LEVEL</li><li>SEL resets the key</li></ul></div>
       <div class="layer"><div class="rank">2</div><b>A pad held</b><ul><li>Any page; a pad pressed after the key wins</li><li>Rolls: RATE, DECAY, PITCH, LEVEL</li><li>FILTER: TARGET, RESO, SPEED</li><li>DUB: TIME, FEEDBACK, TONE, MIX</li></ul></div>
       <div class="layer"><div class="rank">3</div><b>The page</b><ul><li>What the explorer shows</li><li>SELECT is always the tempo, MASTER the volume</li><li>ALGORITHM and PRESETS follow the page</li></ul></div>
     </div>
@@ -198,10 +198,12 @@
       { n: "LEVELS", k: ["BREAK", "KICK", "PERC", "FX"], strip: "4 FADERS AND METERS", note: "FX shows the 4 slots" },
       { n: "GROOVE", k: ["SWING", "DRUMS ROUTE", "", ""], strip: "SWING · THE DRUMS' ROUTE", note: "" } ],
       algo: "Break (next bar)", brk: true, presets: "Pattern P1–P16", keys: "slices", notes: [] },
-    { id: "env", btn: "ENV", name: "TAP TEMPO", sub: "The whole screen", again: "a tap", subs: [
-      { n: "TAP TEMPO", k: ["TEMPO", "FINE", "HALF / X2", "CLICK"], strip: "LED BPM · A METRONOME SWINGING IN TIME · TAPS", note: "the whole screen: no waveform, no tabs" } ],
-      algo: "Break (next bar)", brk: true, presets: "Pattern P1–P16", keys: "taps",
-      notes: [["ENV again · any white key", "A tap; the mean of the last eight"], ["K3", "Left halves, right doubles"]] },
+    { id: "env", btn: "ENV", name: "TRACK", sub: "Tracks, playing them, the drop", again: "next part (3)", subs: [
+      { n: "TRACKS", k: ["ITEM", "PUT", "LOOPS", "END"], strip: "THE TRACK'S 32 ITEMS: PATTERNS, DROPS", note: "a white key puts its pattern in" },
+      { n: "PLAY", k: ["TRACK", "FROM", "END", ""], strip: "THE TRACK, THE ITEM PLAYING", note: "PLAY: the track, then HOME" },
+      { n: "DROP", k: ["BUILD", "AFTER", "BREAK", "CRASH"], strip: "THE DROP'S SETTINGS", note: "SEL x3: the build from the next bar" } ],
+      algo: "Break (next bar)", brk: true, presets: "Track 1–8", keys: "patterns / tracks",
+      notes: [["White key (TRACKS)", "Its pattern at the item"], ["White keys 1-8 (PLAY)", "That track played"]] },
     { id: "seq", btn: "SEQ", name: "SEQUENCER", sub: "16 patterns, all the steps", again: "next lane (5)", subs: [
       { n: "1-16", k: ["SLICE", "PITCH", "HITS", "REVERSE"], strip: "16 STEPS · THE DRUM LANES", note: "the step edited outlined" },
       { n: "17-32", k: ["SLICE", "PITCH", "HITS", "REVERSE"], strip: "16 STEPS · THE DRUM LANES", note: "" },

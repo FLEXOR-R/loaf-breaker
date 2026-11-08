@@ -418,10 +418,11 @@ static void pattern_pick(int32_t d)      /* PRESETS: the next or previous patter
     say_int(playing_now() ? "NEXT PATTERN" : "PATTERN", want + 1, "");
     ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
 }
-static uint32_t keys_lit(const brk_status_t *st)   /* the white keys' lights on a lane's page (TAP: the beat) */
+static uint32_t track_keys_lit(void);
+static uint32_t keys_lit(const brk_status_t *st)   /* the white keys' lights on a lane's page (ENV: its own) */
 {
-    if (ui.page == PG_TAP)
-        return st->playing && st->bar16 >= 0 && !(st->bar16 & 3) ? 0xFFFFu : 0u;
+    if (ui.page == PG_TRACK)
+        return track_keys_lit();
     if (ui.page == PG_OVL)               /* ARP: the overlays on */
         return ovl_held | ovl_latched;
     uint32_t m = 0u, i;
@@ -442,8 +443,8 @@ static uint32_t keys_lit(const brk_status_t *st)   /* the white keys' lights on 
 /* LOAF BREAKER: the SEQ page, everything at once. Under the tabs (y 44..191, drawn in three bands), a row of 16 steps
  * each: the break's half the keys edit, when they edit it (each step its slice, LOOP a dot, off a dash; the one edited
  * outlined; gone while a drum lane is picked), then every drum
- * over the length it has (the kick's 1, 2 or 4 bars, the snare's, hat's and clap's 1 or 2), named with that length
- * ("K64", "SN32"; its other bars "2", "3", "4"). The rows share the height: fewer rows, bigger steps. The step playing
+ * over the length it has (the kick's 1, 2 or 4 bars, the snare's, hat's and clap's 1 or 2), named by its letters
+ * ("K", "SN"; its other bars "2", "3", "4"). The rows share the height: fewer rows, bigger steps. The step playing
  * white; the lane the keys edit named lit, a line under it */
 #define SQ_H 148                         /* the picture's rows (screen 44..191) */
 #define SQ_X 30                          /* the steps begin (the names before) */
@@ -475,12 +476,8 @@ static void seq_picture(const brk_status_t *st, int32_t top)
         else if (SL_BAR[sl]) {
             t[0] = (char)('1' + SL_BAR[sl]);
             t[1] = 0;
-        } else {
-            char u[4];
-            int_text((int32_t)(16u * sl_bars(p, sl)), u);
-            text_cat(t, TAG[sl_drum(sl)]);
-            text_cat(t, u);
-        }
+        } else
+            text_cat(t, TAG[sl_drum(sl)]);   /* (LOAF BREAKER: the letters alone, the length the grid shows) */
         cv_text(SQ_X - 3 - text_w(&FONT_XS, t), y + (ch - 8) / 2, &FONT_XS, t, picked ? C_HI : brk || !SL_BAR[sl] ? C_GRAY
                 : C_DIM);
         for (i = 0; i < 16u; i++) {

@@ -63,7 +63,7 @@ The slicer view, top to bottom:
 **The rules.** ALGORITHM picks what you edit on the page (an FX slot, a drum's part, a SEQ lane, GLOBAL's part); on HOME (both its parts) and the MIXER, where there is nothing to pick, it is the break. PRESETS picks what goes
 in (an effect, a kick, a snare or hat sound); elsewhere it is the pattern. **SEQ is where everything is sequenced**
 (the break's steps and the kick, snare and hat lanes), **EDIT where the drums' sounds are made** (kick, snare, hat);
-the white keys play slices everywhere but SEQ, ENV (tap tempo) and ARP (overlays). **SEL + ALGORITHM is the break and SEL +
+the white keys play slices everywhere but SEQ, ENV (tracks) and ARP (overlays). **SEL + ALGORITHM is the break and SEL +
 PRESETS the pattern on every page.** A page's button pressed again is its next part. **Press SEL** alone and the strip
 lists its combinations (SEL again, or any other button, key or knob, closes it). The control map (§11) shows all of it at once.
 
@@ -94,7 +94,7 @@ back. That touch only ends the demo: it doesn't play a slice or start the break.
 | PLAY | Play / stop. HOME + PLAY: back to bar 1 |
 | White keys | Slices 1–16. Playing: at the next snap point (GLOBAL: 1 slice, an 8th on the 2-bar breaks, by default; OFF, 1/8 … 4 slices). Stopped: at once. Held: the key loops (below), playing or stopped |
 | SELECT | Tempo, 1 BPM a detent (0.1 with SEL held) |
-| ENV | **Tap tempo**, a page of its own (below) |
+| ENV | **TRACK**: tracks of patterns and drops, playing them, the drop's settings (below) |
 | SEL (pressed alone) | The combinations card: every SEL combination on the strip. SEL used with something else (SEL + a knob, SEL + ALGORITHM, SEL + REC…) does that instead |
 | SEL + ALGORITHM · SEL + PRESETS | The break · the pattern, from any page |
 | SEL + SAVE | **Undo** the last pattern wipe (SEL + ARP, SEL + REC, a drum lane's FILL, CLR / 4X4 or COPY); again: redo |
@@ -105,19 +105,27 @@ back. That touch only ends the demo: it doesn't play a slice or start the break.
 | ALGORITHM | (HOME, MIXER; SEL held: any page) The next or previous break: its name shows at once (amber in the header) and, while playing, it comes in at the next bar (the old one goes quiet for the bar's last 16th meanwhile); stopped, at once. AMEN (The Winstons), DRUMMER (James Brown, Funky Drummer), THE WORM (Jimmy McGriff), THINK (Lyn Collins), COLD SWEAT (James Brown), HOT PANTS (Bobby Byrd), APACHE (Incredible Bongo Band), SPORT (Lightnin' Rod): 2 bars each, played at the tempo you set |
 | MASTER | Volume |
 
-### Tap tempo
+### Tracks and drops (ENV)
 
-**ENV** opens TAP TEMPO, which takes the whole screen: the tempo on an LED display, a metronome swinging in time (its
-bob lights on each beat, white on the bar's first; BEAT counts 1–4 while playing), this run's taps beside the display. Tap **ENV again** in time, or **any white key** (the keys flash on the beat). The tempo follows
-from the second tap and settles as you go on (the average of the last eight taps); each tap flashes the display and
-sends a ripple out from the metronome.
-Stop for 2 seconds to start a new count; a tap far off the pace starts a new count from the tap before it. **K1** sets
-the tempo a BPM at a time, **K2** a tenth, **K3** halves it (left) or doubles it (right), **K4** is the
-metronome's **CLICK** level, OFF (the start) up to 100 %: a short tick on every beat while playing, higher on the
-bar's first, dry over everything (not through the effects), kept with SAVE. Following an outside clock,
-it says EXT CLOCK and waits.
+**ENV** opens TRACK; **ENV again** goes through its parts: TRACKS, PLAY, DROP. The tempo is SELECT's (the
+metronome and tap tempo are gone).
 
-![TAP TEMPO: 160.0 BPM on the LED display, six taps, the metronome on the second beat, a tap's ripple](img/screen-tap.png "TAP TEMPO")
+- **TRACKS**: eight tracks (**PRESETS** picks one), each up to 32 items in four rows of eight: a pattern (P1–P16)
+  played for its loops (×1–×16), a **DROP** (the build, then the drop into the pattern after it), and its END. **K1**
+  the item, **K2** what it is (turn it to END on an item inside the track: that item is deleted, the rest moves up),
+  **K3** its loops, **K4** what the track does at its end: LOOP (from its start again), STOP, HOLD (the last pattern
+  goes on). A **white key** puts its pattern at the item and moves to the next one.
+- **PLAY**: **K1** the track, **K2** the item it starts from. **PLAY** (or white keys 1–8: that track) plays it from
+  bar 1 and goes back to HOME; the header shows T1 … T8. Each pattern comes in at the end of the last loop of the one
+  before; a DROP's build starts at the next bar. **SEL ×3** while a track plays drops into its next pattern and the
+  track goes on from there. PLAY again stops it.
+- **DROP**: **K1** the build: NONE (the bar playing ends in the drop), 1, 2, 4 or 8 bars; **K2** the pattern a SEL ×3
+  drop brings in (NEXT, or P1–P16); **K3** the break it brings in (SAME, or one of the bank's); **K4** the crash's
+  level.
+
+**SEL ×3** (playing) asks for the drop: the build starts at the next bar, so the drop always lands on a bar line.
+
+![TRACKS: track 1's items, P1 ×4, P2 ×4, a DROP, P3 ×8](img/t_tracks.png "TRACKS")
 
 ![A slice held](img/screen-held.png "Slice 10 held")
 
@@ -512,7 +520,7 @@ shape is its box in the strip below. Its steps: SEQ's KICK lane (empty to start)
 | SHAPE | Snap (the hat: CUT, the high-pass) | Drive | | |
 
 MIDI notes 38 (D1) play the snare, 42, 44 and 46 the hat, also while stopped. SAVE keeps the drums with the rest.
-(ENV, which used to open SNARE / HAT, is tap tempo now: §3.)
+(ENV, which used to open SNARE / HAT, is TRACK now: §3.)
 
 ## 9. The mixer
 
@@ -545,7 +553,9 @@ break alone: sweep it down and the drums stay full on top. The FLT pad throws it
 | GLO again (pitch, snap) | Keep length / speed | Grain | Snap | Reset all (twice) |
 | GLO a third time (BT audio) | On / off | Device | Scan | Connect / hang up |
 | ARP (overlay; white keys hold effects) | Amount (the effect touched last) | Rate | Sweep | Latch |
-| ENV (tap tempo; ENV again or a white key: a tap) | Tempo | Fine (0.1) | Half / double | Click level (0: off) |
+| ENV TRACKS (PRESETS: the track; a white key: its pattern in) | Item | Pattern / DROP / END | Loops | At the end |
+| ENV PLAY (PLAY: the track) | Track | From item | At the end | |
+| ENV DROP | Build bars | After the drop | Break | Crash |
 | EDIT (kick; ALGORITHM its part) | see §8: MIX, SUB … CLICK FX, MACRO, OUT | | | |
 | EDIT again (snare, then hat) | Level · Snap / cut | Tune · Drive | Decay | Tone |
 

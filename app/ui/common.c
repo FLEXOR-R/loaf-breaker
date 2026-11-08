@@ -28,7 +28,6 @@ static const uint8_t SKIN_RGB[NSKINS][7][3] = {
     /* LOAF BREAKER's MAXENCE: a very loud pink, neon on plum */
     {{60, 12, 48}, {130, 36, 110}, {240, 170, 225}, {255, 0, 170}, {255, 70, 215}, {44, 0, 34}, {255, 232, 250}}};
 static uint16_t skin_block = RGB(24, 24, 30), skin_hi = RGB(255, 132, 112), skin_white = 0xFFFFu;
-static uint16_t skin_off = RGB(48, 16, 14), skin_body = RGB(32, 20, 20), skin_bob = RGB(150, 50, 40);
 static uint16_t skin_rgb(const uint8_t *c, uint32_t pct)   /* a colour at pct % of its brightness */
 {
     return RGB(c[0] * pct / 100u, c[1] * pct / 100u, c[2] * pct / 100u);
@@ -42,15 +41,13 @@ static void skin_apply(uint32_t s)
     skin_block = skin_rgb(c[5], 100u);
     skin_hi = skin_rgb(c[4], 100u);
     skin_white = skin_rgb(c[6], 100u);
-    skin_off = skin_rgb(c[3], 20u);      /* TAP TEMPO: an unlit segment, the metronome's body, its bob between beats */
-    skin_body = skin_rgb(c[3], 14u);
-    skin_bob = skin_rgb(c[3], 65u);
 }
 #undef C_WHITE                           /* (the app's white is the skin's: put back after the UI, app.c's end) */
 #define C_WHITE skin_white
 
-enum { PG_HOME, PG_GEN, PG_FX, PG_GLOBAL, PG_KICK, PG_MIX, PG_SEQ, PG_PERC, PG_TAP, PG_OVL, PG_KEQ, NPAGES };
-                                         /* (LOAF BREAKER: PG_KEQ, HOME's third part, the KICK EQ) */
+enum { PG_HOME, PG_GEN, PG_FX, PG_GLOBAL, PG_KICK, PG_MIX, PG_SEQ, PG_PERC, PG_TRACK, PG_OVL, PG_KEQ, NPAGES };
+                                         /* (LOAF BREAKER: PG_KEQ, HOME's third part, the KICK EQ; PG_TRACK, ENV's
+                                          * TRACKS, PLAY, DROP where TAP TEMPO was) */
 static const char *const PAD_NAME[BRK_NPADS] = {"R8", "R16", "R32", "REV", "SUB", "HLF", "VNL", "GAT", "RND",
                                                 "FLT", "ARP"};
 static const uint8_t WK[16] = PLAT_WHITE_KEYS, BK[11] = PLAT_BLACK_KEYS;
@@ -59,13 +56,11 @@ static const uint8_t WK[16] = PLAT_WHITE_KEYS, BK[11] = PLAT_BLACK_KEYS;
 static const uint8_t PAD_KEY[BRK_NPADS] = {0, 1, 2, 3, 10, 5, 6, 7, 8, 4, 9};   /* (and FILTER on the fifth key,
                                           * DUB's; PAD_DUB the ARP key on the tenth, FILTER's: DUB itself gone) */
 
-#define TAPS 8u                          /* tap tempo: the last eight taps (seven intervals) average */
 static struct {
     uint32_t keys, btn;
     uint8_t page, fx_focus;              /* fx_focus: the FX chain's slot the FX page tunes (0..3) */
     char msg[2][24];
     uint32_t msg_until;
-    uint32_t taps[TAPS], ntaps;          /* tap tempo on SEL: the taps' times, how many in this run */
     uint32_t tap_t;                      /* SEL went down then: a tap if it comes up alone */
     uint8_t tap_pend, tap_combo;         /* SEL down as a tap; something else touched while it was held */
     uint32_t oct_t, oct_rep;             /* OCT- / OCT+ held: repeats that speed up */
@@ -91,7 +86,7 @@ static struct {
                                           * clap (PG_PERC) */
     uint8_t rec;                         /* REC: white keys and MIDI notes write into the pattern as it plays */
     uint8_t help;                        /* SEL pressed alone: the SEL combinations on the strip, until the next press */
-    uint32_t help_t, tap_last;           /* when the card opened; the last tap (TAP's flash) */
+    uint32_t help_t;                     /* when the card opened */
     uint8_t drawn_page;                  /* the page last drawn (TAP takes the whole screen: leaving it redraws all) */
     uint32_t idle_t;                     /* the last key, button or knob touched (the demo: demo.c) */
     uint32_t lobo_t;                     /* RESET ALL done: the lobotomy screen, since then (0: not showing) */
@@ -109,6 +104,12 @@ static struct {
     uint8_t note_key, note_turned;
     uint8_t fx_open;
     uint8_t keq_part;                    /* (the KICK EQ page: 0 its bands, 1 their shape) */                     /* (FX pressed off its page: the page at its release, if not held) */       /* (crossbreed) SEQ, a kick lane: the key held + 1 (0 none); K1 turned since */
+    uint8_t tpage;                       /* LOAF BREAKER: ENV's part: 0 TRACKS, 1 PLAY, 2 DROP */
+    uint8_t trk_cur, trk_from;           /* TRACKS' item edited; PLAY's first item */
+    uint8_t trk_on;                      /* a track playing (2: starting, not yet heard) */
+    uint8_t trk_pos, trk_loops, trk_cnt; /* its item, the loops it played, this loop counted */
+    uint8_t trk_drop, trk_stop;          /* the item a drop of it goes to (0xFF none); the stop at the loop's end */
+    int16_t trk_prev;                    /* the step seen last (a wrap: a new loop) */
     uint8_t sel_clicks;                  /* SEL's clicks in a row (three: the build) */
     uint32_t sel_click_t;
     uint8_t reset_n;                     /* GLOUPI BREAKS: its turns so far, each within 3 s of the last (it wants 15) */
@@ -121,7 +122,7 @@ static struct {
 } ui;
 /* the white keys play slices (or, on the SEQ, KICK and SNARE / HAT pages, steps) */
 static void page_say(void);              /* the header: the page's button and part, as its tabs (main.c) */
-static int slices_page(void) { return ui.page != PG_SEQ && ui.page != PG_TAP && ui.page != PG_OVL; }   /* (ARP: overlays) */
+static int slices_page(void) { return ui.page != PG_SEQ && ui.page != PG_TRACK && ui.page != PG_OVL; }   /* (ARP: overlays) */
 enum { RG_HEAD = 1, RG_WAVE = 2, RG_BLOCKS = 4, RG_FOOT = 8, RG_ALL = 15, RG_FX = 16 };
 
 static void text_cat(char *d, const char *s)
@@ -183,47 +184,6 @@ static float knob_f(float v, int32_t d, float step, float lo, float hi)
 {
     v += (float)d * step;
     return v < lo ? lo : v > hi ? hi : v;
-}
-
-/* tap tempo (PRD A-38): SEL tapped in time, on any page. The tempo follows from the second tap on, the mean of the
- * last eight taps; a pause of 2 s starts a new run, and a tap far off the run's pace (under 0.7 or over 1.4 of it)
- * starts one from the tap before. A SEL that is part of a combination (SEL + ALGORITHM, + EDIT, + a knob ...) is no
- * tap: the tap counts when SEL comes up alone, at the time it went down */
-static void tap_tempo(uint32_t t)
-{
-    char a[12], v[16];
-    uint32_t n, span;
-    if (ui.ntaps && t - ui.taps[(ui.ntaps - 1u) % TAPS] > 2000u)
-        ui.ntaps = 0u;                   /* a pause starts a new run */
-    if (ui.ntaps >= 3u) {                /* far off the run's pace: a new run from the last tap */
-        uint32_t last = ui.taps[(ui.ntaps - 1u) % TAPS], m = ui.ntaps < TAPS ? ui.ntaps : TAPS;
-        uint32_t avg = (last - ui.taps[(ui.ntaps - m) % TAPS]) / (m - 1u), iv = t - last;
-        if (iv * 10u < avg * 7u || iv * 10u > avg * 14u) {
-            ui.taps[0] = last;
-            ui.ntaps = 1u;
-        }
-    }
-    ui.taps[ui.ntaps % TAPS] = t;
-    ui.ntaps++;
-    ui.tap_last = t | 1u;
-    ui.redraw |= 4u;                     /* (RG_BLOCKS: the TAP page) */
-    a[0] = 0;
-    text_cat(a, "TAP ");
-    int_text((int32_t)(ui.ntaps < 99u ? ui.ntaps : 99u), a + 4);
-    if (ui.ntaps < 2u) {
-        app_say(a, "AGAIN IN TIME");
-        return;
-    }
-    n = ui.ntaps < TAPS ? ui.ntaps : TAPS;
-    span = t - ui.taps[(ui.ntaps - n) % TAPS];
-    if (!span)
-        return;
-    n = (n - 1u) * 600000u / span;       /* BPM x 10 */
-    set.tempo_x10 = (uint16_t)(n < 400u ? 400u : n > 3000u ? 3000u : n);
-    changed();
-    tenths_text(set.tempo_x10, v);
-    text_cat(v, " BPM");
-    app_say(a, v);
 }
 
 /* ------------------------------------------------------------- the FX chain --- */

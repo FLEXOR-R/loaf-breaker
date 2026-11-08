@@ -60,8 +60,7 @@ typedef struct {
     uint8_t bta_on;                      /* Bluetooth audio out (GLOBAL, third part): on at power-on, the last device
                                           * connected again */
     uint8_t bta_codec;                   /* its SBC coding: 0 joint stereo (fm1-base's), 1 plain stereo */
-    uint8_t click;                       /* the metronome's click (TAP K4): its level, 0 (off) .. 100 %, on each beat
-                                          * while playing (was a spare byte: older saves have it off) */
+    uint8_t click_gone;                  /* (the metronome's click, gone with TAP TEMPO: its byte kept) */
     uint8_t rsv;
     brk_padset_t pads;                   /* the pads' own settings (K1-K4 while a pad is held) */
     brk_keyset_t keys[BRK_KEYS];         /* each white key's loop: length, pitch, start, mode (K1-K4 while held) */
@@ -120,6 +119,11 @@ typedef struct {
     uint8_t sslot;                       /* its memory playing, 0..9 */
     uint8_t rsv8[3];
     perc_voice_t smem[PERC_MEMS];        /* its memories */
+    /* (appended: LOAF BREAKER's DROP and TRACK, ENV's parts; an older save's: a 4-bar build into the next pattern) */
+    uint8_t drop_bars;                   /* the build: DROP_BARS's index (0: none, the drop at the bar's end) */
+    uint8_t drop_after;                  /* the pattern the drop brings in: 0 the next one, 1.. that one */
+    uint8_t drop_crash;                  /* the drop's crash, 0 off .. 100 */
+    uint8_t trk;                         /* the track TRACKS edits and PLAY plays, 0..NTRACKS-1 */
 } settings_t;
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");
@@ -197,6 +201,8 @@ static void settings_defaults(void)
         brk_mbc_defaults(&set.mbc[k]);
         brk_fxx_defaults(&set.fxx[k], set.fx.slot[k].type);
     }
+    set.drop_bars = 3u;                  /* (LOAF BREAKER: DROP: a 4-bar build, into the next pattern, the crash full) */
+    set.drop_crash = 100u;
 }
 
 static int pitch_keeps(void) { return set.pitch_keep != 2u; }   /* KEEP LENGTH unless SPEED was chosen */
@@ -281,17 +287,38 @@ typedef struct {
     uint16_t lane[NLANES];               /* bit n: the drum hits on step n of each bar (the kick: of its first) */
     uint16_t kick2;                      /* GLOUPI BREAKS: the kick's second bar (steps 17-32); was PAT1's rsv */
 } pat_t;                                 /* 136 bytes */
-static struct {
+/* LOAF BREAKER: the TRACKS (ENV): each a list of patterns, each played its loops (a loop: the pattern's length), and
+ * DROPs between them (the build, then the drop into the pattern after it), to its END; then from its start again,
+ * a stop, or the last pattern held. Saved with the patterns (after them: an older save, its patterns alone, loads) */
+#define NTRACKS 8u
+#define TRK_ITEMS 32u
+#define TI_END 0u                        /* it[]: 0 the end, 1..NPAT that pattern, TI_DROP a drop */
+#define TI_DROP 0xFEu
+typedef struct {
+    uint8_t it[TRK_ITEMS];
+    uint8_t rep[TRK_ITEMS];              /* a pattern's loops, 1..16 */
+    uint8_t end;                         /* at its end: 0 LOOP, 1 STOP, 2 HOLD */
+    uint8_t rsv[3];
+} track_t;
+typedef struct {
     uint32_t magic;
     pat_t p[NPAT];
-} pats;
+    track_t trk[NTRACKS];
+} pats_t;
+static pats_t pats;
+#define PATS_SIZE_OLD offsetof(pats_t, trk)   /* (a save before the tracks) */
 _Static_assert(sizeof pats <= 3840u, "a store object holds 3840 bytes");
-/* LOAF BREAKER: BUILD and DROP. SEL clicked three times, playing (build_n, the main loop): the drums' steps give way
- * to a snare roll that speeds up (quarters, eighths, 16ths, then 32nds in the last bar), louder and louder, the whole
- * mix high-passed higher and higher under a rising noise; after four bars (or three clicks again: at the next bar),
+/* LOAF BREAKER: BUILD and DROP. SEL clicked three times, playing (build_n, the main loop): from the next bar the
+ * drums' steps give way to a snare roll that speeds up (quarters, eighths, 16ths, then 32nds, a quarter of the build
+ * each), louder and louder, the whole mix high-passed higher and higher under a rising noise; after its bars (DROP's
+ * BUILD: 1, 2, 4, 8; none: the bar playing ends in the drop; or three clicks again: at the next bar),
  * the DROP: everything back at once, the next pattern's drums from its first step (drum_next, ready from the main
  * loop), a crash on it (drop_n counts them: the screen flashes and moves to that pattern) */
-#define BUILD_STEPS 64u                  /* the build's four bars */
+static const uint8_t DROP_BARS[5] = {0u, 1u, 2u, 4u, 8u};   /* the build's bars (DROP's K1) */
+static volatile uint8_t build_bars = 4u; /* the next build's (the main loop's, as it asks for it) */
+static volatile uint32_t build_len;      /* the build's steps (the render's) */
+static volatile uint8_t build_wait;      /* asked for: it starts at the next bar (none: the drop at this bar's end) */
+static volatile float drop_gain = 1.0f;  /* the crash's level */
 static volatile uint8_t build_n;         /* three clicks: a build, or (building) the drop */
 static volatile uint16_t drum_next[NDRUMS][4];   /* the next pattern's drums, for the drop */
 static volatile uint8_t drop_to = 0xFFu; /* the pattern the drop brings in (its break's steps, at the bar before) */
@@ -302,6 +329,17 @@ static volatile uint16_t drum_now[NDRUMS][4];   /* the pattern playing's drums, 
                                           * played out: pat_lanes_out), for the render */
 static int8_t pat_next = -1;             /* a pattern picked while playing: it starts at the loop's end */
 
+static void trk_defaults(void)          /* every track empty; the first a start: P1, P2, a drop, P3 */
+{
+    static const uint8_t T1[5] = {1u, 2u, TI_DROP, 3u, TI_END}, R1[5] = {4u, 4u, 1u, 8u, 1u};
+    uint32_t t, i;
+    for (t = 0; t < NTRACKS; t++)
+        for (i = 0; i < TRK_ITEMS; i++) {
+            pats.trk[t].it[i] = t == 0u && i < 5u ? T1[i] : TI_END;
+            pats.trk[t].rep[i] = t == 0u && i < 5u ? R1[i] : 1u;
+            pats.trk[t].end = 0u;
+        }
+}
 static void pat_defaults(void)
 {
     uint32_t i, k;
@@ -315,6 +353,7 @@ static void pat_defaults(void)
         p->lane[LANE_KICK] = p->lane[LANE_SNARE] = p->lane[LANE_HAT] = 0u;   /* the drums start empty */
         p->kick2 = 0u;
     }
+    trk_defaults();
 }
 /* GLOUPI BREAKS: the kick over four bars (64 steps), bar b (0..3) 16 bits: lane[LANE_KICK], kick2, and bars 3 and 4
  * in the spare bytes of steps 0-3 (st[0..3][3], low byte first) */
@@ -499,10 +538,6 @@ static volatile float meter_l, meter_r;  /* the output's peaks as it leaves (aft
                                           * ~20 dB a second: the render writes, the header's meter reads */
 #define LR_TEST_LEN (4u * BRK_SR)
 static volatile uint32_t lr_test;        /* the left / right test (BT AUDIO K3 while streaming): samples left of it */
-static uint16_t click_at[4];             /* the render: this block's metronome clicks (their samples, the bar's first) */
-static uint8_t click_hi[4];
-static uint32_t nclick;
-static float click_env, click_ph, click_inc;
 
 static void wave_build(const brk_break_t *b)
 {
@@ -628,8 +663,13 @@ void app_init(void)
     }
     if (set.brk >= n_breaks)
         set.brk = 0u;
-    if (plat_store_load(OBJ_PAT, &pats, sizeof pats) != (int)sizeof pats ||
-        (pats.magic != PAT_MAGIC && pats.magic != PAT2_MAGIC && pats.magic != PAT1_MAGIC))
+    trk_defaults();
+    {
+        int sz = plat_store_size(OBJ_PAT);   /* (LOAF BREAKER: a save from before the tracks: its patterns) */
+        if ((sz != (int)sizeof pats && sz != (int)PATS_SIZE_OLD) || plat_store_load(OBJ_PAT, &pats, (uint32_t)sz) != sz)
+            pats.magic = 0u;
+    }
+    if (pats.magic != PAT_MAGIC && pats.magic != PAT2_MAGIC && pats.magic != PAT1_MAGIC)
         pat_defaults();
     else if (pats.magic != PAT_MAGIC) {  /* an older save: its kick again over four bars, as it played */
         uint32_t i;
@@ -862,23 +902,19 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             float spm[8];                /* (each stab's note, a factor, by its hit) */
             uint8_t idx[8], who[8];
             uint32_t k, ne = brk_step_events(off, idx, 8u), nk = 0u, np = 0u;
-            nclick = 0u;
-            {                            /* LOAF BREAKER: three clicks: a build, or (building) the drop at the bar */
+            {                            /* LOAF BREAKER: three clicks: a build from the next bar (none: the drop
+                                          * at this bar's end), or (building) the drop at the bar */
                 static uint8_t seen;
                 if (build_n != seen) {
                     seen = build_n;
                     if (b_on)
                         b_drop = 1u;
-                    else if (st.playing) {
-                        b_on = 1u;
-                        b_drop = b_rew = 0u;
-                        b_steps = 0u;
-                        half_due = -1;
-                    }
+                    else if (st.playing)
+                        build_wait = 1u;
                 }
             }
             if (!st.playing)
-                b_on = b_drop = b_rew = 0u;   /* (stopped: no build) */
+                b_on = b_drop = b_rew = build_wait = 0u;   /* (stopped: no build) */
             if (b_on && half_due >= 0 && half_due < (int32_t)m) {   /* (the 32nd between two steps) */
                 pa[np] = (uint16_t)half_due;
                 who[np++] = 1u << PV_SNARE;
@@ -887,9 +923,13 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                 half_due = -1;
             for (k = 0; k < ne; k++) {
                 uint32_t s = idx[k] & 15u;   /* the step's place in the bar (idx: in four bars, the kick's) */
-                if (set.click && !(s & 3u) && nclick < 4u) {   /* the metronome: each beat, the bar's first higher */
-                    click_at[nclick] = off[k];
-                    click_hi[nclick++] = s == 0u;
+                if (build_wait && s == 0u && build_bars) {   /* the build asked for: from this bar's first step */
+                    build_wait = 0u;
+                    b_on = 1u;
+                    b_drop = b_rew = 0u;
+                    b_steps = 0u;
+                    build_len = 16u * build_bars;
+                    half_due = -1;
                 }
                 if (b_on) {              /* LOAF BREAKER: the build's roll in the drums' place */
                     if (b_rew && s == 0u) {   /* the drop: the new pattern's first step (rewound at the bar's
@@ -903,18 +943,18 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                                     drum_now[dd][bb] = drum_next[dd][bb];
                         drum_next_ok = 0u;
                         drop_n++;
-                        crash = 1.0f;
-                    } else {
-                        uint32_t div = b_steps < 16u ? 4u : b_steps < 32u ? 2u : 1u, q;
-                        if (!(b_steps % div) && np < 8u) {
+                        crash = drop_gain;
+                    } else if (build_len) {
+                        uint32_t q4 = b_steps * 4u / build_len, div = q4 < 1u ? 4u : q4 < 2u ? 2u : 1u, q;
+                        if (!(b_steps % div) && np < 8u) {   /* (quarters, eighths, 16ths, 32nds: a quarter each) */
                             pa[np] = off[k];
                             who[np++] = 1u << PV_SNARE;
-                            if (b_steps >= 48u)
+                            if (q4 >= 3u)
                                 half_due = (int32_t)off[k] + (int32_t)((float)BRK_SR * 7.5f / brk_get_tempo());
                         }
-                        if (b_steps < BUILD_STEPS)
+                        if (b_steps < build_len)
                             b_steps++;
-                        if (s == 15u && (b_drop || b_steps >= BUILD_STEPS)) {   /* the bar's last step: the next
+                        if (s == 15u && (b_drop || b_steps >= build_len)) {   /* the bar's last step: the next
                                           * is the drop, the new pattern's step 1 (its break's steps in now) */
                             b_rew = 1u;
                             brk_rewind();
@@ -924,6 +964,17 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                         }
                         continue;
                     }
+                } else if (build_wait && !build_bars && s == 15u) {   /* no build: this bar plays out, the drop
+                                          * on the next step (the new pattern's first) */
+                    uint32_t q;
+                    build_wait = 0u;
+                    b_on = b_rew = 1u;
+                    b_drop = 0u;
+                    build_len = 0u;
+                    brk_rewind();
+                    if (drop_to < NPAT)
+                        for (q = 0; q < PAT_STEPS; q++)
+                            pat_step_of(drop_to, q);
                 }
                 uint32_t w = 0u, d, bar = idx[k] >> 4 & 3u;
                 for (d = DR_SNARE; d < NDRUMS; d++)   /* (LOAF BREAKER: every drum, its bar) */
@@ -978,8 +1029,8 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             }
             brk_fx_drums_dj(kick, perc, m, (float)set.kick_dj * 0.01f);   /* HOME's DRUM FLT (LOAF BREAKER: every drum,
                                           * not the break) */
-            build_p = b_on ? (float)b_steps / (float)BUILD_STEPS : -1.0f;
-            if (b_on) {                  /* (the roll louder as it builds) */
+            build_p = b_on ? (build_len ? (float)b_steps / (float)build_len : 1.0f) : -1.0f;
+            if (b_on && build_len) {     /* (the roll louder as it builds) */
                 float g = 0.35f + 0.65f * build_p;
                 for (i = 0; i < m; i++)
                     perc[i] *= g;
@@ -1018,17 +1069,18 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                     beat -= 256.0f;
             }
         }
-        if (b_on || crash > 1e-4f) {     /* LOAF BREAKER: the build's high-pass and riser over everything; the
-                                          * drop's crash */
+        if ((b_on && build_len) || crash > 1e-4f) {   /* LOAF BREAKER: the build's high-pass and riser over
+                                          * everything; the drop's crash */
             static float h1l, h1r, h2l, h2r, cl;
             static uint32_t nz = 0x1234567u;
-            float p = b_on ? build_p : 0.0f, rz = 0.22f * p * p;
+            int bu = b_on && build_len;
+            float p = bu ? build_p : 0.0f, rz = 0.22f * p * p;
             float kk = brk_clampf(6.2832f * 30.0f * brk_exp2f(p * 6.5f) / (float)BRK_SR, 0.0f, 0.9f);
             for (i = 0; i < m; i++) {
                 float n;
                 nz = nz * 1664525u + 1013904223u;
                 n = (float)(int32_t)nz * (1.0f / 2147483648.0f);
-                if (b_on) {              /* (30 Hz up to ~2.7 kHz, two poles) */
+                if (bu) {                /* (30 Hz up to ~2.7 kHz, two poles) */
                     float xl = l[i] + n * rz, xr = r[i] + n * rz;
                     h1l += (xl - h1l) * kk;
                     xl -= h1l;
@@ -1046,27 +1098,6 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                     crash *= 0.99993f;
                 }
             }
-        }
-        if (nclick || click_env > 1e-3f) {   /* the metronome's click: dry, over everything, both sides */
-            uint32_t j = 0u;
-            for (i = 0; i < m; i++) {
-                float x;
-                if (j < nclick && click_at[j] <= i) {
-                    click_env = 1.0f;
-                    click_ph = 0.0f;
-                    click_inc = (click_hi[j] ? 2400.0f : 1500.0f) / (float)BRK_SR;
-                    j++;
-                }
-                x = (float)set.click * 0.006f * click_env * brk_sin_turns(click_ph);   /* (100 %: 0.6) */
-                click_ph += click_inc;
-                if (click_ph >= 1.0f)
-                    click_ph -= 1.0f;
-                click_env *= 0.9982f;    /* (~12 ms to -20 dB) */
-                l[i] += x;
-                r[i] += x;
-            }
-            if (click_env < 1e-3f)
-                click_env = 0.0f;
         }
         if (lr_test) {                   /* the left / right test: a low beep on the left, then a high one on the
                                           * right, twice (4 s), over everything else */
@@ -1138,6 +1169,7 @@ void app_panic(void)
 #include "ui/kick.c"
 #include "ui/perc.c"
 #include "ui/mixer.c"
+#include "ui/track.c"                 /* (LOAF BREAKER: ENV's TRACKS, PLAY, DROP) */
 #include "ui/screen.c"
 #if CH_DEMO
 #include "ui/demo.c"

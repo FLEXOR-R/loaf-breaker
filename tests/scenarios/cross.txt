@@ -57,9 +57,9 @@ wait 3000
 tap SEL
 tap SEL
 tap SEL
-wait 2500
-shot x_build.png
 wait 3500
+shot x_build.png
+wait 4000
 shot x_drop.png
 wait 3000
 wavstop
