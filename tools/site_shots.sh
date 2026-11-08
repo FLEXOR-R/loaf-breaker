@@ -22,7 +22,7 @@ from pathlib import Path
 from PIL import Image
 out, img, ldr = map(Path, sys.argv[1:4])
 MAP = {  # the manual's name: the scenario's shot
-    "screen-slicer": "site_cdj", "screen-slices": "site_slices", "screen-start": "u3_intro_full",
+    "screen-boot": "u0_splash", "screen-slicer": "site_cdj", "screen-slices": "site_slices", "screen-start": "u3_intro_full",
     "screen-selhelp": "site_selhelp", "screen-held": "site_held", "screen-keyloop": "u6_held",
     "screen-slicefx": "x_key_fx", "pad-roll8": "p_roll8", "pad-stop": "p_stop", "pad-dub": "p_dub",
     "screen-seq": "q_seq", "screen-step": "h_step", "screen-overlay": "o_page", "screen-fxchain": "n_fx",

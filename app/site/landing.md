@@ -8,6 +8,7 @@ crossbreed: its own menu and synth, TERROR, TERROR 2 and TERROR +, its own EQ an
 A sequencer of 16, 32 or 64 steps with hits, chance and nudge per step; tracks of patterns with built-up drops; a
 HOOVER; a compressor, a ducker and MAX OUT; and the mix scrolling by as on a CDJ.
 
+![LOAF BREAKER's start-up screen: LOAF LORD's face and the name](manual/img/screen-boot.png "Switched on")
 ![LOAF BREAKER playing: the mix scrolling in as on a CDJ, in rekordbox's colours](manual/img/screen-slicer.png "Playing")
 
 Version {{VERSION}}. Installing is at your own risk; the installer can put M-VAVE's own firmware back. 9 breaks, 2 bars
