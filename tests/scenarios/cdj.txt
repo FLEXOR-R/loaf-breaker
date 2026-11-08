@@ -1,5 +1,6 @@
 # LOAF BREAKER: HOME held on PERFORM: the break scrolling past the playhead as on a CDJ (rekordbox's RGB colours);
-# (a 4X4 kick in: its lows red); let go: the blocks again, still PERFORM (not GENERATOR). On GENERATOR the same.
+# (a 4X4 kick in: its lows red); let go: it stays; HOME again: the blocks back, still PERFORM (not GENERATOR). On
+# GENERATOR the same.
 #   app/build/host/choppah_host tests/scenarios/cdj.txt app/build/scenarios
 wait 4200
 tap SEQ
@@ -16,6 +17,10 @@ shot c_cdj.png
 wait 700
 shot c_cdj2.png
 release HOME
+wait 600
+expect page 0
+shot c_still.png
+tap HOME
 wait 300
 expect page 0
 shot c_back.png
@@ -24,8 +29,11 @@ wait 300
 expect page 1
 press HOME
 wait 1000
-shot c_cdj_gen.png
 release HOME
+wait 300
+shot c_cdj_gen.png
+expect page 1
+tap HOME
 wait 300
 expect page 1
 tap PLAY

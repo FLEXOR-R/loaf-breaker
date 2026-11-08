@@ -336,6 +336,13 @@ static void input(void)
             ui.redraw |= RG_FOOT | RG_BLOCKS;
             page_say();
         }
+        if (ui.cdj && (ui.page == PG_HOME || ui.page == PG_GEN)) {   /* LOAF BREAKER: the CDJ view up: HOME again
+                                          * takes it down (the blocks back, the same part) */
+            ui.cdj = 0u;
+            ui.cdj_skip = 1u;
+            ui.home_combo = 1u;
+            ui.redraw |= RG_BLOCKS;
+        }
     }
     if (ui.home_hold && !(btn & 1u << B_HOME)) {
         ui.home_hold = 0u;
@@ -1152,18 +1159,23 @@ void app_frame(void)
         }
     }
     track_poll(&st);                     /* LOAF BREAKER: a track playing: its next item */
-    {                                    /* LOAF BREAKER: HOME held on PERFORM or GENERATOR: the CDJ view, ~30 times a
-                                          * second; let go, the blocks again (and HOME's next part not taken) */
-        int want = (ui.btn & 1u << B_HOME) && (ui.page == PG_HOME || ui.page == PG_GEN) && now - ui.home_t >= 350u;
-        if (want) {
+    {                                    /* LOAF BREAKER: HOME held 0.35 s on PERFORM or GENERATOR: the CDJ view, and
+                                          * it stays (HOME's next part not taken) till HOME again or another page;
+                                          * ~30 times a second */
+        int home = ui.page == PG_HOME || ui.page == PG_GEN;
+        if (!(ui.btn & 1u << B_HOME))
+            ui.cdj_skip = 0u;
+        if (!ui.cdj && !ui.cdj_skip && home && ui.btn & 1u << B_HOME && now - ui.home_t >= 350u) {
+            ui.cdj = ui.cdj_skip = 1u;
             ui.home_combo = 1u;
-            if (!ui.cdj || now - ui.panel_drawn >= 33u) {
-                ui.redraw |= RG_BLOCKS;
-                ui.panel_drawn = now;
-            }
-        } else if (ui.cdj)
+            ui.panel_drawn = 0u;
+        }
+        if (ui.cdj && !home)
+            ui.cdj = 0u;
+        if (ui.cdj && now - ui.panel_drawn >= 33u) {
             ui.redraw |= RG_BLOCKS;
-        ui.cdj = (uint8_t)want;
+            ui.panel_drawn = now;
+        }
     }
     if (pat_next >= 0 && (!st.playing || (st.step >= 0 && (uint32_t)st.step + 1u >= pat_len()))) {
         set.pattern = (uint8_t)pat_next;  /* the pattern picked: in for the loop's next round (its last step plays) */
