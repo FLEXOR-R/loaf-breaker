@@ -1,5 +1,5 @@
-# LOAF BREAKER: the kick's SYNTH. EDIT, ALGORITHM back from MIX: SYNTH + (RUMBLE, LENGTH, ASYM, TUNE), then SYNTH
-# (DROP, TIME, SHAPE, HOLD). A 4X4 kick playing with its rumble, a longer drop, a squarer SUB held 100 ms. Its sound:
+# LOAF BREAKER: the kick's SYNTH. EDIT twice (the KICK menu's SYNTH section): SYNTH (DROP, TIME, SHAPE, HOLD); ALGORITHM:
+# SYNTH + (RUMBLE, LENGTH, ASYM, TUNE). A 4X4 kick playing with its rumble, a longer drop, a squarer SUB held 100 ms. Its sound:
 # k_synth.wav
 #   app/build/host/choppah_host tests/scenarios/synth.txt app/build/scenarios
 wait 4200
@@ -9,17 +9,9 @@ turn ALGO 2 10
 turn K3 1 10
 wait 200
 tap EDIT
+wait 200
+tap EDIT
 wait 300
-turn ALGO -1 10
-wait 200
-expect kpage 9
-turn K1 20 10
-turn K3 10 10
-turn K4 -3 10
-wait 200
-shot k_synth2.png
-turn ALGO -1 10
-wait 200
 expect kpage 8
 turn K1 10 10
 turn K2 10 10
@@ -27,6 +19,14 @@ turn K3 10 10
 turn K4 10 10
 wait 200
 shot k_synth1.png
+turn ALGO 1 10
+wait 200
+expect kpage 9
+turn K1 20 10
+turn K3 10 10
+turn K4 -3 10
+wait 200
+shot k_synth2.png
 tap PLAY
 wait 500
 wav k_synth.wav

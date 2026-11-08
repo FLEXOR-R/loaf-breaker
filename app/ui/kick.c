@@ -107,8 +107,45 @@ static void kick_part_name(uint32_t p, char *t)
         return;
     text_cat(t, " FX");
 }
+/* LOAF BREAKER: the KICK menu: its parts in four sections, EDIT the next section, ALGORITHM the next part in it.
+ * SOUND: MIX, SUB, PUNCH, GRIT, CLICK, OUT. SYNTH: SYNTH, SYNTH +, MACRO. DIRT: TERROR, TERROR +, TERROR 2, the layers'
+ * effects. TONE: EQ BANDS, EQ SHAPE, FX 1, FX 2 */
+#define KSECTS 4u
+static const char *const KSECT_NAME[KSECTS] = {"SOUND", "SYNTH", "DIRT", "TONE"};
+static const uint8_t KSECT_N[KSECTS] = {6u, 3u, 7u, 4u};
+static const uint8_t KSECT[KSECTS][7] = {{0u, 1u, 3u, 5u, 7u, 10u}, {18u, 19u, 9u}, {15u, 16u, 17u, 2u, 4u, 6u, 8u},
+                                        {11u, 12u, 13u, 14u}};
+static void ksect_find(uint32_t p)       /* the part's section and place in it, kept */
+{
+    uint32_t s, j;
+    for (s = 0; s < KSECTS; s++)
+        for (j = 0; j < KSECT_N[s]; j++)
+            if (KSECT[s][j] == p) {
+                ui.ksect = (uint8_t)s;
+                ui.kpos[s] = (uint8_t)j;
+                return;
+            }
+}
+static void kick_part_set(uint32_t p);
+static void kick_open(void)              /* the KICK menu, at its section's part */
+{
+    uint32_t s = ui.ksect % KSECTS;
+    kick_part_set(KSECT[s][ui.kpos[s] % KSECT_N[s]]);
+}
+static void kick_sect_next(void)         /* EDIT on the KICK menu */
+{
+    ui.ksect = (uint8_t)((ui.ksect + 1u) % KSECTS);
+    kick_open();
+}
+static void kick_sect_step(int32_t d)    /* ALGORITHM on it */
+{
+    uint32_t s = ui.ksect % KSECTS, n = KSECT_N[s];
+    ui.kpos[s] = (uint8_t)((ui.kpos[s] + (d > 0 ? 1u : n - 1u)) % n);
+    kick_open();
+}
 static void kick_part_set(uint32_t p)
 {
+    ksect_find(p);
     ui.page = PG_KICK;
     if (p >= KP_BASE) {                  /* (TEST) the KICK EQ, the kick's FX slots, its TERRORs */
         uint32_t q = (p - KP_BASE) % 9u;
@@ -418,7 +455,8 @@ static void draw_drums(const brk_status_t *st)
 {
     uint32_t i, c;
     for (i = 0; i < NDRUMS; i++) {
-        uint32_t sig = i ? sig_of(perc_voice(i - 1u), sizeof(perc_voice_t)) : sig_of(&set.kick, sizeof set.kick);
+        uint32_t sig = i ? sig_of(perc_voice(i - 1u), sizeof(perc_voice_t))
+                         : sig_of(&set.kick, sizeof set.kick) ^ sig_of(set.ksyn, sizeof set.ksyn);
         if (sig != drum_sig[i]) {        /* its hit again, over a window that fits its decay, as tall as the box */
             uint32_t pk = 0u;
             drum_sig[i] = sig;
@@ -476,34 +514,102 @@ static float kick_knob_f(int i)          /* the part's knob i, 0..1 (as its bar)
         return i == 0 ? k->volume : i <= 2 ? (float)*kick_hc((kick_t *)k, i) * 0.01f : 0.0f;
     }
 }
-static void draw_kick(const brk_status_t *st)
+/* LOAF BREAKER: the KICK menu's picture (y 44..143, no waveform of the break above it): the kick as it sounds, its
+ * hit over 250 ms drawn large (its wave over its level), the SUB's pitch falling across it (amber: from where its DROP starts to its
+ * note), its memory, its note and the layers' levels; under it (y 144..191) the part's four knobs as cards, their
+ * values large */
+#define KV_W 232u
+#define KV_MS 250u                       /* (the picture's time: a quarter of a second) */
+static uint8_t kv_px[KV_W];              /* the hit's level, column by column */
+static int8_t kv_wave[KV_W];             /* and its wave (the pitch falling: the cycles stretching) */
+static uint32_t kv_sig;
+static void kick_picture(int32_t top)
 {
     const kick_t *k = &set.kick;
     uint32_t i;
-    char t[24];
-    cv_begin(240, 52, C_BLACK);
+    int32_t x, py = 0;
+    float hz = kick_pitch_hz(KL_SUB, k->l[KL_SUB].pitch) * brk_exp2f_c((float)set.ksyn[KS_TUNE] * (1.0f / 12.0f));
+    float drop = 2.0f * brk_exp2f_c((float)set.ksyn[KS_DROP] * 0.04f);
+    float tms = 120.0f * brk_exp2f_c((float)set.ksyn[KS_TIME] * 0.04f);
+    char t[24], u[8];
+    cv_oy = -top;
+    cv_rect(4, 50, KV_W, 1, C_LINE);     /* (the middle) */
+    for (i = 0; i < KV_W; i++) {         /* the hit: its level (dim, mirrored), its wave over it */
+        int32_t h = kv_px[i], w = kv_wave[i];
+        if (h)
+            cv_rect(4 + (int32_t)i, 50 - h, 1, 2 * h + 1, C_BLOCK);
+        if (w > 0)
+            cv_rect(4 + (int32_t)i, 50 - w, 1, w, C_HI);
+        else if (w < 0)
+            cv_rect(4 + (int32_t)i, 51, 1, -w, C_HI);
+    }
+    for (x = 0; x < (int32_t)KV_W; x += 2) {   /* the SUB's pitch: 30 Hz at the bottom .. 1 kHz at the top, as it falls */
+        float ms = (float)x * ((float)KV_MS / (float)KV_W), pe = brk_exp2f_c(-6.644f * ms / tms);
+        float f = hz * (1.0f + drop * pe);
+        int32_t y = 84 - (int32_t)(brk_clampf(brk_log2f(f / 30.0f) / 5.06f, 0.0f, 1.0f) * 68.0f);
+        if (x)
+            cv_line(2 + x, py, 4 + x, y, C_AMB);
+        py = y;
+    }
+    t[0] = 0;                            /* KICK 4, its note */
+    text_cat(t, "KICK ");
+    int_text((int32_t)set.kslot + 1, u);
+    text_cat(t, u);
+    cv_text(6, 2, &FONT_B, t, C_WHITE);
     t[0] = 0;
-    text_cat(t, "KICK  ");
-    kick_part_name(kick_part(), t);
-    cv_text(6, 0, &FONT_XS, t, C_GRAY);
-    for (i = 0; i < 4u; i++) {           /* the part's four settings */
-        int32_t x = 6 + (int32_t)i * 58;
+    int_text((int32_t)(hz + 0.5f), t);
+    text_cat(t, " HZ");
+    cv_text(234 - text_w(&FONT_XS, t), 4, &FONT_XS, t, C_AMB);
+    for (i = 0; i < KICK_LAYERS; i++) {  /* the layers' levels, small, at the foot */
+        int32_t lx = 6 + (int32_t)i * 58;
+        cv_text(lx, 88, &FONT_XS, KICK_LAYER_NAME[i], C_DIM);
+        cv_rect(lx + 30, 92, 24, 3, C_BLOCK);
+        cv_rect(lx + 30, 92, (int32_t)(24.0f * k->l[i].level + 0.5f), 3, k->l[i].fx ? C_AMB : C_GRAY);
+    }
+    cv_oy = 0;
+}
+static void kick_cards(void)             /* the part's four knobs: its name, its value large, its bar */
+{
+    uint32_t i;
+    char t[16];
+    cv_begin(240, 48, C_BLACK);
+    for (i = 0; i < 4u; i++) {
+        int32_t x = 2 + (int32_t)i * 60;
         const char *n = kick_knob_name((int)i);
+        cv_rect(x, 0, 56, 46, C_BLOCK);
         if (!n[0])
             continue;
-        cv_text(x, 16, &FONT_XS, n, C_GRAY);
-        cv_rect(x, 29, 52, 3, C_BLOCK);
-        cv_rect(x, 29, (int32_t)(52.0f * brk_clampf(kick_knob_f((int)i), 0.0f, 1.0f) + 0.5f), 3, C_HI);
+        cv_text(x + 4, 3, &FONT_XS, n, C_GRAY);
+        kick_value((int)i, t);
+        cv_text(x + 4, 16, text_w(&FONT_B, t) <= 50 ? &FONT_B : &FONT_XS, t, C_WHITE);
+        cv_rect(x + 4, 38, 48, 3, C_BLACK);
+        cv_rect(x + 4, 38, (int32_t)(48.0f * brk_clampf(kick_knob_f((int)i), 0.0f, 1.0f) + 0.5f), 3, C_HI);
     }
-    for (i = 0; i < KICK_LAYERS; i++) {  /* the layers' levels */
-        int32_t x = 6 + (int32_t)i * 58;
-        int lit = i == ui.klayer && (ui.kpage == KP_LAYER || ui.kpage == KP_FX);   /* (MIX: the row above is them) */
-        cv_text(x, 34, &FONT_XS, KICK_LAYER_NAME[i], lit ? C_GRAY : C_DIM);
-        cv_rect(x, 47, 52, 3, C_BLOCK);
-        cv_rect(x, 47, (int32_t)(52.0f * k->l[i].level + 0.5f), 3, lit ? C_HI : k->l[i].fx ? C_AMB : C_DIM);
+    cv_blit(0, 144);
+}
+static void draw_kick(const brk_status_t *st)
+{
+    uint32_t sig = sig_of(&set.kick, sizeof set.kick) ^ sig_of(set.ksyn, sizeof set.ksyn), top;
+    (void)st;
+    if (sig != kv_sig) {                 /* (its hit again, only when it changed) */
+        uint32_t pk = 0u;
+        kv_sig = sig;
+        kick_shape(&set.kick, kv_px, KV_W, KV_MS, 34u);
+        kick_wave(&set.kick, kv_wave, KV_W, KV_MS, 34u);
+        for (top = 0; top < KV_W; top++)
+            pk = kv_px[top] > pk ? kv_px[top] : pk;
+        for (top = 0; pk && top < KV_W; top++) {   /* (as tall as it goes) */
+            kv_px[top] = (uint8_t)((uint32_t)kv_px[top] * 34u / pk);
+            kv_wave[top] = (int8_t)((int32_t)kv_wave[top] * 34 / (int32_t)pk);
+        }
     }
-    cv_blit(0, 88);
-    draw_drums(st);
+    for (top = 0; top < 100u; top += 60u) {   /* (y 44..143, strips of 60 rows) */
+        uint32_t h = 100u - top < 60u ? 100u - top : 60u;
+        cv_begin(240, h, C_BLACK);
+        kick_picture((int32_t)top);
+        cv_blit(0, 44u + top);
+    }
+    kick_cards();
 }
 
 /* LOAF BREAKER: HOME's third part, the KICK EQ: the FX chain's EQ on the kick alone (its curve drawn as the FX page

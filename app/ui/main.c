@@ -357,12 +357,29 @@ static void input(void)
     }
     if (bdn & 1u << B_GLO)               /* GLOBAL: MIDI clock and Bluetooth; again, the pitch; again, BT audio */
         global_part(ui.page == PG_GLOBAL ? (ui.gpage + 1u) % 3u : 0u);
-    if (bdn & 1u << B_EDIT) {            /* EDIT: the drums' sounds, the one edited last; again, the next drum */
-        if (ui.page == PG_KICK || ui.page == PG_PERC || ui.page == PG_KEQ || IS_KFX())
+    if (bdn & 1u << B_EDIT) {            /* LOAF BREAKER: EDIT: the KICK menu; again, its next section (SOUND SYNTH
+                                          * DIRT TONE). SEL + EDIT: the other drums (EDIT again: the next, after the
+                                          * HOOVER the kick) */
+        int kickp = ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX();
+        if (btn & 1u << B_SEL) {
+            ui.einst = (uint8_t)(ui.page == PG_PERC ? ui.einst % (NDRUMS - 1u) + 1u : ui.einst ? ui.einst : 1u);
+            edit_open();
+        } else if (kickp)
+            kick_sect_next();
+        else if (ui.page == PG_PERC) {
             ui.einst = (uint8_t)((ui.einst + 1u) % NDRUMS);
-        else if (ui.page == PG_SEQ && ui.seq_lane >= SL_KICK)
-            ui.einst = (uint8_t)sl_drum(ui.seq_lane);   /* LOAF BREAKER: from SEQ, the drum of the lane shown */
-        edit_open();
+            if (ui.einst)
+                edit_open();
+            else
+                kick_open();
+        } else if (ui.page == PG_SEQ && ui.seq_lane >= SL_KICK && sl_drum(ui.seq_lane)) {
+            ui.einst = (uint8_t)sl_drum(ui.seq_lane);   /* (from SEQ, the drum of the lane shown) */
+            edit_open();
+        } else {
+            ui.einst = 0u;
+            kick_open();
+        }
+        ui.redraw |= RG_FOOT | RG_BLOCKS | RG_WAVE;
     }
     if (bdn & 1u << B_LFO) {             /* LFO: the MIXER (the break, the kick, FX main, FX overlay); again, groove */
         ui.mpage = ui.page == PG_MIX ? (uint8_t)((ui.mpage + 1u) % 3u) : 0u;   /* (TEST: LEVELS, GROOVE, MASTER) */
@@ -608,15 +625,15 @@ static void input(void)
                 knob_fn(d);              /* LOAF BREAKER: ENV's KNOB: the function */
             else if (ui.page == PG_GLOBAL)   /* GLOBAL: its part */
                 global_part((ui.gpage + (d > 0 ? 1u : 2u)) % 3u);
-            else if (ui.page == PG_KICK) {    /* the kick: its part (MIX, each layer and its FX, MACRO, OUT) */
-                kick_part_set((kick_part() + (d > 0 ? 1u : KPARTS - 1u)) % KPARTS);
+            else if (ui.page == PG_KICK) {    /* LOAF BREAKER: the KICK menu: the next part of its section */
+                kick_sect_step(d);
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
             } else if (ui.page == PG_SEQ) {   /* SEQ: the lane its keys edit */
                 seq_lane_step(d);
                 page_say();
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
-            } else if (ui.page == PG_KEQ || IS_KFX()) {   /* (TEST) EDIT KICK's EQ and FX parts: the kick's parts */
-                kick_part_set((kick_part() + (d > 0 ? 1u : KPARTS - 1u)) % KPARTS);
+            } else if (ui.page == PG_KEQ || IS_KFX()) {   /* (the KICK menu's EQ and FX parts: its section's next) */
+                kick_sect_step(d);
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
             } else if (ui.page == PG_PERC) {   /* the snare or the hat: SOUND or SHAPE */
                 ui.ppage ^= 1u;
@@ -820,13 +837,17 @@ static void draw_tabs(void)
             text_cat(part, " ");
             text_cat(part, fx_part_name());
         }
+    } else if (ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX()) {   /* LOAF BREAKER: the KICK menu: its sections,
+                                          * the part (if it fits) */
+        for (i = 0; i < KSECTS; i++)
+            x = tab(x, KSECT_NAME[i], i == ui.ksect % KSECTS);
+        kick_part_name(kick_part(), part);
+        if (x + text_w(&FONT_T, part) + 16 > 236)
+            part[0] = 0;
     } else {                             /* EDIT: the drum, and its part */
-        for (i = 0; i < NDRUMS; i++)
-            x = tab(x, DRUM_TAG[i], i == ui.einst);   /* (KICK SN HH CP) */
-        if (ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX())   /* (TEST: its EQ and FX parts too) */
-            kick_part_name(kick_part(), part);
-        else
-            text_cat(part, ui.ppage ? "SHAPE" : "SOUND");
+        for (i = 1; i < NDRUMS; i++)
+            x = tab(x, DRUM_TAG[i], i == ui.einst);   /* (SN HH CP HV: the kick has its own menu) */
+        text_cat(part, ui.ppage ? "SHAPE" : "SOUND");
     }
     if (part[0]) {                       /* "< PART >": ALGORITHM turns it */
         char t[24] = "< ";
@@ -863,7 +884,8 @@ static void page_say(void)
         }
         break;
     case PG_KICK:
-        text_cat(t, "KICK ");
+        text_cat(t, KSECT_NAME[ui.ksect % KSECTS]);
+        text_cat(t, " ");
         kick_part_name(kick_part(), t);
         break;
     default:
@@ -1260,13 +1282,13 @@ void app_frame(void)
     }
     {                                    /* LOAF BREAKER: SEQ left, its grid's top goes: the waveform back */
         static uint8_t last_page;
-        if (ui.page != last_page && last_page == PG_SEQ)
+        if (ui.page != last_page && (last_page == PG_SEQ || last_page == PG_KICK))   /* (and the KICK menu's picture) */
             ui.redraw |= RG_WAVE;
         last_page = ui.page;
     }
     if (!ui.redraw)
         return;
-    if (ui.redraw & RG_WAVE && ui.page != PG_TRACK && ui.page != PG_SEQ)   /* (LOAF BREAKER: SEQ is a grid there) */
+    if (ui.redraw & RG_WAVE && ui.page != PG_TRACK && ui.page != PG_SEQ && ui.page != PG_KICK)   /* (LOAF BREAKER: SEQ is a grid there) */
         draw_wave(&st, b);
     if (ui.redraw & RG_FX) {
         if (ui.shown >= 100)

@@ -1,5 +1,5 @@
 # LOAF BREAKER: an effect's settings kept. FX slot 1 (CRUNCH): K1 down, PRESETS to the next effect and back: K1 as it
-# was left; SEL twice: CRUNCH's starting settings; SEL twice again: back (undone). EDIT KICK, SUB FX: DRIVE, its
+# was left; SEL twice: CRUNCH's starting settings; SEL twice again: back (undone). the KICK menu's DIRT, SUB FX: DRIVE, its
 # GAIN up, to CRUNCH and back: kept; SEL twice: reset.
 #   app/build/host/choppah_host tests/scenarios/fxmem.txt app/build/scenarios
 wait 4200
@@ -26,8 +26,12 @@ tap SEL
 wait 600
 expect fx_p1 37
 tap EDIT
+wait 150
+tap EDIT
+wait 150
+tap EDIT
 wait 200
-turn ALGO 2 10
+turn ALGO 3 10
 wait 200
 expect kpage 2
 turn K1 1 10

@@ -1,0 +1,45 @@
+# LOAF BREAKER: the KICK menu. EDIT: SOUND (MIX), ALGORITHM: SUB; EDIT: SYNTH, DIRT, TONE (its EQ); EDIT: SOUND again (SUB
+# kept). SEL + EDIT: the other drums (SNARE), EDIT: HAT, CLAP, HOOVER, then the KICK menu again.
+#   app/build/host/choppah_host tests/scenarios/kickmenu.txt app/build/scenarios
+wait 4200
+tap EDIT
+wait 300
+expect page 4
+expect kpage 0
+shot km_mix.png
+turn ALGO 1 10
+wait 200
+expect kpage 1
+shot km_sub.png
+tap EDIT
+wait 300
+expect kpage 8
+shot km_synth.png
+tap EDIT
+wait 300
+expect kpage 5
+shot km_dirt.png
+tap EDIT
+wait 300
+expect page 10
+shot km_tone.png
+tap EDIT
+wait 300
+expect page 4
+expect kpage 1
+press SEL
+tap EDIT
+release SEL
+wait 300
+expect page 7
+shot km_snare.png
+tap EDIT
+wait 100
+tap EDIT
+wait 100
+tap EDIT
+wait 200
+shot km_hoover.png
+tap EDIT
+wait 300
+expect page 4

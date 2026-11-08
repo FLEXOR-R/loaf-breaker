@@ -475,6 +475,34 @@ BRK_COLD void kick_shape(const kick_t *k, uint8_t *px, uint32_t n, uint32_t ms, 
     }
 }
 
+BRK_COLD void kick_wave(const kick_t *k, int8_t *px, uint32_t n, uint32_t ms, uint32_t height)
+{
+    kc_t c;
+    kv_t v;
+    uint32_t i, total = ms * (BRK_SR / 1000u), per = total / (n ? n : 1u);
+    kc_make(k, &c);
+    c.rum = 0.0f;
+    v.rng = 0x5eed1u;
+    v.tlo = v.tlp = v.tenv = 0.0f;
+    v.t2lo = v.t2lp = v.t2env = 0.0f;
+    v.sc1 = v.sc2 = 0.0f;
+    v.rlp = v.rout = v.rlvl = v.dc = 0.0f;
+    v.pm = 1.0f;
+    v.last = v.declick = 0.0f;
+    kv_hit(&v);
+    v.declick = 0.0f;
+    for (i = 0; i < n; i++) {
+        uint32_t s;
+        float best = 0.0f;
+        for (s = 0; s < per; s++) {
+            float x = kv_tick(&v, &c);
+            if (brk_absf(x) > brk_absf(best))
+                best = x;
+        }
+        px[i] = (int8_t)(brk_clampf(best, -1.0f, 1.0f) * (float)height);
+    }
+}
+
 /* the built-in kicks: per layer level, pitch, decay, tone; then intensity */
 static const float PRESET[KICK_PRESETS][KICK_LAYERS * 4 + 1] = {
     {0.80f, 0.35f, 0.45f, 0.10f, 0.70f, 0.50f, 0.30f, 0.40f, 0.00f, 0.30f, 0.20f, 0.30f, 0.35f, 0.50f, 0.25f, 0.30f,

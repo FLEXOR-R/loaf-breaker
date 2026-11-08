@@ -67,8 +67,13 @@ wavstop
 shot x_after.png
 tap PLAY
 tap EDIT
+wait 150
+tap EDIT
+wait 150
+tap EDIT
+wait 150
+tap EDIT
 wait 200
-turn ALGO 11 10
 wait 300
 expect page 10
 turn K1 8 10

@@ -78,6 +78,9 @@ void kick_set(const kick_t *k);          /* main loop: read at the next render *
  * harmonics, warmer and harder; 0 or below: none), KS_TUNE the whole kick, in semitones (-12 .. +12) */
 enum { KS_DROP, KS_TIME, KS_SHAPE, KS_HOLD, KS_RUMBLE, KS_RTIME, KS_ASYM, KS_TUNE, KS_N };
 void kick_set_synth(const int8_t *s);    /* main loop, KS_N of them */
+/* LOAF BREAKER: a hit of k drawn as its wave (the screen's KICK menu): n columns over ms, each the column's sample
+ * furthest from 0 (signed, -height .. +height) */
+void kick_wave(const kick_t *k, int8_t *px, uint32_t n, uint32_t ms, uint32_t height);
 void kick_rumble_buf(int16_t *buf, uint32_t len);   /* boot: the rumble's line (the app's: in the pool) */
 void kick_hit(void);                     /* main loop (a MIDI note): a kick at the next render */
 /* render: n samples into out (overwritten); hits at the sample offsets at[0..nat-1] (rising) */

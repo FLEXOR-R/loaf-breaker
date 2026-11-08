@@ -108,10 +108,18 @@ back. That touch only ends the demo: it doesn't play a slice or start the break.
 ### Where things are
 
 - **HOME**: playing. PERFORM and GENERATOR (HOME again: the other), the CDJ waveform on both.
-- **EDIT**: the drums. On the KICK, ALGORITHM goes through all of it: MIX, each layer and its effect, MACRO, OUT, then
-  EQ BANDS, EQ SHAPE (its EQ), FX 1, FX 2 (its two FX slots), TERROR, TERROR + (DRIVE, TYPE, SCREECH, TAIL), TERROR 2.
-  The TERRORs' settings are the kick's own: they go with its memory.
-  ALGORITHM left from MIX reaches the kick's **SYNTH** first:
+- **EDIT**: the **KICK menu**. Its picture: the kick's hit over a quarter of a second, its wave large (the cycles
+  stretching as its pitch falls, squared off where it is driven), its level behind, the SUB's pitch falling in amber,
+  its memory (KICK 1–10) and its note; under it the part's four knobs as cards, their values large. **EDIT again**: the
+  next section, **ALGORITHM**: the next part in it (each section remembers where you were):
+  - **SOUND**: MIX, SUB, PUNCH, GRIT, CLICK, OUT.
+  - **SYNTH**: SYNTH, SYNTH +, MACRO.
+  - **DIRT**: TERROR, TERROR + (DRIVE, TYPE, SCREECH, TAIL), TERROR 2, then each layer's effect.
+  - **TONE**: EQ BANDS, EQ SHAPE (its EQ), FX 1, FX 2 (its two FX slots).
+  The TERRORs' settings are the kick's own: they go with its memory. **SEL + EDIT**: the other drums (SNARE, HAT, CLAP,
+  HOOVER; EDIT again the next, after the HOOVER the kick). The HOOVER (in the rave stab's place) is a hardcore synth:
+  six saws spread wide, starting BEND octaves below and rising into its note (presets CLASSIC, DIVE, SCREAM, DARK).
+  The kick's **SYNTH** section:
   - **SYNTH**: DROP (how far above its note the SUB starts its pitch drop: a soft thud .. a laser boom), TIME (how long
     the drop takes, 30–480 ms), SHAPE (the SUB's wave: a clean sine .. squared off, harder), HOLD (the SUB held at full
     before it decays, up to 250 ms: the long gabber "bwoom"; left: a shorter one).

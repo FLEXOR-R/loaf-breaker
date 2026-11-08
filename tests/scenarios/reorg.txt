@@ -11,8 +11,13 @@ tap HOME
 wait 200
 expect page 0
 tap EDIT
+wait 150
+tap EDIT
+wait 150
+tap EDIT
+wait 150
+tap EDIT
 wait 200
-turn ALGO 11 10
 wait 300
 expect page 10
 shot r_kick_eq.png
@@ -21,7 +26,11 @@ wait 300
 expect page 2
 expect fx_focus 4
 shot r_kick_fx.png
-turn ALGO 2 10
+tap EDIT
+wait 150
+tap EDIT
+wait 150
+tap EDIT
 wait 300
 expect page 4
 expect kpage 5
