@@ -143,22 +143,33 @@ metronome and tap tempo are gone).
 - **DROP**: **K1** the build: NONE (the bar playing ends in the drop), 1, 2, 4 or 8 bars; **K2** the pattern a SEL ×3
   drop brings in (NEXT, or P1–P16); **K3** the break it brings in (SAME, or one of the bank's); **K4** the crash's
   level.
-- **KNOB**: the SEL + knob functions' settings. **ALGORITHM**, **PRESETS** or white keys 1–4 pick the function
-  (K1 DUCK, K2 TERROR 2, K3 COMP, K4 TERROR); **K1** is always its amount, the same as SEL + that knob anywhere.
-  - **DUCK** (SEL + K1): AMOUNT, ATTACK (0.1–30 ms), RELEASE (20–800 ms), DUCKS: the BREAK, or the break and the
-    drums (+ DRUMS; never the kick).
-  - **TERROR 2** (SEL + K2): AMOUNT, SUB (what stays clean under it, ~48–250 Hz), SCREAM (the mids it pushes,
-    ~150 Hz–2.4 kHz), PUSH (how hard).
-  - **COMP** (SEL + K3, in LIMIT's place): the whole mix compressed. AMOUNT is the threshold (0 to −36 dB), RATIO
-    1.5:1–20:1, ATTACK, RELEASE; half the reduction is made up, and the mix is held under full scale. Its reduction
-    shows live under the knobs.
+- **BUILD**: how the build before a drop sounds, so drops don't all sound alike. **K1 STYLE**: SNARE ROLL (the
+  snare speeding up, as ever), KICK ROLL (the kick doing it), KICK+SNARE (the two in turn), STUTTER (the drums out, the
+  break itself rolled in 8ths, 16ths then 32nds), SWEEP ONLY (the drums play on, only the filter and the noise build),
+  RANDOM (each build picks one). **K2 SWEEP**: HIGH-PASS (as ever), LOW-PASS (closing down to ~400 Hz), NONE, RANDOM.
+  **K3 RISER**: the rising noise, OFF to 200 % (100 %: as it was). **K4 GAP**: silence just before the drop (none, a
+  16th, an 8th, a beat, half a bar), so the drop hits out of nothing.
+- **KNOB**: what SEL + each knob does, on any page. **ALGORITHM** (or white keys 1–4) picks the knob, **PRESETS**
+  gives it its function: DUCK, TERROR 2, COMP, TERROR, T+ DRIVE, T+ TYPE, T+ SCREECH, T+ TAIL (TERROR +'s settings, one
+  each) or DRIVE (the kick's INTENSITY). They start as K1 DUCK, K2 TERROR 2, K3 COMP, K4 TERROR. K1–K4 then set the
+  function picked (K1 is what SEL + its knob turns).
+  - **DUCK**: AMOUNT, ATTACK (0.1–30 ms), RELEASE (20–800 ms), DUCKS: the BREAK, or the break and the drums (+ DRUMS;
+    never the kick).
+  - **TERROR 2**: AMOUNT, SUB (what stays clean under it, ~48–250 Hz), SCREAM (the mids it pushes, ~150 Hz–2.4 kHz),
+    PUSH (how hard).
+  - **COMP** (in LIMIT's place; also on the MIXER's MASTER): the whole mix compressed. AMOUNT is the threshold (0 to
+    −36 dB), RATIO 1.5:1–20:1, ATTACK, RELEASE; half the reduction is made up, the mix held under full scale. Its
+    reduction shows live under the knobs.
+  - **TERROR**: AMOUNT, SUB, FIZZ (its top, darker or brighter), SUSTAIN (the fold dying with the kick, or a wall).
+  - **TERROR +** (its settings on EDIT KICK too): DRIVE (the fold's gain, apart from AMOUNT's mix), TYPE (FOLD the
+    scream, CLIP squared off, CRUSH in steps), SCREECH (a resonant band, ~500 Hz–5 kHz, the whistle; OFF to the left),
+    TAIL (the distortion dying fast, or hanging on between kicks).
+  The TERRORs' settings are the kick's own: they go with its memory (KICK 1–10).
 
 **No saturation.** Whatever the effects and COMP do, a last guard holds every peak under full scale (-0.4 dB) by turning
 it down at once, never clipping it square. And **MAX OUT** (the MIXER's MASTER, K4) sets how loud the output gets with MASTER
 all the way up: -3 dB to start with (headroom for the FM-1's output and your speaker), right to 0 dB, left down to
 -12 dB.
-  - **TERROR** (SEL + K4): AMOUNT, SUB, FIZZ (its top, darker or brighter), SUSTAIN (the fold dying with the kick, or
-    a wall). The two TERRORs' settings are the kick's own: they go with its memory (KICK 1–10).
 
 **SEL ×3** (playing) asks for the drop: the build starts at the next bar, so the drop always lands on a bar line.
 

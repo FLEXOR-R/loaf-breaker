@@ -793,8 +793,8 @@ static void draw_tabs(void)
         tab(x, "GENERATOR", ui.page == PG_GEN);
     }
     else if (ui.page == PG_TRACK)        /* LOAF BREAKER: ENV: TRACKS, PLAY, DROP */
-        for (i = 0; i < 4u; i++)
-            x = tab(x, TPART[i], i == ui.tpage);
+        for (i = 0; i < 5u; i++)         /* (TRACKS, PLAY, DROP, BUILD, KNOB) */
+            x = tab(x, TPART[TORDER[i]], TORDER[i] == ui.tpage);
     else if (ui.page == PG_OVL)
         tab(x, "OVERLAY", 1);
     else if (ui.page == PG_GLOBAL)
@@ -850,7 +850,7 @@ static void page_say(void)
     case PG_GLOBAL: text_cat(t, GPART[ui.gpage % 3u]); break;
     case PG_MIX: text_cat(t, ui.mpage == 2u ? "MASTER" : ui.mpage ? "GROOVE" : "LEVELS"); break;
     case PG_SEQ: text_cat(t, SEQL[ui.seq_lane % NSEQL]); break;
-    case PG_TRACK: text_cat(t, TPART[ui.tpage % 4u]); break;
+    case PG_TRACK: text_cat(t, TPART[ui.tpage % 5u]); break;
     case PG_OVL: text_cat(t, "OVERLAY"); break;
     case PG_FX:
         text_cat(t, IS_KFX() ? "KICK FX " : "SLOT ");
@@ -886,6 +886,8 @@ static void draw_help(void)
         cv_begin(240, 52, C_BLACK);
         for (i = band * 4u; i < band * 4u + 4u; i++) {
             const char *a = L[i][0], *b = L[i][1];
+            if (i == 2u || i == 3u || i == 4u || i == 7u)   /* (the knobs: what KNOB gave them) */
+                b = SK_NAME[selk_fn(i == 2u ? 0u : i == 3u ? 1u : i == 4u ? 3u : 2u)];
             if (i == 3u && ui.page == PG_SEQ)
                 b = "CLEAR LANE";
             if (i == 1u && (ui.page == PG_FX || (ui.page == PG_KICK && ui.kpage == KP_FX))) {
@@ -931,9 +933,10 @@ static void draw_foot(const brk_status_t *st)
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "RESET ALL"};
         static const char *const KN_GROOVE[2][4] = {{"SWING", "DRUMS", "", ""}, {"COMP", "RATIO", "DUCK", "MAX OUT"}};
         static const char *const KN_MORE[4] = {"SKIN", "AUTO SAVE", "", ""};   /* GLOUPI BREAKS: GLOBAL's MORE */
-        static const char *const KN_TRK[2][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"}};
+        static const char *const KN_TRK[3][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
+                                                 {"STYLE", "SWEEP", "RISER", "GAP"}};
         const char *name = ui.page == PG_TRACK && ui.tpage == 3u ? SK_KNOB[selk_fn(ui.knfn & 3u)][i] : ui.page == PG_TRACK &&
-                           ui.tpage ? KN_TRK[(ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
+                           ui.tpage ? KN_TRK[ui.tpage == 4u ? 2u : (ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
                            ui.gpage == 2u ? KN_MORE[i] : ui.page == PG_GLOBAL && ui.gpage
                            ? KN_PITCH[i] : ui.page == PG_MIX && ui.mpage
                            ? KN_GROOVE[ui.mpage == 2u][i] : KN[ui.page][i];
@@ -1135,6 +1138,19 @@ void app_frame(void)
         }
     }
     track_poll(&st);                     /* LOAF BREAKER: a track playing: its next item */
+    {                                    /* LOAF BREAKER: a STUTTER build: the break rolled, 8ths, 16ths, then 32nds,
+                                          * let go at the drop */
+        static int8_t stut = -1;
+        int want = build_p >= 0.0f && build_len && b_style == DS_STUTTER
+                   ? (build_p < 0.5f ? PAD_ROLL8 : build_p < 0.8f ? PAD_ROLL16 : PAD_ROLL32) : -1;
+        if (want != stut) {
+            if (stut >= 0)
+                brk_pad(stut, 0);
+            if (want >= 0)
+                brk_pad(want, 1);
+            stut = (int8_t)want;
+        }
+    }
     {                                    /* LOAF BREAKER: PERFORM and GENERATOR show the CDJ view (the default);
                                           * HOME held 0.35 s there: the slice blocks instead, held again: the CDJ
                                           * view (HOME's next part not taken); ~30 times a second */
@@ -1322,8 +1338,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type"};
-    int v[35];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech"};
+    int v[36];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1365,7 +1381,8 @@ int app_expect(const char *what, int *got)
     v[32] = (int)(set.kick.intensity * 100.0f + 0.5f);
     v[33] = ui.kpage;
     v[34] = KICK_T_TYPE(&set.kick);
-    for (i = 0; i < 35u; i++)
+    v[35] = KICK_T_SCREECH(&set.kick);
+    for (i = 0; i < 36u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

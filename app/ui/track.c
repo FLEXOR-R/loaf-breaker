@@ -7,7 +7,16 @@
  * there in order.) */
 
 static void page_say(void);
-static const char *const TPART[4] = {"TRACKS", "PLAY", "DROP", "KNOB"};
+static const char *const TPART[5] = {"TRACKS", "PLAY", "DROP", "KNOB", "BUILD"};
+static const uint8_t TORDER[5] = {0u, 1u, 2u, 4u, 3u};   /* (ENV's parts in order: BUILD after DROP) */
+static const char *const DS_NAME[DS_N] = {"SNARE ROLL", "KICK ROLL", "KICK+SNARE", "STUTTER", "SWEEP ONLY", "RANDOM"};
+static const char *const SWEEP_NAME[4] = {"HIGH-PASS", "LOW-PASS", "NONE", "RANDOM"};
+static uint32_t drop_rng = 0x2545F491u;
+static uint32_t drop_rand(uint32_t n)    /* 0..n-1, by chance (the drops unlike each other) */
+{
+    drop_rng = drop_rng * 1664525u + 1013904223u + plat_ms();
+    return (drop_rng >> 16) % n;
+}
 static const char *const TRK_END_NAME[3] = {"LOOP", "STOP", "HOLD"};
 
 static track_t *trk_now(void) { return &pats.trk[set.trk % NTRACKS]; }
@@ -62,6 +71,10 @@ static void drop_start(uint32_t to)
         drum_next_ok = 1u;
         build_bars = DROP_BARS[set.drop_bars % 5u];
         drop_gain = (float)set.drop_crash * 0.01f;
+        b_style = (uint8_t)(set.drop_style < DS_RANDOM ? set.drop_style : drop_rand(DS_RANDOM));   /* (BUILD) */
+        b_sweep = (uint8_t)(set.drop_sweep < 3u ? set.drop_sweep : drop_rand(3u));
+        b_riser = (float)(set.drop_riser > 100u ? 100u : set.drop_riser) * 0.02f;
+        b_gap = DROP_GAP[set.drop_gap % 5u];
         ui.build_said = plat_ms();
         ui.drop_early = ui.drop_asked = 0u;
         int_text((int32_t)ui.drop_pat + 1, t + 3);
@@ -207,20 +220,28 @@ static void track_dropped(void)
 /* ---- KNOB: the SEL + knob functions, each its settings (K1 its amount, as SEL + its knob). Functions: 0 DUCK, 1 TERROR
  * 2, 2 COMP, 3 TERROR, 4 TERROR + (TERROR's more: no amount of its own), 5 DRIVE (the kick's INTENSITY). SEL + K1 is
  * DUCK, SEL + K3 COMP; SEL + K2 and SEL + K4 each the function KNOB gives them (LOAF BREAKER TEST: set.selk_asg) ---- */
-static const char *const SK_NAME[6] = {"DUCK", "TERROR 2", "COMP", "TERROR", "TERROR +", "DRIVE"};
-static const char *const SK_SHORT[6] = {"DUCK", "TERR 2", "COMP", "TERROR", "TERR +", "DRIVE"};
-static const char *const SK_KNOB[6][4] = {{"AMOUNT", "ATTACK", "RELEASE", "DUCKS"}, {"AMOUNT", "SUB", "SCREAM", "PUSH"},
+static const char *const SK_NAME[9] = {"DUCK", "TERROR 2", "COMP", "TERROR", "TERROR +", "DRIVE", "T+ TYPE",
+                                       "T+ SCREECH", "T+ TAIL"};
+static const char *const SK_SHORT[9] = {"DUCK", "TERR 2", "COMP", "TERROR", "T+ DRIVE", "DRIVE", "T+ TYPE", "SCRCH",
+                                        "T+ TAIL"};
+static const char *const SK_KNOB[9][4] = {{"AMOUNT", "ATTACK", "RELEASE", "DUCKS"}, {"AMOUNT", "SUB", "SCREAM", "PUSH"},
                                           {"AMOUNT", "RATIO", "ATTACK", "RELEASE"}, {"AMOUNT", "SUB", "FIZZ", "SUSTAIN"},
-                                          {"DRIVE", "TYPE", "SCREECH", "TAIL"}, {"AMOUNT", "", "", ""}};
+                                          {"DRIVE", "TYPE", "SCREECH", "TAIL"}, {"AMOUNT", "", "", ""},
+                                          {"TYPE", "", "", ""}, {"SCREECH", "", "", ""}, {"TAIL", "", "", ""}};
 static const char *const T_TYPE_NAME[3] = {"FOLD", "CLIP", "CRUSH"};
-static const uint8_t SK_ASG[4] = {0u, 1u, 3u, 5u};   /* an assignment's code: (0: the knob's own), TERROR 2, TERROR, DRIVE */
+/* what a SEL + knob can be given (KNOB, PRESETS), in that order: its code 1..9 is its place + 1 (0: the knob's own) */
+#define SK_CODES 9u
+static const uint8_t SK_CODE[SK_CODES] = {0u, 1u, 2u, 3u, 4u, 6u, 7u, 8u, 5u};
+static const uint8_t SK_OWN[4] = {0u, 1u, 2u, 3u};   /* K1 DUCK, K2 TERROR 2, K3 COMP, K4 TERROR */
+static uint32_t sk_code(uint32_t knob)   /* the knob's code, 0 its own */
+{
+    uint8_t b = knob == 1u || knob == 3u ? set.selk_asg : set.selk_asg2;
+    return knob >= 2u ? b >> 4 : b & 15u;
+}
 static uint32_t selk_fn(uint32_t knob)   /* the function SEL + K1..K4 turns */
 {
-    uint32_t c;
-    if (knob == 0u || knob == 2u)
-        return knob;
-    c = knob == 1u ? set.selk_asg & 15u : set.selk_asg >> 4;
-    return c && c < 4u ? SK_ASG[c] : knob == 1u ? 1u : 3u;
+    uint32_t c = sk_code(knob & 3u);
+    return c && c <= SK_CODES ? SK_CODE[c - 1u] : SK_OWN[knob & 3u];
 }
 static uint8_t *sk_byte(uint32_t f, int i)   /* a setting's byte (the TERRORs': the kick's, int8 -50..50) */
 {
@@ -248,6 +269,11 @@ static void selk_value(uint32_t f, int i, char *t)
     uint8_t v;
     int32_t sv;
     t[0] = 0;
+    if (f >= 6u) {                       /* (T+ TYPE, SCREECH, TAIL alone: TERROR +'s) */
+        if (i == 0)
+            selk_value(4u, (int)(f - 5u), t);
+        return;
+    }
     if (f == 5u) {                       /* DRIVE: the kick's INTENSITY */
         if (i == 0)
             pct_text(set.kick.intensity, t);
@@ -301,6 +327,8 @@ static void selk_value(uint32_t f, int i, char *t)
 static float sk_norm(uint32_t f, int i)  /* a setting 0..1, as its bar */
 {
     uint8_t v;
+    if (f >= 6u)
+        return i == 0 ? sk_norm(4u, (int)(f - 5u)) : 0.0f;
     if (f == 5u)
         return i == 0 ? set.kick.intensity : 0.0f;
     v = *sk_byte(f, i);
@@ -318,6 +346,11 @@ static float sk_norm(uint32_t f, int i)  /* a setting 0..1, as its bar */
 static void selk_turn(uint32_t f, int i, int32_t d)
 {
     char t[16], n[20];
+    if (f >= 6u) {                       /* (T+ TYPE, SCREECH, TAIL alone) */
+        if (i == 0)
+            selk_turn(4u, (int)(f - 5u), d);
+        return;
+    }
     if (f == 5u) {                       /* DRIVE */
         if (i)
             return;
@@ -337,29 +370,28 @@ static void selk_turn(uint32_t f, int i, int32_t d)
     }
     selk_value(f, i, t);
     n[0] = 0;
-    text_cat(n, SK_NAME[f % 6u]);
-    if (i) {
+    text_cat(n, SK_NAME[f % 9u]);
+    if (i || f == 4u) {
         text_cat(n, " ");
-        text_cat(n, SK_KNOB[f % 6u][i & 3]);
+        text_cat(n, SK_KNOB[f % 9u][i & 3]);
     }
     app_say(n, t);
     changed();
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
-/* PRESETS on KNOB, on K2 or K4: what that knob does with SEL (TERROR 2, TERROR, DRIVE) */
+/* PRESETS on KNOB: what SEL + the knob picked does (DUCK, TERROR 2, COMP, TERROR, T+ DRIVE, T+ TYPE, T+ SCREECH,
+ * T+ TAIL, DRIVE), any of the four */
 static void selk_assign(int32_t d)
 {
-    uint32_t kn = ui.knfn & 3u, sh = kn == 1u ? 0u : 4u, c;
+    uint32_t kn = ui.knfn & 3u, f = selk_fn(kn), c = 0u, k;
+    uint8_t *b = kn == 1u || kn == 3u ? &set.selk_asg : &set.selk_asg2;
+    uint32_t sh = kn >= 2u ? 4u : 0u;
     char n[12] = "SEL + K";
-    if (kn == 0u || kn == 2u) {
-        app_say(SK_NAME[kn], "FIXED");
-        return;
-    }
-    c = (set.selk_asg >> sh) & 15u;
-    if (!c || c > 3u)
-        c = kn == 1u ? 1u : 2u;          /* (the default: K2 TERROR 2, K4 TERROR) */
-    c = (uint32_t)clamp((int32_t)c + (d > 0 ? 1 : -1), 1, 3);
-    set.selk_asg = (uint8_t)((set.selk_asg & ~(15u << sh)) | c << sh);
+    for (k = 0; k < SK_CODES; k++)       /* (where it is in the list now) */
+        if (SK_CODE[k] == f)
+            c = k;
+    c = (uint32_t)clamp((int32_t)c + (d > 0 ? 1 : -1), 0, (int32_t)SK_CODES - 1);
+    *b = (uint8_t)((*b & ~(15u << sh)) | (c + 1u) << sh);
     n[7] = (char)('1' + kn);
     n[8] = 0;
     app_say(n, SK_NAME[selk_fn(kn)]);
@@ -388,6 +420,24 @@ static void track_value(int i, char *t)
     const track_t *tr = trk_now();
     char r[6];
     t[0] = 0;
+    if (ui.tpage == 4u) {                /* BUILD: its style, its filter, its noise, the gap before the drop */
+        if (i == 0)
+            text_cat(t, DS_NAME[set.drop_style % DS_N]);
+        else if (i == 1)
+            text_cat(t, SWEEP_NAME[set.drop_sweep & 3u]);
+        else if (i == 2) {
+            if (!set.drop_riser)
+                text_cat(t, "OFF");
+            else {
+                int_text(set.drop_riser * 2u, t);
+                text_cat(t, "%");
+            }
+        } else {
+            static const char *const G[5] = {"NONE", "1/16", "1/8", "1 BEAT", "1/2 BAR"};
+            text_cat(t, G[set.drop_gap % 5u]);
+        }
+        return;
+    }
     if (ui.tpage == 3u) {                /* KNOB */
         selk_value(selk_fn(ui.knfn & 3u), i, t);
         return;
@@ -445,11 +495,12 @@ static void track_value(int i, char *t)
 }
 static void track_say(int i)             /* the knob turned, on the strip */
 {
-    static const char *const N[3][4] = {{"ITEM", "PUT", "LOOPS", "AT THE END"}, {"PLAY", "FROM ITEM", "AT THE END", ""},
-                                        {"BUILD", "AFTER DROP", "DROP BREAK", "CRASH"}};
+    static const char *const N[5][4] = {{"ITEM", "PUT", "LOOPS", "AT THE END"}, {"PLAY", "FROM ITEM", "AT THE END", ""},
+                                        {"BUILD", "AFTER DROP", "DROP BREAK", "CRASH"}, {"", "", "", ""},
+                                        {"BUILD STYLE", "SWEEP", "RISER", "GAP"}};
     char t[20];
     track_value(i, t);
-    app_say(N[ui.tpage % 3u][i & 3], t);
+    app_say(N[ui.tpage % 5u][i & 3], t);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
 static void track_turn(int i, int32_t d)
@@ -457,6 +508,19 @@ static void track_turn(int i, int32_t d)
     track_t *t = trk_now();
     uint32_t c = ui.trk_cur % TRK_ITEMS;
     int dir = d > 0 ? 1 : -1;
+    if (ui.tpage == 4u) {                /* BUILD */
+        if (i == 0)
+            set.drop_style = (uint8_t)clamp((int32_t)set.drop_style + dir, 0, DS_N - 1);
+        else if (i == 1)
+            set.drop_sweep = (uint8_t)clamp((int32_t)set.drop_sweep + dir, 0, 3);
+        else if (i == 2)
+            set.drop_riser = (uint8_t)clamp((int32_t)set.drop_riser + d * 5, 0, 100);
+        else
+            set.drop_gap = (uint8_t)clamp((int32_t)set.drop_gap + dir, 0, 4);
+        changed();
+        track_say(i);
+        return;
+    }
     if (ui.tpage == 3u) {
         selk_turn(selk_fn(ui.knfn & 3u), i, d);
         return;
@@ -602,6 +666,23 @@ static void track_picture(int32_t top)
     uint32_t i, n = trk_len(t);
     char s[20], r[8];
     cv_oy = -top;
+    if (ui.tpage == 4u) {                /* BUILD: its four settings, large */
+        static const char *const N[4] = {"BUILD STYLE", "SWEEP", "RISER", "GAP BEFORE THE DROP"};
+        for (i = 0; i < 4u; i++) {
+            int32_t y = 6 + (int32_t)i * 34;
+            cv_text(10, y, &FONT_XS, N[i], C_GRAY);
+            track_value((int)i, s);
+            cv_text(10, y + 11, &FONT_B, s, C_WHITE);
+        }
+        cv_text(134, 12, &FONT_XS, "RANDOM: EACH", C_HI);
+        cv_text(134, 24, &FONT_XS, "BUILD PICKS ITS", C_HI);
+        cv_text(134, 36, &FONT_XS, "OWN STYLE, SWEEP", C_HI);
+        cv_text(134, 60, &FONT_XS, "STUTTER: THE", C_GRAY);
+        cv_text(134, 72, &FONT_XS, "BREAK ROLLS INTO", C_GRAY);
+        cv_text(134, 84, &FONT_XS, "THE DROP", C_GRAY);
+        cv_oy = 0;
+        return;
+    }
     if (ui.tpage == 3u) {                /* KNOB: the four functions (the one edited lit), its settings large; COMP its
                                           * reduction now */
         uint32_t kn = ui.knfn & 3u, f = selk_fn(kn);
@@ -630,8 +711,7 @@ static void track_picture(int32_t top)
             text_cat(s, " DB");
             cv_text(170, 110, &FONT_XS, s, C_WHITE);
         } else
-            cv_text(8, 112, &FONT_XS, kn == 1u || kn == 3u ? "PRESETS: WHAT SEL + THIS KNOB DOES"
-                    : "SEL + THIS KNOB ON ANY PAGE: ITS AMOUNT", C_DIM);
+            cv_text(8, 112, &FONT_XS, "PRESETS: WHAT SEL + THIS KNOB DOES", C_DIM);
         cv_oy = 0;
         return;
     }
@@ -705,11 +785,15 @@ static void draw_track(void)
         cv_blit(0, (uint32_t)(44 + top));
     }
 }
-/* ENV: TRACKS; again, PLAY, DROP, KNOB, and back */
+/* ENV: TRACKS; again, PLAY, DROP, BUILD, KNOB, and back */
 static void track_open(void)
 {
-    if (ui.page == PG_TRACK)
-        ui.tpage = (uint8_t)((ui.tpage + 1u) % 4u);
+    if (ui.page == PG_TRACK) {
+        uint32_t k;
+        for (k = 0; k < 5u && TORDER[k] != ui.tpage; k++)
+            ;
+        ui.tpage = TORDER[(k + 1u) % 5u];
+    }
     else {
         ui.page = PG_TRACK;
         ui.tpage = 0u;

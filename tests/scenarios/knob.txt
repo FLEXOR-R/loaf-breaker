@@ -10,6 +10,8 @@ wait 150
 tap ENV
 wait 150
 tap ENV
+wait 150
+tap ENV
 wait 300
 expect page 8
 expect knfn 0

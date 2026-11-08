@@ -1,6 +1,7 @@
 # LOAF BREAKER TEST: the menus rearranged. HOME: PERFORM, GENERATOR (and back). EDIT KICK's parts past OUT: EQ BANDS,
 # EQ SHAPE, FX 1, FX 2, TERROR, TERROR + (DRIVE, TYPE, SCREECH, TAIL), TERROR 2. LFO three times: MASTER (COMP, RATIO,
-# DUCK, MAX OUT). ENV's KNOB: K2 (ALGORITHM) given DRIVE (PRESETS twice); SEL + K2 then turns the kick's INTENSITY.
+# DUCK, MAX OUT). ENV's KNOB: K2 (ALGORITHM) given DRIVE (PRESETS to its end); SEL + K2 then turns the kick's
+# INTENSITY; K1 given T+ SCREECH (PRESETS: DUCK, TERROR 2, COMP, TERROR, T+ DRIVE, T+ TYPE, T+ SCREECH): SEL + K1 turns it.
 #   app/build/host/choppah_host tests/scenarios/reorg.txt app/build/scenarios
 wait 4200
 tap HOME
@@ -56,9 +57,11 @@ wait 100
 tap ENV
 wait 100
 tap ENV
+wait 100
+tap ENV
 wait 300
 turn ALGO 1 10
-turn PRESET 2 10
+turn PRESET 9 10
 wait 300
 shot r_knob.png
 press SEL
@@ -67,6 +70,15 @@ turn K2 10 10
 release SEL
 wait 200
 expect intensity 20
+turn ALGO -1 10
+turn PRESET 6 10
+wait 200
+press SEL
+turn K1 10 10
+release SEL
+wait 200
+expect t_screech 80
+shot r_knob_k1.png
 tap PLAY
 wait 2500
 tap PLAY
