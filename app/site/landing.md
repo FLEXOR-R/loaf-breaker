@@ -14,9 +14,8 @@ Version {{VERSION}}. Installing is at your own risk; the installer can put M-VAV
 each: THINK, NUSKOOL, UPDOWN, APACHE, CHOPPER, DRUMMER, THE WORM, HOT PANTS, AMEN.
 
 - [Try it in the browser](emu/): the same code the FM-1 runs, with sound. No FM-1 needed.
-- [Install](install/): from Chrome or Edge, with the FM-1 connected by USB.
+- [Install](install/): from Chrome or Edge, with the FM-1 connected by USB and the install code FLEXOR gives you.
 - [Manual](manual/): the kick, the sequencer, the tracks and drops, the pads, the effects.
-- [Download {{PKG}}](firmware/{{PKG}}): for the command-line installer, `python3 tools/fm1_install.py {{PKG}}`.
 
 Built on CHOPPAH by Laurens Profittlich, on fm1-base and felucca-bsp, from Felucca by Leo Kuroshita, Hügelton
 Instruments. MPL-2.0. M-VAVE and FM-1 are trademarks of their owners. LOAF BREAKER is not affiliated with M-VAVE.

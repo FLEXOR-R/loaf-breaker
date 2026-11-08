@@ -12,7 +12,7 @@ mkdir -p "$OUT"
 for sc in site ui cdj pads seq hits fxviews mbcomp nav kfx kickmenu terror drops track trkgap maxout reset; do
     [ -f "tests/scenarios/$sc.txt" ] && "$H" "tests/scenarios/$sc.txt" "$OUT" >/dev/null 2>&1 || true
 done
-L=app/build/ldr_preview
+L=app/build/ldr_shots
 mkdir -p "$L"
 cc -std=c99 -I tests/loader/src -I tests/loader/boards/fm1 -I app/loader tests/loader/src/preview.c -o "$L/ldr_preview"
 (cd "$L" && ./ldr_preview)

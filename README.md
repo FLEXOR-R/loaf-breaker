@@ -19,7 +19,9 @@ anti-clip MAX OUT; and a CDJ-style RGB waveform of what leaves the mix. Built on
 
 - **The manual**: [app/docs/MANUAL.md](app/docs/MANUAL.md)
 - **Download the firmware**: [releases](../../releases) (`loaf-breaker-X.YY.fwsc`), each release also carries the
-  site (emulator, installer, manual) as `loaf-breaker-site-X.YY.zip`
+  site (emulator, installer, manual) as `loaf-breaker-site-X.YY.zip`. On the site the firmware is encrypted: the
+  installer asks for the **install code** (the repository's Actions secret `LOAF_INSTALL_CODE`; without it, installing
+  is closed). `tools/site_lock.py` does it
 - **Install**: fm1-base's web installer (Chrome or Edge, the FM-1 plugged in), or
   `python3 base/tools/fm1_install.py loaf-breaker-X.YY.fwsc`
 
