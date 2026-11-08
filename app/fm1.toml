@@ -21,7 +21,7 @@ tagline = "A hardcore break chopper for the FM-1"
 repo = "https://github.com/FLEXOR-R/loaf-breaker"   # LOAF BREAKER (CHOPPAH: https://github.com/profikid/fm1-break-choppah)
 licence = "MPL-2.0"
 credits = "Built on CHOPPAH by Laurens Profittlich, on fm1-base and felucca-bsp, from Felucca by Leo Kuroshita (Hügelton Instruments)."
-# firmware.json (required by fm1-base for a --release build: the releases of gloupi.yml)
+# firmware.json (required by fm1-base for a --release build: the releases of loaf.yml)
 author = "FLEXOR (LOAF BREAKER), from CHOPPAH by Laurens Profittlich"
 description = "LOAF BREAKER is FLEXOR's CHOPPAH: an Amen break chopper for the M-VAVE FM-1 with its own breaks, a kick sequenced over 16, 32 or 64 steps, a snare over 16 or 32, a kick with its own menu, synth and TERROR, tracks with built-up drops, a HOOVER, a compressor, skins and a steady MIDI clock in over the TRS jack."
 tags = ["drum-machine", "sampler"]

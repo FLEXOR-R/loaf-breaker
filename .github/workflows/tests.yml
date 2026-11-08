@@ -1,12 +1,12 @@
 # LOAF BREAKER's break tests: the firmware as it is (this branch), each build with one list of breaks/tests/testN.txt
 # (the breaks not on the machine, tools from breaks/breaks.txt's '-' lines) in place of breaks/breaks.txt, to try them
 # on the FM-1 and pick. The six .fwsc go to one pre-release, "break-tests", replaced on every run. Runs when the lists or
-# this file change on gloupi, or by hand (Actions → Break tests → Run workflow). Not a release of LOAF BREAKER itself.
+# this file change on loaf, or by hand (Actions → Break tests → Run workflow). Not a release of LOAF BREAKER itself.
 name: Break tests
 
 on:
   push:
-    branches: [gloupi]
+    branches: [loaf]
     paths: ["breaks/tests/**", ".github/workflows/tests.yml"]
   workflow_dispatch:
 

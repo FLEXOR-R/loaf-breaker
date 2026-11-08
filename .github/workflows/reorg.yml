@@ -1,7 +1,7 @@
 # LOAF BREAKER, TEST REORG (branch reorg): the menus rearranged (HOME to play, EDIT KICK the whole kick, the MIXER's
 # MASTER, ENV's KNOB giving SEL + K2 and K4 their function) and TERROR's more (DRIVE, TYPE, SCREECH, TAIL). Every push to
 # the reorg branch is a pre-release of its own: test-v9.01, 9.02... (the splash shows the number),
-# loaf-breaker-test-X.YY.fwsc and the simulator's screens. The main line (gloupi) is untouched.
+# loaf-breaker-test-X.YY.fwsc and the simulator's screens. The main line (loaf) is untouched.
 name: LOAF BREAKER TEST REORG
 
 on:
