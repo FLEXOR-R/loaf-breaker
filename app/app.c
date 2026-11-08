@@ -386,6 +386,10 @@ static volatile float drop_gain = 1.0f;  /* the crash's level */
 static volatile uint8_t b_style, b_sweep, b_gap;   /* (the main loop's, as it asks: this build's style (DS_*, chance
                                           * picked), its filter (0 HP, 1 LP, 2 none), its gap (steps)) */
 static volatile float b_riser = 1.0f;    /* its noise's level (1: as it always was) */
+/* LOAF BREAKER: the roll pads' KICK ROLL (their THRU KICK or BOTH): the pad held + 1 (0 none, the main loop's); the
+ * render hits the kick at that pad's rate from the next step, the pattern's kicks out meanwhile */
+static volatile uint8_t kroll;
+static volatile uint32_t kick_hit_n;     /* (the kick's hits so far: the simulator's checks) */
 static volatile uint8_t build_n;         /* three clicks: a build, or (building) the drop */
 static volatile uint16_t drum_next[NDRUMS][4];   /* the next pattern's drums, for the drop */
 static volatile uint8_t drop_to = 0xFFu; /* the pattern the drop brings in (its break's steps, at the bar before) */
@@ -1003,6 +1007,10 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             float spm[8];                /* (each stab's note, a factor, by its hit) */
             uint8_t idx[8], who[8];
             uint32_t k, ne = brk_step_events(off, idx, 8u), nk = 0u, np = 0u;
+            static int32_t kr_next = -1;     /* (the KICK ROLL's next hit, samples from this block's start; -1:
+                                          * waiting for a step) */
+            static uint8_t kr_seen;
+            uint32_t krp = kroll;
             {                            /* LOAF BREAKER: three clicks: a build from the next bar (none: the drop
                                           * at this bar's end), or (building) the drop at the bar */
                 static uint8_t seen;
@@ -1022,6 +1030,10 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             }
             if (half_due >= 0 && (half_due -= (int32_t)m) < 0)
                 half_due = -1;
+            if (krp != kr_seen) {        /* (a roll pad down or up: from its next step) */
+                kr_seen = (uint8_t)krp;
+                kr_next = -1;
+            }
             for (k = 0; k < ne; k++) {
                 uint32_t s = idx[k] & 15u;   /* the step's place in the bar (idx: in four bars, the kick's) */
                 if (build_wait && s == 0u && build_bars) {   /* the build asked for: from this bar's first step */
@@ -1097,10 +1109,12 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                         for (q = 0; q < PAT_STEPS; q++)
                             pat_step_of(drop_to, q);
                 }
+                if (krp && kr_next < 0)  /* (the KICK ROLL: from this step) */
+                    kr_next = (int32_t)off[k];
                 uint32_t w = 0u, d, bar = idx[k] >> 4 & 3u;
                 for (d = DR_SNARE; d < NDRUMS; d++)   /* (LOAF BREAKER: every drum, its bar) */
                     w |= (uint32_t)(drum_now[d][bar] >> s & 1u) << (d - 1u);
-                if (drum_now[DR_KICK][bar] >> s & 1u) {
+                if (drum_now[DR_KICK][bar] >> s & 1u && !krp) {   /* (a KICK ROLL: its hits instead) */
                     const pat_t *pp = &pats.p[set.pattern % NPAT];   /* (its note: this step of its bar) */
                     int32_t kn = kick_note(pp, (bar % drum_bars(pp, DR_KICK)) * 16u + s);
                     kpm[nk] = kn ? brk_exp2f((float)kn * (1.0f / 12.0f)) : 1.0f;
@@ -1116,6 +1130,20 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                     who[np++] = (uint8_t)w;
                 }
             }
+            if (krp && st.playing) {     /* the KICK ROLL's hits in this block, at its pad's rate */
+                static const float RS[BRK_ROLL_DIVS] = {4.0f, 2.0f, 1.0f, 0.5f, 0.25f, 4.0f / 3.0f, 2.0f / 3.0f,
+                                                        1.0f / 3.0f};   /* (16ths: brk.c's ROLL_STEPS) */
+                int32_t per = (int32_t)(RS[set.pads.roll_div[(krp - 1u) % 3u] % BRK_ROLL_DIVS] * (float)BRK_SR * 15.0f /
+                                        brk_get_tempo());
+                nk = 0u;                 /* (the roll, alone, in order) */
+                while (kr_next >= 0 && kr_next < (int32_t)m && nk < 8u && per > 0) {
+                    kpm[nk] = 1.0f;
+                    ka[nk++] = (uint16_t)kr_next;
+                    kr_next += per;
+                }
+                if (kr_next >= (int32_t)m)
+                    kr_next -= (int32_t)m;
+            }
             if (vin && (st.pads >> PAD_TAPESTOP & 1u))
                 nk = np = 0u;            /* the vinyl held: the drums' steps quiet, as the break's */
             int vs = vin && (tape0 < 1.0f || st.tape < 1.0f);
@@ -1125,6 +1153,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             tape0 = st.tape;
             kick_speed(vs ? spd : 0);
             perc_speed(vs ? spd : 0);
+            kick_hit_n += nk;
             kick_pitches(kpm);
             kick_render(kick, m, ka, nk);
             brk_fx_kick_eq(kick, m);    /* LOAF BREAKER: HOME's KICK EQ */

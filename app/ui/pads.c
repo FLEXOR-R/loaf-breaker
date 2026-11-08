@@ -7,10 +7,39 @@ static void ovl_push(void);              /* (ovl.c) */
 static const char *const THRU_NAME[4] = {"BOTH", "BREAK", "KICK", "BOTH"};   /* the ARP key's THRU (ovl_pad 6-7) */
 static uint8_t ovlpad_held, ovlpad_lat;  /* (the ARP key's: below) */
 static int ovl_pad_on(void);
+/* LOAF BREAKER: the three roll pads' THRU (K2, set.pads.rsv[0]): 0 BREAK (the roll as ever), 1 KICK (the kick rolled
+ * at the pad's rate, the break left alone), 2 BOTH. kroll: the pad rolling the kick (app.c's render) */
+static const char *const ROLL_THRU_NAME[3] = {"BREAK", "KICK", "BOTH"};
+static uint8_t roll_held = 0xFFu;        /* the roll pad held (0xFF none) */
+static void roll_thru_now(void)          /* (THRU turned while a roll pad is held: at once) */
+{
+    uint32_t th = set.pads.rsv[0] % 3u;
+    if (roll_held > PAD_ROLL32)
+        return;
+    brk_pad((int)roll_held, th != 1u);
+    kroll = (uint8_t)(th ? roll_held + 1u : 0u);
+}
+static void roll_key(uint32_t pad, int down)   /* a roll pad down or up, through its THRU */
+{
+    uint32_t th = set.pads.rsv[0] % 3u;
+    if (down) {
+        roll_held = (uint8_t)pad;
+        if (th != 1u)
+            brk_pad((int)pad, 1);
+        kroll = (uint8_t)(th ? pad + 1u : 0u);
+    } else {
+        brk_pad((int)pad, 0);
+        if (roll_held == pad) {
+            roll_held = 0xFFu;
+            kroll = 0u;
+        }
+    }
+}
+static int roll_lit(uint32_t pad) { return roll_held == pad && kroll; }   /* (its light, rolling the kick alone) */
 static uint8_t half_lat;                 /* LOAF BREAKER: HALF SPEED latched on (its LATCH: K3) */
 /* what K1-K4 tune while a pad is held, by pad (brk.h PAD_*); 0: that knob does nothing for it */
 static const char *const PAD_KNOB[BRK_NPADS][4] = {
-    {"RATE", "FILTER", "DRUM FLT", "DECAY"}, {"RATE", "FILTER", "DRUM FLT", "DECAY"}, {"RATE", "FILTER", "DRUM FLT", "DECAY"},
+    {"RATE", "THRU", "DRUM FLT", "DECAY"}, {"RATE", "THRU", "DRUM FLT", "DECAY"}, {"RATE", "THRU", "DRUM FLT", "DECAY"},
     {"SPEED", 0, 0, 0}, {"LENGTH", "PITCH", 0, 0}, {"SPEED", "M. TEMPO", "LATCH", 0}, {"STOP", "SPIN UP", "THRU", 0},
     {"RATE", "LENGTH", 0, 0}, {"AMOUNT", "PITCH", 0, 0}, {"TARGET", "RESO", "SPEED", 0},
     {"EFFECT", "THRU", "ON / OFF", "LATCH"}};   /* (LOAF BREAKER: held only; K2 what goes through the ARP
@@ -125,7 +154,8 @@ static void pad_knob_value(int pad, int k, char *t)
     switch (pad <= PAD_ROLL32 ? 0 : pad) {
     case 0:
         if (k == 0) text_cat(t, BRK_ROLL_DIV_NAME[p->roll_div[pad] % BRK_ROLL_DIVS]);
-        else if (k == 1) brk_flt_text(t);    /* LOAF BREAKER: HOME's two filters on K2 and K3, as there (the break's */
+        else if (k == 1) text_cat(t, ROLL_THRU_NAME[set.pads.rsv[0] % 3u]);   /* LOAF BREAKER: K2 THRU: the break,
+                                          * the kick (a kick roll) or both; K3 HOME's drums' filter (the break's */
         else if (k == 2) kick_flt_text(t);   /* low-pass, the kick's), DECAY on K4 (the pitch and LEVEL gone) */
         else roll_decay_text(p->roll_decay, t);
         break;
@@ -180,11 +210,11 @@ static void pad_knob_turn(int pad, int k, int32_t d)
     switch (pad <= PAD_ROLL32 ? 0 : pad) {
     case 0:
         if (k == 0) p->roll_div[pad] = (uint8_t)clamp((int32_t)p->roll_div[pad] + d, 0, BRK_ROLL_DIVS - 1);
-        else if (k == 1 || k == 2) {     /* LOAF BREAKER: K2 the break's filter, K3 the kick's: HOME's (and SEQ's) */
-            if (k == 1)
-                brk_flt_turn(d);
-            else
-                kick_flt_turn(d);
+        else if (k == 1) {               /* LOAF BREAKER: K2 THRU: BREAK, KICK, BOTH (the rolls together) */
+            set.pads.rsv[0] = (uint8_t)clamp((int32_t)(set.pads.rsv[0] % 3u) + (d > 0 ? 1 : -1), 0, 2);
+            roll_thru_now();
+        } else if (k == 2) {             /* K3 the drums' filter: HOME's (and SEQ's) */
+            kick_flt_turn(d);
             return;
         }
         else p->roll_decay = knob_f(p->roll_decay, d, 0.02f, -0.9f, 0.9f);
@@ -310,6 +340,8 @@ static void draw_fx_band(int pad, const brk_status_t *st, uint32_t now, int32_t 
     cv_begin(240, FX_BAND, C_BLACK);
     cv_oy = -top;                        /* (this band's rows of the picture) */
     t[0] = 0;
+    if (pad <= PAD_ROLL32 && set.pads.rsv[0] % 3u)   /* (LOAF BREAKER: THRU KICK or BOTH) */
+        text_cat(t, set.pads.rsv[0] % 3u == 1u ? "KICK " : "ALL ");
     text_cat(t, PAD_TITLE[pad]);
     if (pad <= PAD_ROLL32) {
         text_cat(t, " ");

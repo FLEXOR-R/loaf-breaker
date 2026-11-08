@@ -247,7 +247,7 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 
 | Pad | Does | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- | --- |
-| R8 · R16 · R32 | Roll from the next 16th | Rate (1/4 … 1/64, triplets) | Decay: DOWN (each repeat quieter) or UP (a swell up to full) | Pitch a repeat: −12 … +12 semitones in tenths (0.1 a detent, 0.5 when turned quickly), up to three octaves in all | Level of the repeats (5–100 %: low for ghost notes) |
+| R8 · R16 · R32 | Roll from the next 16th | RATE (1/4 … 1/64, triplets) | THRU: BREAK (the break rolled, as ever), KICK (the kick hit at the rate instead of its pattern: a kick roll; the break plays on), BOTH (the two) | DRUM FLT (HOME's drums' filter) | DECAY: DOWN (each repeat quieter) or UP (a swell up to full) |
 | REV | Reverse | Speed | | | |
 | FRZ | Freeze: the slice (or part of it) loops | Length (slice, 1/2, 1/4, 1/8) | Pitch | | |
 | HLF | Half speed | Speed | MASTER TEMPO: the pitch kept (ON) or dropped | LATCH: ON, a press turns it on and the next off (turned on while held: it stays on) | |

@@ -297,6 +297,16 @@ static void input(void)
                 ovl_pad_key(0);
             continue;
         }
+        if (i <= PAD_ROLL32) {           /* LOAF BREAKER: the rolls, through their THRU (the break, the kick, both) */
+            if (kdn >> BK[PAD_KEY[i]] & 1u) {
+                roll_key(i, 1);
+                ui.pad_focus = (int8_t)i;
+                ui.pad_since = now;
+            }
+            if (kup >> BK[PAD_KEY[i]] & 1u)
+                roll_key(i, 0);
+            continue;
+        }
         if (i == PAD_HALF && set.half_mt_off & 2u) {   /* LOAF BREAKER: HALF SPEED's LATCH: a press on, a press
                                           * off (its knobs while held, as ever) */
             if (kdn >> BK[PAD_KEY[i]] & 1u) {
@@ -729,7 +739,7 @@ static void leds(void)
     } else if (st.slice >= 0 && st.slice < 16)
         k |= 1u << WK[st.slice];
     for (i = 0; i < 11u; i++)
-        if (i == PAD_FREEZE ? sub_drive_on() : i == PAD_DUB ? ovl_pad_on() : (int)(st.pads >> i & 1u))
+        if (i == PAD_FREEZE ? sub_drive_on() : i == PAD_DUB ? ovl_pad_on() : (int)(st.pads >> i & 1u) || roll_lit(i))
             k |= 1u << BK[PAD_KEY[i]];
     if (build_p >= 0.0f) {               /* LOAF BREAKER: the build: the white keys fill up left to right */
         uint32_t n = 1u + (uint32_t)(build_p * 15.0f);
@@ -969,7 +979,7 @@ static void draw_foot(const brk_status_t *st)
     draw_tabs();
     cv_begin(240, 48, C_BLACK);
     for (i = 0; i < 11u; i++) {
-        int on = i == PAD_FREEZE ? sub_drive_on() : i == PAD_DUB ? ovl_pad_on() : (int)((st->pads >> i) & 1u);
+        int on = i == PAD_FREEZE ? sub_drive_on() : i == PAD_DUB ? ovl_pad_on() : (int)((st->pads >> i) & 1u) || roll_lit(i);
         int32_t x = 2 + (int32_t)PAD_KEY[i] * 21;   /* (at its key) */
         cv_rect(x, 0, 20, 14, on ? C_HI : C_BLOCK);
         cv_text(x + (20 - text_w(&FONT_T, PAD_NAME[i])) / 2, 1, &FONT_T, PAD_NAME[i], on ? C_BLACK : C_GRAY);
@@ -1386,8 +1396,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn"};
-    int v[39];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits"};
+    int v[40];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1433,7 +1443,13 @@ int app_expect(const char *what, int *got)
     v[36] = set.drop_style;
     v[37] = set.selk_asg2 & 15u;
     v[38] = (int)selk_fn(2u);
-    for (i = 0; i < 39u; i++)
+    {                                    /* (the kick's hits since the last look) */
+        static uint32_t seen;
+        v[39] = (int)(kick_hit_n - seen);
+        if (!strcmp(what, "khits"))
+            seen = kick_hit_n;
+    }
+    for (i = 0; i < 40u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;
