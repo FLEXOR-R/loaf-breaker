@@ -34,6 +34,16 @@ typedef struct {
  * under ~110 Hz laid back under it, the folded part following the kick's level. In the PUNCH layer's first spare
  * byte (a kick saved before it: off) */
 #define KICK_TERROR2(k) ((k)->l[KL_PUNCH].rsv[0])
+/* LOAF BREAKER: their settings (ENV's KNOB), -50 .. +50 (int8; 0, a kick saved before them: as they always were),
+ * in the layers' other spare bytes. TERROR: SUB (the split kept clean, ~48..250 Hz), FIZZ (its top, darker ..
+ * brighter), SUSTAIN (the fold following the kick down .. a wall). TERROR 2: SUB, SCREAM (the mids pushed, ~150 Hz ..
+ * 2.4 kHz), PUSH (how hard) */
+#define KICK_T_SUB(k) ((k)->l[KL_SUB].rsv[1])
+#define KICK_T_FIZZ(k) ((k)->l[KL_SUB].rsv[2])
+#define KICK_T_SUS(k) ((k)->l[KL_GRIT].rsv[1])
+#define KICK_T2_SUB(k) ((k)->l[KL_PUNCH].rsv[1])
+#define KICK_T2_SCREAM(k) ((k)->l[KL_PUNCH].rsv[2])
+#define KICK_T2_PUSH(k) ((k)->l[KL_CLICK].rsv[1])
 
 typedef struct {
     kick_layer_t l[KICK_LAYERS];

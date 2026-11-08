@@ -110,7 +110,8 @@ typedef struct {
                                           * MORE's K4) */
     perc_voice_t pmem[3][PERC_MEMS];     /* each as left (PRESETS on EDIT; the stab's: smem) */
     /* (appended: LOAF BREAKER's LIMIT; an older save's: off) */
-    uint8_t limit;                       /* SEL + K3: the mix driven into a limiter, 0 off .. 100 (+18 dB in) */
+    uint8_t comp;                        /* SEL + K3: COMP, the whole mix compressed, 0 off .. 100 (its threshold 0 ..
+                                          * -36 dB; was LIMIT's drive) */
     uint8_t rsv6[3];
     /* (appended: LOAF BREAKER's KICK EQ; an older save's: flat) */
     float keq[8];                        /* HOME's third part: LOW, MID, HIGH, FREQ, LO FREQ, MID Q, HI FREQ, LEVEL */
@@ -128,7 +129,16 @@ typedef struct {
     brk_fxslot_t kfx[BRK_KFX_SLOTS];     /* the kick's own effects (FX's library but REVERB and DELAY) */
     brk_fxx_t kfxx[BRK_KFX_SLOTS];       /* their extras (MORE, MOD) */
     brk_mbc_t kmbc[BRK_KFX_SLOTS];       /* an MB COMP's detail */
+    /* (appended: LOAF BREAKER's KNOB part of ENV, the SEL + knob functions' settings; an older save's: as they were) */
+    uint8_t duck_att, duck_rel;          /* DUCK: its attack 0.1 .. 30 ms, its release 20 .. 800 ms (0..100) */
+    uint8_t duck_what;                   /* 0 the break, 1 the break and the drums (not the kick) */
+    uint8_t comp_ratio;                  /* COMP: COMP_RATIO's index */
+    uint8_t comp_att, comp_rel;          /* its attack 0.1 .. 30 ms, its release 20 .. 800 ms (0..100) */
+    uint8_t rsv9[2];
 } settings_t;
+static const float COMP_RATIO[8] = {1.5f, 2.0f, 3.0f, 4.0f, 6.0f, 8.0f, 12.0f, 20.0f};
+static float att_ms(uint32_t v) { return 0.1f * brk_exp2f_c((float)(v > 100u ? 100u : v) * 0.0825f); }
+static float rel_ms(uint32_t v) { return 20.0f * brk_exp2f_c((float)(v > 100u ? 100u : v) * 0.0532f); }
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");
 static settings_t set;
@@ -205,6 +215,11 @@ static void settings_defaults(void)
         brk_mbc_defaults(&set.mbc[k]);
         brk_fxx_defaults(&set.fxx[k], set.fx.slot[k].type);
     }
+    set.duck_att = 19u;                  /* (LOAF BREAKER: DUCK ~0.3 ms in, ~75 ms back; COMP 4:1, ~3 ms, ~150 ms) */
+    set.duck_rel = 36u;
+    set.comp_ratio = 3u;
+    set.comp_att = 59u;
+    set.comp_rel = 55u;
     set.drop_bars = 3u;                  /* (LOAF BREAKER: DROP: a 4-bar build, into the next pattern, the crash full) */
     set.drop_crash = 100u;
     for (k = 0; k < BRK_KFX_SLOTS; k++) {   /* (KICK FX: empty) */
@@ -355,6 +370,7 @@ static volatile uint16_t drum_next[NDRUMS][4];   /* the next pattern's drums, fo
 static volatile uint8_t drop_to = 0xFFu; /* the pattern the drop brings in (its break's steps, at the bar before) */
 static volatile uint8_t drum_next_ok;
 static volatile uint8_t drop_n;
+static volatile float comp_gr;           /* LOAF BREAKER: COMP's reduction now, dB (the KNOB page's meter) */
 static volatile float build_p = -1.0f;   /* the build's progress 0..1, -1 none (the screen's and the lights') */
 static volatile uint16_t drum_now[NDRUMS][4];   /* the pattern playing's drums, bar by bar of four (their lengths
                                           * played out: pat_lanes_out), for the render */
@@ -1059,10 +1075,13 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             brk_fx_kick(kick, m);        /* and its KICK FX */
             perc_pitches(spm);
             perc_render(perc, m, pa, who, np);
-            if (set.duck) {              /* LOAF BREAKER (crossbreed): DUCK: the break (and its throws) pushed down at
-                                          * each kick, in ~0.3 ms, back up over ~150 ms */
+            if (set.duck) {              /* LOAF BREAKER (crossbreed): DUCK: the break (and its throws; DRUMS: the
+                                          * other drums too) pushed down at each kick, in its attack, back up over its
+                                          * release (KNOB) */
                 static float dt, de;
                 float depth = (float)(set.duck > 100u ? 100u : set.duck) * 0.01f;
+                float da = 1.0f / (1.0f + att_ms(set.duck_att) * 44.1f), dr = 1.0f - 1.0f / (rel_ms(set.duck_rel) * 44.1f);
+                int dp = set.duck_what == 1u;
                 uint32_t j = 0u;
                 for (i = 0; i < m; i++) {
                     float g;
@@ -1070,12 +1089,14 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                         dt = 1.0f;
                         j++;
                     }
-                    de += (dt - de) * 0.08f;
-                    dt *= 0.9997f;
+                    de += (dt - de) * da;
+                    dt *= dr;
                     g = 1.0f - depth * de;
                     mono[i] *= g;
                     echo[i] *= g;
                     verb[i] *= g;
+                    if (dp)
+                        perc[i] *= g;
                 }
             }
             brk_fx_drums_dj(kick, perc, m, (float)set.kick_dj * 0.01f);   /* HOME's DRUM FLT (LOAF BREAKER: every drum,
@@ -1168,23 +1189,28 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             }
             lr_test = left > 1u ? left : 0u;
         }
-        if (set.limit) {                 /* LOAF BREAKER: LIMIT: the whole mix driven in (up to +18 dB) and held under
-                                          * its ceiling: louder, never over (the peak followed at once, let go over
-                                          * ~75 ms) */
-            static float lenv;
-            float gin = brk_exp2f((float)(set.limit > 100u ? 100u : set.limit) * 0.03f);
+        if (set.comp) {                  /* LOAF BREAKER: COMP (SEL + K3, ENV's KNOB): the whole mix over its threshold
+                                          * (0 .. -36 dB) brought down by its ratio, the level followed both sides at
+                                          * once (its attack, its release), half the reduction made up; then held
+                                          * under full scale */
+            static float cenv;
+            float thr = -0.36f * (float)(set.comp > 100u ? 100u : set.comp), sl = 1.0f - 1.0f / COMP_RATIO[set.comp_ratio & 7u];
+            float ca = 1.0f / (1.0f + att_ms(set.comp_att) * 44.1f), cr = 1.0f / (1.0f + rel_ms(set.comp_rel) * 44.1f);
+            float mk = -thr * sl * 0.5f, gmax = 0.0f;
             for (i = 0; i < m; i++) {
-                float xl = l[i] * gin, xr = r[i] * gin, a = brk_absf(xl) > brk_absf(xr) ? brk_absf(xl) : brk_absf(xr);
-                float gr;
-                if (a > lenv)
-                    lenv = a;
-                else
-                    lenv += (a - lenv) * 0.0003f;
-                gr = lenv > 0.9f ? 0.9f / lenv : 1.0f;
-                l[i] = brk_clampf(xl * gr, -0.95f, 0.95f);
-                r[i] = brk_clampf(xr * gr, -0.95f, 0.95f);
+                float a = brk_absf(l[i]) > brk_absf(r[i]) ? brk_absf(l[i]) : brk_absf(r[i]), over, gr, g;
+                cenv += (a - cenv) * (a > cenv ? ca : cr);
+                over = cenv > 1e-5f ? 6.0206f * brk_log2f(cenv) - thr : -1.0f;
+                gr = over > 0.0f ? over * sl : 0.0f;
+                if (gr > gmax)
+                    gmax = gr;
+                g = brk_exp2f((mk - gr) * 0.16610f);
+                l[i] = brk_clampf(l[i] * g, -0.98f, 0.98f);
+                r[i] = brk_clampf(r[i] * g, -0.98f, 0.98f);
             }
-        }
+            comp_gr = gmax > comp_gr * 0.97f ? gmax : comp_gr * 0.97f;
+        } else
+            comp_gr = 0.0f;
         {                                /* the header's meter: as it leaves, after MASTER */
             float out = gain * (1.0f / 8388608.0f), a = meter(l, m, 0.0f) * out, b = meter(r, m, 0.0f) * out;
             meter_l = a > meter_l * 0.987f ? a : meter_l * 0.987f;

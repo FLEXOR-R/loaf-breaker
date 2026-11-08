@@ -563,44 +563,9 @@ static void input(void)
             kick_mem_turn(d);
             continue;
         }
-        if (k == EN_K1 && btn & 1u << B_SEL) {   /* LOAF BREAKER (crossbreed): SEL + K1, on any page: DUCK, the break
-                                          * under the kick */
-            char t[8];
-            set.duck = (uint8_t)clamp((int32_t)set.duck + d * 2, 0, 100);
-            t[0] = 0;
-            if (set.duck) {
-                int_text(set.duck, t);
-                text_cat(t, "%");
-            } else
-                text_cat(t, "OFF");
-            app_say("DUCK", t);
-            changed();
-            continue;
-        }
-        if (k == EN_K3 && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K3, on any page: LIMIT, the whole mix louder,
-                                          * never over (+0.18 dB in a step) */
-            char t[12];
-            set.limit = (uint8_t)clamp((int32_t)set.limit + d * 2, 0, 100);
-            t[0] = 0;
-            if (set.limit) {
-                tenths_text((int32_t)set.limit * 18 / 10, t);
-                text_cat(t, " DB");
-            } else
-                text_cat(t, "OFF");
-            app_say("LIMIT", t);
-            changed();
-            continue;
-        }
-        if ((k == EN_K2 || k == EN_K4) && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K4 TERROR, SEL + K2 TERROR 2,
-                                          * on any page (EDIT's OUT K2, K3) */
-            int hi = k == EN_K2 ? 2 : 1;
-            uint8_t *p = kick_hc(&set.kick, hi);
-            char t[8];
-            *p = (uint8_t)clamp((int32_t)*p + d * 2, 0, 100);
-            kick_hc_text(&set.kick, hi, t);
-            app_say(hi == 2 ? "TERROR 2" : "TERROR", t);
-            changed();
-            ui.redraw |= RG_BLOCKS | RG_FOOT;
+        if (k >= EN_K1 && k <= EN_K4 && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K1 DUCK, K2 TERROR 2, K3 COMP
+                                          * (was LIMIT), K4 TERROR, on any page: its amount (its settings: ENV's KNOB) */
+            selk_turn((uint32_t)(k - EN_K1), 0, d);
             continue;
         }
         if (k == EN_SELECT && ext_active()) {
@@ -618,6 +583,8 @@ static void input(void)
                 fx_algo(d, 1u);          /* FX held: the slot moves along the chain */
             else if (btn & 1u << B_SEL)
                 break_ask((set.brk + (d > 0 ? 1u : n_breaks - 1u)) % n_breaks);
+            else if (ui.page == PG_TRACK && ui.tpage == 3u)
+                knob_fn(d);              /* LOAF BREAKER: ENV's KNOB: the function */
             else if (ui.page == PG_GLOBAL)   /* GLOBAL: its part */
                 global_part((ui.gpage + (d > 0 ? 1u : 2u)) % 3u);
             else if (ui.page == PG_KICK) {    /* the kick: its part (MIX, each layer and its FX, MACRO, OUT) */
@@ -650,6 +617,8 @@ static void input(void)
             kick_mem_turn(d);
         } else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage < 2u)
             track_pick(d);               /* LOAF BREAKER: ENV: the track */
+        else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage == 3u)
+            knob_fn(d);
         else if (k == EN_PRESET)
             pattern_pick(d);             /* elsewhere: the pattern */
         else if (key_tuned() >= 0)       /* a white key held: K1-K4 tune its loop */
@@ -806,7 +775,7 @@ static void draw_tabs(void)
         tab(x, "KICK FX", 0);
     }
     else if (ui.page == PG_TRACK)        /* LOAF BREAKER: ENV: TRACKS, PLAY, DROP */
-        for (i = 0; i < 3u; i++)
+        for (i = 0; i < 4u; i++)
             x = tab(x, TPART[i], i == ui.tpage);
     else if (ui.page == PG_OVL)
         tab(x, "OVERLAY", 1);
@@ -869,7 +838,7 @@ static void page_say(void)
     case PG_GLOBAL: text_cat(t, GPART[ui.gpage % 3u]); break;
     case PG_MIX: text_cat(t, ui.mpage ? "GROOVE" : "LEVELS"); break;
     case PG_SEQ: text_cat(t, SEQL[ui.seq_lane % NSEQL]); break;
-    case PG_TRACK: text_cat(t, TPART[ui.tpage % 3u]); break;
+    case PG_TRACK: text_cat(t, TPART[ui.tpage % 4u]); break;
     case PG_OVL: text_cat(t, "OVERLAY"); break;
     case PG_FX:
         text_cat(t, IS_KFX() ? "KICK FX " : "SLOT ");
@@ -898,7 +867,7 @@ static void draw_help(void)
 {
     static const char *const L[8][2] = {{"SEL X3", "BUILD / DROP"}, {"+ SELECT", "KICK 1-10"}, {"+ K1", "DUCK"},
                                         {"+ K2", "TERROR 2"}, {"+ K4", "TERROR"}, {"+ ALGO", "BREAK"},
-                                        {"+ PRESETS", "PATTERN"}, {"+ K3", "LIMIT"}};   /* (LOAF BREAKER: the
+                                        {"+ PRESETS", "PATTERN"}, {"+ K3", "COMP"}};   /* (LOAF BREAKER: the
                                           * live ones) */
     uint32_t i, band;
     for (band = 0; band < 2u; band++) {
@@ -951,7 +920,8 @@ static void draw_foot(const brk_status_t *st)
         static const char *const KN_GROOVE[4] = {"SWING", "DRUMS", "", ""};
         static const char *const KN_MORE[4] = {"SKIN", "AUTO SAVE", "LOAF LORD", "DROP BRK"};   /* GLOUPI BREAKS: GLOBAL's MORE */
         static const char *const KN_TRK[2][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"}};
-        const char *name = ui.page == PG_TRACK && ui.tpage ? KN_TRK[(ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
+        const char *name = ui.page == PG_TRACK && ui.tpage == 3u ? SK_KNOB[ui.knfn & 3u][i] : ui.page == PG_TRACK &&
+                           ui.tpage ? KN_TRK[(ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
                            ui.gpage == 2u ? KN_MORE[i] : ui.page == PG_GLOBAL && ui.gpage
                            ? KN_PITCH[i] : ui.page == PG_MIX && ui.mpage
                            ? KN_GROOVE[i] : KN[ui.page][i];
@@ -1185,6 +1155,10 @@ void app_frame(void)
     }
     if (ui.page == PG_GLOBAL && now - ui.panel_drawn >= 200u)   /* the GLOBAL page's panel: five times a second */
         ui.redraw |= RG_BLOCKS;
+    if (ui.page == PG_TRACK && ui.tpage == 3u && ui.knfn == 2u && set.comp && now - ui.panel_drawn >= 50u) {
+        ui.redraw |= RG_BLOCKS;          /* (LOAF BREAKER: KNOB's COMP: its reduction moving) */
+        ui.panel_drawn = now;
+    }
     if (ui.page == PG_MIX && now - ui.mix_drawn >= 33u)   /* the MIXER's meters: about 30 times a second */
         ui.redraw |= RG_BLOCKS;
     brk_fx_watch(ui.page == PG_FX ? fx_foc() : BRK_FX_ALL);   /* (the engine meters that slot alone) */
@@ -1325,8 +1299,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes"};
-    int v[29];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn"};
+    int v[31];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1358,7 +1332,9 @@ int app_expect(const char *what, int *got)
     v[27] = set.kick.l[ui.klayer % KICK_LAYERS].fx;
     for (i = 0, v[28] = 0; i < 64u; i++)  /* (the kick's steps with a note) */
         v[28] += kick_note(pat_now(), i) != 0;
-    for (i = 0; i < 29u; i++)
+    v[29] = set.comp;
+    v[30] = ui.knfn;
+    for (i = 0; i < 31u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

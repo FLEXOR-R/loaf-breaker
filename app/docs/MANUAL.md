@@ -122,6 +122,17 @@ metronome and tap tempo are gone).
 - **DROP**: **K1** the build: NONE (the bar playing ends in the drop), 1, 2, 4 or 8 bars; **K2** the pattern a SEL ×3
   drop brings in (NEXT, or P1–P16); **K3** the break it brings in (SAME, or one of the bank's); **K4** the crash's
   level.
+- **KNOB**: the SEL + knob functions' settings. **ALGORITHM**, **PRESETS** or white keys 1–4 pick the function
+  (K1 DUCK, K2 TERROR 2, K3 COMP, K4 TERROR); **K1** is always its amount, the same as SEL + that knob anywhere.
+  - **DUCK** (SEL + K1): AMOUNT, ATTACK (0.1–30 ms), RELEASE (20–800 ms), DUCKS: the BREAK, or the break and the
+    drums (+ DRUMS; never the kick).
+  - **TERROR 2** (SEL + K2): AMOUNT, SUB (what stays clean under it, ~48–250 Hz), SCREAM (the mids it pushes,
+    ~150 Hz–2.4 kHz), PUSH (how hard).
+  - **COMP** (SEL + K3, in LIMIT's place): the whole mix compressed. AMOUNT is the threshold (0 to −36 dB), RATIO
+    1.5:1–20:1, ATTACK, RELEASE; half the reduction is made up, and the mix is held under full scale. Its reduction
+    shows live under the knobs.
+  - **TERROR** (SEL + K4): AMOUNT, SUB, FIZZ (its top, darker or brighter), SUSTAIN (the fold dying with the kick, or
+    a wall). The two TERRORs' settings are the kick's own: they go with its memory (KICK 1–10).
 
 **SEL ×3** (playing) asks for the drop: the build starts at the next bar, so the drop always lands on a bar line.
 

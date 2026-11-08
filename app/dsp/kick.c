@@ -37,6 +37,8 @@ typedef struct {
     float g, hard, make, vol;            /* the sum: drive, how hard the clip, make-up, volume */
     float tmix, tg;                      /* LOAF BREAKER: TERROR, its mix and its drive (0 mix: off) */
     float t2mix, t2g;                    /* TERROR 2, its mix and its drive */
+    float tsub, tfz, tsus;               /* (ENV's KNOB) TERROR's split, its fizz's low-pass, its follow */
+    float t2sub, t2scr, t2push;          /* TERROR 2's split, its mids' low-pass, their push */
 } kc_t;
 
 static volatile kick_t p_k;
@@ -134,6 +136,18 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c)
         float t = (float)(KICK_TERROR2(k) > 100u ? 100u : KICK_TERROR2(k)) * 0.01f;
         c->t2mix = t * 4.0f > 1.0f ? 1.0f : t * 4.0f;
         c->t2g = 3.0f + 80.0f * t * t;
+    }
+    {                                    /* (their settings: 0 as they always were) */
+        float a = (float)(int8_t)KICK_T_SUB(k), b = (float)(int8_t)KICK_T_FIZZ(k), e = (float)(int8_t)KICK_T_SUS(k);
+        c->tsub = 0.0155f * brk_exp2f_c(brk_clampf(a, -50.0f, 50.0f) * 0.024f);
+        c->tfz = brk_clampf(0.45f * brk_exp2f_c(brk_clampf(b, -50.0f, 50.0f) * 0.03f), 0.03f, 1.0f);
+        c->tsus = 2.5f * brk_exp2f_c(brk_clampf(e, -50.0f, 50.0f) * 0.04f);
+        a = (float)(int8_t)KICK_T2_SUB(k);
+        b = (float)(int8_t)KICK_T2_SCREAM(k);
+        e = (float)(int8_t)KICK_T2_PUSH(k);
+        c->t2sub = 0.0155f * brk_exp2f_c(brk_clampf(a, -50.0f, 50.0f) * 0.024f);
+        c->t2scr = brk_clampf(0.085f * brk_exp2f_c(brk_clampf(b, -50.0f, 50.0f) * 0.04f), 0.01f, 0.6f);
+        c->t2push = 1.2f * brk_exp2f_c(brk_clampf(e, -50.0f, 50.0f) * 0.03f);
     }
     c->vol = brk_clampf(k->volume, 0.0f, 1.0f);
 }
@@ -235,15 +249,15 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
                                           * clipped and its fizz rounded */
         float h, t, z, a = brk_absf(out);
         v->tenv += (a - v->tenv) * (a > v->tenv ? 0.05f : 0.0012f);   /* (the kick's level: fast up, ~20 ms down) */
-        v->tlo += (out - v->tlo) * 0.0155f;
+        v->tlo += (out - v->tlo) * c->tsub;
         h = (out - v->tlo) * c->tg;
         t = h * 0.25f + 0.25f;
         t -= (float)(int32_t)t;
         if (t < 0.0f)
             t += 1.0f;
         z = 1.0f - 4.0f * brk_absf(t - 0.5f);   /* (the fold: h within +-1 untouched, beyond it back and forth) */
-        v->tlp += (z - v->tlp) * 0.45f;
-        a = v->tenv * 2.5f;              /* (the fold follows the kick down: its punch and its tail kept, not a wall) */
+        v->tlp += (z - v->tlp) * c->tfz;
+        a = v->tenv * c->tsus;              /* (the fold follows the kick down: its punch and its tail kept, not a wall) */
         z = brk_clampf(v->tlo * 1.2f + v->tlp * 0.85f * (a < 1.0f ? a : 1.0f), -1.0f, 1.0f);
         out += (z - out) * c->tmix;
     }
@@ -251,10 +265,10 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
                                           * and round: the screech), its mids pushed, clipped hard; the sub back under */
         float a = brk_absf(out), z, m;
         v->t2env += (a - v->t2env) * (a > v->t2env ? 0.05f : 0.0012f);
-        v->t2lo += (out - v->t2lo) * 0.0155f;   /* (~110 Hz) */
+        v->t2lo += (out - v->t2lo) * c->t2sub;   /* (~110 Hz) */
         z = brk_sin_turns(out * c->t2g * 0.25f);   /* (|x| up to 1: a sine; past it, folded back and forth) */
-        v->t2lp += (z - v->t2lp) * 0.085f;  /* (~600 Hz: what's above it pushed, the scream) */
-        z = brk_clampf((z + 1.2f * (z - v->t2lp)) * 1.3f, -1.0f, 1.0f);
+        v->t2lp += (z - v->t2lp) * c->t2scr;   /* (~600 Hz: what's above it pushed, the scream) */
+        z = brk_clampf((z + c->t2push * (z - v->t2lp)) * 1.3f, -1.0f, 1.0f);
         m = v->t2env * 2.5f;
         z = brk_clampf(v->t2lo * 1.3f + z * 0.8f * (m < 1.0f ? m : 1.0f), -1.0f, 1.0f);
         out += (z - out) * c->t2mix;

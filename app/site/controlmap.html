@@ -199,10 +199,11 @@
       { n: "LEVELS", k: ["BREAK", "KICK", "PERC", "FX"], strip: "4 FADERS AND METERS", note: "FX shows the 4 slots" },
       { n: "GROOVE", k: ["SWING", "DRUMS ROUTE", "", ""], strip: "SWING · THE DRUMS' ROUTE", note: "" } ],
       algo: "Break (next bar)", brk: true, presets: "Pattern P1–P16", keys: "slices", notes: [] },
-    { id: "env", btn: "ENV", name: "TRACK", sub: "Tracks, playing them, the drop", again: "next part (3)", subs: [
+    { id: "env", btn: "ENV", name: "TRACK", sub: "Tracks, playing them, the drop", again: "next part (4)", subs: [
       { n: "TRACKS", k: ["ITEM", "PUT", "LOOPS", "END"], strip: "THE TRACK'S 32 ITEMS: PATTERNS, DROPS", note: "a white key puts its pattern in" },
       { n: "PLAY", k: ["TRACK", "FROM", "END", ""], strip: "THE TRACK, THE ITEM PLAYING", note: "PLAY: the track, then HOME" },
-      { n: "DROP", k: ["BUILD", "AFTER", "BREAK", "CRASH"], strip: "THE DROP'S SETTINGS", note: "SEL x3: the build from the next bar" } ],
+      { n: "DROP", k: ["BUILD", "AFTER", "BREAK", "CRASH"], strip: "THE DROP'S SETTINGS", note: "SEL x3: the build from the next bar" },
+      { n: "KNOB", k: ["AMOUNT", "(ITS 2ND)", "(ITS 3RD)", "(ITS 4TH)"], strip: "K1 DUCK · K2 TERROR 2 · K3 COMP · K4 TERROR", note: "ALGO picks the function; K1 = SEL + its knob" } ],
       algo: "Break (next bar)", brk: true, presets: "Track 1–8", keys: "patterns / tracks",
       notes: [["White key (TRACKS)", "Its pattern at the item"], ["White keys 1-8 (PLAY)", "That track played"]] },
     { id: "seq", btn: "SEQ", name: "SEQUENCER", sub: "16 patterns, all the steps", again: "next lane (5)", subs: [

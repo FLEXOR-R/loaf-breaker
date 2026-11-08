@@ -7,7 +7,7 @@
  * there in order.) */
 
 static void page_say(void);
-static const char *const TPART[3] = {"TRACKS", "PLAY", "DROP"};
+static const char *const TPART[4] = {"TRACKS", "PLAY", "DROP", "KNOB"};
 static const char *const TRK_END_NAME[3] = {"LOOP", "STOP", "HOLD"};
 
 static track_t *trk_now(void) { return &pats.trk[set.trk % NTRACKS]; }
@@ -204,6 +204,89 @@ static void track_dropped(void)
     ui.trk_prev = -1;
 }
 
+/* ---- KNOB: the SEL + knob functions, each its settings (K1 its amount, as SEL + its knob) ---- */
+static const char *const SK_NAME[4] = {"DUCK", "TERROR 2", "COMP", "TERROR"};
+static const char *const SK_KNOB[4][4] = {{"AMOUNT", "ATTACK", "RELEASE", "DUCKS"}, {"AMOUNT", "SUB", "SCREAM", "PUSH"},
+                                          {"AMOUNT", "RATIO", "ATTACK", "RELEASE"}, {"AMOUNT", "SUB", "FIZZ", "SUSTAIN"}};
+static uint8_t *sk_byte(uint32_t f, int i)   /* a setting's byte (the TERRORs': the kick's, int8 -50..50) */
+{
+    kick_t *k = &set.kick;
+    static uint8_t *const DUCKB[3] = {&set.duck, &set.duck_att, &set.duck_rel};
+    static uint8_t *const COMPB[4] = {&set.comp, &set.comp_ratio, &set.comp_att, &set.comp_rel};
+    if (f == 0u)
+        return i < 3 ? DUCKB[i] : &set.duck_what;
+    if (f == 2u)
+        return COMPB[i & 3];
+    if (i == 0)
+        return kick_hc(k, f == 1u ? 2 : 1);
+    if (f == 1u)
+        return i == 1 ? &KICK_T2_SUB(k) : i == 2 ? &KICK_T2_SCREAM(k) : &KICK_T2_PUSH(k);
+    return i == 1 ? &KICK_T_SUB(k) : i == 2 ? &KICK_T_FIZZ(k) : &KICK_T_SUS(k);
+}
+static void selk_value(uint32_t f, int i, char *t)
+{
+    uint8_t v = *sk_byte(f, i);
+    int32_t sv = (int8_t)v;
+    t[0] = 0;
+    if (i == 0) {                        /* the amount */
+        if (!v)
+            text_cat(t, "OFF");
+        else if (f == 2u) {              /* COMP: its threshold */
+            tenths_text(-(int32_t)v * 36 / 10, t);
+            text_cat(t, " DB");
+        } else {
+            int_text(v, t);
+            text_cat(t, "%");
+        }
+    } else if (f == 0u)
+        if (i == 3)
+            text_cat(t, v == 1u ? "+ DRUMS" : "BREAK");
+        else
+            ms_text(i == 1 ? att_ms(v) : rel_ms(v), t);
+    else if (f == 2u) {
+        if (i == 1) {
+            float r = COMP_RATIO[v & 7u];
+            if (r < 2.0f)
+                text_cat(t, "1.5");
+            else
+                int_text((int32_t)r, t);
+            text_cat(t, ":1");
+        } else
+            ms_text(i == 2 ? att_ms(v) : rel_ms(v), t);
+    } else if (i == 1 || (f == 1u && i == 2)) {   /* SUB, SCREAM: about their frequency */
+        int_text((int32_t)((i == 1 ? 110.0f * brk_exp2f_c((float)sv * 0.024f) : 620.0f * brk_exp2f_c((float)sv * 0.04f)) + 0.5f), t);
+        text_cat(t, " HZ");
+    } else {
+        if (sv > 0)
+            text_cat(t, "+");
+        int_text(sv, t + (sv > 0 ? 1 : 0));
+    }
+}
+/* turned: SEL + its knob (i 0), or on KNOB */
+static void selk_turn(uint32_t f, int i, int32_t d)
+{
+    uint8_t *b = sk_byte(f & 3u, i);
+    char t[16], n[20];
+    if (i == 0 || (f == 0u && i < 3) || (f == 2u && i >= 2))
+        *b = (uint8_t)clamp((int32_t)*b + d * 2, 0, 100);
+    else if (f == 0u)
+        *b = (uint8_t)clamp((int32_t)*b + (d > 0 ? 1 : -1), 0, 1);
+    else if (f == 2u)
+        *b = (uint8_t)clamp((int32_t)*b + (d > 0 ? 1 : -1), 0, 7);
+    else
+        *b = (uint8_t)(int8_t)clamp((int32_t)(int8_t)*b + d * 2, -50, 50);
+    selk_value(f & 3u, i, t);
+    n[0] = 0;
+    text_cat(n, SK_NAME[f & 3u]);
+    if (i) {
+        text_cat(n, " ");
+        text_cat(n, SK_KNOB[f & 3u][i & 3]);
+    }
+    app_say(n, t);
+    changed();
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
+
 /* ---- the page ---- */
 static void trk_item_text(const track_t *t, uint32_t i, char *s, char *r)   /* "P3" "X4", "DROP" "", "END" "" */
 {
@@ -225,6 +308,10 @@ static void track_value(int i, char *t)
     const track_t *tr = trk_now();
     char r[6];
     t[0] = 0;
+    if (ui.tpage == 3u) {                /* KNOB */
+        selk_value(ui.knfn & 3u, i, t);
+        return;
+    }
     if (ui.tpage == 2u) {                /* DROP */
         if (i == 0) {
             uint32_t b = DROP_BARS[set.drop_bars % 5u];
@@ -290,6 +377,10 @@ static void track_turn(int i, int32_t d)
     track_t *t = trk_now();
     uint32_t c = ui.trk_cur % TRK_ITEMS;
     int dir = d > 0 ? 1 : -1;
+    if (ui.tpage == 3u) {
+        selk_turn(ui.knfn & 3u, i, d);
+        return;
+    }
     if (ui.tpage == 2u) {
         if (i == 0)
             set.drop_bars = (uint8_t)clamp((int32_t)set.drop_bars + dir, 0, 4);
@@ -348,6 +439,12 @@ static void track_turn(int i, int32_t d)
     track_say(i);
 }
 /* PRESETS on ENV: the track (TRACKS and PLAY the same) */
+static void knob_fn(int32_t d)           /* ALGORITHM or PRESETS on KNOB: the function */
+{
+    ui.knfn = (uint8_t)((ui.knfn + (d > 0 ? 1u : 3u)) & 3u);
+    app_say("KNOB", SK_NAME[ui.knfn]);
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
 static void track_pick(int32_t d)
 {
     set.trk = (uint8_t)clamp((int32_t)set.trk + (d > 0 ? 1 : -1), 0, (int32_t)NTRACKS - 1);
@@ -360,6 +457,14 @@ static void track_pick(int32_t d)
  * track played (keys 1-8) */
 static void track_key(uint32_t k)
 {
+    if (ui.tpage == 3u) {                /* KNOB: keys 1-4, the function (K1..K4's) */
+        if (k < 4u) {
+            ui.knfn = (uint8_t)k;
+            app_say("KNOB", SK_NAME[k]);
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
+        }
+        return;
+    }
     if (ui.tpage == 1u) {
         if (k < NTRACKS) {
             set.trk = (uint8_t)k;
@@ -387,9 +492,11 @@ static void track_key(uint32_t k)
         ui.redraw |= RG_BLOCKS | RG_FOOT;
     }
 }
-static uint32_t track_keys_lit(void)     /* TRACKS: the item's pattern; PLAY: the tracks there are */
+static uint32_t track_keys_lit(void)     /* TRACKS: the item's pattern; PLAY: the tracks there are; KNOB: its function */
 {
     uint32_t m = 0u, i;
+    if (ui.tpage == 3u)
+        return 1u << (ui.knfn & 3u);
     if (ui.tpage == 1u) {
         for (i = 0; i < NTRACKS; i++)
             if (trk_len(&pats.trk[i]))
@@ -415,6 +522,37 @@ static void track_picture(int32_t top)
     uint32_t i, n = trk_len(t);
     char s[20], r[8];
     cv_oy = -top;
+    if (ui.tpage == 3u) {                /* KNOB: the four functions (the one edited lit), its settings large; COMP its
+                                          * reduction now */
+        uint32_t f = ui.knfn & 3u;
+        static const char *const CHIP[4] = {"K1 DUCK", "K2 TERR 2", "K3 COMP", "K4 TERROR"};
+        for (i = 0; i < 4u; i++) {
+            s[0] = 0;
+            text_cat(s, CHIP[i]);
+            cv_rect(1 + (int32_t)i * 60, 2, 57, 14, i == f ? C_HI : C_BLOCK);
+            cv_text(4 + (int32_t)i * 60, 3, &FONT_XS, s, i == f ? C_BLACK : C_GRAY);
+        }
+        for (i = 0; i < 4u; i++) {
+            int32_t x = 8 + (int32_t)(i & 1u) * 116, y = 26 + (int32_t)(i >> 1) * 40;
+            cv_text(x, y, &FONT_XS, SK_KNOB[f][i], C_GRAY);
+            selk_value(f, (int)i, s);
+            cv_text(x, y + 11, &FONT_B, s, i == 0u && !*sk_byte(f, 0) ? C_DIM : C_WHITE);
+        }
+        if (f == 2u) {                   /* COMP: its reduction, 0 .. 18 dB */
+            float g = comp_gr;
+            int32_t w = (int32_t)(brk_clampf(g / 18.0f, 0.0f, 1.0f) * 220.0f);
+            cv_text(8, 110, &FONT_XS, "REDUCTION", C_GRAY);
+            cv_rect(8, 122, 220, 8, C_BLOCK);
+            cv_rect(8, 122, w, 8, C_HI);
+            tenths_text((int32_t)(g * 10.0f), s);
+            text_cat(s, " DB");
+            cv_text(170, 110, &FONT_XS, s, C_WHITE);
+        } else
+            cv_text(8, 112, &FONT_XS, f == 0u ? "SEL + K1 ON ANY PAGE: ITS AMOUNT" : "THE KICK'S OWN: SAVED WITH ITS MEMORY",
+                    C_DIM);
+        cv_oy = 0;
+        return;
+    }
     if (ui.tpage == 2u) {
         static const char *const N[4] = {"BUILD", "AFTER DROP", "DROP BREAK", "CRASH"};
         for (i = 0; i < 4u; i++) {
@@ -485,11 +623,11 @@ static void draw_track(void)
         cv_blit(0, (uint32_t)(44 + top));
     }
 }
-/* ENV: TRACKS; again, PLAY, DROP, and back */
+/* ENV: TRACKS; again, PLAY, DROP, KNOB, and back */
 static void track_open(void)
 {
     if (ui.page == PG_TRACK)
-        ui.tpage = (uint8_t)((ui.tpage + 1u) % 3u);
+        ui.tpage = (uint8_t)((ui.tpage + 1u) % 4u);
     else {
         ui.page = PG_TRACK;
         ui.tpage = 0u;
