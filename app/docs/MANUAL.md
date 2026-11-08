@@ -105,6 +105,16 @@ back. That touch only ends the demo: it doesn't play a slice or start the break.
 | ALGORITHM | (HOME, MIXER; SEL held: any page) The next or previous break: its name shows at once (amber in the header) and, while playing, it comes in at the next bar (the old one goes quiet for the bar's last 16th meanwhile); stopped, at once. AMEN (The Winstons), DRUMMER (James Brown, Funky Drummer), THE WORM (Jimmy McGriff), THINK (Lyn Collins), COLD SWEAT (James Brown), HOT PANTS (Bobby Byrd), APACHE (Incredible Bongo Band), SPORT (Lightnin' Rod): 2 bars each, played at the tempo you set |
 | MASTER | Volume |
 
+### Where things are
+
+- **HOME**: playing. PERFORM and GENERATOR (HOME again: the other), the CDJ waveform on both.
+- **EDIT**: the drums. On the KICK, ALGORITHM goes through all of it: MIX, each layer and its effect, MACRO, OUT, then
+  EQ BANDS, EQ SHAPE (its EQ), FX 1, FX 2 (its two FX slots), TERROR, TERROR + (DRIVE, TYPE, SCREECH, TAIL), TERROR 2.
+  The TERRORs' settings are the kick's own: they go with its memory.
+- **LFO** (the MIXER): LEVELS, GROOVE, MASTER (K1 COMP, K2 its RATIO, K3 DUCK, K4 MAX OUT; COMP's reduction metered).
+- **ENV**: the track and the live. TRACKS, PLAY, DROP, KNOB (what SEL + each knob does).
+- **GLO**: MIDI, PITCH, MORE (SKIN, AUTO SAVE).
+
 ### The CDJ view (HOME)
 
 **PERFORM and GENERATOR show what leaves the mix** (the break, the kick, the drums, the effects; before MASTER)
@@ -144,7 +154,7 @@ metronome and tap tempo are gone).
     shows live under the knobs.
 
 **No saturation.** Whatever the effects and COMP do, a last guard holds every peak under full scale (-0.4 dB) by turning
-it down at once, never clipping it square. And **GLOBAL MORE's K4 MAX OUT** sets how loud the output gets with MASTER
+it down at once, never clipping it square. And **MAX OUT** (the MIXER's MASTER, K4) sets how loud the output gets with MASTER
 all the way up: -3 dB to start with (headroom for the FM-1's output and your speaker), right to 0 dB, left down to
 -12 dB.
   - **TERROR** (SEL + K4): AMOUNT, SUB, FIZZ (its top, darker or brighter), SUSTAIN (the fold dying with the kick, or
@@ -302,10 +312,11 @@ its level in and out.
 | PRESETS | The effect in that slot, through the library (EMPTY first); a new effect comes in on, as you last left it (its MORE and MOD too; never touched: its starting settings) |
 | SEL ×2 | The slot's effect back to its starting settings (its MORE, MOD and MB COMP detail too); SEL ×2 again within 4 s takes the reset back. On EDIT KICK's FX parts the same for that layer's effect, which is also remembered effect by effect |
 
-**KICK FX** (HOME's fourth part, after KICK EQ): the FX page on the kick's own two slots, after its EQ and before
-everything else (the break's chain never sees them). Every effect of the library but REVERB and DELAY; PRESETS the
-effect (remembered as left, apart from the chain's), ALGORITHM the slot (with FX held: moves it), FX the next part
-(MAIN, MORE, MOD), SEL + FX bypasses, SEL ×2 resets. HOME goes back to PERFORM; FX from another page, the chain.
+**KICK FX** (EDIT KICK's parts FX 1 and FX 2, after EQ BANDS and EQ SHAPE): the FX page on the kick's own two slots,
+after its EQ and before everything else (the break's chain never sees them). Every effect of the library but REVERB
+and DELAY; PRESETS the effect (remembered as left, apart from the chain's), ALGORITHM the kick's next or previous part,
+FX the next part of the effect (MAIN, MORE, MOD), FX held + ALGORITHM moves the slot, SEL + FX bypasses, SEL ×2 resets.
+FX from another page: the chain.
 | K1–K3 · K4 | Its settings · its mix |
 | SEL + FX | That slot on / bypassed |
 | FX held + ALGORITHM | Moves that slot along the chain (the order is the sound: DRIVE before a FILTER is not a FILTER before DRIVE) |

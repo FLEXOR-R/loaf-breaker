@@ -164,8 +164,7 @@
   const PAGES = [
     { id: "home", btn: "HOME", name: "PERFORM · GENERATOR", sub: "Play; how the break rearranges", again: "next part (2)", subs: [
       { n: "PERFORM", k: ["GATE", "DJ FILTER", "FX", "COMPLEXITY"], strip: "16 SLICE BLOCKS", note: "the slice playing lit; a held key outlined" },
-      { n: "GENERATOR", k: ["COMPLEXITY", "ANCHOR", "ROLL", "FILL"], strip: "16 SLICE BLOCKS", note: "HOME again" },
-      { n: "KICK FX", k: ["P1", "P2", "P3", "MIX"], strip: "THE KICK'S TWO FX SLOTS", note: "FX's effects but REVERB and DELAY; PRESETS the effect, ALGO the slot, FX its parts" } ],
+      { n: "GENERATOR", k: ["COMPLEXITY", "ANCHOR", "ROLL", "FILL"], strip: "16 SLICE BLOCKS", note: "HOME again" } ],
       algo: "Break (next bar)", brk: true, presets: "Pattern P1–P16", keys: "slices",
       notes: [["SEL", "Pressed alone: every combination"], ["SEL + ALGO · SEL + PRESETS", "Break · pattern, any page"], ["ARP", "The overlays"]] },
     { id: "arp", btn: "ARP", name: "OVERLAY", sub: "Sixteen effects to hold", again: "nothing", subs: [
@@ -195,9 +194,10 @@
       { n: "SNARE / HAT · SHAPE", k: ["SNAP / CUT", "DRIVE", "", ""], strip: "6 SETTINGS · THE 3 DRUMS", note: "" } ],
       algo: "Part", presets: "Kick / sound", keys: "slices",
       notes: [["Steps", "On SEQ's KICK, SNARE and HAT lanes"], ["MIDI 36 · 38 · 42", "Kick · snare · hat"]] },
-    { id: "lfo", btn: "LFO", name: "MIXER", sub: "Levels and groove", again: "next part (2)", subs: [
+    { id: "lfo", btn: "LFO", name: "MIXER", sub: "Levels, groove, master", again: "next part (3)", subs: [
       { n: "LEVELS", k: ["BREAK", "KICK", "PERC", "FX"], strip: "4 FADERS AND METERS", note: "FX shows the 4 slots" },
-      { n: "GROOVE", k: ["SWING", "DRUMS ROUTE", "", ""], strip: "SWING · THE DRUMS' ROUTE", note: "" } ],
+      { n: "GROOVE", k: ["SWING", "DRUMS ROUTE", "", ""], strip: "SWING · THE DRUMS' ROUTE", note: "" },
+      { n: "MASTER", k: ["COMP", "RATIO", "DUCK", "MAX OUT"], strip: "COMP AND ITS REDUCTION · DUCK · MAX OUT", note: "the mix as it leaves" } ],
       algo: "Break (next bar)", brk: true, presets: "Pattern P1–P16", keys: "slices", notes: [] },
     { id: "env", btn: "ENV", name: "TRACK", sub: "Tracks, playing them, the drop", again: "next part (4)", subs: [
       { n: "TRACKS", k: ["ITEM", "PUT", "LOOPS", "END"], strip: "THE TRACK'S 32 ITEMS: PATTERNS, DROPS", note: "a white key puts its pattern in" },
