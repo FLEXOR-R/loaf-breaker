@@ -943,7 +943,7 @@ static void draw_foot(const brk_status_t *st)
     for (i = 0; i < 4u; i++) {
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "RESET ALL"};
         static const char *const KN_GROOVE[4] = {"SWING", "DRUMS", "", ""};
-        static const char *const KN_MORE[4] = {"SKIN", "AUTO SAVE", "LOAF LORD", "DROP BRK"};   /* GLOUPI BREAKS: GLOBAL's MORE */
+        static const char *const KN_MORE[4] = {"SKIN", "AUTO SAVE", "LOAF LORD", "MAX OUT"};   /* GLOUPI BREAKS: GLOBAL's MORE */
         static const char *const KN_TRK[2][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"}};
         const char *name = ui.page == PG_TRACK && ui.tpage == 3u ? SK_KNOB[ui.knfn & 3u][i] : ui.page == PG_TRACK &&
                            ui.tpage ? KN_TRK[(ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&

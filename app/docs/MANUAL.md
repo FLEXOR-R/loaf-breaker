@@ -143,6 +143,11 @@ metronome and tap tempo are gone).
   - **COMP** (SEL + K3, in LIMIT's place): the whole mix compressed. AMOUNT is the threshold (0 to −36 dB), RATIO
     1.5:1–20:1, ATTACK, RELEASE; half the reduction is made up, and the mix is held under full scale. Its reduction
     shows live under the knobs.
+
+**No saturation.** Whatever the effects and COMP do, a last guard holds every peak under full scale (-0.4 dB) by turning
+it down at once, never clipping it square. And **GLOBAL MORE's K4 MAX OUT** sets how loud the output gets with MASTER
+all the way up: -3 dB to start with (headroom for the FM-1's output and your speaker), right to 0 dB, left down to
+-12 dB.
   - **TERROR** (SEL + K4): AMOUNT, SUB, FIZZ (its top, darker or brighter), SUSTAIN (the fold dying with the kick, or
     a wall). The two TERRORs' settings are the kick's own: they go with its memory (KICK 1–10).
 

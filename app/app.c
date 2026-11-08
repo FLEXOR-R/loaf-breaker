@@ -135,7 +135,9 @@ typedef struct {
     uint8_t duck_what;                   /* 0 the break, 1 the break and the drums (not the kick) */
     uint8_t comp_ratio;                  /* COMP: COMP_RATIO's index */
     uint8_t comp_att, comp_rel;          /* its attack 0.1 .. 30 ms, its release 20 .. 800 ms (0..100) */
-    uint8_t rsv9[2];
+    uint8_t max_out;                     /* LOAF BREAKER: GLOBAL MORE's MAX OUT, the output's most at MASTER full: 0
+                                          * the default (-3 dB), else 1 + its dB under full scale (0..12) */
+    uint8_t rsv9;
 } settings_t;
 static const float COMP_RATIO[8] = {1.5f, 2.0f, 3.0f, 4.0f, 6.0f, 8.0f, 12.0f, 20.0f};
 static float att_ms(uint32_t v) { return 0.1f * brk_exp2f_c((float)(v > 100u ? 100u : v) * 0.0825f); }
@@ -143,6 +145,7 @@ static float rel_ms(uint32_t v) { return 20.0f * brk_exp2f_c((float)(v > 100u ? 
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");
 static settings_t set;
+static uint32_t max_out_db(void) { return set.max_out ? (set.max_out - 1u > 12u ? 12u : set.max_out - 1u) : 3u; }
 static perc_voice_t *perc_voice(uint32_t v)   /* LOAF BREAKER: a drum's sound, PV_* (the snare and the hat in perc,
                                           * the rest in pmore) */
 {
@@ -934,7 +937,8 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
     int vin = (set.vinyl & 3u) != 1u;    /* (THRU BOTH or KICK: the drums slow too) */
     uint32_t thru = (set.ovl_pad >> 6) & 3u;   /* the ARP key's THRU: 0 BOTH, 1 BREAK, 2 KICK */
     int kick_dry = thru != 0u;           /* the kick apart from the chain (BREAK: around the overlays too) */
-    float gain = muted ? 0.0f : (float)master_q12 * (1.0f / 4096.0f) * 8300000.0f;
+    float gain = muted ? 0.0f : (float)master_q12 * (1.0f / 4096.0f) * 8300000.0f *
+                 brk_exp2f(-(float)max_out_db() * 0.16610f);   /* (LOAF BREAKER: MAX OUT's headroom) */
     brk_status_t st;
     uint32_t t0 = plat_ms(), done = 0u, total = n;
     if (sync_c != sync_seen) {           /* the outside clock's beat, and how long ago it came */
@@ -1212,12 +1216,28 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                 if (gr > gmax)
                     gmax = gr;
                 g = brk_exp2f((mk - gr) * 0.16610f);
-                l[i] = brk_clampf(l[i] * g, -0.98f, 0.98f);
-                r[i] = brk_clampf(r[i] * g, -0.98f, 0.98f);
+                l[i] *= g;               /* (held under full scale by the limiter after) */
+                r[i] *= g;
             }
             comp_gr = gmax > comp_gr * 0.97f ? gmax : comp_gr * 0.97f;
         } else
             comp_gr = 0.0f;
+        {                                /* LOAF BREAKER: the last guard: a peak over 0.95 brought down at once (the
+                                          * level followed instantly up, back over ~50 ms), never clipped hard */
+            static float lpk;
+            for (i = 0; i < m; i++) {
+                float a = brk_absf(l[i]) > brk_absf(r[i]) ? brk_absf(l[i]) : brk_absf(r[i]);
+                if (a > lpk)
+                    lpk = a;
+                else
+                    lpk += (a - lpk) * 0.0005f;
+                if (lpk > 0.95f) {
+                    float g = 0.95f / lpk;
+                    l[i] *= g;
+                    r[i] *= g;
+                }
+            }
+        }
         {                                /* LOAF BREAKER: the CDJ view's columns (scope), from what leaves */
             static float l1, l2, pk[4];
             static uint32_t sn;

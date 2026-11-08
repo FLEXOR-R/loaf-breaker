@@ -1,0 +1,34 @@
+# LOAF BREAKER: no saturation. COMP at its most (SEL + K3 to -36 dB, 20:1: its make-up +17 dB): the last guard holds
+# the peaks under 0.95 (no hard clip); MORE's MAX OUT (K4) from -3 dB to -6 dB.
+#   app/build/host/choppah_host tests/scenarios/maxout.txt app/build/scenarios
+wait 4200
+master 4096
+tap SEQ
+wait 200
+turn K3 1 10
+tap HOME
+wait 200
+press SEL
+turn K3 50 10
+release SEL
+tap PLAY
+wait 3000
+wav m_hot.wav
+wait 3000
+wavstop
+peakreset
+wait 1000
+expect peak_db_max -2.5
+tap GLO
+wait 100
+tap GLO
+wait 100
+tap GLO
+wait 300
+turn K4 -3 10
+wait 200
+shot m_maxout.png
+peakreset
+wait 1500
+expect peak_db_max -5.5
+tap PLAY

@@ -1,5 +1,5 @@
 # LOAF BREAKER (crossbreed): on SEQ the kick 2-STEP (K3 four detents right), step 11's kick a note +5 (held, K1),
-# the snare 2-STEP; P1 copied onto P2 (SEL + SEQ, SEL + PRESETS, SEL + SEQ); DUCK 60 % (SEL + K1); MORE's DROP BRK the
+# the snare 2-STEP; P1 copied onto P2 (SEL + SEQ, SEL + PRESETS, SEL + SEQ); DUCK 60 % (SEL + K1); ENV DROP's BREAK the
 # bank's second break; playing, then the BUILD (SEL three times) and its DROP into P2 and that break.
 # The sound: x_crossbreed.wav
 #   app/build/host/choppah_host tests/scenarios/cross.txt app/build/scenarios
@@ -40,13 +40,13 @@ turn K1 30 10
 release SEL
 wait 200
 shot x_duck.png
-tap GLO
+tap ENV
 wait 100
-tap GLO
+tap ENV
 wait 100
-tap GLO
+tap ENV
 wait 300
-turn K4 2 10
+turn K3 2 10
 wait 200
 shot x_dropbrk.png
 tap HOME
