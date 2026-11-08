@@ -374,6 +374,33 @@ static pats_t pats PLAT_POOL;            /* (LOAF BREAKER: in the pool, 3.7 KB o
 #define PATS_SIZE_MEM offsetof(pats_t, kfm)   /* (one before KICK FX's) */
 #define PATS_SIZE_KFM offsetof(pats_t, kn)    /* (one before the kick's notes on every step) */
 #define PATS_SIZE_KN offsetof(pats_t, hits)   /* (one before the drums' HITS) */
+/* LOAF BREAKER: each drum step's own settings (SEQ: a step held, K2-K4), a byte each: bits 0-1 HITS - 1 (it taps 1..4
+ * times in its step), bits 2-4 CHANCE (0: always .. 7: one time in eight), bits 5-7 NUDGE (0 on the step .. 7 that
+ * many 16ths of it late). The kick's 64 steps, then the others' 32 each; their own store object (OBJ_STEP). An older
+ * save: none, and the pattern's HITS a drum (pats.hits) on each of its steps */
+#define STEPB_N 192u
+#define STEPS_MAGIC 0x31505453u           /* "STP1" */
+typedef struct {
+    uint32_t magic;
+    uint8_t b[NPAT][STEPB_N];
+} steps_t;
+static steps_t steps PLAT_POOL;
+static uint8_t *stepb(uint32_t pi, uint32_t d, uint32_t s)   /* pattern pi, drum d (DR_*), its step s */
+{
+    d %= NDRUMS;
+    return &steps.b[pi % NPAT][d == DR_KICK ? (s & 63u) : 64u + (d - 1u) * 32u + (s & 31u)];
+}
+static void steps_defaults(void)          /* (none: from the patterns' HITS) */
+{
+    uint32_t pi, d, s;
+    steps.magic = STEPS_MAGIC;
+    for (pi = 0; pi < NPAT; pi++)
+        for (d = 0; d < NDRUMS; d++)
+            for (s = 0; s < (d == DR_KICK ? 64u : 32u); s++) {
+                uint32_t h = pats.hits[pi][d];
+                *stepb(pi, d, s) = (uint8_t)(h >= 2u && h <= 4u ? h - 1u : 0u);
+            }
+}
 _Static_assert(sizeof pats <= 3840u, "a store object holds 3840 bytes");
 /* LOAF BREAKER: BUILD and DROP. SEL clicked three times, playing (build_n, the main loop): from the next bar the
  * drums' steps give way to a snare roll that speeds up (quarters, eighths, 16ths, then 32nds, a quarter of the build
@@ -397,6 +424,26 @@ static volatile uint32_t kick_hit_n;     /* (the kick's hits so far: the simulat
 #define HQ_N 16u
 static struct { int32_t at; uint8_t kick, who; float pm; } hq[HQ_N];
 static uint32_t hq_n;
+static void hq_push(int32_t at, uint8_t kick, uint8_t who, float pm);
+/* a drum's hit on step si of pattern pi, at off (len: a 16th): its step's CHANCE (0: skipped), its NUDGE (later) and
+ * its HITS (the repeats in its step) queued; 1: it sounds at off itself */
+static uint32_t step_rng = 0x9E3779B9u;
+static int step_hit(uint32_t pi, uint32_t d, uint32_t si, int32_t off, int32_t len, uint8_t kick, uint8_t who, float pm)
+{
+    uint32_t b = *stepb(pi, d, si), hn = (b & 3u) + 1u, ch = (b >> 2) & 7u, nd = b >> 5, j;
+    int32_t at;
+    if (ch) {
+        step_rng = step_rng * 1664525u + 1013904223u;
+        if ((step_rng >> 29) < ch)       /* (one time in eight a notch: skipped) */
+            return 0;
+    }
+    at = off + (int32_t)nd * len / 16;
+    if (nd)
+        hq_push(at, kick, who, pm);
+    for (j = 1; j < hn; j++)
+        hq_push(at + len * (int32_t)j / (int32_t)hn, kick, who, pm);
+    return !nd;
+}
 static void hq_push(int32_t at, uint8_t kick, uint8_t who, float pm)
 {
     if (hq_n < HQ_N) {
@@ -789,6 +836,8 @@ void app_init(void)
     }
     if (pats.magic != PAT_MAGIC && pats.magic != PAT2_MAGIC && pats.magic != PAT1_MAGIC)
         pat_defaults();
+    if (plat_store_load(OBJ_STEP, &steps, sizeof steps) != (int)sizeof steps || steps.magic != STEPS_MAGIC)
+        steps_defaults();                /* (LOAF BREAKER: the drum steps' own settings) */
     else if (pats.magic != PAT_MAGIC) {  /* an older save: its kick again over four bars, as it played */
         uint32_t i;
         for (i = 0; i < NPAT; i++) {
@@ -1136,14 +1185,14 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                     w |= (uint32_t)(drum_now[d][bar] >> s & 1u) << (d - 1u);
                 if (drum_now[DR_KICK][bar] >> s & 1u && !krp) {   /* (a KICK ROLL: its hits instead) */
                     const pat_t *pp = &pats.p[set.pattern % NPAT];   /* (its note: this step of its bar) */
-                    int32_t kn = kick_note(pp, (bar % drum_bars(pp, DR_KICK)) * 16u + s);
-                    kpm[nk] = kn ? brk_exp2f((float)kn * (1.0f / 12.0f)) : 1.0f;
-                    ka[nk++] = off[k];
-                    {                    /* (its HITS: the others in its step) */
-                        uint32_t hn = pats.hits[set.pattern % NPAT][DR_KICK], j;
-                        int32_t len = (int32_t)((float)BRK_SR * 15.0f / brk_get_tempo());
-                        for (j = 1; hn > 1u && hn <= 4u && j < hn; j++)
-                            hq_push((int32_t)off[k] + len * (int32_t)j / (int32_t)hn, 1u, 0u, kpm[nk - 1u]);
+                    uint32_t ks = (bar % drum_bars(pp, DR_KICK)) * 16u + s;
+                    int32_t kn = kick_note(pp, ks);
+                    float f = kn ? brk_exp2f((float)kn * (1.0f / 12.0f)) : 1.0f;
+                    if (step_hit(set.pattern, DR_KICK, ks, (int32_t)off[k],   /* (LOAF BREAKER: the step's CHANCE,
+                                          * NUDGE, HITS) */
+                                 (int32_t)((float)BRK_SR * 15.0f / brk_get_tempo()), 1u, 0u, f) && nk < 8u) {
+                        kpm[nk] = f;
+                        ka[nk++] = off[k];
                     }
                 }
                 if (w >> PV_STAB & 1u) {     /* the stab: its step's note (its bars: its length) */
@@ -1151,18 +1200,19 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                                            (bar % drum_bars(&pats.p[set.pattern % NPAT], DR_STAB)) * 16u + s);
                     spm[np] = sn ? brk_exp2f((float)sn * (1.0f / 12.0f)) : 1.0f;
                 }
-                if (w) {
-                    uint32_t dd2, j;
+                if (w && np < 8u) {      /* (LOAF BREAKER: each drum's step, its CHANCE, NUDGE, HITS) */
+                    uint32_t dd2, now = 0u;
                     int32_t len = (int32_t)((float)BRK_SR * 15.0f / brk_get_tempo());
-                    pa[np] = off[k];
-                    for (dd2 = DR_SNARE; dd2 < NDRUMS; dd2++) {   /* (each drum's HITS: its others in the step) */
-                        uint32_t hn = pats.hits[set.pattern % NPAT][dd2];
-                        if (w >> (dd2 - 1u) & 1u)
-                            for (j = 1; hn > 1u && hn <= 4u && j < hn; j++)
-                                hq_push((int32_t)off[k] + len * (int32_t)j / (int32_t)hn, 0u,
-                                        (uint8_t)(1u << (dd2 - 1u)), dd2 == DR_STAB ? spm[np] : 1.0f);
+                    const pat_t *pp = &pats.p[set.pattern % NPAT];
+                    for (dd2 = DR_SNARE; dd2 < NDRUMS; dd2++)
+                        if (w >> (dd2 - 1u) & 1u &&
+                            step_hit(set.pattern, dd2, (bar % drum_bars(pp, dd2)) * 16u + s, (int32_t)off[k], len, 0u,
+                                     (uint8_t)(1u << (dd2 - 1u)), dd2 == DR_STAB ? spm[np] : 1.0f))
+                            now |= 1u << (dd2 - 1u);
+                    if (now) {
+                        pa[np] = off[k];
+                        who[np++] = (uint8_t)now;
                     }
-                    who[np++] = (uint8_t)w;
                 }
             }
             {                            /* LOAF BREAKER: the HITS due in this block, in with the steps' (in order) */

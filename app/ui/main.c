@@ -156,6 +156,7 @@ static void reset_all(void)
     pat_next = -1;
     (void)plat_store_save(OBJ_SETTINGS, &set, sizeof set);
     (void)plat_store_save(OBJ_PAT, &pats, sizeof pats);
+    (void)plat_store_save(OBJ_STEP, &steps, sizeof steps);
     set_dirty = 0u;
     app_say("ALL CLEARED", "");
     ui.lobo_t = plat_ms() | 1u;          /* the lobotomy screen (app_frame) */
@@ -244,16 +245,19 @@ static void input(void)
             continue;
         }
         if (ui.page == PG_SEQ) {         /* the SEQ page: a break step to edit, or a drum lane's steps */
-            if (sl_notes(ui.seq_lane)) { /* LOAF BREAKER: a kick or stab lane's key acts as it comes up, unless
-                                          * K1 turned meanwhile (then that step's note: lane_knob) */
+            if (sl_notes(ui.seq_lane)) { /* LOAF BREAKER: a drum lane's key acts as it comes up, unless a knob
+                                          * turned meanwhile (then that step's own: NOTE, HITS, CHANCE, NUDGE; the foot
+                                          * names them while it is held) */
                 if (kdn >> WK[i] & 1u) {
                     ui.note_key = (uint8_t)(i + 1u);
                     ui.note_turned = 0u;
+                    ui.redraw |= RG_FOOT;
                 }
                 if (kup >> WK[i] & 1u && ui.note_key == i + 1u) {
                     if (!ui.note_turned)
                         seq_key(i);
                     ui.note_key = 0u;
+                    ui.redraw |= RG_FOOT;
                 }
                 continue;
             }
@@ -587,7 +591,8 @@ static void input(void)
         undo_swap();
     else if (bdn & 1u << B_SAVE) {
         app_say("SAVE", plat_store_save(OBJ_SETTINGS, &set, sizeof set) == 0 &&
-                        plat_store_save(OBJ_PAT, &pats, sizeof pats) == 0 ? "DONE" : "FAILED");
+                        plat_store_save(OBJ_PAT, &pats, sizeof pats) == 0 &&
+                        plat_store_save(OBJ_STEP, &steps, sizeof steps) == 0 ? "DONE" : "FAILED");
         set_dirty = 0u;
     }
     /* OCT- / OCT+: pitch in semitones, repeating faster while held; both: back to 0. LOAF BREAKER: REC stopped (step by
@@ -1025,9 +1030,10 @@ static void draw_foot(const brk_status_t *st)
         else if (ui.page == PG_KEQ)
             name = KEQ_NAME[ui.keq_part & 1u][i];
         else if (ui.page == PG_SEQ && ui.seq_lane >= SL_KICK) {
-            static const char *const KN_LANE[4] = {"FILL", "HITS", "CLR / 4X4", "LENGTH"};   /* (LOAF BREAKER: HITS,
-                                          * was DRUM FLT: HOME's K3 has it) */
-            name = KN_LANE[i];
+            static const char *const KN_LANE[2][4] = {{"FILL", "DRUM FLT", "CLR / 4X4", "LENGTH"},
+                                                      {"NOTE", "HITS", "CHANCE", "NUDGE"}};   /* (LOAF BREAKER: a
+                                          * step held, its own) */
+            name = KN_LANE[ui.note_key != 0u][i];
         }
         cv_text(4 + (int32_t)i * 60, 18, &FONT_T, name, ui.page == PG_FX
                 ? (fx_sl(fx_foc())->on ? C_HI : C_DIM) : C_GRAY);
@@ -1169,7 +1175,8 @@ void app_frame(void)
             dirty_t = now | 1u;
         else if (now - dirty_t >= 60000u && !st.playing && !ui.lobo_t) {
             int ok = plat_store_save(OBJ_SETTINGS, &set, sizeof set) == 0 &&
-                     plat_store_save(OBJ_PAT, &pats, sizeof pats) == 0;
+                     plat_store_save(OBJ_PAT, &pats, sizeof pats) == 0 &&
+                     plat_store_save(OBJ_STEP, &steps, sizeof steps) == 0;
             set_dirty = 0u;
             dirty_t = 0u;
             app_say("AUTO SAVE", ok ? "DONE" : "FAILED");

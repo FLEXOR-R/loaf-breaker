@@ -274,7 +274,8 @@ comes round (the header shows "P2>").
 | Lane | White keys | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- | --- |
 | STEPS 1-16, STEPS 17-32 | Pick a step to edit (outlined) | SLICE: OFF · LOOP · 1–16 | PITCH: −12 … +12 | HITS: ×1–×4 (a ratchet in the step) | REVERSE |
-| KICK, SNARE, HAT, CLAP, HOOVER | That lane's 16 steps, on and off | FILL: 0–16 hits spread evenly from the downbeat (Euclidean); a kick or hoover step held: its note | **HITS**: 1–4, each of the drum's steps taps that many times in its step (a roll inside the step; the grid splits the steps that tap); the pattern's, drum by drum | Left CLEAR, right 4X4, 8X8, 16X16, 2-STEP, HALF-TIME | LENGTH: 16 or 32 steps (the kick: 16, 32, 64) |
+| KICK, SNARE, HAT, CLAP, HOOVER | That lane's 16 steps, on and off (as the key comes up) | FILL: 0–16 hits spread evenly from the downbeat (Euclidean) | DRUM FLT (HOME's drums' filter) | Left CLEAR, right 4X4, 8X8, 16X16, 2-STEP, HALF-TIME | LENGTH: 16 or 32 steps (the kick: 16, 32, 64) |
+| **A step held** (a drum lane) | its own, the foot naming them | NOTE: −8 … +7 semitones (the kick's and the hoover's) | **HITS**: 1–4, the step taps that many times in its 16th | **CHANCE**: 100 % down to 12 % (it plays that often) | **NUDGE**: on time .. 7/16 of a step late |
 
 The upper strip shows the half's 16 steps (a number: its own slice; a dot: LOOP; a dash: off; a mark under it: hits
 or reverse), the step playing lit; the lower strip all three drum lanes.

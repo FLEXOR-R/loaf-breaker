@@ -55,9 +55,10 @@ int app_ble_at_boot(void);
 
 /* the store (PRD 8.4): settings in Felucca's settings pair, the panel calibration where every fm1-base firmware
  * keeps it. The break bank will take 0x97000..0xD9FFF and PLAT_XDATA1 (M5), patterns 0xDA000 (M2). */
-enum { OBJ_SETTINGS, OBJ_PANEL, OBJ_BLE, OBJ_PAT, OBJ_NOBJ };   /* OBJ_BLE: Bluetooth's address and pairing;
+enum { OBJ_SETTINGS, OBJ_PANEL, OBJ_BLE, OBJ_PAT, OBJ_STEP, OBJ_NOBJ };   /* (LOAF BREAKER: OBJ_STEP, each drum step's
+                                                                 * HITS, CHANCE, NUDGE: 0xD8000, the old bank's room) */   /* OBJ_BLE: Bluetooth's address and pairing;
                                                                  * OBJ_PAT: the 16 patterns */
-#define APP_STORE_MAP {0xFC000u, 0xDC000u, 0xDE000u, 0xDA000u}
+#define APP_STORE_MAP {0xFC000u, 0xDC000u, 0xDE000u, 0xDA000u, 0xD8000u}
 
 /* the pool: the break playing, decoded to 16-bit PCM (PRD 8.2). M1 has one buffer; M5 adds the second */
 #define CH_PCM_MAX 106496u               /* samples: 4.8 s at 22.05 kHz (2 bars at 99.4 BPM and up: Funky Drummer) */
