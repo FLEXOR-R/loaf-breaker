@@ -736,11 +736,33 @@ static void track_key(uint32_t k)
     }
 }
 /* ENV held on TRACKS: the items after the one edited one place right, a gap after it (the one edited stays where it
- * is); the gap edited, for a white key (a pattern) or K2 (a DROP; K2 left: the gap gone again). Played past if left */
+ * is); the gap edited, for a white key (a pattern) or K2 (a DROP; K2 left: the gap gone again). Played past if left.
+ * ENV held on a gap: it goes, the items on its sides closed up */
 static void track_gap(void)
 {
     track_t *t = trk_now();
     uint32_t n = trk_len(t), c = ui.trk_cur % TRK_ITEMS, k;
+    if (c < n && t->it[c] == TI_GAP) {   /* (on a space: it goes, the items on each side close up, the cursor on the
+                                          * one before) */
+        for (k = c; k + 1u < TRK_ITEMS; k++) {
+            t->it[k] = t->it[k + 1u];
+            t->rep[k] = t->rep[k + 1u];
+            *trk_brk(k) = *trk_brk(k + 1u);
+        }
+        t->it[TRK_ITEMS - 1u] = TI_END;
+        *trk_brk(TRK_ITEMS - 1u) = 0u;
+        if (ui.trk_on && ui.trk_pos > c)
+            ui.trk_pos--;
+        if (ui.trk_drop != 0xFFu && ui.trk_drop > c)
+            ui.trk_drop--;
+        if (ui.trk_from > c)
+            ui.trk_from--;
+        ui.trk_cur = (uint8_t)(c ? c - 1u : 0u);
+        set_dirty = 1u;
+        app_say("SPACE", "REMOVED");
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        return;
+    }
     if (c >= n) {
         app_say("SPACE", "NOTHING AFTER");
         return;

@@ -62,9 +62,24 @@ expect pattern 1
 expect trk_pos 2
 tap PLAY
 wait 300
-# each item its break (K4): track 3, P1 (the break playing), then P2 with break 3: in with P2
+# ENV held on a space: it goes, the sides close up (track 2: P1, space, P2 -> P1, P2), the cursor on P1
 tap ENV
 wait 300
+expect page 8
+turn K1 -5 10
+turn K1 1 10
+wait 100
+expect trk_it 253
+press ENV
+wait 600
+release ENV
+wait 200
+expect trk_cur 0
+expect trk_it 1
+turn K1 1 10
+wait 100
+expect trk_it 2
+# each item its break (K4): track 3, P1 (the break playing), then P2 with break 3: in with P2
 expect page 8
 expect brk 0
 turn PRESET 1 10

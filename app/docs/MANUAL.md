@@ -158,7 +158,8 @@ metronome and tap tempo are gone).
   it in, in DROP BREAK's place). What the track does at its end (LOOP, STOP, HOLD) is on **PLAY**'s K3.
   A **white key** puts its pattern at the item and moves to the next one. **ENV held** (0.45 s) makes room: the items after the one edited move one place right and an empty item (a + in an outline) opens after it, the one
   edited staying where it is; the cursor goes onto it, for a white key (a pattern) or **K2** (a DROP; K2 left: the
-  space gone again). An empty item left is played past. ENV let go quickly: the next part, as ever.
+  space gone again). An empty item left is played past. **ENV held on an empty item** takes it out: the items on
+  its sides close up, the cursor on the one before. ENV let go quickly: the next part, as ever.
 - **PLAY**: a radio. **K1** tunes it: the needle glides along the dial to the track (1–8, the ones with something in
   them lit), the big knob turns with it; the station shows the track's length, its items, where it starts and what it
   does at its end. **K2** the item it starts from. **PLAY** (or white keys 1–8: that track) plays it from
