@@ -339,6 +339,16 @@ after its EQ and before everything else (the break's chain never sees them). Eve
 and DELAY; PRESETS the effect (remembered as left, apart from the chain's), ALGORITHM the kick's next or previous part,
 FX the next part of the effect (MAIN, MORE, MOD), FX held + ALGORITHM moves the slot, SEL + FX bypasses, SEL ×2 resets.
 FX from another page: the chain.
+
+**MB KICK** comes right after MB COMP in KICK FX's PRESETS: an MB COMP set for a gabber kick (KICK GABBER). The sub is
+split from the body at 120 Hz and held even (−24 dB, 6:1, a 15 ms attack that lets the punch through, 120 ms back);
+the body, where TERROR's distortion sits, is tamed (−20 dB, 4:1, 5 / 80 ms); the click and the screech are held fast
+(−30 dB, 8:1, 1 / 50 ms) above 3 kHz; a 3 dB knee, every band at full amount, all wet. It is an MB COMP: its AMOUNT
+knobs ride each band (the foot shows the ratio each reaches) and FX turns through its detail to change anything. A
+CLIP in the other slot after it makes it loud without the mush. PRESETS on, or back: a plain MB COMP.
+
+![MB KICK: the sub, the body and the click held apart, split at 120 Hz and 3 kHz](img/screen-mbkick.png "MB KICK")
+
 | K1–K3 · K4 | Its settings · its mix |
 | SEL + FX | That slot on / bypassed |
 | FX held + ALGORITHM | Moves that slot along the chain (the order is the sound: DRIVE before a FILTER is not a FILTER before DRIVE) |

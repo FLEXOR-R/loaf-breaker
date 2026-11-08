@@ -887,7 +887,7 @@ static void draw_tabs(void)
     } else if (ui.page == PG_FX && !IS_KFX()) {
         for (i = 0; i < BRK_FX_SLOTS; i++)
             x = tab(x, SLOT_NUM[i], i == fx_foc());
-        text_cat(part, BRK_FXT_NAME[fx_sl(fx_foc())->type % BRK_NFXT]);
+        text_cat(part, fx_name(fx_foc()));
         if (ui.fx_page) {                /* "< MB COMP X-OVER >", "< FILTER MOD >" */
             text_cat(part, " ");
             text_cat(part, fx_part_name());
@@ -932,7 +932,7 @@ static void page_say(void)
         text_cat(t, IS_KFX() ? "KICK FX " : "SLOT ");
         int_text((int32_t)(fx_foc() % BRK_FX_SLOTS) + 1, t + (IS_KFX() ? 8 : 5));
         text_cat(t, " ");
-        text_cat(t, BRK_FXT_NAME[fx_sl(fx_foc())->type % BRK_NFXT]);
+        text_cat(t, fx_name(fx_foc()));
         if (ui.fx_page) {
             text_cat(t, " ");
             text_cat(t, fx_part_name());
@@ -1421,8 +1421,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it"};
-    int v[42];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick"};
+    int v[44];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1476,7 +1476,9 @@ int app_expect(const char *what, int *got)
     }
     v[40] = ui.trk_cur;
     v[41] = trk_now()->it[ui.trk_cur % TRK_ITEMS];
-    for (i = 0; i < 42u; i++)
+    v[42] = (int)fx_sl(fx_foc())->type;
+    v[43] = mb_kick_is(fx_foc());
+    for (i = 0; i < 44u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;
