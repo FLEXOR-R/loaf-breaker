@@ -1084,18 +1084,9 @@ void app_frame(void)
         }
         track_dropped();                 /* (a track: on from there) */
     }
-    if (ui.drop_t) {
-        if (now - ui.drop_t > 900u) {
-            ui.drop_t = 0u;
-            lcd_fill(0, 0, 240, 240, C_BLACK);
-            ui.redraw = RG_ALL;
-        } else {
-            drop_draw(now - ui.drop_t);
-            leds();
-            ui.touched = 0u;
-            return;
-        }
-    }
+    if (ui.drop_t && now - ui.drop_t > 900u)   /* (LOAF BREAKER: the drop: the lights strobe 0.9 s, the screen as it
+                                          * is: no flash screen) */
+        ui.drop_t = 0u;
     if (ui.lobo_t) {                     /* RESET ALL's screen: 3 s, or until a key or button (after its own turn) */
         if (now - ui.lobo_t > 3000u || (ui.touched && now - ui.lobo_t > 500u)) {
             ui.lobo_t = 0u;

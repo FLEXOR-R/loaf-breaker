@@ -87,25 +87,6 @@ static void grey_draw(const uint8_t *rle, uint32_t len, const uint16_t *pal, int
 }
 
 
-/* LOAF BREAKER: the DROP's flash, the whole screen: a shout (a different one each drop), the colours swapping every
- * 110 ms, the shout shaking; LOAF BREAKER under it. t: ms since the drop (redrawn only when the colours swap) */
-static void drop_draw(uint32_t t)
-{
-    static const char *const SHOUT[5] = {"DROP!", "HAKKUH!", "TERROR!", "GABBER!", "HARDER!"};
-    static uint32_t last = 0xFFFFFFFFu;
-    const char *s = SHOUT[drop_n % 5u];
-    uint32_t ph = t / 110u, inv = ph & 1u, top;
-    int32_t dx = (int32_t)(fx_hash(ph * 7919u) % 13u) - 6, dy = (int32_t)(fx_hash(ph * 104729u) % 9u) - 4;
-    if (ph == last && t >= 110u)
-        return;
-    last = ph;
-    for (top = 0; top < 240u; top += 60u) {
-        cv_begin(240, 60, inv ? C_BLACK : C_HI);
-        cv_text2((240 - text2_w(&FONT_B, s)) / 2 + dx, 92 + dy - (int32_t)top, &FONT_B, s, inv ? C_HI : C_BLACK);
-        cv_text((240 - text_w(&FONT_T, APP_NAME)) / 2, 150 - (int32_t)top, &FONT_T, APP_NAME, inv ? C_WHITE : C_BLACK);
-        cv_blit(0, top);
-    }
-}
 
 /* fm1-base's first screen at power-on, while the breaks are decoded (APP_SPLASH): the mark and the name (LOAF
  * BREAKER: its picture, nearly the whole screen, the version at the top right; held 1.5 s, app_frame) */
