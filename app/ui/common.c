@@ -105,6 +105,8 @@ static struct {
     uint8_t fx_open;
     uint8_t keq_part;                    /* (the KICK EQ page: 0 its bands, 1 their shape) */                     /* (FX pressed off its page: the page at its release, if not held) */       /* (crossbreed) SEQ, a kick lane: the key held + 1 (0 none); K1 turned since */
     uint8_t tpage;                       /* LOAF BREAKER: ENV's part: 0 TRACKS, 1 PLAY, 2 DROP */
+    uint8_t fx_main, kfx_last;           /* (KICK FX: the FX page on slot 4 or 5; the chain's slot kept meanwhile, and
+                                          * the kick's last) */
     uint8_t trk_cur, trk_from;           /* TRACKS' item edited; PLAY's first item */
     uint8_t trk_on;                      /* a track playing (2: starting, not yet heard) */
     uint8_t trk_pos, trk_loops, trk_cnt; /* its item, the loops it played, this loop counted */

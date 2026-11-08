@@ -274,6 +274,11 @@ its level in and out.
 | FX again | The slot's next part: MAIN, MORE, MOD (an MB COMP: its six), then the next slot |
 | PRESETS | The effect in that slot, through the library (EMPTY first); a new effect comes in on, as you last left it (its MORE and MOD too; never touched: its starting settings) |
 | SEL ×2 | The slot's effect back to its starting settings (its MORE, MOD and MB COMP detail too); SEL ×2 again within 4 s takes the reset back. On EDIT KICK's FX parts the same for that layer's effect, which is also remembered effect by effect |
+
+**KICK FX** (HOME's fourth part, after KICK EQ): the FX page on the kick's own two slots, after its EQ and before
+everything else (the break's chain never sees them). Every effect of the library but REVERB and DELAY; PRESETS the
+effect (remembered as left, apart from the chain's), ALGORITHM the slot (with FX held: moves it), FX the next part
+(MAIN, MORE, MOD), SEL + FX bypasses, SEL ×2 resets. HOME goes back to PERFORM; FX from another page, the chain.
 | K1–K3 · K4 | Its settings · its mix |
 | SEL + FX | That slot on / bypassed |
 | FX held + ALGORITHM | Moves that slot along the chain (the order is the sound: DRIVE before a FILTER is not a FILTER before DRIVE) |

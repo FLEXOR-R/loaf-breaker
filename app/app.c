@@ -124,6 +124,10 @@ typedef struct {
     uint8_t drop_after;                  /* the pattern the drop brings in: 0 the next one, 1.. that one */
     uint8_t drop_crash;                  /* the drop's crash, 0 off .. 100 */
     uint8_t trk;                         /* the track TRACKS edits and PLAY plays, 0..NTRACKS-1 */
+    /* (appended: LOAF BREAKER's KICK FX, HOME's fourth part; an older save's: both empty) */
+    brk_fxslot_t kfx[BRK_KFX_SLOTS];     /* the kick's own effects (FX's library but REVERB and DELAY) */
+    brk_fxx_t kfxx[BRK_KFX_SLOTS];       /* their extras (MORE, MOD) */
+    brk_mbc_t kmbc[BRK_KFX_SLOTS];       /* an MB COMP's detail */
 } settings_t;
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");
@@ -203,6 +207,12 @@ static void settings_defaults(void)
     }
     set.drop_bars = 3u;                  /* (LOAF BREAKER: DROP: a 4-bar build, into the next pattern, the crash full) */
     set.drop_crash = 100u;
+    for (k = 0; k < BRK_KFX_SLOTS; k++) {   /* (KICK FX: empty) */
+        brk_fx_slot_defaults(&set.kfx[k], FXT_EMPTY);
+        set.kfx[k].on = 0u;
+        brk_fxx_defaults(&set.kfxx[k], FXT_EMPTY);
+        brk_mbc_defaults(&set.kmbc[k]);
+    }
 }
 
 static int pitch_keeps(void) { return set.pitch_keep != 2u; }   /* KEEP LENGTH unless SPEED was chosen */
@@ -228,6 +238,11 @@ static void settings_apply(void)
         for (k = 0; k < BRK_FX_SLOTS; k++) {
             brk_fx_set_mbc(k, &set.mbc[k]);
             brk_fx_set_fxx(k, &set.fxx[k]);
+        }
+        for (k = 0; k < BRK_KFX_SLOTS; k++) {   /* (LOAF BREAKER: KICK FX: slots 4, 5) */
+            brk_fx_set_kick_slot(k, &set.kfx[k]);
+            brk_fx_set_mbc(BRK_FX_SLOTS + k, &set.kmbc[k]);
+            brk_fx_set_fxx(BRK_FX_SLOTS + k, &set.kfxx[k]);
         }
     }
     brk_fx_tempo((float)set.tempo_x10 * 0.1f);
@@ -314,10 +329,13 @@ typedef struct {
     pat_t p[NPAT];
     track_t trk[NTRACKS];
     fxmem_t mem;
+    uint16_t kfm[BRK_NFXT][FXM_N];       /* KICK FX's effects as left (its own: not the chain's) */
+    uint16_t kfm_ok, kfm_rsv;
 } pats_t;
 static pats_t pats;
 #define PATS_SIZE_OLD offsetof(pats_t, trk)   /* (a save before the tracks) */
 #define PATS_SIZE_TRK offsetof(pats_t, mem)   /* (one before the effects' memory) */
+#define PATS_SIZE_MEM offsetof(pats_t, kfm)   /* (one before KICK FX's) */
 _Static_assert(sizeof pats <= 3840u, "a store object holds 3840 bytes");
 /* LOAF BREAKER: BUILD and DROP. SEL clicked three times, playing (build_n, the main loop): from the next bar the
  * drums' steps give way to a snare roll that speeds up (quarters, eighths, 16ths, then 32nds, a quarter of the build
@@ -365,7 +383,7 @@ static void pat_defaults(void)
         p->kick2 = 0u;
     }
     trk_defaults();
-    pats.mem.fx_ok = pats.mem.kfx_ok = 0u;
+    pats.mem.fx_ok = pats.mem.kfx_ok = pats.kfm_ok = 0u;
 }
 /* GLOUPI BREAKS: the kick over four bars (64 steps), bar b (0..3) 16 bits: lane[LANE_KICK], kick2, and bars 3 and 4
  * in the spare bytes of steps 0-3 (st[0..3][3], low byte first) */
@@ -676,10 +694,11 @@ void app_init(void)
     if (set.brk >= n_breaks)
         set.brk = 0u;
     trk_defaults();
-    pats.mem.fx_ok = pats.mem.kfx_ok = 0u;   /* (an older save: no effect remembered) */
+    pats.mem.fx_ok = pats.mem.kfx_ok = pats.kfm_ok = 0u;   /* (an older save: no effect remembered) */
     {
         int sz = plat_store_size(OBJ_PAT);   /* (LOAF BREAKER: a save from before the tracks: its patterns) */
-        if ((sz != (int)sizeof pats && sz != (int)PATS_SIZE_OLD && sz != (int)PATS_SIZE_TRK) ||
+        if ((sz != (int)sizeof pats && sz != (int)PATS_SIZE_OLD && sz != (int)PATS_SIZE_TRK &&
+             sz != (int)PATS_SIZE_MEM) ||
             plat_store_load(OBJ_PAT, &pats, (uint32_t)sz) != sz)
             pats.magic = 0u;
     }
@@ -1020,6 +1039,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             kick_pitches(kpm);
             kick_render(kick, m, ka, nk);
             brk_fx_kick_eq(kick, m);    /* LOAF BREAKER: HOME's KICK EQ */
+            brk_fx_kick(kick, m);        /* and its KICK FX */
             perc_pitches(spm);
             perc_render(perc, m, pa, who, np);
             if (set.duck) {              /* LOAF BREAKER (crossbreed): DUCK: the break (and its throws) pushed down at

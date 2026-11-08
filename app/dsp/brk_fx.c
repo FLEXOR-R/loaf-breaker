@@ -54,15 +54,15 @@ typedef struct {
     float hp[2];                         /* the extras' own: DRIVE's low cut (lp-subtracted), PUNCH's side-chain */
     uint32_t rng;                        /* CRUNCH's dither, TAPE's hiss */
 } slot_st_t;
-static slot_st_t st[BRK_FX_SLOTS];
+static slot_st_t st[BRK_FX_ALL];
 /* each slot's extras (brk_fxx_t) as set, its modulator and its meters (kept across effect changes) */
-static volatile brk_fxx_t p_fxx[BRK_FX_SLOTS];
+static volatile brk_fxx_t p_fxx[BRK_FX_ALL];
 #define SHED_BLOCKS 344u                 /* 2 s of blocks: a shed slot comes back after that, clear */
 static volatile uint32_t shed_hit;       /* the platform: a render ran over 90 % */
 static uint32_t shed_lv, shed_n;         /* slots shed now (from the chain's end), blocks till one comes back */
 void brk_fx_overload(void) { shed_hit = 1u; }
 uint32_t brk_fx_shed(void) { return shed_lv; }
-static volatile uint32_t watch = BRK_FX_SLOTS;   /* the slot the screen meters (BRK_FX_SLOTS: none) */
+static volatile uint32_t watch = BRK_FX_ALL;   /* the slot the screen meters (BRK_FX_ALL: none) */
 void brk_fx_watch(uint32_t slot) { watch = slot; }
 static struct {
     float ph, sh, env, mod;              /* the modulator: its phase, S&H's held value, the input followed, now */
@@ -70,7 +70,7 @@ static struct {
     float p[4];                          /* the settings as modulated this block */
     uint32_t rng;
     uint32_t track;                      /* its peaks followed this block: the screen's slot, or its ENV needs them */
-} md[BRK_FX_SLOTS];
+} md[BRK_FX_ALL];
 static const float MOD_STEPS[BRK_MOD_DIVS] = {64.0f, 32.0f, 16.0f, 8.0f, 4.0f, 2.0f, 1.0f, 8.0f / 3.0f, 4.0f / 3.0f};
 const char *const BRK_MOD_DIV_NAME[BRK_MOD_DIVS] = {"4 BARS", "2 BARS", "1 BAR", "1/2", "1/4", "1/8", "1/16",
                                                     "1/4T", "1/8T"};
@@ -120,13 +120,13 @@ BRK_COLD static void fxx_get(uint32_t k, uint32_t t, brk_fxx_t *out)
 
 void brk_fx_set_fxx(uint32_t slot, const brk_fxx_t *x)
 {
-    if (slot < BRK_FX_SLOTS)
+    if (slot < BRK_FX_ALL)
         *(brk_fxx_t *)&p_fxx[slot] = *x;
 }
 
 BRK_COLD void brk_fx_meter(uint32_t slot, brk_fx_meter_t *m)
 {
-    uint32_t i, live = slot < BRK_FX_SLOTS;
+    uint32_t i, live = slot < BRK_FX_ALL;
     m->in = live ? md[slot].in : 0.0f;
     m->out = live ? md[slot].out : 0.0f;
     m->mod = live ? md[slot].mod : 0.0f;
@@ -584,12 +584,12 @@ typedef struct {
     uint8_t qi;                          /* the extras (MORE page) mapped: a choice, four values (see slot_block) */
     float q[4];
 } slot_c_t;
-static slot_c_t sc[BRK_FX_SLOTS];
+static slot_c_t sc[BRK_FX_ALL];
 
 /* MB COMP's detail: per slot, set from the main loop */
 const float BRK_MB_RATIO[BRK_MB_RATIOS] = {1.0f, 1.2f, 1.5f, 2.0f, 2.5f, 3.0f, 4.0f, 5.0f, 6.0f, 8.0f, 10.0f, 12.0f,
                                            16.0f, 20.0f, 1000.0f};
-static volatile brk_mbc_t p_mbc[BRK_FX_SLOTS];   /* (read once a block by slot_block, as fx is copied) */
+static volatile brk_mbc_t p_mbc[BRK_FX_ALL];   /* (read once a block by slot_block, as fx is copied) */
 
 BRK_COLD void brk_mbc_defaults(brk_mbc_t *m)
 {
@@ -614,9 +614,19 @@ BRK_COLD void brk_mbc_defaults(brk_mbc_t *m)
 
 void brk_fx_set_mbc(uint32_t slot, const brk_mbc_t *m)
 {
-    if (slot < BRK_FX_SLOTS)
+    if (slot < BRK_FX_ALL)
         *(brk_mbc_t *)&p_mbc[slot] = *m;   /* (whole, as brk_fx_set: the render copies it per block) */
 }
+/* LOAF BREAKER: KICK FX, its two slots as set and the render's copy; slot k's settings (k: the chain's 0..3, the
+ * kick's 4, 5) */
+static volatile brk_fxslot_t p_kfx[BRK_KFX_SLOTS];
+static brk_fxslot_t kfx[BRK_KFX_SLOTS];
+void brk_fx_set_kick_slot(uint32_t i, const brk_fxslot_t *s)
+{
+    if (i < BRK_KFX_SLOTS)
+        *(brk_fxslot_t *)&p_kfx[i] = *s;
+}
+static brk_fxslot_t *fslot(uint32_t k) { return k < BRK_FX_SLOTS ? &fx.slot[k] : &kfx[(k - BRK_FX_SLOTS) & 1u]; }
 static int rv_taken;                     /* a slot has the reverb this block (the first REVERB in the chain) */
 static int dl_taken;                     /* and the delay (the first DELAY, when the line is there) */
 static dl_c_t dl_slot_c;                 /* the DELAY slot's settings this block */
@@ -628,7 +638,7 @@ static float cur_throw, cur_verb;        /* this sample's throws into the delay 
  * meters */
 BRK_COLD static void mod_block(uint32_t k, uint32_t n, const float *x)
 {
-    brk_fxslot_t *f = &fx.slot[k];
+    brk_fxslot_t *f = fslot(k);
     float depth = (brk_clampf(x[FXX_DEPTH], 0.0f, 1.0f) - 0.5f) * 2.0f, m, *t;
     uint32_t shape = brk_idx(x[FXX_SHAPE], BRK_MOD_SHAPES), i;
     float steps = MOD_STEPS[brk_idx(x[FXX_RATE], BRK_MOD_DIVS)];
@@ -659,13 +669,15 @@ BRK_COLD static void mod_block(uint32_t k, uint32_t n, const float *x)
 
 BRK_COLD static void slot_block(uint32_t k, const float *x)
 {
-    const brk_fxslot_t *f = &fx.slot[k];
+    const brk_fxslot_t *f = fslot(k);
     slot_st_t *s = &st[k];
     slot_c_t *c = &sc[k];
     float p0 = brk_clampf(f->p[0], 0.0f, 1.0f), p1 = brk_clampf(f->p[1], 0.0f, 1.0f), p2 = brk_clampf(f->p[2], 0.0f, 1.0f);
     float x0 = brk_clampf(x[0], 0.0f, 1.0f), x1 = brk_clampf(x[1], 0.0f, 1.0f), x2 = brk_clampf(x[2], 0.0f, 1.0f);
     float x3 = brk_clampf(x[3], 0.0f, 1.0f);
     uint32_t t = f->type < BRK_NFXT ? f->type : FXT_EMPTY;
+    if (k >= BRK_FX_SLOTS && (t == FXT_REVERB || t == FXT_DELAY))
+        t = FXT_EMPTY;                   /* (LOAF BREAKER: KICK FX has no reverb or delay of its own) */
     if (s->type != t) {                  /* a new effect here: its state from nothing */
         uint8_t *z = (uint8_t *)s;
         uint32_t i;
@@ -1083,7 +1095,7 @@ BRK_INL void slot_run(uint32_t k, float *xl, float *xr)
 
 BRK_COLD void brk_fx_mb_meter(uint32_t slot, float *gr, float *lvl)
 {
-    uint32_t b, live = slot < BRK_FX_SLOTS && sc[slot].on && sc[slot].type == FXT_MBCOMP && st[slot].type == FXT_MBCOMP;
+    uint32_t b, live = slot < BRK_FX_ALL && sc[slot].on && sc[slot].type == FXT_MBCOMP && st[slot].type == FXT_MBCOMP;
     for (b = 0; b < MB_BANDS; b++) {     /* (single words, read from the main loop) */
         gr[b] = live ? st[slot].mb_g[b] : 1.0f;
         lvl[b] = live ? st[slot].mb_env[b] : 0.0f;
@@ -1091,14 +1103,14 @@ BRK_COLD void brk_fx_mb_meter(uint32_t slot, float *gr, float *lvl)
 }
 
 /* the block's samples, all four slots: from RAM on the FM-1 (BRK_RAM, one call a block: nothing in it calls out) */
-typedef struct { svf_c djc; dl_c_t dub_c; float wet; int dj_hp, dub_on; } fx_q_t;
+typedef struct { svf_c djc; dl_c_t dub_c; float wet; int dj_hp, dub_on; uint32_t k0, k1, kick; } fx_q_t;
 BRK_RAM static void fx_samples(const fx_q_t *q, const float *in, const float *thru, const float *echo, const float *verb,
                                const float *post, float *l, float *r, uint32_t n)
 {
     uint32_t i, k;
     for (i = 0; i < n; i++) {
         float x = in[i], xl, xr, lp, ec = echo ? echo[i] : 0.0f, vb = verb ? verb[i] : 0.0f;
-        if (dj_s < -0.01f || dj_s > 0.01f) {   /* the DJ filter: the break's alone (and its throws) */
+        if (!q->kick && (dj_s < -0.01f || dj_s > 0.01f)) {   /* the DJ filter: the break's alone (and its throws) */
             float h = svf_run(&dj_b, &q->djc, x, &lp);
             x = q->dj_hp ? h : lp;
             h = svf_run(&dj_e, &q->djc, ec, &lp);
@@ -1109,10 +1121,12 @@ BRK_RAM static void fx_samples(const fx_q_t *q, const float *in, const float *th
         if (thru)
             x += thru[i];
         xl = xr = x;
-        dub_send += ((q->dub_on ? 1.0f : 0.0f) - dub_send) * 0.002f;
-        cur_throw = x * dub_send + ec;
-        cur_verb = vb;
-        for (k = 0; k < BRK_FX_SLOTS; k++)   /* the chain, slot by slot */
+        if (!q->kick) {
+            dub_send += ((q->dub_on ? 1.0f : 0.0f) - dub_send) * 0.002f;
+            cur_throw = x * dub_send + ec;
+            cur_verb = vb;
+        }
+        for (k = q->k0; k < q->k1; k++)  /* the chain, slot by slot (LOAF BREAKER: or the kick's) */
             if (sc[k].on) {
                 uint32_t tr = md[k].track && !(i & 3u);   /* (its peaks: the screen's slot, every 4th sample) */
                 float a;
@@ -1128,6 +1142,10 @@ BRK_RAM static void fx_samples(const fx_q_t *q, const float *in, const float *th
                         md[k].pk_out = a;
                 }
             }
+        if (q->kick) {                   /* (the kick's: back to one side) */
+            l[i] = 0.5f * (xl + xr);
+            continue;
+        }
         if (q->wet < 0.999f) {              /* the MIXER's FX: the chain against the dry sound */
             xl = x + (xl - x) * q->wet;
             xr = x + (xr - x) * q->wet;
@@ -1204,6 +1222,36 @@ void brk_fx_process(const float *in, const float *thru, const float *echo, const
         q.wet = wet;
         q.dj_hp = dj_hp;
         q.dub_on = dub_on;
+        q.k0 = 0u;
+        q.k1 = BRK_FX_SLOTS;
+        q.kick = 0u;
         fx_samples_p(&q, in, thru, echo, verb, post, l, r, n);
+    }
+}
+
+/* LOAF BREAKER: KICK FX on the kick (in place), its slots' settings once a block; while the chain sheds slots (the
+ * render over), the kick's go first */
+void brk_fx_kick(float *x, uint32_t n)
+{
+    uint32_t k, any = 0u;
+    for (k = 0; k < BRK_KFX_SLOTS; k++)
+        kfx[k] = *(const brk_fxslot_t *)&p_kfx[k];
+    for (k = BRK_FX_SLOTS; k < BRK_FX_ALL; k++) {
+        brk_fxx_t xx;
+        fxx_get(k, fslot(k)->type < BRK_NFXT ? fslot(k)->type : FXT_EMPTY, &xx);
+        mod_block(k, n, xx.x);
+        slot_block(k, xx.x);
+        if (shed_lv)
+            sc[k].on = 0u;
+        any |= sc[k].on;
+    }
+    if (any) {
+        fx_q_t q;
+        q.k0 = BRK_FX_SLOTS;
+        q.k1 = BRK_FX_ALL;
+        q.kick = 1u;
+        q.wet = 1.0f;
+        q.dj_hp = q.dub_on = 0;
+        fx_samples_p(&q, x, 0, 0, 0, 0, x, x, n);
     }
 }

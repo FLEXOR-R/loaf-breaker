@@ -2,6 +2,16 @@
 /* CHOPPAH: the FX page: the master chain's slots, their settings and the chain drawn. (Part of app.c's unity:
  * included there in order.) */
 
+/* LOAF BREAKER: a slot k: the chain's 0..3, KICK FX's 4, 5 (HOME's fourth part: the FX page on fx_focus 4 or 5) */
+#define FX_KICK() (ui.fx_focus >= BRK_FX_SLOTS)
+static brk_fxslot_t *fx_sl(uint32_t k)
+{
+    return k < BRK_FX_SLOTS ? &set.fx.slot[k] : &set.kfx[(k - BRK_FX_SLOTS) % BRK_KFX_SLOTS];
+}
+static brk_fxx_t *fxx_at(uint32_t k) { return k < BRK_FX_SLOTS ? &set.fxx[k] : &set.kfxx[(k - BRK_FX_SLOTS) % BRK_KFX_SLOTS]; }
+static brk_mbc_t *mbc_at(uint32_t k) { return k < BRK_FX_SLOTS ? &set.mbc[k] : &set.kmbc[(k - BRK_FX_SLOTS) % BRK_KFX_SLOTS]; }
+static uint32_t fx_foc(void) { return ui.fx_focus < BRK_FX_ALL ? ui.fx_focus : 0u; }
+
 /* each effect's settings, as the foot names them (K1-K3; K4 is MIX) */
 static const char *const FXP_NAME[BRK_NFXT][3] = {
     {"", "", ""}, {"CUTOFF", "RESO", "MODE"}, {"BITS", "RATE", "DRIVE"}, {"GAIN", "TONE", "LEVEL"},
@@ -35,7 +45,7 @@ static const uint16_t MB_TINT_HI[MB_BANDS] = {RGB(58, 30, 26), RGB(52, 42, 22), 
 
 static int mb_detail(uint32_t slot)      /* the focused MB COMP past AMOUNT: K1-K4 edit its detail */
 {
-    return (slot & 3u) == (ui.fx_focus & 3u) && set.fx.slot[slot & 3u].type == FXT_MBCOMP &&
+    return slot == fx_foc() && fx_sl(slot)->type == FXT_MBCOMP &&
            ui.fx_page != MBP_AMOUNT && ui.fx_page < NMBP;
 }
 static const char *mb_knob_name(int i)
@@ -87,7 +97,7 @@ static void ratio_text(float r, char *t) /* "OFF", "2.5:1", "8:1", "LIMIT" */
 }
 static void mb_value(int i, char *t)
 {
-    brk_mbc_t *m = &set.mbc[ui.fx_focus & 3u];
+    brk_mbc_t *m = mbc_at(fx_foc());
     float *v;
     i &= 3;
     t[0] = 0;
@@ -121,7 +131,7 @@ static void mb_value(int i, char *t)
 }
 static void mb_knob_turn(int i, int32_t d)
 {
-    brk_mbc_t *m = &set.mbc[ui.fx_focus & 3u];
+    brk_mbc_t *m = mbc_at(fx_foc());
     char t[16], n[24];
     i &= 3;
     if (ui.fx_page == MBP_GAIN && i == 3)
@@ -206,31 +216,31 @@ static const char *const MODK[4] = {"RATE", "DEPTH", "SHAPE", "TARGET"};
 static uint32_t fx_npages(uint32_t t) { return t == FXT_EMPTY ? 1u : t == FXT_MBCOMP ? NMBP : NXP; }
 static brk_fxx_t *fxx_of(uint32_t k)     /* slot k's extras, its effect's defaults if they were another's */
 {
-    brk_fxx_t *x = &set.fxx[k & 3u];
-    if (x->type != set.fx.slot[k & 3u].type)
-        brk_fxx_defaults(x, set.fx.slot[k & 3u].type);
+    brk_fxx_t *x = fxx_at(k);
+    if (x->type != fx_sl(k)->type)
+        brk_fxx_defaults(x, fx_sl(k)->type);
     return x;
 }
 static int x_detail(uint32_t slot)       /* the focused slot (not an MB COMP) on MORE or MOD */
 {
-    uint32_t t = set.fx.slot[slot & 3u].type;
-    return (slot & 3u) == (ui.fx_focus & 3u) && t != FXT_MBCOMP && t != FXT_EMPTY && ui.fx_page && ui.fx_page < NXP;
+    uint32_t t = fx_sl(slot)->type;
+    return slot == fx_foc() && t != FXT_MBCOMP && t != FXT_EMPTY && ui.fx_page && ui.fx_page < NXP;
 }
 static const char *fx_part_name(void)    /* the focused slot's part past its first, for the tabs ("" on the first) */
 {
-    uint32_t t = set.fx.slot[ui.fx_focus & 3u].type;
+    uint32_t t = fx_sl(fx_foc())->type;
     return !ui.fx_page ? "" : t == FXT_MBCOMP ? MBP_NAME[ui.fx_page % NMBP] : XP_NAME[ui.fx_page % NXP];
 }
 static const char *base_param_name(uint32_t slot, int i);
 static const char *x_name(int i)
 {
-    const xk_t *k = xk(set.fx.slot[ui.fx_focus & 3u].type, i);
+    const xk_t *k = xk(fx_sl(fx_foc())->type, i);
     return ui.fx_page == XP_MOD ? MODK[i & 3] : k ? k->name : "";
 }
 static void x_value(int i, char *t)
 {
-    uint32_t ty = set.fx.slot[ui.fx_focus & 3u].type % BRK_NFXT;
-    const brk_fxx_t *x = fxx_of(ui.fx_focus);
+    uint32_t ty = fx_sl(fx_foc())->type % BRK_NFXT;
+    const brk_fxx_t *x = fxx_of(fx_foc());
     const xk_t *k = xk(ty, i);
     float v = x->x[(i & 3) + (ui.fx_page == XP_MOD ? 4 : 0)], f, lo, hi;
     t[0] = 0;
@@ -241,7 +251,7 @@ static void x_value(int i, char *t)
         else if (i == 2)
             text_cat(t, BRK_MOD_SHAPE_NAME[brk_idx(v, BRK_MOD_SHAPES)]);
         else if (i == 3)
-            text_cat(t, base_param_name(ui.fx_focus, (int)brk_idx(v, 4u)));
+            text_cat(t, base_param_name(fx_foc(), (int)brk_idx(v, 4u)));
         else if (v > 0.49f && v < 0.51f)
             text_cat(t, "OFF");
         else {
@@ -273,8 +283,8 @@ static void x_value(int i, char *t)
 }
 static void x_knob_turn(int i, int32_t d)
 {
-    uint32_t ty = set.fx.slot[ui.fx_focus & 3u].type % BRK_NFXT, j = (uint32_t)(i & 3) + (ui.fx_page == XP_MOD ? 4u : 0u);
-    brk_fxx_t *x = fxx_of(ui.fx_focus);
+    uint32_t ty = fx_sl(fx_foc())->type % BRK_NFXT, j = (uint32_t)(i & 3) + (ui.fx_page == XP_MOD ? 4u : 0u);
+    brk_fxx_t *x = fxx_of(fx_foc());
     const xk_t *k = xk(ty, i);
     static const uint8_t MODN[4] = {BRK_MOD_DIVS, 0, BRK_MOD_SHAPES, 4};
     uint32_t n = ui.fx_page == XP_MOD ? MODN[i & 3] : k && k->unit == XU_CH ? k->n : 0u;
@@ -292,7 +302,7 @@ static void x_knob_turn(int i, int32_t d)
 static void fx_algo(int32_t d, uint32_t sel);
 static void fx_next_part(void)
 {
-    if (ui.fx_page + 1u < fx_npages(set.fx.slot[ui.fx_focus & 3u].type)) {
+    if (ui.fx_page + 1u < fx_npages(fx_sl(fx_foc())->type)) {
         ui.fx_page++;
         page_say();
         ui.redraw |= RG_BLOCKS | RG_FOOT;
@@ -311,7 +321,7 @@ static const char *fx_param_name(uint32_t slot, int i)
 }
 static const char *base_param_name(uint32_t slot, int i)   /* its MAIN part's */
 {
-    const brk_fxslot_t *sl = &set.fx.slot[slot & 3u];
+    const brk_fxslot_t *sl = fx_sl(slot);
     if (i == 3)
         return sl->type == FXT_EMPTY ? "" : sl->type == FXT_DELAY ? "SEND" : sl->type == FXT_EQ ? "FREQ" : "MIX";
     return FXP_NAME[sl->type < BRK_NFXT ? sl->type : 0][i & 3];
@@ -319,7 +329,7 @@ static const char *base_param_name(uint32_t slot, int i)   /* its MAIN part's */
 
 static void fx_value(uint32_t slot, int i, char *t)
 {
-    const brk_fxslot_t *sl = &set.fx.slot[slot & 3u];
+    const brk_fxslot_t *sl = fx_sl(slot);
     float v = i == 3 ? sl->mix : sl->p[i & 3];
     t[0] = 0;
     if (mb_detail(slot)) {
@@ -421,7 +431,7 @@ static void fx_value(uint32_t slot, int i, char *t)
 
 static void fx_knob_turn(uint32_t slot, int i, int32_t d)
 {
-    brk_fxslot_t *sl = &set.fx.slot[slot & 3u];
+    brk_fxslot_t *sl = fx_sl(slot);
     char t[16];
     float step = 0.02f;
     if (i >= 0 && i <= 3 && mb_detail(slot)) {
@@ -462,7 +472,7 @@ static void fx_mem_put(const brk_fxslot_t *sl, const brk_fxx_t *x)
     uint16_t *m;
     if (t == FXT_EMPTY || t >= BRK_NFXT)
         return;
-    m = pats.mem.fx[t];
+    m = FX_KICK() ? pats.kfm[t] : pats.mem.fx[t];   /* (KICK FX: its own memory) */
     for (i = 0; i < 3u; i++)
         m[i] = fxm_q(sl->p[i]);
     m[3] = fxm_q(sl->mix);
@@ -474,15 +484,18 @@ static void fx_mem_put(const brk_fxslot_t *sl, const brk_fxx_t *x)
         for (i = 0; i < BRK_FXX; i++)
             m[4u + i] = fxm_q(d.x[i]);
     }
-    pats.mem.fx_ok |= (uint16_t)(1u << t);
+    if (FX_KICK())
+        pats.kfm_ok |= (uint16_t)(1u << t);
+    else
+        pats.mem.fx_ok |= (uint16_t)(1u << t);
 }
 static int fx_mem_get(brk_fxslot_t *sl, brk_fxx_t *x)   /* 1: sl and x as the effect was left */
 {
     uint32_t t = sl->type, i;
     const uint16_t *m;
-    if (t >= BRK_NFXT || !(pats.mem.fx_ok >> t & 1u))
+    if (t >= BRK_NFXT || !((FX_KICK() ? pats.kfm_ok : pats.mem.fx_ok) >> t & 1u))
         return 0;
-    m = pats.mem.fx[t];
+    m = FX_KICK() ? pats.kfm[t] : pats.mem.fx[t];
     for (i = 0; i < 3u; i++)
         sl->p[i] = fxm_f(m[i]);
     sl->mix = fxm_f(m[3]);
@@ -492,23 +505,25 @@ static int fx_mem_get(brk_fxslot_t *sl, brk_fxx_t *x)   /* 1: sl and x as the ef
 }
 static void fx_type_turn(int32_t d)
 {
-    brk_fxslot_t *sl = &set.fx.slot[ui.fx_focus & 3u];
+    brk_fxslot_t *sl = fx_sl(fx_foc());
     int32_t t = clamp((int32_t)sl->type + (d > 0 ? 1 : -1), 0, BRK_NFXT - 1);
     char n[16];
     int had;
+    while (FX_KICK() && (t == FXT_REVERB || t == FXT_DELAY))   /* (LOAF BREAKER: KICK FX: neither) */
+        t += d > 0 ? 1 : -1;
     if ((uint32_t)t == sl->type)
         return;
-    fx_mem_put(sl, &set.fxx[ui.fx_focus & 3u]);   /* (LOAF BREAKER: the effect left, as it was) */
+    fx_mem_put(sl, fxx_at(fx_foc()));   /* (LOAF BREAKER: the effect left, as it was) */
     brk_fx_slot_defaults(sl, (int)t);
     sl->on = (uint8_t)(t != FXT_EMPTY);
-    brk_fxx_defaults(&set.fxx[ui.fx_focus & 3u], (int)t);   /* its extras: the new effect's */
-    had = fx_mem_get(sl, &set.fxx[ui.fx_focus & 3u]);   /* (as it was left, if it was) */
+    brk_fxx_defaults(fxx_at(fx_foc()), (int)t);   /* its extras: the new effect's */
+    had = fx_mem_get(sl, fxx_at(fx_foc()));   /* (as it was left, if it was) */
     if (t == FXT_MBCOMP && !had)         /* an MB COMP put in: its detail from the start, at its AMOUNT */
-        brk_mbc_defaults(&set.mbc[ui.fx_focus & 3u]);
+        brk_mbc_defaults(mbc_at(fx_foc()));
     ui.fx_page = 0u;
     n[0] = 0;
-    text_cat(n, "SLOT ");
-    int_text((int32_t)(ui.fx_focus & 3u) + 1, n + 5);
+    text_cat(n, FX_KICK() ? "KICK FX " : "SLOT ");
+    int_text((int32_t)(fx_foc() % BRK_FX_SLOTS) + 1, n + (FX_KICK() ? 8 : 5));
     app_say(n, BRK_FXT_NAME[t]);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
     changed();
@@ -525,12 +540,12 @@ static struct {
 } fx_undo;
 static void fx_reset(void)
 {
-    uint32_t k = ui.fx_focus & 3u, now = plat_ms(), t;
-    brk_fxslot_t *sl = &set.fx.slot[k];
+    uint32_t k = fx_foc(), now = plat_ms(), t;
+    brk_fxslot_t *sl = fx_sl(k);
     if (fx_undo.t && now - fx_undo.t < 4000u && fx_undo.slot == k && fx_undo.sl.type == sl->type) {
         *sl = fx_undo.sl;
-        set.fxx[k] = fx_undo.x;
-        set.mbc[k] = fx_undo.m;
+        *fxx_at(k) = fx_undo.x;
+        *mbc_at(k) = fx_undo.m;
         fx_undo.t = 0u;
         app_say(BRK_FXT_NAME[sl->type % BRK_NFXT], "RESET UNDONE");
     } else {
@@ -541,16 +556,19 @@ static void fx_reset(void)
             return;
         }
         fx_undo.sl = *sl;
-        fx_undo.x = set.fxx[k];
-        fx_undo.m = set.mbc[k];
+        fx_undo.x = *fxx_at(k);
+        fx_undo.m = *mbc_at(k);
         fx_undo.slot = (uint8_t)k;
         fx_undo.t = now | 1u;
         brk_fx_slot_defaults(sl, (int)t);
         sl->on = on;
-        brk_fxx_defaults(&set.fxx[k], (int)t);
+        brk_fxx_defaults(fxx_at(k), (int)t);
         if (t == FXT_MBCOMP)
-            brk_mbc_defaults(&set.mbc[k]);
-        pats.mem.fx_ok &= (uint16_t)~(1u << t);
+            brk_mbc_defaults(mbc_at(k));
+        if (FX_KICK())
+            pats.kfm_ok &= (uint16_t)~(1u << t);
+        else
+            pats.mem.fx_ok &= (uint16_t)~(1u << t);
         app_say(BRK_FXT_NAME[t], "RESET (SEL X2: UNDO)");
     }
     ui.redraw |= RG_BLOCKS | RG_FOOT;
@@ -560,27 +578,28 @@ static void fx_reset(void)
 /* ALGORITHM on the FX page: the next or previous slot; with SEL held, the focused slot moves along the chain */
 static void fx_algo(int32_t d, uint32_t sel)
 {
-    uint32_t a = ui.fx_focus & 3u, b = (a + (d > 0 ? 1u : 3u)) & 3u;
+    uint32_t base = FX_KICK() ? BRK_FX_SLOTS : 0u, ns = FX_KICK() ? BRK_KFX_SLOTS : BRK_FX_SLOTS;
+    uint32_t a = fx_foc(), b = base + (a - base + (d > 0 ? 1u : ns - 1u)) % ns;
     char n[8];
     if (sel) {
-        brk_fxslot_t tmp = set.fx.slot[a];
-        brk_mbc_t tm = set.mbc[a];
-        if ((d > 0 && a == 3u) || (d < 0 && a == 0u))
+        brk_fxslot_t tmp = *fx_sl(a);
+        brk_mbc_t tm = *mbc_at(a);
+        if ((d > 0 && a == base + ns - 1u) || (d < 0 && a == base))
             return;                      /* (the ends stay the ends) */
-        set.fx.slot[a] = set.fx.slot[b];
-        set.fx.slot[b] = tmp;
-        set.mbc[a] = set.mbc[b];         /* (an MB COMP's detail goes with it, and the extras) */
-        set.mbc[b] = tm;
+        *fx_sl(a) = *fx_sl(b);
+        *fx_sl(b) = tmp;
+        *mbc_at(a) = *mbc_at(b);         /* (an MB COMP's detail goes with it, and the extras) */
+        *mbc_at(b) = tm;
         {
-            brk_fxx_t tx = set.fxx[a];
-            set.fxx[a] = set.fxx[b];
-            set.fxx[b] = tx;
+            brk_fxx_t tx = *fxx_at(a);
+            *fxx_at(a) = *fxx_at(b);
+            *fxx_at(b) = tx;
         }
         changed();
     } else
         ui.fx_page = 0u;                 /* another slot: from its first part */
     ui.fx_focus = (uint8_t)b;
-    int_text((int32_t)b + 1, n);
+    int_text((int32_t)(b - base) + 1, n);
     if (sel)
         app_say("MOVED TO", n);
     else
@@ -601,8 +620,8 @@ static int delay_slot(void)              /* the chain's DELAY in use (the first 
 typedef struct { float thr, slope, ratio, knee; } mb_eff_t;
 static mb_eff_t mb_eff(uint32_t slot, uint32_t b)
 {
-    const brk_fxslot_t *sl = &set.fx.slot[slot & 3u];
-    const brk_mbc_t *m = &set.mbc[slot & 3u];
+    const brk_fxslot_t *sl = fx_sl(slot);
+    const brk_mbc_t *m = mbc_at(slot);
     float amt = brk_clampf(sl->p[b % MB_BANDS], 0.0f, 1.0f);
     mb_eff_t e;
     e.thr = brk_mb_thr_db(m->thr[b]) * amt;
@@ -675,9 +694,9 @@ static void cv_frame(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t c)
 #define MB_X(f) ((int32_t)(brk_log2f((f) * 0.05f) * (239.0f / 9.9658f) + 0.5f))   /* 20 Hz .. 20 kHz on 0..239 */
 static void draw_mbcomp(uint32_t now)
 {
-    uint32_t k = ui.fx_focus & 3u, b, solo;
-    const brk_fxslot_t *sl = &set.fx.slot[k];
-    const brk_mbc_t *m = &set.mbc[k];
+    uint32_t k = fx_foc(), b, solo;
+    const brk_fxslot_t *sl = fx_sl(k);
+    const brk_mbc_t *m = mbc_at(k);
     float gr[MB_BANDS], lvl[MB_BANDS], g[MB_BANDS], g_rest[MB_BANDS], grdb[MB_BANDS], flo, fhi;
     mb_eff_t e[MB_BANDS];
     int32_t x, xlo, xhi, py = 0, focus = ui.fx_page >= MBP_LOW && ui.fx_page <= MBP_HIGH ? ui.fx_page - MBP_LOW : -1;
@@ -911,8 +930,8 @@ static float x_plot(uint32_t t, int32_t x, const float *p, const float *xx, uint
  * cycle (where it is now, what it moves) and its level in and out */
 static void draw_xview(uint32_t now)
 {
-    uint32_t k = ui.fx_focus & 3u, t = set.fx.slot[k].type, i, shape;
-    const brk_fxslot_t *sl = &set.fx.slot[k];
+    uint32_t k = fx_foc(), t = fx_sl(k)->type, i, shape;
+    const brk_fxslot_t *sl = fx_sl(k);
     const float *xx = fxx_of(k)->x;
     brk_fx_meter_t m;
     float p[4], depth = (xx[FXX_DEPTH] - 0.5f) * 2.0f;
@@ -941,14 +960,18 @@ static void draw_xview(uint32_t now)
     }
     cv_blit(0, 88);
     cv_begin(240, 52, C_BLACK);
-    for (i = 0; i < 4u; i++) {           /* the chain: each slot's effect, this one lit */
-        const brk_fxslot_t *o = &set.fx.slot[i];
+    for (i = 0; i < 4u; i++) {           /* the chain: each slot's effect, this one lit (KICK FX: its two) */
+        uint32_t j = FX_KICK() ? BRK_FX_SLOTS + i : i;
+        const brk_fxslot_t *o;
+        if (j >= BRK_FX_ALL)
+            break;
+        o = fx_sl(j);
         nm[0] = 0;
         text_cat(nm, SLOT_NUM[i]);
         text_cat(nm, " ");
         text_cat(nm, o->type ? BRK_FXT_NAME[o->type % BRK_NFXT] : "-");
-        cv_rect(2 + (int32_t)i * 60, 0, 56, 11, i == k ? C_HI : C_BLOCK);
-        cv_text(5 + (int32_t)i * 60, 0, &FONT_T, nm, i == k ? C_BLACK : o->on ? C_GRAY : C_DIM);
+        cv_rect(2 + (int32_t)i * 60, 0, 56, 11, j == k ? C_HI : C_BLOCK);
+        cv_text(5 + (int32_t)i * 60, 0, &FONT_T, nm, j == k ? C_BLACK : o->on ? C_GRAY : C_DIM);
     }
     cv_rect(0, 14, 176, 38, C_BLOCK);    /* the modulator: its cycle, where it is, what it moves */
     shape = brk_idx(xx[FXX_SHAPE], BRK_MOD_SHAPES);
@@ -984,7 +1007,7 @@ static void draw_xview(uint32_t now)
 /* the FX page: the focused slot's view (an MB COMP its own) */
 static void draw_chain(void)
 {
-    if (set.fx.slot[ui.fx_focus & 3u].type == FXT_MBCOMP)
+    if (fx_sl(fx_foc())->type == FXT_MBCOMP)
         draw_mbcomp(plat_ms());
     else
         draw_xview(plat_ms());

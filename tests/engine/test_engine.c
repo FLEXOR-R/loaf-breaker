@@ -2055,6 +2055,40 @@ static void test_terror2(void)
     CHECK(pk[1] <= 1.0f && pk[1] > 0.3f && df > 0.05f, "TERROR 2: bounded (%.3f) and far from the dry kick (%.3f)", pk[1], df);
 }
 
+/* LOAF BREAKER: KICK FX: the kick's own slots on its buffer (in place), the chain's apart. A RING there moves the
+ * kick; a REVERB there (not allowed) passes it on untouched; bypassed, untouched */
+static void test_kick_fx(void)
+{
+    static float x[BLOCK], y[BLOCK];
+    brk_fxslot_t s;
+    brk_fxx_t xx;
+    uint32_t m, i, b;
+    float df[3];
+    brk_fx_init();
+    for (m = 0; m < 3u; m++) {
+        brk_fx_slot_defaults(&s, m == 1u ? FXT_REVERB : FXT_RING);
+        s.on = (uint8_t)(m != 2u);
+        s.mix = 1.0f;
+        brk_fxx_defaults(&xx, s.type);
+        brk_fx_set_kick_slot(0u, &s);
+        brk_fx_set_fxx(BRK_FX_SLOTS, &xx);
+        df[m] = 0.0f;
+        for (b = 0; b < 8u; b++) {
+            for (i = 0; i < BLOCK; i++)
+                x[i] = y[i] = 0.5f * sinf(6.2831853f * 60.0f * (float)(b * BLOCK + i) / (float)BRK_SR);
+            brk_fx_kick(x, BLOCK);
+            for (i = 0; i < BLOCK; i++)
+                df[m] += fabsf(x[i] - y[i]);
+        }
+        df[m] /= (float)(8u * BLOCK);
+    }
+    CHECK(df[0] > 0.05f && df[1] < 1e-6f && df[2] < 1e-6f, "KICK FX: a RING moves the kick (%.3f), a REVERB (%.6f) and a bypass (%.6f) don't",
+          df[0], df[1], df[2]);
+    brk_fx_slot_defaults(&s, FXT_EMPTY);
+    s.on = 0u;
+    brk_fx_set_kick_slot(0u, &s);
+}
+
 int main(int argc, char **argv)
 {
     if (argc > 1)
@@ -2073,6 +2107,7 @@ int main(int argc, char **argv)
     test_rewind();
     test_terror2();
     test_kick_notes();
+    test_kick_fx();
     test_gate();
     test_swap();
     test_snap();

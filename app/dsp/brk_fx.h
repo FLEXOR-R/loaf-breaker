@@ -8,6 +8,8 @@
 #include "brk_math.h"
 
 #define BRK_FX_SLOTS 4u
+#define BRK_KFX_SLOTS 2u                 /* LOAF BREAKER: KICK FX, the kick's own two slots (no REVERB, no DELAY) */
+#define BRK_FX_ALL (BRK_FX_SLOTS + BRK_KFX_SLOTS)   /* (slot numbers: the chain's, then the kick's: 4, 5) */
 /* the library. Each effect's three settings are 0..1 (p[0..2]; brk_fx.c maps them), then its mix:
  *   FILTER   cutoff (30 Hz..16 kHz), resonance, mode (low-pass / band-pass / high-pass)
  *   CRUNCH   bits (16..2), rate (44.1 kHz..1 kHz), drive
@@ -190,7 +192,7 @@ void brk_fx_set_fxx(uint32_t slot, const brk_fxx_t *x);
 typedef struct { float in, out, mod, ph, p[4]; } brk_fx_meter_t;
 void brk_fx_meter(uint32_t slot, brk_fx_meter_t *m);
 /* the slot whose level in and out the engine follows (brk_fx_meter's in, out; the others' stay 0): the one the
- * screen shows, BRK_FX_SLOTS for none. Following costs the render a little on every sample */
+ * screen shows (the kick's: 4, 5), BRK_FX_ALL for none. Following costs the render a little on every sample */
 void brk_fx_watch(uint32_t slot);
 /* the overload guard (PRD E-7): brk_fx_overload from the audio interrupt when a render ran over 90 % of its time;
  * the chain then bypasses its last slot on (another every ~0.2 s while it keeps happening), each back after 2 s
@@ -220,6 +222,10 @@ void brk_fx_kick_dj(float *x, uint32_t n, float pos);   /* GLOUPI BREAKS: the ki
  * LEVEL, 0..1, 0.5 flat), in place (render) */
 void brk_fx_set_kick_eq(const float *p);
 void brk_fx_kick_eq(float *x, uint32_t n);
+/* LOAF BREAKER: KICK FX, the kick's own slots (their extras and MB COMP detail: brk_fx_set_fxx / _mbc, slots 4, 5),
+ * from the main loop; the render runs them on the kick (mono), after its EQ. A REVERB or DELAY there passes it on */
+void brk_fx_set_kick_slot(uint32_t i, const brk_fxslot_t *s);
+void brk_fx_kick(float *x, uint32_t n);
 void brk_fx_drums_dj(float *kick, float *perc, uint32_t n, float pos);   /* LOAF BREAKER: that filter on the kick
                                           * and on the snare, hat and clap (either 0: not that one) */
 #define BRK_KICK_HP_HZ(pos) (50.0f * brk_exp2f((pos) * 7.0f))

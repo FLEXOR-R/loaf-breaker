@@ -1,0 +1,37 @@
+# LOAF BREAKER: HOME's KICK FX. HOME three times (from PERFORM): GEN, KICK EQ, KICK FX (the FX page on the kick's slot 1);
+# PRESETS: DRIVE, its GAIN up (K1); ALGORITHM: slot 2, PRESETS past TREMOLO: EQ (no REVERB, no DELAY there); HOME:
+# PERFORM; FX: the chain's slot 1 again.
+#   app/build/host/choppah_host tests/scenarios/kfx.txt app/build/scenarios
+wait 4200
+tap HOME
+wait 200
+tap HOME
+wait 200
+tap HOME
+wait 300
+expect page 2
+expect fx_focus 4
+turn PRESET 3 10
+turn K1 10 10
+wait 300
+expect fx_on 1
+shot k_fx1.png
+turn ALGO 1 10
+wait 200
+expect fx_focus 5
+turn PRESET 8 10
+wait 300
+shot k_fx2.png
+tap HOME
+wait 300
+expect page 0
+shot k_home.png
+tap FX
+wait 300
+expect page 2
+expect fx_focus 0
+tap HOME
+wait 200
+tap PLAY
+wait 2500
+tap PLAY

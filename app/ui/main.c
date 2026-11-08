@@ -2,6 +2,20 @@
 /* CHOPPAH: the controls (knobs, keys, buttons), the lights, the foot and the frame. (Part of app.c's unity:
  * included there in order.) */
 
+/* LOAF BREAKER: HOME's fourth part, KICK FX: the FX page on the kick's slots (4, 5) */
+#define IS_KFX() (ui.page == PG_FX && ui.fx_focus >= BRK_FX_SLOTS)
+static void kfx_open(int on)             /* to KICK FX (on), or the FX page back on the chain */
+{
+    if (on && ui.fx_focus < BRK_FX_SLOTS) {
+        ui.fx_main = ui.fx_focus;
+        ui.fx_focus = (uint8_t)(BRK_FX_SLOTS + (ui.kfx_last % BRK_KFX_SLOTS));
+        ui.fx_page = 0u;
+    } else if (!on && ui.fx_focus >= BRK_FX_SLOTS) {
+        ui.kfx_last = (uint8_t)(ui.fx_focus - BRK_FX_SLOTS);
+        ui.fx_focus = (uint8_t)(ui.fx_main % BRK_FX_SLOTS);
+        ui.fx_page = 0u;
+    }
+}
 static void knob_turn(int k, int32_t d)
 {
     brk_fx_t *f = &set.fx;
@@ -296,7 +310,7 @@ static void input(void)
         muted = 0u;
     }
     if (bdn & 1u << B_HOME) {            /* HOME: PERFORM; again (let go alone), GENERATOR, and back */
-        if (ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_KEQ) {
+        if (ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_KEQ || IS_KFX()) {
             ui.home_hold = 1u;
             ui.home_combo = 0u;
         } else {
@@ -307,9 +321,15 @@ static void input(void)
     }
     if (ui.home_hold && !(btn & 1u << B_HOME)) {
         ui.home_hold = 0u;
-        if (!ui.home_combo && (ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_KEQ)) {
-            ui.page = ui.page == PG_HOME ? PG_GEN : ui.page == PG_GEN ? PG_KEQ : PG_HOME;   /* (LOAF BREAKER: KICK EQ
-                                          * third) */
+        if (!ui.home_combo && (ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_KEQ || IS_KFX())) {
+            if (ui.page == PG_KEQ) {     /* (LOAF BREAKER: KICK EQ third, KICK FX fourth) */
+                kfx_open(1);
+                ui.page = PG_FX;
+            } else {
+                if (IS_KFX())
+                    kfx_open(0);
+                ui.page = ui.page == PG_HOME ? PG_GEN : ui.page == PG_GEN ? PG_KEQ : PG_HOME;
+            }
             ui.redraw |= RG_FOOT | RG_BLOCKS;
             page_say();
         }
@@ -412,7 +432,7 @@ static void input(void)
         app_say("KEY", ui.key_layer ? "SLICE FX" : "LOOP");
         foot_dirty = 1u;
     } else if (bdn & 1u << B_FX && btn & 1u << B_SEL && ui.page == PG_FX) {   /* SEL + FX: the slot bypassed */
-        brk_fxslot_t *sl = &set.fx.slot[ui.fx_focus & 3u];
+        brk_fxslot_t *sl = fx_sl(fx_foc());
         if (sl->type == FXT_EMPTY)
             app_say("EMPTY", "PRESETS");
         else {
@@ -425,7 +445,7 @@ static void input(void)
                                           * both at its release; held 0.7 s, the MIXER's FX fader 0 % or 100 %) */
         ui.fx_hold = 1u;
         ui.fx_turned = 0u;
-        ui.fx_open = (uint8_t)(ui.page != PG_FX);
+        ui.fx_open = (uint8_t)(ui.page != PG_FX);   /* (KICK FX too: FX again, its next part) */
         fxl_t = now;
     }
     if (ui.fx_hold && !ui.fx_turned && btn & 1u << B_FX && now - fxl_t >= 700u) {   /* LOAF BREAKER: FX held: the
@@ -441,6 +461,7 @@ static void input(void)
         ui.fx_hold = 0u;
         if (!ui.fx_turned) {
             if (ui.fx_open) {
+                kfx_open(0);
                 ui.page = PG_FX;
                 page_say();
                 ui.redraw |= RG_FOOT | RG_BLOCKS;
@@ -667,7 +688,7 @@ static void leds(void)
         b |= 1u << B_PLAY;
     static const uint8_t PAGE_BTN[NPAGES] = {B_HOME, B_HOME, B_FX, B_GLO, B_EDIT, B_LFO, B_SEQ, B_EDIT, B_ENV, B_ARP,
                                              B_HOME};
-    b |= 1u << PAGE_BTN[ui.page];
+    b |= 1u << (IS_KFX() ? B_HOME : PAGE_BTN[ui.page]);
     if (ui.rec)
         b |= 1u << B_REC;
     if (set_dirty)
@@ -777,11 +798,12 @@ static void draw_tabs(void)
     char part[20];
     part[0] = 0;
     cv_begin(240, 14, C_BLACK);
-    x = cv_text(4, 1, &FONT_T, BTN[ui.page % NPAGES], C_WHITE) + 6;
-    if (ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_KEQ) {   /* HOME: PERFORM, GENERATOR, KICK EQ */
+    x = cv_text(4, 1, &FONT_T, IS_KFX() ? "HOME" : BTN[ui.page % NPAGES], C_WHITE) + 6;
+    if (ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_KEQ) {   /* HOME: PERFORM, GENERATOR, KICK EQ, KICK FX */
         x = tab(x, "PERFORM", ui.page == PG_HOME);
-        x = tab(x, "GENERATOR", ui.page == PG_GEN);
-        tab(x, "KICK EQ", ui.page == PG_KEQ);
+        x = tab(x, "GEN", ui.page == PG_GEN);
+        x = tab(x, "KICK EQ", ui.page == PG_KEQ);
+        tab(x, "KICK FX", 0);
     }
     else if (ui.page == PG_TRACK)        /* LOAF BREAKER: ENV: TRACKS, PLAY, DROP */
         for (i = 0; i < 3u; i++)
@@ -802,10 +824,17 @@ static void draw_tabs(void)
             text_cat(pn, ">");
         x = tab(x, pn, 0);
         tab(x, SEQ_LANE_NAME[ui.seq_lane % NSEQL], 1);
+    } else if (IS_KFX()) {               /* LOAF BREAKER: HOME's KICK FX, its two slots */
+        x = tab(x, "PERFORM", 0);
+        x = tab(x, "GEN", 0);
+        x = tab(x, "KICK EQ", 0);
+        x = tab(x, "KICK FX", 1);
+        for (i = 0; i < BRK_KFX_SLOTS; i++)
+            x = tab(x, SLOT_NUM[i], i + BRK_FX_SLOTS == ui.fx_focus);
     } else if (ui.page == PG_FX) {
         for (i = 0; i < BRK_FX_SLOTS; i++)
-            x = tab(x, SLOT_NUM[i], i == (ui.fx_focus & 3u));
-        text_cat(part, BRK_FXT_NAME[set.fx.slot[ui.fx_focus & 3u].type]);
+            x = tab(x, SLOT_NUM[i], i == fx_foc());
+        text_cat(part, BRK_FXT_NAME[fx_sl(fx_foc())->type % BRK_NFXT]);
         if (ui.fx_page) {                /* "< MB COMP X-OVER >", "< FILTER MOD >" */
             text_cat(part, " ");
             text_cat(part, fx_part_name());
@@ -843,10 +872,10 @@ static void page_say(void)
     case PG_TRACK: text_cat(t, TPART[ui.tpage % 3u]); break;
     case PG_OVL: text_cat(t, "OVERLAY"); break;
     case PG_FX:
-        text_cat(t, "SLOT ");
-        int_text((int32_t)(ui.fx_focus & 3u) + 1, t + 5);
+        text_cat(t, IS_KFX() ? "KICK FX " : "SLOT ");
+        int_text((int32_t)(fx_foc() % BRK_FX_SLOTS) + 1, t + (IS_KFX() ? 8 : 5));
         text_cat(t, " ");
-        text_cat(t, BRK_FXT_NAME[set.fx.slot[ui.fx_focus & 3u].type]);
+        text_cat(t, BRK_FXT_NAME[fx_sl(fx_foc())->type % BRK_NFXT]);
         if (ui.fx_page) {
             text_cat(t, " ");
             text_cat(t, fx_part_name());
@@ -861,7 +890,7 @@ static void page_say(void)
         text_cat(t, ui.ppage ? " SHAPE" : " SOUND");
         break;
     }
-    app_say(BTN[ui.page % NPAGES], t);
+    app_say(IS_KFX() ? "HOME" : BTN[ui.page % NPAGES], t);
 }
 
 /* SEL held alone: its combinations, on the strip (FX page: its own two) */
@@ -957,7 +986,7 @@ static void draw_foot(const brk_status_t *st)
             name = KN_LANE[i];
         }
         cv_text(4 + (int32_t)i * 60, 18, &FONT_T, name, ui.page == PG_FX
-                ? (set.fx.slot[ui.fx_focus & 3u].on ? C_HI : C_DIM) : C_GRAY);
+                ? (fx_sl(fx_foc())->on ? C_HI : C_DIM) : C_GRAY);
         knob_value((int)i, t);
         cv_text(4 + (int32_t)i * 60, 30, &FONT_XS, t, C_WHITE);
     }
@@ -1158,7 +1187,7 @@ void app_frame(void)
         ui.redraw |= RG_BLOCKS;
     if (ui.page == PG_MIX && now - ui.mix_drawn >= 33u)   /* the MIXER's meters: about 30 times a second */
         ui.redraw |= RG_BLOCKS;
-    brk_fx_watch(ui.page == PG_FX ? ui.fx_focus & 3u : BRK_FX_SLOTS);   /* (the engine meters that slot alone) */
+    brk_fx_watch(ui.page == PG_FX ? fx_foc() : BRK_FX_ALL);   /* (the engine meters that slot alone) */
     {                                    /* the overload guard shed a slot: say so */
         static uint32_t shed_seen;
         uint32_t sh = brk_fx_shed();
@@ -1166,7 +1195,7 @@ void app_frame(void)
             app_say("OVERLOAD", "FX SLOT BYPASSED");
         shed_seen = sh;
     }
-    if (ui.page == PG_FX && set.fx.slot[ui.fx_focus & 3u].type != FXT_EMPTY && now - ui.panel_drawn >= 66u)
+    if (ui.page == PG_FX && fx_sl(fx_foc())->type != FXT_EMPTY && now - ui.panel_drawn >= 66u)
         ui.redraw |= RG_BLOCKS;          /* an effect focused: its picture and meters, about 15 times a second */
     if (foot_dirty) {
         foot_dirty = 0u;
@@ -1304,7 +1333,7 @@ int app_expect(const char *what, int *got)
     v[2] = ui.kpage;
     v[3] = ui.seq_lane;
     v[4] = ui.fx_focus;
-    v[5] = set.fx.slot[ui.fx_focus & 3u].on;
+    v[5] = fx_sl(fx_foc())->on;
     v[6] = pat_now()->lane[LANE_KICK];
     v[7] = pat_now()->lane[LANE_HAT];
     v[8] = set.pattern;
@@ -1319,12 +1348,12 @@ int app_expect(const char *what, int *got)
     v[17] = (int)(set.pads.roll_pitch * 10.0f + (set.pads.roll_pitch < 0.0f ? -0.5f : 0.5f));
     v[18] = demo.on;
     v[19] = ui.fx_page;
-    v[20] = set.mbc[ui.fx_focus & 3u].solo;
-    v[21] = (int)(brk_mb_thr_db(set.mbc[ui.fx_focus & 3u].thr[MB_LOW]) - 0.5f);   /* whole dB */
+    v[20] = mbc_at(fx_foc())->solo;
+    v[21] = (int)(brk_mb_thr_db(mbc_at(fx_foc())->thr[MB_LOW]) - 0.5f);   /* whole dB */
     v[22] = (int)(brk_mb_thr_db(set.mbc[1].thr[MB_LOW]) - 0.5f);
     v[23] = ui.trk_on;
     v[24] = ui.trk_pos;
-    v[25] = (int)(set.fx.slot[ui.fx_focus & 3u].p[0] * 100.0f + 0.5f);
+    v[25] = (int)(fx_sl(fx_foc())->p[0] * 100.0f + 0.5f);
     v[26] = (int)(set.kick.l[ui.klayer % KICK_LAYERS].fa * 100.0f + 0.5f);
     v[27] = set.kick.l[ui.klayer % KICK_LAYERS].fx;
     for (i = 0; i < 28u; i++)
