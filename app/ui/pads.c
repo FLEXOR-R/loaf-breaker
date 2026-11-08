@@ -5,7 +5,6 @@
 /* -------------------------------------------------- the pads' own settings --- */
 static void ovl_push(void);              /* (ovl.c) */
 static const char *const THRU_NAME[4] = {"BOTH", "BREAK", "KICK", "BOTH"};   /* the ARP key's THRU (ovl_pad 6-7) */
-static void egg_draw(void);              /* (screen.c) */
 static uint8_t ovlpad_held, ovlpad_lat;  /* (the ARP key's: below) */
 static int ovl_pad_on(void);
 static uint8_t half_lat;                 /* LOAF BREAKER: HALF SPEED latched on (its LATCH: K3) */
@@ -154,11 +153,11 @@ static void pad_knob_value(int pad, int k, char *t)
         else if (k == 1) pct_text(f->flt_res, t);
         else pct_text(f->flt_speed, t);
         break;
-    case PAD_DUB:                        /* GLOUPI BREAKS: the ARP key: its OVERLAY effect, its LATCH, LOAF LORD */
+    case PAD_DUB:                        /* GLOUPI BREAKS: the ARP key: its OVERLAY effect, its LATCH */
         if (k == 0) text_cat(t, OVL_NAME[set.ovl_pad & 15u]);
         else if (k == 1) text_cat(t, THRU_NAME[(set.ovl_pad >> 6) & 3u]);
         else if (k == 2) text_cat(t, set.ovl_pad & 32u ? "OFF" : "ON");
-        else text_cat(t, set.ovl_pad & 16u ? "ON" : "OFF");   /* (LOAF BREAKER: K4 LATCH; LOAF LORD on MORE) */
+        else text_cat(t, set.ovl_pad & 16u ? "ON" : "OFF");   /* (LOAF BREAKER: K4 LATCH) */
         break;
     default: break;
     }
@@ -221,7 +220,7 @@ static void pad_knob_turn(int pad, int k, int32_t d)
         else f->flt_speed = knob_f(f->flt_speed, d, 0.02f, 0.0f, 1.0f);
         break;
     case PAD_DUB:                        /* GLOUPI BREAKS: the ARP key. K1 which OVERLAY effect (the ARP page's
-                                          * settings: amount, rate, sweep), K2 LATCH, K4 LOAF LORD */
+                                          * settings: amount, rate, sweep), K2 THRU, K3 ON / OFF, K4 LATCH */
         if (k == 0)
             set.ovl_pad = (uint8_t)((set.ovl_pad & ~15u) | ((set.ovl_pad + (d > 0 ? 1u : 15u)) & 15u));
         else if (k == 1)                 /* K2 THRU (app.c's render) */

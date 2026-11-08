@@ -99,7 +99,6 @@ static struct {
     float mb_hold[3];                    /* its bands' reduction peaks held (dB), and since when */
     uint32_t mb_hold_t[3];
     uint32_t reset_t;                    /* GLOBAL's RESET ALL: when it was last turned */
-    uint32_t egg_t;                      /* GLOUPI BREAKS: LOAF LORD on the screen since (0: not) */
     uint32_t drop_t, build_said;         /* LOAF BREAKER: the DROP's flash since (0: not); the build's last word */
     uint8_t drop_seen;                   /* the drops shown (drop_n's) */
     uint8_t drop_pat;                    /* the pattern the drop moves to (0xFF: none) */

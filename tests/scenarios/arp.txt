@@ -1,5 +1,5 @@
 # GLOUPI BREAKS: the black keys after the swap: FLT on the fifth (DUB's), the ARP key on the tenth (FLT's). Hold ARP:
-# K1 its OVERLAY effect, K2 THRU (KICK, BREAK, BOTH), K3 ON / OFF, K4 LATCH (each press on or off); LOAF LORD now MORE's K3
+# K1 its OVERLAY effect, K2 THRU (KICK, BREAK, BOTH), K3 ON / OFF, K4 LATCH (each press on or off)
 #   app/build/host/choppah_host tests/scenarios/arp.txt app/build/scenarios
 wait 4200
 tap PLAY
@@ -46,13 +46,4 @@ wait 100
 key b9 up
 wait 300
 shot a_after.png
-tap GLO
-wait 100
-tap GLO
-wait 100
-tap GLO
-wait 300
-turn K3 1 10
-wait 300
-shot a_egg.png
 wait 1600

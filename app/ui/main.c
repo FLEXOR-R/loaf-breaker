@@ -936,7 +936,7 @@ static void draw_foot(const brk_status_t *st)
     for (i = 0; i < 4u; i++) {
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "RESET ALL"};
         static const char *const KN_GROOVE[4] = {"SWING", "DRUMS", "", ""};
-        static const char *const KN_MORE[4] = {"SKIN", "AUTO SAVE", "LOAF LORD", "MAX OUT"};   /* GLOUPI BREAKS: GLOBAL's MORE */
+        static const char *const KN_MORE[4] = {"SKIN", "AUTO SAVE", "", "MAX OUT"};   /* GLOUPI BREAKS: GLOBAL's MORE */
         static const char *const KN_TRK[2][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"}};
         const char *name = ui.page == PG_TRACK && ui.tpage == 3u ? SK_KNOB[ui.knfn & 3u][i] : ui.page == PG_TRACK &&
                            ui.tpage ? KN_TRK[(ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
@@ -1099,17 +1099,6 @@ void app_frame(void)
             return;
         }
     }
-    if (ui.egg_t) {                      /* GLOUPI BREAKS: LOAF LORD, 1.5 s (drawn when K4 turned: egg_draw) */
-        if (now - ui.egg_t > 1500u) {
-            ui.egg_t = 0u;
-            lcd_fill(0, 0, 240, 240, C_BLACK);
-            ui.redraw = RG_ALL;
-        } else {
-            leds();
-            ui.touched = 0u;
-            return;
-        }
-    }
     if (ui.lobo_t) {                     /* RESET ALL's screen: 3 s, or until a key or button (after its own turn) */
         if (now - ui.lobo_t > 3000u || (ui.touched && now - ui.lobo_t > 500u)) {
             ui.lobo_t = 0u;
@@ -1131,7 +1120,7 @@ void app_frame(void)
             dirty_t = 0u;
         else if (!dirty_t)
             dirty_t = now | 1u;
-        else if (now - dirty_t >= 60000u && !st.playing && !ui.egg_t && !ui.lobo_t) {
+        else if (now - dirty_t >= 60000u && !st.playing && !ui.lobo_t) {
             int ok = plat_store_save(OBJ_SETTINGS, &set, sizeof set) == 0 &&
                      plat_store_save(OBJ_PAT, &pats, sizeof pats) == 0;
             set_dirty = 0u;

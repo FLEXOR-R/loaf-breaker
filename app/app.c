@@ -24,7 +24,6 @@
 #ifndef CH_HAVE_BANK
 #define CH_HAVE_BANK 0
 #endif
-#include "egg_data.h"                /* GLOUPI BREAKS: LOAF LORD (tools/make_egg.py) */
 #if CH_LOGO
 #include "splash_data.h"            /* LOAF BREAKER: the splash and the title (tools/make_egg.py) */
 #include "title_data.h"

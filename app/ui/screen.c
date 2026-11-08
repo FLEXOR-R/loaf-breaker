@@ -86,15 +86,6 @@ static void grey_draw(const uint8_t *rle, uint32_t len, const uint16_t *pal, int
     }
 }
 
-/* GLOUPI BREAKS: LOAF LORD, the whole screen, the blessing small at the bottom */
-static void egg_draw(void)
-{
-    grey_draw(EGG_RLE, sizeof EGG_RLE, EGG_PAL, EGG_W, EGG_H, (240 - EGG_W) / 2, 0);
-    cv_begin(240, 12, C_BLACK);
-    cv_text((240 - text_w(&FONT_T, "MAY THE LOAF BE WITH YOU")) / 2, 1, &FONT_T, "MAY THE LOAF BE WITH YOU",
-            RGB(190, 190, 190));
-    cv_blit(0, 226);
-}
 
 /* LOAF BREAKER: the DROP's flash, the whole screen: a shout (a different one each drop), the colours swapping every
  * 110 ms, the shout shaking; LOAF BREAKER under it. t: ms since the drop (redrawn only when the colours swap) */
