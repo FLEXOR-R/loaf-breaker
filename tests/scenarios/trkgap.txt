@@ -79,6 +79,14 @@ expect trk_it 1
 turn K1 1 10
 wait 100
 expect trk_it 2
+# ALGORITHM on TRACKS: the item (as K1), the break left as it is
+turn ALGO 1 10
+wait 200
+expect trk_cur 2
+expect brk_next -1
+turn ALGO -1 10
+wait 200
+expect trk_cur 1
 # each item its break (K4): track 3, P1 (the break playing), then P2 with break 3: in with P2
 expect page 8
 expect brk 0

@@ -677,6 +677,8 @@ static void input(void)
                 break_ask((set.brk + (d > 0 ? 1u : n_breaks - 1u)) % n_breaks);
             else if (ui.page == PG_TRACK && ui.tpage == 3u)
                 knob_fn(d);              /* LOAF BREAKER: ENV's KNOB: the function */
+            else if (ui.page == PG_TRACK && ui.tpage == 0u)
+                track_turn(0, d);        /* LOAF BREAKER: ENV's TRACKS: the item, as K1 (the break: SEL + ALGORITHM) */
             else if (ui.page == PG_GLOBAL)   /* GLOBAL: its part */
                 global_part((ui.gpage + (d > 0 ? 1u : 2u)) % 3u);
             else if (ui.page == PG_KICK) {    /* LOAF BREAKER: the KICK menu: the next part of its section */

@@ -141,7 +141,8 @@ metronome and tap tempo are gone).
   **K3** its loops, **K4** its **break**: SAME (the one playing goes on) or one of the bank's, in with the item
   (swapped at the bar's end, as ALGORITHM does; a cell with its own break shows it, "X4 B3"; a DROP into it brings
   it in, in DROP BREAK's place). What the track does at its end (LOOP, STOP, HOLD) is on **PLAY**'s K3.
-  A **white key** puts its pattern at the item and moves to the next one. **ENV held** (0.45 s) makes room: the items after the one edited move one place right and an empty item (a + in an outline) opens after it, the one
+  **ALGORITHM** moves along the items too, as K1 does (the break stays as it is: SEL + ALGORITHM changes it). A
+  **white key** puts its pattern at the item and moves to the next one. **ENV held** (0.45 s) makes room: the items after the one edited move one place right and an empty item (a + in an outline) opens after it, the one
   edited staying where it is; the cursor goes onto it, for a white key (a pattern) or **K2** (a DROP; K2 left: the
   space gone again). An empty item left is played past. **ENV held on an empty item** takes it out: the items on
   its sides close up, the cursor on the one before. ENV let go quickly: the next part, as ever.
