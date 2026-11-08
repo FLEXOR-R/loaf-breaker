@@ -24,7 +24,15 @@ void app_splash(void);
 #define APP_BLOCK 256u                   /* frames per audio block: 5.8 ms at 44.1 kHz */
 #define APP_CANVAS_PX (240u * 60u)       /* draw in strips of 60 rows at most: the pool goes to the breaks (and the
                                           * Bluetooth audio queue) */
-#ifdef APP_VERSION                      /* GLOUPI BREAKS: the release's number (gloupi.yml: 0.02, 0.03 ...) */
+#if defined(__has_include)               /* LOAF BREAKER: the release's own number (gloupi.yml writes it: 0.100 ...,
+                                          * whatever the package's) */
+#if __has_include("loaf_version.h")
+#include "loaf_version.h"
+#endif
+#endif
+#ifdef LOAF_VERSION
+#define CH_VERSION LOAF_VERSION
+#elif defined(APP_VERSION)              /* GLOUPI BREAKS: the release's number (gloupi.yml: 0.02, 0.03 ...) */
 #define CH_VERSION APP_VERSION
 #else
 #define CH_VERSION "DEV"

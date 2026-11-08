@@ -44,6 +44,12 @@ jobs:
             fi
           fi
           echo "VERSION=$V" >> "$GITHUB_ENV"
+          # (the package's own number: fm1-base's build takes X.Y[.Z], two digits each, its identity FM-1_XXYYZZ; past
+          # 0.99, 0.100 is packaged as 0.99.1, 0.101 as 0.99.2 ... while the splash, the tag and the files say 0.100)
+          MIN="${V#*.}"; MAJ="${V%%.*}"
+          if [ "${#MIN}" -gt 2 ]; then PKG="$MAJ.99.$((10#$MIN - 99))"; else PKG="$V"; fi
+          echo "PKG=$PKG" >> "$GITHUB_ENV"
+          printf '#define LOAF_VERSION "%s"\n' "$V" > app/loaf_version.h
           echo "LOAF BREAKER $V" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Pillow with raqm (the build's fonts)
@@ -72,8 +78,8 @@ jobs:
         env:
           PYTHON: /usr/bin/python3
         run: |
-          ./build.sh --release "$VERSION" | tee build.log
-          mv "app/build/choppah-$VERSION.fwsc" "app/build/loaf-breaker-$VERSION.fwsc"
+          ./build.sh --release "$PKG" | tee build.log
+          mv "app/build/choppah-$PKG.fwsc" "app/build/loaf-breaker-$VERSION.fwsc"
           { echo '```'; grep -i -E 'image|flash|bank|slot' build.log | tail -15; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Size report   # (LOAF BREAKER: what takes the room, tools/size_report.py; its failing stops nothing)
@@ -93,7 +99,7 @@ jobs:
         env:
           PYTHON: /usr/bin/python3
         run: |
-          ./build.sh --host --release "$VERSION"   # (the number on its screens too)
+          ./build.sh --host --release "$PKG"   # (the number on its screens too: LOAF_VERSION's)
           mkdir -p screens
           H="$(ls app/build/host/*_host | head -1)"
           bad=""
