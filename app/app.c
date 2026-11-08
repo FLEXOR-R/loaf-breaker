@@ -384,7 +384,10 @@ static pats_t pats PLAT_POOL;            /* (LOAF BREAKER: in the pool, 3.7 KB o
 typedef struct {
     uint32_t magic;
     uint8_t b[NPAT][STEPB_N];
+    uint8_t tb[8][32];                   /* LOAF BREAKER: each track item's break (TRACKS K4): 0 the one playing, 1..
+                                          * that break + 1 (NTRACKS x TRK_ITEMS; an older save: none) */
 } steps_t;
+#define STEPS_SIZE_OLD offsetof(steps_t, tb)
 static steps_t steps PLAT_POOL;
 static uint8_t *stepb(uint32_t pi, uint32_t d, uint32_t s)   /* pattern pi, drum d (DR_*), its step s */
 {
@@ -395,6 +398,7 @@ static void steps_defaults(void)          /* (none: from the patterns' HITS) */
 {
     uint32_t pi, d, s;
     steps.magic = STEPS_MAGIC;
+    memset(steps.tb, 0, sizeof steps.tb);
     for (pi = 0; pi < NPAT; pi++)
         for (d = 0; d < NDRUMS; d++)
             for (s = 0; s < (d == DR_KICK ? 64u : 32u); s++) {
@@ -837,9 +841,13 @@ void app_init(void)
     }
     if (pats.magic != PAT_MAGIC && pats.magic != PAT2_MAGIC && pats.magic != PAT1_MAGIC)
         pat_defaults();
-    if (plat_store_load(OBJ_STEP, &steps, sizeof steps) != (int)sizeof steps || steps.magic != STEPS_MAGIC)
+    int ssz = plat_store_load(OBJ_STEP, &steps, sizeof steps), sok;
+    sok = (ssz == (int)sizeof steps || ssz == (int)STEPS_SIZE_OLD) && steps.magic == STEPS_MAGIC;
+    if (!sok)
         steps_defaults();                /* (LOAF BREAKER: the drum steps' own settings) */
-    else if (pats.magic != PAT_MAGIC) {  /* an older save: its kick again over four bars, as it played */
+    else if (ssz != (int)sizeof steps)
+        memset(steps.tb, 0, sizeof steps.tb);   /* (a save before the tracks' breaks) */
+    if (sok && pats.magic != PAT_MAGIC) {   /* an older save: its kick again over four bars, as it played */
         uint32_t i;
         for (i = 0; i < NPAT; i++) {
             pat_t *p = &pats.p[i];

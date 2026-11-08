@@ -7,6 +7,7 @@
  * there in order.) */
 
 static void page_say(void);
+static void break_ask(uint32_t i);      /* (main.c) */
 #define NTPART 6u
 static const char *const TPART[NTPART] = {"TRACKS", "PLAY", "DROP", "KNOB", "BUILD", "RESET"};
 static const uint8_t TORDER[NTPART] = {0u, 1u, 2u, 4u, 3u, 5u};   /* (ENV's parts in order: BUILD after DROP, RESET last) */
@@ -43,6 +44,18 @@ static uint32_t drop_rand(uint32_t n)    /* 0..n-1, by chance (the drops unlike 
 static const char *const TRK_END_NAME[3] = {"LOOP", "STOP", "HOLD"};
 
 static track_t *trk_now(void) { return &pats.trk[set.trk % NTRACKS]; }
+static uint8_t *trk_brk(uint32_t i) { return &steps.tb[set.trk % NTRACKS][i % TRK_ITEMS]; }   /* (the item's break) */
+static int trk_is_pat(const track_t *t, uint32_t i)
+{
+    uint32_t v = t->it[i % TRK_ITEMS];
+    return v != TI_END && v != TI_DROP && v != TI_GAP;
+}
+static void trk_brk_go(uint32_t i)       /* a pattern item coming: its own break, if it has one (at the bar's end) */
+{
+    uint32_t b = *trk_brk(i);
+    if (b && b <= n_breaks && b - 1u != set.brk)
+        break_ask(b - 1u);
+}
 static uint32_t trk_len(const track_t *t)   /* its items before the END */
 {
     uint32_t n = 0u;
@@ -137,6 +150,7 @@ static void track_play(void)
     set.pattern = (uint8_t)(t->it[i] - 1u);
     pat_next = -1;
     pat_apply();
+    trk_brk_go((uint32_t)i);             /* (its break) */
     if (playing_now())
         transport(1, 1);                 /* (from bar 1) */
     else {
@@ -199,6 +213,7 @@ static void track_next(void)
     ui.trk_loops = 0u;
     if (t->it[i] - 1u != set.pattern)
         pat_next = (int8_t)(t->it[i] - 1u);
+    trk_brk_go(i);                       /* (its break, from the same bar: break_poll swaps at its last 16th) */
     ui.redraw |= RG_HEAD | RG_BLOCKS;
 }
 /* the main loop, each frame: the loops counted (one as its last bar begins), the next item asked for */
@@ -235,6 +250,14 @@ static void track_poll(const brk_status_t *st)
             ui.redraw |= RG_HEAD | (ui.page == PG_TRACK ? RG_BLOCKS : 0);
         }
     }
+}
+/* the break a drop brings in, + 1 (0: none): a track's, the pattern dropped into's own; else DROP's DROP BREAK */
+static uint32_t trk_drop_brk(void)
+{
+    uint32_t b = ui.trk_on && ui.trk_drop != 0xFFu ? *trk_brk(ui.trk_drop) : 0u;
+    if (!b || b > n_breaks)
+        b = set.drop_brk <= n_breaks ? set.drop_brk : 0u;
+    return b;
 }
 /* the drop came (the main loop, drop_n): a track's on from the pattern it went to */
 static void track_dropped(void)
@@ -537,12 +560,16 @@ static void track_value(int i, char *t)
             int_text(tr->rep[ui.trk_cur % TRK_ITEMS], t + 1);
         } else
             text_cat(t, "-");
-    } else
-        text_cat(t, TRK_END_NAME[tr->end % 3u]);
+    } else if (!trk_is_pat(tr, ui.trk_cur))
+        text_cat(t, "-");
+    else if (!*trk_brk(ui.trk_cur) || *trk_brk(ui.trk_cur) > n_breaks)
+        text_cat(t, "SAME");
+    else
+        text_cat(t, break_name(*trk_brk(ui.trk_cur) - 1u));
 }
 static void track_say(int i)             /* the knob turned, on the strip */
 {
-    static const char *const N[NTPART][4] = {{"ITEM", "PUT", "LOOPS", "AT THE END"}, {"PLAY", "FROM ITEM", "AT THE END", ""},
+    static const char *const N[NTPART][4] = {{"ITEM", "PUT", "LOOPS", "BREAK"}, {"PLAY", "FROM ITEM", "AT THE END", ""},
                                         {"BUILD", "AFTER DROP", "DROP BREAK", "CRASH"}, {"", "", "", ""},
                                         {"BUILD STYLE", "SWEEP", "RISER", "GAP"}, {"RESET", "", "", "RESET"}};
     char t[20];
@@ -627,8 +654,10 @@ static void track_turn(int i, int32_t d)
                 for (k = c; k + 1u < TRK_ITEMS; k++) {
                     t->it[k] = t->it[k + 1u];
                     t->rep[k] = t->rep[k + 1u];
+                    *trk_brk(k) = *trk_brk(k + 1u);
                 }
                 t->it[TRK_ITEMS - 1u] = TI_END;
+                *trk_brk(TRK_ITEMS - 1u) = 0u;
                 app_say("ITEM", "DELETED");
                 set_dirty = 1u;
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
@@ -643,8 +672,11 @@ static void track_turn(int i, int32_t d)
             if (t->it[c] == TI_END || t->it[c] == TI_DROP || t->it[c] == TI_GAP)
                 return;
             t->rep[c] = (uint8_t)clamp((int32_t)t->rep[c] + dir, 1, 16);
-        } else
-            t->end = (uint8_t)clamp((int32_t)t->end + dir, 0, 2);
+        } else {                         /* (LOAF BREAKER: K4 the item's break; the END on PLAY's K3) */
+            if (!trk_is_pat(t, c))
+                return;
+            *trk_brk(c) = (uint8_t)clamp((int32_t)*trk_brk(c) + dir, 0, (int32_t)n_breaks);
+        }
         set_dirty = 1u;
     }
     track_say(i);
@@ -720,9 +752,11 @@ static void track_gap(void)
     for (k = n; k > c + 1u; k--) {       /* (the END too, once there is room for it) */
         t->it[k] = t->it[k - 1u];
         t->rep[k] = t->rep[k - 1u];
+        *trk_brk(k) = *trk_brk(k - 1u);
     }
     t->it[c + 1u] = TI_GAP;
     t->rep[c + 1u] = 0u;
+    *trk_brk(c + 1u) = 0u;
     ui.trk_cur = (uint8_t)(c + 1u);
     if (ui.trk_on && ui.trk_pos > c && ui.trk_pos + 1u < TRK_ITEMS)
         ui.trk_pos++;                    /* (a track playing: on where it was) */
@@ -994,7 +1028,16 @@ static void track_picture(int32_t top)
                 cv_text(x + (28 - text_w(&FONT_XS, "DRP")) / 2, y + 9, &FONT_XS, "DRP", c);
             else {
                 cv_text(x + (28 - text_w(&FONT_T, s)) / 2, y + 3, &FONT_T, s, c);
-                if (r[0])
+                if (r[0] && *trk_brk(i) && *trk_brk(i) <= n_breaks) {   /* (its own break: "X4 B3") */
+                    char b[4] = "B";
+                    int_text((int32_t)*trk_brk(i), b + 1);
+                    if (text_w(&FONT_XS, r) + text_w(&FONT_XS, b) + 3 <= 27) {
+                        int32_t w = text_w(&FONT_XS, r) + 3 + text_w(&FONT_XS, b), x0 = x + (28 - w) / 2;
+                        cv_text(x0, y + 16, &FONT_XS, r, now ? C_BLACK : C_GRAY);
+                        cv_text(x0 + text_w(&FONT_XS, r) + 3, y + 16, &FONT_XS, b, now ? C_BLACK : C_AMB);
+                    } else
+                        cv_text(x + (28 - text_w(&FONT_XS, b)) / 2, y + 16, &FONT_XS, b, now ? C_BLACK : C_AMB);
+                } else if (r[0])
                     cv_text(x + (28 - text_w(&FONT_XS, r)) / 2, y + 16, &FONT_XS, r, now ? C_BLACK : C_GRAY);
             }
         }

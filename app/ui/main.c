@@ -993,7 +993,7 @@ static void draw_foot(const brk_status_t *st)
                                               {"BREAK", "KICK", "PERC", "FX"},
                                               {"SLICE", "PITCH", "HITS", "REVERSE"},
                                               {"", "", "", ""},
-                                              {"ITEM", "PUT", "LOOPS", "END"},
+                                              {"ITEM", "PUT", "LOOPS", "BREAK"},
                                               {"AMOUNT", "RATE", "SWEEP", "LATCH"},
                                               {"LOW", "MID", "HIGH", "FREQ"}};
     uint32_t i;
@@ -1133,15 +1133,15 @@ void app_frame(void)
         ui.redraw = RG_ALL;
     }
     ui.drawn_page = ui.page;
-    if (build_p >= 0.0f && set.drop_brk && set.drop_brk <= n_breaks && !ui.drop_asked) {   /* LOAF BREAKER
+    if (build_p >= 0.0f && trk_drop_brk() && !ui.drop_asked) {   /* LOAF BREAKER
                                           * (crossbreed): MORE's DROP BRK asked for in the bar that ends in the drop
                                           * (break_poll swaps it in on the drop's step) */
         brk_status_t bs;
         brk_status(&bs);
         if (bs.bar16 >= 0 && (ui.drop_early || build_p * (float)build_len + (float)(15 - bs.bar16) >= (float)build_len)) {
             ui.drop_asked = 1u;
-            if (set.drop_brk - 1u != set.brk)
-                break_ask(set.drop_brk - 1u);
+            if (trk_drop_brk() - 1u != set.brk)
+                break_ask(trk_drop_brk() - 1u);
         }
     }
     if (build_p >= 0.0f && now - ui.build_said >= 250u) {   /* LOAF BREAKER: the build, how far */

@@ -153,9 +153,10 @@ metronome and tap tempo are gone).
 - **TRACKS**: eight tracks (**PRESETS** picks one), each up to 32 items in four rows of eight: a pattern (P1–P16)
   played for its loops (×1–×16), a **DROP** (the build, then the drop into the pattern after it), and its END. **K1**
   the item, **K2** what it is (turn it to END on an item inside the track: that item is deleted, the rest moves up),
-  **K3** its loops, **K4** what the track does at its end: LOOP (from its start again), STOP, HOLD (the last pattern
-  goes on). A **white key** puts its pattern at the item and moves to the next one. **ENV held** (0.45 s) makes room:
-  the items after the one edited move one place right and an empty item (a + in an outline) opens after it, the one
+  **K3** its loops, **K4** its **break**: SAME (the one playing goes on) or one of the bank's, in with the item
+  (swapped at the bar's end, as ALGORITHM does; a cell with its own break shows it, "X4 B3"; a DROP into it brings
+  it in, in DROP BREAK's place). What the track does at its end (LOOP, STOP, HOLD) is on **PLAY**'s K3.
+  A **white key** puts its pattern at the item and moves to the next one. **ENV held** (0.45 s) makes room: the items after the one edited move one place right and an empty item (a + in an outline) opens after it, the one
   edited staying where it is; the cursor goes onto it, for a white key (a pattern) or **K2** (a DROP; K2 left: the
   space gone again). An empty item left is played past. ENV let go quickly: the next part, as ever.
 - **PLAY**: a radio. **K1** tunes it: the needle glides along the dial to the track (1–8, the ones with something in
@@ -632,7 +633,7 @@ break alone: sweep it down and the drums stay full on top. The FLT pad throws it
 | GLO again (pitch, snap) | Keep length / speed | Grain | Snap | Reset all (twice) |
 | GLO a third time (BT audio) | On / off | Device | Scan | Connect / hang up |
 | ARP (overlay; white keys hold effects) | Amount (the effect touched last) | Rate | Sweep | Latch |
-| ENV TRACKS (PRESETS: the track; a white key: its pattern in) | Item | Pattern / DROP / END | Loops | At the end |
+| ENV TRACKS (PRESETS: the track; a white key: its pattern in) | Item | Pattern / DROP / END | Loops | Its break |
 | ENV PLAY (PLAY: the track) | Track | From item | At the end | |
 | ENV DROP | Build bars | After the drop | Break | Crash |
 | EDIT (kick; ALGORITHM its part) | see §8: MIX, SUB … CLICK FX, MACRO, OUT | | | |
