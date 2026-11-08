@@ -510,10 +510,17 @@ static int fx_mem_get(brk_fxslot_t *sl, brk_fxx_t *x)   /* 1: sl and x as the ef
  * TERROR's body tamed (-20 dB, 4:1, 5 / 80 ms), the click and the screech held fast (-30 dB, 8:1, 1 / 50 ms), split at
  * 3 kHz, a 3 dB knee; every band at full amount, all wet. An MB COMP marked so (its detail's rsv[0]: 1) is MB KICK */
 #define FXT_MBKICK BRK_NFXT
-static int mb_kick_is(uint32_t k) { return k >= BRK_FX_SLOTS && fx_sl(k)->type == FXT_MBCOMP && mbc_at(k)->rsv[0] == 1u; }
+#define FXT_MBOTT (BRK_NFXT + 1)         /* LOAF BREAKER TEST: MB OTT, after MB COMP (KICK FX: after MB KICK) */
+static uint32_t mb_preset(uint32_t k)    /* an MB COMP set as a preset: 1 MB KICK, 2 MB OTT (its detail's rsv[0]), 0 */
+{
+    uint32_t r = mbc_at(k)->rsv[0];
+    return fx_sl(k)->type == FXT_MBCOMP && (r == 2u || (r == 1u && k >= BRK_FX_SLOTS)) ? r : 0u;
+}
+static int mb_kick_is(uint32_t k) { return mb_preset(k) == 1u; }
 static const char *fx_name(uint32_t k)
 {
-    return mb_kick_is(k) ? "MB KICK" : BRK_FXT_NAME[fx_sl(k)->type % BRK_NFXT];
+    uint32_t r = mb_preset(k);
+    return r == 1u ? "MB KICK" : r == 2u ? "MB OTT" : BRK_FXT_NAME[fx_sl(k)->type % BRK_NFXT];
 }
 static void mb_kick_preset(brk_fxslot_t *sl, brk_mbc_t *m)
 {
@@ -534,57 +541,81 @@ static void mb_kick_preset(brk_fxslot_t *sl, brk_mbc_t *m)
     m->rsv[0] = 1u;
     sl->mix = 1.0f;
 }
-static int32_t kfx_pos_type(int32_t p)   /* KICK FX's list: a place in it, its effect (FXT_MBKICK after MB COMP) */
+/* LOAF BREAKER TEST: MB OTT, the dense "over the top" sound: every band pressed hard and fast (-36 dB, 10:1, 1 ms in,
+ * 60 ms out) and pushed back up after (+6 dB the low, +9 dB the mid and high), split at 88 Hz and 2.5 kHz, a 6 dB
+ * knee, -3 dB out, 60 % wet: the quiet parts come up as the loud go down (the parallel mix doing the upward half) */
+static void mb_ott_preset(brk_fxslot_t *sl, brk_mbc_t *m)
 {
-    return p <= FXT_MBCOMP ? p : p == FXT_MBCOMP + 1 ? FXT_MBKICK : p - 1;
+    uint32_t b;
+    brk_mbc_defaults(m);
+    for (b = 0; b < MB_BANDS; b++) {
+        m->thr[b] = 0.25f;
+        m->ratio[b] = 0.7143f;
+        m->att[b] = 0.3333f;
+        m->rel[b] = 0.3891f;
+        m->gain[b] = b == MB_LOW ? 0.75f : 0.875f;
+        sl->p[b] = 1.0f;
+    }
+    m->xlo = 0.2632f;                    /* 88 Hz */
+    m->xhi = 0.3687f;                    /* 2.5 kHz */
+    m->knee = 0.5f;                      /* 6 dB */
+    m->out = 0.375f;                     /* -3 dB */
+    m->rsv[0] = 2u;
+    sl->mix = 0.6f;
 }
 static void fx_type_turn(int32_t d)
 {
     brk_fxslot_t *sl = fx_sl(fx_foc());
     brk_mbc_t *mc = mbc_at(fx_foc());
-    int kickp = mb_kick_is(fx_foc()), dir = d > 0 ? 1 : -1;
-    int32_t pos = kickp ? FXT_MBCOMP + 1 : FX_KICK() && sl->type > FXT_MBCOMP ? (int32_t)sl->type + 1 : (int32_t)sl->type;
-    int32_t t;
-    char n[16];
+    uint32_t pre = mb_preset(fx_foc());
+    int32_t list[BRK_NFXT + 2], n = 0, pos = 0, t, q, dir = d > 0 ? 1 : -1, cur;
+    char nm[16];
     int had;
-    pos = clamp(pos + dir, 0, FX_KICK() ? BRK_NFXT : BRK_NFXT - 1);
-    t = FX_KICK() ? kfx_pos_type(pos) : pos;
-    while (FX_KICK() && (t == FXT_REVERB || t == FXT_DELAY)) {   /* (LOAF BREAKER: KICK FX: neither) */
-        pos += dir;
-        t = kfx_pos_type(pos);
+    for (q = 0; q < BRK_NFXT; q++) {     /* (this chain's list: KICK FX without REVERB and DELAY; the presets after MB
+                                          * COMP) */
+        if (FX_KICK() && (q == FXT_REVERB || q == FXT_DELAY))
+            continue;
+        list[n++] = q;
+        if (q == FXT_MBCOMP) {
+            if (FX_KICK())
+                list[n++] = FXT_MBKICK;
+            list[n++] = FXT_MBOTT;
+        }
     }
-    if (t == FXT_MBKICK) {               /* (LOAF BREAKER: MB KICK: the KICK GABBER preset) */
-        if (sl->type != FXT_MBCOMP)
-            fx_mem_put(sl, fxx_at(fx_foc()));
+    cur = pre == 1u ? FXT_MBKICK : pre == 2u ? FXT_MBOTT : (int32_t)sl->type;
+    for (q = 0; q < n; q++)
+        if (list[q] == cur)
+            pos = q;
+    t = list[clamp(pos + dir, 0, n - 1)];
+    if (t == cur)
+        return;
+    if (!pre)
+        fx_mem_put(sl, fxx_at(fx_foc()));   /* (LOAF BREAKER: the effect left, as it was) */
+    nm[0] = 0;
+    text_cat(nm, FX_KICK() ? "KICK FX " : "SLOT ");
+    int_text((int32_t)(fx_foc() % BRK_FX_SLOTS) + 1, nm + (FX_KICK() ? 8 : 5));
+    ui.fx_page = 0u;
+    if (t == FXT_MBKICK || t == FXT_MBOTT) {   /* (LOAF BREAKER: an MB COMP preset) */
         brk_fx_slot_defaults(sl, FXT_MBCOMP);
         sl->on = 1u;
         brk_fxx_defaults(fxx_at(fx_foc()), FXT_MBCOMP);
-        mb_kick_preset(sl, mc);
-        ui.fx_page = 0u;
-        n[0] = 0;
-        text_cat(n, "KICK FX ");
-        int_text((int32_t)(fx_foc() % BRK_FX_SLOTS) + 1, n + 8);
-        app_say(n, "MB KICK GABBER");
+        if (t == FXT_MBKICK)
+            mb_kick_preset(sl, mc);
+        else
+            mb_ott_preset(sl, mc);
+        app_say(nm, t == FXT_MBKICK ? "MB KICK GABBER" : "MB OTT");
         ui.redraw |= RG_BLOCKS | RG_FOOT;
         changed();
         return;
     }
-    if ((uint32_t)t == sl->type && !kickp)
-        return;
-    if (!kickp)
-        fx_mem_put(sl, fxx_at(fx_foc()));   /* (LOAF BREAKER: the effect left, as it was) */
-    mc->rsv[0] = 0u;                     /* (MB KICK left: a plain MB COMP's detail from the start) */
+    mc->rsv[0] = 0u;                     /* (a preset left: a plain MB COMP's detail from the start) */
     brk_fx_slot_defaults(sl, (int)t);
     sl->on = (uint8_t)(t != FXT_EMPTY);
     brk_fxx_defaults(fxx_at(fx_foc()), (int)t);   /* its extras: the new effect's */
     had = fx_mem_get(sl, fxx_at(fx_foc()));   /* (as it was left, if it was) */
-    if (t == FXT_MBCOMP && (!had || kickp))   /* an MB COMP put in: its detail from the start, at its AMOUNT */
+    if (t == FXT_MBCOMP && (!had || pre))   /* an MB COMP put in: its detail from the start, at its AMOUNT */
         brk_mbc_defaults(mbc_at(fx_foc()));
-    ui.fx_page = 0u;
-    n[0] = 0;
-    text_cat(n, FX_KICK() ? "KICK FX " : "SLOT ");
-    int_text((int32_t)(fx_foc() % BRK_FX_SLOTS) + 1, n + (FX_KICK() ? 8 : 5));
-    app_say(n, BRK_FXT_NAME[t]);
+    app_say(nm, BRK_FXT_NAME[t]);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
     changed();
 }

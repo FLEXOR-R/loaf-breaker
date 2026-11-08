@@ -37,9 +37,14 @@ wait 200
 expect mb_kick 1
 turn PRESET 1 10
 wait 200
+expect fx_type 12
+expect mb_pre 2
+shot mb_ott.png
+turn PRESET 1 10
+wait 200
 expect fx_type 13
 expect mb_kick 0
-turn PRESET -1 10
+turn PRESET -2 10
 wait 600
 expect mb_kick 1
 shot mb_kick_play.png

@@ -83,6 +83,12 @@ void kick_set_synth(const int8_t *s);    /* main loop, KS_N of them */
 void kick_wave(const kick_t *k, int8_t *px, uint32_t n, uint32_t ms, uint32_t height);
 void kick_rumble_buf(int16_t *buf, uint32_t len);   /* boot: the rumble's line (the app's: in the pool) */
 void kick_hit(void);                     /* main loop (a MIDI note): a kick at the next render */
+/* LOAF BREAKER TEST: GLIDE, the kick's pitch sliding from the last hit's note to the next's over glide_ms (0: a jump);
+ * the REVERSE BASS, the kick's sub at its note swelling up between two kicks (rawstyle): its level 0..1, where in the
+ * beat it starts (0..1: 1/8 .. 5/8 of a beat), its curve (0 slow .. 1 sharp, at the end); it goes through the kick's
+ * drive and TERROR. Main loop */
+void kick_set_bass(float glide_ms, float rb_level, float rb_start, float rb_curve);
+void kick_set_beat(float spb);           /* render, each block: samples a beat (the REVERSE BASS's beat) */
 /* render: n samples into out (overwritten); hits at the sample offsets at[0..nat-1] (rising) */
 void kick_render(float *out, uint32_t n, const uint16_t *at, uint32_t nat);
 /* LOAF BREAKER: the next render's speed, a sample each (0..1: the VINYL BREAK slowing the kick like a record), or 0

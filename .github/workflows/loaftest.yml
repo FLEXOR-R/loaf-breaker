@@ -1,0 +1,160 @@
+# LOAF BREAKER TEST (branch loaf-test): the visual improvements, ARP as FILL, the kick's GLIDE and REVERSE BASS, MB OTT,
+# BUILD's TEMPO RISE, HOTPANT and the OVERLAY page out. Every push to loaf-test is a pre-release of its own: test-v9.02,
+# 9.03... (the splash shows the number), loaf-breaker-test-X.YY.fwsc and the simulator's screens. The main line (loaf)
+# is untouched.
+name: LOAF BREAKER TEST
+
+on:
+  push:
+    branches: [loaf-test]
+    paths-ignore: ["breaks/tests/**", ".github/workflows/tests.yml"]   # (the break tests' own: tests.yml)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:                            # one release at a time, in order: no two runs take the same number
+  group: loaf-test
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Version
+        run: |
+          # (LOAF BREAKER's loaf-vX.YY tags go on from GLOUPI BREAKS' gloupi-vX.YY: one count)
+          TAGS="$(git ls-remote --tags origin 'refs/tags/test-v*' | sed 's|\^{}$||')"
+          V="$(printf '%s\n' "$TAGS" | grep "^$GITHUB_SHA" | sed 's|.*refs/tags/[a-z]*-v||' | head -1)"
+          if [ -z "$V" ]; then
+            LAST="$(printf '%s\n' "$TAGS" | sed -n 's|.*refs/tags/[a-z]*-v||p' | grep -E '^[0-9]+\.[0-9]{2,}$' \
+                    | sort -t. -k1,1n -k2,2n | tail -1)"
+            if [ -z "$LAST" ]; then
+              V=9.01
+            else
+              MAJ="${LAST%%.*}"; MIN=$((10#${LAST#*.} + 1))
+              V="$(printf '%d.%02d' "$MAJ" "$MIN")"
+            fi
+          fi
+          echo "VERSION=$V" >> "$GITHUB_ENV"
+          echo "LOAF BREAKER $V" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Pillow with raqm (the build's fonts)
+        run: |
+          raqm() { /usr/bin/python3 -c 'from PIL import features; raise SystemExit(not features.check("raqm"))' 2>/dev/null; }
+          raqm || /usr/bin/python3 -m pip install -q --user --break-system-packages Pillow
+          raqm || { sudo apt-get update -qq && sudo apt-get install -y -qq libfribidi0; }
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.jieli
+            ~/fw-AC79_AIoT_SDK
+          key: jieli-${{ runner.os }}-${{ hashFiles('scripts/bootstrap.sh') }}
+
+      - name: fm1-base, JieLi toolchain and AC79 SDK files
+        env:
+          PYTHON: /usr/bin/python3
+          BOOTSTRAP_USB: 0
+        run: sh scripts/bootstrap.sh
+
+      - name: Engine tests
+        run: ./build.sh test
+
+      - name: Firmware
+        env:
+          PYTHON: /usr/bin/python3
+        run: |
+          ./build.sh --release "$VERSION" | tee build.log
+          mv "app/build/choppah-$VERSION.fwsc" "app/build/loaf-breaker-test-$VERSION.fwsc"
+          { echo '```'; grep -i -E 'image|flash|bank|slot' build.log | tail -15; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Size report   # (LOAF BREAKER: what takes the room, tools/size_report.py; its failing stops nothing)
+        continue-on-error: true
+        run: |
+          ELF="$(find app/build -maxdepth 3 -name '*.elf' ! -path '*host*' | grep -v loader | head -1)"
+          OD="$HOME/.jieli/toolchain/common/bin/objdump"
+          echo "elf: $ELF"
+          "$OD" -h "$ELF" > app/build/sections.txt
+          "$OD" -t "$ELF" > app/build/symbols.txt
+          IMG="$(grep -o 'ok    image [0-9]* B' build.log | grep -o '[0-9][0-9]*' | head -1)"
+          /usr/bin/python3 tools/size_report.py app/build/sections.txt app/build/symbols.txt $IMG \
+            | tee "app/build/loaf-breaker-test-size-$VERSION.txt"
+          { echo '```'; head -60 "app/build/loaf-breaker-test-size-$VERSION.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Screens from the host simulator   # (a scenario failing fails the run: no release of a build that crashes)
+        env:
+          PYTHON: /usr/bin/python3
+        run: |
+          ./build.sh --host --release "$VERSION"   # (the number on its screens too)
+          mkdir -p screens
+          H="$(ls app/build/host/*_host | head -1)"
+          bad=""
+          for sc in ui kick64 lanes seq pads subdrive skins arp clap terror cross track fxmem kfx knob halflatch cdj maxout reorg drops reset synth kickmenu kroll hits trkgap mbkick loaftest; do "$H" tests/scenarios/$sc.txt screens || bad="$bad $sc"; done
+          # (LOAF BREAKER: the update loader's screen, its drawing on a stand-in panel)
+          cc -std=c99 -Wall -I tests/loader/src tests/loader/src/preview.c -o app/build/ldr_preview \
+            && (cd screens && ../app/build/ldr_preview) \
+            && /usr/bin/python3 -c 'import sys; from PIL import Image; [Image.open(f"screens/{n}.ppm").save(f"screens/{n}.png") for n in ("ldr_wait", "ldr_0", "ldr_50", "ldr_lost", "ldr_100", "ldr_done")]' \
+            && rm -f screens/*.ppm || bad="$bad loader"
+          ls screens
+          (cd screens && zip -q -r "../app/build/loaf-breaker-test-screens-$VERSION.zip" .)
+          [ -z "$bad" ] || { echo "::error::scenarios failed:$bad"; exit 1; }
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screens-${{ env.VERSION }}
+          path: screens/
+          if-no-files-found: ignore
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: test-v${{ env.VERSION }}
+          target_commitish: ${{ github.sha }}
+          name: LOAF BREAKER TEST ${{ env.VERSION }}
+          body: |
+            **FIRMWARE DE TEST** (le firmware principal loaf-v… n'est pas touché). Installe loaf-breaker-test-${{ env.VERSION }}.fwsc avec l'installateur web de fm1-base (Chrome ou Edge, le FM-1 en USB) ; le splash affiche ${{ env.VERSION }}. Pour revenir en arrière : réinstalle la dernière loaf-v….
+
+            ## Ce qui est nouveau dans ce firmware de test
+
+            **De la place :** le break HOTPANT 115 et la page OVERLAY d'ARP sont retirés (45 KB de flash libérés). La touche noire ARP garde son effet.
+
+            **ARP = FILL.** Maintiens le bouton ARP : les pas réglés en FILL jouent, ceux en NOT FILL se taisent, et la snare roule sur le dernier temps de chaque mesure. Relâche : tout revient. SEL + ARP fait toujours un pattern aléatoire.
+
+            **Conditions de pas.** Dans SEQ, maintiens un pas de drum : **K3 COND** = ALWAYS, 75%, 50%, 25%, **1:2** (une boucle sur deux), **2:2** (l'autre), **FILL**, **NOT FILL**. Ça remplace l'ancien CHANCE : un pas réglé avant peut avoir changé.
+
+            **Kick, partie BASS** (EDIT, EDIT = section SYNTH, ALGORITHM jusqu'à BASS) :
+            - **K1 GLIDE** : la hauteur du kick glisse d'une note à la suivante (0 à 400 ms). Mets des notes différentes sur les pas du kick (SEQ, pas maintenu, K1).
+            - **K2 REV BASS** : la reverse bass rawstyle, le sub du kick qui gonfle entre deux kicks et passe dans la disto TERROR.
+            - **K3 START** : où elle commence dans le temps. **K4 CURVE** : montée douce ou sèche.
+
+            **MB OTT** : dans PRESETS, après MB COMP (chaîne FX et KICK FX). Le son « over the top » : tout compressé fort et rapide puis remonté, mixé à 60 %.
+
+            **TEMPO RISE** (ENV › BUILD, bouton PRESETS) : le tempo monte pendant le build (jusqu'à +30 %) et revient au drop.
+
+            **Visuel :**
+            - Démarrage glitché.
+            - Le BPM s'allume sur chaque temps, la ligne sous l'en-tête flashe sur chaque kick, un repère montre le temps de la mesure.
+            - **CRT** (GLO › MORE, K3) : des lignes comme un vieil écran.
+            - Vue CDJ : la progression de la track en haut, et « DROP IN 4 » avant un drop.
+            - Menu KICK : le kick réel en points blancs par-dessus la forme théorique.
+            - Arcs sur les valeurs des knobs (FX, MIXER, vue classique du kick).
+            - Lumières : la touche suivante clignote de plus en plus vite pendant le build, PLAY clignote sur les kicks.
+
+            ## À tester en priorité
+            1. Le processeur : chaîne FX pleine + MB KICK + REV BASS + un drop. Si ça craque, dis-le moi.
+            2. La reverse bass à 150-180 BPM avec TERROR.
+            3. FILL en live.
+
+            Pour revenir au firmware principal : réinstalle la dernière loaf-v…. Dis-moi ce que tu gardes, j'intègre.
+          generate_release_notes: true
+          make_latest: false
+          prerelease: true
+          files: |
+            app/build/loaf-breaker-test-${{ env.VERSION }}.fwsc
+            app/build/loaf-breaker-test-screens-${{ env.VERSION }}.zip
+            app/build/loaf-breaker-test-size-${{ env.VERSION }}.txt

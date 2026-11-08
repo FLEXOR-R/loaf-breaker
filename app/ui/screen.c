@@ -62,6 +62,15 @@ static void version_text(char *t)
 
 /* GLOUPI BREAKS: a grey picture (tools/make_egg.py: a byte a run, bits 0-3 the grey, 4-7 the length less one) at
  * x0, y0 on the screen, w x h, in strips of 60 rows, each the screen's width (its sides black) */
+static int32_t gl_amt;                   /* LOAF BREAKER TEST: the start-up glitch: how far rows jump (0: none), its seed */
+static uint32_t gl_seed;
+static int32_t gl_shift(int32_t row)     /* a band of rows: shifted, or not (a third of the bands) */
+{
+    uint32_t h = ((uint32_t)row / 5u + gl_seed) * 2654435761u;
+    if (!gl_amt || (h >> 28) % 3u)
+        return 0;
+    return (int32_t)((h >> 8) % (uint32_t)(2 * gl_amt + 1)) - gl_amt;
+}
 static void grey_draw(const uint8_t *rle, uint32_t len, const uint16_t *pal, int32_t w, int32_t h, int32_t x0,
                       int32_t y0)
 {
@@ -74,8 +83,10 @@ static void grey_draw(const uint8_t *rle, uint32_t len, const uint16_t *pal, int
         for (i = 0; i < len && row < r + sh; i++) {
             uint32_t b = rle[i], c = b & 15u;
             int32_t n = (int32_t)(b >> 4) + 1;
-            if (c && row >= r)
-                cv_rect(x0 + x, row - r, n, 1, pal[c]);
+            if (c && row >= r) {
+                int32_t g = gl_shift(row);   /* (TEST: the glitch: the band shifted, its light tinted) */
+                cv_rect(x0 + x + g, row - r, n, 1, g ? (g & 1 ? RGB(255, 60, 40) : pal[c]) : pal[c]);
+            }
             x += n;
             if (x >= w) {
                 x = 0;
@@ -91,6 +102,17 @@ static void grey_draw(const uint8_t *rle, uint32_t len, const uint16_t *pal, int
 /* fm1-base's first screen at power-on, while the breaks are decoded (APP_SPLASH): the mark and the name (LOAF
  * BREAKER: its picture, nearly the whole screen, the version at the top right; held 1.5 s, app_frame) */
 static uint32_t splash_t;                /* when it was drawn (0: gone) */
+static void splash_glitch(uint32_t age)  /* LOAF BREAKER TEST: the start-up picture, its rows jumping, settling by 700 ms */
+{
+#if CH_LOGO
+    gl_amt = age < 700u ? (int32_t)((700u - age) * 24u / 700u) + 1 : 0;
+    gl_seed = age / 40u;
+    grey_draw(SPLASH_RLE, sizeof SPLASH_RLE, SPLASH_PAL, SPLASH_W, SPLASH_H, (240 - SPLASH_W) / 2, 240 - SPLASH_H);
+    gl_amt = 0;
+#else
+    (void)age;
+#endif
+}
 void app_splash(void)
 {
     lcd_fill(0, 0, 240, 240, C_BLACK);
@@ -337,13 +359,17 @@ static void draw_head(const brk_status_t *st, const brk_break_t *b, uint32_t now
                 cv_text(x + 5, 10, &FONT_T, "REC", C_AMB);
         }
         tenths_text(set.tempo_x10, t);
-        cv_text(222 - text_w(&FONT_B, t), 6, &FONT_B, t, C_HI);   /* (LOAF BREAKER: 10 left, the battery's room) */
+        cv_text(222 - text_w(&FONT_B, t), 6, &FONT_B, t,   /* (LOAF BREAKER: 10 left, the battery's room; TEST: white
+                                          * on each beat) */
+                st->playing && st->bar16 >= 0 && !(st->bar16 & 3) ? C_WHITE : C_HI);
         ui.meter_x = (int16_t)(218 - text_w(&FONT_B, t) - text_w(&FONT_T, "BPM") - 12);   /* left of BPM */
         cv_text(218 - text_w(&FONT_B, t) - text_w(&FONT_T, ext_active() ? "EXT" : "BPM"), 10, &FONT_T,
                 ext_active() ? "EXT" : "BPM", ext_active() ? C_AMB : C_GRAY);
     }
     draw_batt(229, plat_battery());      /* LOAF BREAKER: the battery (CHOPPAH 1.0's), always at the right end */
-    cv_rect(0, 27, 240, 1, C_LINE);
+    cv_rect(0, 27, 240, 1, now - ui.kick_t < 90u ? C_HI : C_LINE);   /* (TEST: lit on each kick) */
+    if (st->playing && st->bar16 >= 0)   /* (TEST: the bar's beats, four ticks under the header, the one now lit) */
+        cv_rect(2 + (st->bar16 >> 2) * 60, 26, 56, 1, C_GRAY);
     cv_blit(0, 0);
 }
 

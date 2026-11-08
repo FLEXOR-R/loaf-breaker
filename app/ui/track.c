@@ -70,6 +70,31 @@ static uint32_t trk_bars(const track_t *t)   /* how long it plays, in bars (the 
         b += t->it[i] == TI_DROP ? DROP_BARS[set.drop_bars % 5u] : t->it[i] == TI_GAP ? 0u : (uint32_t)t->rep[i] * lb;
     return b;
 }
+/* LOAF BREAKER TEST: a track playing, where it is in bars (done of total), and the bars left before its next DROP
+ * (-1: none next); 0 when no track plays */
+static int trk_where(const brk_status_t *st, uint32_t *done, uint32_t *total, int32_t *drop_in)
+{
+    const track_t *t = trk_now();
+    uint32_t i, b = 0u, lb = pat_len() / 16u, pos = ui.trk_pos % TRK_ITEMS, n = trk_len(t), in, item;
+    if (!ui.trk_on || !n)
+        return 0;
+    if (!lb)
+        lb = 1u;
+    for (i = 0; i < pos && i < n; i++)
+        b += t->it[i] == TI_DROP ? DROP_BARS[set.drop_bars % 5u] : t->it[i] == TI_GAP ? 0u : (uint32_t)t->rep[i] * lb;
+    item = t->it[pos] == TI_DROP ? DROP_BARS[set.drop_bars % 5u] : (uint32_t)t->rep[pos] * lb;
+    in = t->it[pos] == TI_DROP ? 0u : (uint32_t)ui.trk_loops * lb + (st->step >= 0 ? (uint32_t)st->step / 16u : 0u);
+    if (in > item)
+        in = item;
+    *done = b + in;
+    *total = trk_bars(t);
+    *drop_in = -1;
+    for (i = pos + 1u; i < n && t->it[i] == TI_GAP; i++)
+        ;
+    if (i < n && t->it[i] == TI_DROP && t->it[pos] != TI_DROP)
+        *drop_in = (int32_t)(item - in);
+    return 1;
+}
 static int trk_pat_from(const track_t *t, uint32_t i, int wrap)   /* the first pattern item at i or after (wrap: from
                                           * the start again past the END), -1 none */
 {
@@ -950,6 +975,16 @@ static void track_picture(int32_t top)
         cv_text(134, 60, &FONT_XS, "STUTTER: THE", C_GRAY);
         cv_text(134, 72, &FONT_XS, "BREAK ROLLS INTO", C_GRAY);
         cv_text(134, 84, &FONT_XS, "THE DROP", C_GRAY);
+        cv_text(134, 104, &FONT_XS, "PRESETS: TEMPO RISE", C_GRAY);   /* (TEST) */
+        s[0] = 0;
+        if (!set.drop_accel)
+            text_cat(s, "OFF");
+        else {
+            s[0] = '+';
+            int_text(set.drop_accel, s + 1);
+            text_cat(s, "% TO THE DROP");
+        }
+        cv_text(134, 116, &FONT_XS, s, set.drop_accel ? C_HI : C_DIM);
         cv_oy = 0;
         return;
     }

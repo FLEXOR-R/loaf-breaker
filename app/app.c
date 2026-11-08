@@ -148,6 +148,10 @@ typedef struct {
     /* (appended: LOAF BREAKER's kick SYNTH, EDIT KICK's SYNTH and SYNTH +; an older save's: as it always sounded) */
     int8_t ksyn[KS_N];                   /* the kick playing's (kick.h KS_*: -50 .. +50, TUNE -12 .. +12) */
     int8_t ksmem[KICK_MEMS][KS_N];       /* each kick memory's, as set.kmem */
+    uint8_t kbass[4];                    /* LOAF BREAKER TEST: the kick's BASS part: GLIDE, REV BASS, its START, its
+                                          * CURVE (0..100 each) */
+    uint8_t drop_accel;                  /* (TEST) BUILD's tempo rise to the drop: 0 .. 30 % */
+    uint8_t crt;                         /* (TEST) GLO MORE's CRT: the screen's lines (0 off) */
 } settings_t;
 enum { DS_SNARE, DS_KICK, DS_BOTH, DS_STUTTER, DS_SWEEP, DS_RANDOM, DS_N };
 static const uint8_t DROP_GAP[5] = {0u, 1u, 2u, 4u, 8u};   /* its steps: none, a 16th, an 8th, a beat, half a bar */
@@ -185,6 +189,7 @@ static void settings_defaults(void)
     for (k = 0; k < sizeof set; k++)     /* (every field: no leftovers from a save that didn't load) */
         z[k] = 0u;
     set.magic = SET_MAGIC;
+    set.kbass[2] = set.kbass[3] = 50u;   /* (TEST: REV BASS from 3/8 of the beat, a curve between) */
     set.tempo_x10 = 1700u;               /* jungle tempo */
     set.swing = 50u;
     set.gen.anchor = 0.7f;
@@ -289,6 +294,8 @@ static void settings_apply(void)
     brk_snap(SNAP_SL[snap_index()]);
     kick_set(&set.kick);
     kick_set_synth(set.ksyn);            /* (LOAF BREAKER: its SYNTH) */
+    kick_set_bass((float)set.kbass[0] * (float)set.kbass[0] * 0.04f, (float)set.kbass[1] * 0.01f,
+                  (float)set.kbass[2] * 0.01f, (float)set.kbass[3] * 0.01f);   /* (TEST: its BASS) */
     {
         perc_t pa;                       /* (all the drums' voices for the engine) */
         uint32_t k;
@@ -424,6 +431,13 @@ static volatile float b_riser = 1.0f;    /* its noise's level (1: as it always w
 /* LOAF BREAKER: the roll pads' KICK ROLL (their THRU KICK or BOTH): the pad held + 1 (0 none, the main loop's); the
  * render hits the kick at that pad's rate from the next step, the pattern's kicks out meanwhile */
 static volatile uint8_t kroll;
+#define KSC_W 232u                       /* LOAF BREAKER TEST: the kick as it sounds, its last hit's first 250 ms, a peak a
+                                          * column (KICK menu's picture, x1000) */
+#define KSC_N 11025u
+static volatile int16_t kscope[KSC_W];
+static volatile uint32_t kscope_hit;
+static volatile uint8_t fill_on;         /* LOAF BREAKER TEST: ARP held: FILL (the steps' FILL / NOT FILL, the snare's
+                                          * roll on the bar's last beat) */
 static volatile uint32_t kick_hit_n;     /* (the kick's hits so far: the simulator's checks) */
 /* LOAF BREAKER: the drums' HITS (pats.hits): a hit's repeats still to come, samples from this block's start */
 #define HQ_N 16u
@@ -433,15 +447,18 @@ static void hq_push(int32_t at, uint8_t kick, uint8_t who, float pm);
 /* a drum's hit on step si of pattern pi, at off (len: a 16th): its step's CHANCE (0: skipped), its NUDGE (later) and
  * its HITS (the repeats in its step) queued; 1: it sounds at off itself */
 static uint32_t step_rng = 0x9E3779B9u;
+static uint32_t pat_cycle;               /* LOAF BREAKER TEST: the pattern's loops (its first step), for 1:2 and 2:2 */
 static int step_hit(uint32_t pi, uint32_t d, uint32_t si, int32_t off, int32_t len, uint8_t kick, uint8_t who, float pm)
 {
     uint32_t b = *stepb(pi, d, si), hn = (b & 3u) + 1u, ch = (b >> 2) & 7u, nd = b >> 5, j;
     int32_t at;
-    if (ch) {
+    if (ch >= 1u && ch <= 3u) {          /* LOAF BREAKER TEST: CHANCE 75 %, 50 %, 25 % */
         step_rng = step_rng * 1664525u + 1013904223u;
-        if ((step_rng >> 29) < ch)       /* (one time in eight a notch: skipped) */
+        if ((step_rng >> 30) < ch)
             return 0;
-    }
+    } else if ((ch == 4u && (pat_cycle & 1u)) || (ch == 5u && !(pat_cycle & 1u)) || (ch == 6u && !fill_on) ||
+               (ch == 7u && fill_on))    /* (1:2 the first loop of two, 2:2 the second, FILL, NOT FILL) */
+        return 0;
     at = off + (int32_t)nd * len / 16;
     if (nd)
         hq_push(at, kick, who, pm);
@@ -1114,6 +1131,8 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             }
             for (k = 0; k < ne; k++) {
                 uint32_t s = idx[k] & 15u;   /* the step's place in the bar (idx: in four bars, the kick's) */
+                if (!idx[k])
+                    pat_cycle++;
                 if (build_wait && s == 0u && build_bars) {   /* the build asked for: from this bar's first step */
                     build_wait = 0u;
                     b_on = 1u;
@@ -1223,6 +1242,11 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                         who[np++] = (uint8_t)now;
                     }
                 }
+                if (fill_on && s >= 12u && np < 8u && !b_on) {   /* LOAF BREAKER TEST: FILL: the snare on every 16th of
+                                          * the bar's last beat */
+                    pa[np] = off[k];
+                    who[np++] = 1u << PV_SNARE;
+                }
             }
             {                            /* LOAF BREAKER: the HITS due in this block, in with the steps' (in order) */
                 uint32_t q = 0u, a, b;
@@ -1291,7 +1315,25 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             perc_speed(vs ? spd : 0);
             kick_hit_n += nk;
             kick_pitches(kpm);
+            kick_set_beat((float)BRK_SR * 60.0f / brk_get_tempo());   /* (TEST: the REVERSE BASS's beat) */
             kick_render(kick, m, ka, nk);
+            {                            /* (TEST: the kick's scope: from its hit, 250 ms) */
+                static uint32_t ki = KSC_N;
+                uint32_t i0 = 0u, c;
+                if (nk) {
+                    ki = 0u;
+                    i0 = ka[nk - 1u];
+                    for (c = 0; c < KSC_W; c++)
+                        kscope[c] = 0;
+                    kscope_hit++;
+                }
+                for (i = i0; i < m && ki < KSC_N; i++, ki++) {
+                    int32_t v = (int32_t)(kick[i] * 1000.0f);
+                    c = ki * KSC_W / KSC_N;
+                    if ((v < 0 ? -v : v) > (kscope[c] < 0 ? -kscope[c] : kscope[c]))
+                        kscope[c] = (int16_t)(v > 32000 ? 32000 : v < -32000 ? -32000 : v);
+                }
+            }
             brk_fx_kick_eq(kick, m);    /* LOAF BREAKER: HOME's KICK EQ */
             brk_fx_kick(kick, m);        /* and its KICK FX */
             perc_pitches(spm);

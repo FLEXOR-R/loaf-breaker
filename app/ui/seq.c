@@ -270,13 +270,13 @@ static void lane_knob(int i, int32_t d)
                                           * its HITS (1..4 in its step), K3 its CHANCE, K4 its NUDGE (later) */
         uint32_t s = ui.note_key - 1u, dr = sl_drum(ui.seq_lane), ks = SL_BAR[ui.seq_lane % NSEQL] * 16u + s;
         uint8_t *b = stepb(set.pattern, dr, ks);
-        static const char *const W[4] = {"", "HITS", "CHANCE", "NUDGE"};
+        static const char *const W[4] = {"", "HITS", "COND", "NUDGE"};
         if (!i)
             return;                      /* (K1: the snare, the hat, the clap have no note) */
         if (i == 1)
             *b = (uint8_t)((*b & ~3u) | (uint32_t)clamp((int32_t)(*b & 3u) + (d > 0 ? 1 : -1), 0, 3));
-        else if (i == 2)                 /* (right: more often, to always) */
-            *b = (uint8_t)((*b & ~0x1Cu) | (uint32_t)clamp((int32_t)(*b >> 2 & 7u) - (d > 0 ? 1 : -1), 0, 7) << 2);
+        else if (i == 2)                 /* (LOAF BREAKER TEST: ALWAYS, 75 %, 50 %, 25 %, 1:2, 2:2, FILL, NOT FILL) */
+            *b = (uint8_t)((*b & ~0x1Cu) | (uint32_t)clamp((int32_t)(*b >> 2 & 7u) + (d > 0 ? 1 : -1), 0, 7) << 2);
         else
             *b = (uint8_t)((*b & 0x1Fu) | (uint32_t)clamp((int32_t)(*b >> 5) + (d > 0 ? 1 : -1), 0, 7) << 5);
         ui.note_turned = 1u;
@@ -419,9 +419,9 @@ static void seq_value(int i, char *t)    /* the step edited: SLICE, PITCH, HITS,
         } else if (i == 1) {
             int_text((int32_t)(sb & 3u) + 1, t);
             text_cat(t, (sb & 3u) ? " HITS" : " HIT");
-        } else if (i == 2) {
-            int_text((int32_t)(100u - (sb >> 2 & 7u) * 125u / 10u), t);
-            text_cat(t, "%");
+        } else if (i == 2) {             /* LOAF BREAKER TEST: CHANCE and the trig conditions */
+            static const char *const C[8] = {"ALWAYS", "75%", "50%", "25%", "1:2", "2:2", "FILL", "NOT FILL"};
+            text_cat(t, C[sb >> 2 & 7u]);
         } else if (!(sb >> 5))
             text_cat(t, "ON TIME");
         else {
@@ -507,8 +507,6 @@ static uint32_t keys_lit(const brk_status_t *st)   /* the white keys' lights on 
 {
     if (ui.page == PG_TRACK)
         return track_keys_lit();
-    if (ui.page == PG_OVL)               /* ARP: the overlays on */
-        return ovl_held | ovl_latched;
     uint32_t m = 0u, i;
     if (ui.seq_lane >= SL_KICK) {
         int now = sl_now(st, ui.seq_lane);

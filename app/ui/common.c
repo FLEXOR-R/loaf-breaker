@@ -6,6 +6,24 @@
 #define brk_exp2f brk_exp2f_c
 #define brk_log2f brk_log2f_c
 
+/* LOAF BREAKER TEST: CRT (GLO MORE K3): every other row of the screen dimmed by half, as a tube's lines; every blit of
+ * the UI's goes through here (the canvas's rows on the screen's odd rows halved, then out) */
+static void crt_blit(uint32_t x, uint32_t y)
+{
+    if (set.crt) {
+        uint32_t r, i;
+        for (r = (y & 1u) ? 0u : 1u; r < cv_h; r += 2u) {
+            uint16_t *p = cv_px + r * cv_w;
+            for (i = 0; i < cv_w; i++) {
+                uint16_t c = swap16(p[i]);
+                p[i] = swap16((uint16_t)((c >> 1) & 0x7BEFu));
+            }
+        }
+    }
+    cv_blit(x, y);
+}
+#define cv_blit crt_blit
+
 /* ---------------------------------------------------------------- skins --- */
 /* GLOUPI BREAKS: the screen's colours, picked on GLOBAL's MORE page (K1) and saved (set.skin). fm1-base's palette
  * (gfx.c pal[]: rules, dim, labels, secondary, values) and the app's own (a block's ground, the block sounding, the
@@ -66,6 +84,9 @@ static struct {
     uint32_t oct_t, oct_rep;             /* OCT- / OCT+ held: repeats that speed up */
     int32_t last_step, last_slice;
     uint32_t last_pads, last_keys, last_hdr;
+    uint32_t kick_t;                     /* LOAF BREAKER TEST: when the kick last hit (the header's flash) */
+    uint32_t kick_seen;
+    uint32_t kscope_drawn;
     uint32_t intro_t0;                   /* the start screen: when it began (0: over) */
     uint8_t intro, intro_drawn;          /* showing it; blocks drawn so far */
     uint8_t touched;                     /* a key, button or encoder moved since app_frame last looked */

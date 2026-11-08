@@ -19,10 +19,6 @@ static void kfx_open(int on)             /* to KICK FX (on), or the FX page back
 static void knob_turn(int k, int32_t d)
 {
     brk_fx_t *f = &set.fx;
-    if (ui.page == PG_OVL) {
-        ovl_turn(k - EN_K1, d);
-        return;
-    }
     if (ui.page == PG_TRACK) {           /* LOAF BREAKER: ENV's TRACKS, PLAY, DROP */
         track_turn(k - EN_K1, d);
         return;
@@ -235,10 +231,7 @@ static void input(void)
         ui.btn = btn;
         return;
     }
-    ovl_keys(keys, kdn);                 /* the OVERLAY page's white keys (and the latched ones, any page) */
     for (i = 0; i < 16u; i++) {          /* white keys: slices, or a page's own */
-        if (ui.page == PG_OVL)
-            continue;
         if (ui.page == PG_TRACK) {       /* LOAF BREAKER: ENV: a pattern into the track, or a track played */
             if (kdn >> WK[i] & 1u)
                 track_key(i);
@@ -510,12 +503,15 @@ static void input(void)
         set_dirty = 1u;
         app_say("RANDOMIZE", "");
         ui.redraw |= RG_BLOCKS;
-    } else if (bdn & 1u << B_ARP) {      /* ARP: the OVERLAY page */
-        if (ui.page != PG_OVL)
-            slices_let_go(keys);
-        ui.page = PG_OVL;
-        ui.redraw |= RG_FOOT | RG_BLOCKS;
-        page_say();
+    } else if (bdn & 1u << B_ARP) {      /* LOAF BREAKER TEST: ARP held: FILL (the steps set FILL play, NOT FILL
+                                          * ones rest, the snare rolls the bar's last beat) */
+        fill_on = 1u;
+        app_say("FILL", "");
+        ui.redraw |= RG_HEAD;
+    }
+    if (fill_on && !(btn & 1u << B_ARP)) {
+        fill_on = 0u;
+        ui.redraw |= RG_HEAD;
     }
     if (bdn & 1u << B_FX && key_tuned() >= 0) {   /* FX with a key held: its knobs, loop <-> slice effect */
         ui.key_layer ^= 1u;
@@ -712,6 +708,21 @@ static void input(void)
             track_pick(d);               /* LOAF BREAKER: ENV: the track */
         else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage == 3u)
             selk_assign(d);              /* (TEST: K2, K4: their function) */
+        else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage == 4u) {   /* LOAF BREAKER TEST: BUILD's TEMPO RISE */
+            char t[8];
+            set.drop_accel = (uint8_t)clamp((int32_t)set.drop_accel + (d > 0 ? 2 : -2), 0, 30);
+            changed();
+            t[0] = 0;
+            if (!set.drop_accel)
+                text_cat(t, "OFF");
+            else {
+                t[0] = '+';
+                int_text(set.drop_accel, t + 1);
+                text_cat(t, "%");
+            }
+            app_say("TEMPO RISE", t);
+            ui.redraw |= RG_BLOCKS;
+        }
         else if (k == EN_PRESET)
             pattern_pick(d);             /* elsewhere: the pattern */
         else if (key_tuned() >= 0)       /* a white key held: K1-K4 tune its loop */
@@ -746,7 +757,7 @@ static void leds(void)
         plat_lights_mid(0u, 0u);
     }
     brk_status(&st);
-    if (st.playing)
+    if (st.playing && plat_ms() - ui.kick_t >= 70u)   /* (LOAF BREAKER TEST: PLAY blinks off on each kick) */
         b |= 1u << B_PLAY;
     static const uint8_t PAGE_BTN[NPAGES] = {B_HOME, B_HOME, B_FX, B_GLO, B_EDIT, B_LFO, B_SEQ, B_EDIT, B_ENV, B_ARP,
                                              B_EDIT};   /* (TEST: KICK EQ under EDIT) */
@@ -765,10 +776,13 @@ static void leds(void)
     for (i = 0; i < 11u; i++)
         if (i == PAD_FREEZE ? sub_drive_on() : i == PAD_DUB ? ovl_pad_on() : (int)(st.pads >> i & 1u) || roll_lit(i))
             k |= 1u << BK[PAD_KEY[i]];
-    if (build_p >= 0.0f) {               /* LOAF BREAKER: the build: the white keys fill up left to right */
-        uint32_t n = 1u + (uint32_t)(build_p * 15.0f);
+    if (build_p >= 0.0f) {               /* LOAF BREAKER: the build: the white keys fill up left to right (TEST: the next
+                                          * one blinking, faster as it builds) */
+        uint32_t n = 1u + (uint32_t)(build_p * 15.0f), per = 220u - (uint32_t)(build_p * 180.0f);
         for (i = 0; i < 16u; i++)
             k = i < n ? k | 1u << WK[i] : k & ~(1u << WK[i]);
+        if (n < 16u && (plat_ms() / per) & 1u)
+            k |= 1u << WK[n];
     } else if (ui.drop_t) {
         if ((plat_ms() / 60u) & 1u) {    /* the drop: every light strobing */
             b = 0x3FFFu;
@@ -784,10 +798,6 @@ static void leds(void)
 static void knob_value(int i, char *t)  /* the page's knob i (0..3), as shown under its name */
 {
     t[0] = 0;
-    if (ui.page == PG_OVL) {
-        ovl_value(i, t);
-        return;
-    }
     if (ui.page == PG_TRACK) {
         track_value(i, t);
         return;
@@ -868,8 +878,6 @@ static void draw_tabs(void)
     else if (ui.page == PG_TRACK)        /* LOAF BREAKER: ENV: TRACKS, PLAY, DROP */
         for (i = 0; i < NTPART; i++)   /* (TRACKS, PLAY, DROP, BUILD, KNOB, RESET: no "ENV" before them, for the room) */
             x = tab(x, TPART[TORDER[i]], TORDER[i] == ui.tpage);
-    else if (ui.page == PG_OVL)
-        tab(x, "OVERLAY", 1);
     else if (ui.page == PG_GLOBAL)
         for (i = 0; i < 3u; i++)
             x = tab(x, GPART[i], i == ui.gpage);
@@ -984,6 +992,30 @@ static void draw_help(void)
     }
 }
 
+/* LOAF BREAKER TEST: a knob's value as an arc (a 270 degree gauge, 13 px, lit as far as it is turned), where the page
+ * knows it 0..1: the FX slots, the kick, the MIXER's levels */
+static const int8_t ARC[19][2] = {{-4, 4}, {-5, 3}, {-6, 2}, {-6, 0}, {-6, -2}, {-5, -3}, {-4, -4}, {-3, -5}, {-2, -6},
+                                  {0, -6}, {2, -6}, {3, -5}, {4, -4}, {5, -3}, {6, -2}, {6, 0}, {6, 2}, {5, 3}, {4, 4}};
+static void knob_arc(int32_t cx, int32_t cy, float v)
+{
+    int32_t j, lit = (int32_t)(brk_clampf(v, 0.0f, 1.0f) * 18.0f + 0.5f);
+    for (j = 0; j < 19; j++)
+        cv_rect(cx + ARC[j][0], cy + ARC[j][1], j <= lit ? 2 : 1, j <= lit ? 2 : 1, j <= lit ? C_HI : C_LINE);
+}
+static float foot_norm(int i)            /* the page's knob i, 0..1, or -1 (no gauge) */
+{
+    if (ui.page == PG_FX && !mb_detail(fx_foc()) && !x_detail(fx_foc())) {
+        const brk_fxslot_t *sl = fx_sl(fx_foc());
+        return sl->type ? (i == 3 ? sl->mix : sl->p[i & 3]) : -1.0f;
+    }
+    if (ui.page == PG_KICK && !ui.kclassic)
+        return -1.0f;                    /* (the big view: its cards have their bars) */
+    if (ui.page == PG_KICK)
+        return kick_knob_f(i);
+    if (ui.page == PG_MIX && !ui.mpage)
+        return i == 0 ? (float)set.brk_level * 0.01f : i == 1 ? set.kick.volume : i == 2 ? set.perc.volume : set.fx.wet;
+    return -1.0f;
+}
 /* the foot: the pads, then the page and its knobs with their values */
 static void draw_foot(const brk_status_t *st)
 {
@@ -1012,7 +1044,7 @@ static void draw_foot(const brk_status_t *st)
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "RESET ALL"};
         static const char *const KN_GROOVE[3][4] = {{"SWING", "DRUMS", "", ""}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
                                                     {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
-        static const char *const KN_MORE[4] = {"SKIN", "AUTO SAVE", "", ""};   /* GLOUPI BREAKS: GLOBAL's MORE */
+        static const char *const KN_MORE[4] = {"SKIN", "AUTO SAVE", "CRT", ""};   /* GLOUPI BREAKS: GLOBAL's MORE */
         static const char *const KN_TRK[4][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
                                                  {"STYLE", "SWEEP", "RISER", "GAP"}, {"WHAT", "", "", "RESET"}};
         const char *name = ui.page == PG_TRACK && ui.tpage == 3u ? SK_KNOB[selk_fn(ui.knfn & 3u)][i] : ui.page == PG_TRACK &&
@@ -1048,7 +1080,7 @@ static void draw_foot(const brk_status_t *st)
             name = KEQ_NAME[ui.keq_part & 1u][i];
         else if (ui.page == PG_SEQ && ui.seq_lane >= SL_KICK) {
             static const char *const KN_LANE[2][4] = {{"FILL", "DRUM FLT", "CLR / 4X4", "LENGTH"},
-                                                      {"NOTE", "HITS", "CHANCE", "NUDGE"}};   /* (LOAF BREAKER: a
+                                                      {"NOTE", "HITS", "COND", "NUDGE"}};   /* (LOAF BREAKER: a
                                           * step held, its own) */
             name = KN_LANE[ui.note_key != 0u][i];
         }
@@ -1056,6 +1088,11 @@ static void draw_foot(const brk_status_t *st)
                 ? (fx_sl(fx_foc())->on ? C_HI : C_DIM) : C_GRAY);
         knob_value((int)i, t);
         cv_text(4 + (int32_t)i * 60, 30, &FONT_XS, t, C_WHITE);
+        {                                /* (TEST: its arc, where there is room beside the value) */
+            float nv = foot_norm((int)i);
+            if (nv >= 0.0f && text_w(&FONT_XS, t) <= 38)
+                knob_arc(4 + (int32_t)i * 60 + 49, 37, nv);
+        }
     }
     cv_blit(0, 192);
 }
@@ -1088,6 +1125,11 @@ void app_frame(void)
     break_poll();
     if (splash_t) {                      /* LOAF BREAKER: the splash 1.5 s, then the start screen from its start */
         if (now - splash_t < 1500u) {
+            static uint32_t gl_drawn;    /* (TEST: the glitch, settling in the first 700 ms, a frame each 40 ms) */
+            if (now - splash_t < 760u && now - gl_drawn >= 40u) {
+                gl_drawn = now;
+                splash_glitch(now - splash_t);
+            }
             ui.touched = 0u;
             return;
         }
@@ -1144,6 +1186,18 @@ void app_frame(void)
             ui.drop_asked = 1u;
             if (trk_drop_brk() - 1u != set.brk)
                 break_ask(trk_drop_brk() - 1u);
+        }
+    }
+    {                                    /* LOAF BREAKER TEST: BUILD's TEMPO RISE: the tempo up with the build, back at
+                                          * the drop (not while following a clock) */
+        static uint8_t ramped;
+        if (build_p >= 0.0f && set.drop_accel && !ext_active()) {
+            brk_tempo((float)set.tempo_x10 * 0.1f * (1.0f + (float)set.drop_accel * 0.01f * build_p));
+            ramped = 1u;
+        } else if (ramped) {
+            ramped = 0u;
+            if (!ext_active())
+                brk_tempo((float)set.tempo_x10 * 0.1f);
         }
     }
     if (build_p >= 0.0f && now - ui.build_said >= 250u) {   /* LOAF BREAKER: the build, how far */
@@ -1329,9 +1383,18 @@ void app_frame(void)
         ui.redraw |= RG_HEAD;
     }
     /* the header's own state: playing, the tempo, the break */
+    if (ui.page == PG_KICK && !ui.kclassic && kscope_hit && now - ui.kscope_drawn >= 120u && st.playing) {
+        ui.kscope_drawn = now;           /* (TEST: the KICK menu's live kick, redrawn as it sounds) */
+        ui.redraw |= RG_BLOCKS;
+    }
+    if (kick_hit_n != ui.kick_seen) {    /* (TEST: the kick's flash) */
+        ui.kick_seen = kick_hit_n;
+        ui.kick_t = now;
+    }
     hdr = (uint32_t)st.playing | (uint32_t)set.tempo_x10 << 1 | (uint32_t)set.brk << 13 | (b ? 1u : 0u) << 20 |
           (uint32_t)ext_active() << 21 | (uint32_t)set.pattern << 22 | (uint32_t)ui.rec << 26 |
-          (uint32_t)(pat_next >= 0) << 27;
+          (uint32_t)(pat_next >= 0) << 27 | (uint32_t)(now - ui.kick_t < 90u) << 28 |
+          (uint32_t)(st.bar16 >= 0 ? (st.bar16 >> 2) & 3 : 0) << 29 | (uint32_t)(st.bar16 >= 0 && !(st.bar16 & 3)) << 31;
     if (hdr != ui.last_hdr) {
         ui.last_hdr = hdr;
         ui.redraw |= RG_HEAD;
@@ -1362,9 +1425,7 @@ void app_frame(void)
         ui.fx_drawn = now;
     }
     if (ui.redraw & RG_BLOCKS) {
-        if (ui.page == PG_OVL)
-            draw_ovl();
-        else if (ui.page == PG_TRACK)
+        if (ui.page == PG_TRACK)
             draw_track();
         else if (ui.page == PG_SEQ)
             draw_seq(&st);
@@ -1423,8 +1484,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick"};
-    int v[44];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel"};
+    int v[48];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1440,8 +1501,8 @@ int app_expect(const char *what, int *got)
     v[11] = ui.help;
     v[12] = set.drums_chain;
     v[13] = ui.lobo_t != 0u;
-    v[14] = (int)(ovl_held | ovl_latched);
-    v[15] = ovl_last;
+    v[14] = fill_on;
+    v[15] = 0;
     v[16] = set.ovl_latch;
     v[17] = (int)(set.pads.roll_pitch * 10.0f + (set.pads.roll_pitch < 0.0f ? -0.5f : 0.5f));
     v[18] = demo.on;
@@ -1480,7 +1541,11 @@ int app_expect(const char *what, int *got)
     v[41] = trk_now()->it[ui.trk_cur % TRK_ITEMS];
     v[42] = (int)fx_sl(fx_foc())->type;
     v[43] = mb_kick_is(fx_foc());
-    for (i = 0; i < 44u; i++)
+    v[44] = (int)mb_preset(fx_foc());
+    v[45] = fill_on;
+    v[46] = set.kbass[1];
+    v[47] = set.drop_accel;
+    for (i = 0; i < 48u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

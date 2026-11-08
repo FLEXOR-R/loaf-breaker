@@ -39,6 +39,21 @@ static void cdj_picture(const brk_status_t *st, uint32_t w, int32_t top)
         cv_rect(xb, 99 - top, 1, 5, c);
     }
     cv_rect(237, 0 - top, 3, 104, C_WHITE);   /* the playhead, at the edge */
+    if (!top) {                          /* LOAF BREAKER TEST: a track playing: how far along it (a line at the top), and
+                                          * the bars left to its next DROP */
+        uint32_t done, total;
+        int32_t din;
+        if (trk_where(st, &done, &total, &din)) {
+            cv_rect(0, 0, 240, 3, C_LINE);
+            if (total)
+                cv_rect(0, 0, (int32_t)(done * 240u / total), 3, C_HI);
+            if (din > 0 && din <= 8) {
+                char d[16] = "DROP IN ";
+                int_text(din, d + 8);
+                cv_text(234 - text_w(&FONT_XS, d), 6, &FONT_XS, d, din <= 1 ? C_WHITE : C_AMB);
+            }
+        }
+    }
     if (!top) {                          /* the bar and the beat, as a CDJ counts them */
         char t[12], u[4];
         int_text((int32_t)(st->bar % 999u) + 1, t);

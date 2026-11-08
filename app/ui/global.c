@@ -13,6 +13,8 @@ static void global_value(int i, char *t)
             text_cat(t, SKIN_NAME[set.skin % NSKINS]);
         else if (i == 1)                 /* LOAF BREAKER: K2 AUTO SAVE */
             text_cat(t, set.auto_save ? "ON" : "OFF");
+        else if (i == 2)                 /* (TEST: K3 CRT) */
+            text_cat(t, set.crt ? "ON" : "OFF");
                                          /* (TEST: K3, K4 free; MAX OUT on the MIXER's MASTER) */
         return;
     }
@@ -51,7 +53,12 @@ static void global_turn(int i, int32_t d)
             changed();
             app_say("AUTO SAVE", set.auto_save ? "ON" : "OFF");
             ui.redraw |= RG_BLOCKS | RG_FOOT;
-        }                                /* (K3, K4: nothing) */
+        } else if (i == 2) {             /* (TEST: K3 CRT: the screen's lines, right on, left off) */
+            set.crt = d > 0 ? 1u : 0u;
+            changed();
+            app_say("CRT", set.crt ? "ON" : "OFF");
+            ui.redraw = RG_ALL;
+        }                                /* (K4: nothing) */
         return;
     }
     if (ui.gpage) {

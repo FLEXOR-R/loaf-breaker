@@ -19,7 +19,7 @@
 *   huge/cw_amen_chopper.wav                    171.78  2     2   CHOPPER 172
 *   classics/james_brown_funky_drummer.wav      99.81   2     4   DRUMMER 100
 *   classics/jimmy_mcgriff_the_worm.wav         109.79  2     4   THEWORM 110
-*   classics/bobby_byrd_hot_pants.wav           114.78  2     4   HOTPANT 115
+-   classics/bobby_byrd_hot_pants.wav           114.78  2     4   HOTPANT 115
 *   cw/cw_amen19_172.wav                        172     2     4   AMEN19 172
 #
 # out of the base (were in it until 0.35):

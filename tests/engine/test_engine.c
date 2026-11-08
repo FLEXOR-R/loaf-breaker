@@ -2107,6 +2107,56 @@ static void test_kick_synth(void)
     kick_set_synth(s);
 }
 
+/* LOAF BREAKER TEST: the REVERSE BASS swells between two kicks (the beat's end louder than without it, bounded), and
+ * GLIDE slides the second kick's pitch from the first's (more crossings just after it than a jump down) */
+static uint32_t kick_crossings(float glide, uint32_t from, uint32_t to)
+{
+    kick_t k;
+    uint16_t at = 0u;
+    uint32_t i, n = 0u;
+    int8_t s[KS_N] = {0};
+    float pm1 = 1.0f, pm2 = 0.5f;
+    kick_preset(&k, 3u);
+    k.volume = 0.8f;
+    kick_set_synth(s);
+    kick_set(&k);
+    kick_set_bass(glide, 0.0f, 0.5f, 0.5f);
+    kick_init();
+    for (i = 0; i < 60u * BLOCK; i += BLOCK) {
+        kick_pitches(i == 0u ? &pm1 : &pm2);
+        kick_render(kick_buf + i, BLOCK, &at, i == 0u || i == 20u * BLOCK ? 1u : 0u);
+    }
+    kick_pitches(0);
+    {                                    /* (the sub's: low-passed, the click and the grit left out) */
+        float lp = 0.0f, prev = 0.0f;
+        for (i = from; i < to; i++) {
+            lp += (kick_buf[i] - lp) * 0.04f;
+            if (i > from)
+                n += (prev < 0.0f) != (lp < 0.0f);
+            prev = lp;
+        }
+    }
+    return n;
+}
+static void test_kick_bass(void)
+{
+    int8_t s[KS_N] = {0};
+    float pk = 0.0f, base, rb;
+    uint32_t spb = 50u * BLOCK, cj, cg;
+    s[KS_HOLD] = -50;                    /* (a short kick: the beat's end its own) */
+    kick_set_beat((float)spb);
+    kick_set_bass(0.0f, 0.0f, 0.5f, 0.5f);
+    base = kick_energy(s, spb * 3u / 4u, spb - 100u, &pk);
+    kick_set_bass(0.0f, 1.0f, 0.5f, 0.5f);
+    rb = kick_energy(s, spb * 3u / 4u, spb - 100u, &pk);
+    kick_set_bass(0.0f, 0.0f, 0.5f, 0.5f);
+    CHECK(rb > base * 4.0f + 1.0f && pk <= 1.3f, "REVERSE BASS: %.2f at the beat's end against %.2f, peak %.2f", rb, base, pk);
+    cj = kick_crossings(0.0f, 20u * BLOCK + 300u, 20u * BLOCK + 4000u);
+    cg = kick_crossings(150.0f, 20u * BLOCK + 300u, 20u * BLOCK + 4000u);
+    kick_set_bass(0.0f, 0.0f, 0.5f, 0.5f);
+    CHECK(cg > cj, "GLIDE: %u crossings after the second kick sliding, %u jumping", cg, cj);
+}
+
 /* LOAF BREAKER (TEST): TERROR's more: CLIP and CRUSH sound apart from FOLD, SCREECH and DRIVE move it, all bounded */
 static void test_terror_more(void)
 {
@@ -2199,6 +2249,7 @@ int main(int argc, char **argv)
     test_kick_fx();
     test_terror_more();
     test_kick_synth();
+    test_kick_bass();
     test_gate();
     test_swap();
     test_snap();
