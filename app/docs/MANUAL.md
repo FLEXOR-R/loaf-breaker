@@ -272,7 +272,8 @@ its level in and out.
 | --- | --- |
 | ALGORITHM | The slot to tune (1–4) |
 | FX again | The slot's next part: MAIN, MORE, MOD (an MB COMP: its six), then the next slot |
-| PRESETS | The effect in that slot, through the library (EMPTY first); a new effect comes in on, at its own starting settings |
+| PRESETS | The effect in that slot, through the library (EMPTY first); a new effect comes in on, as you last left it (its MORE and MOD too; never touched: its starting settings) |
+| SEL ×2 | The slot's effect back to its starting settings (its MORE, MOD and MB COMP detail too); SEL ×2 again within 4 s takes the reset back. On EDIT KICK's FX parts the same for that layer's effect, which is also remembered effect by effect |
 | K1–K3 · K4 | Its settings · its mix |
 | SEL + FX | That slot on / bypassed |
 | FX held + ALGORITHM | Moves that slot along the chain (the order is the sound: DRIVE before a FILTER is not a FILTER before DRIVE) |

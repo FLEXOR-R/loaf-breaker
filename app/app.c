@@ -300,13 +300,24 @@ typedef struct {
     uint8_t end;                         /* at its end: 0 LOOP, 1 STOP, 2 HOLD */
     uint8_t rsv[3];
 } track_t;
+/* LOAF BREAKER: each effect's settings as last left, kept when a slot turns to another effect and back (FX's
+ * PRESETS; EDIT KICK's FX, each layer's); saved after the tracks. 0..65535 for 0..1 */
+#define FXM_N (4u + BRK_FXX)             /* an effect's P1-P3, MIX, then its extras (MORE, MOD) */
+typedef struct {
+    uint16_t fx[BRK_NFXT][FXM_N];
+    uint16_t kfx[KICK_LAYERS][KICK_FX - 1u][3];   /* a kick layer's effect (KFX_DRIVE..): its two settings, its mix */
+    uint16_t fx_ok;                      /* bit t: fx[t] holds them (none: the effect's starting settings) */
+    uint16_t kfx_ok;                     /* bit layer * 4 + effect - 1 */
+} fxmem_t;
 typedef struct {
     uint32_t magic;
     pat_t p[NPAT];
     track_t trk[NTRACKS];
+    fxmem_t mem;
 } pats_t;
 static pats_t pats;
 #define PATS_SIZE_OLD offsetof(pats_t, trk)   /* (a save before the tracks) */
+#define PATS_SIZE_TRK offsetof(pats_t, mem)   /* (one before the effects' memory) */
 _Static_assert(sizeof pats <= 3840u, "a store object holds 3840 bytes");
 /* LOAF BREAKER: BUILD and DROP. SEL clicked three times, playing (build_n, the main loop): from the next bar the
  * drums' steps give way to a snare roll that speeds up (quarters, eighths, 16ths, then 32nds, a quarter of the build
@@ -354,6 +365,7 @@ static void pat_defaults(void)
         p->kick2 = 0u;
     }
     trk_defaults();
+    pats.mem.fx_ok = pats.mem.kfx_ok = 0u;
 }
 /* GLOUPI BREAKS: the kick over four bars (64 steps), bar b (0..3) 16 bits: lane[LANE_KICK], kick2, and bars 3 and 4
  * in the spare bytes of steps 0-3 (st[0..3][3], low byte first) */
@@ -664,9 +676,11 @@ void app_init(void)
     if (set.brk >= n_breaks)
         set.brk = 0u;
     trk_defaults();
+    pats.mem.fx_ok = pats.mem.kfx_ok = 0u;   /* (an older save: no effect remembered) */
     {
         int sz = plat_store_size(OBJ_PAT);   /* (LOAF BREAKER: a save from before the tracks: its patterns) */
-        if ((sz != (int)sizeof pats && sz != (int)PATS_SIZE_OLD) || plat_store_load(OBJ_PAT, &pats, (uint32_t)sz) != sz)
+        if ((sz != (int)sizeof pats && sz != (int)PATS_SIZE_OLD && sz != (int)PATS_SIZE_TRK) ||
+            plat_store_load(OBJ_PAT, &pats, (uint32_t)sz) != sz)
             pats.magic = 0u;
     }
     if (pats.magic != PAT_MAGIC && pats.magic != PAT2_MAGIC && pats.magic != PAT1_MAGIC)

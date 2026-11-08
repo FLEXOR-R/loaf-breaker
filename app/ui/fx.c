@@ -453,23 +453,106 @@ static void fx_knob_turn(uint32_t slot, int i, int32_t d)
 
 /* PRESETS on the FX page: the focused slot's effect, through the library (EMPTY first), with its own starting
  * settings, on at once */
+/* LOAF BREAKER: each effect's settings remembered (pats.mem): put as a slot leaves it, got back as one turns to it */
+static uint16_t fxm_q(float v) { return (uint16_t)(brk_clampf(v, 0.0f, 1.0f) * 65535.0f + 0.5f); }
+static float fxm_f(uint16_t q) { return (float)q * (1.0f / 65535.0f); }
+static void fx_mem_put(const brk_fxslot_t *sl, const brk_fxx_t *x)
+{
+    uint32_t t = sl->type, i;
+    uint16_t *m;
+    if (t == FXT_EMPTY || t >= BRK_NFXT)
+        return;
+    m = pats.mem.fx[t];
+    for (i = 0; i < 3u; i++)
+        m[i] = fxm_q(sl->p[i]);
+    m[3] = fxm_q(sl->mix);
+    for (i = 0; i < BRK_FXX; i++)
+        m[4u + i] = fxm_q(x->type == t ? x->x[i] : 0.0f);
+    if (x->type != t) {                  /* (extras of another effect: this one's starting ones) */
+        brk_fxx_t d;
+        brk_fxx_defaults(&d, (int)t);
+        for (i = 0; i < BRK_FXX; i++)
+            m[4u + i] = fxm_q(d.x[i]);
+    }
+    pats.mem.fx_ok |= (uint16_t)(1u << t);
+}
+static int fx_mem_get(brk_fxslot_t *sl, brk_fxx_t *x)   /* 1: sl and x as the effect was left */
+{
+    uint32_t t = sl->type, i;
+    const uint16_t *m;
+    if (t >= BRK_NFXT || !(pats.mem.fx_ok >> t & 1u))
+        return 0;
+    m = pats.mem.fx[t];
+    for (i = 0; i < 3u; i++)
+        sl->p[i] = fxm_f(m[i]);
+    sl->mix = fxm_f(m[3]);
+    for (i = 0; i < BRK_FXX; i++)
+        x->x[i] = fxm_f(m[4u + i]);
+    return 1;
+}
 static void fx_type_turn(int32_t d)
 {
     brk_fxslot_t *sl = &set.fx.slot[ui.fx_focus & 3u];
     int32_t t = clamp((int32_t)sl->type + (d > 0 ? 1 : -1), 0, BRK_NFXT - 1);
     char n[16];
+    int had;
     if ((uint32_t)t == sl->type)
         return;
+    fx_mem_put(sl, &set.fxx[ui.fx_focus & 3u]);   /* (LOAF BREAKER: the effect left, as it was) */
     brk_fx_slot_defaults(sl, (int)t);
     sl->on = (uint8_t)(t != FXT_EMPTY);
-    if (t == FXT_MBCOMP)                 /* an MB COMP put in: its detail from the start, at its AMOUNT */
-        brk_mbc_defaults(&set.mbc[ui.fx_focus & 3u]);
     brk_fxx_defaults(&set.fxx[ui.fx_focus & 3u], (int)t);   /* its extras: the new effect's */
+    had = fx_mem_get(sl, &set.fxx[ui.fx_focus & 3u]);   /* (as it was left, if it was) */
+    if (t == FXT_MBCOMP && !had)         /* an MB COMP put in: its detail from the start, at its AMOUNT */
+        brk_mbc_defaults(&set.mbc[ui.fx_focus & 3u]);
     ui.fx_page = 0u;
     n[0] = 0;
     text_cat(n, "SLOT ");
     int_text((int32_t)(ui.fx_focus & 3u) + 1, n + 5);
     app_say(n, BRK_FXT_NAME[t]);
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+    changed();
+}
+
+/* LOAF BREAKER: SEL clicked twice on FX: the focused slot's effect back to its starting settings (its MORE, its MOD,
+ * MB COMP's detail), forgotten as it was; twice again within 4 s: as it was (the reset taken back) */
+static struct {
+    brk_fxslot_t sl;
+    brk_fxx_t x;
+    brk_mbc_t m;
+    uint32_t t;
+    uint8_t slot;
+} fx_undo;
+static void fx_reset(void)
+{
+    uint32_t k = ui.fx_focus & 3u, now = plat_ms(), t;
+    brk_fxslot_t *sl = &set.fx.slot[k];
+    if (fx_undo.t && now - fx_undo.t < 4000u && fx_undo.slot == k && fx_undo.sl.type == sl->type) {
+        *sl = fx_undo.sl;
+        set.fxx[k] = fx_undo.x;
+        set.mbc[k] = fx_undo.m;
+        fx_undo.t = 0u;
+        app_say(BRK_FXT_NAME[sl->type % BRK_NFXT], "RESET UNDONE");
+    } else {
+        uint8_t on = sl->on;
+        t = sl->type;
+        if (t == FXT_EMPTY || t >= BRK_NFXT) {
+            app_say("SLOT", "EMPTY");
+            return;
+        }
+        fx_undo.sl = *sl;
+        fx_undo.x = set.fxx[k];
+        fx_undo.m = set.mbc[k];
+        fx_undo.slot = (uint8_t)k;
+        fx_undo.t = now | 1u;
+        brk_fx_slot_defaults(sl, (int)t);
+        sl->on = on;
+        brk_fxx_defaults(&set.fxx[k], (int)t);
+        if (t == FXT_MBCOMP)
+            brk_mbc_defaults(&set.mbc[k]);
+        pats.mem.fx_ok &= (uint16_t)~(1u << t);
+        app_say(BRK_FXT_NAME[t], "RESET (SEL X2: UNDO)");
+    }
     ui.redraw |= RG_BLOCKS | RG_FOOT;
     changed();
 }

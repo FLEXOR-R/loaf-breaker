@@ -478,13 +478,16 @@ static void input(void)
             ui.sel_clicks = 0u;
     }
     if (ui.sel_clicks && now - ui.sel_click_t >= 400u) {   /* one click alone: the combinations card, open or
-                                          * closed (two: nothing) */
+                                          * closed (two: an effect's reset, on FX and EDIT KICK's FX) */
         if (ui.sel_clicks == 1u) {
             ui.help ^= 1u;
             ui.help_t = now;
             if (ui.help)
                 app_say("SEL", "COMBINATIONS");
-        }
+        } else if (ui.page == PG_FX)        /* LOAF BREAKER: two on FX: the slot's effect reset (two again: undone) */
+            fx_reset();
+        else if (ui.page == PG_KICK && ui.kpage == KP_FX)   /* (EDIT KICK's FX: the layer's effect) */
+            kfx_reset();
         ui.sel_clicks = 0u;
     }
     if (bdn & 1u << B_SAVE && btn & 1u << B_SEL)   /* SEL + SAVE: undo (again: redo) */
@@ -875,6 +878,10 @@ static void draw_help(void)
             const char *a = L[i][0], *b = L[i][1];
             if (i == 3u && ui.page == PG_SEQ)
                 b = "CLEAR LANE";
+            if (i == 1u && (ui.page == PG_FX || (ui.page == PG_KICK && ui.kpage == KP_FX))) {
+                a = "SEL X2";            /* (LOAF BREAKER: the effect's reset) */
+                b = "RESET EFFECT";
+            }
             if (ui.page == PG_FX && i >= 6u) {
                 a = i == 6u ? "+ FX" : "FX + ALGO";
                 b = i == 6u ? "BYPASS SLOT" : "MOVE SLOT";
@@ -1289,8 +1296,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos"};
-    int v[25];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx"};
+    int v[28];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1317,7 +1324,10 @@ int app_expect(const char *what, int *got)
     v[22] = (int)(brk_mb_thr_db(set.mbc[1].thr[MB_LOW]) - 0.5f);
     v[23] = ui.trk_on;
     v[24] = ui.trk_pos;
-    for (i = 0; i < 25u; i++)
+    v[25] = (int)(set.fx.slot[ui.fx_focus & 3u].p[0] * 100.0f + 0.5f);
+    v[26] = (int)(set.kick.l[ui.klayer % KICK_LAYERS].fa * 100.0f + 0.5f);
+    v[27] = set.kick.l[ui.klayer % KICK_LAYERS].fx;
+    for (i = 0; i < 28u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

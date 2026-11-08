@@ -157,6 +157,60 @@ static void kick_value(int i, char *t)
         break;
     }
 }
+/* LOAF BREAKER: a kick layer's effect remembered as it was left (pats.mem), each layer's each effect */
+static void kfx_mem_put(uint32_t layer, const kick_layer_t *l)
+{
+    uint16_t *m;
+    if (!l->fx || l->fx >= KICK_FX)
+        return;
+    m = pats.mem.kfx[layer % KICK_LAYERS][l->fx - 1u];
+    m[0] = fxm_q(l->fa);
+    m[1] = fxm_q(l->fb);
+    m[2] = fxm_q(l->wet);
+    pats.mem.kfx_ok |= (uint16_t)(1u << ((layer % KICK_LAYERS) * 4u + l->fx - 1u));
+}
+static int kfx_mem_get(uint32_t layer, kick_layer_t *l)
+{
+    const uint16_t *m;
+    if (!l->fx || l->fx >= KICK_FX || !(pats.mem.kfx_ok >> ((layer % KICK_LAYERS) * 4u + l->fx - 1u) & 1u))
+        return 0;
+    m = pats.mem.kfx[layer % KICK_LAYERS][l->fx - 1u];
+    l->fa = fxm_f(m[0]);
+    l->fb = fxm_f(m[1]);
+    l->wet = fxm_f(m[2]);
+    return 1;
+}
+/* SEL clicked twice on EDIT KICK's FX part: the layer's effect back to its start (twice again within 4 s: undone) */
+static struct { float fa, fb, wet; uint32_t t; uint8_t layer, fx; } kfx_undo;
+static void kfx_reset(void)
+{
+    uint32_t ly = ui.klayer % KICK_LAYERS, now = plat_ms();
+    kick_layer_t *l = &set.kick.l[ly];
+    if (kfx_undo.t && now - kfx_undo.t < 4000u && kfx_undo.layer == ly && kfx_undo.fx == l->fx) {
+        l->fa = kfx_undo.fa;
+        l->fb = kfx_undo.fb;
+        l->wet = kfx_undo.wet;
+        kfx_undo.t = 0u;
+        app_say(KICK_FX_NAME[l->fx % KICK_FX], "RESET UNDONE");
+    } else {
+        if (!l->fx) {
+            app_say("KICK FX", "OFF");
+            return;
+        }
+        kfx_undo.fa = l->fa;
+        kfx_undo.fb = l->fb;
+        kfx_undo.wet = l->wet;
+        kfx_undo.layer = (uint8_t)ly;
+        kfx_undo.fx = l->fx;
+        kfx_undo.t = now | 1u;
+        l->fa = l->fb = 0.5f;
+        l->wet = 1.0f;
+        pats.mem.kfx_ok &= (uint16_t)~(1u << (ly * 4u + l->fx - 1u));
+        app_say(KICK_FX_NAME[l->fx % KICK_FX], "RESET (SEL X2: UNDO)");
+    }
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+    changed();
+}
 static void kick_knob_turn(int i, int32_t d)
 {
     kick_t *k = &set.kick;
@@ -181,9 +235,17 @@ static void kick_knob_turn(int i, int32_t d)
             changed();
             return;
         }
-        if (i == 0)
-            l->fx = (uint8_t)clamp((int32_t)l->fx + (d > 0 ? 1 : -1), 0, KICK_FX - 1);
-        else if (i == 3)
+        if (i == 0) {                    /* (LOAF BREAKER: the effect left remembered, the new one as left) */
+            uint32_t f = (uint32_t)clamp((int32_t)l->fx + (d > 0 ? 1 : -1), 0, KICK_FX - 1);
+            if (f == l->fx)
+                break;
+            kfx_mem_put(ui.klayer % KICK_LAYERS, l);
+            l->fx = (uint8_t)f;
+            if (!kfx_mem_get(ui.klayer % KICK_LAYERS, l)) {
+                l->fa = l->fb = 0.5f;    /* (kick_preset's) */
+                l->wet = 1.0f;
+            }
+        } else if (i == 3)
             l->wet = knob_f(l->wet, d, 0.02f, 0.0f, 1.0f);
         else if (kick_knob_name(i)[0]) {
             float *p = i == 1 ? &l->fa : &l->fb;
