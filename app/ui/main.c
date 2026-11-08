@@ -282,12 +282,28 @@ static void input(void)
                 ovl_pad_key(0);
             continue;
         }
+        if (i == PAD_HALF && set.half_mt_off & 2u) {   /* LOAF BREAKER: HALF SPEED's LATCH: a press on, a press
+                                          * off (its knobs while held, as ever) */
+            if (kdn >> BK[PAD_KEY[i]] & 1u) {
+                half_lat ^= 1u;
+                brk_pad((int)i, half_lat);
+                ui.pad_focus = (int8_t)i;
+                ui.pad_since = now;
+                app_say("HALF SPEED", half_lat ? "LATCHED" : "OFF");
+            }
+            continue;
+        }
+        if (i == PAD_HALF && half_lat && !(keys >> BK[PAD_KEY[i]] & 1u)) {   /* (LATCH turned off, let go: off) */
+            half_lat = 0u;
+            brk_pad((int)i, 0);
+            continue;
+        }
         if (kdn >> BK[PAD_KEY[i]] & 1u) {
             brk_pad((int)i, 1);
             ui.pad_focus = (int8_t)i;
             ui.pad_since = now;
         }
-        if (kup >> BK[PAD_KEY[i]] & 1u)
+        if (kup >> BK[PAD_KEY[i]] & 1u && !(i == PAD_HALF && half_lat))
             brk_pad((int)i, 0);
     }
     if (ui.pad_focus >= 0 && !(keys >> BK[PAD_KEY[ui.pad_focus]] & 1u)) {   /* let go: another pad still held, or none */
@@ -1299,8 +1315,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn"};
-    int v[31];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on"};
+    int v[32];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1334,7 +1350,12 @@ int app_expect(const char *what, int *got)
         v[28] += kick_note(pat_now(), i) != 0;
     v[29] = set.comp;
     v[30] = ui.knfn;
-    for (i = 0; i < 31u; i++)
+    {
+        brk_status_t hs;
+        brk_status(&hs);
+        v[31] = (int)(hs.pads >> PAD_HALF & 1u);
+    }
+    for (i = 0; i < 32u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

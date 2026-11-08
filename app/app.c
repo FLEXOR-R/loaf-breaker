@@ -83,7 +83,8 @@ typedef struct {
     uint8_t skin;
     int8_t kick_dj;                      /* GLOUPI BREAKS: HOME's KICK FLT (SEQ's K2 too), LOAF BREAKER: 0 off .. 100
                                           * high-pass (an older save's low-pass, below 0: off) */
-    uint8_t half_mt_off;                 /* GLOUPI BREAKS: HALF SPEED's K2, 1 MASTER TEMPO off (0, older saves: on) */
+    uint8_t half_mt_off;                 /* GLOUPI BREAKS: HALF SPEED's K2, bit 0 MASTER TEMPO off (0, older saves: on);
+                                          * LOAF BREAKER: bit 1 its K3 LATCH (a press on, a press off) */
     uint8_t ovl_pad;                     /* GLOUPI BREAKS: the ARP black key, bits 0-3 its OVERLAY effect (OV_*),
                                           * bit 4 its LATCH (gone), bit 5 OFF (K3: the effects browsed silent),
                                           * bits 6-7 THRU (K2): 0 BOTH, 1 BREAK (the kick around the chain and
@@ -264,7 +265,7 @@ static void settings_apply(void)
     set.pads.roll_pitch = 0.0f;          /* LOAF BREAKER: the rolls' pitch gone (an older save's: off) */
     brk_padset(&set.pads);
     brk_pitch_mode(pitch_keeps(), (float)(set.grain_ms ? set.grain_ms : 30u));
-    brk_half_master(!set.half_mt_off);
+    brk_half_master(!(set.half_mt_off & 1u));
     brk_vinyl((set.vinyl & 3u) != 2u);
     ovl_reese_hz(kick_pitch_hz(KL_SUB, set.kick.l[KL_SUB].pitch));
     brk_fx_set_kick_eq(set.keq);   /* (the ARP's REESE in the kick's key) */

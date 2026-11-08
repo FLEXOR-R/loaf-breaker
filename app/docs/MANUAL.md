@@ -193,7 +193,7 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 | R8 · R16 · R32 | Roll from the next 16th | Rate (1/4 … 1/64, triplets) | Decay: DOWN (each repeat quieter) or UP (a swell up to full) | Pitch a repeat: −12 … +12 semitones in tenths (0.1 a detent, 0.5 when turned quickly), up to three octaves in all | Level of the repeats (5–100 %: low for ghost notes) |
 | REV | Reverse | Speed | | | |
 | FRZ | Freeze: the slice (or part of it) loops | Length (slice, 1/2, 1/4, 1/8) | Pitch | | |
-| HLF | Half speed | Speed | | | |
+| HLF | Half speed | Speed | MASTER TEMPO: the pitch kept (ON) or dropped | LATCH: ON, a press turns it on and the next off (turned on while held: it stays on) | |
 | STP | Tape stop; let go and it spins back up | Stop time (beats) | Spin-up (16ths) | | |
 | GAT | Gate | Rate (1/8, 1/16, 1/32) | Length | | |
 | RND | Random slices | Amount | Random pitch | | |

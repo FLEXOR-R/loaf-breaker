@@ -8,10 +8,11 @@ static const char *const THRU_NAME[4] = {"BOTH", "BREAK", "KICK", "BOTH"};   /* 
 static void egg_draw(void);              /* (screen.c) */
 static uint8_t ovlpad_held, ovlpad_lat;  /* (the ARP key's: below) */
 static int ovl_pad_on(void);
+static uint8_t half_lat;                 /* LOAF BREAKER: HALF SPEED latched on (its LATCH: K3) */
 /* what K1-K4 tune while a pad is held, by pad (brk.h PAD_*); 0: that knob does nothing for it */
 static const char *const PAD_KNOB[BRK_NPADS][4] = {
     {"RATE", "FILTER", "DRUM FLT", "DECAY"}, {"RATE", "FILTER", "DRUM FLT", "DECAY"}, {"RATE", "FILTER", "DRUM FLT", "DECAY"},
-    {"SPEED", 0, 0, 0}, {"LENGTH", "PITCH", 0, 0}, {"SPEED", "M. TEMPO", 0, 0}, {"STOP", "SPIN UP", "THRU", 0},
+    {"SPEED", 0, 0, 0}, {"LENGTH", "PITCH", 0, 0}, {"SPEED", "M. TEMPO", "LATCH", 0}, {"STOP", "SPIN UP", "THRU", 0},
     {"RATE", "LENGTH", 0, 0}, {"AMOUNT", "PITCH", 0, 0}, {"TARGET", "RESO", "SPEED", 0},
     {"EFFECT", "THRU", "ON / OFF", "LATCH"}};   /* (LOAF BREAKER: held only; K2 what goes through the ARP
                                           * effects: the kick, the break, or both) */   /* (GLOUPI BREAKS: PAD_DUB is the ARP key) */
@@ -132,7 +133,8 @@ static void pad_knob_value(int pad, int k, char *t)
     case PAD_REVERSE: times_text(p->rev_speed, t); break;
     case PAD_HALF:                       /* (GLOUPI BREAKS: K2 its master tempo) */
         if (k == 0) times_text(p->half_speed, t);
-        else text_cat(t, set.half_mt_off ? "OFF" : "ON");
+        else if (k == 1) text_cat(t, set.half_mt_off & 1u ? "OFF" : "ON");
+        else text_cat(t, set.half_mt_off & 2u ? "ON" : "OFF");   /* (LOAF BREAKER: K3 LATCH) */
         break;
     case PAD_TAPESTOP:                   /* (LOAF BREAKER: the VINYL BREAK; K3 its THRU, as the ARP key's) */
         if (k == 2) { text_cat(t, THRU_NAME[set.vinyl & 3u]); break; }
@@ -191,7 +193,11 @@ static void pad_knob_turn(int pad, int k, int32_t d)
     case PAD_REVERSE: p->rev_speed = knob_f(p->rev_speed, d, 0.05f, 0.5f, 2.0f); break;
     case PAD_HALF:                       /* GLOUPI BREAKS: K2 MASTER TEMPO, right on (the pitch kept), left off */
         if (k == 0) p->half_speed = knob_f(p->half_speed, d, 0.05f, 0.25f, 0.75f);
-        else set.half_mt_off = d < 0;
+        else if (k == 1) set.half_mt_off = (uint8_t)((set.half_mt_off & ~1u) | (d < 0 ? 1u : 0u));
+        else {                           /* LOAF BREAKER: K3 LATCH, right on (held now: it stays on), left off */
+            set.half_mt_off = (uint8_t)(d > 0 ? set.half_mt_off | 2u : set.half_mt_off & ~2u);
+            half_lat = (uint8_t)(d > 0 && ui.pad_focus == PAD_HALF);
+        }
         break;
     case PAD_TAPESTOP:
         if (k == 0)                      /* (LOAF BREAKER: to 16 beats, a beat a detent past 4) */
