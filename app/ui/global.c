@@ -13,16 +13,7 @@ static void global_value(int i, char *t)
             text_cat(t, SKIN_NAME[set.skin % NSKINS]);
         else if (i == 1)                 /* LOAF BREAKER: K2 AUTO SAVE */
             text_cat(t, set.auto_save ? "ON" : "OFF");
-        else if (i == 2)                 /* (K3: nothing) */
-            ;
-        else {                           /* LOAF BREAKER: K4 MAX OUT, the output's most at MASTER full (DROP BRK:
-                                          * ENV's DROP) */
-            uint32_t db = max_out_db();
-            if (db)
-                text_cat(t, "-");
-            int_text((int32_t)db, t + (db ? 1 : 0));
-            text_cat(t, " DB");
-        }
+                                         /* (TEST: K3, K4 free; MAX OUT on the MIXER's MASTER) */
         return;
     }
     if (ui.gpage) {                      /* the pitch: speed or keep length, the grains */
@@ -60,14 +51,7 @@ static void global_turn(int i, int32_t d)
             changed();
             app_say("AUTO SAVE", set.auto_save ? "ON" : "OFF");
             ui.redraw |= RG_BLOCKS | RG_FOOT;
-        } else if (i == 2) {             /* (K3: nothing; LOAF LORD gone, its room in flash back) */
-        } else {                         /* K4 MAX OUT: right louder (to 0 dB), left quieter (to -12 dB) */
-            set.max_out = (uint8_t)(clamp((int32_t)max_out_db() - (d > 0 ? 1 : -1), 0, 12) + 1);
-            global_value(3, t);
-            app_say("MAX OUT", t);
-            changed();
-            ui.redraw |= RG_FOOT;
-        }
+        }                                /* (K3, K4: nothing) */
         return;
     }
     if (ui.gpage) {

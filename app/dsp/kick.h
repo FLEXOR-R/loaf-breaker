@@ -44,6 +44,13 @@ typedef struct {
 #define KICK_T2_SUB(k) ((k)->l[KL_PUNCH].rsv[1])
 #define KICK_T2_SCREAM(k) ((k)->l[KL_PUNCH].rsv[2])
 #define KICK_T2_PUSH(k) ((k)->l[KL_CLICK].rsv[1])
+/* LOAF BREAKER (TEST): TERROR's more: DRIVE (-50 .. +50, int8: the fold's gain apart from AMOUNT's mix), TYPE (0 FOLD,
+ * 1 CLIP: squared off, 2 CRUSH: folded then stepped), SCREECH (0 off, 1..100: a resonant band after it, ~500 Hz ..
+ * 5 kHz: the whistle), TAIL (-50 .. +50: the distortion dying with the kick faster .. hanging on) */
+#define KICK_T_DRIVE(k) ((k)->l[KL_GRIT].rsv[0])
+#define KICK_T_TYPE(k) ((k)->l[KL_GRIT].rsv[2])
+#define KICK_T_SCREECH(k) ((k)->l[KL_CLICK].rsv[0])
+#define KICK_T_TAIL(k) ((k)->l[KL_CLICK].rsv[2])
 
 typedef struct {
     kick_layer_t l[KICK_LAYERS];

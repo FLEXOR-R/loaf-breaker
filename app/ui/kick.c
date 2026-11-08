@@ -4,7 +4,12 @@
 
 /* ---- the KICK page (PRD K-*): EDIT opens it, EDIT again the next sub-page. The white keys are the kick's 16
  * steps, ALGORITHM the layer, PRESETS the built-in kicks, SEL + EDIT through the FX chain or around it */
-enum { KP_MIX, KP_LAYER, KP_FX, KP_MACRO, KP_OUT, KPAGES };
+enum { KP_MIX, KP_LAYER, KP_FX, KP_MACRO, KP_OUT, KP_TERROR, KP_TMORE, KP_TERROR2, KPAGES };
+/* (LOAF BREAKER TEST: TERROR, TERROR +, TERROR 2 the kick's own settings of them, ENV's KNOB functions 3, 4, 1) */
+static void selk_turn(uint32_t f, int i, int32_t d);
+static void selk_value(uint32_t f, int i, char *t);
+static float sk_norm(uint32_t f, int i);
+static uint32_t kp_fn(void) { return ui.kpage == KP_TERROR ? 3u : ui.kpage == KP_TMORE ? 4u : 1u; }
 
 /* LOAF BREAKER: the kick memories, KICK 1..10 (KICK's PRESETS, SEQ's SELECT): the one playing kept as it is, the next
  * as it was left (the volume kept) */
@@ -21,19 +26,33 @@ static void kick_mem_turn(int32_t d)
     ui.redraw |= RG_BLOCKS | RG_FOOT;
     changed();
 }
-static const char *const KPAGE_NAME[KPAGES] = {"MIX", "LAYER", "LAYER FX", "MACRO", "OUT"};
+static const char *const KPAGE_NAME[KPAGES] = {"MIX", "LAYER", "LAYER FX", "MACRO", "OUT", "TERROR", "TERROR +",
+                                                "TERROR 2"};
 /* the kick's parts in a row, as ALGORITHM turns through them: MIX, SUB, SUB FX, PUNCH, PUNCH FX, GRIT, GRIT FX,
- * CLICK, CLICK FX, MACRO, OUT (each a sub-page, and for a layer its layer) */
-#define KPARTS (3u + 2u * KICK_LAYERS)
+ * CLICK, CLICK FX, MACRO, OUT (each a sub-page, and for a layer its layer); LOAF BREAKER TEST: then EQ BANDS, EQ
+ * SHAPE (the KICK EQ page), FX 1, FX 2 (the FX page on the kick's slots), TERROR, TERROR +, TERROR 2 */
+#define KP_BASE (3u + 2u * KICK_LAYERS)
+#define KPARTS (KP_BASE + 7u)
+static const char *const KP_MORE_NAME[7] = {"EQ BANDS", "EQ SHAPE", "FX 1", "FX 2", "TERROR", "TERROR +", "TERROR 2"};
 static uint32_t kick_part(void)
 {
-    return ui.kpage == KP_MIX ? 0u : ui.kpage == KP_MACRO ? KPARTS - 2u : ui.kpage == KP_OUT ? KPARTS - 1u
+    if (ui.page == PG_KEQ)
+        return KP_BASE + (ui.keq_part & 1u);
+    if (ui.page == PG_FX)
+        return KP_BASE + 2u + (uint32_t)(ui.fx_focus - BRK_FX_SLOTS) % 2u;
+    if (ui.kpage >= KP_TERROR)
+        return KP_BASE + 4u + (uint32_t)(ui.kpage - KP_TERROR);
+    return ui.kpage == KP_MIX ? 0u : ui.kpage == KP_MACRO ? KP_BASE - 2u : ui.kpage == KP_OUT ? KP_BASE - 1u
            : 1u + ui.klayer * 2u + (ui.kpage == KP_FX ? 1u : 0u);
 }
 static void kick_part_name(uint32_t p, char *t)
 {
-    if (p == 0u || p >= KPARTS - 2u) {
-        text_cat(t, KPAGE_NAME[p == 0u ? KP_MIX : p == KPARTS - 2u ? KP_MACRO : KP_OUT]);
+    if (p >= KP_BASE) {
+        text_cat(t, KP_MORE_NAME[(p - KP_BASE) % 7u]);
+        return;
+    }
+    if (p == 0u || p >= KP_BASE - 2u) {
+        text_cat(t, KPAGE_NAME[p == 0u ? KP_MIX : p == KP_BASE - 2u ? KP_MACRO : KP_OUT]);
         return;
     }
     text_cat(t, KICK_LAYER_NAME[(p - 1u) / 2u]);
@@ -43,11 +62,25 @@ static void kick_part_name(uint32_t p, char *t)
 }
 static void kick_part_set(uint32_t p)
 {
-    if (p == 0u)
+    ui.page = PG_KICK;
+    if (p >= KP_BASE) {                  /* (TEST) the KICK EQ, the kick's FX slots, its TERRORs */
+        uint32_t q = (p - KP_BASE) % 7u;
+        if (q < 2u) {
+            ui.page = PG_KEQ;
+            ui.keq_part = (uint8_t)q;
+        } else if (q < 4u) {
+            if (ui.fx_focus < BRK_FX_SLOTS)
+                ui.fx_main = ui.fx_focus;
+            ui.fx_focus = (uint8_t)(BRK_FX_SLOTS + q - 2u);
+            ui.fx_page = 0u;
+            ui.page = PG_FX;
+        } else
+            ui.kpage = (uint8_t)(KP_TERROR + q - 4u);
+    } else if (p == 0u)
         ui.kpage = KP_MIX;
-    else if (p == KPARTS - 2u)
+    else if (p == KP_BASE - 2u)
         ui.kpage = KP_MACRO;
-    else if (p == KPARTS - 1u)
+    else if (p == KP_BASE - 1u)
         ui.kpage = KP_OUT;
     else {
         ui.kpage = (p - 1u) & 1u ? KP_FX : KP_LAYER;
@@ -59,7 +92,10 @@ static const char *const KN_KICK[KPAGES][4] = {{"SUB", "PUNCH", "GRIT", "CLICK"}
                                                {"LEVEL", "PITCH", "DECAY", "TONE"},
                                                {"EFFECT", "", "", "WET"},
                                                {"SUB", "PUNCH", "GRIT", "INTENSITY"},
-                                               {"VOLUME", "TERROR", "TERROR 2", ""}};   /* (LOAF BREAKER: OUT's K2, K3) */
+                                               {"VOLUME", "TERROR", "TERROR 2", ""},   /* (LOAF BREAKER: OUT's K2, K3) */
+                                               {"AMOUNT", "SUB", "FIZZ", "SUSTAIN"},
+                                               {"DRIVE", "TYPE", "SCREECH", "TAIL"},
+                                               {"AMOUNT", "SUB", "SCREAM", "PUSH"}};
 /* LOAF BREAKER: OUT's K2 TERROR, K3 TERROR 2 (kick.h), 0..100 each; SEL + K4 and SEL + K3 on any page (main.c) */
 static uint8_t *kick_hc(kick_t *k, int i) { return i == 2 ? &KICK_TERROR2(k) : &KICK_TERROR(k); }
 static void kick_hc_text(const kick_t *k, int i, char *t)
@@ -116,6 +152,10 @@ static void kick_value(int i, char *t)
     const kick_t *k = &set.kick;
     const kick_layer_t *l = &k->l[ui.klayer % KICK_LAYERS];
     t[0] = 0;
+    if (ui.kpage >= KP_TERROR) {         /* (TEST) the TERRORs */
+        selk_value(kp_fn(), i, t);
+        return;
+    }
     switch (ui.kpage) {
     case KP_MIX:
         pct_text(k->l[i].level, t);
@@ -216,6 +256,10 @@ static void kick_knob_turn(int i, int32_t d)
     kick_t *k = &set.kick;
     kick_layer_t *l = &k->l[ui.klayer % KICK_LAYERS];
     char t[16];
+    if (ui.kpage >= KP_TERROR) {         /* (TEST) the TERRORs */
+        selk_turn(kp_fn(), i, d);
+        return;
+    }
     switch (ui.kpage) {
     case KP_MIX:
         k->l[i].level = knob_f(k->l[i].level, d, 0.02f, 0.0f, 1.0f);
@@ -351,6 +395,10 @@ static float kick_knob_f(int i)          /* the part's knob i, 0..1 (as its bar)
         return i == 0 ? (float)l->fx / (float)(KICK_FX - 1) : i == 1 ? l->fa : i == 2 ? l->fb : l->wet;
     case KP_MACRO:
         return i == 3 ? k->intensity : kick_macro_value(i);
+    case KP_TERROR:
+    case KP_TMORE:
+    case KP_TERROR2:
+        return sk_norm(kp_fn(), i);
     default:
         return i == 0 ? k->volume : i <= 2 ? (float)*kick_hc((kick_t *)k, i) * 0.01f : 0.0f;
     }

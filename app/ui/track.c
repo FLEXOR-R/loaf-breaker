@@ -204,10 +204,24 @@ static void track_dropped(void)
     ui.trk_prev = -1;
 }
 
-/* ---- KNOB: the SEL + knob functions, each its settings (K1 its amount, as SEL + its knob) ---- */
-static const char *const SK_NAME[4] = {"DUCK", "TERROR 2", "COMP", "TERROR"};
-static const char *const SK_KNOB[4][4] = {{"AMOUNT", "ATTACK", "RELEASE", "DUCKS"}, {"AMOUNT", "SUB", "SCREAM", "PUSH"},
-                                          {"AMOUNT", "RATIO", "ATTACK", "RELEASE"}, {"AMOUNT", "SUB", "FIZZ", "SUSTAIN"}};
+/* ---- KNOB: the SEL + knob functions, each its settings (K1 its amount, as SEL + its knob). Functions: 0 DUCK, 1 TERROR
+ * 2, 2 COMP, 3 TERROR, 4 TERROR + (TERROR's more: no amount of its own), 5 DRIVE (the kick's INTENSITY). SEL + K1 is
+ * DUCK, SEL + K3 COMP; SEL + K2 and SEL + K4 each the function KNOB gives them (LOAF BREAKER TEST: set.selk_asg) ---- */
+static const char *const SK_NAME[6] = {"DUCK", "TERROR 2", "COMP", "TERROR", "TERROR +", "DRIVE"};
+static const char *const SK_SHORT[6] = {"DUCK", "TERR 2", "COMP", "TERROR", "TERR +", "DRIVE"};
+static const char *const SK_KNOB[6][4] = {{"AMOUNT", "ATTACK", "RELEASE", "DUCKS"}, {"AMOUNT", "SUB", "SCREAM", "PUSH"},
+                                          {"AMOUNT", "RATIO", "ATTACK", "RELEASE"}, {"AMOUNT", "SUB", "FIZZ", "SUSTAIN"},
+                                          {"DRIVE", "TYPE", "SCREECH", "TAIL"}, {"AMOUNT", "", "", ""}};
+static const char *const T_TYPE_NAME[3] = {"FOLD", "CLIP", "CRUSH"};
+static const uint8_t SK_ASG[4] = {0u, 1u, 3u, 5u};   /* an assignment's code: (0: the knob's own), TERROR 2, TERROR, DRIVE */
+static uint32_t selk_fn(uint32_t knob)   /* the function SEL + K1..K4 turns */
+{
+    uint32_t c;
+    if (knob == 0u || knob == 2u)
+        return knob;
+    c = knob == 1u ? set.selk_asg & 15u : set.selk_asg >> 4;
+    return c && c < 4u ? SK_ASG[c] : knob == 1u ? 1u : 3u;
+}
 static uint8_t *sk_byte(uint32_t f, int i)   /* a setting's byte (the TERRORs': the kick's, int8 -50..50) */
 {
     kick_t *k = &set.kick;
@@ -217,18 +231,44 @@ static uint8_t *sk_byte(uint32_t f, int i)   /* a setting's byte (the TERRORs': 
         return i < 3 ? DUCKB[i] : &set.duck_what;
     if (f == 2u)
         return COMPB[i & 3];
+    if (f == 4u)
+        return i == 0 ? &KICK_T_DRIVE(k) : i == 1 ? &KICK_T_TYPE(k) : i == 2 ? &KICK_T_SCREECH(k) : &KICK_T_TAIL(k);
     if (i == 0)
         return kick_hc(k, f == 1u ? 2 : 1);
     if (f == 1u)
         return i == 1 ? &KICK_T2_SUB(k) : i == 2 ? &KICK_T2_SCREAM(k) : &KICK_T2_PUSH(k);
     return i == 1 ? &KICK_T_SUB(k) : i == 2 ? &KICK_T_FIZZ(k) : &KICK_T_SUS(k);
 }
+static int sk_signed(uint32_t f, int i)  /* a setting -50 .. +50 (int8) */
+{
+    return (f == 1u || f == 3u) ? i > 0 : f == 4u && (i == 0 || i == 3);
+}
 static void selk_value(uint32_t f, int i, char *t)
 {
-    uint8_t v = *sk_byte(f, i);
-    int32_t sv = (int8_t)v;
+    uint8_t v;
+    int32_t sv;
     t[0] = 0;
-    if (i == 0) {                        /* the amount */
+    if (f == 5u) {                       /* DRIVE: the kick's INTENSITY */
+        if (i == 0)
+            pct_text(set.kick.intensity, t);
+        return;
+    }
+    v = *sk_byte(f, i);
+    sv = (int8_t)v;
+    if (f == 4u && i == 1)
+        text_cat(t, T_TYPE_NAME[v <= 2u ? v : 0u]);
+    else if (f == 4u && i == 2) {        /* SCREECH: its band */
+        if (!v)
+            text_cat(t, "OFF");
+        else {
+            int_text((int32_t)(500.0f * brk_exp2f_c((float)v * 0.0332f) + 0.5f), t);
+            text_cat(t, " HZ");
+        }
+    } else if (sk_signed(f, i) && !(i == 1 || (f == 1u && i == 2))) {
+        if (sv > 0)
+            text_cat(t, "+");
+        int_text(sv, t + (sv > 0 ? 1 : 0));
+    } else if (i == 0) {                 /* the amount */
         if (!v)
             text_cat(t, "OFF");
         else if (f == 2u) {              /* COMP: its threshold */
@@ -253,36 +293,76 @@ static void selk_value(uint32_t f, int i, char *t)
             text_cat(t, ":1");
         } else
             ms_text(i == 2 ? att_ms(v) : rel_ms(v), t);
-    } else if (i == 1 || (f == 1u && i == 2)) {   /* SUB, SCREAM: about their frequency */
+    } else {                             /* SUB, SCREAM: about their frequency */
         int_text((int32_t)((i == 1 ? 110.0f * brk_exp2f_c((float)sv * 0.024f) : 620.0f * brk_exp2f_c((float)sv * 0.04f)) + 0.5f), t);
         text_cat(t, " HZ");
-    } else {
-        if (sv > 0)
-            text_cat(t, "+");
-        int_text(sv, t + (sv > 0 ? 1 : 0));
     }
 }
-/* turned: SEL + its knob (i 0), or on KNOB */
+static float sk_norm(uint32_t f, int i)  /* a setting 0..1, as its bar */
+{
+    uint8_t v;
+    if (f == 5u)
+        return i == 0 ? set.kick.intensity : 0.0f;
+    v = *sk_byte(f, i);
+    if (sk_signed(f, i))
+        return ((float)(int8_t)v + 50.0f) * 0.01f;
+    if (f == 4u && i == 1)
+        return (float)v * 0.5f;
+    if ((f == 0u && i == 3))
+        return (float)v;
+    if (f == 2u && i == 1)
+        return (float)(v & 7u) * (1.0f / 7.0f);
+    return (float)v * 0.01f;
+}
+/* turned: SEL + its knob (i 0), on KNOB, or on EDIT KICK's TERROR parts */
 static void selk_turn(uint32_t f, int i, int32_t d)
 {
-    uint8_t *b = sk_byte(f & 3u, i);
     char t[16], n[20];
-    if (i == 0 || (f == 0u && i < 3) || (f == 2u && i >= 2))
-        *b = (uint8_t)clamp((int32_t)*b + d * 2, 0, 100);
-    else if (f == 0u)
-        *b = (uint8_t)clamp((int32_t)*b + (d > 0 ? 1 : -1), 0, 1);
-    else if (f == 2u)
-        *b = (uint8_t)clamp((int32_t)*b + (d > 0 ? 1 : -1), 0, 7);
-    else
-        *b = (uint8_t)(int8_t)clamp((int32_t)(int8_t)*b + d * 2, -50, 50);
-    selk_value(f & 3u, i, t);
+    if (f == 5u) {                       /* DRIVE */
+        if (i)
+            return;
+        set.kick.intensity = knob_f(set.kick.intensity, d, 0.02f, 0.0f, 1.0f);
+    } else {
+        uint8_t *b = sk_byte(f, i);
+        if (sk_signed(f, i))
+            *b = (uint8_t)(int8_t)clamp((int32_t)(int8_t)*b + d * 2, -50, 50);
+        else if (f == 4u && i == 1)
+            *b = (uint8_t)clamp((int32_t)*b + (d > 0 ? 1 : -1), 0, 2);
+        else if (f == 0u && i == 3)
+            *b = (uint8_t)clamp((int32_t)*b + (d > 0 ? 1 : -1), 0, 1);
+        else if (f == 2u && i == 1)
+            *b = (uint8_t)clamp((int32_t)*b + (d > 0 ? 1 : -1), 0, 7);
+        else
+            *b = (uint8_t)clamp((int32_t)*b + d * 2, 0, 100);
+    }
+    selk_value(f, i, t);
     n[0] = 0;
-    text_cat(n, SK_NAME[f & 3u]);
+    text_cat(n, SK_NAME[f % 6u]);
     if (i) {
         text_cat(n, " ");
-        text_cat(n, SK_KNOB[f & 3u][i & 3]);
+        text_cat(n, SK_KNOB[f % 6u][i & 3]);
     }
     app_say(n, t);
+    changed();
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
+/* PRESETS on KNOB, on K2 or K4: what that knob does with SEL (TERROR 2, TERROR, DRIVE) */
+static void selk_assign(int32_t d)
+{
+    uint32_t kn = ui.knfn & 3u, sh = kn == 1u ? 0u : 4u, c;
+    char n[12] = "SEL + K";
+    if (kn == 0u || kn == 2u) {
+        app_say(SK_NAME[kn], "FIXED");
+        return;
+    }
+    c = (set.selk_asg >> sh) & 15u;
+    if (!c || c > 3u)
+        c = kn == 1u ? 1u : 2u;          /* (the default: K2 TERROR 2, K4 TERROR) */
+    c = (uint32_t)clamp((int32_t)c + (d > 0 ? 1 : -1), 1, 3);
+    set.selk_asg = (uint8_t)((set.selk_asg & ~(15u << sh)) | c << sh);
+    n[7] = (char)('1' + kn);
+    n[8] = 0;
+    app_say(n, SK_NAME[selk_fn(kn)]);
     changed();
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
@@ -309,7 +389,7 @@ static void track_value(int i, char *t)
     char r[6];
     t[0] = 0;
     if (ui.tpage == 3u) {                /* KNOB */
-        selk_value(ui.knfn & 3u, i, t);
+        selk_value(selk_fn(ui.knfn & 3u), i, t);
         return;
     }
     if (ui.tpage == 2u) {                /* DROP */
@@ -378,7 +458,7 @@ static void track_turn(int i, int32_t d)
     uint32_t c = ui.trk_cur % TRK_ITEMS;
     int dir = d > 0 ? 1 : -1;
     if (ui.tpage == 3u) {
-        selk_turn(ui.knfn & 3u, i, d);
+        selk_turn(selk_fn(ui.knfn & 3u), i, d);
         return;
     }
     if (ui.tpage == 2u) {
@@ -442,7 +522,7 @@ static void track_turn(int i, int32_t d)
 static void knob_fn(int32_t d)           /* ALGORITHM or PRESETS on KNOB: the function */
 {
     ui.knfn = (uint8_t)((ui.knfn + (d > 0 ? 1u : 3u)) & 3u);
-    app_say("KNOB", SK_NAME[ui.knfn]);
+    app_say("KNOB", SK_NAME[selk_fn(ui.knfn)]);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
 static void track_pick(int32_t d)
@@ -460,7 +540,7 @@ static void track_key(uint32_t k)
     if (ui.tpage == 3u) {                /* KNOB: keys 1-4, the function (K1..K4's) */
         if (k < 4u) {
             ui.knfn = (uint8_t)k;
-            app_say("KNOB", SK_NAME[k]);
+            app_say("KNOB", SK_NAME[selk_fn(k)]);
             ui.redraw |= RG_BLOCKS | RG_FOOT;
         }
         return;
@@ -524,19 +604,21 @@ static void track_picture(int32_t top)
     cv_oy = -top;
     if (ui.tpage == 3u) {                /* KNOB: the four functions (the one edited lit), its settings large; COMP its
                                           * reduction now */
-        uint32_t f = ui.knfn & 3u;
-        static const char *const CHIP[4] = {"K1 DUCK", "K2 TERR 2", "K3 COMP", "K4 TERROR"};
-        for (i = 0; i < 4u; i++) {
-            s[0] = 0;
-            text_cat(s, CHIP[i]);
-            cv_rect(1 + (int32_t)i * 60, 2, 57, 14, i == f ? C_HI : C_BLOCK);
-            cv_text(4 + (int32_t)i * 60, 3, &FONT_XS, s, i == f ? C_BLACK : C_GRAY);
+        uint32_t kn = ui.knfn & 3u, f = selk_fn(kn);
+        for (i = 0; i < 4u; i++) {       /* (each knob and the function it has) */
+            s[0] = 'K';
+            s[1] = (char)('1' + i);
+            s[2] = ' ';
+            s[3] = 0;
+            text_cat(s, SK_SHORT[selk_fn(i)]);
+            cv_rect(1 + (int32_t)i * 60, 2, 57, 14, i == kn ? C_HI : C_BLOCK);
+            cv_text(4 + (int32_t)i * 60, 3, &FONT_XS, s, i == kn ? C_BLACK : C_GRAY);
         }
         for (i = 0; i < 4u; i++) {
             int32_t x = 8 + (int32_t)(i & 1u) * 116, y = 26 + (int32_t)(i >> 1) * 40;
             cv_text(x, y, &FONT_XS, SK_KNOB[f][i], C_GRAY);
             selk_value(f, (int)i, s);
-            cv_text(x, y + 11, &FONT_B, s, i == 0u && !*sk_byte(f, 0) ? C_DIM : C_WHITE);
+            cv_text(x, y + 11, &FONT_B, s, i == 0u && f != 5u && !*sk_byte(f, 0) ? C_DIM : C_WHITE);
         }
         if (f == 2u) {                   /* COMP: its reduction, 0 .. 18 dB */
             float g = comp_gr;
@@ -548,8 +630,8 @@ static void track_picture(int32_t top)
             text_cat(s, " DB");
             cv_text(170, 110, &FONT_XS, s, C_WHITE);
         } else
-            cv_text(8, 112, &FONT_XS, f == 0u ? "SEL + K1 ON ANY PAGE: ITS AMOUNT" : "THE KICK'S OWN: SAVED WITH ITS MEMORY",
-                    C_DIM);
+            cv_text(8, 112, &FONT_XS, kn == 1u || kn == 3u ? "PRESETS: WHAT SEL + THIS KNOB DOES"
+                    : "SEL + THIS KNOB ON ANY PAGE: ITS AMOUNT", C_DIM);
         cv_oy = 0;
         return;
     }

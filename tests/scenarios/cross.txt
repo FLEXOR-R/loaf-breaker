@@ -66,10 +66,11 @@ wait 3000
 wavstop
 shot x_after.png
 tap PLAY
-tap HOME
+tap EDIT
 wait 200
-tap HOME
+turn ALGO 11 10
 wait 300
+expect page 10
 turn K1 8 10
 turn K2 -6 10
 turn K4 -10 10

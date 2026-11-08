@@ -2055,6 +2055,43 @@ static void test_terror2(void)
     CHECK(pk[1] <= 1.0f && pk[1] > 0.3f && df > 0.05f, "TERROR 2: bounded (%.3f) and far from the dry kick (%.3f)", pk[1], df);
 }
 
+/* LOAF BREAKER (TEST): TERROR's more: CLIP and CRUSH sound apart from FOLD, SCREECH and DRIVE move it, all bounded */
+static void test_terror_more(void)
+{
+    kick_t k;
+    static float ref[35u * BLOCK];
+    float df[4], pk = 0.0f;
+    uint32_t m, i;
+    for (m = 0; m < 5u; m++) {
+        uint16_t at = 0u;
+        kick_preset(&k, 0u);
+        k.volume = 0.8f;
+        KICK_TERROR(&k) = 60u;
+        KICK_T_TYPE(&k) = (uint8_t)(m == 1u ? 1u : m == 2u ? 2u : 0u);
+        KICK_T_SCREECH(&k) = (uint8_t)(m == 3u ? 60u : 0u);
+        KICK_T_DRIVE(&k) = (uint8_t)(int8_t)(m == 4u ? 40 : 0);
+        kick_set(&k);
+        kick_init();
+        for (i = 0; i < 35u * BLOCK; i += BLOCK)
+            kick_render(kick_buf + i, BLOCK, &at, i == 0u ? 1u : 0u);
+        if (m)
+            df[m - 1u] = 0.0f;
+        for (i = 0; i < 35u * BLOCK; i++) {
+            if (!m)
+                ref[i] = kick_buf[i];
+            else
+                df[m - 1u] += fabsf(kick_buf[i] - ref[i]);
+            if (fabsf(kick_buf[i]) > pk)
+                pk = fabsf(kick_buf[i]);
+        }
+    }
+    for (m = 0; m < 4u; m++)
+        df[m] /= (float)(35u * BLOCK);
+    CHECK(pk <= 1.2f && df[0] > 0.005f && df[1] > 0.005f && df[2] > 0.005f && df[3] > 0.005f,
+          "TERROR +: CLIP %.3f, CRUSH %.3f, SCREECH %.3f, DRIVE %.3f apart from the plain fold, peak %.2f", df[0], df[1],
+          df[2], df[3], pk);
+}
+
 /* LOAF BREAKER: KICK FX: the kick's own slots on its buffer (in place), the chain's apart. A RING there moves the
  * kick; a REVERB there (not allowed) passes it on untouched; bypassed, untouched */
 static void test_kick_fx(void)
@@ -2108,6 +2145,7 @@ int main(int argc, char **argv)
     test_terror2();
     test_kick_notes();
     test_kick_fx();
+    test_terror_more();
     test_gate();
     test_swap();
     test_snap();

@@ -16,6 +16,7 @@ typedef struct {
     float lp;                            /* CLICK: its noise's low-pass (what it keeps is above it) */
     float tlo, tlp, tenv;                /* LOAF BREAKER: TERROR's low split, its fizz's low-pass, the kick's level */
     float t2lo, t2lp, t2env;             /* TERROR 2's low split, its mids' low-pass, the kick's level */
+    float sc1, sc2;                      /* (TEST) TERROR's SCREECH, its band's state */
     float pm;                            /* (crossbreed) this hit's pitch, a factor (kick_pitches): 1 as set */
     float s1[KICK_LAYERS], s2[KICK_LAYERS], fph[KICK_LAYERS], fhold[KICK_LAYERS];   /* the layers' effects */
     uint32_t rng;
@@ -39,6 +40,9 @@ typedef struct {
     float t2mix, t2g;                    /* TERROR 2, its mix and its drive */
     float tsub, tfz, tsus;               /* (ENV's KNOB) TERROR's split, its fizz's low-pass, its follow */
     float t2sub, t2scr, t2push;          /* TERROR 2's split, its mids' low-pass, their push */
+    float trel;                          /* (TEST) TERROR's TAIL: its level's fall a sample */
+    uint8_t ttype;                       /* its TYPE */
+    float sa1, sa2, sa3, sgain;          /* its SCREECH: the band's coefficients and level (0: off) */
 } kc_t;
 
 static volatile kick_t p_k;
@@ -130,7 +134,20 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c)
     {                                    /* LOAF BREAKER: TERROR, in fully by a third of the way, the drive on up */
         float t = (float)(KICK_TERROR(k) > 100u ? 100u : KICK_TERROR(k)) * 0.01f;
         c->tmix = t * 3.0f > 1.0f ? 1.0f : t * 3.0f;
-        c->tg = 2.0f + 60.0f * t * t;
+        c->tg = (2.0f + 60.0f * t * t) * brk_exp2f_c((float)(int8_t)KICK_T_DRIVE(k) * 0.04f);   /* (TEST: DRIVE) */
+    }
+    {                                    /* (TEST) TERROR's TYPE, TAIL, SCREECH */
+        float tl = brk_clampf((float)(int8_t)KICK_T_TAIL(k), -50.0f, 50.0f), sw = (float)KICK_T_SCREECH(k);
+        c->ttype = (uint8_t)(KICK_T_TYPE(k) <= 2u ? KICK_T_TYPE(k) : 0u);
+        c->trel = 0.0012f * brk_exp2f_c(-tl * 0.07f);   /* (+50: ~11x slower, the fold hangs on; -50: faster) */
+        c->sgain = 0.0f;
+        if (sw > 0.0f) {                 /* a band at ~500 Hz .. 5 kHz, Q ~6 (Simper's state-variable) */
+            float g = brk_tan_pi_c(500.0f * brk_exp2f_c(brk_clampf(sw, 1.0f, 100.0f) * 0.0332f) / (float)BRK_SR), kq = 1.0f / 6.0f;
+            c->sa1 = 1.0f / (1.0f + g * (g + kq));
+            c->sa2 = g * c->sa1;
+            c->sa3 = g * c->sa2;
+            c->sgain = 0.5f + 1.5f * sw * 0.01f;
+        }
     }
     {                                    /* LOAF BREAKER: TERROR 2, in fully by a quarter of the way, the drive on up */
         float t = (float)(KICK_TERROR2(k) > 100u ? 100u : KICK_TERROR2(k)) * 0.01f;
@@ -248,7 +265,8 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
                                           * triangle fold (it folds back instead of flattening: the scream), then
                                           * clipped and its fizz rounded */
         float h, t, z, a = brk_absf(out);
-        v->tenv += (a - v->tenv) * (a > v->tenv ? 0.05f : 0.0012f);   /* (the kick's level: fast up, ~20 ms down) */
+        v->tenv += (a - v->tenv) * (a > v->tenv ? 0.05f : c->trel);   /* (the kick's level: fast up, ~20 ms down;
+                                          * TAIL: slower or faster) */
         v->tlo += (out - v->tlo) * c->tsub;
         h = (out - v->tlo) * c->tg;
         t = h * 0.25f + 0.25f;
@@ -256,6 +274,16 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
         if (t < 0.0f)
             t += 1.0f;
         z = 1.0f - 4.0f * brk_absf(t - 0.5f);   /* (the fold: h within +-1 untouched, beyond it back and forth) */
+        if (c->ttype == 1u)              /* (TEST) CLIP: squared off instead */
+            z = brk_clampf(h, -1.0f, 1.0f);
+        else if (c->ttype == 2u)         /* CRUSH: folded, then in eight steps */
+            z = (float)(int32_t)(z * 4.0f) * 0.25f;
+        if (c->sgain > 0.0f) {           /* SCREECH: its band, resonant, on top */
+            float v3 = z - v->sc2, v1 = c->sa1 * v->sc1 + c->sa2 * v3, v2 = v->sc2 + c->sa2 * v->sc1 + c->sa3 * v3;
+            v->sc1 = 2.0f * v1 - v->sc1;
+            v->sc2 = 2.0f * v2 - v->sc2;
+            z = brk_clampf(z + v1 * c->sgain, -1.5f, 1.5f);
+        }
         v->tlp += (z - v->tlp) * c->tfz;
         a = v->tenv * c->tsus;              /* (the fold follows the kick down: its punch and its tail kept, not a wall) */
         z = brk_clampf(v->tlo * 1.2f + v->tlp * 0.85f * (a < 1.0f ? a : 1.0f), -1.0f, 1.0f);
@@ -289,6 +317,7 @@ BRK_COLD void kick_init(void)
     kv.rng = 0x5eed1u;
     kv.tlo = kv.tlp = kv.tenv = 0.0f;
     kv.t2lo = kv.t2lp = kv.t2env = 0.0f;
+    kv.sc1 = kv.sc2 = 0.0f;
     kv.pm = 1.0f;
     ks_last = 0.0f;
     ks_on = 0u;

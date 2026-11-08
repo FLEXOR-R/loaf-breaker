@@ -3,9 +3,22 @@
  * app.c's unity: included there in order.) */
 
 /* the MIXER's knob i on half h, as the foot and the strip show it */
+static void selk_value(uint32_t f, int i, char *t);
 static void mix_value(uint32_t h, int i, char *t)
 {
     t[0] = 0;
+    if (h == 2u) {                       /* LOAF BREAKER TEST: MASTER: COMP, its RATIO, DUCK, MAX OUT */
+        if (i < 3)
+            selk_value(i == 2 ? 0u : 2u, i == 2 ? 0 : i, t);
+        else {
+            uint32_t db = max_out_db();
+            if (db)
+                text_cat(t, "-");
+            int_text((int32_t)db, t + (db ? 1 : 0));
+            text_cat(t, " DB");
+        }
+        return;
+    }
     if (h) {
         if (i == 0) {
             int_text(set.swing, t);
@@ -48,15 +61,26 @@ static void mix_fader(int32_t x, float v, int on)   /* 0..1 from the bottom */
 }
 static void mix_picture(int32_t top)
 {
-    static const char *const NAME[2][4] = {{"BREAK", "KICK", "PERC", "FX"}, {"SWING", "DRUMS", "", ""}};
+    static const char *const NAME[3][4] = {{"BREAK", "KICK", "PERC", "FX"}, {"SWING", "DRUMS", "", ""},
+                                           {"COMP", "RATIO", "DUCK", "MAX OUT"}};
     uint32_t c;
     cv_oy = -top;                        /* (this strip's rows of the picture) */
     for (c = 0; c < 4u; c++) {
         int32_t x = (int32_t)c * 60;
         if (c)
             cv_rect(x, 4, 1, 96, C_LINE);
-        if (NAME[ui.mpage][c][0])
-            cv_text(x + 6, 1, &FONT_XS, NAME[ui.mpage][c], C_GRAY);
+        if (NAME[ui.mpage % 3u][c][0])
+            cv_text(x + 6, 1, &FONT_XS, NAME[ui.mpage % 3u][c], C_GRAY);
+    }
+    if (ui.mpage == 2u) {                /* MASTER: COMP and its reduction, its ratio, DUCK, MAX OUT */
+        char t[8];
+        mix_fader(10, (float)set.comp * 0.01f, set.comp > 0u);
+        mix_meter(30, set.comp ? brk_exp2f(-comp_gr * 0.16610f) : 0.0f);   /* (the gain it leaves: 0 dB full) */
+        mix_value(2u, 1, t);
+        cv_text(72, 50, &FONT_B, t, set.comp ? C_WHITE : C_DIM);
+        mix_fader(130, (float)set.duck * 0.01f, set.duck > 0u);
+        mix_fader(190, (float)(12u - max_out_db()) * (1.0f / 12.0f), 1);
+        return;
     }
     if (ui.mpage) {
         mix_fader(10, (float)(set.swing - 50u) * (1.0f / 25.0f), set.swing > 50u);

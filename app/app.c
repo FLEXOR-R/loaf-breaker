@@ -136,7 +136,8 @@ typedef struct {
     uint8_t comp_att, comp_rel;          /* its attack 0.1 .. 30 ms, its release 20 .. 800 ms (0..100) */
     uint8_t max_out;                     /* LOAF BREAKER: GLOBAL MORE's MAX OUT, the output's most at MASTER full: 0
                                           * the default (-3 dB), else 1 + its dB under full scale (0..12) */
-    uint8_t rsv9;
+    uint8_t selk_asg;                    /* (TEST) SEL + K2's function (bits 0-3), SEL + K4's (4-7): 0 their own (TERROR
+                                          * 2, TERROR), 1 TERROR 2, 2 TERROR, 3 DRIVE */
 } settings_t;
 static const float COMP_RATIO[8] = {1.5f, 2.0f, 3.0f, 4.0f, 6.0f, 8.0f, 12.0f, 20.0f};
 static float att_ms(uint32_t v) { return 0.1f * brk_exp2f_c((float)(v > 100u ? 100u : v) * 0.0825f); }
