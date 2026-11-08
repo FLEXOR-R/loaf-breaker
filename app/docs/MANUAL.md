@@ -1,9 +1,12 @@
-# CHOPPAH
+# LOAF BREAKER
 
-CHOPPAH is an Amen chopper for the M-VAVE FM-1. A break is cut into sixteen slices, one on each white key, and
-plays in time while you rearrange it, roll it, reverse it, stop it like a tape and push it through effects.
+LOAF BREAKER is a hardcore firmware for the M-VAVE FM-1, built by FLEXOR on **CHOPPAH**, Laurens Profittlich's Amen
+chopper. A break is cut into sixteen slices, one on each white key, and plays in time while you rearrange it, roll
+it, reverse it, stop it like a tape and push it through effects; under it a kick made for terror, gabber and
+crossbreed (TERROR, its own synth, its own effects, notes on every step), a sequencer of 16, 32 or 64 steps, tracks
+with built-up drops, a HOOVER, a compressor and a CDJ-style waveform of what leaves the mix.
 
-![CHOPPAH's slicer view while playing](img/screen-slicer.png "The slicer view")
+![LOAF BREAKER playing: the mix scrolling in as on a CDJ, the playhead at the right edge](img/screen-slicer.png "Playing")
 
 ---
 
@@ -15,7 +18,7 @@ plays in time while you rearrange it, roll it, reverse it, stop it like a tape a
 4. The pads
 5. Patterns and the sequencer
 6. The FX chain
-7. GLOBAL: MIDI, Bluetooth, pitch, Bluetooth audio, reset
+7. GLOBAL: MIDI, pitch, skins, reset
 8. The drums: kick, snare, hat
 9. The mixer
 10. Pages and knobs
@@ -30,15 +33,15 @@ plays in time while you rearrange it, roll it, reverse it, stop it like a tape a
 **Try it first:** the emulator runs the same code in the browser, with sound, played with the mouse.
 
 **Install:** open the install page in Chrome or Edge, connect the FM-1 by USB and press Install. While it writes,
-the FM-1 says UPDATING and DO NOT UNPLUG: CHOPPAH's slice mark fills in amber with the bar. When it is done, the page
+the FM-1 shows LOAF BREAKER's picture, UPDATING and DO NOT UNPLUG, and the bar fills. When it is done, the page
 throws confetti. If the FM-1 runs M-VAVE's FM1 Open firmware, put M-VAVE's original firmware back first (M-VAVE's workbench, *Restore original*), then
-install CHOPPAH.
+install LOAF BREAKER.
 
-![Updating: CHOPPAH's slice mark and the bar filling in amber, about a third written](img/screen-updating.png "UPDATING")
+![Updating: LOAF BREAKER's picture, UPDATING, DO NOT UNPLUG, the bar half written](img/screen-updating.png "UPDATING")
 
 ## 2. The screens
 
-At power-on CHOPPAH shows its mark, then the start screen: the loaded break drops in slice by slice while a light
+At power-on LOAF BREAKER shows its picture, then the start screen: the loaded break drops in slice by slice while a light
 runs through the buttons, they all flash as it completes, and PLAY blinks green. After two
 seconds, or at once on any key, the **slicer view** opens. PLAY on the start screen also starts the break.
 
@@ -67,25 +70,7 @@ the white keys play slices everywhere but SEQ, ENV (tracks) and ARP (overlays). 
 PRESETS the pattern on every page.** A page's button pressed again is its next part. **Press SEL** alone and the strip
 lists its combinations (SEL again, or any other button, key or knob, closes it). The control map (§11) shows all of it at once.
 
-![SEL pressed: its combinations on the strip; the HOME knobs](img/screen-selhelp.png "SEL pressed")
-
-### The demo
-
-Leave CHOPPAH alone for a minute while it is stopped (three minutes while it plays: the break plays on) and it goes
-into its demo, five scenes of eight seconds each, in time with the tempo (with the break's own beat while it plays):
-
-- **BARS:** the mark's sixteen bars bouncing to an Amen beat, kick low, snare in the middle, hats high.
-- **WAVE:** the break's waveform scrolling under a playhead, a slice chopped out of line on each beat.
-- **TUNNEL:** squares rushing out from the name, a white one every second beat.
-- **WORMHOLE:** a wireframe tube of twisting rings rushing at you, its far end bending round to a glowing core;
-  it lurches forward on each beat.
-- **STARS:** slice blocks flying out of the screen.
-
-The lights play along: a light runs round the buttons, and the keys follow the bars, the playhead, the tunnel
-(outwards from the middle keys), swirl round with the wormhole or twinkle with the stars. Touch any key, button or knob and the page you left comes
-back. That touch only ends the demo: it doesn't play a slice or start the break.
-
-![The demo's scenes: BARS, WAVE, TUNNEL, WORMHOLE, STARS](img/screen-demo.png "The demo")
+![SEL pressed: its combinations, as K1–K4 are assigned](img/screen-selhelp.png "SEL pressed")
 
 ## 3. Playing
 
@@ -102,7 +87,7 @@ back. That touch only ends the demo: it doesn't play a slice or start the break.
 | PRESETS | The pattern, P1–P16 (§5); while playing the new one starts at the end of the loop |
 | SEQ · REC | The sequencer; recording the keys into the pattern (§5). SEL + REC: clear the pattern (SEL + SAVE takes it back) |
 | MIDI notes | Notes 48–63 (C3–D#4) play slices 1–16, held like the white keys; 36 the kick, 38 the snare, 42 / 44 / 46 the hat (§8); any channel |
-| ALGORITHM | (HOME, MIXER; SEL held: any page) The next or previous break: its name shows at once (amber in the header) and, while playing, it comes in at the next bar (the old one goes quiet for the bar's last 16th meanwhile); stopped, at once. AMEN (The Winstons), DRUMMER (James Brown, Funky Drummer), THE WORM (Jimmy McGriff), THINK (Lyn Collins), COLD SWEAT (James Brown), HOT PANTS (Bobby Byrd), APACHE (Incredible Bongo Band), SPORT (Lightnin' Rod): 2 bars each, played at the tempo you set |
+| ALGORITHM | (HOME, MIXER; SEL held: any page) The next or previous break: its name shows at once (amber in the header) and, while playing, it comes in at the next bar (the old one goes quiet for the bar's last 16th meanwhile); stopped, at once. THINK 114 (Lyn Collins), NUSKOOL 140, UPDOWN 165, APACHE 115 (Incredible Bongo Band), CHOPPER 172, DRUMMER 100 (James Brown, Funky Drummer), THEWORM 110 (Jimmy McGriff), HOTPANT 115 (Bobby Byrd), AMEN19 172 (The Winstons): 2 bars each, played at the tempo you set |
 | MASTER | Volume |
 
 ### Where things are
@@ -143,7 +128,7 @@ green to cyan, the hats blue), as tall as its peak. 4 beats fill the screen; the
 bar's first lit) and the bar and beat counted top left. **Hold HOME** (a third of a second) for the slice blocks
 instead, hold it again for the waveform; neither moves to HOME's next part.
 
-![The CDJ view: the break and a kick scrolling in, the playhead at the right edge](img/c_cdj_gen.png "CDJ view")
+![The CDJ view: the break and a kick scrolling in, the playhead at the right edge](img/c_cdj_gen.png "CDJ view") ![HOME held: the sixteen slice blocks, the slice sounding lit](img/screen-slices.png "The slices")
 
 ### Tracks and drops (ENV)
 
@@ -198,9 +183,9 @@ all the way up: -3 dB to start with (headroom for the FM-1's output and your spe
 
 **SEL ×3** (playing) asks for the drop: the build starts at the next bar, so the drop always lands on a bar line.
 
-![TRACKS: track 1's items, P1 ×4, P2 ×4, a DROP, P3 ×8](img/t_tracks.png "TRACKS")
+![TRACKS: track 1's items, P1 ×4, P2 ×4, a DROP, P3 ×8](img/t_tracks.png "TRACKS") ![PLAY: the radio, track 2 tuned in](img/t_play.png "PLAY") ![A build on its way to the drop](img/t_build.png "BUILD")
 
-![A slice held](img/screen-held.png "Slice 10 held")
+![A key held: its slice looping](img/screen-held.png "Key 6 held")
 
 ### Key loops
 
@@ -267,14 +252,14 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 
 ## 5. Patterns and the sequencer
 
-CHOPPAH holds **16 patterns**. Each is the break's 32 steps (2 bars), each step playing the loop's own slice (LOOP,
+LOAF BREAKER holds **16 patterns**. Each is the break's 32 steps (2 bars), each step playing the loop's own slice (LOOP,
 where the generator can move it), a slice of its own, or nothing; and three drum lanes of 16 steps (kick, snare, hat)
 that repeat every bar. **PRESETS** picks the pattern on most pages; while playing, the next one starts when the loop
 comes round (the header shows "P2>").
 
 **SEQ** opens the sequencer. **ALGORITHM** (or **SEQ again**) picks what the white keys edit:
 
-![SEQ: pattern 1, steps 1-16, step 9 a slice of its own being reversed; the kick, snare and hat lanes below](img/screen-seq.png "The SEQ page")
+![SEQ: the break's steps and the drum lanes](img/screen-seq.png "The SEQ page") ![A kick step held: NOTE, HITS, CHANCE, NUDGE on K1–K4](img/screen-step.png "A step held")
 
 | Lane | White keys | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- | --- |
@@ -482,24 +467,23 @@ whose part you are on.
 
 ![MB COMP's GAIN part with the low soloed: the rest of the spectrum falls away](img/screen-mbcomp-solo.png "MB COMP solo")
 
-## 7. GLOBAL: MIDI, Bluetooth, pitch, Bluetooth audio, reset
+## 7. GLOBAL: MIDI, pitch, skins, reset
 
 **GLO** opens the GLOBAL page: the slice blocks give way to the state of MIDI, and K1–K4 set it (SAVE keeps it).
-**GLO again** (or ALGORITHM) turns to its second part, the pitch; **a third time**, Bluetooth audio (both below).
+**GLO again** (or ALGORITHM) turns to its second part, the pitch; **a third time**, MORE: the skins and AUTO SAVE
+(below). LOAF BREAKER has no Bluetooth: MIDI goes over USB and the TRS jack.
 
-![GLOBAL, following a 119 BPM clock over USB](img/screen-global.png "The GLOBAL page")
+![GLOBAL: MIDI in and out](img/screen-global.png "The GLOBAL page")
 
 | Knob | Sets | |
 | --- | --- | --- |
-| K1 CLOCK IN | OFF · FOLLOW | Following, MIDI clock from USB, the TRS jack or Bluetooth sets the tempo (the header says EXT; SELECT and tap tempo wait), START plays from bar 1, STOP stops, and the loop eases onto the clock's beat every beat |
+| K1 CLOCK IN | OFF · FOLLOW | Following, MIDI clock from USB or the TRS jack sets the tempo (the header says EXT; SELECT waits), START plays from bar 1, STOP stops, and the loop eases onto the clock's beat every beat. The clock is stamped where it lands, so the tempo it reads is steady |
 | K2 CLOCK OUT | OFF · ON | While playing, 24 clocks a beat (straight, whatever the swing); PLAY sends START, stopping sends STOP, HOME + PLAY sends START again |
-| K3 BLUETOOTH | ON · OFF | Bluetooth MIDI: the FM-1 shows up as **CHOPPAH XXXX** in a computer's, phone's or tablet's Bluetooth MIDI settings. Off ends the link and stops advertising; at power-on it starts as saved |
-| K4 MIDI TO | USB+BT · USB · BT | Where the clock goes |
+| K3 | (not used: no Bluetooth) | |
+| K4 MIDI TO | USB+BT · USB · BT | Where the clock goes: USB (the BT choices do nothing, no Bluetooth) |
 
-The panel shows Bluetooth's state (ready to pair, connected), the clock coming in (its tempo, where from, running or
-stopped), the clock going out, and a light for MIDI in and out on each port. The FM-1 has no MIDI out jack: MIDI goes
-out over USB and Bluetooth only. On an iPhone or iPad, Bluetooth MIDI devices never show in Settings → Bluetooth:
-connect from a MIDI app's Bluetooth MIDI page (GarageBand: a song's Settings → Advanced → Bluetooth MIDI Devices).
+The panel shows the clock coming in (its tempo, where from, running or stopped), the clock going out, and a light for
+MIDI in and out on each port. The FM-1 has no MIDI out jack: MIDI goes out over USB only.
 
 **Pitch and snap (GLO twice):**
 
@@ -508,33 +492,18 @@ connect from a MIDI app's Bluetooth MIDI page (GarageBand: a song's Settings →
 | K1 PITCH | KEEP LENGTH (the default) · SPEED | KEEP LENGTH changes the pitch only: each slice keeps its length (a granular pitch shift), so a key pitched +7 still fills its loop. SPEED is the classic repitch: up plays faster and shorter, down slower and longer (K1 left) |
 | K2 GRAIN | 10 … 80 ms | KEEP LENGTH's grains: shorter keeps hits tight, longer sounds smoother on held sounds |
 | K3 SNAP | OFF · 1/8 · 1/4 · 1/2 · 1 (the default) · 2 · 4 slices | Where a white key pressed while playing lands: at once (OFF), or at the next point of a grid that many slices apart, counted from the top of the pattern. The panel says what it is in this break (on the 2-bar breaks 1 slice = 1/8, 1/2 slice = 1/16, 2 slices = 1/4). Stopped, keys always play at once |
-| K4 RESET ALL | Turn once ("RESET ALL?"), then again within 3 seconds | Clears everything back to how it came: tempo, generator, FX chain, kick, snare and hat, mixer, keys, slices, GLOBAL, Bluetooth audio, and all 16 patterns; the first break is chosen and it is saved at once. Bluetooth pairings are kept. The screen says so: LOBOTOMIZED, for 3 seconds (a key or button ends it sooner) |
+| K4 RESET ALL | Fifteen turns right (the header counts them: "RESET ALL? 2 / 15 TURNS") | Clears everything back to how it came: tempo, generator, FX chain, kick, snare and hat, mixer, keys, slices, GLOBAL, the tracks, and all 16 patterns; the first break is chosen and it is saved at once. The screen says so: LOBOTOMIZED, for 3 seconds (a key or button ends it sooner) |
 
 It covers every pitch in semitones: OCT, a key's pitch, the roll's pitch a repeat, the freeze's pitch, steps. The
 tempo's own repitch, HALF, REVERSE's speed and the tape stop stay speed effects.
 
 ![RESET ALL done: the lobotomy screen](img/screen-lobotomized.png "LOBOTOMIZED")
 
-**Bluetooth audio (GLO three times):** CHOPPAH plays through Bluetooth headphones or a Bluetooth speaker.
+**MORE (GLO three times):** K1 **SKIN**, the screen's colours (RED to start; the whole screen changes at once); K2
+**AUTO SAVE**, ON: what you change is saved by itself a minute after the last change, once stopped (the flash is
+never written while it plays).
 
-![Bluetooth audio, streaming to a speaker](img/screen-btaudio.png "Bluetooth audio")
-
-| Knob | Does |
-| --- | --- |
-| K1 BT AUDIO | OFF · ON. On at power-on as saved (SAVE), and then it connects the last device again by itself |
-| K2 DEVICE | Picks from the list: the devices it remembers (LAST, KNOWN), then the ones a scan found (NEW) |
-| K3 SCAN | Any turn looks for headphones and speakers for about 10 seconds. Put the device in pairing mode first |
-| K4 CONNECT | Right: connect the device chosen (a new one pairs and is remembered; four are kept). Left: hang up. SEL held + left: forget the remembered device chosen |
-
-While it streams, the FM-1's own speaker and headphone output go quiet and MASTER still sets the level. It is stereo,
-as the FM-1's own output: the ping-pong delay, the reverb and the flanger spread left and right. **K3 while streaming
-is TEST L/R:** a low beep on the left, then a high beep on the right, twice; if you hear both beeps on one side, the
-headphones or speaker are playing one channel. **K2 while streaming is CODEC:** JOINT (joint stereo, the default) or
-STEREO (plain stereo). If only one side plays, switch it and run the test again: some speakers decode one better than
-the other. Bluetooth
-audio runs late: 150–300 ms between a key and your ear, so it is for listening and showing, not for playing in time
-(use the FM-1's own output or USB for that). Bluetooth MIDI keeps working beside it on the same radio. Turning
-Bluetooth audio on starts the radio even when Bluetooth MIDI is off.
+![GLOBAL's MORE: the skins](img/screen-glomore.png "MORE")
 
 ## 8. The drums: kick, snare, hat
 
@@ -553,7 +522,7 @@ A synthesised kick for gabber, hardcore and techno. ALGORITHM turns through its 
 PUNCH FX → GRIT → GRIT FX → CLICK → CLICK FX → MACRO → OUT (each layer's part is its LAYER knobs, its FX part its
 LAYER FX knobs).
 
-![EDIT on the kick: its part's settings as bars, the layers' levels, the three drums below](img/screen-kick.png "The kick on EDIT")
+![The KICK menu: the kick's wave large, its settings as cards](img/screen-kick.png "The KICK menu") ![EDIT held: the classic view, every drum's shape](img/screen-kick-classic.png "Classic view") ![The kick's SYNTH section](img/screen-kick-synth.png "SYNTH")
 
 The kick is four layers summed and pushed into a clipper:
 
@@ -585,7 +554,7 @@ shape is its box in the strip below. Its steps: SEQ's KICK lane (empty to start)
 
 ### The snare and the hat
 
-![EDIT on the hat: its six settings, the three drums below](img/screen-perc.png "The hat on EDIT")
+![SEL + EDIT: the snare, its settings, the drums' shapes below](img/screen-perc.png "The snare on EDIT")
 
 **EDIT** again from the kick: the snare, then the hat. **ALGORITHM** turns between its SOUND and SHAPE knobs,
 **PRESETS** picks a built-in sound. Their steps: SEQ's SNARE and HAT lanes.
@@ -608,7 +577,7 @@ MIDI notes 38 (D1) play the snare, 42, 44 and 46 the hat, also while stopped. SA
 **LFO** opens the MIXER: four channels side by side, each a fader with a level meter (FX shows the chain's four
 slots, lit: on). **LFO again** turns to GROOVE.
 
-![The MIXER: the break, the kick, the snare and hat, the FX chain](img/screen-mixer.png "The MIXER")
+![The MIXER: the break, the kick, the drums, the FX chain](img/screen-mixer.png "The MIXER") ![MASTER: COMP, RATIO, DUCK, MAX OUT](img/screen-master.png "MASTER")
 
 | Half | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- |
@@ -630,7 +599,7 @@ break alone: sweep it down and the drums stay full on top. The FLT pad throws it
 | FX (the chain) | the focused slot's effect: its three settings (FX again: its MORE and MOD parts; an MB COMP its six, see §6) | | | Its mix |
 | SEQ (patterns) | Slice | Pitch | Hits | Reverse |
 | SEQ, a drum lane | Fill | Rotate | Clear / 4x4 | Copy |
-| GLO (global) | Clock in | Clock out | Bluetooth | MIDI to |
+| GLO (global) | Clock in | Clock out | (not used) | MIDI to |
 | GLO again (pitch, snap) | Keep length / speed | Grain | Snap | Reset all (twice) |
 | GLO a third time (BT audio) | On / off | Device | Scan | Connect / hang up |
 | ARP (overlay; white keys hold effects) | Amount (the effect touched last) | Rate | Sweep | Latch |
@@ -651,7 +620,7 @@ of a phrase; it is HOME's second part (HOME again). SEL + ARP writes a random pa
 
 ## 11. The control map
 
-Every page, button, encoder and key in one place. On the [site's manual](https://profikid.github.io/fm1-break-choppah/manual/#controls)
+Every page, button, encoder and key in one place. On the site's manual
 this section is interactive: pick a page and the screen, the seven encoders and the keys show what they do there;
 below it, each button with its parts, the whole map as one table, and which of a held key, a held pad or the page
 owns K1–K4. Here, in short: §2 has the rules, §10 every page's knobs.
@@ -661,7 +630,7 @@ owns K1–K4. Here, in short: §2 has the rules, §10 every page's knobs.
 SAVE keeps the tempo, pitch, swing, generator, the FX chain, the break chosen, each key's loop, the drums, the
 mixer, the GLOBAL settings and all 16 patterns; SAVE is lit when something changed. A new version keeps what an older
 one saved: new settings start at their defaults. (Version 0.32 changed the layout: what 0.31 and older saved starts
-over at the defaults once; Bluetooth pairings stay.) GLOBAL's RESET ALL clears it all on purpose (§7).
+over at the defaults once.) GLOBAL's RESET ALL clears it all on purpose (§7).
 
 ## 13. Troubleshooting
 

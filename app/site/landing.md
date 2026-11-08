@@ -1,21 +1,22 @@
-# CHOPPAH
+# LOAF BREAKER
 
-CHOPPAH turns the M-VAVE FM-1 into an Amen chopper: a breakbeat cut into sixteen slices on the white keys,
-momentary effect pads on the black keys (rolls, reverse, freeze, half speed, tape stop, gate), a generator that
-rearranges the break as it plays, a master effects chain you stack and reorder (filter, crunch, drive, punch, flanger,
-ring mod, tremolo, a plate reverb, ping-pong delay, EQ, tape, a multiband compressor, a clipper), 16 patterns with a
-step sequencer and recording, a four-layer gabber kick, a snare and a hi-hat, MIDI notes for the slices, a DJ filter
-on the break and a mixer.
+LOAF BREAKER turns the M-VAVE FM-1 into a hardcore break chopper. It is FLEXOR's firmware, built on
+[CHOPPAH](https://github.com/profikid/fm1-break-choppah), Laurens Profittlich's Amen chopper: a break cut into sixteen
+slices on the white keys, effect pads on the black keys (rolls on the break or the kick, reverse, filter, half speed,
+vinyl break, gate, random, SUB DRIVE), a master effects chain, and under it a kick made for terror, gabber and
+crossbreed: its own menu and synth, TERROR, TERROR 2 and TERROR +, its own EQ and effects, a note on every step.
+A sequencer of 16, 32 or 64 steps with hits, chance and nudge per step; tracks of patterns with built-up drops; a
+HOOVER; a compressor, a ducker and MAX OUT; and the mix scrolling by as on a CDJ.
 
-![CHOPPAH playing: the break's waveform with the slice sounding lit, sixteen slice blocks below, the pads and the knobs](manual/img/screen-slicer.png "CHOPPAH's slicer view")
+![LOAF BREAKER playing: the mix scrolling in as on a CDJ, in rekordbox's colours](manual/img/screen-slicer.png "Playing")
 
-Version {{VERSION}}. Installing is at your own risk; the installer can put M-VAVE's own firmware back. The public
-build has 8 classic breaks, 2 bars each: Amen, Funky Drummer, The Worm, Think, Cold Sweat, Hot Pants, Apache, Sport.
+Version {{VERSION}}. Installing is at your own risk; the installer can put M-VAVE's own firmware back. 9 breaks, 2 bars
+each: THINK, NUSKOOL, UPDOWN, APACHE, CHOPPER, DRUMMER, THE WORM, HOT PANTS, AMEN.
 
 - [Try it in the browser](emu/): the same code the FM-1 runs, with sound. No FM-1 needed.
 - [Install](install/): from Chrome or Edge, with the FM-1 connected by USB.
-- [Manual](manual/): the slicer, the pads, the patterns, the effects, the drums.
+- [Manual](manual/): the kick, the sequencer, the tracks and drops, the pads, the effects.
 - [Download {{PKG}}](firmware/{{PKG}}): for the command-line installer, `python3 tools/fm1_install.py {{PKG}}`.
 
-Built on fm1-base and felucca-bsp, from Felucca by Leo Kuroshita, Hügelton Instruments. MPL-2.0.
-M-VAVE and FM-1 are trademarks of their owners. CHOPPAH is not affiliated with M-VAVE.
+Built on CHOPPAH by Laurens Profittlich, on fm1-base and felucca-bsp, from Felucca by Leo Kuroshita, Hügelton
+Instruments. MPL-2.0. M-VAVE and FM-1 are trademarks of their owners. LOAF BREAKER is not affiliated with M-VAVE.

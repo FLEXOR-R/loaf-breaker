@@ -14,6 +14,11 @@ on:
 
 permissions:
   contents: write
+  pages: write                          # (the site, when GitHub Pages is on for the repository)
+  id-token: write
+
+env:
+  EMSDK_VERSION: 3.1.74                 # the browser emulator's Emscripten (as CHOPPAH's pages.yml)
 
 concurrency:                            # one release at a time, in order: no two runs take the same number
   group: gloupi-release
@@ -74,6 +79,28 @@ jobs:
       - name: Engine tests
         run: ./build.sh test
 
+      # Emscripten for the site's browser emulator, installed by hand and cached (as CHOPPAH's pages.yml)
+      - uses: actions/cache@v4
+        id: emsdk
+        with:
+          path: ~/emsdk
+          key: emsdk-${{ env.EMSDK_VERSION }}-${{ runner.os }}
+
+      - name: Emscripten ${{ env.EMSDK_VERSION }}
+        run: |
+          if [ "${{ steps.emsdk.outputs.cache-hit }}" != true ]; then
+            git clone -q --depth 1 https://github.com/emscripten-core/emsdk.git "$HOME/emsdk"
+            "$HOME/emsdk/emsdk" install "$EMSDK_VERSION"
+            "$HOME/emsdk/emsdk" activate "$EMSDK_VERSION"
+            rm -rf "$HOME/emsdk/downloads"
+          fi
+          . "$HOME/emsdk/emsdk_env.sh" >/dev/null 2>&1
+          echo "$EMSDK" >> "$GITHUB_PATH"
+          echo "$EMSDK/upstream/emscripten" >> "$GITHUB_PATH"
+          echo "EMSDK=$EMSDK" >> "$GITHUB_ENV"
+          echo "EMSDK_NODE=$EMSDK_NODE" >> "$GITHUB_ENV"
+          emcc --version | head -1
+
       - name: Firmware
         env:
           PYTHON: /usr/bin/python3
@@ -113,6 +140,23 @@ jobs:
           (cd screens && zip -q -r "../app/build/loaf-breaker-screens-$VERSION.zip" .)
           [ -z "$bad" ] || { echo "::error::scenarios failed:$bad"; exit 1; }
 
+      # LOAF BREAKER's site, as CHOPPAH's: the front page, the web installer, the emulator in the browser and the
+      # manual, its screenshots taken from this build (tools/site_shots.sh), in CHOPPAH's look (tools/site_style.py)
+      - name: Site (front page, installer, emulator, manual)
+        env:
+          PYTHON: /usr/bin/python3
+        run: |
+          sh tools/site_shots.sh || echo "::warning::site_shots: a screenshot missing, the committed one kept"
+          ./build.sh --web --release "$PKG"
+          cp "app/build/loaf-breaker-$VERSION.fwsc" "app/build/choppah-$PKG.fwsc"   # (make_site's name for it)
+          /usr/bin/python3 base/tools/make_site.py app "app/build/choppah-$PKG.fwsc" "$VERSION" site
+          /usr/bin/python3 tools/site_style.py site
+          (cd site && zip -q -r "../app/build/loaf-breaker-site-$VERSION.zip" .)
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -127,11 +171,26 @@ jobs:
           name: LOAF BREAKER ${{ env.VERSION }}
           body: |
             Install loaf-breaker-${{ env.VERSION }}.fwsc with fm1-base's web installer (Chrome or Edge, the FM-1 on
-            USB); the splash shows ${{ env.VERSION }}. loaf-breaker-screens-${{ env.VERSION }}.zip: the simulator's
-            screens.
+            USB); the splash shows ${{ env.VERSION }}. loaf-breaker-site-${{ env.VERSION }}.zip: the site (front page,
+            installer, emulator, manual), open its index.html; loaf-breaker-screens-${{ env.VERSION }}.zip: the
+            simulator's screens.
           generate_release_notes: true
           make_latest: true
           files: |
             app/build/loaf-breaker-${{ env.VERSION }}.fwsc
             app/build/loaf-breaker-screens-${{ env.VERSION }}.zip
+            app/build/loaf-breaker-site-${{ env.VERSION }}.zip
             app/build/loaf-breaker-size-${{ env.VERSION }}.txt
+
+  # The site on GitHub Pages, once Pages is on for the repository (Settings → Pages → Source: GitHub Actions). Until
+  # then this job fails on its own and the release above stands.
+  pages:
+    needs: build
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -63,7 +63,7 @@ def restyle(path, cls, controls_href, extra=""):
 
 def header(current):
     conf = (APP / "fm1.toml").read_text(encoding="utf-8")
-    name = re.search(r'^name\s*=\s*"([^"]+)"', conf, re.M)
+    name = re.search(r'^title\s*=\s*"([^"]+)"', conf, re.M) or re.search(r'^name\s*=\s*"([^"]+)"', conf, re.M)
     repo = re.search(r'^repo\s*=\s*"([^"]+)"', conf, re.M)
     links = [("../emu/", "Emulator"), ("../install/", "Install"), ("../manual/", "Manual"), ("../manual/#controls", "Controls")]
     if repo:
@@ -74,8 +74,8 @@ def header(current):
 
 
 EMU_START = """<div class="start-here" aria-label="Where to start">
-  <div><b>Switch on, then PLAY</b><p>The break plays at 170 BPM. The white keys are its sixteen slices: press one and it lands on the next snap point; hold it and it loops.</p></div>
-  <div><b>Throw the pads</b><p>The black keys are momentary effects: rolls, reverse, freeze, half speed, tape stop, gate, random, filter, dub. Hold one and turn K1–K4 to tune it.</p></div>
+  <div><b>Switch on, then PLAY</b><p>The break plays at 170 BPM, the mix scrolling by as on a CDJ. The white keys are its sixteen slices: press one and it lands on the next snap point; hold it and it loops.</p></div>
+  <div><b>Throw the pads</b><p>The black keys are momentary effects: rolls on the break or the kick, reverse, filter, half speed, vinyl break, gate, random, SUB DRIVE. Hold one and turn K1–K4 to tune it. EDIT opens the kick.</p></div>
   <div><b>Find your way</b><p>Each button opens a page; press it again for its next part. <span class="k">SEL</span> held a second lists every combination. All of it is in the <a href="../manual/#controls">control map</a>.</p></div>
 </div>
 """
@@ -106,8 +106,45 @@ def install(site):
     page.write_text(s, encoding="utf-8")
 
 
+def site_name():
+    conf = (APP / "fm1.toml").read_text(encoding="utf-8")
+    m = re.search(r'^title\s*=\s*"([^"]+)"', conf, re.M)
+    n = re.search(r'^name\s*=\s*"([^"]+)"', conf, re.M)
+    return (m.group(1) if m else None), (n.group(1) if n else None)
+
+
+def rebrand(site):
+    """LOAF BREAKER: a fork's site in its own name (fm1.toml title, the build keeping CHOPPAH's): the pages'
+    titles and words, the package's file (choppah-X.fwsc -> loaf-breaker-X.fwsc); the credits to CHOPPAH kept"""
+    new, old = site_name()
+    if not new or not old or new == old:
+        return
+    stem = new.lower().replace(" ", "-")
+    renames = {}
+    for f in (site / "firmware").glob(old.lower() + "-*"):
+        to = f.with_name(stem + f.name[len(old):])
+        renames[f.name] = to.name
+        f.rename(to)
+    keep = re.compile(r'(?<=fm1-break-choppah">)' + re.escape(old) + "|" + re.escape(old) +
+                      r"(?=</strong>, Laurens| by Laurens|'s author)")   # (the credits: the link, the sentences)
+    for f in site.rglob("*"):
+        if f.suffix not in (".html", ".js", ".json", ".webmanifest") or not f.is_file():
+            continue
+        t = f.read_text(encoding="utf-8")
+        u = t
+        for a, b in renames.items():
+            u = u.replace(a, b)
+        u = keep.sub("\0KEEP\0", u)
+        u = u.replace(old, new)                     # (upper case: the name; its URLs are lower case)
+        u = u.replace("<title>" + new + ": " + new, "<title>" + new + ": the manual")
+        u = u.replace("\0KEEP\0", old)
+        if u != t:
+            f.write_text(u, encoding="utf-8")
+
+
 def main(site):
     site = Path(site)
+    rebrand(site)
     install(site)
     emu(site)
     home = site / "index.html"
