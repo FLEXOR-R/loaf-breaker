@@ -129,7 +129,8 @@ back. That touch only ends the demo: it doesn't play a slice or start the break.
     LENGTH (the rumble's echo, 23–93 ms), ASYM (an uneven drive: even harmonics, warmer and harder), TUNE (the whole kick,
     −12 .. +12 semitones).
   At 0 each sounds as the kick always did. They go with its memory (KICK 1–10); its PRESET puts them back to 0.
-- **LFO** (the MIXER): LEVELS, GROOVE, MASTER (K1 COMP, K2 its RATIO, K3 DUCK, K4 MAX OUT; COMP's reduction metered).
+- **LFO** (the MIXER): LEVELS, GROOVE, MASTER (K1 COMP, K2 its RATIO, K3 DUCK, K4 MAX OUT; COMP's reduction metered),
+  DYNAMICS (COMP's ATTACK and RELEASE, DUCK's RELEASE, DUCKS: the break, or the break and the drums).
 - **ENV**: the track and the live. TRACKS, PLAY, DROP, BUILD, KNOB (what SEL + each knob does), RESET.
 - **GLO**: MIDI, PITCH, MORE (SKIN, AUTO SAVE).
 
@@ -173,16 +174,12 @@ metronome and tap tempo are gone).
   says on the right what it puts back), **K4** turned right twice within 3 s resets it (once only arms it: "TURN K4
   AGAIN TO RESET").
 - **KNOB**: what SEL + each knob does, on any page. **ALGORITHM** (or white keys 1–4) picks the knob, **PRESETS**
-  gives it its function: DUCK, TERROR 2, COMP, TERROR, T+ DRIVE, T+ TYPE, T+ SCREECH, T+ TAIL (TERROR +'s settings, one
-  each) or DRIVE (the kick's INTENSITY). They start as K1 DUCK, K2 TERROR 2, K3 COMP, K4 TERROR. K1–K4 then set the
-  function picked (K1 is what SEL + its knob turns).
-  - **DUCK**: AMOUNT, ATTACK (0.1–30 ms), RELEASE (20–800 ms), DUCKS: the BREAK, or the break and the drums (+ DRUMS;
-    never the kick).
+  gives it its function: TERROR 2, TERROR, T+ DRIVE, T+ TYPE, T+ SCREECH, T+ TAIL (TERROR +'s settings, one each) or
+  DRIVE (the kick's INTENSITY). They start as K1 DRIVE, K2 TERROR 2, K3 T+ SCREECH, K4 TERROR. K1–K4 then set the
+  function picked (K1 is what SEL + its knob turns). DUCK and COMP are not here: the MIXER (LFO) has them, MASTER and
+  DYNAMICS.
   - **TERROR 2**: AMOUNT, SUB (what stays clean under it, ~48–250 Hz), SCREAM (the mids it pushes, ~150 Hz–2.4 kHz),
     PUSH (how hard).
-  - **COMP** (in LIMIT's place; also on the MIXER's MASTER): the whole mix compressed. AMOUNT is the threshold (0 to
-    −36 dB), RATIO 1.5:1–20:1, ATTACK, RELEASE; half the reduction is made up, the mix held under full scale. Its
-    reduction shows live under the knobs.
   - **TERROR**: AMOUNT, SUB, FIZZ (its top, darker or brighter), SUSTAIN (the fold dying with the kick, or a wall).
   - **TERROR +** (its settings on EDIT KICK too): DRIVE (the fold's gain, apart from AMOUNT's mix), TYPE (FOLD the
     scream, CLIP squared off, CRUSH in steps), SCREECH (a resonant band, ~500 Hz–5 kHz, the whistle; OFF to the left),

@@ -49,7 +49,12 @@ static void knob_turn(int k, int32_t d)
     }
     if (ui.page == PG_MIX) {             /* LEVELS: break, kick, snare and hat, FX; GROOVE: swing, the drums' route */
         char t[16];
-        if (ui.mpage == 2u) {            /* (TEST) MASTER: COMP, its RATIO, DUCK, MAX OUT */
+        if (ui.mpage == 3u) {            /* DYNAMICS: COMP's attack and release, DUCK's release, what it ducks */
+            if (k == EN_K1 || k == EN_K2)
+                selk_turn(2u, k == EN_K1 ? 2 : 3, d);
+            else
+                selk_turn(0u, k == EN_K3 ? 2 : 3, d);
+        } else if (ui.mpage == 2u) {     /* MASTER: COMP, its RATIO, DUCK, MAX OUT */
             if (k == EN_K1 || k == EN_K2)
                 selk_turn(2u, k - EN_K1, d);
             else if (k == EN_K3)
@@ -399,7 +404,7 @@ static void input(void)
         ui.redraw |= RG_FOOT | RG_BLOCKS;
     }
     if (bdn & 1u << B_LFO) {             /* LFO: the MIXER (the break, the kick, FX main, FX overlay); again, groove */
-        ui.mpage = ui.page == PG_MIX ? (uint8_t)((ui.mpage + 1u) % 3u) : 0u;   /* (TEST: LEVELS, GROOVE, MASTER) */
+        ui.mpage = ui.page == PG_MIX ? (uint8_t)((ui.mpage + 1u) % 4u) : 0u;   /* (LEVELS, GROOVE, MASTER, DYNAMICS) */
         ui.page = PG_MIX;
         ui.redraw |= RG_FOOT | RG_BLOCKS;
         page_say();
@@ -837,7 +842,8 @@ static void draw_tabs(void)
     else if (ui.page == PG_MIX) {
         x = tab(x, "LEVELS", !ui.mpage);
         x = tab(x, "GROOVE", ui.mpage == 1u);
-        tab(x, "MASTER", ui.mpage == 2u);   /* (TEST) */
+        x = tab(x, "MASTER", ui.mpage == 2u);
+        tab(x, "DYN", ui.mpage == 3u);   /* (LOAF BREAKER: COMP's and DUCK's timing, what DUCK ducks) */
     } else if (ui.page == PG_SEQ) {
         char pn[6] = "P";                /* LOAF BREAKER: the pattern, then the lane the keys edit (SEQ again, or
                                           * ALGORITHM: the next); the lanes themselves on the page */
@@ -886,7 +892,7 @@ static void page_say(void)
     case PG_GEN: text_cat(t, "GENERATOR"); break;
     case PG_KEQ: text_cat(t, ui.keq_part ? "KICK EQ SHAPE" : "KICK EQ BANDS"); break;
     case PG_GLOBAL: text_cat(t, GPART[ui.gpage % 3u]); break;
-    case PG_MIX: text_cat(t, ui.mpage == 2u ? "MASTER" : ui.mpage ? "GROOVE" : "LEVELS"); break;
+    case PG_MIX: text_cat(t, ui.mpage == 3u ? "DYNAMICS" : ui.mpage == 2u ? "MASTER" : ui.mpage ? "GROOVE" : "LEVELS"); break;
     case PG_SEQ: text_cat(t, SEQL[ui.seq_lane % NSEQL]); break;
     case PG_TRACK: text_cat(t, TPART[ui.tpage % NTPART]); break;
     case PG_OVL: text_cat(t, "OVERLAY"); break;
@@ -970,7 +976,8 @@ static void draw_foot(const brk_status_t *st)
     }
     for (i = 0; i < 4u; i++) {
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "RESET ALL"};
-        static const char *const KN_GROOVE[2][4] = {{"SWING", "DRUMS", "", ""}, {"COMP", "RATIO", "DUCK", "MAX OUT"}};
+        static const char *const KN_GROOVE[3][4] = {{"SWING", "DRUMS", "", ""}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
+                                                    {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
         static const char *const KN_MORE[4] = {"SKIN", "AUTO SAVE", "", ""};   /* GLOUPI BREAKS: GLOBAL's MORE */
         static const char *const KN_TRK[4][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
                                                  {"STYLE", "SWEEP", "RISER", "GAP"}, {"WHAT", "", "", "RESET"}};
@@ -978,7 +985,7 @@ static void draw_foot(const brk_status_t *st)
                            ui.tpage ? KN_TRK[ui.tpage == 5u ? 3u : ui.tpage == 4u ? 2u : (ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
                            ui.gpage == 2u ? KN_MORE[i] : ui.page == PG_GLOBAL && ui.gpage
                            ? KN_PITCH[i] : ui.page == PG_MIX && ui.mpage
-                           ? KN_GROOVE[ui.mpage == 2u][i] : KN[ui.page][i];
+                           ? KN_GROOVE[ui.mpage >= 3u ? 2u : ui.mpage == 2u][i] : KN[ui.page][i];
         if (ui.shown >= 100) {           /* a white key held: its loop, or its slice's effect */
             cv_text(4 + (int32_t)i * 60, 18, &FONT_T, ui.key_layer ? SLX_KNOB[i] : KEY_KNOB[i], C_HI);
             if (ui.key_layer)
@@ -1232,7 +1239,8 @@ void app_frame(void)
             ui.panel_drawn = now;
         }
     }
-    if (ui.page == PG_TRACK && ui.tpage == 3u && ui.knfn == 2u && set.comp && now - ui.panel_drawn >= 50u) {
+    if (((ui.page == PG_MIX && ui.mpage == 2u) || (ui.page == PG_TRACK && ui.tpage == 3u && selk_fn(ui.knfn) == 2u)) &&
+        set.comp && now - ui.panel_drawn >= 50u) {   /* (COMP's reduction moving) */
         ui.redraw |= RG_BLOCKS;          /* (LOAF BREAKER: KNOB's COMP: its reduction moving) */
         ui.panel_drawn = now;
     }
@@ -1378,8 +1386,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1"};
-    int v[38];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn"};
+    int v[39];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1424,7 +1432,8 @@ int app_expect(const char *what, int *got)
     v[35] = KICK_T_SCREECH(&set.kick);
     v[36] = set.drop_style;
     v[37] = set.selk_asg2 & 15u;
-    for (i = 0; i < 38u; i++)
+    v[38] = (int)selk_fn(2u);
+    for (i = 0; i < 39u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

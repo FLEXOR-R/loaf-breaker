@@ -7,7 +7,11 @@ static void selk_value(uint32_t f, int i, char *t);
 static void mix_value(uint32_t h, int i, char *t)
 {
     t[0] = 0;
-    if (h == 2u) {                       /* LOAF BREAKER TEST: MASTER: COMP, its RATIO, DUCK, MAX OUT */
+    if (h == 3u) {                       /* LOAF BREAKER: DYNAMICS: COMP's attack, release; DUCK's release, what it ducks */
+        selk_value(i < 2 ? 2u : 0u, i == 0 ? 2 : i == 1 ? 3 : i == 2 ? 2 : 3, t);
+        return;
+    }
+    if (h == 2u) {                       /* LOAF BREAKER: MASTER: COMP, its RATIO, DUCK, MAX OUT */
         if (i < 3)
             selk_value(i == 2 ? 0u : 2u, i == 2 ? 0 : i, t);
         else {
@@ -61,16 +65,25 @@ static void mix_fader(int32_t x, float v, int on)   /* 0..1 from the bottom */
 }
 static void mix_picture(int32_t top)
 {
-    static const char *const NAME[3][4] = {{"BREAK", "KICK", "PERC", "FX"}, {"SWING", "DRUMS", "", ""},
-                                           {"COMP", "RATIO", "DUCK", "MAX OUT"}};
+    static const char *const NAME[4][4] = {{"BREAK", "KICK", "PERC", "FX"}, {"SWING", "DRUMS", "", ""},
+                                           {"COMP", "RATIO", "DUCK", "MAX OUT"},
+                                           {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
     uint32_t c;
     cv_oy = -top;                        /* (this strip's rows of the picture) */
     for (c = 0; c < 4u; c++) {
         int32_t x = (int32_t)c * 60;
         if (c)
             cv_rect(x, 4, 1, 96, C_LINE);
-        if (NAME[ui.mpage % 3u][c][0])
-            cv_text(x + 6, 1, &FONT_XS, NAME[ui.mpage % 3u][c], C_GRAY);
+        if (NAME[ui.mpage % 4u][c][0])
+            cv_text(x + 6, 1, &FONT_XS, NAME[ui.mpage % 4u][c], C_GRAY);
+    }
+    if (ui.mpage == 3u) {                /* DYNAMICS: the four values, large */
+        char t[12];
+        for (c = 0; c < 4u; c++) {
+            mix_value(3u, (int)c, t);
+            cv_text((int32_t)c * 60 + 6, 40, text_w(&FONT_B, t) <= 52 ? &FONT_B : &FONT_XS, t, C_WHITE);
+        }
+        return;
     }
     if (ui.mpage == 2u) {                /* MASTER: COMP and its reduction, its ratio, DUCK, MAX OUT */
         char t[8];

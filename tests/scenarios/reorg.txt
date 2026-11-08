@@ -80,7 +80,7 @@ release SEL
 wait 200
 expect intensity 20
 turn ALGO -1 10
-turn PRESET 6 10
+turn PRESET -2 10
 wait 200
 press SEL
 turn K1 10 10

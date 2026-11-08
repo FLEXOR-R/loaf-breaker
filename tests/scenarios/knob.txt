@@ -1,6 +1,6 @@
-# LOAF BREAKER: ENV's KNOB, the SEL + knob functions' settings. ENV four times: KNOB (DUCK first); ALGORITHM twice:
-# COMP; its amount (K1, as SEL + K3) to -14.4 dB, its ratio 8:1 (K2); playing: its reduction; SEL + K3 down a
-# little: the same amount; ALGORITHM: TERROR, its SUB down (K2).
+# LOAF BREAKER: ENV's KNOB, what SEL + each knob does (DUCK and COMP are the MIXER's: not here). K1 DRIVE, K2 TERROR 2,
+# K3 T+ SCREECH, K4 TERROR to start with; K3 (ALGORITHM twice): its SCREECH up (K1), SEL + K3 the same; PRESETS left
+# four: T+ TYPE, T+ DRIVE, TERROR, then TERROR 2 (COMP passed over). LFO four times: DYNAMICS (COMP's and DUCK's timing).
 #   app/build/host/choppah_host tests/scenarios/knob.txt app/build/scenarios
 wait 4200
 tap ENV
@@ -15,25 +15,33 @@ tap ENV
 wait 300
 expect page 8
 expect knfn 0
-shot n_duck.png
+shot n_knob.png
 turn ALGO 2 10
 wait 200
 expect knfn 2
+expect selk3_fn 7
 turn K1 20 10
-turn K2 2 10
 wait 100
-expect comp 40
-tap PLAY
-wait 2500
-shot n_comp.png
+expect t_screech 40
 press SEL
 turn K3 -5 10
 release SEL
 wait 200
-expect comp 30
-turn ALGO 1 10
-turn K2 -10 10
+expect t_screech 30
+turn PRESET -4 10
+wait 200
+expect selk3_fn 1
+shot n_assign.png
+tap LFO
+wait 100
+tap LFO
+wait 100
+tap LFO
+wait 100
+tap LFO
 wait 300
-expect knfn 3
-shot n_terror.png
-tap PLAY
+expect page 5
+turn K1 5 10
+turn K4 1 10
+wait 200
+shot n_dyn.png

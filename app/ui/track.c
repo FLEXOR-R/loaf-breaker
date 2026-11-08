@@ -15,7 +15,7 @@ enum { RST_DROP, RST_BUILD, RST_KNOB, NRST };
 static const char *const RST_NAME[NRST] = {"DROP", "BUILD", "KNOB"};
 static const char *const RST_WHAT[NRST] = {"BUILD 4 BARS, NEXT PATTERN, SAME BREAK, CRASH 100%",
                                           "SNARE ROLL, HIGH-PASS, RISER 100%, NO GAP",
-                                          "THE FOUR KNOBS AS AT FIRST, DUCK AND COMP OFF"};
+                                          "K1 DRIVE, K2 TERROR 2, K3 T+ SCREECH, K4 TERROR"};
 static void reset_do(uint32_t w)
 {
     if (w == RST_DROP) {
@@ -28,16 +28,8 @@ static void reset_do(uint32_t w)
         set.drop_sweep = 0u;
         set.drop_riser = 50u;
         set.drop_gap = 0u;
-    } else {                             /* KNOB: the knobs' functions, DUCK's and COMP's settings */
+    } else                               /* KNOB: the knobs' functions */
         set.selk_asg = set.selk_asg2 = 0u;
-        set.duck = set.comp = 0u;
-        set.duck_att = 19u;
-        set.duck_rel = 36u;
-        set.duck_what = 0u;
-        set.comp_ratio = 3u;
-        set.comp_att = 59u;
-        set.comp_rel = 55u;
-    }
     changed();
 }
 static const char *const DS_NAME[DS_N] = {"SNARE ROLL", "KICK ROLL", "KICK+SNARE", "STUTTER", "SWEEP ONLY", "RANDOM"};
@@ -263,7 +255,9 @@ static const char *const T_TYPE_NAME[3] = {"FOLD", "CLIP", "CRUSH"};
 /* what a SEL + knob can be given (KNOB, PRESETS), in that order: its code 1..9 is its place + 1 (0: the knob's own) */
 #define SK_CODES 9u
 static const uint8_t SK_CODE[SK_CODES] = {0u, 1u, 2u, 3u, 4u, 6u, 7u, 8u, 5u};
-static const uint8_t SK_OWN[4] = {0u, 1u, 2u, 3u};   /* K1 DUCK, K2 TERROR 2, K3 COMP, K4 TERROR */
+static const uint8_t SK_OWN[4] = {5u, 1u, 7u, 3u};   /* K1 DRIVE, K2 TERROR 2, K3 T+ SCREECH, K4 TERROR (LOAF BREAKER:
+                                          * DUCK and COMP no more: the MIXER's MASTER has them) */
+static int sk_live(uint32_t f) { return f != 0u && f != 2u; }   /* (a function a SEL + knob may have) */
 static uint32_t sk_code(uint32_t knob)   /* the knob's code, 0 its own */
 {
     uint8_t b = knob == 1u || knob == 3u ? set.selk_asg : set.selk_asg2;
@@ -272,7 +266,7 @@ static uint32_t sk_code(uint32_t knob)   /* the knob's code, 0 its own */
 static uint32_t selk_fn(uint32_t knob)   /* the function SEL + K1..K4 turns */
 {
     uint32_t c = sk_code(knob & 3u);
-    return c && c <= SK_CODES ? SK_CODE[c - 1u] : SK_OWN[knob & 3u];
+    return c && c <= SK_CODES && sk_live(SK_CODE[c - 1u]) ? SK_CODE[c - 1u] : SK_OWN[knob & 3u];
 }
 static uint8_t *sk_byte(uint32_t f, int i)   /* a setting's byte (the TERRORs': the kick's, int8 -50..50) */
 {
@@ -421,7 +415,11 @@ static void selk_assign(int32_t d)
     for (k = 0; k < SK_CODES; k++)       /* (where it is in the list now) */
         if (SK_CODE[k] == f)
             c = k;
-    c = (uint32_t)clamp((int32_t)c + (d > 0 ? 1 : -1), 0, (int32_t)SK_CODES - 1);
+    do                                   /* (DUCK and COMP passed over) */
+        c = (uint32_t)clamp((int32_t)c + (d > 0 ? 1 : -1), 0, (int32_t)SK_CODES - 1);
+    while (!sk_live(SK_CODE[c]) && c > 0u && c < SK_CODES - 1u);
+    if (!sk_live(SK_CODE[c]))
+        c = c ? SK_CODES - 1u : 1u;
     *b = (uint8_t)((*b & ~(15u << sh)) | (c + 1u) << sh);
     n[7] = (char)('1' + kn);
     n[8] = 0;
