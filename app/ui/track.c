@@ -44,6 +44,8 @@ static uint32_t drop_rand(uint32_t n)    /* 0..n-1, by chance (the drops unlike 
 static const char *const TRK_END_NAME[3] = {"LOOP", "STOP", "HOLD"};
 
 static track_t *trk_now(void) { return &pats.trk[set.trk % NTRACKS]; }
+#define TRK_FROM (trk_now()->rsv[0])     /* LOAF BREAKER: the track's first item (TRACKS: SEL + PLAY; PLAY's FROM), saved
+                                          * with it */
 static uint8_t *trk_brk(uint32_t i) { return &steps.tb[set.trk % NTRACKS][i % TRK_ITEMS]; }   /* (the item's break) */
 static int trk_is_pat(const track_t *t, uint32_t i)
 {
@@ -137,11 +139,12 @@ static void build_click(void)
     drop_start(set.drop_after ? set.drop_after - 1u : (set.pattern + 1u) % NPAT);
 }
 
-/* PLAY: the track from PLAY's item (a DROP there: the pattern after it), from bar 1; HOME */
-static void track_play(void)
+/* PLAY: the track from its first item (TRK_FROM; a DROP there: the pattern after it), from bar 1; HOME (home: 0, from
+ * TRACKS: it stays) */
+static void track_play(int home)
 {
     const track_t *t = trk_now();
-    int i = trk_pat_from(t, ui.trk_from, 0);
+    int i = trk_pat_from(t, TRK_FROM < trk_len(t) ? TRK_FROM : 0u, 0);
     char n[8] = "TRACK ";
     if (i < 0) {
         app_say("TRACK", "EMPTY");
@@ -162,7 +165,8 @@ static void track_play(void)
     ui.trk_loops = ui.trk_cnt = ui.trk_stop = 0u;
     ui.trk_drop = 0xFFu;
     ui.trk_prev = -1;
-    ui.page = PG_HOME;
+    if (home)
+        ui.page = PG_HOME;
     ui.redraw = RG_ALL;
     int_text((int32_t)set.trk + 1, n + 6);
     app_say(n, "PLAYING");
@@ -544,7 +548,7 @@ static void track_value(int i, char *t)
             text_cat(t, "TRACK ");
             int_text((int32_t)set.trk + 1, t + 6);
         } else if (i == 1)
-            int_text((int32_t)ui.trk_from + 1, t);
+            int_text((int32_t)TRK_FROM + 1, t);
         else if (i == 2)
             text_cat(t, TRK_END_NAME[tr->end % 3u]);
         return;
@@ -631,11 +635,11 @@ static void track_turn(int i, int32_t d)
     } else if (ui.tpage == 1u) {
         if (i == 0) {
             set.trk = (uint8_t)clamp((int32_t)set.trk + dir, 0, (int32_t)NTRACKS - 1);
-            ui.trk_from = 0u;
             changed();
         } else if (i == 1) {
             uint32_t n = trk_len(t);
-            ui.trk_from = (uint8_t)clamp((int32_t)ui.trk_from + dir, 0, n ? (int32_t)n - 1 : 0);
+            TRK_FROM = (uint8_t)clamp((int32_t)TRK_FROM + dir, 0, n ? (int32_t)n - 1 : 0);
+            set_dirty = 1u;
         } else if (i == 2) {
             t->end = (uint8_t)clamp((int32_t)t->end + dir, 0, 2);
             set_dirty = 1u;
@@ -658,6 +662,8 @@ static void track_turn(int i, int32_t d)
                 }
                 t->it[TRK_ITEMS - 1u] = TI_END;
                 *trk_brk(TRK_ITEMS - 1u) = 0u;
+                if (TRK_FROM > c)        /* (the first item: where it was) */
+                    TRK_FROM--;
                 app_say("ITEM", "DELETED");
                 set_dirty = 1u;
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
@@ -691,9 +697,23 @@ static void knob_fn(int32_t d)           /* ALGORITHM or PRESETS on KNOB: the fu
 static void track_pick(int32_t d)
 {
     set.trk = (uint8_t)clamp((int32_t)set.trk + (d > 0 ? 1 : -1), 0, (int32_t)NTRACKS - 1);
-    ui.trk_cur = ui.trk_from = 0u;
+    ui.trk_cur = 0u;
     changed();
     say_int("TRACK", (int32_t)set.trk + 1, "");
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
+/* LOAF BREAKER: TRACKS, SEL + PLAY: the item edited is where PLAY starts the track (again on it: from the first) */
+static void track_from_here(void)
+{
+    const track_t *t = trk_now();
+    uint32_t c = ui.trk_cur % TRK_ITEMS;
+    if (c >= trk_len(t)) {
+        app_say("START", "PAST THE END");
+        return;
+    }
+    TRK_FROM = (uint8_t)(TRK_FROM == c ? 0u : c);
+    set_dirty = 1u;
+    say_int("START AT ITEM", (int32_t)TRK_FROM + 1, "");
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
 /* a white key on ENV. TRACKS: that pattern put at the item edited (its loops kept), then the next item; PLAY: that
@@ -711,9 +731,8 @@ static void track_key(uint32_t k)
     if (ui.tpage == 1u) {
         if (k < NTRACKS) {
             set.trk = (uint8_t)k;
-            ui.trk_from = 0u;
             changed();
-            track_play();
+            track_play(1);
         }
         return;
     }
@@ -755,8 +774,8 @@ static void track_gap(void)
             ui.trk_pos--;
         if (ui.trk_drop != 0xFFu && ui.trk_drop > c)
             ui.trk_drop--;
-        if (ui.trk_from > c)
-            ui.trk_from--;
+        if (TRK_FROM > c)
+            TRK_FROM--;
         ui.trk_cur = (uint8_t)(c ? c - 1u : 0u);
         set_dirty = 1u;
         app_say("SPACE", "REMOVED");
@@ -784,8 +803,8 @@ static void track_gap(void)
         ui.trk_pos++;                    /* (a track playing: on where it was) */
     if (ui.trk_drop != 0xFFu && ui.trk_drop > c && ui.trk_drop + 1u < TRK_ITEMS)
         ui.trk_drop++;
-    if (ui.trk_from > c && ui.trk_from + 1u < TRK_ITEMS)
-        ui.trk_from++;
+    if (TRK_FROM > c && TRK_FROM + 1u < TRK_ITEMS)
+        TRK_FROM++;
     set_dirty = 1u;
     say_int("SPACE AT", (int32_t)c + 2, "");
     app_say(ui.msg[0], "KEY: A PATTERN");
@@ -881,7 +900,7 @@ static void radio_picture(void)
     cv_text(86, 78, &FONT_XS, n ? s : "EMPTY: MAKE IT ON TRACKS", C_GRAY);
     s[0] = 0;
     text_cat(s, "FROM ");
-    int_text((int32_t)ui.trk_from + 1, u);
+    int_text((int32_t)TRK_FROM + 1, u);
     text_cat(s, u);
     text_cat(s, "  ");
     text_cat(s, TRK_END_NAME[t->end % 3u]);
@@ -1019,9 +1038,14 @@ static void track_picture(int32_t top)
     cv_text(234 - text_w(&FONT_XS, s), 6, &FONT_XS, s, C_GRAY);
     if (ui.trk_on && ui.tpage == 1u)
         cv_text(100, 6, &FONT_XS, "PLAYING", C_HI);
+    if (!ui.tpage && TRK_FROM && TRK_FROM < n) {   /* (LOAF BREAKER: where PLAY starts it) */
+        char f[12] = "FROM ";
+        int_text((int32_t)TRK_FROM + 1, f + 5);
+        cv_text(100, 6, &FONT_XS, f, C_WHITE);
+    }
     for (i = 0; i < TRK_ITEMS; i++) {
         int32_t x = 1 + (int32_t)(i % 8u) * 30, y = TK_GY + (int32_t)(i / 8u) * TK_CH;
-        int mark = ui.tpage ? i == ui.trk_from : i == ui.trk_cur;
+        int mark = ui.tpage ? i == TRK_FROM : i == ui.trk_cur;
         int now = ui.trk_on && i == ui.trk_pos;
         uint16_t bg = now ? C_HI : i < n ? (t->it[i] == TI_DROP ? C_AMB : C_BLOCK) : C_BLACK;
         if (i > n)
@@ -1040,6 +1064,13 @@ static void track_picture(int32_t top)
             cv_rect(x - 1, y + TK_CH - 3, 30, 1, C_WHITE);
             cv_rect(x - 1, y - 1, 1, TK_CH - 1, C_WHITE);
             cv_rect(x + 28, y - 1, 1, TK_CH - 1, C_WHITE);
+        }
+        if (i == TRK_FROM && i < n && !ui.tpage) {   /* (LOAF BREAKER: the first item PLAY plays: a flag at its corner) */
+            uint16_t fc = now ? C_BLACK : C_WHITE;
+            cv_rect(x + 1, y + 1, 1, 7, fc);
+            cv_rect(x + 2, y + 2, 1, 5, fc);
+            cv_rect(x + 3, y + 3, 1, 3, fc);
+            cv_rect(x + 4, y + 4, 1, 1, fc);
         }
         if (i > n || (i < n && t->it[i] == TI_GAP))
             continue;
