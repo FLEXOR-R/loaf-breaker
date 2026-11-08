@@ -331,11 +331,13 @@ typedef struct {
     fxmem_t mem;
     uint16_t kfm[BRK_NFXT][FXM_N];       /* KICK FX's effects as left (its own: not the chain's) */
     uint16_t kfm_ok, kfm_rsv;
+    uint8_t kn[NPAT][13];                /* LOAF BREAKER: the kick's notes past its 38th step (kick_note) */
 } pats_t;
 static pats_t pats;
 #define PATS_SIZE_OLD offsetof(pats_t, trk)   /* (a save before the tracks) */
 #define PATS_SIZE_TRK offsetof(pats_t, mem)   /* (one before the effects' memory) */
 #define PATS_SIZE_MEM offsetof(pats_t, kfm)   /* (one before KICK FX's) */
+#define PATS_SIZE_KFM offsetof(pats_t, kn)    /* (one before the kick's notes on every step) */
 _Static_assert(sizeof pats <= 3840u, "a store object holds 3840 bytes");
 /* LOAF BREAKER: BUILD and DROP. SEL clicked three times, playing (build_n, the main loop): from the next bar the
  * drums' steps give way to a snare roll that speeds up (quarters, eighths, 16ths, then 32nds, a quarter of the build
@@ -384,6 +386,9 @@ static void pat_defaults(void)
     }
     trk_defaults();
     pats.mem.fx_ok = pats.mem.kfx_ok = pats.kfm_ok = 0u;
+    for (i = 0; i < NPAT; i++)
+        for (k = 0; k < 13u; k++)
+            pats.kn[i][k] = 0u;
 }
 /* GLOUPI BREAKS: the kick over four bars (64 steps), bar b (0..3) 16 bits: lane[LANE_KICK], kick2, and bars 3 and 4
  * in the spare bytes of steps 0-3 (st[0..3][3], low byte first) */
@@ -483,18 +488,29 @@ static void drum_bar_set(pat_t *p, uint32_t d, uint32_t b, uint32_t m)
         p->st[k + 1u][3] = (uint8_t)(m >> 8);
     }
 }
-/* LOAF BREAKER (crossbreed): the kick's notes, one a step of the bar (every bar alike), -8 .. +7 semitones, four bits
- * each in the spare bytes of steps 13-20 (0: as the kick is) */
+/* LOAF BREAKER (crossbreed): the kick's notes, one a step of its four bars (s 0..63), -8 .. +7 semitones, four bits
+ * each: steps 1-38 in the spare bytes of steps 14-32 (st[13..31][3]), the rest in pats.kn (a pattern of pats.p only:
+ * another copy keeps its own, kick_notes_copy) */
+static uint8_t *kick_note_byte(const pat_t *p, uint32_t s)
+{
+    uint32_t pi = (uint32_t)(p - pats.p);
+    s &= 63u;
+    if (s < 38u)
+        return (uint8_t *)&p->st[13u + s / 2u][3];
+    return p >= pats.p && pi < NPAT ? &pats.kn[pi][(s - 38u) / 2u] : 0;
+}
 static int32_t kick_note(const pat_t *p, uint32_t s)
 {
-    uint32_t b = p->st[13u + (s & 15u) / 2u][3], v = s & 1u ? b >> 4 : b & 15u;
+    const uint8_t *b = kick_note_byte(p, s);
+    uint32_t v = b ? (s & 1u ? *b >> 4 : *b & 15u) : 0u;
     return v >= 8u ? (int32_t)v - 16 : (int32_t)v;
 }
 static void kick_note_set(pat_t *p, uint32_t s, int32_t v)
 {
-    uint8_t *b = &p->st[13u + (s & 15u) / 2u][3];
+    uint8_t *b = kick_note_byte(p, s);
     uint32_t n = (uint32_t)(v < -8 ? -8 : v > 7 ? 7 : v) & 15u;
-    *b = (uint8_t)(s & 1u ? (*b & 0x0Fu) | n << 4 : (*b & 0xF0u) | n);
+    if (b)
+        *b = (uint8_t)(s & 1u ? (*b & 0x0Fu) | n << 4 : (*b & 0xF0u) | n);
 }
 static uint32_t drum_bars(const pat_t *p, uint32_t d)   /* its bars played: the kick 1, 2 or 4, the rest 1 or 2 */
 {
@@ -698,7 +714,7 @@ void app_init(void)
     {
         int sz = plat_store_size(OBJ_PAT);   /* (LOAF BREAKER: a save from before the tracks: its patterns) */
         if ((sz != (int)sizeof pats && sz != (int)PATS_SIZE_OLD && sz != (int)PATS_SIZE_TRK &&
-             sz != (int)PATS_SIZE_MEM) ||
+             sz != (int)PATS_SIZE_MEM && sz != (int)PATS_SIZE_KFM) ||
             plat_store_load(OBJ_PAT, &pats, (uint32_t)sz) != sz)
             pats.magic = 0u;
     }
@@ -1013,7 +1029,8 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                 for (d = DR_SNARE; d < NDRUMS; d++)   /* (LOAF BREAKER: every drum, its bar) */
                     w |= (uint32_t)(drum_now[d][bar] >> s & 1u) << (d - 1u);
                 if (drum_now[DR_KICK][bar] >> s & 1u) {
-                    int32_t kn = kick_note(&pats.p[set.pattern % NPAT], s);
+                    const pat_t *pp = &pats.p[set.pattern % NPAT];   /* (its note: this step of its bar) */
+                    int32_t kn = kick_note(pp, (bar % drum_bars(pp, DR_KICK)) * 16u + s);
                     kpm[nk] = kn ? brk_exp2f((float)kn * (1.0f / 12.0f)) : 1.0f;
                     ka[nk++] = off[k];
                 }

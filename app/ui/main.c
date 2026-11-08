@@ -1325,8 +1325,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx"};
-    int v[28];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes"};
+    int v[29];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1356,7 +1356,9 @@ int app_expect(const char *what, int *got)
     v[25] = (int)(fx_sl(fx_foc())->p[0] * 100.0f + 0.5f);
     v[26] = (int)(set.kick.l[ui.klayer % KICK_LAYERS].fa * 100.0f + 0.5f);
     v[27] = set.kick.l[ui.klayer % KICK_LAYERS].fx;
-    for (i = 0; i < 28u; i++)
+    for (i = 0, v[28] = 0; i < 64u; i++)  /* (the kick's steps with a note) */
+        v[28] += kick_note(pat_now(), i) != 0;
+    for (i = 0; i < 29u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

@@ -13,6 +13,7 @@ wait 100
 turn K1 5 10
 key w10 up
 wait 200
+expect knotes 1
 shot x_kick.png
 turn ALGO 4 10
 turn K3 4 10

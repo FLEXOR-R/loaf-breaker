@@ -70,15 +70,18 @@ static pat_t *pat_now(void) { return &pats.p[set.pattern % NPAT]; }
 /* undo: a copy of the pattern taken before a change that wipes (SEL + ARP, SEL + REC, the drum lanes' FILL, CLEAR /
  * 4X4, COPY); a burst of the same change within 1.5 s is one. SEL + SAVE swaps it back in, and again swaps it out (redo) */
 static pat_t undo_pat;
+static uint8_t undo_kn[13];              /* (LOAF BREAKER: its kick notes kept apart, pats.kn) */
 static uint8_t undo_idx = 0xFFu, undo_what;
 static uint32_t undo_t;
 static void undo_mark(uint32_t what)     /* what: which change (UNDO_*), a burst of the same one is one */
 {
-    uint32_t now = plat_ms();
+    uint32_t now = plat_ms(), k;
     if (undo_idx != set.pattern % NPAT || what != undo_what || now - undo_t > 1500u) {
         undo_what = (uint8_t)what;
         undo_pat = *pat_now();
         undo_idx = (uint8_t)(set.pattern % NPAT);
+        for (k = 0; k < 13u; k++)
+            undo_kn[k] = pats.kn[undo_idx][k];
     }
     undo_t = now;
 }
@@ -93,6 +96,14 @@ static void undo_swap(void)
     t = pats.p[undo_idx];
     pats.p[undo_idx] = undo_pat;
     undo_pat = t;
+    {
+        uint32_t k;
+        for (k = 0; k < 13u; k++) {
+            uint8_t b = pats.kn[undo_idx][k];
+            pats.kn[undo_idx][k] = undo_kn[k];
+            undo_kn[k] = b;
+        }
+    }
     undo_t = 0u;                         /* (the next change takes a fresh copy) */
     if (undo_idx == set.pattern % NPAT)
         pat_apply();
@@ -104,13 +115,16 @@ static void undo_swap(void)
 /* LOAF BREAKER: SEL + SEQ copies the pattern playing; SEL + SEQ on another pattern pastes it there (all of it: the
  * break's steps, every drum and its length), once (SEL + SAVE takes it back) */
 static pat_t clip_pat;
+static uint8_t clip_kn[13];
 static int8_t clip_from = -1;            /* the pattern copied, -1 none */
 static void pat_copy_paste(void)
 {
     char t[16] = "P";
-    uint32_t cur = set.pattern % NPAT;
+    uint32_t cur = set.pattern % NPAT, k;
     if (clip_from < 0 || (uint32_t)clip_from == cur) {
         clip_pat = pats.p[cur];
+        for (k = 0; k < 13u; k++)
+            clip_kn[k] = pats.kn[cur][k];
         clip_from = (int8_t)cur;
         int_text((int32_t)cur + 1, t + 1);
         app_say("COPIED", t);
@@ -118,6 +132,8 @@ static void pat_copy_paste(void)
     }
     undo_mark(UNDO_CLEAR);
     pats.p[cur] = clip_pat;
+    for (k = 0; k < 13u; k++)
+        pats.kn[cur][k] = clip_kn[k];
     pat_apply();
     set_dirty = 1u;
     {
@@ -236,18 +252,17 @@ static void lane_knob(int i, int32_t d)
     int32_t at = 0;
     char t[16];
     if (i == 0 && ui.note_key && sl_notes(ui.seq_lane)) {   /* LOAF BREAKER: a kick or stab step held, K1: its note,
-                                          * -8 .. +7 semitones (the kick: every bar's step alike; the stab: that step of
-                                          * its two bars) */
+                                          * -8 .. +7 semitones (that step of the lane's bar: K1..K4, T1, T2) */
         uint32_t s = ui.note_key - 1u, stab = sl_drum(ui.seq_lane) == DR_STAB, ks = SL_BAR[ui.seq_lane % NSEQL] * 16u + s;
-        int32_t v = (stab ? stab_note(pat_now(), ks) : kick_note(pat_now(), s)) + (d > 0 ? 1 : -1);
+        int32_t v = (stab ? stab_note(pat_now(), ks) : kick_note(pat_now(), ks)) + (d > 0 ? 1 : -1);
         if (stab)
             stab_note_set(pat_now(), ks, v);
         else
-            kick_note_set(pat_now(), s, v);
+            kick_note_set(pat_now(), ks, v);
         ui.note_turned = 1u;
         set_dirty = 1u;
         t[0] = 0;
-        v = stab ? stab_note(pat_now(), ks) : kick_note(pat_now(), s);
+        v = stab ? stab_note(pat_now(), ks) : kick_note(pat_now(), ks);
         if (v > 0)
             text_cat(t, "+");
         int_text(v, t + (v > 0 ? 1 : 0));
@@ -333,8 +348,10 @@ static void seq_clear(int mode)
     if (!mode) {
         for (k = SL_KICK; k < NSEQL; k++)
             sl_set(p, k, 0u);
-        for (k = 0; k < PAT_STEPS; k++)  /* (LOAF BREAKER: the stab's notes too) */
+        for (k = 0; k < PAT_STEPS; k++)  /* (LOAF BREAKER: the stab's notes too, and the kick's) */
             p->st[k][2] &= 0x87u;
+        for (k = 0; k < 64u; k++)
+            kick_note_set(p, k, 0);
     }
     else if (mode == 1 && ui.seq_lane >= SL_KICK)
         sl_set(p, ui.seq_lane, 0u);
@@ -507,7 +524,7 @@ static void seq_picture(const brk_status_t *st, int32_t top)
             cv_rect(x, y, w, ch, c);
             if (at == (int32_t)i && ch > 6)
                 cv_rect(x + 2, y + 2, w - 4, ch - 4, m >> i & 1u ? C_BLOCK_HI : C_BLOCK);
-            if (ch > 5 && (sl_kick(sl) ? kick_note(p, i) : sl_drum(sl) == DR_STAB ? stab_note(p, SL_BAR[sl] * 16u + i) : 0))
+            if (ch > 5 && (sl_kick(sl) ? kick_note(p, SL_BAR[sl] * 16u + i) : sl_drum(sl) == DR_STAB ? stab_note(p, SL_BAR[sl] * 16u + i) : 0))
                                           /* (a step with a note: a white line on top) */
                 cv_rect(x + 1, y, w - 2, 2, C_WHITE);
         }
