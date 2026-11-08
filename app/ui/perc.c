@@ -6,7 +6,7 @@ static const char *const PERC_KNOB[PERC_VOICES][2][4] = {
     {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SNAP", "DRIVE", "PRESET", ""}},
     {{"LEVEL", "TUNE", "DECAY", "METAL/NZ"}, {"CUT", "DRIVE", "PRESET", ""}},
     {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SPREAD", "DRIVE", "PRESET", ""}},
-    {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"CHORD", "DRIVE", "PRESET", ""}}};   /* (LOAF BREAKER: the rave stab's) */   /* (LOAF BREAKER: the clap's; SHAPE's K3
+    {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"BEND", "DRIVE", "PRESET", ""}}};   /* (LOAF BREAKER: the HOOVER's) */   /* (LOAF BREAKER: the clap's; SHAPE's K3
                                           * PRESET, the memory back to a built-in sound) */
 
 /* LOAF BREAKER: the snare's, the hat's and the clap's memories, as the kick's (kick_mem_turn): SNARE 1..10, the one

@@ -4,11 +4,11 @@
 #include "brk.h"
 #include "brk_math.h"
 
-const char *const PERC_VOICE_NAME[PERC_VOICES] = {"SNARE", "HAT", "CLAP", "STAB"};
+const char *const PERC_VOICE_NAME[PERC_VOICES] = {"SNARE", "HAT", "CLAP", "HOOVER"};
 const char *const PERC_PRESET_NAME[PERC_VOICES][PERC_PRESETS] = {{"909", "TIGHT", "FAT", "GABBER"},
                                                                  {"CLOSED", "808", "OPEN", "TRASH"},
                                                                  {"808", "909", "TIGHT", "BIG"},
-                                                                 {"MINOR", "MAJOR", "POWER", "DARK"}};
+                                                                 {"CLASSIC", "DIVE", "SCREAM", "DARK"}};   /* (LOAF BREAKER: the HOOVER) */
 
 static inline float soft(float x) { return x / (1.0f + brk_absf(x)); }
 static float decay_factor(float ms) { return brk_exp2f_c(-6.644f / (ms * 0.001f * (float)BRK_SR)); }   /* -40 dB */
@@ -20,15 +20,17 @@ static const float HAT_RATIO[6] = {1.0f, 1.4827f, 1.8003f, 2.5460f, 2.6303f, 3.8
 BRK_COLD float perc_tune_hz(uint32_t voice, float t)
 {
     t = brk_clampf(t, 0.0f, 1.0f);
-    if (voice == PV_STAB)                /* (the stab's root: 110 .. 440 Hz) */
-        return 110.0f * brk_exp2f_c(t * 2.0f);
+    if (voice == PV_STAB)                /* (LOAF BREAKER: the HOOVER's root: 55 .. 220 Hz) */
+        return 55.0f * brk_exp2f_c(t * 2.0f);
     return voice == PV_SNARE ? 120.0f * brk_exp2f_c(t * 1.737f) : voice == PV_CLAP ? 700.0f * brk_exp2f_c(t * 1.8f)
            : 100.0f * brk_exp2f_c(t * 3.0f);
 }
 BRK_COLD float perc_decay_ms(uint32_t voice, float d)
 {
     d = brk_clampf(d, 0.0f, 1.0f);
-    return voice == PV_SNARE || voice == PV_STAB ? 60.0f + 640.0f * d * d : voice == PV_CLAP ? 60.0f + 840.0f * d * d
+    if (voice == PV_STAB)                /* (the HOOVER: 80 .. 1480 ms) */
+        return 80.0f + 1400.0f * d * d;
+    return voice == PV_SNARE ? 60.0f + 640.0f * d * d : voice == PV_CLAP ? 60.0f + 840.0f * d * d
            : 15.0f + 885.0f * d * d;
 }
 
@@ -69,11 +71,12 @@ BRK_COLD static void pc_make(uint32_t voice, const perc_voice_t *s, float volume
         c->body = 1.0f - 0.6f * snap;
         c->noise = 0.35f + 0.85f * snap;
         c->crack = snap;
-    } else if (voice == PV_STAB) {       /* LOAF BREAKER: the stab: its chord, its filter (opening with the hit) */
+    } else if (voice == PV_STAB) {       /* LOAF BREAKER: the HOOVER: its length, its BEND (how far below it starts,
+                                          * rising into its note), its filter */
         c->dec = decay_factor(ms);
-        c->dec2 = decay_factor(ms * 0.5f);
-        c->lpk = onepole(300.0f * brk_exp2f_c(tone * 4.0f));
-        c->crack = snap < 0.34f ? 0.0f : snap < 0.67f ? 1.0f : 2.0f;   /* minor, major, power */
+        c->dec2 = decay_factor(90.0f + 260.0f * snap);   /* (the rise: longer the deeper) */
+        c->lpk = onepole(400.0f * brk_exp2f_c(tone * 4.6f));
+        c->crack = 2.5f * snap;          /* (octaves below at the hit) */
     } else if (voice == PV_CLAP) {       /* LOAF BREAKER: the bursts' band, their spacing, the tail */
         float hz = c->f * (float)BRK_SR;
         c->dec = decay_factor(ms);
@@ -163,28 +166,26 @@ static inline float clap_tick(pv_t *v, const pc_t *c)
     return x * c->noise;
 }
 
-/* LOAF BREAKER: the rave stab: four saws on the chord, the root again a touch sharp and an octave down, summed, through
- * two low-passes that open with the hit and close with it */
-static const float CHORD[3][4] = {{1.0f, 1.1892f, 1.4983f, 2.0f}, {1.0f, 1.2599f, 1.4983f, 2.0f},
-                                  {1.0f, 1.4983f, 2.0f, 2.9966f}};
+/* LOAF BREAKER: the HOOVER (in the rave stab's place): six saws spread wide around the note (the hoover's chorus, two
+ * of them an octave down), starting BEND octaves below and rising into it, through two low-passes; DRIVE makes it rip */
+static const float HOOV[6] = {1.0f, 1.0121f, 0.9881f, 1.0247f, 0.4985f, 0.5031f};
 static inline float stab_tick(pv_t *v, const pc_t *c)
 {
-    const float *r = CHORD[(uint32_t)c->crack % 3u];
-    float s = 0.0f, f = c->f * v->pm, k, x;
+    float s = 0.0f, f = c->f * v->pm * brk_exp2f(-c->crack * v->pe), x;
     uint32_t i;
     for (i = 0; i < 6u; i++) {
-        v->ph[i] += f * (i < 4u ? r[i] : i == 4u ? 1.007f : 0.498f);
+        v->ph[i] += f * HOOV[i];
         if (v->ph[i] >= 1.0f)
             v->ph[i] -= 1.0f;
-        s += v->ph[i];
+        s += v->ph[i] - (i & 1u ? 0.5f : v->ph[(i + 3u) % 6u] * 0.5f);   /* (saws, half of them against another: pulses
+                                          * that sweep, the hoover's width) */
     }
-    s = s * (1.0f / 3.0f) - 1.0f;        /* (six saws, each 0..1: about -1..1) */
-    k = c->lpk + (0.9f - c->lpk) * v->env2;
-    v->hp1 += (s - v->hp1) * k;
-    v->lp += (v->hp1 - v->lp) * k;
-    x = v->lp * v->env * 1.4f;
+    s *= 0.45f;
+    v->hp1 += (s - v->hp1) * c->lpk;
+    v->lp += (v->hp1 - v->lp) * c->lpk;
+    x = v->lp * v->env * 1.6f;
     v->env *= c->dec;
-    v->env2 *= c->dec2;
+    v->pe *= c->dec2;
     return x;
 }
 
@@ -321,10 +322,10 @@ static const float PRESET[PERC_VOICES][PERC_PRESETS][6] = {
      {0.75f, 0.55f, 0.35f, 0.60f, 0.35f, 0.15f},    /* 909 */
      {0.70f, 0.60f, 0.15f, 0.55f, 0.20f, 0.10f},    /* TIGHT */
      {0.80f, 0.30f, 0.65f, 0.35f, 0.70f, 0.30f}},   /* BIG */
-    {{0.60f, 0.50f, 0.35f, 0.50f, 0.10f, 0.20f},    /* STAB MINOR (snap: the chord) */
-     {0.60f, 0.50f, 0.35f, 0.55f, 0.50f, 0.20f},    /* MAJOR */
-     {0.65f, 0.40f, 0.30f, 0.60f, 0.90f, 0.40f},    /* POWER */
-     {0.60f, 0.30f, 0.50f, 0.25f, 0.10f, 0.30f}},   /* DARK */
+    {{0.60f, 0.35f, 0.55f, 0.55f, 0.50f, 0.30f},    /* HOOVER CLASSIC (snap: its BEND) */
+     {0.60f, 0.30f, 0.70f, 0.45f, 0.95f, 0.40f},    /* DIVE */
+     {0.60f, 0.55f, 0.45f, 0.80f, 0.30f, 0.75f},    /* SCREAM */
+     {0.60f, 0.20f, 0.60f, 0.30f, 0.60f, 0.50f}},   /* DARK */
 };
 
 BRK_COLD void perc_preset(perc_voice_t *v, uint32_t voice, uint32_t i)

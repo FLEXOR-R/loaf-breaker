@@ -1637,7 +1637,8 @@ static void test_perc(void)
                 if (a > pk) pk = a;
                 if (i > n - 2205u && a > tail) tail = a;
             }
-            if (!(pk > 0.1f && pk <= 1.0f && before == 0.0f && tail < pk * 0.2f)) {
+            if (!(pk > 0.1f && pk <= 1.0f && before == 0.0f && tail < pk * (v == PV_STAB ? 0.8f : 0.2f))) {   /* (the
+                                          * HOOVER: a long note, still falling at half a second) */
                 bounded = 0;
                 printf("  perc %s %s: peak %.3f before %.4f tail %.3f\n", PERC_VOICE_NAME[v], PERC_PRESET_NAME[v][k], pk,
                        before, tail);
@@ -1685,7 +1686,14 @@ static void test_perc(void)
             perc_shape(v2, &ps.v[v2], px, 66u, 400u, 30u);
             for (c = 0, pk = 0; c < 66u; c++)
                 pk = px[c] > pk ? px[c] : pk;
-            CHECK(pk >= 3u && px[65] < pk / 2u && (px[0] == pk || px[1] == pk || px[2] == pk),
+            uint32_t at0 = 0u;
+            for (c = 0; c < 66u; c++)
+                if (px[c] == pk) {
+                    at0 = c;
+                    break;
+                }
+            CHECK(pk >= 3u && px[65] < (v2 == PV_STAB ? pk : pk / 2u) && at0 <= (v2 == PV_STAB ? 12u : 2u),   /* (the HOOVER
+                                          * rises into its note: its loudest a little later) */
                   "perc_shape %u: a hit at its start, then its tail (%u .. %u)", v2, pk, px[65]);
         }
     }

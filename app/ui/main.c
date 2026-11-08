@@ -779,7 +779,7 @@ static const char *const BTN[NPAGES] = {"HOME", "HOME", "FX", "GLO", "EDIT", "LF
                                         "EDIT"};
 static const char *const GPART[3] = {"MIDI", "PITCH", "MORE"};
 static const char *const SEQL[NSEQL] = {"1-16", "17-32", "K1", "K2", "K3", "K4", "S1", "S2", "H1", "H2", "C1", "C2",
-                                         "T1", "T2"};
+                                         "V1", "V2"};   /* (LOAF BREAKER: the HOOVER's, in the stab's place) */
 static void draw_tabs(void)
 {
     uint32_t i;

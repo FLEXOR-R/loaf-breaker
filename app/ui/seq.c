@@ -7,9 +7,9 @@ enum { SL_BREAK1, SL_BREAK2, SL_KICK, SL_KICK2, SL_KICK3, SL_KICK4, SL_SNARE, SL
                                           * LOAF BREAKER: the hat's two, the clap's two */
 static const char *const SEQ_LANE_NAME[NSEQL] = {"STEPS 1-16", "STEPS 17-32", "KICK 1-16", "KICK 17-32", "KICK 33-48",
                                                  "KICK 49-64", "SNARE 1-16", "SNARE 17-32", "HAT 1-16", "HAT 17-32",
-                                                 "CLAP 1-16", "CLAP 17-32", "STAB 1-16", "STAB 17-32"};
-static const char *const DRUM_NAME[NDRUMS] = {"KICK", "SNARE", "HAT", "CLAP", "STAB"};
-static const char *const DRUM_TAG[NDRUMS] = {"KICK", "SN", "HH", "CP", "ST"};   /* (EDIT's tabs) */
+                                                 "CLAP 1-16", "CLAP 17-32", "HOOVER 1-16", "HOOVER 17-32"};
+static const char *const DRUM_NAME[NDRUMS] = {"KICK", "SNARE", "HAT", "CLAP", "HOOVER"};
+static const char *const DRUM_TAG[NDRUMS] = {"KICK", "SN", "HH", "CP", "HV"};   /* (EDIT's tabs) */
 static const uint8_t SL_DR[NSEQL] = {0u, 0u, DR_KICK, DR_KICK, DR_KICK, DR_KICK, DR_SNARE, DR_SNARE, DR_HAT, DR_HAT,
                                      DR_CLAP, DR_CLAP, DR_STAB, DR_STAB};   /* a drum lane's drum, and its bar */
 static const uint8_t SL_BAR[NSEQL] = {0u, 1u, 0u, 1u, 2u, 3u, 0u, 1u, 0u, 1u, 0u, 1u, 0u, 1u};
@@ -267,7 +267,7 @@ static void lane_knob(int i, int32_t d)
             text_cat(t, "+");
         int_text(v, t + (v > 0 ? 1 : 0));
         text_cat(t, " ST");
-        say_int(stab ? "STAB NOTE" : "KICK NOTE", (int32_t)ks + 1, "");
+        say_int(stab ? "HOOVER NOTE" : "KICK NOTE", (int32_t)ks + 1, "");
         app_say(ui.msg[0], t);
         ui.redraw |= RG_BLOCKS;
         return;
@@ -475,7 +475,7 @@ static uint32_t seq_rows(uint8_t *row)   /* the rows, top to bottom (SL_*); thei
 }
 static void seq_picture(const brk_status_t *st, int32_t top)
 {
-    static const char *const TAG[NDRUMS] = {"K", "SN", "HH", "CP", "ST"};
+    static const char *const TAG[NDRUMS] = {"K", "SN", "HH", "CP", "HV"};
     const pat_t *p = pat_now();
     uint8_t row[NSEQL];
     uint32_t i, r, n = seq_rows(row), nb = n && row[0] < SL_KICK ? 1u : 0u;
