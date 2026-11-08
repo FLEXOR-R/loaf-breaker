@@ -54,7 +54,7 @@ static uint32_t trk_bars(const track_t *t)   /* how long it plays, in bars (the 
 {
     uint32_t i, b = 0u, n = trk_len(t), lb = pat_len() / 16u;
     for (i = 0; i < n; i++)
-        b += t->it[i] == TI_DROP ? DROP_BARS[set.drop_bars % 5u] : (uint32_t)t->rep[i] * lb;
+        b += t->it[i] == TI_DROP ? DROP_BARS[set.drop_bars % 5u] : t->it[i] == TI_GAP ? 0u : (uint32_t)t->rep[i] * lb;
     return b;
 }
 static int trk_pat_from(const track_t *t, uint32_t i, int wrap)   /* the first pattern item at i or after (wrap: from
@@ -67,7 +67,7 @@ static int trk_pat_from(const track_t *t, uint32_t i, int wrap)   /* the first p
                 return -1;
             i = 0u;
         }
-        if (t->it[i] != TI_DROP)
+        if (t->it[i] != TI_DROP && t->it[i] != TI_GAP)
             return (int)i;
     }
     return -1;
@@ -165,6 +165,8 @@ static void track_next(void)
 {
     const track_t *t = trk_now();
     uint32_t n = trk_len(t), i = ui.trk_pos + 1u;
+    while (i < n && t->it[i] == TI_GAP)  /* (a gap left: played past) */
+        i++;
     if (i >= n) {                        /* its end */
         if (t->end == 1u) {
             ui.trk_stop = 1u;            /* (at the loop's end) */
@@ -175,6 +177,12 @@ static void track_next(void)
             return;
         }
         i = 0u;
+        while (i < n && t->it[i] == TI_GAP)
+            i++;
+        if (i >= n) {
+            track_stop("EMPTY");
+            return;
+        }
     }
     if (t->it[i] == TI_DROP) {           /* a drop: the build, into the pattern after it */
         int j = trk_pat_from(t, i + 1u, t->end == 0u);
@@ -437,6 +445,8 @@ static void trk_item_text(const track_t *t, uint32_t i, char *s, char *r)   /* "
         text_cat(s, "END");
     else if (v == TI_DROP)
         text_cat(s, "DROP");
+    else if (v == TI_GAP)
+        text_cat(s, "EMPTY");
     else {
         s[0] = 'P';
         int_text((int32_t)v, s + 1);
@@ -521,7 +531,8 @@ static void track_value(int i, char *t)
     else if (i == 1)
         trk_item_text(tr, ui.trk_cur % TRK_ITEMS, t, r);
     else if (i == 2) {
-        if (tr->it[ui.trk_cur % TRK_ITEMS] != TI_END && tr->it[ui.trk_cur % TRK_ITEMS] != TI_DROP) {
+        if (tr->it[ui.trk_cur % TRK_ITEMS] != TI_END && tr->it[ui.trk_cur % TRK_ITEMS] != TI_DROP &&
+            tr->it[ui.trk_cur % TRK_ITEMS] != TI_GAP) {
             text_cat(t, "X");
             int_text(tr->rep[ui.trk_cur % TRK_ITEMS], t + 1);
         } else
@@ -608,7 +619,8 @@ static void track_turn(int i, int32_t d)
             uint32_t n = trk_len(t);
             ui.trk_cur = (uint8_t)clamp((int32_t)c + dir, 0, (int32_t)(n < TRK_ITEMS ? n : TRK_ITEMS - 1u));
         } else if (i == 1) {             /* END, P1..P16, DROP */
-            int32_t v = t->it[c] == TI_DROP ? (int32_t)NPAT + 1 : (int32_t)t->it[c];
+            int32_t v = t->it[c] == TI_DROP ? (int32_t)NPAT + 1 : t->it[c] == TI_GAP ? 0 : (int32_t)t->it[c];
+                                         /* (a gap: P1 to the right, gone to the left) */
             v = clamp(v + dir, 0, (int32_t)NPAT + 1);
             if (v == 0 && trk_len(t) > c + 1u) {   /* (an END inside: the items after it moved up, the item gone) */
                 uint32_t k;
@@ -628,7 +640,7 @@ static void track_turn(int i, int32_t d)
             if (!t->rep[c])
                 t->rep[c] = 1u;
         } else if (i == 2) {
-            if (t->it[c] == TI_END || t->it[c] == TI_DROP)
+            if (t->it[c] == TI_END || t->it[c] == TI_DROP || t->it[c] == TI_GAP)
                 return;
             t->rep[c] = (uint8_t)clamp((int32_t)t->rep[c] + dir, 1, 16);
         } else
@@ -679,7 +691,7 @@ static void track_key(uint32_t k)
         char s[8], r[6];
         if (c > trk_len(t))
             c = trk_len(t);
-        if (t->it[c] == TI_END || t->it[c] == TI_DROP || !t->rep[c])
+        if (t->it[c] == TI_END || t->it[c] == TI_DROP || t->it[c] == TI_GAP || !t->rep[c])
             t->rep[c] = 1u;
         t->it[c] = (uint8_t)(k + 1u);
         trk_item_text(t, c, s, r);
@@ -690,6 +702,38 @@ static void track_key(uint32_t k)
         set_dirty = 1u;
         ui.redraw |= RG_BLOCKS | RG_FOOT;
     }
+}
+/* ENV held on TRACKS: the items after the one edited one place right, a gap after it (the one edited stays where it
+ * is); the gap edited, for a white key (a pattern) or K2 (a DROP; K2 left: the gap gone again). Played past if left */
+static void track_gap(void)
+{
+    track_t *t = trk_now();
+    uint32_t n = trk_len(t), c = ui.trk_cur % TRK_ITEMS, k;
+    if (c >= n) {
+        app_say("SPACE", "NOTHING AFTER");
+        return;
+    }
+    if (n >= TRK_ITEMS) {
+        app_say("SPACE", "TRACK FULL");
+        return;
+    }
+    for (k = n; k > c + 1u; k--) {       /* (the END too, once there is room for it) */
+        t->it[k] = t->it[k - 1u];
+        t->rep[k] = t->rep[k - 1u];
+    }
+    t->it[c + 1u] = TI_GAP;
+    t->rep[c + 1u] = 0u;
+    ui.trk_cur = (uint8_t)(c + 1u);
+    if (ui.trk_on && ui.trk_pos > c && ui.trk_pos + 1u < TRK_ITEMS)
+        ui.trk_pos++;                    /* (a track playing: on where it was) */
+    if (ui.trk_drop != 0xFFu && ui.trk_drop > c && ui.trk_drop + 1u < TRK_ITEMS)
+        ui.trk_drop++;
+    if (ui.trk_from > c && ui.trk_from + 1u < TRK_ITEMS)
+        ui.trk_from++;
+    set_dirty = 1u;
+    say_int("SPACE AT", (int32_t)c + 2, "");
+    app_say(ui.msg[0], "KEY: A PATTERN");
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
 static uint32_t track_keys_lit(void)     /* TRACKS: the item's pattern; PLAY: the tracks there are; KNOB: its function */
 {
@@ -926,7 +970,14 @@ static void track_picture(int32_t top)
         uint16_t bg = now ? C_HI : i < n ? (t->it[i] == TI_DROP ? C_AMB : C_BLOCK) : C_BLACK;
         if (i > n)
             cv_rect(x + 10, y + 13, 8, 1, C_LINE);   /* (past the END: nothing) */
-        else
+        else if (i < n && t->it[i] == TI_GAP) {   /* (a gap: its outline, a +) */
+            cv_rect(x, y, 28, 1, C_LINE);
+            cv_rect(x, y + TK_CH - 4, 28, 1, C_LINE);
+            cv_rect(x, y, 1, TK_CH - 3, C_LINE);
+            cv_rect(x + 27, y, 1, TK_CH - 3, C_LINE);
+            cv_rect(x + 10, y + 12, 9, 1, C_GRAY);
+            cv_rect(x + 14, y + 8, 1, 9, C_GRAY);
+        } else
             cv_rect(x, y, 28, TK_CH - 3, bg);
         if (mark) {                      /* (the item edited: a white frame) */
             cv_rect(x - 1, y - 1, 30, 1, C_WHITE);
@@ -934,7 +985,7 @@ static void track_picture(int32_t top)
             cv_rect(x - 1, y - 1, 1, TK_CH - 1, C_WHITE);
             cv_rect(x + 28, y - 1, 1, TK_CH - 1, C_WHITE);
         }
-        if (i > n)
+        if (i > n || (i < n && t->it[i] == TI_GAP))
             continue;
         trk_item_text(t, i, s, r);
         {

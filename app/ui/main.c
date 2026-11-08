@@ -230,7 +230,7 @@ static void input(void)
         for (k = 0; k < NE; k++)
             if (plat_enc(k))
                 ui.touched = 1u;
-        ui.home_hold = ui.fx_hold = ui.tap_pend = 0u;
+        ui.home_hold = ui.fx_hold = ui.tap_pend = ui.env_hold = 0u;
         ui.keys = keys;
         ui.btn = btn;
         return;
@@ -425,10 +425,25 @@ static void input(void)
         ui.redraw |= RG_FOOT | RG_BLOCKS;
         page_say();
     }
-    if (bdn & 1u << B_ENV) {             /* LOAF BREAKER: ENV: TRACKS; again, PLAY, DROP (TAP TEMPO gone) */
-        if (ui.page != PG_TRACK)
-            slices_let_go(keys);
-        track_open();
+    if (bdn & 1u << B_ENV) {             /* LOAF BREAKER: ENV: TRACKS; again, PLAY, DROP (TAP TEMPO gone). On TRACKS:
+                                          * at its release; held 0.45 s, a gap after the item edited */
+        if (ui.page == PG_TRACK && ui.tpage == 0u) {
+            ui.env_hold = 1u;
+            ui.env_t = now;
+        } else {
+            if (ui.page != PG_TRACK)
+                slices_let_go(keys);
+            track_open();
+        }
+    }
+    if (ui.env_hold == 1u && btn & 1u << B_ENV && now - ui.env_t >= 450u) {
+        ui.env_hold = 2u;
+        track_gap();
+    }
+    if (ui.env_hold && !(btn & 1u << B_ENV)) {
+        if (ui.env_hold == 1u)
+            track_open();
+        ui.env_hold = 0u;
     }
     if (clr_arm && (now - clr_t >= 3000u || bdn & ~(1u << B_SEQ) || kdn)) {   /* LOAF BREAKER: not confirmed */
         clr_arm = 0u;
@@ -1406,8 +1421,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits"};
-    int v[40];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it"};
+    int v[42];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1459,7 +1474,9 @@ int app_expect(const char *what, int *got)
         if (!strcmp(what, "khits"))
             seen = kick_hit_n;
     }
-    for (i = 0; i < 40u; i++)
+    v[40] = ui.trk_cur;
+    v[41] = trk_now()->it[ui.trk_cur % TRK_ITEMS];
+    for (i = 0; i < 42u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

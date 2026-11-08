@@ -342,6 +342,7 @@ typedef struct {
 #define TRK_ITEMS 32u
 #define TI_END 0u                        /* it[]: 0 the end, 1..NPAT that pattern, TI_DROP a drop */
 #define TI_DROP 0xFEu
+#define TI_GAP 0xFDu                     /* LOAF BREAKER: a gap (ENV held on TRACKS): to be filled, played past */
 typedef struct {
     uint8_t it[TRK_ITEMS];
     uint8_t rep[TRK_ITEMS];              /* a pattern's loops, 1..16 */

@@ -112,6 +112,9 @@ static struct {
     uint8_t kclassic, edit_hold;         /* (EDIT held on the KICK menu: the view as it was, the drums' shapes; EDIT
                                           * down: when, and whether it has done its hold) */
     uint32_t edit_t;              /* LOAF BREAKER: the KICK menu's section (SOUND SYNTH DIRT TONE), each one's part */
+    uint8_t env_hold;                    /* LOAF BREAKER: ENV down on TRACKS: 1 waiting (let go: the next part), 2 held
+                                          * (a gap made) */
+    uint32_t env_t;
     uint8_t rst_sel;                     /* LOAF BREAKER: ENV's RESET: what it resets (RST_*) */
     uint32_t rst_arm;                    /* (K4 turned once: when; again within 3 s, the reset) */
     uint8_t knfn;                        /* KNOB's function: 0 DUCK (K1), 1 TERROR 2, 2 COMP, 3 TERROR (K4) */

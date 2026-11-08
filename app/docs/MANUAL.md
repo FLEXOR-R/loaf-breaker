@@ -154,7 +154,10 @@ metronome and tap tempo are gone).
   played for its loops (×1–×16), a **DROP** (the build, then the drop into the pattern after it), and its END. **K1**
   the item, **K2** what it is (turn it to END on an item inside the track: that item is deleted, the rest moves up),
   **K3** its loops, **K4** what the track does at its end: LOOP (from its start again), STOP, HOLD (the last pattern
-  goes on). A **white key** puts its pattern at the item and moves to the next one.
+  goes on). A **white key** puts its pattern at the item and moves to the next one. **ENV held** (0.45 s) makes room:
+  the items after the one edited move one place right and an empty item (a + in an outline) opens after it, the one
+  edited staying where it is; the cursor goes onto it, for a white key (a pattern) or **K2** (a DROP; K2 left: the
+  space gone again). An empty item left is played past. ENV let go quickly: the next part, as ever.
 - **PLAY**: a radio. **K1** tunes it: the needle glides along the dial to the track (1–8, the ones with something in
   them lit), the big knob turns with it; the station shows the track's length, its items, where it starts and what it
   does at its end. **K2** the item it starts from. **PLAY** (or white keys 1–8: that track) plays it from
