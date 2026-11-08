@@ -9,8 +9,8 @@ OUT=app/build/scenarios
 IMG=app/docs/img
 [ -x "$H" ] || { echo "site_shots: build the host first (./build.sh --host)"; exit 1; }
 mkdir -p "$OUT"
-for sc in site ui cdj pads seq hits fxviews mbcomp nav kfx kickmenu terror drops track trkgap maxout reset; do
-    [ -f "tests/scenarios/$sc.txt" ] && "$H" "tests/scenarios/$sc.txt" "$OUT" >/dev/null 2>&1 || true
+for sc in tests/scenarios/*.txt; do      # (all of them: the pictures come from many; one failing is no matter here)
+    "$H" "$sc" "$OUT" >/dev/null 2>&1 || true
 done
 L=app/build/ldr_shots
 mkdir -p "$L"
