@@ -3,6 +3,17 @@
 Firmware for the M-VAVE FM-1 (JieLi AC791N): an Amen break chopper. Spec: `docs/PRD.md` (feature IDs A-*, B-*,
 E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 
+## LOAF BREAKER (FLEXOR's fork)
+
+- The repository is FLEXOR-R/loaf-breaker (private); every push to the `loaf` branch is a release `loaf-vX.YY`
+  (`.github/workflows/loaf.yml`) and updates the site, https://flexor-r.github.io/loaf-breaker/ (the firmware on it
+  locked behind the Actions secret `LOAF_INSTALL_CODE`, tools/site_lock.py). Never write the code itself anywhere.
+- The changelog, in French, is FLEXOR's Claude Doc (project 6f32699a-06f8-4eaa-a41a-6f03a8b20dc9, node 1fc2737b-3a82):
+  after each release add a row (version, date, what changed) above the top one and put the version in the intro's
+  "LOAF BREAKER 0.1xx". Keep its first part current whenever it is relevant: the summary paragraph, "Les grandes
+  étapes", and "Les modifs importantes" (where things are, what was removed or replaced, shortcuts, "À savoir").
+- No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository.
+
 ## Layout
 
 `app/app.c` is the core (settings, patterns, MIDI, the render); it ends by including `app/ui/*.c` in order (common,

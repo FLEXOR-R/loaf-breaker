@@ -9,7 +9,7 @@ name: LOAF BREAKER
 on:
   push:
     branches: [loaf]
-    paths-ignore: ["breaks/tests/**", ".github/workflows/tests.yml"]   # (the break tests' own: tests.yml)
+    paths-ignore: ["breaks/tests/**", ".github/workflows/tests.yml", "CLAUDE.md"]   # (the break tests' own: tests.yml)
   workflow_dispatch:
 
 permissions:
