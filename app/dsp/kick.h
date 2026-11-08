@@ -70,6 +70,15 @@ uint32_t kick_fx_bits(float a);
 
 void kick_init(void);
 void kick_set(const kick_t *k);          /* main loop: read at the next render */
+/* LOAF BREAKER: the kick's SYNTH settings (EDIT KICK's SYNTH and SYNTH +), -50 .. +50 each (0: as it always sounded):
+ * KS_DROP the SUB's pitch drop (how far above it starts: x0.25 .. x4 of its octave and a half), KS_TIME how long the
+ * drop takes (30 .. 480 ms), KS_SHAPE the SUB's wave (a clean sine .. squared off), KS_HOLD the SUB held at full before
+ * it decays (to 250 ms; below 0: a faster decay), KS_RUMBLE a rumble under it (the kick low-passed into a feedback
+ * delay: the hardcore rumble; 0 or below: none), KS_RTIME the rumble's length, KS_ASYM an uneven drive (even
+ * harmonics, warmer and harder; 0 or below: none), KS_TUNE the whole kick, in semitones (-12 .. +12) */
+enum { KS_DROP, KS_TIME, KS_SHAPE, KS_HOLD, KS_RUMBLE, KS_RTIME, KS_ASYM, KS_TUNE, KS_N };
+void kick_set_synth(const int8_t *s);    /* main loop, KS_N of them */
+void kick_rumble_buf(int16_t *buf, uint32_t len);   /* boot: the rumble's line (the app's: in the pool) */
 void kick_hit(void);                     /* main loop (a MIDI note): a kick at the next render */
 /* render: n samples into out (overwritten); hits at the sample offsets at[0..nat-1] (rising) */
 void kick_render(float *out, uint32_t n, const uint16_t *at, uint32_t nat);

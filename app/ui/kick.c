@@ -4,12 +4,53 @@
 
 /* ---- the KICK page (PRD K-*): EDIT opens it, EDIT again the next sub-page. The white keys are the kick's 16
  * steps, ALGORITHM the layer, PRESETS the built-in kicks, SEL + EDIT through the FX chain or around it */
-enum { KP_MIX, KP_LAYER, KP_FX, KP_MACRO, KP_OUT, KP_TERROR, KP_TMORE, KP_TERROR2, KPAGES };
+enum { KP_MIX, KP_LAYER, KP_FX, KP_MACRO, KP_OUT, KP_TERROR, KP_TMORE, KP_TERROR2, KP_SYN1, KP_SYN2, KPAGES };
 /* (LOAF BREAKER TEST: TERROR, TERROR +, TERROR 2 the kick's own settings of them, ENV's KNOB functions 3, 4, 1) */
 static void selk_turn(uint32_t f, int i, int32_t d);
 static void selk_value(uint32_t f, int i, char *t);
 static float sk_norm(uint32_t f, int i);
 static uint32_t kp_fn(void) { return ui.kpage == KP_TERROR ? 3u : ui.kpage == KP_TMORE ? 4u : 1u; }
+static int kp_terror(void) { return ui.kpage >= KP_TERROR && ui.kpage <= KP_TERROR2; }
+/* LOAF BREAKER: the kick's SYNTH (kick.h KS_*), its value as the foot shows it, as its bar, turned */
+static uint32_t ks_of(int i) { return (ui.kpage == KP_SYN2 ? 4u : 0u) + (uint32_t)(i & 3); }
+static void ks_value(int i, char *t)
+{
+    uint32_t j = ks_of(i);
+    int32_t v = set.ksyn[j];
+    t[0] = 0;
+    if (j == KS_TIME || j == KS_RTIME) {
+        float ms = j == KS_TIME ? 120.0f * brk_exp2f_c((float)v * 0.04f) : 2048.0f * brk_exp2f_c((float)v * 0.02f) / 44.1f;
+        int_text((int32_t)(ms + 0.5f), t);
+        text_cat(t, " MS");
+    } else if (j == KS_HOLD && v > 0) {
+        int_text(v * 5, t);
+        text_cat(t, " MS");
+    } else if ((j == KS_RUMBLE || j == KS_ASYM || j == KS_HOLD) && v <= 0)
+        text_cat(t, j == KS_HOLD && v < 0 ? "SHORTER" : "OFF");
+    else if (j == KS_RUMBLE || j == KS_ASYM) {
+        int_text(v * 2, t);
+        text_cat(t, "%");
+    } else {
+        if (v > 0)
+            text_cat(t, "+");
+        int_text(v, t + (v > 0 ? 1 : 0));
+        if (j == KS_TUNE)
+            text_cat(t, " ST");
+    }
+}
+static float ks_norm(int i)
+{
+    uint32_t j = ks_of(i);
+    float v = (float)set.ksyn[j];
+    return j == KS_TUNE ? (v + 12.0f) / 24.0f : j == KS_RUMBLE || j == KS_ASYM ? v / 50.0f : (v + 50.0f) * 0.01f;
+}
+static void ks_turn(int i, int32_t d)
+{
+    uint32_t j = ks_of(i);
+    int32_t v = set.ksyn[j];
+    v = j == KS_TUNE ? clamp(v + (d > 0 ? 1 : -1), -12, 12) : clamp(v + d * 2, j == KS_RUMBLE || j == KS_ASYM ? 0 : -50, 50);
+    set.ksyn[j] = (int8_t)v;
+}
 
 /* LOAF BREAKER: the kick memories, KICK 1..10 (KICK's PRESETS, SEQ's SELECT): the one playing kept as it is, the next
  * as it was left (the volume kept) */
@@ -17,9 +58,14 @@ static void kick_mem_turn(int32_t d)
 {
     float vol = set.kick.volume;
     char t[4];
+    uint32_t j;
     set.kmem[set.kslot % KICK_MEMS] = set.kick;
+    for (j = 0; j < KS_N; j++)           /* (LOAF BREAKER: its SYNTH with it) */
+        set.ksmem[set.kslot % KICK_MEMS][j] = set.ksyn[j];
     set.kslot = (uint8_t)((set.kslot % KICK_MEMS + (d > 0 ? 1u : KICK_MEMS - 1u)) % KICK_MEMS);
     set.kick = set.kmem[set.kslot];
+    for (j = 0; j < KS_N; j++)
+        set.ksyn[j] = set.ksmem[set.kslot][j];
     set.kick.volume = vol;
     int_text((int32_t)set.kslot + 1, t);
     app_say("KICK", t);
@@ -27,13 +73,14 @@ static void kick_mem_turn(int32_t d)
     changed();
 }
 static const char *const KPAGE_NAME[KPAGES] = {"MIX", "LAYER", "LAYER FX", "MACRO", "OUT", "TERROR", "TERROR +",
-                                                "TERROR 2"};
+                                                "TERROR 2", "SYNTH", "SYNTH +"};
 /* the kick's parts in a row, as ALGORITHM turns through them: MIX, SUB, SUB FX, PUNCH, PUNCH FX, GRIT, GRIT FX,
  * CLICK, CLICK FX, MACRO, OUT (each a sub-page, and for a layer its layer); LOAF BREAKER TEST: then EQ BANDS, EQ
  * SHAPE (the KICK EQ page), FX 1, FX 2 (the FX page on the kick's slots), TERROR, TERROR +, TERROR 2 */
 #define KP_BASE (3u + 2u * KICK_LAYERS)
-#define KPARTS (KP_BASE + 7u)
-static const char *const KP_MORE_NAME[7] = {"EQ BANDS", "EQ SHAPE", "FX 1", "FX 2", "TERROR", "TERROR +", "TERROR 2"};
+#define KPARTS (KP_BASE + 9u)
+static const char *const KP_MORE_NAME[9] = {"EQ BANDS", "EQ SHAPE", "FX 1", "FX 2", "TERROR", "TERROR +", "TERROR 2",
+                                            "SYNTH", "SYNTH +"};   /* (SYNTH, SYNTH +: ALGORITHM left from MIX) */
 static uint32_t kick_part(void)
 {
     if (ui.page == PG_KEQ)
@@ -48,7 +95,7 @@ static uint32_t kick_part(void)
 static void kick_part_name(uint32_t p, char *t)
 {
     if (p >= KP_BASE) {
-        text_cat(t, KP_MORE_NAME[(p - KP_BASE) % 7u]);
+        text_cat(t, KP_MORE_NAME[(p - KP_BASE) % 9u]);
         return;
     }
     if (p == 0u || p >= KP_BASE - 2u) {
@@ -64,7 +111,7 @@ static void kick_part_set(uint32_t p)
 {
     ui.page = PG_KICK;
     if (p >= KP_BASE) {                  /* (TEST) the KICK EQ, the kick's FX slots, its TERRORs */
-        uint32_t q = (p - KP_BASE) % 7u;
+        uint32_t q = (p - KP_BASE) % 9u;
         if (q < 2u) {
             ui.page = PG_KEQ;
             ui.keq_part = (uint8_t)q;
@@ -95,7 +142,9 @@ static const char *const KN_KICK[KPAGES][4] = {{"SUB", "PUNCH", "GRIT", "CLICK"}
                                                {"VOLUME", "TERROR", "TERROR 2", ""},   /* (LOAF BREAKER: OUT's K2, K3) */
                                                {"AMOUNT", "SUB", "FIZZ", "SUSTAIN"},
                                                {"DRIVE", "TYPE", "SCREECH", "TAIL"},
-                                               {"AMOUNT", "SUB", "SCREAM", "PUSH"}};
+                                               {"AMOUNT", "SUB", "SCREAM", "PUSH"},
+                                               {"DROP", "TIME", "SHAPE", "HOLD"},
+                                               {"RUMBLE", "LENGTH", "ASYM", "TUNE"}};
 /* LOAF BREAKER: OUT's K2 TERROR, K3 TERROR 2 (kick.h), 0..100 each; SEL + K4 and SEL + K3 on any page (main.c) */
 static uint8_t *kick_hc(kick_t *k, int i) { return i == 2 ? &KICK_TERROR2(k) : &KICK_TERROR(k); }
 static void kick_hc_text(const kick_t *k, int i, char *t)
@@ -152,8 +201,12 @@ static void kick_value(int i, char *t)
     const kick_t *k = &set.kick;
     const kick_layer_t *l = &k->l[ui.klayer % KICK_LAYERS];
     t[0] = 0;
-    if (ui.kpage >= KP_TERROR) {         /* (TEST) the TERRORs */
+    if (kp_terror()) {                   /* the TERRORs */
         selk_value(kp_fn(), i, t);
+        return;
+    }
+    if (ui.kpage >= KP_SYN1) {           /* SYNTH, SYNTH + */
+        ks_value(i, t);
         return;
     }
     switch (ui.kpage) {
@@ -256,8 +309,20 @@ static void kick_knob_turn(int i, int32_t d)
     kick_t *k = &set.kick;
     kick_layer_t *l = &k->l[ui.klayer % KICK_LAYERS];
     char t[16];
-    if (ui.kpage >= KP_TERROR) {         /* (TEST) the TERRORs */
+    if (kp_terror()) {                   /* the TERRORs */
         selk_turn(kp_fn(), i, d);
+        return;
+    }
+    if (ui.kpage >= KP_SYN1) {           /* SYNTH, SYNTH + */
+        char w[24];
+        ks_turn(i, d);
+        ks_value(i, t);
+        w[0] = 0;
+        text_cat(w, "KICK ");
+        text_cat(w, KN_KICK[ui.kpage % KPAGES][i & 3]);
+        app_say(w, t);
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        changed();
         return;
     }
     switch (ui.kpage) {
@@ -273,6 +338,11 @@ static void kick_knob_turn(int i, int32_t d)
         if (kick_preset_knob(i)) {       /* (the whole kick: every layer, its effects, INTENSITY) */
             ui.kpreset = (uint8_t)((ui.kpreset + (d > 0 ? 1u : KICK_PRESETS - 1u)) % KICK_PRESETS);
             kick_preset(k, ui.kpreset);
+            {                            /* (LOAF BREAKER: its SYNTH back to as it always was too) */
+                uint32_t j;
+                for (j = 0; j < KS_N; j++)
+                    set.ksyn[j] = 0;
+            }
             kick_value(i, t);
             app_say("KICK PRESET", t);
             ui.redraw |= RG_BLOCKS | RG_FOOT;
@@ -399,6 +469,9 @@ static float kick_knob_f(int i)          /* the part's knob i, 0..1 (as its bar)
     case KP_TMORE:
     case KP_TERROR2:
         return sk_norm(kp_fn(), i);
+    case KP_SYN1:
+    case KP_SYN2:
+        return ks_norm(i);
     default:
         return i == 0 ? k->volume : i <= 2 ? (float)*kick_hc((kick_t *)k, i) * 0.01f : 0.0f;
     }

@@ -17,6 +17,9 @@ typedef struct {
     float tlo, tlp, tenv;                /* LOAF BREAKER: TERROR's low split, its fizz's low-pass, the kick's level */
     float t2lo, t2lp, t2env;             /* TERROR 2's low split, its mids' low-pass, the kick's level */
     float sc1, sc2;                      /* (TEST) TERROR's SCREECH, its band's state */
+    uint32_t hold;                       /* (SYNTH) the SUB's HOLD left, samples (~0u: from the hit, to be set) */
+    float rlp, rout, rlvl, dc;           /* the RUMBLE: its input low-passed, its output low-passed, its level; ASYM's
+                                          * offset followed (taken off) */
     float pm;                            /* (crossbreed) this hit's pitch, a factor (kick_pitches): 1 as set */
     float s1[KICK_LAYERS], s2[KICK_LAYERS], fph[KICK_LAYERS], fhold[KICK_LAYERS];   /* the layers' effects */
     uint32_t rng;
@@ -43,9 +46,29 @@ typedef struct {
     float trel;                          /* (TEST) TERROR's TAIL: its level's fall a sample */
     uint8_t ttype;                       /* its TYPE */
     float sa1, sa2, sa3, sgain;          /* its SCREECH: the band's coefficients and level (0: off) */
+    float sdrop, asym, rum, rfb;         /* (SYNTH) the SUB's drop, the uneven drive, the rumble's level and feedback */
+    uint32_t hold_n, rlen;               /* the SUB's hold (samples), the rumble's line (samples) */
 } kc_t;
 
 static volatile kick_t p_k;
+static volatile int8_t p_syn[KS_N];      /* (SYNTH) the main loop's */
+static int16_t *rum_buf;                 /* the rumble's line (the app's), its length, where it is */
+static uint32_t rum_cap, rum_pos;
+void kick_set_synth(const int8_t *s)
+{
+    uint32_t i;
+    for (i = 0; i < KS_N; i++)
+        p_syn[i] = s[i];
+}
+void kick_rumble_buf(int16_t *buf, uint32_t len)
+{
+    uint32_t i;
+    for (i = 0; i < len; i++)
+        buf[i] = 0;
+    rum_buf = buf;
+    rum_cap = len;
+    rum_pos = 0u;
+}
 static volatile uint32_t p_hits;         /* a count: kick_hit */
 static uint32_t hits_seen;
 static kv_t kv;
@@ -122,7 +145,29 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c)
     c->grit_noise = 0.5f * brk_clampf(k->l[KL_GRIT].tone, 0.0f, 1.0f);
     c->click_noise = brk_clampf(k->l[KL_CLICK].tone, 0.0f, 1.0f);
     c->click_k = brk_clampf(brk_tan_pi_c(c->f[KL_CLICK]) * 2.0f, 0.02f, 0.98f);
-    c->pe_dec = decay_factor(120.0f);     /* SUB's drop and GRIT's */
+    {                                    /* (SYNTH: 0, as it always was) */
+        float dr = (float)p_syn[KS_DROP], tm = (float)p_syn[KS_TIME], sh = (float)p_syn[KS_SHAPE];
+        float hd = (float)p_syn[KS_HOLD], rm = (float)p_syn[KS_RUMBLE], rt = (float)p_syn[KS_RTIME];
+        float tune = brk_exp2f_c(brk_clampf((float)p_syn[KS_TUNE], -12.0f, 12.0f) * (1.0f / 12.0f));
+        uint32_t j;
+        c->sdrop = 2.0f * brk_exp2f_c(brk_clampf(dr, -50.0f, 50.0f) * 0.04f);
+        c->pe_dec = decay_factor(120.0f * brk_exp2f_c(brk_clampf(tm, -50.0f, 50.0f) * 0.04f));
+        c->sub_sat *= brk_exp2f_c(brk_clampf(sh, -50.0f, 50.0f) * 0.06f);
+        c->hold_n = hd > 0.0f ? (uint32_t)(brk_clampf(hd, 0.0f, 50.0f) * 5.0f * (float)(BRK_SR / 1000u)) : 0u;
+        if (hd < 0.0f)                   /* (below 0: the SUB decays faster) */
+            c->dec[KL_SUB] = decay_factor(kick_decay_ms(KL_SUB, k->l[KL_SUB].decay) *
+                                          brk_exp2f_c(brk_clampf(hd, -50.0f, 0.0f) * 0.02f));
+        c->rum = rm > 0.0f ? brk_clampf(rm, 0.0f, 50.0f) * 0.02f : 0.0f;
+        c->rlen = (uint32_t)(2048.0f * brk_exp2f_c(brk_clampf(rt, -50.0f, 50.0f) * 0.02f));
+        if (c->rlen > rum_cap)
+            c->rlen = rum_cap;
+        c->rfb = 0.75f + brk_clampf(rt, -50.0f, 50.0f) * 0.003f;
+        c->asym = p_syn[KS_ASYM] > 0 ? (float)p_syn[KS_ASYM] * 0.005f : 0.0f;
+        for (j = 0; j < KICK_LAYERS; j++)
+            c->f[j] *= tune;
+    }
+    if (!c->pe_dec)
+        c->pe_dec = decay_factor(120.0f);     /* SUB's drop and GRIT's */
     c->pe2_dec = decay_factor(40.0f);     /* PUNCH's fast sweep */
     {
         float in = brk_clampf(k->intensity, 0.0f, 1.0f), sg;
@@ -181,6 +226,7 @@ static void kv_hit(kv_t *v)
     v->ph2 = 0.0f;
     v->pe = v->pe2 = 1.0f;
     v->lp = 0.0f;
+    v->hold = 0xFFFFFFFFu;               /* (SYNTH: its HOLD, set at the first sample) */
 }
 
 static inline float noise(kv_t *v)
@@ -232,7 +278,9 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
     uint32_t i;
     /* SUB: a sine dropping an octave and a half to its pitch, saturated by its tone */
     x[KL_SUB] = soft(brk_sin_turns(v->ph[KL_SUB]) * c->sub_sat) * (1.0f + c->sub_sat) / c->sub_sat;
-    v->ph[KL_SUB] += c->f[KL_SUB] * v->pm * (1.0f + 2.0f * v->pe);
+    v->ph[KL_SUB] += c->f[KL_SUB] * v->pm * (1.0f + c->sdrop * v->pe);   /* (SYNTH: its DROP) */
+    if (v->hold == 0xFFFFFFFFu)
+        v->hold = c->hold_n;
     /* PUNCH: a sine swept down fast from far above */
     x[KL_PUNCH] = brk_sin_turns(v->ph[KL_PUNCH]);
     v->ph[KL_PUNCH] += c->f[KL_PUNCH] * v->pm * (1.0f + c->punch_sweep * v->pe2);
@@ -252,7 +300,10 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
         if (v->ph[i] >= 1.0f)
             v->ph[i] -= (float)(uint32_t)v->ph[i];
         y += layer_fx(v, c, i, x[i] * v->env[i]) * c->lvl[i];
-        v->env[i] *= c->dec[i];
+        if (i == KL_SUB && v->hold)      /* (SYNTH: the SUB held at full) */
+            v->hold--;
+        else
+            v->env[i] *= c->dec[i];
     }
     if (v->ph2 >= 1.0f)
         v->ph2 -= (float)(uint32_t)v->ph2;
@@ -260,7 +311,13 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
     v->pe2 *= c->pe2_dec;
     /* the sum: a drive into a clip, soft and then (INTENSITY over half) hard: the distorted kick */
     d = y * c->g;
+    if (c->asym > 0.0f)                  /* (SYNTH: ASYM, uneven: one side pushed harder) */
+        d += c->asym * d * brk_absf(d);
     out = (soft(d) * (1.0f - c->hard) + brk_clampf(d, -1.0f, 1.0f) * c->hard) * c->make;
+    if (c->asym > 0.0f) {                /* (its offset taken off) */
+        v->dc += (out - v->dc) * 0.0005f;
+        out -= v->dc;
+    }
     if (c->tmix > 0.0f) {                /* LOAF BREAKER: TERROR: the sub (below ~110 Hz) kept, the rest driven into a
                                           * triangle fold (it folds back instead of flattening: the scream), then
                                           * clipped and its fizz rounded */
@@ -301,6 +358,18 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
         z = brk_clampf(v->t2lo * 1.3f + z * 0.8f * (m < 1.0f ? m : 1.0f), -1.0f, 1.0f);
         out += (z - out) * c->t2mix;
     }
+    if (c->rum > 0.0f && rum_buf && c->rlen) {   /* (SYNTH: RUMBLE, the kick under ~150 Hz into a feedback line, its
+                                          * echoes low-passed again: the long low roll after each hit) */
+        float tap = (float)rum_buf[rum_pos] * (1.0f / 32767.0f), w;
+        v->rlp += (out - v->rlp) * 0.02f;
+        w = brk_clampf(v->rlp + tap * c->rfb, -1.0f, 1.0f);
+        rum_buf[rum_pos] = (int16_t)(w * 32767.0f);
+        if (++rum_pos >= c->rlen)
+            rum_pos = 0u;
+        v->rout += (tap - v->rout) * 0.06f;
+        v->rlvl = brk_absf(v->rout) > v->rlvl ? brk_absf(v->rout) : v->rlvl * 0.9995f;
+        out = brk_clampf(out + v->rout * c->rum * 1.5f, -1.2f, 1.2f);
+    }
     out *= c->vol;
     v->last = out;
     out += v->declick;
@@ -318,6 +387,8 @@ BRK_COLD void kick_init(void)
     kv.tlo = kv.tlp = kv.tenv = 0.0f;
     kv.t2lo = kv.t2lp = kv.t2env = 0.0f;
     kv.sc1 = kv.sc2 = 0.0f;
+    kv.rlp = kv.rout = kv.rlvl = kv.dc = 0.0f;
+    kv.hold = 0u;
     kv.pm = 1.0f;
     ks_last = 0.0f;
     ks_on = 0u;
@@ -340,7 +411,8 @@ void kick_render(float *out, uint32_t n, const uint16_t *at, uint32_t nat)
         kv_hit(&kv);
         kv.pm = 1.0f;
     } else if (!nat && kv.env[KL_SUB] < 3e-5f && kv.env[KL_PUNCH] < 3e-5f && kv.env[KL_GRIT] < 3e-5f &&
-               kv.env[KL_CLICK] < 3e-5f && brk_absf(kv.declick) < 1e-5f) {
+               kv.env[KL_CLICK] < 3e-5f && brk_absf(kv.declick) < 1e-5f && kv.rlvl < 1e-4f) {   /* (and the rumble
+                                          * died away) */
         for (i = 0; i < n; i++)          /* gone quiet, nothing coming: no work */
             out[i] = 0.0f;
         kv.last = ks_last = 0.0f;
@@ -381,7 +453,10 @@ BRK_COLD void kick_shape(const kick_t *k, uint8_t *px, uint32_t n, uint32_t ms, 
     kv_t v;
     uint32_t i, total = ms * (BRK_SR / 1000u), per = total / (n ? n : 1u);
     kc_make(k, &c);
+    c.rum = 0.0f;                        /* (the picture: no rumble, its line is the kick's playing) */
     v.rng = 0x5eed1u;
+    v.sc1 = v.sc2 = 0.0f;
+    v.rlp = v.rout = v.rlvl = v.dc = 0.0f;
     v.tlo = v.tlp = v.tenv = 0.0f;
     v.t2lo = v.t2lp = v.t2env = 0.0f;
     v.pm = 1.0f;

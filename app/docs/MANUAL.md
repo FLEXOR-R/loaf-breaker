@@ -111,6 +111,14 @@ back. That touch only ends the demo: it doesn't play a slice or start the break.
 - **EDIT**: the drums. On the KICK, ALGORITHM goes through all of it: MIX, each layer and its effect, MACRO, OUT, then
   EQ BANDS, EQ SHAPE (its EQ), FX 1, FX 2 (its two FX slots), TERROR, TERROR + (DRIVE, TYPE, SCREECH, TAIL), TERROR 2.
   The TERRORs' settings are the kick's own: they go with its memory.
+  ALGORITHM left from MIX reaches the kick's **SYNTH** first:
+  - **SYNTH**: DROP (how far above its note the SUB starts its pitch drop: a soft thud .. a laser boom), TIME (how long
+    the drop takes, 30–480 ms), SHAPE (the SUB's wave: a clean sine .. squared off, harder), HOLD (the SUB held at full
+    before it decays, up to 250 ms: the long gabber "bwoom"; left: a shorter one).
+  - **SYNTH +**: RUMBLE (the kick low-passed into a feedback line under it: the rolling hardcore rumble between kicks),
+    LENGTH (the rumble's echo, 23–93 ms), ASYM (an uneven drive: even harmonics, warmer and harder), TUNE (the whole kick,
+    −12 .. +12 semitones).
+  At 0 each sounds as the kick always did. They go with its memory (KICK 1–10); its PRESET puts them back to 0.
 - **LFO** (the MIXER): LEVELS, GROOVE, MASTER (K1 COMP, K2 its RATIO, K3 DUCK, K4 MAX OUT; COMP's reduction metered).
 - **ENV**: the track and the live. TRACKS, PLAY, DROP, BUILD, KNOB (what SEL + each knob does), RESET.
 - **GLO**: MIDI, PITCH, MORE (SKIN, AUTO SAVE).

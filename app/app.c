@@ -145,6 +145,9 @@ typedef struct {
     uint8_t drop_sweep;                  /* its filter: 0 HIGH-PASS, 1 LOW-PASS, 2 none, 3 either, by chance */
     uint8_t drop_riser;                  /* its rising noise, 0 none .. 100 (50: as it always was) */
     uint8_t drop_gap;                    /* silence before the drop: DROP_GAP's index (0 none) */
+    /* (appended: LOAF BREAKER's kick SYNTH, EDIT KICK's SYNTH and SYNTH +; an older save's: as it always sounded) */
+    int8_t ksyn[KS_N];                   /* the kick playing's (kick.h KS_*: -50 .. +50, TUNE -12 .. +12) */
+    int8_t ksmem[KICK_MEMS][KS_N];       /* each kick memory's, as set.kmem */
 } settings_t;
 enum { DS_SNARE, DS_KICK, DS_BOTH, DS_STUTTER, DS_SWEEP, DS_RANDOM, DS_N };
 static const uint8_t DROP_GAP[5] = {0u, 1u, 2u, 4u, 8u};   /* its steps: none, a 16th, an 8th, a beat, half a bar */
@@ -285,6 +288,7 @@ static void settings_apply(void)
     brk_gate((float)(set.gate ? set.gate : 100u) * 0.01f);
     brk_snap(SNAP_SL[snap_index()]);
     kick_set(&set.kick);
+    kick_set_synth(set.ksyn);            /* (LOAF BREAKER: its SYNTH) */
     {
         perc_t pa;                       /* (all the drums' voices for the engine) */
         uint32_t k;
@@ -721,8 +725,10 @@ static const brk_break_t *break_load(uint32_t i)
     return b;
 }
 
+static int16_t rum_line[4096] PLAT_POOL;   /* LOAF BREAKER: the kick's RUMBLE, its line (93 ms) */
 void app_init(void)
 {
+    kick_rumble_buf(rum_line, 4096u);
     brk_init();
     brk_fx_init();
     brk_fx_delay_buffer(dub_line, CH_DUB_LEN);

@@ -2055,6 +2055,50 @@ static void test_terror2(void)
     CHECK(pk[1] <= 1.0f && pk[1] > 0.3f && df > 0.05f, "TERROR 2: bounded (%.3f) and far from the dry kick (%.3f)", pk[1], df);
 }
 
+/* LOAF BREAKER: the kick's SYNTH: HOLD keeps it up longer, RUMBLE leaves a tail after it, TUNE moves it, all bounded */
+static int16_t rumble_line[4096];
+static float kick_energy(const int8_t *syn, uint32_t from, uint32_t to, float *pk)
+{
+    kick_t k;
+    uint16_t at = 0u;
+    uint32_t i;
+    float e = 0.0f;
+    kick_preset(&k, 3u);
+    k.volume = 0.8f;
+    kick_rumble_buf(rumble_line, 4096u);
+    kick_set_synth(syn);
+    kick_set(&k);
+    kick_init();
+    for (i = 0; i < 60u * BLOCK; i += BLOCK)
+        kick_render(kick_buf + i, BLOCK, &at, i == 0u ? 1u : 0u);
+    for (i = 0; i < 60u * BLOCK; i++) {
+        if (i >= from && i < to)
+            e += kick_buf[i] * kick_buf[i];
+        if (fabsf(kick_buf[i]) > *pk)
+            *pk = fabsf(kick_buf[i]);
+    }
+    return e;
+}
+static void test_kick_synth(void)
+{
+    int8_t s[KS_N] = {0};
+    float pk = 0.0f, base_tail, hold_tail, rum_tail, tuned;
+    uint32_t a = 20u * BLOCK, b = 60u * BLOCK;
+    base_tail = kick_energy(s, a, b, &pk);
+    s[KS_HOLD] = 40;
+    hold_tail = kick_energy(s, a, b, &pk);
+    s[KS_HOLD] = 0;
+    s[KS_RUMBLE] = 50;
+    rum_tail = kick_energy(s, a, b, &pk);
+    s[KS_RUMBLE] = 0;
+    s[KS_TUNE] = 12;
+    tuned = kick_energy(s, 0u, 4u * BLOCK, &pk);
+    s[KS_TUNE] = 0;
+    CHECK(hold_tail > base_tail * 1.2f && rum_tail > base_tail * 1.2f && tuned > 0.0f && pk <= 1.3f,
+          "KICK SYNTH: HOLD %.3f and RUMBLE %.3f against %.3f after 120 ms, peak %.2f", hold_tail, rum_tail, base_tail, pk);
+    kick_set_synth(s);
+}
+
 /* LOAF BREAKER (TEST): TERROR's more: CLIP and CRUSH sound apart from FOLD, SCREECH and DRIVE move it, all bounded */
 static void test_terror_more(void)
 {
@@ -2146,6 +2190,7 @@ int main(int argc, char **argv)
     test_kick_notes();
     test_kick_fx();
     test_terror_more();
+    test_kick_synth();
     test_gate();
     test_swap();
     test_snap();
