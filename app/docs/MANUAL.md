@@ -105,15 +105,14 @@ back. That touch only ends the demo: it doesn't play a slice or start the break.
 | ALGORITHM | (HOME, MIXER; SEL held: any page) The next or previous break: its name shows at once (amber in the header) and, while playing, it comes in at the next bar (the old one goes quiet for the bar's last 16th meanwhile); stopped, at once. AMEN (The Winstons), DRUMMER (James Brown, Funky Drummer), THE WORM (Jimmy McGriff), THINK (Lyn Collins), COLD SWEAT (James Brown), HOT PANTS (Bobby Byrd), APACHE (Incredible Bongo Band), SPORT (Lightnin' Rod): 2 bars each, played at the tempo you set |
 | MASTER | Volume |
 
-### The CDJ view (HOME held)
+### The CDJ view (HOME)
 
-**Hold HOME** on PERFORM or GENERATOR (a third of a second): the slice blocks give way to what leaves the mix (the
-break, the kick, the drums, the effects; before MASTER) scrolling in from the right, the playhead at the right edge, as
-a track on a CDJ. Each column is coloured as rekordbox's RGB waveform: the lows red, the mids green, the highs blue,
-mixed (a kick reads red to orange, a snare green to cyan, the hats blue), as tall as its peak. 4 beats fill the
-screen; the beats are ticked top and bottom (the bar's first lit) and the bar and beat counted top left. It stays
-when you let go; **HOME again** brings the blocks back, on the same part (neither press moves to the next part).
-Another page takes it down too.
+**PERFORM and GENERATOR show what leaves the mix** (the break, the kick, the drums, the effects; before MASTER)
+scrolling in from the right, the playhead at the right edge, as a track on a CDJ. Each column is coloured as
+rekordbox's RGB waveform: the lows red, the mids green, the highs blue, mixed (a kick reads red to orange, a snare
+green to cyan, the hats blue), as tall as its peak. 4 beats fill the screen; the beats are ticked top and bottom (the
+bar's first lit) and the bar and beat counted top left. **Hold HOME** (a third of a second) for the slice blocks
+instead, hold it again for the waveform; neither moves to HOME's next part.
 
 ![The CDJ view: the break and a kick scrolling in, the playhead at the right edge](img/c_cdj_gen.png "CDJ view")
 

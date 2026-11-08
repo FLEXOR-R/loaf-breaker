@@ -91,8 +91,8 @@ static struct {
     uint32_t idle_t;                     /* the last key, button or knob touched (the demo: demo.c) */
     uint32_t lobo_t;                     /* RESET ALL done: the lobotomy screen, since then (0: not showing) */
     uint8_t home_hold, home_combo;       /* HOME held on its page (up alone: its other part); PLAY pressed meanwhile */
-    uint8_t cdj, cdj_skip;               /* LOAF BREAKER: the CDJ view up (HOME held on PERFORM / GENERATOR; HOME again:
-                                          * down); this HOME press done with it */
+    uint8_t cdj, cdj_skip, blocks;       /* LOAF BREAKER: the CDJ view up (PERFORM / GENERATOR's default); this HOME
+                                          * press done with it; the slice blocks instead (HOME held: either) */
     uint32_t home_t;                     /* (when HOME went down) */
     uint8_t fx_hold, fx_turned;          /* FX held on the FX page (up alone: the next slot); a knob turned meanwhile */
     uint8_t fx_page;                     /* the focused slot's part: MAIN, MORE, MOD (an MB COMP: MBP_*) */
