@@ -366,7 +366,7 @@ typedef struct {
     uint16_t kfm_ok, kfm_rsv;
     uint8_t kn[NPAT][13];                /* LOAF BREAKER: the kick's notes past its 38th step (kick_note) */
 } pats_t;
-static pats_t pats;
+static pats_t pats PLAT_POOL;            /* (LOAF BREAKER: in the pool, 3.7 KB of RAM freed) */
 #define PATS_SIZE_OLD offsetof(pats_t, trk)   /* (a save before the tracks) */
 #define PATS_SIZE_TRK offsetof(pats_t, mem)   /* (one before the effects' memory) */
 #define PATS_SIZE_MEM offsetof(pats_t, kfm)   /* (one before KICK FX's) */
@@ -944,10 +944,13 @@ static float meter(const float *x, uint32_t n, float last)
 
 void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
 {
-    static float mono[APP_BLOCK], l[APP_BLOCK], r[APP_BLOCK], echo[APP_BLOCK], verb[APP_BLOCK];
-    static float kick[APP_BLOCK], perc[APP_BLOCK];
-    static float kl[APP_BLOCK], kr[APP_BLOCK];   /* LOAF BREAKER: the kick through the overlays alone (THRU KICK) */
-    static float spd[APP_BLOCK], tape0 = 1.0f;   /* LOAF BREAKER: the VINYL BREAK's speed on the drums, a sample each */
+    /* (LOAF BREAKER: the block's buffers in the pool, 10 KB of RAM freed: the pool is RAM as fast) */
+    static float mono[APP_BLOCK] PLAT_POOL, l[APP_BLOCK] PLAT_POOL, r[APP_BLOCK] PLAT_POOL, echo[APP_BLOCK] PLAT_POOL,
+                 verb[APP_BLOCK] PLAT_POOL;
+    static float kick[APP_BLOCK] PLAT_POOL, perc[APP_BLOCK] PLAT_POOL;
+    static float kl[APP_BLOCK] PLAT_POOL, kr[APP_BLOCK] PLAT_POOL;   /* LOAF BREAKER: the kick through the overlays
+                                          * alone (THRU KICK) */
+    static float spd[APP_BLOCK] PLAT_POOL, tape0 = 1.0f;   /* LOAF BREAKER: the VINYL BREAK's speed on the drums */
     static uint8_t b_on, b_drop, b_rew;  /* LOAF BREAKER: building; the drop asked; the drop armed for the next
                                           * step (the engine rewound to the pattern's first: brk_rewind) */
     static uint32_t b_steps;             /* steps built */

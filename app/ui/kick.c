@@ -587,10 +587,43 @@ static void kick_cards(void)             /* the part's four knobs: its name, its
     }
     cv_blit(0, 144);
 }
+static void draw_kick_classic(const brk_status_t *st)   /* LOAF BREAKER: the menu as it was (EDIT held: either):
+                                          * the part's knobs as bars, the layers' levels, the five drums' shapes */
+{
+    const kick_t *k = &set.kick;
+    uint32_t i;
+    char t[24];
+    cv_begin(240, 52, C_BLACK);
+    t[0] = 0;
+    text_cat(t, "KICK  ");
+    kick_part_name(kick_part(), t);
+    cv_text(6, 0, &FONT_XS, t, C_GRAY);
+    for (i = 0; i < 4u; i++) {           /* the part's four settings */
+        int32_t x = 6 + (int32_t)i * 58;
+        const char *n = kick_knob_name((int)i);
+        if (!n[0])
+            continue;
+        cv_text(x, 16, &FONT_XS, n, C_GRAY);
+        cv_rect(x, 29, 52, 3, C_BLOCK);
+        cv_rect(x, 29, (int32_t)(52.0f * brk_clampf(kick_knob_f((int)i), 0.0f, 1.0f) + 0.5f), 3, C_HI);
+    }
+    for (i = 0; i < KICK_LAYERS; i++) {  /* the layers' levels */
+        int32_t x = 6 + (int32_t)i * 58;
+        int lit = i == ui.klayer && (ui.kpage == KP_LAYER || ui.kpage == KP_FX);   /* (MIX: the row above is them) */
+        cv_text(x, 34, &FONT_XS, KICK_LAYER_NAME[i], lit ? C_GRAY : C_DIM);
+        cv_rect(x, 47, 52, 3, C_BLOCK);
+        cv_rect(x, 47, (int32_t)(52.0f * k->l[i].level + 0.5f), 3, lit ? C_HI : k->l[i].fx ? C_AMB : C_DIM);
+    }
+    cv_blit(0, 88);
+    draw_drums(st);
+}
 static void draw_kick(const brk_status_t *st)
 {
     uint32_t sig = sig_of(&set.kick, sizeof set.kick) ^ sig_of(set.ksyn, sizeof set.ksyn), top;
-    (void)st;
+    if (ui.kclassic) {
+        draw_kick_classic(st);
+        return;
+    }
     if (sig != kv_sig) {                 /* (its hit again, only when it changed) */
         uint32_t pk = 0u;
         kv_sig = sig;

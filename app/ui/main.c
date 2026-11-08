@@ -364,8 +364,10 @@ static void input(void)
         if (btn & 1u << B_SEL) {
             ui.einst = (uint8_t)(ui.page == PG_PERC ? ui.einst % (NDRUMS - 1u) + 1u : ui.einst ? ui.einst : 1u);
             edit_open();
-        } else if (kickp)
-            kick_sect_next();
+        } else if (kickp) {
+            ui.edit_hold = 1u;           /* (at its release: the next section; held: the other view) */
+            ui.edit_t = now;
+        }
         else if (ui.page == PG_PERC) {
             ui.einst = (uint8_t)((ui.einst + 1u) % NDRUMS);
             if (ui.einst)
@@ -380,6 +382,21 @@ static void input(void)
             kick_open();
         }
         ui.redraw |= RG_FOOT | RG_BLOCKS | RG_WAVE;
+    }
+    if (ui.edit_hold && btn & 1u << B_EDIT && now - ui.edit_t >= 450u && ui.edit_hold == 1u) {   /* LOAF BREAKER: EDIT
+                                          * held on the KICK menu: the view as it was (the drums' shapes), or back */
+        ui.edit_hold = 2u;
+        ui.kclassic ^= 1u;
+        app_say("KICK", ui.kclassic ? "CLASSIC VIEW" : "BIG VIEW");
+        ui.redraw |= RG_BLOCKS | RG_WAVE | RG_FOOT;
+        if (!ui.kclassic)
+            lcd_fill(0, 44, 240, 44, C_BLACK);
+    }
+    if (ui.edit_hold && !(btn & 1u << B_EDIT)) {
+        if (ui.edit_hold == 1u)
+            kick_sect_next();            /* (let go before the hold: the next section) */
+        ui.edit_hold = 0u;
+        ui.redraw |= RG_FOOT | RG_BLOCKS;
     }
     if (bdn & 1u << B_LFO) {             /* LFO: the MIXER (the break, the kick, FX main, FX overlay); again, groove */
         ui.mpage = ui.page == PG_MIX ? (uint8_t)((ui.mpage + 1u) % 3u) : 0u;   /* (TEST: LEVELS, GROOVE, MASTER) */
@@ -1288,7 +1305,7 @@ void app_frame(void)
     }
     if (!ui.redraw)
         return;
-    if (ui.redraw & RG_WAVE && ui.page != PG_TRACK && ui.page != PG_SEQ && ui.page != PG_KICK)   /* (LOAF BREAKER: SEQ is a grid there) */
+    if (ui.redraw & RG_WAVE && ui.page != PG_TRACK && ui.page != PG_SEQ && (ui.page != PG_KICK || ui.kclassic))   /* (LOAF BREAKER: SEQ is a grid there) */
         draw_wave(&st, b);
     if (ui.redraw & RG_FX) {
         if (ui.shown >= 100)

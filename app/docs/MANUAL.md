@@ -111,7 +111,9 @@ back. That touch only ends the demo: it doesn't play a slice or start the break.
 - **EDIT**: the **KICK menu**. Its picture: the kick's hit over a quarter of a second, its wave large (the cycles
   stretching as its pitch falls, squared off where it is driven), its level behind, the SUB's pitch falling in amber,
   its memory (KICK 1–10) and its note; under it the part's four knobs as cards, their values large. **EDIT again**: the
-  next section, **ALGORITHM**: the next part in it (each section remembers where you were):
+  next section, **ALGORITHM**: the next part in it (each section remembers where you were). **EDIT held** (half a
+  second): the classic view (the part's knobs as bars, the layers' levels, the five drums' shapes, the break's wave
+  above), held again: the big view; the part stays where it is.
   - **SOUND**: MIX, SUB, PUNCH, GRIT, CLICK, OUT.
   - **SYNTH**: SYNTH, SYNTH +, MACRO.
   - **DIRT**: TERROR, TERROR + (DRIVE, TYPE, SCREECH, TAIL), TERROR 2, then each layer's effect.
