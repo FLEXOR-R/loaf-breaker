@@ -146,9 +146,12 @@ metronome and tap tempo are gone).
   edited staying where it is; the cursor goes onto it, for a white key (a pattern) or **K2** (a DROP; K2 left: the
   space gone again). An empty item left is played past. **ENV held on an empty item** takes it out: the items on
   its sides close up, the cursor on the one before. ENV let go quickly: the next part, as ever.
+  **SEL + PLAY** makes the item edited the one the track starts from (a flag at its corner, "FROM 2" at the top; again
+  on it: from the first again); it is the track's own and saved with it. **PLAY** on TRACKS plays the track from there
+  and stays on TRACKS (PLAY again stops it).
 - **PLAY**: a radio. **K1** tunes it: the needle glides along the dial to the track (1–8, the ones with something in
   them lit), the big knob turns with it; the station shows the track's length, its items, where it starts and what it
-  does at its end. **K2** the item it starts from. **PLAY** (or white keys 1–8: that track) plays it from
+  does at its end. **K2** the item it starts from (the same as TRACKS' SEL + PLAY, each track its own). **PLAY** (or white keys 1–8: that track) plays it from
   bar 1 and goes back to HOME; the header shows T1 … T8. Each pattern comes in at the end of the last loop of the one
   before; a DROP's build starts at the next bar. **SEL ×3** while a track plays drops into its next pattern and the
   track goes on from there. PLAY again stops it.

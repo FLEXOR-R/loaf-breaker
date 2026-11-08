@@ -343,8 +343,12 @@ static void input(void)
             transport(st.playing, 1);
             app_say("RESET", "");
             ui.home_combo = 1u;          /* (not HOME's next part) */
-        } else if (ui.page == PG_TRACK && ui.tpage == 1u && !(st.playing && ui.trk_on))
-            track_play();                /* LOAF BREAKER: ENV's PLAY: the track, then HOME */
+        } else if (ui.page == PG_TRACK && ui.tpage == 0u && btn & 1u << B_SEL) {
+            track_from_here();           /* LOAF BREAKER: TRACKS, SEL + PLAY: PLAY starts the track there */
+            ui.tap_combo = 1u;           /* (no SEL click) */
+        } else if (ui.page == PG_TRACK && ui.tpage <= 1u && !(st.playing && ui.trk_on))
+            track_play(ui.tpage == 1u);  /* LOAF BREAKER: ENV's TRACKS or PLAY: the track from its first item (PLAY:
+                                          * then HOME; TRACKS: it stays) */
         else
             transport(!st.playing, 0);
         muted = 0u;
@@ -1484,8 +1488,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel"};
-    int v[48];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from"};
+    int v[49];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1545,7 +1549,8 @@ int app_expect(const char *what, int *got)
     v[45] = fill_on;
     v[46] = set.kbass[1];
     v[47] = set.drop_accel;
-    for (i = 0; i < 48u; i++)
+    v[48] = TRK_FROM;
+    for (i = 0; i < 49u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;
