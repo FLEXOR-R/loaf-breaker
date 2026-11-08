@@ -372,6 +372,12 @@ static volatile uint8_t drop_to = 0xFFu; /* the pattern the drop brings in (its 
 static volatile uint8_t drum_next_ok;
 static volatile uint8_t drop_n;
 static volatile float comp_gr;           /* LOAF BREAKER: COMP's reduction now, dB (the KNOB page's meter) */
+/* LOAF BREAKER: what leaves the mix (before MASTER), a column a 15th of a step (44100 / BPM samples): its lows (under
+ * ~200 Hz), mids, highs (over ~2.5 kHz) and peak, 0..255, for HOME's CDJ view (cdj.c); a ring, scope_w the columns
+ * written so far */
+#define SCOPE_N 240u
+static uint8_t scope[SCOPE_N][4] PLAT_POOL;
+static volatile uint32_t scope_w;
 static volatile float build_p = -1.0f;   /* the build's progress 0..1, -1 none (the screen's and the lights') */
 static volatile uint16_t drum_now[NDRUMS][4];   /* the pattern playing's drums, bar by bar of four (their lengths
                                           * played out: pat_lanes_out), for the render */
@@ -1212,6 +1218,34 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             comp_gr = gmax > comp_gr * 0.97f ? gmax : comp_gr * 0.97f;
         } else
             comp_gr = 0.0f;
+        {                                /* LOAF BREAKER: the CDJ view's columns (scope), from what leaves */
+            static float l1, l2, pk[4];
+            static uint32_t sn;
+            uint32_t len = 441000u / (set.tempo_x10 >= 400u ? set.tempo_x10 : 1700u), k;
+            for (i = 0; i < m; i++) {
+                float x = 0.5f * (l[i] + r[i]), v[4];
+                l1 += (x - l1) * 0.0285f;        /* (~200 Hz) */
+                l2 += (x - l2) * 0.356f;         /* (~2.5 kHz) */
+                v[0] = brk_absf(l1);
+                v[1] = brk_absf(l2 - l1);
+                v[2] = brk_absf(x - l2);
+                v[3] = brk_absf(l[i]) > brk_absf(r[i]) ? brk_absf(l[i]) : brk_absf(r[i]);
+                for (k = 0; k < 4u; k++)
+                    if (v[k] > pk[k])
+                        pk[k] = v[k];
+                if (++sn >= len) {
+                    static const float G[4] = {300.0f, 380.0f, 520.0f, 255.0f};   /* (the bands as heard: the highs
+                                          * up, they are quieter) */
+                    uint8_t *c = scope[scope_w % SCOPE_N];
+                    for (k = 0; k < 4u; k++) {
+                        c[k] = (uint8_t)brk_clampf(pk[k] * G[k], 0.0f, 255.0f);
+                        pk[k] = 0.0f;
+                    }
+                    sn = 0u;
+                    scope_w++;
+                }
+            }
+        }
         {                                /* the header's meter: as it leaves, after MASTER */
             float out = gain * (1.0f / 8388608.0f), a = meter(l, m, 0.0f) * out, b = meter(r, m, 0.0f) * out;
             meter_l = a > meter_l * 0.987f ? a : meter_l * 0.987f;
@@ -1258,6 +1292,7 @@ static void demo_end(void) {}
 static void demo_frame(uint32_t now) { (void)now; }
 static void demo_leds(uint32_t now) { (void)now; }
 #endif
+#include "ui/cdj.c"                   /* (LOAF BREAKER: HOME held: the break scrolling, as on a CDJ) */
 #include "ui/main.c"
 #undef C_WHITE                           /* (gfx.c's white again after the UI: skins, common.c) */
 #define C_WHITE 0xFFFFu

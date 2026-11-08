@@ -325,6 +325,8 @@ static void input(void)
             transport(!st.playing, 0);
         muted = 0u;
     }
+    if (bdn & 1u << B_HOME)
+        ui.home_t = now;                 /* (LOAF BREAKER: held 0.35 s on PERFORM / GENERATOR: the CDJ view) */
     if (bdn & 1u << B_HOME) {            /* HOME: PERFORM; again (let go alone), GENERATOR, and back */
         if (ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_KEQ || IS_KFX()) {
             ui.home_hold = 1u;
@@ -1150,6 +1152,19 @@ void app_frame(void)
         }
     }
     track_poll(&st);                     /* LOAF BREAKER: a track playing: its next item */
+    {                                    /* LOAF BREAKER: HOME held on PERFORM or GENERATOR: the CDJ view, ~30 times a
+                                          * second; let go, the blocks again (and HOME's next part not taken) */
+        int want = (ui.btn & 1u << B_HOME) && (ui.page == PG_HOME || ui.page == PG_GEN) && now - ui.home_t >= 350u;
+        if (want) {
+            ui.home_combo = 1u;
+            if (!ui.cdj || now - ui.panel_drawn >= 33u) {
+                ui.redraw |= RG_BLOCKS;
+                ui.panel_drawn = now;
+            }
+        } else if (ui.cdj)
+            ui.redraw |= RG_BLOCKS;
+        ui.cdj = (uint8_t)want;
+    }
     if (pat_next >= 0 && (!st.playing || (st.step >= 0 && (uint32_t)st.step + 1u >= pat_len()))) {
         set.pattern = (uint8_t)pat_next;  /* the pattern picked: in for the loop's next round (its last step plays) */
         pat_next = -1;
@@ -1277,7 +1292,9 @@ void app_frame(void)
         else if (ui.page == PG_MIX) {
             draw_mixer();
             ui.mix_drawn = now;
-        } else
+        } else if (ui.cdj)
+            draw_cdj(&st);
+        else
             draw_blocks(&st, ui.keys);
     }
     if (ui.redraw & RG_FOOT)
