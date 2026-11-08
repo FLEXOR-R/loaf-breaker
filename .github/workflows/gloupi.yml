@@ -1,5 +1,5 @@
 # LOAF BREAKER (was GLOUPI BREAKS): CHOPPAH modified by FLEXOR, its own name, screens and nine breaks.
-# Every push to the gloupi branch (or Actions → GLOUPI BREAKS → Run workflow) is a release of its own, kept: the last
+# Every push to the gloupi branch (or Actions → LOAF BREAKER → Run workflow) is a release of its own, kept: the last
 # gloupi-vX.YY tag + 0.01 (the first 0.02: 0.01 was the "gloupi" pre-release; after 0.99 come 0.100, 0.101 ...: never
 # 1.00), the number on the splash, the release
 # loaf-vX.YY with loaf-breaker-X.YY.fwsc and the host simulator's screens (loaf-breaker-screens-X.YY.zip). A re-run of a

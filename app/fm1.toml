@@ -18,7 +18,7 @@ boot_pack = true               # the start-up's RAM images stored LZMA-packed: s
 title = "LOAF BREAKER"         # the name people see (firmware.json; the site: tools/site_style.py); the build's files keep CHOPPAH's
 install_app = "site/install_app.js"   # confetti when the install is done
 tagline = "A hardcore break chopper for the FM-1"
-repo = "https://github.com/FLEXOR-R/gloupi-breaks"   # LOAF BREAKER (CHOPPAH: https://github.com/profikid/fm1-break-choppah)
+repo = "https://github.com/FLEXOR-R/loaf-breaker"   # LOAF BREAKER (CHOPPAH: https://github.com/profikid/fm1-break-choppah)
 licence = "MPL-2.0"
 credits = "Built on CHOPPAH by Laurens Profittlich, on fm1-base and felucca-bsp, from Felucca by Leo Kuroshita (Hügelton Instruments)."
 # firmware.json (required by fm1-base for a --release build: the releases of gloupi.yml)
