@@ -68,7 +68,8 @@ def header(current):
     links = [("../emu/", "Emulator"), ("../install/", "Install"), ("../manual/", "Manual"), ("../manual/#controls", "Controls")]
     if repo:
         links.append((repo.group(1), "Source"))
-    return ('<div class="page"><header class="site"><a class="home" href="../">' + (name.group(1) if name else "CHOPPAH") +
+    logo = '<img class="logo" src="../img/loaf-lord.png" alt="">' if (APP / "site" / "img" / "loaf-lord.png").exists() else ""
+    return ('<div class="page"><header class="site"><a class="home" href="../">' + logo + (name.group(1) if name else "CHOPPAH") +
             "</a><nav>" + "".join(f'<a href="{h}"' + (' aria-current="page"' if t == current else "") + f">{t}</a>"
                                   for h, t in links) + "</nav></header></div>\n")
 
@@ -142,6 +143,34 @@ def rebrand(site):
             f.write_text(u, encoding="utf-8")
 
 
+LOGO_CSS = """<style>
+header.site .home .logo { width: 30px; height: 30px; margin: -6px 0; }
+header.site .home:has(.logo)::before { display: none; }
+main > a.home .logo { width: 22px; height: 22px; vertical-align: middle; margin: -4px 8px 0 0; }
+body.home main .hero-logo { display: block; width: clamp(140px, 26vw, 240px); height: auto; margin: 4px 0 -10px -8px; }
+</style>
+"""
+
+
+def logo(site):
+    """LOAF BREAKER: LOAF LORD's face (app/site/img, tools/make_site_logo.py): the front page's, large, above its name;
+    the other pages' header, small, in place of the amber square; every page's tab icon"""
+    if not (site / "img" / "loaf-lord.png").exists():
+        return
+    for f in site.rglob("index.html"):
+        up = "../" * (len(f.relative_to(site).parts) - 1)
+        s = f.read_text(encoding="utf-8")
+        head = f'<link rel="icon" type="image/png" href="{up}img/favicon.png">\n' + LOGO_CSS
+        s = s.replace("</head>", head + "</head>", 1)
+        if f.parent != site:                         # (the manual's own small name, top left: the face beside it)
+            s = s.replace('<a class="home" href="../">', '<a class="home" href="../"><img class="logo" src="../img/loaf-lord.png" alt="">', 1) \
+                if '<header class="site">' not in s else s
+        if f.parent == site:                         # the front page
+            s = re.sub(r"(<main[^>]*>(?:\s*<a class=\"home\"[^>]*>[^<]*</a>)?\s*)",
+                       lambda m: m.group(1) + '<img class="hero-logo" src="img/loaf-lord.png" alt="LOAF LORD">\n', s, count=1)
+        f.write_text(s, encoding="utf-8")
+
+
 def main(site):
     site = Path(site)
     rebrand(site)
@@ -164,6 +193,7 @@ def main(site):
     s = (s[:h.start()] + '<span id="controls"></span>' + s[h.start():h.end()] + "\n" + widget + "\n" + s[end.start():])
     s = s.replace("</body>", SPY + "</body>", 1)
     man.write_text(s, encoding="utf-8")
+    logo(site)
     print(f"site_style: {site}: the front page and the manual restyled, the control map in section {h.group(1)}")
 
 
