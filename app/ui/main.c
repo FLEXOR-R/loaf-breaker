@@ -1183,6 +1183,16 @@ void app_frame(void)
     }
     if (ui.page == PG_GLOBAL && now - ui.panel_drawn >= 200u)   /* the GLOBAL page's panel: five times a second */
         ui.redraw |= RG_BLOCKS;
+    if (ui.page == PG_TRACK && ui.tpage == 1u) {   /* LOAF BREAKER: PLAY's radio: the needle glides, PRESS PLAY blinks */
+        float want = (float)(set.trk % NTRACKS), d = want - ui.radio;
+        if (d > 0.01f || d < -0.01f || now - ui.panel_drawn >= 100u) {
+            ui.radio += d * 0.35f;
+            if (d < 0.01f && d > -0.01f)
+                ui.radio = want;
+            ui.redraw |= RG_BLOCKS;
+            ui.panel_drawn = now;
+        }
+    }
     if (ui.page == PG_TRACK && ui.tpage == 3u && ui.knfn == 2u && set.comp && now - ui.panel_drawn >= 50u) {
         ui.redraw |= RG_BLOCKS;          /* (LOAF BREAKER: KNOB's COMP: its reduction moving) */
         ui.panel_drawn = now;

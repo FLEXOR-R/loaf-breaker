@@ -717,6 +717,85 @@ static uint32_t track_keys_lit(void)     /* TRACKS: the item's pattern; PLAY: th
  * settings, large */
 #define TK_GY 22                         /* the items' grid begins */
 #define TK_CH 31                         /* a row of items */
+/* LOAF BREAKER: ENV's PLAY, a radio: the stations (the tracks 1-8) on a lit dial, the needle gliding to the one K1
+ * tunes, a big knob turned to it, the station's name and what it plays, PRESS PLAY blinking (ON AIR while it plays) and
+ * the speaker's grille */
+static void radio_disc(int32_t cx, int32_t cy, int32_t r, uint16_t c)   /* a filled circle */
+{
+    int32_t y;
+    for (y = -r; y <= r; y++) {
+        int32_t w = 0;
+        while ((w + 1) * (w + 1) + y * y <= r * r)
+            w++;
+        cv_rect(cx - w, cy + y, 2 * w + 1, 1, c);
+    }
+}
+static void radio_picture(void)
+{
+    const track_t *t = trk_now();
+    uint32_t i, n = trk_len(t), now = plat_ms();
+    int32_t x, k;
+    float a;
+    char s[24], u[8];
+    int on_air = ui.trk_on && 1;
+    /* the dial: a lit window, a scale, the stations */
+    cv_rect(6, 2, 228, 44, C_BLOCK);
+    cv_rect(10, 6, 220, 36, RGB(40, 26, 12));
+    for (x = 0; x <= 56; x++) {          /* (the scale's ticks, the long ones the stations) */
+        int32_t px = 20 + x * 200 / 56, lng = !(x % 8);
+        cv_rect(px, lng ? 22 : 26, 1, lng ? 12 : 5, lng ? C_AMB : RGB(120, 80, 40));
+    }
+    for (i = 0; i < NTRACKS; i++) {
+        int32_t px = 20 + (int32_t)i * 200 / 7;
+        s[0] = (char)('1' + i);
+        s[1] = 0;
+        cv_text(px - 2, 8, &FONT_XS, s, i == set.trk % NTRACKS ? C_WHITE : trk_len(&pats.trk[i]) ? C_AMB
+                : RGB(110, 70, 35));
+    }
+    x = 20 + (int32_t)(ui.radio * 200.0f / 7.0f + 0.5f);
+    cv_rect(x - 1, 7, 3, 34, C_HI);      /* the needle */
+    cv_rect(x, 7, 1, 34, C_WHITE);
+    /* the knob: a dark ring, its face, a line to where it points (-135..+135 degrees over the eight) */
+    radio_disc(42, 100, 30, C_BLOCK);
+    radio_disc(42, 100, 25, RGB(70, 70, 78));
+    radio_disc(42, 100, 21, RGB(110, 110, 120));
+    a = (-0.375f + 0.75f * ui.radio / 7.0f);   /* (turns from straight up) */
+    for (k = 6; k <= 20; k++)
+        cv_rect(42 + (int32_t)((float)k * brk_sin_turns(a)), 100 - (int32_t)((float)k * brk_sin_turns(a + 0.25f)), 3,
+                3, C_HI);
+    for (k = 0; k < 9; k++) {            /* (its marks around) */
+        float b = -0.375f + 0.75f * (float)k / 8.0f;
+        cv_rect(42 + (int32_t)(34.0f * brk_sin_turns(b)), 100 - (int32_t)(34.0f * brk_sin_turns(b + 0.25f)), 2, 2,
+                C_GRAY);
+    }
+    cv_text(26, 136, &FONT_XS, "TUNING", C_GRAY);
+    /* the station */
+    s[0] = 0;
+    text_cat(s, "TRACK ");
+    int_text((int32_t)set.trk + 1, s + 6);
+    cv_text(86, 56, &FONT_B, s, C_WHITE);
+    s[0] = 0;
+    int_text((int32_t)trk_bars(t), s);
+    text_cat(s, " BARS  ");
+    int_text((int32_t)n, u);
+    text_cat(s, u);
+    text_cat(s, n == 1u ? " ITEM" : " ITEMS");
+    cv_text(86, 78, &FONT_XS, n ? s : "EMPTY: MAKE IT ON TRACKS", C_GRAY);
+    s[0] = 0;
+    text_cat(s, "FROM ");
+    int_text((int32_t)ui.trk_from + 1, u);
+    text_cat(s, u);
+    text_cat(s, "  ");
+    text_cat(s, TRK_END_NAME[t->end % 3u]);
+    cv_text(86, 90, &FONT_XS, s, C_GRAY);
+    if (on_air)                          /* ON AIR, or PRESS PLAY blinking */
+        cv_text(86, 106, &FONT_T, (now / 400u) & 1u ? "ON AIR" : "", C_HI);
+    else if (n)
+        cv_text(86, 106, &FONT_T, (now / 500u) & 1u ? "PRESS PLAY" : "", C_HI);
+    for (k = 0; k < 4; k++)              /* the speaker's grille */
+        for (x = 0; x < 24; x++)
+            cv_rect(88 + x * 6, 124 + k * 6, 2, 2, RGB(60, 60, 66));
+}
 static void track_picture(int32_t top)
 {
     const track_t *t = trk_now();
@@ -823,6 +902,11 @@ static void track_picture(int32_t top)
         cv_text(132, 58, &FONT_XS, "PLAYING ENDS IN IT", C_GRAY);
         cv_text(132, 78, &FONT_XS, "SEL X3 BUILDING:", C_GRAY);
         cv_text(132, 90, &FONT_XS, "THE DROP NEXT BAR", C_GRAY);
+        cv_oy = 0;
+        return;
+    }
+    if (ui.tpage == 1u) {                /* PLAY: the radio */
+        radio_picture();
         cv_oy = 0;
         return;
     }

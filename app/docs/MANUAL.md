@@ -136,7 +136,9 @@ metronome and tap tempo are gone).
   the item, **K2** what it is (turn it to END on an item inside the track: that item is deleted, the rest moves up),
   **K3** its loops, **K4** what the track does at its end: LOOP (from its start again), STOP, HOLD (the last pattern
   goes on). A **white key** puts its pattern at the item and moves to the next one.
-- **PLAY**: **K1** the track, **K2** the item it starts from. **PLAY** (or white keys 1–8: that track) plays it from
+- **PLAY**: a radio. **K1** tunes it: the needle glides along the dial to the track (1–8, the ones with something in
+  them lit), the big knob turns with it; the station shows the track's length, its items, where it starts and what it
+  does at its end. **K2** the item it starts from. **PLAY** (or white keys 1–8: that track) plays it from
   bar 1 and goes back to HOME; the header shows T1 … T8. Each pattern comes in at the end of the last loop of the one
   before; a DROP's build starts at the next bar. **SEL ×3** while a track plays drops into its next pattern and the
   track goes on from there. PLAY again stops it.
