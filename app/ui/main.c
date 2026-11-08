@@ -299,12 +299,14 @@ static void input(void)
         }
         if (i <= PAD_ROLL32) {           /* LOAF BREAKER: the rolls, through their THRU (the break, the kick, both) */
             if (kdn >> BK[PAD_KEY[i]] & 1u) {
-                roll_key(i, 1);
+                roll_key(i, 1, (btn & 1u << B_SEL) != 0u);   /* (SEL + the pad: the kick alone, this press) */
+                if (btn & 1u << B_SEL)
+                    ui.tap_combo = 1u;   /* (no SEL click) */
                 ui.pad_focus = (int8_t)i;
                 ui.pad_since = now;
             }
             if (kup >> BK[PAD_KEY[i]] & 1u)
-                roll_key(i, 0);
+                roll_key(i, 0, 0);
             continue;
         }
         if (i == PAD_HALF && set.half_mt_off & 2u) {   /* LOAF BREAKER: HALF SPEED's LATCH: a press on, a press

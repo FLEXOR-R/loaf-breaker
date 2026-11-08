@@ -11,19 +11,22 @@ static int ovl_pad_on(void);
  * at the pad's rate, the break left alone), 2 BOTH. kroll: the pad rolling the kick (app.c's render) */
 static const char *const ROLL_THRU_NAME[3] = {"BREAK", "KICK", "BOTH"};
 static uint8_t roll_held = 0xFFu;        /* the roll pad held (0xFF none) */
+static uint8_t roll_sel;                 /* (pressed with SEL held: the kick alone, whatever THRU says) */
 static void roll_thru_now(void)          /* (THRU turned while a roll pad is held: at once) */
 {
     uint32_t th = set.pads.rsv[0] % 3u;
-    if (roll_held > PAD_ROLL32)
+    if (roll_held > PAD_ROLL32 || roll_sel)
         return;
     brk_pad((int)roll_held, th != 1u);
     kroll = (uint8_t)(th ? roll_held + 1u : 0u);
 }
-static void roll_key(uint32_t pad, int down)   /* a roll pad down or up, through its THRU */
+static void roll_key(uint32_t pad, int down, int sel)   /* a roll pad down or up, through its THRU (SEL held as it
+                                          * went down: the kick alone, for that press) */
 {
-    uint32_t th = set.pads.rsv[0] % 3u;
+    uint32_t th = sel ? 1u : set.pads.rsv[0] % 3u;
     if (down) {
         roll_held = (uint8_t)pad;
+        roll_sel = (uint8_t)(sel != 0);
         if (th != 1u)
             brk_pad((int)pad, 1);
         kroll = (uint8_t)(th ? pad + 1u : 0u);
@@ -31,6 +34,7 @@ static void roll_key(uint32_t pad, int down)   /* a roll pad down or up, through
         brk_pad((int)pad, 0);
         if (roll_held == pad) {
             roll_held = 0xFFu;
+            roll_sel = 0u;
             kroll = 0u;
         }
     }
@@ -340,8 +344,8 @@ static void draw_fx_band(int pad, const brk_status_t *st, uint32_t now, int32_t 
     cv_begin(240, FX_BAND, C_BLACK);
     cv_oy = -top;                        /* (this band's rows of the picture) */
     t[0] = 0;
-    if (pad <= PAD_ROLL32 && set.pads.rsv[0] % 3u)   /* (LOAF BREAKER: THRU KICK or BOTH) */
-        text_cat(t, set.pads.rsv[0] % 3u == 1u ? "KICK " : "ALL ");
+    if (pad <= PAD_ROLL32 && (roll_sel || set.pads.rsv[0] % 3u))   /* (LOAF BREAKER: THRU KICK or BOTH, or SEL) */
+        text_cat(t, roll_sel || set.pads.rsv[0] % 3u == 1u ? "KICK " : "ALL ");
     text_cat(t, PAD_TITLE[pad]);
     if (pad <= PAD_ROLL32) {
         text_cat(t, " ");

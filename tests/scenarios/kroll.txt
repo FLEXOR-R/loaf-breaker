@@ -1,5 +1,6 @@
 # LOAF BREAKER: the roll pads' THRU (K2 while held): KICK, the kick rolled at the pad's rate (R16: 16ths), the break
-# left alone; BOTH, the two; BREAK, as ever. The sound: k_roll.wav
+# left alone; BOTH, the two; BREAK, as ever. SEL + the pad: the kick alone for that press, THRU BREAK or not.
+# The sound: k_roll.wav
 #   app/build/host/choppah_host tests/scenarios/kroll.txt app/build/scenarios
 wait 4200
 tap SEQ
@@ -23,6 +24,19 @@ shot k_roll_kick.png
 turn K2 1 10
 wait 1200
 key b1 up
-wait 1000
+wait 300
+turn K2 -2 10
+wait 100
+expect khits >0
+press SEL
+key b1 down
+wait 1412
+expect khits >13
+key b1 up
+release SEL
+wait 600
+expect help 0
+shot k_roll_sel.png
+wait 700
 wavstop
 tap PLAY
