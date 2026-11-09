@@ -90,7 +90,7 @@ lists its combinations (SEL again, or any other button, key or knob, closes it).
 | PRESETS | The pattern, P1–P16 (§5); while playing the new one starts at the end of the loop |
 | SEQ · REC | The sequencer; recording the keys into the pattern (§5). SEL + REC: clear the pattern (SEL + SAVE takes it back) |
 | MIDI notes | Notes 48–63 (C3–D#4) play slices 1–16, held like the white keys; 36 the kick, 38 the snare, 42 / 44 / 46 the hat (§8); any channel |
-| ALGORITHM | (HOME, MIXER; SEL held: any page) The next or previous break: its name shows at once (amber in the header) and, while playing, it comes in at the next bar (the old one goes quiet for the bar's last 16th meanwhile); stopped, at once. THINK 114 (Lyn Collins), NUSKOOL 140, UPDOWN 165, APACHE 115 (Incredible Bongo Band), CHOPPER 172, DRUMMER 100 (James Brown, Funky Drummer), THEWORM 110 (Jimmy McGriff), AMEN19 172 (The Winstons): 2 bars each, played at the tempo you set |
+| ALGORITHM | (HOME, MIXER; SEL held: any page) The next or previous break: its name shows at once (amber in the header) and, while playing, it comes in at the next bar (the old one goes quiet for the bar's last 16th meanwhile); stopped, at once. THINK 114 (Lyn Collins), NUSKOOL 140, UPDOWN 165, APACHE 115 (Incredible Bongo Band), AMEN04 170, AMEN13 173, THEWORM 110 (Jimmy McGriff), AMEN19 172, AMEN15 174, BREAKIN 175 (the Amens: The Winstons, cut by Cyberworm): 2 bars each, played at the tempo you set |
 | MASTER | Volume |
 
 ### Where things are
