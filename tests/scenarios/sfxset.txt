@@ -1,6 +1,6 @@
-# LOAF BREAKER: GLO's fifth part, EFFECTS (GLO four times): the screen effect MORE's K3 picks, its four settings: K1
+# LOAF BREAKER: GLO's FX SET (GLO five times): the screen effects' four settings: K1
 # AMOUNT, K2 ON A KICK, K3 AT THE DROP, K4 LENGTH (0..100 %, 5 % a detent; 50 % as before). Kicks off here (K2 to 0),
-# longer moments (K4 to 100 %); then SHAKE (MORE's K3 up one from RGB), the screen a kick later.
+# longer moments (K4 to 100 %); 
 #   app/build/host/choppah_host tests/scenarios/sfxset.txt app/build/scenarios
 wait 4200
 tap GLO
@@ -10,8 +10,10 @@ wait 100
 tap GLO
 wait 100
 tap GLO
+wait 100
+tap GLO
 wait 300
-expect gpage 3
+expect gpage 4
 turn K2 -10 10
 turn K4 10 10
 wait 200

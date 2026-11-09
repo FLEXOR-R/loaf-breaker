@@ -72,7 +72,7 @@ M-VAVE's original firmware first ([docs/FLASHING.md](docs/FLASHING.md)).
 | LFO | **LFO held + K1–K4**: the break, kick, drums and FX levels on any page · The **MIXER**: LEVELS, GROOVE, MASTER (COMP, RATIO, DUCK, MAX OUT), DYN (the compressor's and the ducker's timing) |
 | FX | The master FX chain: four slots (FILTER, CRUNCH, DRIVE, PUNCH, FLANGER, RING MOD, TREMOLO, REVERB, DELAY, EQ, TAPE, MB COMP, CLIP); each effect remembers its settings when you change it and back; presets MB KICK and MB OTT after MB COMP |
 | ARP | **Held: FILL** (the steps set FILL play, NOT FILL rest, the snare rolls the bar's last beat) · SEL + ARP: a random pattern |
-| GLO | GLOBAL: MIDI clock in and out (USB, TRS); the pitch and snap, RESET ALL; MORE: the screen EFFECTS (CRT, VHS, GRAIN, RGB, SHAKE, STROBE, 8-BIT), AUTO SAVE, 17 skins |
+| GLO | GLOBAL: MIDI clock in and out (USB, TRS); the pitch and snap, RESET ALL; MORE: AUTO SAVE, 17 skins, WAVE ZOOM; EFFECTS: the screen effects, several at once (CRT, VHS, GRAIN, RGB, SHAKE, STROBE, 8-BIT); FX SET: their settings |
 | SAVE | Keep the settings, the patterns, the tracks and the steps |
 
 ## Breaks

@@ -9,11 +9,29 @@ static uint8_t *sfx_knob(int i)          /* LOAF BREAKER: GLO EFFECTS' K1-K4: AM
 {
     return i == 0 ? &set.scrfx : i == 1 ? &set.sfx_kick : i == 2 ? &set.sfx_drop : &set.sfx_len;
 }
+static void sfx_toggle(uint32_t e, int on)   /* LOAF BREAKER: GLO EFFECTS: effect e (SFX_*) on (1), off (0), or turned
+                                          * over (-1) */
+{
+    uint8_t b = (uint8_t)(1u << (e - 1u));
+    set.sfx_on = (uint8_t)(on < 0 ? set.sfx_on ^ b : on ? set.sfx_on | b : set.sfx_on & ~b);
+    ui.sfx_cur = (uint8_t)e;
+    changed();
+    app_say(SFX_NAME[e], set.sfx_on & b ? "ON" : "OFF");
+    ui.redraw = RG_ALL;
+}
 static void global_value(int i, char *t)
 {
     t[0] = 0;
-    if (ui.gpage == 3u) {                /* (EFFECTS: each 0..100 %) */
+    if (ui.gpage == 4u) {                /* (FX SET: each 0..100 %) */
         pct_text((float)*sfx_knob(i) * 0.01f, t);
+        return;
+    }
+    if (ui.gpage == 3u) {                /* (EFFECTS: K1 the one pointed at, K2 it on or off) */
+        uint32_t e = ui.sfx_cur < SFX_CRT || ui.sfx_cur >= SFX_N ? SFX_CRT : ui.sfx_cur;
+        if (i == 0)
+            text_cat(t, SFX_NAME[e]);
+        else if (i == 1)
+            text_cat(t, SFX_ON(e) ? "ON" : "OFF");
         return;
     }
     if (ui.gpage == 2u) {                /* GLOUPI BREAKS: MORE (in place of Bluetooth audio): K1 the skin */
@@ -21,11 +39,7 @@ static void global_value(int i, char *t)
             text_cat(t, set.skin % NSKINS == 10u ? "SYNTHWV" : SKIN_NAME[set.skin % NSKINS]);
         else if (i == 1)                 /* LOAF BREAKER: K2 AUTO SAVE */
             text_cat(t, set.auto_save ? "ON" : "OFF");
-        else if (i == 2)                 /* K3 EFFECTS: the screen's */
-            text_cat(t, SFX_NAME[set.crt % SFX_N]);
-        else                             /* K1 their AMOUNT */
-            pct_text((float)set.scrfx * 0.01f, t);
-        return;
+        return;                          /* (K1, K3: nothing; the effects: GLO EFFECTS) */
     }
     if (ui.gpage) {                      /* the pitch: speed or keep length, the grains */
         if (i == 0)
@@ -51,7 +65,17 @@ static void global_turn(int i, int32_t d)
 {
     static const char *const NAME[4] = {"CLOCK IN", "CLOCK OUT", "BLUETOOTH", "MIDI TO"};
     char t[16];
-    if (ui.gpage == 3u) {                /* LOAF BREAKER: EFFECTS: K1 AMOUNT, K2 KICK, K3 DROP, K4 LENGTH, 5 % a detent */
+    if (ui.gpage == 3u) {                /* LOAF BREAKER: EFFECTS: K1 the effect, K2 it on (right) or off (left) */
+        uint32_t e = ui.sfx_cur < SFX_CRT || ui.sfx_cur >= SFX_N ? SFX_CRT : ui.sfx_cur;
+        if (i == 0) {
+            ui.sfx_cur = (uint8_t)clamp((int32_t)e + (d > 0 ? 1 : -1), SFX_CRT, SFX_N - 1);
+            app_say("EFFECT", SFX_NAME[ui.sfx_cur]);
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
+        } else if (i == 1)
+            sfx_toggle(e, d > 0);
+        return;
+    }
+    if (ui.gpage == 4u) {                /* LOAF BREAKER: FX SET: K1 AMOUNT, K2 KICK, K3 DROP, K4 LENGTH, 5 % a detent */
         static const char *const SN[4] = {"EFFECT AMOUNT", "ON A KICK", "AT THE DROP", "MOMENTS' LENGTH"};
         uint8_t *p = sfx_knob(i);
         *p = (uint8_t)clamp((int32_t)*p + d * 5, 0, 100);
@@ -72,19 +96,7 @@ static void global_turn(int i, int32_t d)
             changed();
             app_say("AUTO SAVE", set.auto_save ? "ON" : "OFF");
             ui.redraw |= RG_BLOCKS | RG_FOOT;
-        } else if (i == 2) {             /* K3 EFFECTS: OFF, CRT, VHS, GRAIN, RGB, SHAKE, STROBE, 8-BIT */
-            set.crt = (uint8_t)clamp((int32_t)(set.crt % SFX_N) + (d > 0 ? 1 : -1), 0, SFX_N - 1);
-            changed();
-            app_say("EFFECTS", SFX_NAME[set.crt % SFX_N]);
-            ui.redraw = RG_ALL;
-        } else {                         /* K1 the effect's AMOUNT, 2 % a detent */
-            char a[8];
-            set.scrfx = (uint8_t)clamp((int32_t)set.scrfx + d * 2, 0, 100);
-            changed();
-            pct_text((float)set.scrfx * 0.01f, a);
-            app_say("EFFECT AMOUNT", a);
-            ui.redraw = RG_ALL;
-        }
+        }                                /* (K1, K3: nothing; the effects: GLO EFFECTS) */
         return;
     }
     if (ui.gpage) {
@@ -142,13 +154,36 @@ static void draw_global(const brk_status_t *st)
     int bs = plat_ble_state();
     cv_begin(240, 44, C_BLACK);          /* LOAF BREAKER: no waveform on GLOBAL: its place the skins' on MORE, black
                                           * on the others */
-    if (ui.gpage == 3u) {                /* LOAF BREAKER: EFFECTS: the effect picked (MORE's K3), its four settings as
-                                          * bars */
+    if (ui.gpage == 3u) {                /* LOAF BREAKER: EFFECTS: the seven, lit when on (keys 1-7), K1's outlined */
+        uint32_t e, cur = ui.sfx_cur < SFX_CRT || ui.sfx_cur >= SFX_N ? SFX_CRT : ui.sfx_cur;
+        cv_text(6, 1, &FONT_T, "SCREEN EFFECTS", C_GRAY);
+        cv_text(6, 16, &FONT_XS, "KEYS 1-7: ON / OFF, SEVERAL AT ONCE", C_DIM);
+        cv_text(6, 28, &FONT_XS, "THEIR SETTINGS: GLO AGAIN (FX SET)", C_DIM);
+        cv_blit(0, 44);
+        for (e = 0; e < 2u; e++) {
+            uint32_t j;
+            cv_begin(240, 52, C_BLACK);
+            for (j = 0; j < 4u; j++) {
+                uint32_t f = SFX_CRT + e * 4u + j;
+                int32_t x = 4 + (int32_t)j * 59;
+                char n[2] = {(char)('0' + f), 0};
+                if (f >= SFX_N)
+                    break;
+                if (f == cur)
+                    cv_rect(x - 2, 2, 57, 46, C_WHITE);
+                cv_rect(x, 4, 53, 42, SFX_ON(f) ? C_HI : C_BLOCK);
+                cv_text(x + 4, 6, &FONT_T, n, SFX_ON(f) ? C_BLACK : C_DIM);
+                cv_text(x + 4, 26, &FONT_T, SFX_NAME[f], SFX_ON(f) ? C_BLACK : C_GRAY);
+            }
+            cv_blit(0, 88u + e * 52u);
+        }
+        return;
+    }
+    if (ui.gpage == 4u) {                /* LOAF BREAKER: FX SET: the effects' four settings as bars */
         static const char *const L[4] = {"AMOUNT", "ON A KICK", "AT THE DROP", "LENGTH"};
         uint32_t k;
-        cv_text(6, 1, &FONT_T, "EFFECT", C_GRAY);
-        cv_text(96, 1, &FONT_T, SFX_NAME[set.crt % SFX_N], set.crt % SFX_N ? C_HI : C_DIM);
-        cv_text(96, 16, &FONT_XS, set.crt % SFX_N ? "MORE'S K3 PICKS IT" : "OFF: MORE'S K3 PICKS ONE", C_DIM);
+        cv_text(6, 1, &FONT_T, "EFFECTS SET", C_GRAY);
+        cv_text(96, 16, &FONT_XS, "FOR ALL THE EFFECTS ON", C_DIM);
         cv_text(96, 28, &FONT_XS, "KICK, DROP: 0 = NONE", C_DIM);
         cv_blit(0, 44);
         for (k = 0; k < 2u; k++) {
@@ -170,10 +205,6 @@ static void draw_global(const brk_status_t *st)
     }
     if (ui.gpage == 2u) {                /* MORE: the skin, and every skin's colours to pick from (K4) */
         uint32_t s;
-        static const char *const SFX_SAYS[SFX_N] = {"K3 PICKS ONE, K1 ITS AMOUNT", "AN OLD TUBE'S LINES",
-                                                    "BANDS SLIP, MORE ON KICKS", "SPECKS THAT MOVE",
-                                                    "THE RED OFF THE REST", "JOLTS ON KICKS AND DROPS",
-                                                    "FLASHES AT THE DROP", "FEWER COLOURS"};
         cv_text(6, 1, &FONT_T, "SKIN", C_GRAY);
         cv_text(96, 1, &FONT_T, SKIN_NAME[set.skin % NSKINS], C_HI);
         for (s = 0; s < NSKINS; s++) {   /* a swatch each: its value colour on its ground, the one on outlined */
@@ -187,17 +218,10 @@ static void draw_global(const brk_status_t *st)
         }
         cv_blit(0, 44);
         cv_begin(240, 52, C_BLACK);
-        cv_text(6, 2, &FONT_T, "EFFECTS", C_GRAY);   /* K3, K1 its amount */
-        cv_text(96, 2, &FONT_T, SFX_NAME[set.crt % SFX_N], set.crt % SFX_N ? C_HI : C_DIM);
-        if (set.crt % SFX_N) {
-            char a[8];
-            pct_text((float)set.scrfx * 0.01f, a);
-            cv_text(170, 2, &FONT_T, a, C_WHITE);
-        }
-        cv_text(96, 16, &FONT_XS, SFX_SAYS[set.crt % SFX_N], C_DIM);
-        cv_text(6, 30, &FONT_T, "WAVE ZOOM", C_GRAY);   /* PRESETS (cdj.c) */
-        cv_text(96, 30, &FONT_T, CDJ_ZNAME[set.wzoom % CDJ_ZN], C_HI);
-        cv_text(96, 43, &FONT_XS, "PRESETS: HOME'S WAVE", C_DIM);
+        cv_text(6, 2, &FONT_T, "WAVE ZOOM", C_GRAY);   /* PRESETS (cdj.c) */
+        cv_text(96, 2, &FONT_T, CDJ_ZNAME[set.wzoom % CDJ_ZN], C_HI);
+        cv_text(96, 16, &FONT_XS, "PRESETS: HOME'S WAVE", C_DIM);
+        cv_text(96, 30, &FONT_XS, "SCREEN EFFECTS: GLO AGAIN", C_DIM);
         cv_blit(0, 88);
         cv_begin(240, 52, C_BLACK);
         cv_text(6, 2, &FONT_T, "AUTO SAVE", C_GRAY);   /* K2 */

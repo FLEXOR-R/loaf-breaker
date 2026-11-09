@@ -135,7 +135,7 @@ lists its combinations (SEL again, or any other button, key or knob, closes it).
 - **LFO** (the MIXER): LEVELS, GROOVE, MASTER (K1 COMP, K2 its RATIO, K3 DUCK, K4 MAX OUT; COMP's reduction metered),
   DYNAMICS (COMP's ATTACK and RELEASE, DUCK's RELEASE, DUCKS: the break, or the break and the drums).
 - **ENV**: the track and the live. TRACKS, PLAY, DROP, BUILD, KNOB (what SEL + each knob does), RESET.
-- **GLO**: MIDI, PITCH, MORE (EFFECTS and their AMOUNT, AUTO SAVE, SKIN).
+- **GLO**: MIDI, PITCH, MORE (AUTO SAVE, SKIN, WAVE ZOOM), EFFECTS (several at once, keys 1–7), FX SET.
 
 ### The CDJ view (HOME)
 
@@ -517,19 +517,19 @@ tempo's own repitch, HALF, REVERSE's speed and the tape stop stay speed effects.
 IRIS, PINK, MINT, WHITE, BLOOD, MAXENCE, then the two-colour ones: SYNTHWAVE (neon cyan and magenta on indigo), VAPOR,
 TOXIC, MIAMI, LAVA, GOLD, BLAZE (flashy orange and red); K2
 **AUTO SAVE**, ON: what you change is saved by itself a minute after it changed, once the break has been stopped for 3 s
-(the flash is never written while it plays, nor right after: its stall would cut the stop's tail); K3 **EFFECTS**, what the screen goes through (RGB at 50 % to start, and after RESET ALL), and K1 its **AMOUNT**: **CRT** (every
-other line dimmed, as an old tube: the more, the darker), **VHS** (bands that slip sideways, more on each kick), **GRAIN**
-(specks that move), **RGB** (the red a few pixels off the rest, more on a kick), **SHAKE** (the screen jolts on each
-kick, hard at the drop), **STROBE** (the colours turn over at the drop; past 50 %, on each kick too), **8-BIT** (fewer
-colours; past 50 %, fewer still). **PRESETS** there: **WAVE ZOOM**, how much of the past HOME's scrolling wave
+(the flash is never written while it plays, nor right after: its stall would cut the stop's tail). **PRESETS** there: **WAVE ZOOM**, how much of the past HOME's scrolling wave
 (the CDJ view) holds across the screen: 1/2, 2/3, 5/6 of a bar (zoomed in), 1 BAR (as it was), 1 1/4, 1 1/2, 2 BARS
 (zoomed out).
 
-**EFFECTS (GLO four times):** the screen effect MORE's K3 picks, set finer: K1 **AMOUNT** (the same as MORE's K1), K2
-**ON A KICK** (how hard each kick shows: VHS's bands, RGB's shift, SHAKE's jolt, GRAIN's specks, STROBE's flash past
-50 %; 0: the kicks show nothing), K3 **AT THE DROP** (how hard the drop shows: SHAKE, STROBE, VHS; 0: nothing), K4
-**LENGTH** (how long a kick's or the drop's moment lasts: 50 % as given, 0 half, 100 % half as long again). 5 % a
-detent; 50 % each to start.
+**EFFECTS (GLO four times):** the screen effects, **several at once**: white keys **1–7** turn each on or off (lit
+while on), K1 points at one and K2 turns it on (right) or off (left). **CRT** (every other line dimmed, as an old
+tube), **VHS** (bands that slip sideways), **GRAIN** (specks that move), **RGB** (the red a few pixels off the rest: on to
+start, and after RESET ALL), **SHAKE** (the screen jolts on the kicks and at the drop), **STROBE** (the colours turn over
+at the drop, and on the kicks when ON A KICK is past 50 %), **8-BIT** (fewer colours). VHS and RGB together, for one.
+
+**FX SET (GLO five times):** the effects' settings, for all those on: K1 **AMOUNT**, K2 **ON A KICK** (how hard each kick
+shows; 0: nothing), K3 **AT THE DROP** (how hard the drop shows; 0: nothing), K4 **LENGTH** (how long those moments last:
+50 % as given, 0 half, 100 % half as long again). 5 % a detent; 50 % each to start.
 
 ![GLOBAL's MORE: the skins](img/screen-glomore.png "MORE")
 
@@ -643,8 +643,9 @@ break alone: sweep it down and the drums stay full on top. The FLT pad throws it
 | FX (the chain) | the focused slot's effect: its three settings (FX again: its MORE and MOD parts; an MB COMP its six, see §6) | | | Its mix |
 | GLO (MIDI) | Clock in | Clock out | | |
 | GLO again (pitch, snap) | Keep length / speed | Grain | Snap | Reset all (fifteen turns) |
-| GLO a third time (MORE) | Effect amount | Auto save | Effects | Skin |
-| GLO a fourth time (EFFECTS) | Amount | On a kick | At the drop | Length |
+| GLO a third time (MORE; PRESETS: wave zoom) | | Auto save | | Skin |
+| GLO a fourth time (EFFECTS; keys 1–7: each on or off) | The effect | On / off | | |
+| GLO a fifth time (FX SET) | Amount | On a kick | At the drop | Length |
 | ARP held | FILL (the page's knobs stay the page's) | | | |
 
 **Gate** (HOME K1) cuts every slice the loop plays short: at 50 % each slice sounds for half its length, then

@@ -1,7 +1,22 @@
-# LOAF BREAKER: GLO MORE's EFFECTS (K3), K1 their AMOUNT, K4 the skin. Playing, each effect in turn on the HOME page
-# (from OFF: RGB is the start's) (CRT, VHS, GRAIN, RGB, SHAKE, STROBE, 8-BIT), a drop (SEL + ENV) for SHAKE and STROBE; the MORE page itself.
+# LOAF BREAKER: GLO's EFFECTS (GLO four times): white keys 1-7 turn the screen effects on and off, several at once
+# (CRT, VHS, GRAIN, RGB, SHAKE, STROBE, 8-BIT; RGB on to start); K1 points at one (from the last one touched), K2 turns it on or off. Playing, each
+# alone on the HOME page, then VHS and RGB together; the EFFECTS page itself.
 #   app/build/host/choppah_host tests/scenarios/effects.txt app/build/scenarios
 wait 4200
+tap SEQ
+wait 200
+key w0 down
+wait 30
+key w0 up
+key w4 down
+wait 30
+key w4 up
+key w8 down
+wait 30
+key w8 up
+key w12 down
+wait 30
+key w12 up
 tap PLAY
 wait 300
 tap GLO
@@ -9,141 +24,178 @@ wait 100
 tap GLO
 wait 100
 tap GLO
+wait 100
+tap GLO
+wait 300
+expect gpage 3
+expect sfx_on 8
+key w3 down
+wait 30
+key w3 up
+wait 100
+expect sfx_on 0
+tap HOME
 wait 200
-turn K3 -7 10
-wait 100
 tap GLO
 wait 100
 tap GLO
 wait 100
 tap GLO
-wait 200
-turn K3 1 10
-turn K1 15 10
+wait 100
+tap GLO
+wait 300
+key w0 down
+wait 30
+key w0 up
 wait 200
 shot fx_more.png
 tap HOME
-wait 300
-wait 500
+wait 600
 shot fx_crt.png
 tap GLO
 wait 100
 tap GLO
 wait 100
 tap GLO
-wait 200
-turn K3 1 10
-tap HOME
+wait 100
+tap GLO
 wait 300
-wait 500
+key w0 down
+wait 30
+key w0 up
+key w1 down
+wait 30
+key w1 up
+wait 200
+tap HOME
+wait 600
 shot fx_vhs.png
 tap GLO
 wait 100
 tap GLO
 wait 100
 tap GLO
-wait 200
-turn K3 1 10
-tap HOME
+wait 100
+tap GLO
 wait 300
-wait 500
+key w1 down
+wait 30
+key w1 up
+key w2 down
+wait 30
+key w2 up
+wait 200
+tap HOME
+wait 600
 shot fx_grain.png
 tap GLO
 wait 100
 tap GLO
 wait 100
 tap GLO
-wait 200
-turn K3 1 10
-tap HOME
+wait 100
+tap GLO
 wait 300
-wait 500
+key w2 down
+wait 30
+key w2 up
+key w3 down
+wait 30
+key w3 up
+wait 200
+tap HOME
+wait 600
 shot fx_rgb.png
 tap GLO
 wait 100
 tap GLO
 wait 100
 tap GLO
-wait 200
-turn K3 1 10
-tap HOME
+wait 100
+tap GLO
 wait 300
-wait 10
-wait 25
-shot fx_shake0.png
-wait 25
-shot fx_shake1.png
-wait 25
-shot fx_shake2.png
-wait 25
-shot fx_shake3.png
-wait 25
-shot fx_shake4.png
-wait 25
-shot fx_shake5.png
-wait 25
-shot fx_shake6.png
-wait 25
-shot fx_shake7.png
-wait 25
-shot fx_shake8.png
-wait 25
-shot fx_shake9.png
-wait 25
-shot fx_shake10.png
-wait 25
-shot fx_shake11.png
-tap GLO
-wait 100
-tap GLO
-wait 100
-tap GLO
+key w3 down
+wait 30
+key w3 up
+key w4 down
+wait 30
+key w4 up
 wait 200
-turn K3 1 10
 tap HOME
+wait 600
+shot fx_shake.png
+tap GLO
+wait 100
+tap GLO
+wait 100
+tap GLO
+wait 100
+tap GLO
 wait 300
-wait 10
-wait 25
-shot fx_strobe0.png
-wait 25
-shot fx_strobe1.png
-wait 25
-shot fx_strobe2.png
-wait 25
-shot fx_strobe3.png
-wait 25
-shot fx_strobe4.png
-wait 25
-shot fx_strobe5.png
-wait 25
-shot fx_strobe6.png
-wait 25
-shot fx_strobe7.png
-wait 25
-shot fx_strobe8.png
-wait 25
-shot fx_strobe9.png
-wait 25
-shot fx_strobe10.png
-wait 25
-shot fx_strobe11.png
-tap GLO
-wait 100
-tap GLO
-wait 100
-tap GLO
+key w4 down
+wait 30
+key w4 up
+key w5 down
+wait 30
+key w5 up
 wait 200
-turn K3 1 10
 tap HOME
+wait 600
+shot fx_strobe.png
+tap GLO
+wait 100
+tap GLO
+wait 100
+tap GLO
+wait 100
+tap GLO
 wait 300
-wait 500
+key w5 down
+wait 30
+key w5 up
+key w6 down
+wait 30
+key w6 up
+wait 200
+tap HOME
+wait 600
 shot fx_8bit.png
 tap GLO
 wait 100
 tap GLO
 wait 100
 tap GLO
-wait 200
-turn K3 -7 10
-wait 200
-shot fx_off.png
+wait 100
+tap GLO
+wait 300
+key w6 down
+wait 30
+key w6 up
+key w1 down
+wait 30
+key w1 up
+key w3 down
+wait 30
+key w3 up
+wait 100
+expect sfx_on 10
+shot fx_page.png
+tap HOME
+wait 600
+shot fx_vhs_rgb.png
+tap GLO
+wait 100
+tap GLO
+wait 100
+tap GLO
+wait 100
+tap GLO
+wait 300
+turn K1 2 10
+turn K2 -1 10
+wait 100
+expect sfx_on 10
+turn K1 -2 10
+turn K2 -1 10
+wait 100
+expect sfx_on 2

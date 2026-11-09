@@ -202,7 +202,7 @@
       notes: [["White key (TRACKS)", "Its pattern at the item"], ["ALGORITHM (TRACKS)", "Move along the items (SEL + ALGO: the break)"],
               ["ENV held (TRACKS)", "A space after the item; on a space: it goes"], ["SEL + PLAY (TRACKS)", "The track starts here"],
               ["PLAY (TRACKS)", "The track from its start item, on TRACKS"], ["White keys 1–8 (PLAY)", "That track played"]] },
-    { id: "lfo", btn: "LFO", name: "MIXER", sub: "Levels, groove, master, dynamics", again: "next part (4)", subs: [
+    { id: "lfo", btn: "LFO", name: "MIXER", sub: "Levels, groove, master, dynamics", again: "next part (5)", subs: [
       { n: "LEVELS", k: ["BREAK", "KICK", "PERC", "FX"], strip: "4 FADERS AND METERS", note: "FX shows the 4 slots" },
       { n: "GROOVE", k: ["SWING", "DRUMS", "", ""], strip: "SWING · THE DRUMS THROUGH THE FX OR AROUND", note: "" },
       { n: "MASTER", k: ["COMP", "RATIO", "DUCK", "MAX OUT"], strip: "COMP AND ITS REDUCTION · DUCK · MAX OUT", note: "the mix as it leaves" },
@@ -217,11 +217,12 @@
               ["Key held + FX", "That key's slice effect on K1–K4"], ["Each effect", "Remembers its settings when you change it and back"],
               ["MB COMP focused", "FX again steps AMOUNT · LOW · MID · HIGH · GAIN · X-OVER, then the next slot"],
               ["MB COMP · band", "THRESH · RATIO · ATTACK · RELEASE"], ["MB COMP · GAIN / X-OVER", "LOW MID HIGH SOLO · LOW X HIGH X KNEE OUTPUT"]] },
-    { id: "glo", btn: "GLO", name: "GLOBAL", sub: "MIDI, pitch, skins, effects", again: "next part (4)", subs: [
+    { id: "glo", btn: "GLO", name: "GLOBAL", sub: "MIDI, pitch, skins, effects", again: "next part (5)", subs: [
       { n: "MIDI", k: ["CLOCK IN", "CLOCK OUT", "", ""], strip: "MIDI OVER USB AND THE TRS JACK · CLOCK IN · CLOCK OUT", note: "no Bluetooth" },
       { n: "PITCH", k: ["PITCH", "GRAIN", "SNAP", "RESET ALL"], strip: "PITCH MODE · GRAIN · SNAP", note: "what the snap is in this break" },
-      { n: "MORE", k: ["AMOUNT", "AUTO SAVE", "EFFECTS", "SKIN"], strip: "THE 17 SKINS' COLOURS, THE EFFECT AND ITS AMOUNT", note: "EFFECTS: CRT, VHS, GRAIN, RGB, SHAKE, STROBE, 8-BIT; PRESETS: WAVE ZOOM, 1/2 to 2 bars" },
-      { n: "EFFECTS", k: ["AMOUNT", "KICK", "DROP", "LENGTH"], strip: "THE EFFECT PICKED, ITS FOUR SETTINGS AS BARS", note: "0..100 %, 5 % a detent; KICK, DROP 0: none" } ],
+      { n: "MORE", k: ["", "AUTO SAVE", "", "SKIN"], strip: "THE 17 SKINS' COLOURS, WAVE ZOOM, AUTO SAVE", note: "PRESETS: WAVE ZOOM, 1/2 to 2 bars" },
+      { n: "EFFECTS", k: ["EFFECT", "ON / OFF", "", ""], strip: "THE SEVEN SCREEN EFFECTS, LIT WHEN ON", note: "keys 1–7: CRT VHS GRAIN RGB SHAKE STROBE 8-BIT, several at once" },
+      { n: "FX SET", k: ["AMOUNT", "KICK", "DROP", "LENGTH"], strip: "THE EFFECTS' FOUR SETTINGS AS BARS", note: "0..100 %, 5 % a detent; KICK, DROP 0: none" } ],
       algo: "Part", presets: "Pattern P1–P16", keys: "slices", sel: "Tempo (SEL: kick 1–10)", notes: [["K4 RESET ALL", "Fifteen turns right"]] },
     { id: "arp", btn: "ARP", name: "FILL", sub: "Held: a fill", again: "nothing", subs: [
       { n: "FILL", k: ["", "", "", ""], strip: "THE PAGE YOU ARE ON STAYS", note: "held: FILL steps play, NOT FILL rest, the snare rolls the last beat" } ],

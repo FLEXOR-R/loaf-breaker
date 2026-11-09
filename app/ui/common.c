@@ -44,12 +44,13 @@ static uint32_t sfx_win(uint32_t ms)     /* a kick's or a drop's moment, by GLO 
 {
     return ms * (50u + (set.sfx_len > 100u ? 100u : set.sfx_len)) / 100u;
 }
+#define SFX_ON(e) (sfx_splash_d ? (e) == SFX_RGB : (set.sfx_on >> ((e) - 1u)) & 1u)   /* (several at once) */
 static int sfx_live(uint32_t now)       /* a kick's or a drop's moment of SHAKE, STROBE or VHS (main.c redraws the
                                           * whole screen as it starts and ends, so no strip keeps it) */
 {
     static uint32_t kseen;
     static float bp_was = -1.0f;
-    uint32_t mode = set.crt % SFX_N, sk, sd, km, dm;
+    uint32_t sk, sd, km, dm;
     if (kick_hit_n != kseen) {
         kseen = kick_hit_n;
         sfx_kick_t = now | 1u;
@@ -59,19 +60,32 @@ static int sfx_live(uint32_t now)       /* a kick's or a drop's moment of SHAKE,
     bp_was = build_p;
     sk = sfx_kick_t ? now - sfx_kick_t : 99999u;
     sd = sfx_drop_t ? now - sfx_drop_t : 99999u;
-    km = set.sfx_kick && sk < sfx_win(mode == SFX_STROBE ? 80u : mode == SFX_VHS ? 120u : 110u);
-    dm = set.sfx_drop && sd < sfx_win(mode == SFX_STROBE ? 160u : 400u);
-    return (mode == SFX_SHAKE && (km || dm)) || (mode == SFX_STROBE && (dm || (set.sfx_kick > 50u && km))) ||
-           (mode == SFX_VHS && (km || dm));
+    km = set.sfx_kick && sk < sfx_win(100u);
+    dm = set.sfx_drop && sd < sfx_win(300u);
+    return ((SFX_ON(SFX_SHAKE) || SFX_ON(SFX_VHS)) && (km || dm)) ||
+           (SFX_ON(SFX_STROBE) && ((set.sfx_drop && sd < sfx_win(160u)) || (set.sfx_kick > 50u && km)));
 }
-static void crt_blit(uint32_t x, uint32_t y)
+static void crt_blit(uint32_t x, uint32_t y)   /* (the effects on, in this order: 8-BIT, GRAIN, CRT, RGB, VHS, SHAKE,
+                                          * STROBE) */
 {
-    uint32_t mode = sfx_splash_d ? SFX_RGB : set.crt % SFX_N, amt = set.scrfx > 100u ? 100u : set.scrfx, now = plat_ms();
-    uint32_t sinc_kick = sfx_kick_t ? now - sfx_kick_t : 99999u, sinc_drop = sfx_drop_t ? now - sfx_drop_t : 99999u, r, i;
+    uint32_t amt = set.scrfx > 100u ? 100u : set.scrfx, now = plat_ms(), r, i;
+    uint32_t sinc_kick = sfx_kick_t ? now - sfx_kick_t : 99999u, sinc_drop = sfx_drop_t ? now - sfx_drop_t : 99999u;
     uint32_t ks = set.sfx_kick > 100u ? 100u : set.sfx_kick, ds = set.sfx_drop > 100u ? 100u : set.sfx_drop;
-    int km = ks && sinc_kick < sfx_win(mode == SFX_RGB || mode == SFX_STROBE ? 80u : mode == SFX_VHS ? 120u : 110u);
-    int dm = ds && sinc_drop < sfx_win(mode == SFX_STROBE ? 160u : 400u);
-    if (mode == SFX_CRT) {           /* the odd rows at 3/4, 1/2 or 1/4 */
+    int km = ks && sinc_kick < sfx_win(100u), dm = ds && sinc_drop < sfx_win(300u);
+    if (SFX_ON(SFX_8BIT)) {          /* 3 bits a colour, or 2 past half */
+        uint16_t m = amt > 50u ? 0xC618u : 0xE71Cu;
+        for (i = 0; i < cv_w * cv_h; i++)
+            cv_px[i] = swap16((uint16_t)(swap16(cv_px[i]) & m));
+    }
+    if (SFX_ON(SFX_GRAIN)) {         /* specks: a pixel darkened or lit, amt / 8 % of them, more on a kick */
+        uint32_t n = cv_w * cv_h * (amt + 4u) / 800u * (km ? 1u + ks / 50u : 1u);
+        while (n--) {
+            uint32_t at = sfx_rand() % (cv_w * cv_h);
+            uint16_t c = swap16(cv_px[at]);
+            cv_px[at] = swap16((sfx_rand() & 1u) ? (uint16_t)((c >> 1) & 0x7BEFu) : (uint16_t)(c | 0x2104u));
+        }
+    }
+    if (SFX_ON(SFX_CRT)) {           /* the odd rows at 3/4, 1/2 or 1/4 */
         for (r = (y & 1u) ? 0u : 1u; r < cv_h; r += 2u) {
             uint16_t *p = cv_px + r * cv_w;
             for (i = 0; i < cv_w; i++) {
@@ -79,22 +93,8 @@ static void crt_blit(uint32_t x, uint32_t y)
                 p[i] = swap16(amt < 34u ? (uint16_t)(h + q) : amt < 67u ? h : q);
             }
         }
-    } else if (mode == SFX_VHS) {    /* a band or two slipping, often on a kick */
-        uint32_t bands = (km ? ks / 25u : 0u) + (dm ? 2u + ds / 20u : 0u) + (sfx_rand() % 100u < amt / 3u ? 1u : 0u);
-        while (bands--) {
-            uint32_t r0 = sfx_rand() % cv_h, n = 2u + sfx_rand() % (2u + amt / 10u);
-            int32_t d = (int32_t)(1u + sfx_rand() % (1u + amt / 12u)) * ((sfx_rand() & 1u) ? 1 : -1);
-            for (r = r0; r < cv_h && r < r0 + n; r++)
-                sfx_slide(cv_px + r * cv_w, cv_w, d);
-        }
-    } else if (mode == SFX_GRAIN) {  /* specks: a pixel darkened or lit, amt / 8 % of them */
-        uint32_t n = cv_w * cv_h * (amt + 4u) / 800u * (km ? 1u + ks / 50u : 1u);
-        while (n--) {
-            uint32_t at = sfx_rand() % (cv_w * cv_h);
-            uint16_t c = swap16(cv_px[at]);
-            cv_px[at] = swap16((sfx_rand() & 1u) ? (uint16_t)((c >> 1) & 0x7BEFu) : (uint16_t)(c | 0x2104u));
-        }
-    } else if (mode == SFX_RGB) {    /* the red 1..4 pixels right of the green and blue */
+    }
+    if (SFX_ON(SFX_RGB)) {           /* the red 1..4 pixels right of the green and blue, more on a kick */
         uint32_t d = sfx_splash_d ? sfx_splash_d : 1u + amt / 34u + (km ? ks / 34u : 0u);
         for (r = 0; r < cv_h; r++) {
             uint16_t *p = cv_px + r * cv_w;
@@ -103,18 +103,24 @@ static void crt_blit(uint32_t x, uint32_t y)
                 p[i] = swap16((uint16_t)((c & 0x07FFu) | red));
             }
         }
-    } else if (mode == SFX_SHAKE && (km || dm)) {
+    }
+    if (SFX_ON(SFX_VHS)) {           /* a band or two slipping, more on a kick and at the drop */
+        uint32_t bands = (km ? ks / 25u : 0u) + (dm ? 2u + ds / 20u : 0u) + (sfx_rand() % 100u < amt / 3u ? 1u : 0u);
+        while (bands--) {
+            uint32_t r0 = sfx_rand() % cv_h, n = 2u + sfx_rand() % (2u + amt / 10u);
+            int32_t d = (int32_t)(1u + sfx_rand() % (1u + amt / 12u)) * ((sfx_rand() & 1u) ? 1 : -1);
+            for (r = r0; r < cv_h && r < r0 + n; r++)
+                sfx_slide(cv_px + r * cv_w, cv_w, d);
+        }
+    }
+    if (SFX_ON(SFX_SHAKE) && (km || dm)) {   /* the strip pushed aside, hard at the drop */
         int32_t d = (int32_t)((1u + amt / 30u) * (dm ? 1u + ds / 25u : (ks + 49u) / 50u)) * ((now / 23u) & 1u ? 1 : -1);
         for (r = 0; r < cv_h; r++)
             sfx_slide(cv_px + r * cv_w, cv_w, d);
-    } else if (mode == SFX_STROBE && (dm || (ks > 50u && km))) {
+    }
+    if (SFX_ON(SFX_STROBE) && ((ds && sinc_drop < sfx_win(160u)) || (ks > 50u && km)))
         for (i = 0; i < cv_w * cv_h; i++)
             cv_px[i] = (uint16_t)~cv_px[i];
-    } else if (mode == SFX_8BIT) {   /* 3 bits a colour, or 2 past half */
-        uint16_t m = amt > 50u ? 0xC618u : 0xE71Cu;
-        for (i = 0; i < cv_w * cv_h; i++)
-            cv_px[i] = swap16((uint16_t)(swap16(cv_px[i]) & m));
-    }
     cv_blit(x, y);
 }
 #define cv_blit crt_blit
@@ -255,6 +261,7 @@ static struct {
     uint32_t rst_arm;                    /* (the last click of K2-K4: when; RST_TURNS clicks, each within 2 s, the reset) */
     uint8_t rst_n;                       /* (the clicks so far) */
     uint8_t lfo_hold;                    /* LOAF BREAKER: LFO down (1), a level turned with it (2): no page then */
+    uint8_t sfx_cur;                     /* LOAF BREAKER: GLO EFFECTS: the effect K1 points at (SFX_CRT..SFX_8BIT) */
     uint8_t knfn;                        /* KNOB's function: 0 DUCK (K1), 1 TERROR 2, 2 COMP, 3 TERROR (K4) */
     uint8_t fx_main, kfx_last;           /* (KICK FX: the FX page on slot 4 or 5; the chain's slot kept meanwhile, and
                                           * the kick's last) */
@@ -275,7 +282,8 @@ static struct {
 } ui;
 /* the white keys play slices (or, on the SEQ, KICK and SNARE / HAT pages, steps) */
 static void page_say(void);              /* the header: the page's button and part, as its tabs (main.c) */
-static int slices_page(void) { return ui.page != PG_SEQ && ui.page != PG_TRACK && ui.page != PG_OVL; }   /* (ARP: overlays) */
+static int slices_page(void) { return ui.page != PG_SEQ && ui.page != PG_TRACK && ui.page != PG_OVL &&
+                                         !(ui.page == PG_GLOBAL && ui.gpage == 3u); }   /* (GLO EFFECTS: keys 1-7) */   /* (ARP: overlays) */
 enum { RG_HEAD = 1, RG_WAVE = 2, RG_BLOCKS = 4, RG_FOOT = 8, RG_ALL = 15, RG_FX = 16 };
 
 static void text_cat(char *d, const char *s)
