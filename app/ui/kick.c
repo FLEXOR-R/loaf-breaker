@@ -5,7 +5,7 @@
 /* ---- the KICK page (PRD K-*): EDIT opens it, EDIT again the next sub-page. The white keys are the kick's 16
  * steps, ALGORITHM the layer, PRESETS the built-in kicks, SEL + EDIT through the FX chain or around it */
 enum { KP_MIX, KP_LAYER, KP_FX, KP_MACRO, KP_OUT, KP_TERROR, KP_TMORE, KP_TERROR2, KP_SYN1, KP_SYN2, KP_BASS, KP_KNOBS,
-       KP_KSET, KPAGES };
+       KP_KSET, KP_CMORPH, KPAGES };
 /* (LOAF BREAKER TEST: TERROR, TERROR +, TERROR 2 the kick's own settings of them, ENV's KNOB functions 3, 4, 1) */
 static void selk_turn(uint32_t f, int i, int32_t d);
 static void selk_value(uint32_t f, int i, char *t);
@@ -19,6 +19,10 @@ static const char *sk_kname(uint32_t f, int i);
 static int kp_knobs(void) { return ui.kpage == KP_KNOBS || ui.kpage == KP_KSET; }
 static uint32_t kn_fn(int i) { return selk_fn(ui.kpage == KP_KSET ? ui.kks & 3u : (uint32_t)(i & 3)); }
 static int kn_i(int i) { return ui.kpage == KP_KSET ? i : 0; }
+/* LOAF BREAKER: SYNTH's CLEAN · MORPH part: K1 CLEAN SUB, K2 MORPH, K3 its TO KICK (ENV KNOB's functions 13, 14: their
+ * own place, the kick's own, with no knob given them) */
+static uint32_t cm_fn(int i) { return i == 0 ? 13u : 14u; }
+static int cm_i(int i) { return i == 2 ? 1 : 0; }
 static uint32_t kp_fn(void) { return ui.kpage == KP_TERROR ? 3u : ui.kpage == KP_TMORE ? 4u : 1u; }
 static int kp_terror(void) { return ui.kpage >= KP_TERROR && ui.kpage <= KP_TERROR2; }
 /* LOAF BREAKER: the kick's SYNTH (kick.h KS_*), its value as the foot shows it, as its bar, turned */
@@ -115,12 +119,13 @@ static void kick_mem_turn(int32_t d)
     changed();
 }
 static const char *const KPAGE_NAME[KPAGES] = {"MIX", "LAYER", "LAYER FX", "MACRO", "OUT", "TERROR", "TERROR +",
-                                                "TERROR 2", "SYNTH", "SYNTH +", "BASS", "KNOBS", "K SET"};
+                                                "TERROR 2", "SYNTH", "SYNTH +", "BASS", "KNOBS", "K SET",
+                                                "CLEAN MORPH"};
 /* the kick's parts in a row, as ALGORITHM turns through them: MIX, SUB, SUB FX, PUNCH, PUNCH FX, GRIT, GRIT FX,
  * CLICK, CLICK FX, MACRO, OUT (each a sub-page, and for a layer its layer); LOAF BREAKER TEST: then EQ BANDS, EQ
  * SHAPE (the KICK EQ page), FX 1, FX 2 (the FX page on the kick's slots), TERROR, TERROR +, TERROR 2 */
 #define KP_BASE (3u + 2u * KICK_LAYERS)
-#define KPARTS (KP_BASE + 15u)
+#define KPARTS (KP_BASE + 16u)
 static const char *const KP_MORE_NAME[11] = {"EQ BANDS", "EQ SHAPE", "FX 1", "FX 2", "TERROR", "TERROR +", "TERROR 2",
                                             "SYNTH", "SYNTH +", "BASS", "KNOBS"};   /* (then K1 SET .. K4 SET: "K1 C SUB") */   /* (SYNTH, SYNTH +: ALGORITHM left from MIX) */
 static uint32_t kick_part(void)
@@ -129,6 +134,8 @@ static uint32_t kick_part(void)
         return KP_BASE + (ui.keq_part & 1u);
     if (ui.page == PG_FX)
         return KP_BASE + 2u + (uint32_t)(ui.fx_focus - BRK_FX_SLOTS) % 2u;
+    if (ui.kpage == KP_CMORPH)
+        return KP_BASE + 15u;
     if (kp_knobs())
         return KP_BASE + 10u + (ui.kpage == KP_KSET ? 1u + (ui.kks & 3u) : 0u);
     if (ui.kpage >= KP_TERROR)
@@ -138,6 +145,10 @@ static uint32_t kick_part(void)
 }
 static void kick_part_name(uint32_t p, char *t)
 {
+    if (p == KP_BASE + 15u) {
+        text_cat(t, "CLEAN MORPH");
+        return;
+    }
     if (p >= KP_BASE + 11u) {            /* (K1 SET ..: the knob, its function) */
         char k[3] = {'K', (char)('1' + (p - KP_BASE - 11u) % 4u), 0};
         text_cat(t, k);
@@ -163,9 +174,9 @@ static void kick_part_name(uint32_t p, char *t)
  * effects. TONE: EQ BANDS, EQ SHAPE, FX 1, FX 2 */
 #define KSECTS 5u
 static const char *const KSECT_NAME[KSECTS] = {"SOUND", "SYNTH", "DIRT", "TONE", "KNOBS"};
-static const uint8_t KSECT_N[KSECTS] = {6u, 4u, 7u, 4u, 5u};
-static const uint8_t KSECT[KSECTS][7] = {{0u, 1u, 3u, 5u, 7u, 10u}, {18u, 19u, 20u, 9u}, {15u, 16u, 17u, 2u, 4u, 6u, 8u},
-                                        {11u, 12u, 13u, 14u}, {21u, 22u, 23u, 24u, 25u}};   /* (KNOBS: KP_BASE + 10 ..) */
+static const uint8_t KSECT_N[KSECTS] = {6u, 5u, 7u, 4u, 5u};
+static const uint8_t KSECT[KSECTS][7] = {{0u, 1u, 3u, 5u, 7u, 10u}, {18u, 19u, 20u, 26u, 9u}, {15u, 16u, 17u, 2u, 4u, 6u, 8u},
+                                        {11u, 12u, 13u, 14u}, {21u, 22u, 23u, 24u, 25u}};   /* (KNOBS: KP_BASE + 10 ..; 26 CLEAN MORPH) */
 static void ksect_find(uint32_t p)       /* the part's section and place in it, kept */
 {
     uint32_t s, j;
@@ -199,7 +210,7 @@ static void kick_part_set(uint32_t p)
     ksect_find(p);
     ui.page = PG_KICK;
     if (p >= KP_BASE) {                  /* (TEST) the KICK EQ, the kick's FX slots, its TERRORs */
-        uint32_t q = (p - KP_BASE) % 15u;
+        uint32_t q = (p - KP_BASE) % 16u;
         if (q < 2u) {
             ui.page = PG_KEQ;
             ui.keq_part = (uint8_t)q;
@@ -209,7 +220,9 @@ static void kick_part_set(uint32_t p)
             ui.fx_focus = (uint8_t)(BRK_FX_SLOTS + q - 2u);
             ui.fx_page = 0u;
             ui.page = PG_FX;
-        } else if (q >= 10u) {           /* (KNOBS, K1 SET .. K4 SET) */
+        } else if (q == 15u)
+            ui.kpage = KP_CMORPH;
+        else if (q >= 10u) {             /* (KNOBS, K1 SET .. K4 SET) */
             ui.kpage = q == 10u ? KP_KNOBS : KP_KSET;
             ui.kks = (uint8_t)((q - 11u) & 3u);
         } else
@@ -237,7 +250,8 @@ static const char *const KN_KICK[KPAGES][4] = {{"SUB", "PUNCH", "GRIT", "CLICK"}
                                                {"DROP", "TIME", "SHAPE", "HOLD"},
                                                {"RUMBLE", "LENGTH", "ASYM", "TUNE"},
                                                {"GLIDE", "REV BASS", "START", "CURVE"},
-                                               {"", "", "", ""}, {"", "", "", ""}};   /* (KNOBS, K SET: kick_knob_name) */
+                                               {"", "", "", ""}, {"", "", "", ""},
+                                               {"CLEAN SUB", "MORPH", "TO KICK", ""}};   /* (KNOBS, K SET: kick_knob_name) */
 /* LOAF BREAKER: OUT's K2 TERROR, K3 TERROR 2 (kick.h), 0..100 each; SEL + K4 and SEL + K3 on any page (main.c) */
 static uint8_t *kick_hc(kick_t *k, int i) { return i == 2 ? &KICK_TERROR2(k) : &KICK_TERROR(k); }
 static void kick_hc_text(const kick_t *k, int i, char *t)
@@ -306,6 +320,11 @@ static void kick_value(int i, char *t)
     if (kp_knobs()) {                    /* KNOBS, K SET */
         if (kick_knob_name(i)[0])
             selk_value(kn_fn(i), kn_i(i), t);
+        return;
+    }
+    if (ui.kpage == KP_CMORPH) {         /* CLEAN MORPH */
+        if (i < 3)
+            selk_value(cm_fn(i), cm_i(i), t);
         return;
     }
     if (ui.kpage >= KP_SYN1) {           /* SYNTH, SYNTH + */
@@ -421,6 +440,11 @@ static void kick_knob_turn(int i, int32_t d)
     if (kp_knobs()) {                    /* KNOBS, K SET */
         if (kick_knob_name(i)[0])
             selk_turn(kn_fn(i), kn_i(i), d);
+        return;
+    }
+    if (ui.kpage == KP_CMORPH) {         /* CLEAN MORPH */
+        if (i < 3)
+            selk_turn(cm_fn(i), cm_i(i), d);
         return;
     }
     if (ui.kpage >= KP_SYN1) {           /* SYNTH, SYNTH + */
@@ -592,6 +616,8 @@ static float kick_knob_f(int i)          /* the part's knob i, 0..1 (as its bar)
     case KP_KNOBS:
     case KP_KSET:
         return sk_norm(kn_fn(i), kn_i(i));
+    case KP_CMORPH:
+        return i < 3 ? sk_norm(cm_fn(i), cm_i(i)) : 0.0f;
     default:
         return i == 0 ? k->volume : i <= 2 ? (float)*kick_hc((kick_t *)k, i) * 0.01f :
                (float)(ui.kpreset % KICK_PRESETS) / (float)(KICK_PRESETS - 1u);   /* (OUT K4: the preset) */

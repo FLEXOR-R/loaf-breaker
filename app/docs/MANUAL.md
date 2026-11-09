@@ -121,7 +121,8 @@ lists its combinations (SEL again, or any other button, key or knob, closes it).
 
   ![The SNARE in its big view: its hit large, its decay marked, the five drums along the bottom](img/screen-drum-big.png "A drum's big view")
   - **SOUND**: MIX, SUB, PUNCH, GRIT, CLICK, OUT.
-  - **SYNTH**: SYNTH, SYNTH +, BASS, MACRO.
+  - **SYNTH**: SYNTH, SYNTH +, BASS, **CLEAN MORPH** (K1 CLEAN SUB, K2 MORPH, K3 TO KICK: the kick's own, no knob
+    needed), MACRO.
   - **DIRT**: TERROR, TERROR + (DRIVE, TYPE, SCREECH, TAIL), TERROR 2, then each layer's effect.
   - **TONE**: EQ BANDS, EQ SHAPE (its EQ), FX 1, FX 2 (its two FX slots).
   The TERRORs' settings are the kick's own: they go with its memory. **SEL + EDIT**: the other drums (SNARE, HAT, CLAP,
@@ -223,6 +224,9 @@ or K2 left once more, deletes it, the rest moving up),
   - **MORPH**: AMOUNT, TO KICK. The kick playing slides towards another of the ten memories: every level, pitch,
     decay, tone, TERROR and SYNTH setting in between (the effects and TERROR +'s TYPE the nearer one's). From a round
     kick to a saturated one over a build, back at the drop.
+  Every one of them has its place on the KICK menu too, the kick's own with no knob given it: the TERRORs and TERROR +
+  (DIRT), DRIVE (SYNTH's MACRO, INTENSITY), TUNE (SYNTH +), DECAY (SOUND's SUB), REV BASS and GLIDE (SYNTH's BASS),
+  CLEAN SUB and MORPH (SYNTH's CLEAN MORPH).
   **KNOB is the kick's own**: each kick memory (KICK 1–10) keeps its four functions and their settings (CLEAN SUB,
   REV BASS, GLIDE, MORPH and its target; the TERRORs, TUNE and DECAY were already its own). Change kick (PRESETS on the KICK
   menu) and the knobs are that kick's; come back and they are as you left them. KNOB shows
@@ -648,7 +652,7 @@ break alone: sweep it down and the drums stay full on top. The FLT pad throws it
 | --- | --- | --- | --- | --- |
 | HOME (perform) | Gate | Filter: the DJ filter on the break (left low-pass, right high-pass) | Drum flt: the same on the drums | Sub decay: the kick's SUB's length |
 | HOME again (generator) | Complexity | Anchor | Roll | Fill |
-| EDIT, the KICK menu (EDIT again: its section; ALGORITHM: its part) | SOUND: MIX, SUB … CLICK, OUT · SYNTH: SYNTH, SYNTH +, BASS, MACRO · DIRT: TERROR, TERROR +, TERROR 2, the layers' effects · TONE: EQ BANDS, EQ SHAPE, FX 1, FX 2 (§8) | | | |
+| EDIT, the KICK menu (EDIT again: its section; ALGORITHM: its part) | SOUND: MIX, SUB … CLICK, OUT · SYNTH: SYNTH, SYNTH +, BASS, CLEAN MORPH, MACRO · DIRT: TERROR, TERROR +, TERROR 2, the layers' effects · TONE: EQ BANDS, EQ SHAPE, FX 1, FX 2 (§8) | | | |
 | The drums (SELECT on the big view; SEL + EDIT: classic) | Level · Snap / cut / spread / bend | Tune · Drive | Decay · Preset | Tone |
 | SEQ (the break's steps) | Slice | Pitch | Hits | Reverse |
 | SEQ, a drum lane | Fill | Drum flt | Clear / 4x4 / grooves | Length |

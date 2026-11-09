@@ -1,0 +1,22 @@
+# LOAF BREAKER: the KICK menu's SYNTH section, its part CLEAN MORPH (ALGORITHM three times from SYNTH, after BASS): K1
+# CLEAN SUB, K2 MORPH, K3 TO KICK, the kick's own with no knob given them
+#   app/build/host/loaf-breaker_host tests/scenarios/cleanmorph.txt app/build/scenarios
+wait 4200
+tap EDIT
+wait 300
+tap EDIT
+wait 300
+turn ALGO 3 10
+wait 300
+expect kpage 13
+turn K1 20 10
+turn K2 15 10
+turn K3 4 10
+wait 300
+expect csub 40
+expect kmorph 30
+expect kmorph_to 4
+shot cm_part.png
+turn ALGO 1 10
+wait 200
+expect kpage 3
