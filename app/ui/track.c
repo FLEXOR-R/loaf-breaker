@@ -18,10 +18,10 @@ static const char *const RST_NAME[NRST] = {"DROP", "BUILD", "KNOB", "KICK", "KIC
                                            "FX CHAIN", "STEPS", "PADS", "KEYS", "TRACK", "SCREEN"};
 static const char *const RST_WHAT[NRST] = {"BUILD 4 BARS, NEXT PATTERN, SAME BREAK, CRASH 100%",
                                           "SNARE ROLL, HIGH-PASS, RISER 100%, NO GAP",
-                                          "K1 DRIVE, K2 TERROR 2, K3 T+ SCREECH, K4 TERROR",
-                                          "THE KICK SELECTED (ITS MEMORY): ROTTERDAM, SYNTH AND BASS AT 0, VOLUME KEPT",
+                                          "THIS KICK'S: K1 DRIVE, K2 TERROR 2, K3 T+ SCREECH, K4 TERROR",
+                                          "THE KICK SELECTED (ITS MEMORY): ROTTERDAM, SYNTH, BASS, C SUB, MORPH AT 0, VOLUME KEPT",
                                           "THE KICK'S EQ FLAT, ITS TWO FX SLOTS EMPTY",
-                                          "KICK 1-10 AS THEY CAME (909 .. DISTORTO), SYNTH AT 0",
+                                          "KICK 1-10 AS THEY CAME (909 .. DISTORTO), SYNTH AT 0, THEIR KNOBS AS THEY START",
                                           "SNARE, HAT, CLAP, HOOVER: THE MEMORY PLAYING AS IT CAME",
                                           "THE MIXER: LEVELS, SWING, COMP AND DUCK OFF, MAX OUT -3 DB",
                                           "THE FOUR SLOTS AS THEY CAME, EACH EFFECT'S MEMORY FORGOTTEN",
@@ -80,6 +80,10 @@ static void reset_do(uint32_t w)
         set.kick = set.kmem[set.kslot % KICK_MEMS];
         for (j = 0; j < KS_N; j++)
             set.ksyn[j] = 0;
+        set.selk_asg = set.selk_asg2 = set.csub = set.kmorph = set.kmorph_to = 0u;   /* (their knobs as they start) */
+        set.kbass[0] = set.kbass[1] = 0u;
+        set.kbass[2] = set.kbass[3] = 50u;
+        kx_all();
     } else if (w == RST_DRUMS) {         /* DRUMS: each drum's memory playing as it came (its preset) */
         uint32_t v;
         for (v = 0; v < PERC_VOICES; v++) {
@@ -150,7 +154,8 @@ static void reset_do(uint32_t w)
         set.wzoom = 3u;
         ui.redraw = RG_ALL;
     } else {                               /* LOAF BREAKER: KICK: the kick selected (KICK 1-10) as it starts: ROTTERDAM,
-                                          * its TERRORs and effects with it, its SYNTH at 0, its BASS off; its volume
+                                          * its TERRORs and effects with it, its SYNTH at 0, its BASS, CLEAN SUB
+                                          * and MORPH off; its volume
                                           * kept; its memory with it */
         float vol = set.kick.volume;
         uint32_t j;
@@ -160,6 +165,7 @@ static void reset_do(uint32_t w)
             set.ksyn[j] = 0;
         set.kbass[0] = set.kbass[1] = 0u;
         set.kbass[2] = set.kbass[3] = 50u;
+        set.csub = set.kmorph = set.kmorph_to = 0u;   /* (CLEAN SUB and MORPH off; ENV KNOB's choices: RESET KNOB) */
         set.kmem[set.kslot % KICK_MEMS] = set.kick;
         for (j = 0; j < KS_N; j++)
             set.ksmem[set.kslot % KICK_MEMS][j] = 0;
@@ -1240,8 +1246,13 @@ static void track_picture(int32_t top)
             tenths_text((int32_t)(g * 10.0f), s);
             text_cat(s, " DB");
             cv_text(170, 110, &FONT_XS, s, C_WHITE);
-        } else
-            cv_text(8, 112, &FONT_XS, "PRESETS: WHAT SEL + THIS KNOB DOES", C_DIM);
+        } else {                         /* (whose: the kick playing's, each kick memory its own) */
+            s[0] = 0;
+            text_cat(s, "KICK ");
+            int_text((int32_t)set.kslot % KICK_MEMS + 1, s + 5);
+            cv_text(8, 112, &FONT_XS, s, C_HI);
+            cv_text(58, 112, &FONT_XS, "PRESETS: WHAT SEL + IT DOES", C_DIM);
+        }
         cv_oy = 0;
         return;
     }

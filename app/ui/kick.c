@@ -83,7 +83,7 @@ static void ks_turn(int i, int32_t d)
 }
 
 /* LOAF BREAKER: the kick memories, KICK 1..10 (KICK's PRESETS, SEQ's SELECT): the one playing kept as it is, the next
- * as it was left (the volume kept) */
+ * as it was left (the volume kept), its knobs with it: ENV KNOB's choices, CLEAN SUB, BASS, MORPH (kx_put, kx_get) */
 static void kick_mem_turn(int32_t d)
 {
     float vol = set.kick.volume;
@@ -92,10 +92,12 @@ static void kick_mem_turn(int32_t d)
     set.kmem[set.kslot % KICK_MEMS] = set.kick;
     for (j = 0; j < KS_N; j++)           /* (LOAF BREAKER: its SYNTH with it) */
         set.ksmem[set.kslot % KICK_MEMS][j] = set.ksyn[j];
+    kx_put(set.kslot);
     set.kslot = (uint8_t)((set.kslot % KICK_MEMS + (d > 0 ? 1u : KICK_MEMS - 1u)) % KICK_MEMS);
     set.kick = set.kmem[set.kslot];
     for (j = 0; j < KS_N; j++)
         set.ksyn[j] = set.ksmem[set.kslot][j];
+    kx_get(set.kslot);
     set.kick.volume = vol;
     int_text((int32_t)set.kslot + 1, t);
     app_say("KICK", t);

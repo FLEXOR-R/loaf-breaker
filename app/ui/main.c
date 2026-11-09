@@ -144,6 +144,7 @@ static void reset_all(void)
 {
     uint8_t ble_was_off = set.ble_off;
     settings_defaults();
+    kx_all();                            /* (every kick's knobs as they start) */
     if (n_breaks > n_synth)
         set.brk = (uint8_t)n_synth;      /* the bank's first break */
     pat_defaults();

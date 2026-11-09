@@ -98,6 +98,7 @@ typedef struct {
     /* (appended: LOAF BREAKER's kick memories; an older save's: the built-in kicks, its own kick KICK 1; one of six
      * kept them, KICK 7..10 begin anew) */
 #define KICK_MEMS 10u
+#define KX_N 9u                          /* (each kick memory's own knobs: steps.kx) */
     kick_t kmem[KICK_MEMS];              /* KICK 1..10, each as left (PRESETS on KICK, SELECT on SEQ: nothing lost) */
     /* (appended: LOAF BREAKER's drums; an older save's: their first presets) */
     perc_voice_t pmore[1];               /* the CLAP's sound (PV_CLAP; the STAB's: pstab) */
@@ -456,9 +457,41 @@ typedef struct {
     uint8_t b[NPAT][STEPB_N];
     uint8_t tb[8][32];                   /* LOAF BREAKER: each track item's break (TRACKS K4): 0 the one playing, 1..
                                           * that break + 1 (NTRACKS x TRK_ITEMS; an older save: none) */
+    uint8_t kx[KICK_MEMS][KX_N];         /* (appended) each kick memory's knobs, kx_put's order: ENV KNOB's choices,
+                                          * CLEAN SUB, BASS (GLIDE, REV BASS, START, CURVE), MORPH and its target; the
+                                          * kick playing's in set (selk_asg ..), here when another is picked */
 } steps_t;
 #define STEPS_SIZE_OLD offsetof(steps_t, tb)
+#define STEPS_SIZE_TB offsetof(steps_t, kx)   /* (one before the kicks' own knobs) */
 static steps_t steps PLAT_POOL;
+/* LOAF BREAKER: the kick memory k's knobs from the ones playing (kx_put), the ones playing from k's (kx_get); kx_all:
+ * every memory's as the ones playing (an older save, RESET ALL) */
+static void kx_put(uint32_t k)
+{
+    uint8_t *x = steps.kx[k % KICK_MEMS];
+    x[0] = set.selk_asg;
+    x[1] = set.selk_asg2;
+    x[2] = set.csub;
+    memcpy(x + 3, set.kbass, 4);
+    x[7] = set.kmorph;
+    x[8] = set.kmorph_to;
+}
+static void kx_get(uint32_t k)
+{
+    const uint8_t *x = steps.kx[k % KICK_MEMS];
+    set.selk_asg = x[0];
+    set.selk_asg2 = x[1];
+    set.csub = x[2];
+    memcpy(set.kbass, x + 3, 4);
+    set.kmorph = x[7];
+    set.kmorph_to = x[8];
+}
+static void kx_all(void)
+{
+    uint32_t k;
+    for (k = 0; k < KICK_MEMS; k++)
+        kx_put(k);
+}
 static uint8_t *stepb(uint32_t pi, uint32_t d, uint32_t s)   /* pattern pi, drum d (DR_*), its step s */
 {
     d %= NDRUMS;
@@ -932,11 +965,14 @@ void app_init(void)
     if (pats.magic != PAT_MAGIC && pats.magic != PAT2_MAGIC && pats.magic != PAT1_MAGIC)
         pat_defaults();
     int ssz = plat_store_load(OBJ_STEP, &steps, sizeof steps), sok;
-    sok = (ssz == (int)sizeof steps || ssz == (int)STEPS_SIZE_OLD) && steps.magic == STEPS_MAGIC;
+    sok = (ssz == (int)sizeof steps || ssz == (int)STEPS_SIZE_TB || ssz == (int)STEPS_SIZE_OLD) &&
+          steps.magic == STEPS_MAGIC;
     if (!sok)
         steps_defaults();                /* (LOAF BREAKER: the drum steps' own settings) */
-    else if (ssz != (int)sizeof steps)
+    else if (ssz == (int)STEPS_SIZE_OLD)
         memset(steps.tb, 0, sizeof steps.tb);   /* (a save before the tracks' breaks) */
+    if (!sok || ssz != (int)sizeof steps)
+        kx_all();                        /* (a save before the kicks' own knobs: every kick with the ones it had) */
     if (sok && pats.magic != PAT_MAGIC) {   /* an older save: its kick again over four bars, as it played */
         uint32_t i;
         for (i = 0; i < NPAT; i++) {

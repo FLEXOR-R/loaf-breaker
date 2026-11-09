@@ -187,8 +187,8 @@ or K2 left once more, deletes it, the rest moving up),
   tempo climbs with the build and drops back to yours at the drop (not while following a MIDI clock).
 - **RESET** (ENV's last part): puts a part back as it starts. **K1** or **ALGORITHM** picks what, in a list that scrolls (each says
   on the right what it puts back): DROP, BUILD, KNOB; **KICK** (the kick selected, KICK 1–10: ROTTERDAM again, its
-  SYNTH and BASS at 0, its volume kept, its memory with it); **KICK TONE** (its EQ flat, its two FX slots empty);
-  **ALL KICKS** (KICK 1–10 as they came); **DRUMS** (the snare's, hat's, clap's and hoover's memory playing as it
+  SYNTH, BASS, CLEAN SUB and MORPH at 0, its volume kept, its memory with it); **KICK TONE** (its EQ flat, its two FX slots empty);
+  **ALL KICKS** (KICK 1–10 as they came, their knobs as they start); **DRUMS** (the snare's, hat's, clap's and hoover's memory playing as it
   came); **MIX** (the MIXER: levels, swing, the drums' route, COMP and DUCK off with their timing, MAX OUT −3 dB);
   **FX CHAIN** (the four slots as they came, each effect's memory forgotten, the FX level kept); **STEPS** (this
   pattern's drum steps: 1 hit, ALWAYS, on time; the steps themselves kept); **PADS** (the black keys' settings:
@@ -212,11 +212,14 @@ or K2 left once more, deletes it, the rest moving up),
   - **REV BASS**: AMOUNT, START, CURVE (the kick's BASS part). **GLIDE**: its TIME.
   - **CLEAN SUB**: AMOUNT. A pure sine at the SUB's note (its drop, its tail) laid **after** all the distortion, the
     distorted kick's own lows (under ~90 Hz) taken out as much: the round, fat bass under the dirt, as new-school
-    gabber and uptempo do. One for all the kicks.
+    gabber and uptempo do.
   - **MORPH**: AMOUNT, TO KICK. The kick playing slides towards another of the ten memories: every level, pitch,
     decay, tone, TERROR and SYNTH setting in between (the effects and TERROR +'s TYPE the nearer one's). From a round
     kick to a saturated one over a build, back at the drop.
-  The TERRORs' settings are the kick's own: they go with its memory (KICK 1–10).
+  **KNOB is the kick's own**: each kick memory (KICK 1–10) keeps its four functions and their settings (CLEAN SUB,
+  REV BASS, GLIDE, MORPH and its target; the TERRORs, TUNE and DECAY were already its own). Change kick (KICK's
+  PRESETS, SEL + SELECT on SEQ) and the knobs are that kick's; come back and they are as you left them. KNOB shows
+  whose they are (KICK 4) at the bottom. RESET KNOB puts back the kick playing's.
 
 **No saturation.** Whatever the effects and COMP do, a last guard holds every peak under full scale (-0.4 dB) by turning
 it down at once, never clipping it square. And **MAX OUT** (the MIXER's MASTER, K4) sets how loud the output gets with MASTER
