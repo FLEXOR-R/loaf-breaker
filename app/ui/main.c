@@ -1086,7 +1086,7 @@ static void draw_foot(const brk_status_t *st)
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "RESET ALL"};
         static const char *const KN_GROOVE[3][4] = {{"SWING", "DRUMS", "", ""}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
                                                     {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
-        static const char *const KN_MORE[4] = {"SKIN", "AUTO SAVE", "CRT", ""};   /* GLOUPI BREAKS: GLOBAL's MORE */
+        static const char *const KN_MORE[4] = {"AMOUNT", "AUTO SAVE", "EFFECTS", "SKIN"};   /* GLOUPI BREAKS: GLOBAL's MORE */
         static const char *const KN_TRK[4][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
                                                  {"STYLE", "SWEEP", "RISER", "GAP"}, {"WHAT", "RESET", "RESET", "RESET"}};
         const char *name = ui.page == PG_TRACK && ui.tpage == 3u ? SK_KNOB[selk_fn(ui.knfn & 3u)][i] : ui.page == PG_TRACK &&
@@ -1436,6 +1436,15 @@ void app_frame(void)
     if (ui.rst_n && now - ui.rst_arm >= 2000u) {   /* (LOAF BREAKER: RESET's clicks let go: counted from 0 again) */
         ui.rst_n = 0u;
         ui.redraw |= RG_BLOCKS | RG_FOOT;
+    }
+    {                                    /* (LOAF BREAKER: a screen effect's moment on a kick or the drop: the whole
+                                          * screen redrawn as it starts and as it ends) */
+        static int sfx_was;
+        int l = set.crt % SFX_N ? sfx_live(now) : 0;
+        if (l != sfx_was) {
+            sfx_was = l;
+            ui.redraw = RG_ALL;
+        }
     }
     if (ui.aud_t && now - ui.aud_t >= 160u) {   /* (LOAF BREAKER: a drum played on its key: its card lit, then not) */
         ui.aud_t = 0u;

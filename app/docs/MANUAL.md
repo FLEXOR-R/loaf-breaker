@@ -135,7 +135,7 @@ lists its combinations (SEL again, or any other button, key or knob, closes it).
 - **LFO** (the MIXER): LEVELS, GROOVE, MASTER (K1 COMP, K2 its RATIO, K3 DUCK, K4 MAX OUT; COMP's reduction metered),
   DYNAMICS (COMP's ATTACK and RELEASE, DUCK's RELEASE, DUCKS: the break, or the break and the drums).
 - **ENV**: the track and the live. TRACKS, PLAY, DROP, BUILD, KNOB (what SEL + each knob does), RESET.
-- **GLO**: MIDI, PITCH, MORE (SKIN, AUTO SAVE).
+- **GLO**: MIDI, PITCH, MORE (EFFECTS and their AMOUNT, AUTO SAVE, SKIN).
 
 ### The CDJ view (HOME)
 
@@ -156,7 +156,8 @@ metronome and tap tempo are gone).
 
 - **TRACKS**: eight tracks (**PRESETS** picks one), each up to 32 items in four rows of eight: a pattern (P1–P16)
   played for its loops (×1–×16), a **DROP** (the build, then the drop into the pattern after it), and its END. **K1**
-  the item, **K2** what it is (turn it to END on an item inside the track: that item is deleted, the rest moves up),
+  the item, **K2** what it is: END, EMPTY, P1–P16, DROP (EMPTY, left of P1, empties the case and keeps its place: ENV held on it,
+or K2 left once more, deletes it, the rest moving up),
   **K3** its loops, **K4** its **break**: SAME (the one playing goes on) or one of the bank's, in with the item
   (swapped at the bar's end, as ALGORITHM does; a cell with its own break shows it, "X4 B3"; a DROP into it brings
   it in, in DROP BREAK's place). What the track does at its end (LOOP, STOP, HOLD) is on **PLAY**'s K3.
@@ -512,11 +513,15 @@ tempo's own repitch, HALF, REVERSE's speed and the tape stop stay speed effects.
 
 ![RESET ALL done: the lobotomy screen](img/screen-lobotomized.png "LOBOTOMIZED")
 
-**MORE (GLO three times):** K1 **SKIN**, the screen's colours (RED to start; the whole screen changes at once): RED, AMBER, ICE BLUE, PIP-BOY,
+**MORE (GLO three times):** K4 **SKIN**, the screen's colours (RED to start; the whole screen changes at once): RED, AMBER, ICE BLUE, PIP-BOY,
 IRIS, PINK, MINT, WHITE, BLOOD, MAXENCE, then the two-colour ones: SYNTHWAVE (neon cyan and magenta on indigo), VAPOR,
 TOXIC, MIAMI, LAVA, GOLD, BLAZE (flashy orange and red); K2
 **AUTO SAVE**, ON: what you change is saved by itself a minute after it changed, once the break has been stopped for 3 s
-(the flash is never written while it plays, nor right after: its stall would cut the stop's tail); K3 **CRT**, ON: every other line of the screen dimmed, as an old tube.
+(the flash is never written while it plays, nor right after: its stall would cut the stop's tail); K3 **EFFECTS**, what the screen goes through, and K1 its **AMOUNT**: **CRT** (every
+other line dimmed, as an old tube: the more, the darker), **VHS** (bands that slip sideways, more on each kick), **GRAIN**
+(specks that move), **RGB** (the red a few pixels off the rest, more on a kick), **SHAKE** (the screen jolts on each
+kick, hard at the drop), **STROBE** (the colours turn over at the drop; past 50 %, on each kick too), **8-BIT** (fewer
+colours; past 50 %, fewer still).
 
 ![GLOBAL's MORE: the skins](img/screen-glomore.png "MORE")
 
@@ -628,7 +633,7 @@ break alone: sweep it down and the drums stay full on top. The FLT pad throws it
 | FX (the chain) | the focused slot's effect: its three settings (FX again: its MORE and MOD parts; an MB COMP its six, see §6) | | | Its mix |
 | GLO (MIDI) | Clock in | Clock out | | |
 | GLO again (pitch, snap) | Keep length / speed | Grain | Snap | Reset all (fifteen turns) |
-| GLO a third time (MORE) | Skin | Auto save | CRT | |
+| GLO a third time (MORE) | Effect amount | Auto save | Effects | Skin |
 | ARP held | FILL (the page's knobs stay the page's) | | | |
 
 **Gate** (HOME K1) cuts every slice the loop plays short: at 50 % each slice sounds for half its length, then

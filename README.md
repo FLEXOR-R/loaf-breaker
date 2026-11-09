@@ -30,7 +30,7 @@ chain, 16 patterns) and drives it into hardcore:
   alike (snare or kick rolls, stutter, sweeps, a gap, the **tempo rising** to the drop).
 - **A mix that holds.** COMP, DUCK, MAX OUT, a HOOVER synth, rolls on the break or the kick.
 - **A screen that moves.** The mix scrolling as a CDJ in rekordbox colours, the track's progress and "DROP IN 4",
-  beat-lit tempo, kick flashes, a CRT mode, a glitched start-up.
+  beat-lit tempo, kick flashes, screen effects (CRT, VHS, GRAIN, RGB, SHAKE, STROBE, 8-BIT), a glitched start-up.
 
 Built on [fm1-base](https://github.com/charlesvestal/fm1-base) (MPL-2.0). No Bluetooth: MIDI over USB and the TRS jack.
 
@@ -72,7 +72,7 @@ M-VAVE's original firmware first ([docs/FLASHING.md](docs/FLASHING.md)).
 | LFO | The **MIXER**: LEVELS, GROOVE, MASTER (COMP, RATIO, DUCK, MAX OUT), DYN (the compressor's and the ducker's timing) |
 | FX | The master FX chain: four slots (FILTER, CRUNCH, DRIVE, PUNCH, FLANGER, RING MOD, TREMOLO, REVERB, DELAY, EQ, TAPE, MB COMP, CLIP); each effect remembers its settings when you change it and back; presets MB KICK and MB OTT after MB COMP |
 | ARP | **Held: FILL** (the steps set FILL play, NOT FILL rest, the snare rolls the bar's last beat) · SEL + ARP: a random pattern |
-| GLO | GLOBAL: MIDI clock in and out (USB, TRS); the pitch and snap, RESET ALL; MORE: the skins, AUTO SAVE, CRT |
+| GLO | GLOBAL: MIDI clock in and out (USB, TRS); the pitch and snap, RESET ALL; MORE: the screen EFFECTS (CRT, VHS, GRAIN, RGB, SHAKE, STROBE, 8-BIT), AUTO SAVE, 17 skins |
 | SAVE | Keep the settings, the patterns, the tracks and the steps |
 
 ## Breaks

@@ -151,7 +151,9 @@ typedef struct {
     uint8_t kbass[4];                    /* LOAF BREAKER TEST: the kick's BASS part: GLIDE, REV BASS, its START, its
                                           * CURVE (0..100 each) */
     uint8_t drop_accel;                  /* (TEST) BUILD's tempo rise to the drop: 0 .. 30 % */
-    uint8_t crt;                         /* (TEST) GLO MORE's CRT: the screen's lines (0 off) */
+    uint8_t crt;                         /* GLO MORE K3 EFFECTS: the screen's effect, SFX_* (0 off, 1 CRT: an older
+                                          * save's ON) */
+    uint8_t scrfx;                       /* (appended: GLO MORE K1, the effect's AMOUNT, 0..100; an older save: 50) */
 } settings_t;
 enum { DS_SNARE, DS_KICK, DS_BOTH, DS_STUTTER, DS_SWEEP, DS_RANDOM, DS_N };
 static const uint8_t DROP_GAP[5] = {0u, 1u, 2u, 4u, 8u};   /* its steps: none, a 16th, an 8th, a beat, half a bar */
@@ -189,7 +191,8 @@ static void settings_defaults(void)
     for (k = 0; k < sizeof set; k++)     /* (every field: no leftovers from a save that didn't load) */
         z[k] = 0u;
     set.magic = SET_MAGIC;
-    set.kbass[2] = set.kbass[3] = 50u;   /* (TEST: REV BASS from 3/8 of the beat, a curve between) */
+    set.kbass[2] = set.kbass[3] = 50u;
+    set.scrfx = 50u;                     /* (the screen effect's AMOUNT: half) */   /* (TEST: REV BASS from 3/8 of the beat, a curve between) */
     set.tempo_x10 = 1700u;               /* jungle tempo */
     set.swing = 50u;
     set.gen.anchor = 0.7f;

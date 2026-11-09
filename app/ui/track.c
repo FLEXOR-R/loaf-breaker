@@ -804,10 +804,11 @@ static void track_turn(int i, int32_t d)
         if (i == 0) {                    /* the item: up to the one after the last */
             uint32_t n = trk_len(t);
             ui.trk_cur = (uint8_t)clamp((int32_t)c + dir, 0, (int32_t)(n < TRK_ITEMS ? n : TRK_ITEMS - 1u));
-        } else if (i == 1) {             /* END, P1..P16, DROP */
-            int32_t v = t->it[c] == TI_DROP ? (int32_t)NPAT + 1 : t->it[c] == TI_GAP ? 0 : (int32_t)t->it[c];
-                                         /* (a gap: P1 to the right, gone to the left) */
-            v = clamp(v + dir, 0, (int32_t)NPAT + 1);
+        } else if (i == 1) {             /* END, EMPTY, P1..P16, DROP (LOAF BREAKER: EMPTY left of P1, a case
+                                          * emptied: gone with one more turn left, or ENV held) */
+            int32_t v = t->it[c] == TI_DROP ? (int32_t)NPAT + 2 : t->it[c] == TI_GAP ? 1 :
+                        t->it[c] == TI_END ? 0 : (int32_t)t->it[c] + 1;
+            v = clamp(v + (t->it[c] == TI_END && dir > 0 ? 2 : dir), 0, (int32_t)NPAT + 2);   /* (the END: P1 at once) */
             if (v == 0 && trk_len(t) > c + 1u) {   /* (an END inside: the items after it moved up, the item gone) */
                 uint32_t k;
                 for (k = c; k + 1u < TRK_ITEMS; k++) {
@@ -826,7 +827,7 @@ static void track_turn(int i, int32_t d)
             }
             if (t->it[c] == TI_END && v && c > trk_len(t))
                 return;
-            t->it[c] = v == (int32_t)NPAT + 1 ? TI_DROP : (uint8_t)v;
+            t->it[c] = v == (int32_t)NPAT + 2 ? TI_DROP : v == 1 ? TI_GAP : v == 0 ? TI_END : (uint8_t)(v - 1);
             if (!t->rep[c])
                 t->rep[c] = 1u;
         } else if (i == 2) {

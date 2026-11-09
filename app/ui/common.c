@@ -6,19 +6,98 @@
 #define brk_exp2f brk_exp2f_c
 #define brk_log2f brk_log2f_c
 
-/* LOAF BREAKER TEST: CRT (GLO MORE K3): every other row of the screen dimmed by half, as a tube's lines; every blit of
- * the UI's goes through here (the canvas's rows on the screen's odd rows halved, then out) */
+/* LOAF BREAKER: the screen's EFFECTS (GLO MORE K3), K1 their AMOUNT: every blit of the UI's goes through here and the
+ * canvas (a strip of at most 240 x 60, big-endian RGB565) is worked on before it goes out. CRT: every other row dimmed;
+ * VHS: bands that slip sideways, more on a kick; GRAIN: specks that move; RGB: the red a few pixels off the rest;
+ * SHAKE: the strip pushed aside on a kick, hard at the drop; STROBE: the colours turned over at the drop (and on the
+ * kicks, past half); 8-BIT: fewer colours. The kick and the drop are seen through kick_hit_n and build_p (app.c) */
+enum { SFX_OFF, SFX_CRT, SFX_VHS, SFX_GRAIN, SFX_RGB, SFX_SHAKE, SFX_STROBE, SFX_8BIT, SFX_N };
+static const char *const SFX_NAME[SFX_N] = {"OFF", "CRT", "VHS", "GRAIN", "RGB", "SHAKE", "STROBE", "8-BIT"};
+static uint32_t sfx_rand(void)
+{
+    static uint32_t x = 0x9E3779B9u;
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+    return x;
+}
+static void sfx_slide(uint16_t *p, uint32_t w, int32_t d)   /* a row moved d pixels (black where it left) */
+{
+    int32_t i, n = (int32_t)w;
+    if (d > 0) {
+        for (i = n - 1; i >= 0; i--)
+            p[i] = i >= d ? p[i - d] : 0u;
+    } else if (d < 0) {
+        for (i = 0; i < n; i++)
+            p[i] = i - d < n ? p[i - d] : 0u;
+    }
+}
+static uint32_t sfx_kick_t, sfx_drop_t;   /* the last kick, the last drop (plat_ms | 1; 0 none) */
+static int sfx_live(uint32_t now)       /* a kick's or a drop's moment of SHAKE, STROBE or VHS (main.c redraws the
+                                          * whole screen as it starts and ends, so no strip keeps it) */
+{
+    static uint32_t kseen;
+    static float bp_was = -1.0f;
+    uint32_t mode = set.crt % SFX_N, sk, sd;
+    if (kick_hit_n != kseen) {
+        kseen = kick_hit_n;
+        sfx_kick_t = now | 1u;
+    }
+    if (bp_was >= 0.0f && build_p < 0.0f)
+        sfx_drop_t = now | 1u;           /* (the build just ended: the drop) */
+    bp_was = build_p;
+    sk = sfx_kick_t ? now - sfx_kick_t : 99999u;
+    sd = sfx_drop_t ? now - sfx_drop_t : 99999u;
+    return (mode == SFX_SHAKE && (sk < 110u || sd < 400u)) || (mode == SFX_STROBE && (sd < 160u || (set.scrfx > 50u &&
+           sk < 80u))) || (mode == SFX_VHS && sk < 120u);
+}
 static void crt_blit(uint32_t x, uint32_t y)
 {
-    if (set.crt) {
-        uint32_t r, i;
+    uint32_t mode = set.crt % SFX_N, amt = set.scrfx > 100u ? 100u : set.scrfx, now = plat_ms(), r, i;
+    uint32_t sinc_kick = sfx_kick_t ? now - sfx_kick_t : 99999u, sinc_drop = sfx_drop_t ? now - sfx_drop_t : 99999u;
+    if (mode == SFX_CRT) {           /* the odd rows at 3/4, 1/2 or 1/4 */
         for (r = (y & 1u) ? 0u : 1u; r < cv_h; r += 2u) {
             uint16_t *p = cv_px + r * cv_w;
             for (i = 0; i < cv_w; i++) {
-                uint16_t c = swap16(p[i]);
-                p[i] = swap16((uint16_t)((c >> 1) & 0x7BEFu));
+                uint16_t c = swap16(p[i]), h = (uint16_t)((c >> 1) & 0x7BEFu), q = (uint16_t)((c >> 2) & 0x39E7u);
+                p[i] = swap16(amt < 34u ? (uint16_t)(h + q) : amt < 67u ? h : q);
             }
         }
+    } else if (mode == SFX_VHS) {    /* a band or two slipping, often on a kick */
+        uint32_t bands = (sinc_kick < 120u ? 2u : 0u) + (sfx_rand() % 100u < amt / 3u ? 1u : 0u);
+        while (bands--) {
+            uint32_t r0 = sfx_rand() % cv_h, n = 2u + sfx_rand() % (2u + amt / 10u);
+            int32_t d = (int32_t)(1u + sfx_rand() % (1u + amt / 12u)) * ((sfx_rand() & 1u) ? 1 : -1);
+            for (r = r0; r < cv_h && r < r0 + n; r++)
+                sfx_slide(cv_px + r * cv_w, cv_w, d);
+        }
+    } else if (mode == SFX_GRAIN) {  /* specks: a pixel darkened or lit, amt / 8 % of them */
+        uint32_t n = cv_w * cv_h * (amt + 4u) / 800u;
+        while (n--) {
+            uint32_t at = sfx_rand() % (cv_w * cv_h);
+            uint16_t c = swap16(cv_px[at]);
+            cv_px[at] = swap16((sfx_rand() & 1u) ? (uint16_t)((c >> 1) & 0x7BEFu) : (uint16_t)(c | 0x2104u));
+        }
+    } else if (mode == SFX_RGB) {    /* the red 1..4 pixels right of the green and blue */
+        uint32_t d = 1u + amt / 34u + (sinc_kick < 80u ? 1u : 0u);
+        for (r = 0; r < cv_h; r++) {
+            uint16_t *p = cv_px + r * cv_w;
+            for (i = cv_w; i-- > 0;) {
+                uint16_t c = swap16(p[i]), red = i >= d ? (uint16_t)(swap16(p[i - d]) & 0xF800u) : 0u;
+                p[i] = swap16((uint16_t)((c & 0x07FFu) | red));
+            }
+        }
+    } else if (mode == SFX_SHAKE && (sinc_kick < 110u || sinc_drop < 400u)) {
+        int32_t d = (int32_t)(1u + amt / 30u) * (sinc_drop < 400u ? 3 : 1) * ((now / 23u) & 1u ? 1 : -1);
+        for (r = 0; r < cv_h; r++)
+            sfx_slide(cv_px + r * cv_w, cv_w, d);
+    } else if (mode == SFX_STROBE && (sinc_drop < 160u || (amt > 50u && sinc_kick < 80u))) {
+        for (i = 0; i < cv_w * cv_h; i++)
+            cv_px[i] = (uint16_t)~cv_px[i];
+    } else if (mode == SFX_8BIT) {   /* 3 bits a colour, or 2 past half */
+        uint16_t m = amt > 50u ? 0xC618u : 0xE71Cu;
+        for (i = 0; i < cv_w * cv_h; i++)
+            cv_px[i] = swap16((uint16_t)(swap16(cv_px[i]) & m));
     }
     cv_blit(x, y);
 }

@@ -9,13 +9,14 @@ static void global_value(int i, char *t)
 {
     t[0] = 0;
     if (ui.gpage == 2u) {                /* GLOUPI BREAKS: MORE (in place of Bluetooth audio): K1 the skin */
-        if (i == 0)                      /* (SYNTHWAVE short, to fit its column under the screen) */
+        if (i == 3)                      /* (LOAF BREAKER: K4 the skin; SYNTHWAVE short, to fit its column) */
             text_cat(t, set.skin % NSKINS == 10u ? "SYNTHWV" : SKIN_NAME[set.skin % NSKINS]);
         else if (i == 1)                 /* LOAF BREAKER: K2 AUTO SAVE */
             text_cat(t, set.auto_save ? "ON" : "OFF");
-        else if (i == 2)                 /* (TEST: K3 CRT) */
-            text_cat(t, set.crt ? "ON" : "OFF");
-                                         /* (TEST: K3, K4 free; MAX OUT on the MIXER's MASTER) */
+        else if (i == 2)                 /* K3 EFFECTS: the screen's */
+            text_cat(t, SFX_NAME[set.crt % SFX_N]);
+        else                             /* K1 their AMOUNT */
+            pct_text((float)set.scrfx * 0.01f, t);
         return;
     }
     if (ui.gpage) {                      /* the pitch: speed or keep length, the grains */
@@ -42,8 +43,8 @@ static void global_turn(int i, int32_t d)
 {
     static const char *const NAME[4] = {"CLOCK IN", "CLOCK OUT", "BLUETOOTH", "MIDI TO"};
     char t[16];
-    if (ui.gpage == 2u) {                /* MORE: K1 the skin, the whole screen in its colours at once */
-        if (i == 0) {
+    if (ui.gpage == 2u) {                /* MORE: K4 the skin, the whole screen in its colours at once */
+        if (i == 3) {
             set.skin = (uint8_t)((set.skin + (d > 0 ? 1u : NSKINS - 1u)) % NSKINS);
             changed();                   /* (settings_apply: skin_apply) */
             app_say("SKIN", SKIN_NAME[set.skin % NSKINS]);
@@ -53,12 +54,19 @@ static void global_turn(int i, int32_t d)
             changed();
             app_say("AUTO SAVE", set.auto_save ? "ON" : "OFF");
             ui.redraw |= RG_BLOCKS | RG_FOOT;
-        } else if (i == 2) {             /* (TEST: K3 CRT: the screen's lines, right on, left off) */
-            set.crt = d > 0 ? 1u : 0u;
+        } else if (i == 2) {             /* K3 EFFECTS: OFF, CRT, VHS, GRAIN, RGB, SHAKE, STROBE, 8-BIT */
+            set.crt = (uint8_t)clamp((int32_t)(set.crt % SFX_N) + (d > 0 ? 1 : -1), 0, SFX_N - 1);
             changed();
-            app_say("CRT", set.crt ? "ON" : "OFF");
+            app_say("EFFECTS", SFX_NAME[set.crt % SFX_N]);
             ui.redraw = RG_ALL;
-        }                                /* (K4: nothing) */
+        } else {                         /* K1 the effect's AMOUNT, 2 % a detent */
+            char a[8];
+            set.scrfx = (uint8_t)clamp((int32_t)set.scrfx + d * 2, 0, 100);
+            changed();
+            pct_text((float)set.scrfx * 0.01f, a);
+            app_say("EFFECT AMOUNT", a);
+            ui.redraw = RG_ALL;
+        }
         return;
     }
     if (ui.gpage) {
@@ -119,7 +127,7 @@ static void draw_global(const brk_status_t *st)
         cv_begin(240, 52, C_BLACK);
         cv_text(6, 2, &FONT_T, "SKIN", C_GRAY);
         cv_text(96, 2, &FONT_T, SKIN_NAME[set.skin % NSKINS], C_HI);
-        cv_text(96, 16, &FONT_XS, "K1: THE SCREEN'S COLOURS", C_DIM);
+        cv_text(96, 16, &FONT_XS, "K4: THE SCREEN'S COLOURS", C_DIM);
         for (s = 0; s < NSKINS; s++) {   /* a swatch each: its value colour on its ground, the one on outlined */
             int32_t x = 6 + (int32_t)(s % 9u) * 26, y = 27 + (int32_t)(s / 9u) * 13;   /* (LOAF BREAKER: 17, in two
                                           * rows of nine) */
@@ -134,8 +142,14 @@ static void draw_global(const brk_status_t *st)
         cv_begin(240, 52, C_BLACK);
         cv_text(6, 2, &FONT_T, "AUTO SAVE", C_GRAY);   /* LOAF BREAKER: K2 */
         cv_text(96, 2, &FONT_T, set.auto_save ? "ON" : "OFF", set.auto_save ? C_HI : C_DIM);
-        cv_text(96, 16, &FONT_XS, "A MINUTE AFTER A CHANGE,", C_DIM);
-        cv_text(96, 28, &FONT_XS, "ONCE STOPPED", C_DIM);
+        cv_text(96, 16, &FONT_XS, "1 MIN. AFTER A CHANGE, STOPPED", C_DIM);
+        cv_text(6, 30, &FONT_T, "EFFECTS", C_GRAY);   /* K3, K1 its amount */
+        cv_text(96, 30, &FONT_T, SFX_NAME[set.crt % SFX_N], set.crt % SFX_N ? C_HI : C_DIM);
+        if (set.crt % SFX_N) {
+            char a[8];
+            pct_text((float)set.scrfx * 0.01f, a);
+            cv_text(170, 30, &FONT_T, a, C_WHITE);
+        }
         cv_blit(0, 140);
         return;
     }
