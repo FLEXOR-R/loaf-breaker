@@ -189,9 +189,17 @@ static void ksect_find(uint32_t p)       /* the part's section and place in it, 
             }
 }
 static void kick_part_set(uint32_t p);
+/* LOAF BREAKER TEST: GLO MORE's MODE BEGINNER: ALGORITHM passes over the advanced parts (each as it is, EXPERT shows
+ * it again): SOUND MIX, SUB, OUT; SYNTH SYNTH, BASS, MACRO; DIRT TERROR; TONE EQ BANDS, FX 1; KNOBS KNOBS */
+#define KP_ADV ((1u << 2) | (1u << 3) | (1u << 4) | (1u << 5) | (1u << 6) | (1u << 7) | (1u << 8) | (1u << 12) | \
+                (1u << 14) | (1u << 16) | (1u << 17) | (1u << 19) | (1u << 22) | (1u << 23) | (1u << 24) | (1u << 25) | \
+                (1u << 26))
+static int kp_hidden(uint32_t p) { return set.novice && p < 32u && (KP_ADV >> p & 1u); }
 static void kick_open(void)              /* the KICK menu, at its section's part */
 {
     uint32_t s = ui.ksect % KSECTS;
+    if (kp_hidden(KSECT[s][ui.kpos[s] % KSECT_N[s]]))
+        ui.kpos[s] = 0u;                 /* (BEGINNER: an advanced part left open: the section's first) */
     kick_part_set(KSECT[s][ui.kpos[s] % KSECT_N[s]]);
 }
 static void kick_sect_next(void)         /* EDIT on the KICK menu */
@@ -201,8 +209,12 @@ static void kick_sect_next(void)         /* EDIT on the KICK menu */
 }
 static void kick_sect_step(int32_t d)    /* ALGORITHM on it */
 {
-    uint32_t s = ui.ksect % KSECTS, n = KSECT_N[s];
-    ui.kpos[s] = (uint8_t)((ui.kpos[s] + (d > 0 ? 1u : n - 1u)) % n);
+    uint32_t s = ui.ksect % KSECTS, n = KSECT_N[s], k;
+    for (k = 0; k < n; k++) {            /* (BEGINNER: the advanced parts passed over) */
+        ui.kpos[s] = (uint8_t)((ui.kpos[s] + (d > 0 ? 1u : n - 1u)) % n);
+        if (!kp_hidden(KSECT[s][ui.kpos[s]]))
+            break;
+    }
     kick_open();
 }
 static void kick_part_set(uint32_t p)

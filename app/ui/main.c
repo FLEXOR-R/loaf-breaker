@@ -1164,7 +1164,7 @@ static void draw_foot(const brk_status_t *st)
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "RESET ALL"};
         static const char *const KN_GROOVE[3][4] = {{"SWING", "DRUMS", "", ""}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
                                                     {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
-        static const char *const KN_MORE[3][4] = {{"", "AUTO SAVE", "", "SKIN"},   /* GLOBAL's MORE */
+        static const char *const KN_MORE[3][4] = {{"MODE", "AUTO SAVE", "", "SKIN"},   /* GLOBAL's MORE */
                                                   {"EFFECT", "ON / OFF", "", ""},   /* (LOAF BREAKER: EFFECTS, */
                                                   {"AMOUNT", "KICK", "DROP", "LENGTH"}};   /* FX SET) */
         static const char *const KN_TRK[4][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},

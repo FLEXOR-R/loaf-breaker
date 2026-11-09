@@ -162,6 +162,9 @@ typedef struct {
                                           * SFX_* e; none to start. crt, the one MORE picked before, is left) */
     uint8_t csub;                        /* (appended: the kick's CLEAN SUB, 0..100; an older save: 0, off) */
     uint8_t kmorph, kmorph_to;           /* (appended: KICK MORPH, 0..100 towards kick memory kmorph_to (0..9); 0: off) */
+    uint8_t novice;                      /* (appended, LOAF BREAKER TEST: GLO MORE K1 MODE: 1 BEGINNER, the KICK menu's
+                                          * advanced parts passed over (kept as they are); 0 EXPERT. A new FM-1 or RESET
+                                          * ALL: BEGINNER; an older save: EXPERT, as it was) */
 } settings_t;
 enum { DS_SNARE, DS_KICK, DS_BOTH, DS_STUTTER, DS_SWEEP, DS_RANDOM, DS_N };
 static const uint8_t DROP_GAP[5] = {0u, 1u, 2u, 4u, 8u};   /* its steps: none, a 16th, an 8th, a beat, half a bar */
@@ -254,6 +257,12 @@ static void settings_defaults(void)
     set.sfx_on = 0u;                     /* (the screen effects: none at the start and after RESET ALL; the site's
                                           * screenshots clean) */
     set.wzoom = 3u;                      /* (the scrolling wave: a bar across, as it was) */
+#if defined(PLAT_HOST) && !defined(PLAT_WEB)
+    set.novice = 0u;                     /* (TEST: the simulator's scenarios and the manual's screens see it all: EXPERT;
+                                          * a scenario turns GLO MORE's K1 for BEGINNER) */
+#else
+    set.novice = 1u;                     /* (TEST: BEGINNER to start, on the FM-1 and the web emulator) */
+#endif
     set.sfx_kick = set.sfx_drop = set.sfx_len = 50u;   /* (TEST: REV BASS from 3/8 of the beat, a curve between) */
     set.tempo_x10 = 1700u;               /* jungle tempo */
     set.swing = 50u;
@@ -946,6 +955,8 @@ void app_init(void)
         int sz = plat_store_size(OBJ_SETTINGS);
         if (sz < (int)SET_SIZE_MIN || sz > (int)sizeof set || plat_store_load(OBJ_SETTINGS, &set, (uint32_t)sz) != sz)
             set.magic = 0u;
+        else if (sz <= (int)offsetof(settings_t, novice))
+            set.novice = 0u;             /* (TEST: a save from before the MODE: its owner knows the way, EXPERT) */
     }
     if (set.magic != SET_MAGIC || set.tempo_x10 < 400u || set.tempo_x10 > 3000u || set.swing < 50u ||
         set.swing > 75u) {

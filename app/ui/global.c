@@ -39,7 +39,9 @@ static void global_value(int i, char *t)
             text_cat(t, set.skin % NSKINS == 10u ? "SYNTHWV" : SKIN_NAME[set.skin % NSKINS]);
         else if (i == 1)                 /* LOAF BREAKER: K2 AUTO SAVE */
             text_cat(t, set.auto_save ? "ON" : "OFF");
-        return;                          /* (K1, K3: nothing; the effects: GLO EFFECTS) */
+        else if (i == 0)                 /* (TEST: K1 MODE) */
+            text_cat(t, set.novice ? "BEGINNER" : "EXPERT");
+        return;                          /* (K3: nothing; the effects: GLO EFFECTS) */
     }
     if (ui.gpage) {                      /* the pitch: speed or keep length, the grains */
         if (i == 0)
@@ -91,6 +93,11 @@ static void global_turn(int i, int32_t d)
             changed();                   /* (settings_apply: skin_apply) */
             app_say("SKIN", SKIN_NAME[set.skin % NSKINS]);
             ui.redraw = RG_ALL;
+        } else if (i == 0) {             /* (TEST) K1 MODE: right EXPERT, left BEGINNER */
+            set.novice = d > 0 ? 0u : 1u;
+            changed();
+            app_say("MODE", set.novice ? "BEGINNER" : "EXPERT");
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
         } else if (i == 1) {             /* K2 AUTO SAVE: right on, left off */
             set.auto_save = d > 0 ? 1u : 0u;
             changed();
@@ -221,13 +228,15 @@ static void draw_global(const brk_status_t *st)
         cv_text(6, 2, &FONT_T, "WAVE ZOOM", C_GRAY);   /* PRESETS (cdj.c) */
         cv_text(96, 2, &FONT_T, CDJ_ZNAME[set.wzoom % CDJ_ZN], C_HI);
         cv_text(96, 16, &FONT_XS, "PRESETS: HOME'S WAVE", C_DIM);
-        cv_text(96, 30, &FONT_XS, "SCREEN EFFECTS: GLO AGAIN", C_DIM);
+        cv_text(96, 26, &FONT_XS, "SCREEN EFFECTS: GLO AGAIN", C_DIM);
+        cv_text(6, 38, &FONT_T, "MODE", C_GRAY);   /* (TEST) K1 */
+        cv_text(96, 38, &FONT_T, set.novice ? "BEGINNER" : "EXPERT", C_HI);
         cv_blit(0, 88);
         cv_begin(240, 52, C_BLACK);
         cv_text(6, 2, &FONT_T, "AUTO SAVE", C_GRAY);   /* K2 */
         cv_text(96, 2, &FONT_T, set.auto_save ? "ON" : "OFF", set.auto_save ? C_HI : C_DIM);
         cv_text(96, 16, &FONT_XS, "A MINUTE AFTER A CHANGE,", C_DIM);
-        cv_text(96, 28, &FONT_XS, "3 S AFTER THE STOP", C_DIM);
+        cv_text(96, 28, &FONT_XS, "AFTER 3 S OF SILENCE", C_DIM);
         cv_blit(0, 140);
         return;
     }
