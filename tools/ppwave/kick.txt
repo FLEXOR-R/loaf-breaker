@@ -75,3 +75,5 @@ wait 100
 tap PLAY
 wait 6000
 scope_dump $OUT
+wait 1412
+scope_dump $OUT2
