@@ -1077,32 +1077,46 @@ static void page_say(void)
 /* SEL held alone: its combinations, on the strip (FX page: its own two) */
 static void draw_help(void)
 {
-    static const char *const L[8][2] = {{"+ ENV", "BUILD / DROP"}, {"+ SELECT", "DRUM FILTER"}, {"+ K1", "DUCK"},
-                                        {"+ K2", "TERROR 2"}, {"+ K4", "TERROR"}, {"+ ALGO", "BREAK"},
-                                        {"+ PRESETS", "PATTERN"}, {"+ K3", "COMP"}};   /* (LOAF BREAKER: the
-                                          * live ones) */
-    uint32_t i, band;
-    for (band = 0; band < 2u; band++) {
-        cv_begin(240, 52, C_BLACK);
-        for (i = band * 4u; i < band * 4u + 4u; i++) {
-            const char *a = L[i][0], *b = L[i][1];
-            if (i == 2u || i == 3u || i == 4u || i == 7u)   /* (the knobs: what KNOB gave them) */
-                b = SK_NAME[selk_fn(i == 2u ? 0u : i == 3u ? 1u : i == 4u ? 3u : 2u)];
-            if (i == 3u && ui.page == PG_SEQ)
-                b = "CLEAR LANE";
-            if (i == 1u && (ui.page == PG_FX || (ui.page == PG_KICK && ui.kpage == KP_FX))) {
-                a = "+ REC";             /* (LOAF BREAKER: the effect's reset, was SEL x2) */
-                b = "RESET EFFECT";
-            }
-            if (ui.page == PG_FX && i >= 6u) {
-                a = i == 6u ? "+ FX" : "FX + ALGO";
-                b = i == 6u ? "BYPASS SLOT" : "MOVE SLOT";
-            }
-            cv_text(10, (int32_t)(i % 4u) * 13, &FONT_XS, a, C_HI);
-            cv_text(104, (int32_t)(i % 4u) * 13, &FONT_XS, b, C_WHITE);
-        }
-        cv_blit(0, 88u + band * 52u);
+    /* LOAF BREAKER TEST: above, SEL's combinations on any page; below, this page's own ("+": with SEL; on HOME and the
+     * pages with no shortcuts of their own: SEL + K1..K4, the functions EDIT KICK's KNOBS gave them) */
+    static const char *const G[4][2] = {{"+ ENV", "BUILD / DROP"}, {"+ SELECT", "DRUM FILTER"}, {"+ ALGO", "BREAK"},
+                                        {"+ PRESETS", "PATTERN"}};
+    static const char *const P[8][4][2] = {
+        {{"EDIT HELD", "BIG / CLASSIC VIEW"}, {"+ EDIT", "SNARE HAT CLAP HOOVER"}, {"PRESETS", "KICK 1-10"},
+         {"SELECT", "NEXT DRUM (BIG VIEW)"}},
+        {{"EDIT HELD", "BIG / CLASSIC VIEW"}, {"EDIT", "NEXT DRUM"}, {"PRESETS", "ITS MEMORIES"},
+         {"SELECT", "NEXT DRUM (BIG VIEW)"}},
+        {{"+ K2", "CLEAR LANE"}, {"+ SEQ", "COPY THE PATTERN"}, {"STEP HELD", "HITS CHANCE NUDGE"}, {"+ SAVE", "UNDO"}},
+        {{"+ FX", "BYPASS SLOT"}, {"FX + ALGO", "MOVE SLOT"}, {"+ REC", "RESET EFFECT"}, {"PRESETS", "EFFECT TYPE"}},
+        {{"+ PLAY", "START ITEM (TRACKS)"}, {"PLAY", "PLAY THE TRACK"}, {"PRESETS", "THE TRACK"},
+         {"WHITE KEYS", "PATTERNS / TRACKS"}},
+        {{"LFO + K1", "BREAK LEVEL"}, {"LFO + K2", "KICK LEVEL"}, {"LFO + K3", "DRUMS LEVEL"}, {"LFO + K4", "FX LEVEL"}},
+        {{"MORE: K1", "BEGINNER / EXPERT"}, {"RESET", "ONE PART AT A TIME"}, {"PITCH: K4", "RESET ALL"},
+         {"SEL x2", "SEL LOCKED, LIT"}},
+        {{"+ K1", ""}, {"+ K2", ""}, {"+ K3", ""}, {"+ K4", ""}}};
+    uint32_t i, w = ui.page == PG_KICK ? 0u : ui.page == PG_PERC ? 1u : ui.page == PG_SEQ ? 2u : ui.page == PG_FX ? 3u
+                    : ui.page == PG_TRACK ? 4u : ui.page == PG_MIX ? 5u : ui.page == PG_GLOBAL ? 6u : 7u;
+    cv_begin(240, 52, C_BLACK);
+    for (i = 0; i < 4u; i++) {
+        cv_text(10, (int32_t)i * 13, &FONT_XS, G[i][0], C_HI);
+        cv_text(104, (int32_t)i * 13, &FONT_XS, G[i][1], C_WHITE);
     }
+    cv_blit(0, 88u);
+    cv_begin(240, 52, C_BLACK);
+    cv_rect(10, 0, 220, 1, C_LINE);      /* (this page's, under a line) */
+    for (i = 0; i < 4u; i++) {
+        const char *b = P[w][i][1];
+        if (w == 7u)                     /* (the knobs: what KNOBS gave them) */
+            b = SK_NAME[selk_fn(i)];
+        if (w == 0u && i == 3u && ui.kpage == KP_FX) {
+            cv_text(10, 3 + (int32_t)i * 12, &FONT_XS, "+ REC", C_HI);
+            cv_text(104, 3 + (int32_t)i * 12, &FONT_XS, "RESET EFFECT", C_WHITE);
+            continue;
+        }
+        cv_text(10, 3 + (int32_t)i * 12, &FONT_XS, P[w][i][0], C_HI);
+        cv_text(104, 3 + (int32_t)i * 12, &FONT_XS, b, C_WHITE);
+    }
+    cv_blit(0, 140u);
 }
 
 /* LOAF BREAKER TEST: a knob's value as an arc (a 270 degree gauge, 13 px, lit as far as it is turned), where the page

@@ -689,10 +689,22 @@ static void kick_picture(int32_t top)
     int_text((int32_t)set.kslot + 1, u);
     text_cat(t, u);
     cv_text(6, 2, &FONT_B, t, C_WHITE);
-    if (kp_knobs()) {                    /* (KNOBS: the part, "K4 TERROR": the tabs leave it no room) */
+    {                                    /* LOAF BREAKER TEST: what the part is for, in a few words (K SET: the knob and
+                                          * its function, "K4 TERROR": the tabs leave it no room) */
+        static const char *const D[27] = {"THE 4 LAYERS' LEVELS", "THE LOW BOOM", "THE SUB'S EFFECT", "THE THUMP",
+                                          "THE PUNCH'S EFFECT", "THE DIRTY LAYER", "THE GRIT'S EFFECT", "THE ATTACK",
+                                          "THE CLICK'S EFFECT", "ALL LAYERS AT ONCE", "VOLUME, BUILT-IN KICKS", "",
+                                          "", "", "", "FOLD DISTORTION", "THE DISTORTION'S DETAIL",
+                                          "MID SCREAM, SUB KEPT", "PITCH DROP AND BODY", "RUMBLE, TUNE",
+                                          "GLIDE, REVERSE BASS", "WHAT SEL + K1-K4 DO", "", "", "", "",
+                                          "ROUND SUB, BLEND KICKS"};
+        uint32_t p = kick_part();
         t[0] = 0;
-        kick_part_name(kick_part(), t);
-        cv_text(12 + text_w(&FONT_B, "KICK 10"), 4, &FONT_XS, t, C_HI);
+        if (p >= KP_BASE + 11u && p <= KP_BASE + 14u)
+            kick_part_name(p, t);
+        else if (p < 27u)
+            text_cat(t, D[p]);
+        cv_text(12 + text_w(&FONT_B, "KICK 10"), 4, &FONT_XS, t, kp_knobs() ? C_HI : C_GRAY);
     }
     t[0] = 0;
     int_text((int32_t)(hz + 0.5f), t);
