@@ -517,7 +517,7 @@ tempo's own repitch, HALF, REVERSE's speed and the tape stop stay speed effects.
 IRIS, PINK, MINT, WHITE, BLOOD, MAXENCE, then the two-colour ones: SYNTHWAVE (neon cyan and magenta on indigo), VAPOR,
 TOXIC, MIAMI, LAVA, GOLD, BLAZE (flashy orange and red); K2
 **AUTO SAVE**, ON: what you change is saved by itself a minute after it changed, once the break has been stopped for 3 s
-(the flash is never written while it plays, nor right after: its stall would cut the stop's tail); K3 **EFFECTS**, what the screen goes through, and K1 its **AMOUNT**: **CRT** (every
+(the flash is never written while it plays, nor right after: its stall would cut the stop's tail); K3 **EFFECTS**, what the screen goes through (RGB at 50 % to start, and after RESET ALL), and K1 its **AMOUNT**: **CRT** (every
 other line dimmed, as an old tube: the more, the darker), **VHS** (bands that slip sideways, more on each kick), **GRAIN**
 (specks that move), **RGB** (the red a few pixels off the rest, more on a kick), **SHAKE** (the screen jolts on each
 kick, hard at the drop), **STROBE** (the colours turn over at the drop; past 50 %, on each kick too), **8-BIT** (fewer

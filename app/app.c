@@ -194,6 +194,8 @@ static void settings_defaults(void)
     set.magic = SET_MAGIC;
     set.kbass[2] = set.kbass[3] = 50u;
     set.scrfx = 50u;                     /* (the screen effect's AMOUNT: half) */
+    set.crt = 4u;                        /* (the screen effect: RGB, common.c's SFX_RGB, at the start and after RESET
+                                          * ALL) */
     set.wzoom = 3u;                      /* (the scrolling wave: a bar across, as it was) */   /* (TEST: REV BASS from 3/8 of the beat, a curve between) */
     set.tempo_x10 = 1700u;               /* jungle tempo */
     set.swing = 50u;

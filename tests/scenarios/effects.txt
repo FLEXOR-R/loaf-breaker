@@ -1,9 +1,17 @@
 # LOAF BREAKER: GLO MORE's EFFECTS (K3), K1 their AMOUNT, K4 the skin. Playing, each effect in turn on the HOME page
-# (CRT, VHS, GRAIN, RGB, SHAKE, STROBE, 8-BIT), a drop (SEL + ENV) for SHAKE and STROBE; the MORE page itself.
+# (from OFF: RGB is the start's) (CRT, VHS, GRAIN, RGB, SHAKE, STROBE, 8-BIT), a drop (SEL + ENV) for SHAKE and STROBE; the MORE page itself.
 #   app/build/host/choppah_host tests/scenarios/effects.txt app/build/scenarios
 wait 4200
 tap PLAY
 wait 300
+tap GLO
+wait 100
+tap GLO
+wait 100
+tap GLO
+wait 200
+turn K3 -7 10
+wait 100
 tap GLO
 wait 100
 tap GLO
