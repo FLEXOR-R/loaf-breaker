@@ -1196,17 +1196,12 @@ void app_frame(void)
     uint32_t now = plat_ms(), hdr;
     input();
     break_poll();
-    if (splash_t) {                      /* LOAF BREAKER: the splash 1.5 s, then the start screen from its start (the
-                                          * 1.5 s from the first frame: on the FM-1 the breaks' decoding comes between
-                                          * the splash and it, and the glitch was over before it could be seen) */
-        static uint32_t s0;
-        if (!s0)
-            s0 = now | 1u;
-        if (now - s0 < 1500u) {
+    if (splash_t) {                      /* LOAF BREAKER: the splash 1.5 s, then the start screen from its start */
+        if (now - splash_t < 1500u) {
             static uint32_t gl_drawn;    /* (the glitch, settling in the first 700 ms, a frame each 40 ms) */
-            if (now - s0 < 760u && now - gl_drawn >= 40u) {
+            if (now - splash_t < 760u && now - gl_drawn >= 40u) {
                 gl_drawn = now;
-                splash_glitch(now - s0);
+                splash_glitch(now - splash_t);
             }
             ui.touched = 0u;
             return;
