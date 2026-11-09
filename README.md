@@ -12,6 +12,7 @@
 <a href="https://flexor-r.github.io/loaf-breaker/"><b>Site</b></a> ·
 <a href="https://flexor-r.github.io/loaf-breaker/emu/">Try it in the browser</a> ·
 <a href="https://flexor-r.github.io/loaf-breaker/install/">Install</a> (with your install code) ·
+<a href="https://flexor-r.github.io/loaf-breaker/manual/#start-in-five-minutes"><b>Start in five minutes</b></a> ·
 <a href="https://flexor-r.github.io/loaf-breaker/manual/">Manual</a> ·
 <a href="../../releases">Releases</a>
 </p>
@@ -64,15 +65,15 @@ M-VAVE's original firmware first ([docs/FLASHING.md](docs/FLASHING.md)).
 | Black keys | Pads, while held: **R8 · R16 · R32** rolls (K2 THRU: the break, the kick or both; SEL + a roll pad: a kick roll for that press) · **REV** reverse · **FLT** filter throw · **HLF** half speed (with a LATCH) · **VNL** vinyl break · **RND** random · **ARP** an overlay effect · **KIL** the sequencer's kicks quiet while held · **SUB** SUB DRIVE (the gate: HOME's K1). K1–K4 tune the pad held |
 | PLAY | Play / stop · HOME + PLAY: back to bar 1 |
 | SELECT | Tempo · **SEL + SELECT**: the drums' filter (DRUM FLT) on any page |
-| SEL | **SEL ×2**: locked down, lit, for the combinations one-handed (press again: free) · **SEL + K1–K4**: four live functions you assign (DRIVE, TERROR, TERROR 2, TERROR +, its TYPE, SCREECH, TAIL…) · **SEL + REC** (on FX): the effect under your hands back to its start (again within 4 s: undo) · **SEL + ENV**: the drop · **SEL + ALGORITHM** the break, **SEL + PRESETS** the pattern · **SEL + SEQ** copy, then paste the pattern · **SEL + SAVE** undo · SEL alone: every combination on the strip |
+| SEL | **Tapped alone**: the shortcuts card, those that work everywhere and this page's own · **SEL ×2**: locked down, lit, for the combinations one-handed (press again: free) · **SEL + K1–K4**: four live functions you assign on EDIT › KNOBS, each kick its own (DRIVE, TERROR, TERROR 2, TERROR +, its TYPE, SCREECH, TAIL…) · **SEL + REC** (on FX): the effect under your hands back to its start (again within 4 s: undo) · **SEL + ENV**: the drop · **SEL + ALGORITHM** the break, **SEL + PRESETS** the pattern · **SEL + SEQ** copy, then paste the pattern · **SEL + SAVE** undo · SEL alone: every combination on the strip |
 | HOME | PERFORM and GENERATOR, with the **CDJ view** (the mix scrolling in, rekordbox's RGB colours, the playhead at the right edge); HOME held: the slices |
 | EDIT | The **KICK menu**: SOUND, SYNTH (DROP, HOLD, RUMBLE, ASYM, TUNE…; BASS: GLIDE between notes, the rawstyle REVERSE BASS), DIRT (TERROR, TERROR 2, TERROR +), TONE (EQ and two FX slots of its own), KNOBS (what SEL + K1–K4 turn, each kick its own, their settings and functions); EDIT again: the next section; EDIT held: the classic view. **SEL + EDIT**: the snare, the hat, the clap and the HOOVER |
 | SEQ | The sequencer: the break's steps and the drum lanes, the kick over 16, 32 or 64 steps. **A step held**: K1 NOTE, K2 HITS (1–4 taps in the step), K3 COND (chance, 1:2, 2:2, FILL, NOT FILL), K4 NUDGE. SEQ held, then SEQ again: clear the pattern |
-| ENV | **TRACK**: TRACKS (patterns, loops, drops and each item's own break; ENV held: a space after the item, or the space taken out), PLAY (a radio: tune a track, press PLAY), DROP, BUILD (the build before a drop: style, sweep, riser, a gap; PRESETS: the tempo rising to the drop), KNOB (what SEL + each knob does), RESET |
+| ENV | **TRACK**: TRACKS (patterns, loops, drops and each item's own break; ENV held: a space after the item, or the space taken out), PLAY (a radio: tune a track, press PLAY), DROP, BUILD (the build before a drop: style, sweep, riser, a gap; PRESETS: the tempo rising to the drop) |
 | LFO | **LFO held + K1–K4**: the break, kick, drums and FX levels on any page · The **MIXER**: LEVELS, GROOVE, MASTER (COMP, RATIO, DUCK, MAX OUT), DYN (the compressor's and the ducker's timing) |
 | FX | The master FX chain: four slots (FILTER, CRUNCH, DRIVE, PUNCH, FLANGER, RING MOD, TREMOLO, REVERB, DELAY, EQ, TAPE, MB COMP, CLIP); each effect remembers its settings when you change it and back; presets MB KICK and MB OTT after MB COMP |
 | ARP | **Held: FILL** (the steps set FILL play, NOT FILL rest, the snare rolls the bar's last beat) · SEL + ARP: a random pattern |
-| GLO | GLOBAL: MIDI clock in and out (USB, TRS); the pitch and snap, RESET ALL; MORE: AUTO SAVE, 17 skins, WAVE ZOOM; EFFECTS: the screen effects, several at once (CRT, VHS, GRAIN, RGB, SHAKE, STROBE, 8-BIT); FX SET: their settings |
+| GLO | GLOBAL: MIDI clock in and out (USB, TRS); the pitch and snap, RESET ALL; MORE: MODE (BEGINNER: the KICK menu's basics; EXPERT: all of it), AUTO SAVE, 18 skins, WAVE ZOOM; EFFECTS: the screen effects, several at once (CRT, VHS, GRAIN, RGB, SHAKE, STROBE, 8-BIT); FX SET: their settings; RESET: one part at a time |
 | SAVE | Keep the settings, the patterns, the tracks and the steps |
 
 ## Breaks

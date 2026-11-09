@@ -215,7 +215,7 @@ static void draw_global(const brk_status_t *st)
         cv_text(6, 1, &FONT_T, "SKIN", C_GRAY);
         cv_text(96, 1, &FONT_T, SKIN_NAME[set.skin % NSKINS], C_HI);
         for (s = 0; s < NSKINS; s++) {   /* a swatch each: its value colour on its ground, the one on outlined */
-            int32_t x = 6 + (int32_t)(s % 9u) * 26, y = 18 + (int32_t)(s / 9u) * 13;   /* (17, two rows of nine) */
+            int32_t x = 6 + (int32_t)(s % 9u) * 26, y = 18 + (int32_t)(s / 9u) * 13;   /* (18, two rows of nine) */
             const uint8_t (*c)[3] = SKIN_RGB[s];
             if (s == set.skin % NSKINS)
                 cv_rect(x - 2, y - 2, 27, 15, C_WHITE);

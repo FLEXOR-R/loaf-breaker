@@ -130,10 +130,10 @@ static void crt_blit(uint32_t x, uint32_t y)   /* (the effects on, in this order
 /* GLOUPI BREAKS: the screen's colours, picked on GLOBAL's MORE page (K1) and saved (set.skin). fm1-base's palette
  * (gfx.c pal[]: rules, dim, labels, secondary, values) and the app's own (a block's ground, the block sounding, the
  * white, TAP TEMPO's unlit segments and metronome) from one table */
-#define NSKINS 17u
+#define NSKINS 18u
 static const char *const SKIN_NAME[NSKINS] = {"RED", "AMBER", "ICE BLUE", "PIP-BOY", "IRIS", "PINK", "MINT",
                                               "WHITE", "BLOOD", "MAXENCE", "SYNTHWAVE", "VAPOR",
-                                              "TOXIC", "MIAMI", "LAVA", "GOLD", "BLAZE"};
+                                              "TOXIC", "MIAMI", "LAVA", "GOLD", "BLAZE", "ACID"};
 /* each: line, dim, gray, mid (secondary), hi (values), block, white */
 static const uint8_t SKIN_RGB[NSKINS][7][3] = {
     {{34, 34, 40}, {74, 74, 82}, {150, 150, 158}, {232, 76, 60}, {255, 132, 112}, {24, 24, 30}, {255, 255, 255}},
@@ -160,7 +160,10 @@ static const uint8_t SKIN_RGB[NSKINS][7][3] = {
     {{48, 24, 20}, {100, 56, 44}, {190, 160, 150}, {230, 30, 60}, {255, 140, 20}, {24, 10, 8}, {255, 240, 220}},
     {{24, 30, 60}, {60, 72, 120}, {160, 170, 210}, {70, 110, 255}, {255, 210, 90}, {10, 14, 34}, {240, 240, 255}},
     /* BLAZE: flashy orange values, pure red beside them, on a black with red in it */
-    {{56, 12, 4}, {120, 30, 10}, {236, 156, 112}, {255, 16, 16}, {255, 112, 0}, {30, 4, 0}, {255, 238, 210}}};
+    {{56, 12, 4}, {120, 30, 10}, {236, 156, 112}, {255, 16, 16}, {255, 112, 0}, {30, 4, 0}, {255, 238, 210}},
+    /* ACID (the eighteenth, the swatches' two rows full): acid yellow values, a red-orange beside them, on a warm
+     * black */
+    {{46, 42, 14}, {98, 92, 40}, {196, 190, 140}, {255, 64, 28}, {255, 234, 0}, {22, 20, 6}, {255, 255, 228}}};
 static uint16_t skin_block = RGB(24, 24, 30), skin_hi = RGB(255, 132, 112), skin_white = 0xFFFFu;
 static uint16_t skin_rgb(const uint8_t *c, uint32_t pct)   /* a colour at pct % of its brightness */
 {

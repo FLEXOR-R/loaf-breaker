@@ -166,8 +166,8 @@
       { n: "PERFORM", k: ["GATE", "FILTER", "DRUM FLT", "SUB DECAY"], strip: "THE MIX AS A CDJ, IN REKORDBOX COLOURS (HOME HELD: THE 16 SLICES)", note: "a track playing: its progress and DROP IN 4" },
       { n: "GENERATOR", k: ["COMPLEXITY", "ANCHOR", "ROLL", "FILL"], strip: "THE MIX AS A CDJ (HOME HELD: THE 16 SLICES)", note: "HOME again" } ],
       algo: "Break (next bar)", brk: true, presets: "Pattern P1–P16", keys: "slices", sel: "Tempo (SEL: drum filter)",
-      notes: [["SEL", "Pressed alone: every combination"], ["SEL + ALGO · SEL + PRESETS", "Break · pattern, any page"],
-              ["SEL + K1–K4", "The live functions (ENV › KNOB)"], ["SEL ×2 · SEL + ENV", "SEL locked down, lit (again: free) · the drop"],
+      notes: [["SEL", "Tapped alone: the shortcuts, everywhere and this page's own"], ["SEL + ALGO · SEL + PRESETS", "Break · pattern, any page"],
+              ["SEL + K1–K4", "The live functions (EDIT › KNOBS)"], ["SEL ×2 · SEL + ENV", "SEL locked down, lit (again: free) · the drop"],
               ["HOME held", "The slices, or the CDJ view again"], ["HOME + PLAY", "Back to bar 1"], ["ARP held", "FILL"], ["LFO + K1–K4", "Break, kick, drums, FX levels, any page: 5 % a detent"]] },
     { id: "edit", btn: "EDIT", name: "KICK · DRUMS", sub: "The kick in five sections; the other drums", again: "next section (5)", part: true, subs: [
       { n: "SOUND", k: ["(MIX, SUB, PUNCH,", "GRIT, CLICK,", "OUT: ALGO)", "(OUT: PRESET)"], strip: "THE KICK'S WAVE LARGE, ITS PITCH FALLING, ITS REAL SOUND IN WHITE · 4 KNOB CARDS", note: "MIX: SUB PUNCH GRIT CLICK; a layer: LEVEL PITCH DECAY TONE; OUT: VOLUME TERROR TERROR 2 PRESET (a built-in kick on the kick selected)" },
@@ -192,14 +192,12 @@
       notes: [["REC", "Record the keys and MIDI notes into the pattern"], ["SEL + REC", "Clear: the lane here, the pattern elsewhere"],
               ["SEQ held, then SEQ", "Clear the whole pattern (SEL + SAVE undoes)"], ["SEL + SEQ", "Copy the pattern; on another: paste"],
               ["EDIT (a drum lane)", "That drum's sound"]] },
-    { id: "env", btn: "ENV", name: "TRACK", sub: "Tracks, drops, builds, the live knobs", again: "next part (6)", subs: [
+    { id: "env", btn: "ENV", name: "TRACK", sub: "The song: tracks, drops, builds", again: "next part (4)", subs: [
       { n: "TRACKS", k: ["ITEM", "PUT", "LOOPS", "BREAK"], strip: "THE TRACK'S 32 ITEMS: PATTERNS, DROPS, SPACES", note: "a white key puts its pattern in; K2 left of P1: EMPTY, ENV held: gone" },
       { n: "PLAY", k: ["TRACK", "FROM", "END", ""], strip: "A RADIO: THE TRACKS ON A DIAL", note: "PLAY: the track, then HOME" },
       { n: "DROP", k: ["BUILD", "AFTER", "BREAK", "CRASH"], strip: "THE DROP'S SETTINGS", note: "SEL + ENV: the build from the next bar" },
-      { n: "BUILD", k: ["STYLE", "SWEEP", "RISER", "GAP"], strip: "THE BUILD BEFORE A DROP", note: "PRESETS: TEMPO RISE, up to +30 % to the drop" },
-      { n: "KNOB", k: ["(ITS 1ST)", "(ITS 2ND)", "(ITS 3RD)", "(ITS 4TH)"], strip: "WHAT SEL + K1..K4 DOES, ITS SETTINGS", note: "ALGO the knob, PRESETS its function: TERRORs, DRIVE, TUNE, DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH. Each kick memory (KICK 1–10) its own" },
-      { n: "RESET", k: ["WHAT", "RESET", "RESET", "RESET"], strip: "14 PARTS: DROP BUILD KNOB KICK KICK TONE ALL KICKS DRUMS MIX FX CHAIN STEPS PADS KEYS TRACK SCREEN · 5 BOXES FILL", note: "K1 or ALGORITHM the part; K2, K3 or K4 five clicks (each within 2 s): reset" } ],
-      algo: "TRACKS: the item · RESET: what · else the break (next bar)", brk: true, presets: "Track 1–8 · BUILD: tempo rise · KNOB: function", keys: "patterns / tracks", sel: "Tempo (SEL: drum filter)",
+      { n: "BUILD", k: ["STYLE", "SWEEP", "RISER", "GAP"], strip: "THE BUILD BEFORE A DROP", note: "PRESETS: TEMPO RISE, up to +30 % to the drop" } ],
+      algo: "TRACKS: the item · else the break (next bar)", brk: true, presets: "Track 1–8 · BUILD: tempo rise", keys: "patterns / tracks", sel: "Tempo (SEL: drum filter)",
       notes: [["White key (TRACKS)", "Its pattern at the item"], ["ALGORITHM (TRACKS)", "Move along the items (SEL + ALGO: the break)"],
               ["ENV held (TRACKS)", "A space after the item; on a space: it goes"], ["SEL + PLAY (TRACKS)", "The track starts here"],
               ["PLAY (TRACKS)", "The track from its start item, on TRACKS"], ["White keys 1–8 (PLAY)", "That track played"]] },
@@ -218,13 +216,14 @@
               ["Key held + FX", "That key's slice effect on K1–K4"], ["Each effect", "Remembers its settings when you change it and back"],
               ["MB COMP focused", "FX again steps AMOUNT · LOW · MID · HIGH · GAIN · X-OVER, then the next slot"],
               ["MB COMP · band", "THRESH · RATIO · ATTACK · RELEASE"], ["MB COMP · GAIN / X-OVER", "LOW MID HIGH SOLO · LOW X HIGH X KNEE OUTPUT"]] },
-    { id: "glo", btn: "GLO", name: "GLOBAL", sub: "MIDI, pitch, skins, effects", again: "next part (5)", subs: [
+    { id: "glo", btn: "GLO", name: "GLOBAL", sub: "MIDI, pitch, mode, skins, effects, reset", again: "next part (6)", subs: [
       { n: "MIDI", k: ["CLOCK IN", "CLOCK OUT", "", ""], strip: "MIDI OVER USB AND THE TRS JACK · CLOCK IN · CLOCK OUT", note: "no Bluetooth" },
       { n: "PITCH", k: ["PITCH", "GRAIN", "SNAP", "RESET ALL"], strip: "PITCH MODE · GRAIN · SNAP", note: "what the snap is in this break" },
-      { n: "MORE", k: ["", "AUTO SAVE", "", "SKIN"], strip: "THE 17 SKINS' COLOURS, WAVE ZOOM, AUTO SAVE", note: "PRESETS: WAVE ZOOM, 1/2 to 2 bars" },
+      { n: "MORE", k: ["MODE", "AUTO SAVE", "", "SKIN"], strip: "THE 18 SKINS' COLOURS, WAVE ZOOM, MODE, AUTO SAVE", note: "K1 MODE: BEGINNER (the KICK menu's basics) or EXPERT (all of it); PRESETS: WAVE ZOOM, 1/2 to 2 bars" },
       { n: "EFFECTS", k: ["EFFECT", "ON / OFF", "", ""], strip: "THE SEVEN SCREEN EFFECTS, LIT WHEN ON", note: "keys 1–7: CRT VHS GRAIN RGB SHAKE STROBE 8-BIT, several at once" },
-      { n: "FX SET", k: ["AMOUNT", "KICK", "DROP", "LENGTH"], strip: "THE EFFECTS' FOUR SETTINGS AS BARS", note: "0..100 %, 5 % a detent; KICK, DROP 0: none" } ],
-      algo: "Part", presets: "Pattern P1–P16", keys: "slices", sel: "Tempo (SEL: drum filter)", notes: [["K4 RESET ALL", "Fifteen turns right"]] },
+      { n: "FX SET", k: ["AMOUNT", "KICK", "DROP", "LENGTH"], strip: "THE EFFECTS' FOUR SETTINGS AS BARS", note: "0..100 %, 5 % a detent; KICK, DROP 0: none" },
+      { n: "RESET", k: ["WHAT", "RESET", "RESET", "RESET"], strip: "14 PARTS: DROP BUILD KNOB KICK KICK TONE ALL KICKS DRUMS MIX FX CHAIN STEPS PADS KEYS TRACK SCREEN · 5 BOXES FILL", note: "K1 or ALGORITHM the part; K2, K3 or K4 five clicks (each within 2 s): reset" } ],
+      algo: "Part (RESET: what)", presets: "Pattern P1–P16", keys: "slices", sel: "Tempo (SEL: drum filter)", notes: [["K4 RESET ALL", "Fifteen turns right"]] },
     { id: "arp", btn: "ARP", name: "FILL", sub: "Held: a fill", again: "nothing", subs: [
       { n: "FILL", k: ["", "", "", ""], strip: "THE PAGE YOU ARE ON STAYS", note: "held: FILL steps play, NOT FILL rest, the snare rolls the last beat" } ],
       algo: "Break", presets: "Pattern P1–P16", keys: "slices", sel: "Tempo (SEL: drum filter)",
