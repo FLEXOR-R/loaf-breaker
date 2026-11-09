@@ -436,18 +436,25 @@ static void track_dropped(void)
 /* ---- KNOB: the SEL + knob functions, each its settings (K1 its amount, as SEL + its knob). Functions: 0 DUCK, 1 TERROR
  * 2, 2 COMP, 3 TERROR, 4 TERROR + (TERROR's more: no amount of its own), 5 DRIVE (the kick's INTENSITY). SEL + K1 is
  * DUCK, SEL + K3 COMP; SEL + K2 and SEL + K4 each the function KNOB gives them (LOAF BREAKER TEST: set.selk_asg) ---- */
-static const char *const SK_NAME[9] = {"DUCK", "TERROR 2", "COMP", "TERROR", "TERROR +", "DRIVE", "T+ TYPE",
-                                       "T+ SCREECH", "T+ TAIL"};
-static const char *const SK_SHORT[9] = {"DUCK", "TERR 2", "COMP", "TERROR", "T+ DRIVE", "DRIVE", "T+ TYPE", "SCRCH",
-                                        "T+ TAIL"};
-static const char *const SK_KNOB[9][4] = {{"AMOUNT", "ATTACK", "RELEASE", "DUCKS"}, {"AMOUNT", "SUB", "SCREAM", "PUSH"},
-                                          {"AMOUNT", "RATIO", "ATTACK", "RELEASE"}, {"AMOUNT", "SUB", "FIZZ", "SUSTAIN"},
-                                          {"DRIVE", "TYPE", "SCREECH", "TAIL"}, {"AMOUNT", "", "", ""},
-                                          {"TYPE", "", "", ""}, {"SCREECH", "", "", ""}, {"TAIL", "", "", ""}};
-static const char *const T_TYPE_NAME[3] = {"FOLD", "CLIP", "CRUSH"};
-/* what a SEL + knob can be given (KNOB, PRESETS), in that order: its code 1..9 is its place + 1 (0: the knob's own) */
-#define SK_CODES 9u
-static const uint8_t SK_CODE[SK_CODES] = {0u, 1u, 2u, 3u, 4u, 6u, 7u, 8u, 5u};
+/* LOAF BREAKER (9 Nov 2026): 9 TUNE (the kick's, SYNTH's), 10 DECAY (the SUB's), 11 REV BASS (its amount, start,
+ * curve), 12 GLIDE, 13 CLEAN SUB (the round sine under the distortion), 14 MORPH (towards another kick memory) */
+#define SK_N 15u
+static const char *const SK_NAME[SK_N] = {"DUCK", "TERROR 2", "COMP", "TERROR", "TERROR +", "DRIVE", "T+ TYPE",
+                                          "T+ SCREECH", "T+ TAIL", "TUNE", "DECAY", "REV BASS", "GLIDE", "CLEAN SUB",
+                                          "MORPH"};
+static const char *const SK_SHORT[SK_N] = {"DUCK", "TERR 2", "COMP", "TERROR", "T+ DRIVE", "DRIVE", "T+ TYPE", "SCRCH",
+                                           "T+ TAIL", "TUNE", "DECAY", "REV B", "GLIDE", "C SUB", "MORPH"};
+static const char *const SK_KNOB[SK_N][4] = {{"AMOUNT", "ATTACK", "RELEASE", "DUCKS"}, {"AMOUNT", "SUB", "SCREAM", "PUSH"},
+                                             {"AMOUNT", "RATIO", "ATTACK", "RELEASE"}, {"AMOUNT", "SUB", "FIZZ", "SUSTAIN"},
+                                             {"DRIVE", "TYPE", "SCREECH", "TAIL"}, {"AMOUNT", "", "", ""},
+                                             {"TYPE", "", "", ""}, {"SCREECH", "", "", ""}, {"TAIL", "", "", ""},
+                                             {"SEMITONES", "", "", ""}, {"SUB DECAY", "", "", ""},
+                                             {"AMOUNT", "START", "CURVE", ""}, {"TIME", "", "", ""}, {"AMOUNT", "", "", ""},
+                                             {"AMOUNT", "TO KICK", "", ""}};
+static const char *const T_TYPE_NAME[5] = {"FOLD", "CLIP", "CRUSH", "RECT", "TUBE"};
+/* what a SEL + knob can be given (KNOB, PRESETS), in that order: its code 1..15 is its place + 1 (0: the knob's own) */
+#define SK_CODES 15u
+static const uint8_t SK_CODE[SK_CODES] = {0u, 1u, 2u, 3u, 4u, 6u, 7u, 8u, 5u, 9u, 10u, 11u, 12u, 13u, 14u};
 static const uint8_t SK_OWN[4] = {5u, 1u, 7u, 3u};   /* K1 DRIVE, K2 TERROR 2, K3 T+ SCREECH, K4 TERROR (LOAF BREAKER:
                                           * DUCK and COMP no more: the MIXER's MASTER has them) */
 static int sk_live(uint32_t f) { return f != 0u && f != 2u; }   /* (a function a SEL + knob may have) */
@@ -487,6 +494,34 @@ static void selk_value(uint32_t f, int i, char *t)
     uint8_t v;
     int32_t sv;
     t[0] = 0;
+    if (f >= 9u) {                       /* LOAF BREAKER: TUNE, DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH */
+        int32_t x = f == 9u ? set.ksyn[KS_TUNE] : 0;
+        if (f == 9u && i == 0) {
+            if (x > 0)
+                text_cat(t, "+");
+            int_text(x, t + (x > 0 ? 1 : 0));
+            text_cat(t, " ST");
+        } else if (f == 10u && i == 0) {
+            int_text((int32_t)(kick_decay_ms(KL_SUB, set.kick.l[KL_SUB].decay) + 0.5f), t);
+            text_cat(t, " MS");
+        } else if (f == 11u && i < 3) {
+            int_text(set.kbass[1 + i], t);
+            text_cat(t, "%");
+        } else if (f == 12u && i == 0) {
+            int_text((int32_t)((float)set.kbass[0] * (float)set.kbass[0] * 0.04f + 0.5f), t);
+            text_cat(t, " MS");
+        } else if (f == 13u && i == 0) {
+            int_text(set.csub, t);
+            text_cat(t, "%");
+        } else if (f == 14u && i == 0) {
+            int_text(set.kmorph, t);
+            text_cat(t, "%");
+        } else if (f == 14u && i == 1) {
+            text_cat(t, "KICK ");
+            int_text((int32_t)(set.kmorph_to % KICK_MEMS) + 1, t + 5);
+        }
+        return;
+    }
     if (f >= 6u) {                       /* (T+ TYPE, SCREECH, TAIL alone: TERROR +'s) */
         if (i == 0)
             selk_value(4u, (int)(f - 5u), t);
@@ -500,7 +535,7 @@ static void selk_value(uint32_t f, int i, char *t)
     v = *sk_byte(f, i);
     sv = (int8_t)v;
     if (f == 4u && i == 1)
-        text_cat(t, T_TYPE_NAME[v <= 2u ? v : 0u]);
+        text_cat(t, T_TYPE_NAME[v <= 4u ? v : 0u]);
     else if (f == 4u && i == 2) {        /* SCREECH: its band */
         if (!v)
             text_cat(t, "OFF");
@@ -545,6 +580,13 @@ static void selk_value(uint32_t f, int i, char *t)
 static float sk_norm(uint32_t f, int i)  /* a setting 0..1, as its bar */
 {
     uint8_t v;
+    if (f >= 9u)                         /* (LOAF BREAKER: TUNE .. MORPH) */
+        return f == 9u ? (i ? 0.0f : ((float)set.ksyn[KS_TUNE] + 12.0f) * (1.0f / 24.0f)) :
+               f == 10u ? (i ? 0.0f : set.kick.l[KL_SUB].decay) :
+               f == 11u ? (i < 3 ? (float)set.kbass[1 + i] * 0.01f : 0.0f) :
+               f == 12u ? (i ? 0.0f : (float)set.kbass[0] * 0.01f) :
+               f == 13u ? (i ? 0.0f : (float)set.csub * 0.01f) :
+               i == 0 ? (float)set.kmorph * 0.01f : i == 1 ? (float)(set.kmorph_to % KICK_MEMS) * (1.0f / 9.0f) : 0.0f;
     if (f >= 6u)
         return i == 0 ? sk_norm(4u, (int)(f - 5u)) : 0.0f;
     if (f == 5u)
@@ -553,7 +595,7 @@ static float sk_norm(uint32_t f, int i)  /* a setting 0..1, as its bar */
     if (sk_signed(f, i))
         return ((float)(int8_t)v + 50.0f) * 0.01f;
     if (f == 4u && i == 1)
-        return (float)v * 0.5f;
+        return (float)v * 0.25f;
     if ((f == 0u && i == 3))
         return (float)v;
     if (f == 2u && i == 1)
@@ -564,12 +606,28 @@ static float sk_norm(uint32_t f, int i)  /* a setting 0..1, as its bar */
 static void selk_turn(uint32_t f, int i, int32_t d)
 {
     char t[16], n[20];
-    if (f >= 6u) {                       /* (T+ TYPE, SCREECH, TAIL alone) */
+    if (f >= 9u) {                       /* LOAF BREAKER: TUNE, DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH */
+        if (f == 9u && i == 0)
+            set.ksyn[KS_TUNE] = (int8_t)clamp((int32_t)set.ksyn[KS_TUNE] + (d > 0 ? 1 : -1), -12, 12);
+        else if (f == 10u && i == 0)
+            set.kick.l[KL_SUB].decay = knob_f(set.kick.l[KL_SUB].decay, d, 0.02f, 0.0f, 1.0f);
+        else if (f == 11u && i < 3)
+            set.kbass[1 + i] = (uint8_t)clamp((int32_t)set.kbass[1 + i] + d * 2, 0, 100);
+        else if (f == 12u && i == 0)
+            set.kbass[0] = (uint8_t)clamp((int32_t)set.kbass[0] + d * 2, 0, 100);
+        else if (f == 13u && i == 0)
+            set.csub = (uint8_t)clamp((int32_t)set.csub + d * 2, 0, 100);
+        else if (f == 14u && i == 0)
+            set.kmorph = (uint8_t)clamp((int32_t)set.kmorph + d * 2, 0, 100);
+        else if (f == 14u && i == 1)
+            set.kmorph_to = (uint8_t)clamp((int32_t)(set.kmorph_to % KICK_MEMS) + (d > 0 ? 1 : -1), 0, KICK_MEMS - 1);
+        else
+            return;
+    } else if (f >= 6u) {                /* (T+ TYPE, SCREECH, TAIL alone) */
         if (i == 0)
             selk_turn(4u, (int)(f - 5u), d);
         return;
-    }
-    if (f == 5u) {                       /* DRIVE */
+    } else if (f == 5u) {                /* DRIVE */
         if (i)
             return;
         set.kick.intensity = knob_f(set.kick.intensity, d, 0.02f, 0.0f, 1.0f);
@@ -578,7 +636,7 @@ static void selk_turn(uint32_t f, int i, int32_t d)
         if (sk_signed(f, i))
             *b = (uint8_t)(int8_t)clamp((int32_t)(int8_t)*b + d * 2, -50, 50);
         else if (f == 4u && i == 1)
-            *b = (uint8_t)clamp((int32_t)*b + (d > 0 ? 1 : -1), 0, 2);
+            *b = (uint8_t)clamp((int32_t)*b + (d > 0 ? 1 : -1), 0, 4);   /* (LOAF BREAKER: RECT, TUBE too) */
         else if (f == 0u && i == 3)
             *b = (uint8_t)clamp((int32_t)*b + (d > 0 ? 1 : -1), 0, 1);
         else if (f == 2u && i == 1)
@@ -588,10 +646,10 @@ static void selk_turn(uint32_t f, int i, int32_t d)
     }
     selk_value(f, i, t);
     n[0] = 0;
-    text_cat(n, SK_NAME[f % 9u]);
+    text_cat(n, SK_NAME[f % SK_N]);
     if (i || f == 4u) {
         text_cat(n, " ");
-        text_cat(n, SK_KNOB[f % 9u][i & 3]);
+        text_cat(n, SK_KNOB[f % SK_N][i & 3]);
     }
     app_say(n, t);
     changed();

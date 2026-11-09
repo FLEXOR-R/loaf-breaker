@@ -159,6 +159,8 @@ typedef struct {
                                           * long; 0..100, 50 as it was) */
     uint8_t sfx_on;                      /* (appended: GLO EFFECTS, the screen effects on, several at once: bit e - 1 for
                                           * SFX_* e; none to start. crt, the one MORE picked before, is left) */
+    uint8_t csub;                        /* (appended: the kick's CLEAN SUB, 0..100; an older save: 0, off) */
+    uint8_t kmorph, kmorph_to;           /* (appended: KICK MORPH, 0..100 towards kick memory kmorph_to (0..9); 0: off) */
 } settings_t;
 enum { DS_SNARE, DS_KICK, DS_BOTH, DS_STUTTER, DS_SWEEP, DS_RANDOM, DS_N };
 static const uint8_t DROP_GAP[5] = {0u, 1u, 2u, 4u, 8u};   /* its steps: none, a 16th, an 8th, a beat, half a bar */
@@ -189,6 +191,56 @@ static perc_voice_t *perc_mem(uint32_t v, uint32_t i)   /* its memory i */
 static uint8_t set_dirty;
 static uint8_t foot_dirty;               /* a setting changed: the slicer's foot shows the new value */
 
+/* LOAF BREAKER: the kick to the engine: the one playing (set.kick, its SYNTH set.ksyn), or with KICK MORPH up that
+ * far towards kick memory kmorph_to: every level, pitch, decay, tone, effect setting, TERROR and SYNTH setting in
+ * between; the layers' effects and TERROR + 's TYPE the nearer one's. CLEAN SUB with it */
+static int32_t morph_i(int32_t a, int32_t b, uint32_t m) { return a + (b - a) * (int32_t)m / 100; }
+static void kick_send(void)
+{
+    uint32_t m = set.kmorph > 100u ? 100u : set.kmorph, i, j;
+    if (!m) {
+        kick_set(&set.kick);
+        kick_set_synth(set.ksyn);
+    } else {
+        kick_t k = set.kick;
+        const kick_t *b = &set.kmem[set.kmorph_to % KICK_MEMS];
+        int8_t sy[KS_N];
+        float t = (float)m * 0.01f;
+        for (i = 0; i < KICK_LAYERS; i++) {
+            kick_layer_t *l = &k.l[i];
+            const kick_layer_t *o = &b->l[i];
+            l->level += (o->level - l->level) * t;
+            l->pitch += (o->pitch - l->pitch) * t;
+            l->decay += (o->decay - l->decay) * t;
+            l->tone += (o->tone - l->tone) * t;
+            if (l->fx == o->fx) {
+                l->fa += (o->fa - l->fa) * t;
+                l->fb += (o->fb - l->fb) * t;
+                l->wet += (o->wet - l->wet) * t;
+            } else if (m >= 50u) {
+                l->fx = o->fx;
+                l->fa = o->fa;
+                l->fb = o->fb;
+                l->wet = o->wet;
+            }
+            for (j = 0; j < 3u; j++) {   /* (the TERRORs' bytes: the amounts 0..100, TYPE the nearer, the rest int8) */
+                int unsign = j == 0u && i != KL_GRIT, type = i == KL_GRIT && j == 2u;
+                if (type)
+                    l->rsv[j] = m >= 50u ? o->rsv[j] : l->rsv[j];
+                else if (unsign)
+                    l->rsv[j] = (uint8_t)morph_i(l->rsv[j], o->rsv[j], m);
+                else
+                    l->rsv[j] = (uint8_t)(int8_t)morph_i((int8_t)l->rsv[j], (int8_t)o->rsv[j], m);
+            }
+        }
+        k.intensity += (b->intensity - k.intensity) * t;
+        for (j = 0; j < KS_N; j++)
+            sy[j] = (int8_t)morph_i(set.ksyn[j], set.ksmem[set.kmorph_to % KICK_MEMS][j], m);
+        kick_set(&k);
+        kick_set_synth(sy);
+    }
+    kick_set_clean_sub((float)(set.csub > 100u ? 100u : set.csub) * 0.01f);
+}
 static void settings_defaults(void)
 {
     uint32_t k;
@@ -304,8 +356,7 @@ static void settings_apply(void)
     brk_fx_set_kick_eq(set.keq);   /* (the ARP's REESE in the kick's key) */
     brk_gate((float)(set.gate ? set.gate : 100u) * 0.01f);
     brk_snap(SNAP_SL[snap_index()]);
-    kick_set(&set.kick);
-    kick_set_synth(set.ksyn);            /* (LOAF BREAKER: its SYNTH) */
+    kick_send();                         /* (LOAF BREAKER: the kick, its SYNTH, MORPH and CLEAN SUB) */
     kick_set_bass((float)set.kbass[0] * (float)set.kbass[0] * 0.04f, (float)set.kbass[1] * 0.01f,
                   (float)set.kbass[2] * 0.01f, (float)set.kbass[3] * 0.01f);   /* (TEST: its BASS) */
     {

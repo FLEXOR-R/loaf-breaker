@@ -70,7 +70,7 @@ wait 100
 tap ENV
 wait 300
 turn ALGO 1 10
-turn PRESET 9 10
+turn PRESET 7 10
 wait 300
 shot r_knob.png
 press SEL

@@ -17,6 +17,8 @@ typedef struct {
     float tlo, tlp, tenv;                /* LOAF BREAKER: TERROR's low split, its fizz's low-pass, the kick's level */
     float t2lo, t2lp, t2env;             /* TERROR 2's low split, its mids' low-pass, the kick's level */
     float sc1, sc2;                      /* (TEST) TERROR's SCREECH, its band's state */
+    float rdc;                           /* LOAF BREAKER: TERROR's RECT and TUBE, their offset followed (taken off) */
+    float clp;                           /* CLEAN SUB: the distorted kick's lows (taken out) */
     uint32_t hold;                       /* (SYNTH) the SUB's HOLD left, samples (~0u: from the hit, to be set) */
     float rlp, rout, rlvl, dc;           /* the RUMBLE: its input low-passed, its output low-passed, its level; ASYM's
                                           * offset followed (taken off) */
@@ -47,7 +49,8 @@ typedef struct {
     float tsub, tfz, tsus;               /* (ENV's KNOB) TERROR's split, its fizz's low-pass, its follow */
     float t2sub, t2scr, t2push;          /* TERROR 2's split, its mids' low-pass, their push */
     float trel;                          /* (TEST) TERROR's TAIL: its level's fall a sample */
-    uint8_t ttype;                       /* its TYPE */
+    uint8_t ttype;                       /* its TYPE (0 FOLD, 1 CLIP, 2 CRUSH, 3 RECT, 4 TUBE) */
+    float csub;                          /* LOAF BREAKER: CLEAN SUB, 0..1 */
     float sa1, sa2, sa3, sgain;          /* its SCREECH: the band's coefficients and level (0: off) */
     float sdrop, asym, rum, rfb;         /* (SYNTH) the SUB's drop, the uneven drive, the rumble's level and feedback */
     uint32_t hold_n, rlen;               /* the SUB's hold (samples), the rumble's line (samples) */
@@ -63,6 +66,8 @@ void kick_set_bass(float glide_ms, float rb_level, float rb_start, float rb_curv
     p_rbk = rb_curve;
 }
 void kick_set_beat(float spb) { p_spb = spb; }
+static volatile float p_csub;            /* LOAF BREAKER: CLEAN SUB (kick_set_clean_sub) */
+void kick_set_clean_sub(float amount) { p_csub = amount; }
 
 static volatile kick_t p_k;
 static volatile int8_t p_syn[KS_N];      /* (SYNTH) the main loop's */
@@ -204,7 +209,7 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c)
     }
     {                                    /* (TEST) TERROR's TYPE, TAIL, SCREECH */
         float tl = brk_clampf((float)(int8_t)KICK_T_TAIL(k), -50.0f, 50.0f), sw = (float)KICK_T_SCREECH(k);
-        c->ttype = (uint8_t)(KICK_T_TYPE(k) <= 2u ? KICK_T_TYPE(k) : 0u);
+        c->ttype = (uint8_t)(KICK_T_TYPE(k) <= 4u ? KICK_T_TYPE(k) : 0u);
         c->trel = 0.0012f * brk_exp2f_c(-tl * 0.07f);   /* (+50: ~11x slower, the fold hangs on; -50: faster) */
         c->sgain = 0.0f;
         if (sw > 0.0f) {                 /* a band at ~500 Hz .. 5 kHz, Q ~6 (Simper's state-variable) */
@@ -233,6 +238,7 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c)
         c->t2push = 1.2f * brk_exp2f_c(brk_clampf(e, -50.0f, 50.0f) * 0.03f);
     }
     c->vol = brk_clampf(k->volume, 0.0f, 1.0f);
+    c->csub = brk_clampf(p_csub, 0.0f, 1.0f);
 }
 
 static void kv_hit(kv_t *v)
@@ -298,6 +304,8 @@ static inline float layer_fx(kv_t *v, const kc_t *c, uint32_t i, float x)
 static inline float kv_tick(kv_t *v, const kc_t *c)
 {
     float x[KICK_LAYERS], y = 0.0f, d, out;
+    float clean = c->csub > 0.0f ? brk_sin_turns(v->ph[KL_SUB]) * v->env[KL_SUB] : 0.0f;   /* (CLEAN SUB: the SUB's
+                                          * sine, this sample, before anything drives it) */
     uint32_t i;
     /* SUB: a sine dropping an octave and a half to its pitch, saturated by its tone */
     x[KL_SUB] = soft(brk_sin_turns(v->ph[KL_SUB]) * c->sub_sat) * (1.0f + c->sub_sat) / c->sub_sat;
@@ -377,6 +385,14 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
             z = brk_clampf(h, -1.0f, 1.0f);
         else if (c->ttype == 2u)         /* CRUSH: folded, then in eight steps */
             z = (float)(int32_t)(z * 4.0f) * 0.25f;
+        else if (c->ttype >= 3u) {       /* LOAF BREAKER: RECT, rectified (an octave up, hollow and metallic); TUBE,
+                                          * one side pushed harder than the other (even harmonics, warm and fat); their
+                                          * offset taken off */
+            float s = soft(h);
+            z = c->ttype == 3u ? 2.0f * brk_absf(s) : (h > 0.0f ? soft(h * 1.8f) : 0.6f * soft(h * 0.7f));
+            v->rdc += (z - v->rdc) * 0.002f;
+            z -= v->rdc;
+        }
         if (c->sgain > 0.0f) {           /* SCREECH: its band, resonant, on top */
             float v3 = z - v->sc2, v1 = c->sa1 * v->sc1 + c->sa2 * v3, v2 = v->sc2 + c->sa2 * v->sc1 + c->sa3 * v3;
             v->sc1 = 2.0f * v1 - v->sc1;
@@ -411,6 +427,11 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
         v->rout += (tap - v->rout) * 0.06f;
         v->rlvl = brk_absf(v->rout) > v->rlvl ? brk_absf(v->rout) : v->rlvl * 0.9995f;
         out = brk_clampf(out + v->rout * c->rum * 1.5f, -1.2f, 1.2f);
+    }
+    if (c->csub > 0.0f) {                /* LOAF BREAKER: CLEAN SUB: the distorted kick's lows (~90 Hz down) out, a pure
+                                          * sine at the SUB's note in: the round bass under the dirt */
+        v->clp += (out - v->clp) * 0.013f;
+        out = brk_clampf(out - v->clp * c->csub + clean * 0.9f * c->csub, -1.2f, 1.2f);
     }
     out *= c->vol;
     v->last = out;

@@ -45,7 +45,8 @@ typedef struct {
 #define KICK_T2_SCREAM(k) ((k)->l[KL_PUNCH].rsv[2])
 #define KICK_T2_PUSH(k) ((k)->l[KL_CLICK].rsv[1])
 /* LOAF BREAKER (TEST): TERROR's more: DRIVE (-50 .. +50, int8: the fold's gain apart from AMOUNT's mix), TYPE (0 FOLD,
- * 1 CLIP: squared off, 2 CRUSH: folded then stepped), SCREECH (0 off, 1..100: a resonant band after it, ~500 Hz ..
+ * 1 CLIP: squared off, 2 CRUSH: folded then stepped, 3 RECT: rectified, an octave up and hollow, 4 TUBE: uneven,
+ * warm and fat), SCREECH (0 off, 1..100: a resonant band after it, ~500 Hz ..
  * 5 kHz: the whistle), TAIL (-50 .. +50: the distortion dying with the kick faster .. hanging on) */
 #define KICK_T_DRIVE(k) ((k)->l[KL_GRIT].rsv[0])
 #define KICK_T_TYPE(k) ((k)->l[KL_GRIT].rsv[2])
@@ -89,6 +90,9 @@ void kick_hit(void);                     /* main loop (a MIDI note): a kick at t
  * drive and TERROR. Main loop */
 void kick_set_bass(float glide_ms, float rb_level, float rb_start, float rb_curve);
 void kick_set_beat(float spb);           /* render, each block: samples a beat (the REVERSE BASS's beat) */
+/* LOAF BREAKER: CLEAN SUB, 0..1: a pure sine at the SUB's note (its drop, its envelope) laid after all the
+ * distortion, the distorted kick's own lows (under ~90 Hz) taken out as much: round bass under the dirt. Main loop */
+void kick_set_clean_sub(float amount);
 /* render: n samples into out (overwritten); hits at the sample offsets at[0..nat-1] (rising) */
 void kick_render(float *out, uint32_t n, const uint16_t *at, uint32_t nat);
 /* LOAF BREAKER: the next render's speed, a sample each (0..1: the VINYL BREAK slowing the kick like a record), or 0

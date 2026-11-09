@@ -197,16 +197,25 @@ or K2 left once more, deletes it, the rest moving up),
   screen effects off, their settings at 50 %, WAVE ZOOM one bar). To reset it, **turn K2, K3 or K4 five clicks**, each within 2 s of the last (five
   boxes fill as you turn; a pause starts them again from 0).
 - **KNOB**: what SEL + each knob does, on any page. **ALGORITHM** (or white keys 1–4) picks the knob, **PRESETS**
-  gives it its function: TERROR 2, TERROR, T+ DRIVE, T+ TYPE, T+ SCREECH, T+ TAIL (TERROR +'s settings, one each) or
-  DRIVE (the kick's INTENSITY). They start as K1 DRIVE, K2 TERROR 2, K3 T+ SCREECH, K4 TERROR. K1–K4 then set the
+  gives it its function: TERROR 2, TERROR, T+ DRIVE, T+ TYPE, T+ SCREECH, T+ TAIL (TERROR +'s settings, one each),
+  DRIVE (the kick's INTENSITY), TUNE, DECAY, REV BASS, GLIDE, CLEAN SUB or MORPH. They start as K1 DRIVE, K2 TERROR 2, K3 T+ SCREECH, K4 TERROR. K1–K4 then set the
   function picked (K1 is what SEL + its knob turns). DUCK and COMP are not here: the MIXER (LFO) has them, MASTER and
   DYNAMICS.
   - **TERROR 2**: AMOUNT, SUB (what stays clean under it, ~48–250 Hz), SCREAM (the mids it pushes, ~150 Hz–2.4 kHz),
     PUSH (how hard).
   - **TERROR**: AMOUNT, SUB, FIZZ (its top, darker or brighter), SUSTAIN (the fold dying with the kick, or a wall).
   - **TERROR +** (its settings on EDIT KICK too): DRIVE (the fold's gain, apart from AMOUNT's mix), TYPE (FOLD the
-    scream, CLIP squared off, CRUSH in steps), SCREECH (a resonant band, ~500 Hz–5 kHz, the whistle; OFF to the left),
+    scream, CLIP squared off, CRUSH in steps, RECT rectified: an octave up, hollow and metallic, TUBE uneven: warm
+    and fat), SCREECH (a resonant band, ~500 Hz–5 kHz, the whistle; OFF to the left),
     TAIL (the distortion dying fast, or hanging on between kicks).
+  - **TUNE**: the whole kick, −12 to +12 semitones (SYNTH +'s TUNE). **DECAY**: the SUB's tail (HOME's K4 the same).
+  - **REV BASS**: AMOUNT, START, CURVE (the kick's BASS part). **GLIDE**: its TIME.
+  - **CLEAN SUB**: AMOUNT. A pure sine at the SUB's note (its drop, its tail) laid **after** all the distortion, the
+    distorted kick's own lows (under ~90 Hz) taken out as much: the round, fat bass under the dirt, as new-school
+    gabber and uptempo do. One for all the kicks.
+  - **MORPH**: AMOUNT, TO KICK. The kick playing slides towards another of the ten memories: every level, pitch,
+    decay, tone, TERROR and SYNTH setting in between (the effects and TERROR +'s TYPE the nearer one's). From a round
+    kick to a saturated one over a build, back at the drop.
   The TERRORs' settings are the kick's own: they go with its memory (KICK 1–10).
 
 **No saturation.** Whatever the effects and COMP do, a last guard holds every peak under full scale (-0.4 dB) by turning
