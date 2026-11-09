@@ -1,7 +1,7 @@
 # CHOPPAH: the kick on EDIT (EDIT again: the snare, the hat, the kick again). ALGORITHM turns through its parts: MIX,
 # each layer and its FX (SUB, SUB FX, PUNCH ... CLICK FX), MACRO, OUT; PRESETS the built-in kicks; its steps are on
 # SEQ's KICK lane; MIDI note 36 plays it
-#   app/build/host/choppah_host tests/scenarios/kick.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/kick.txt app/build/scenarios
 wait 4200
 tap SEQ
 tap SEQ

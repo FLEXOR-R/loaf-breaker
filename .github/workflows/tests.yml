@@ -51,7 +51,7 @@ jobs:
         run: |
           cp breaks/tests/picks${{ matrix.set }}.txt breaks/breaks.txt
           ./build.sh
-          mv app/build/choppah.fwsc app/build/loaf-breaker-picks${{ matrix.set }}.fwsc
+          mv app/build/loaf-breaker.fwsc app/build/loaf-breaker-picks${{ matrix.set }}.fwsc
 
       - uses: actions/upload-artifact@v4
         with:

@@ -1,6 +1,6 @@
 # LOAF BREAKER: GLO MORE, PRESETS: WAVE ZOOM, how much of the past HOME's scrolling wave (PERFORM's CDJ view)
 # holds: 1/2, 2/3, 5/6, 1 (as it was), 1 1/4, 1 1/2, 2 bars. Playing, HOME's CDJ view (its default): the wave at 1/2, 1 and 2.
-#   app/build/host/choppah_host tests/scenarios/wavezoom.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/wavezoom.txt app/build/scenarios
 wait 4200
 tap PLAY
 wait 3000

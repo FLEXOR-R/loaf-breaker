@@ -1,7 +1,7 @@
 # LOAF BREAKER: ENV's KNOB, what SEL + each knob does (DUCK and COMP are the MIXER's: not here). K1 DRIVE, K2 TERROR 2,
 # K3 T+ SCREECH, K4 TERROR to start with; K3 (ALGORITHM twice): its SCREECH up (K1), SEL + K3 the same; PRESETS left
 # four: T+ TYPE, T+ DRIVE, TERROR, then TERROR 2 (COMP passed over). LFO four times: DYNAMICS (COMP's and DUCK's timing).
-#   app/build/host/choppah_host tests/scenarios/knob.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/knob.txt app/build/scenarios
 wait 4200
 tap ENV
 wait 150

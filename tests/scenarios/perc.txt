@@ -1,6 +1,6 @@
 # CHOPPAH: the snare and the hat on EDIT (EDIT again from the kick: the snare, then the hat). ALGORITHM turns SOUND /
 # SHAPE; PRESETS their sounds; their steps are on SEQ's SNARE and HAT lanes; MIDI notes 38 and 42 play them
-#   app/build/host/choppah_host tests/scenarios/perc.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/perc.txt app/build/scenarios
 wait 4200
 tap LFO
 wait 100

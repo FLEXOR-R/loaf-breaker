@@ -1,7 +1,7 @@
 # LOAF BREAKER: GLO's EFFECTS (GLO four times): white keys 1-7 turn the screen effects on and off, several at once
 # (CRT, VHS, GRAIN, RGB, SHAKE, STROBE, 8-BIT; none to start); K1 points at one (from the last one touched), K2 turns it on or off. Playing, each
 # alone on the HOME page, then VHS and RGB together; the EFFECTS page itself.
-#   app/build/host/choppah_host tests/scenarios/effects.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/effects.txt app/build/scenarios
 wait 4200
 tap SEQ
 wait 200

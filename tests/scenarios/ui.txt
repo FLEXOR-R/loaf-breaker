@@ -1,5 +1,5 @@
 # CHOPPAH's screens (LOAF BREAKER: the splash held 1.5 s): the splash, the start screen, the slicer block view, playing
-#   app/build/host/choppah_host tests/scenarios/ui.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/ui.txt app/build/scenarios
 splash
 shot u0_splash.png
 wait 1620

@@ -1,6 +1,6 @@
 # LOAF BREAKER TEST: the test firmware's new things. The start-up glitch; ARP held: FILL; the kick's BASS part (GLIDE,
 # REV BASS); MB OTT on the chain; BUILD's TEMPO RISE; GLO MORE's CRT; a track playing: its progress and DROP IN.
-#   app/build/host/choppah_host tests/scenarios/loaftest.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/loaftest.txt app/build/scenarios
 wait 250
 shot x_glitch.png
 wait 4000

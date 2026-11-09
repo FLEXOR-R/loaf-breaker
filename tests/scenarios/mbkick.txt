@@ -1,7 +1,7 @@
 # LOAF BREAKER: KICK FX's MB KICK, an MB COMP set for a gabber kick (KICK GABBER), after MB COMP in its PRESETS list.
 # The KICK menu's FX 1 (EDIT four times: TONE; ALGORITHM twice), PRESETS to MB COMP (12), on to MB KICK, back to a plain
 # MB COMP, MB KICK again, then CLIP (past it). The kick plays through it.
-#   app/build/host/choppah_host tests/scenarios/mbkick.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/mbkick.txt app/build/scenarios
 wait 4200
 tap PLAY
 wait 300

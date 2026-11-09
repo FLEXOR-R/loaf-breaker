@@ -17,7 +17,7 @@ PY="${PYTHON:-python3}"
 ./build.sh --release "$VER"
 ./build.sh --web --release "$VER"
 rm -rf build/site
-"$PY" base/tools/make_site.py app "app/build/choppah-$VER.fwsc" "$VER" build/site
+"$PY" base/tools/make_site.py app "app/build/loaf-breaker-$VER.fwsc" "$VER" build/site
 "$PY" tools/site_style.py build/site          # CHOPPAH's look, and the control map in the manual
 
 case "$DEST" in

@@ -1,6 +1,6 @@
 # GLOUPI BREAKS: the last black key (FREEZE's in CHOPPAH, DUB's before the swap) turns the kick's SUB DRIVE on and off:
 # its light and the strip's SUB lit while on; EDIT shows the SUB layer's effect
-#   app/build/host/choppah_host tests/scenarios/subdrive.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/subdrive.txt app/build/scenarios
 wait 4200
 tapkey w0
 wait 300

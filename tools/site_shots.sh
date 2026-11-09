@@ -4,7 +4,7 @@
 #   sh tools/site_shots.sh
 set -e
 cd "$(dirname "$0")/.."
-H=app/build/host/choppah_host
+H=app/build/host/loaf-breaker_host
 OUT=app/build/scenarios
 IMG=app/docs/img
 [ -x "$H" ] || { echo "site_shots: build the host first (./build.sh --host)"; exit 1; }

@@ -483,7 +483,7 @@ data first, header last, so a cut upload leaves the old header valid or nothing 
 | Q2 | Name: CHOPPAH / BREAK CHOPPAH / AMEN-1? | CHOPPAH |
 | Q3 | Licence: MPL-2.0 (like fm1-base) or GPL-3.0 (needed if we port GPL code such as X0X's BB Gen port)? | MPL-2.0, write the generator from scratch |
 | Q4 | Default sample rate 22.05 kHz (more breaks, crunchier) or 32 kHz (cleaner)? | 22.05 kHz, per-break override |
-| Q5 | Package identity `id_prefix`: needs a unique FM-1_ number | `FM-1_86` (check the community list before release) |
+| Q5 | Package identity `id_prefix`: needs a unique FM-1_ number | LOAF BREAKER: `FM-1_2623` (9 Nov 2026, free on the Firmware Hub's catalogue; CHOPPAH keeps `FM-1_86`); files `loaf-breaker*` (fm1.toml `name`); docs/hub/SUBMIT.md |
 | Q6 | Theme and splash (e.g. Disco in Paradise branding)? | Black / amber |
 
 ---

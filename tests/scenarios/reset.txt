@@ -1,7 +1,7 @@
 # LOAF BREAKER: ENV's RESET. BUILD changed (KICK ROLL, a beat's gap); RESET (ENV six times): K1 to BUILD; K3 four
 # clicks, a pause of 2.5 s, one more: nothing (counted from 0 again); K4 two clicks, then three: BUILD back to SNARE
 # ROLL, no gap. ALGORITHM picks as K1. KNOB: K1 given T+ TAIL, then RESET KNOB (ALGORITHM, K2 five clicks): K1 DUCK again.
-#   app/build/host/choppah_host tests/scenarios/reset.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/reset.txt app/build/scenarios
 wait 4200
 tap ENV
 wait 100

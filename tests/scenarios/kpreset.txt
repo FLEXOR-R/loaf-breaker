@@ -1,6 +1,6 @@
 # LOAF BREAKER: the KICK menu's OUT part (SOUND: ALGORITHM five times from MIX): K4 PRESET, the built-in kick on the kick
 # selected (KICK 5 here: PRESETS once from KICK 4). Stopped, keys 1-5 play the drums on the big views too (the kick's, the drums').
-#   app/build/host/choppah_host tests/scenarios/kpreset.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/kpreset.txt app/build/scenarios
 wait 4200
 tap EDIT
 wait 300

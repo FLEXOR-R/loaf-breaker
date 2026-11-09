@@ -2,7 +2,7 @@
 # EQ SHAPE, FX 1, FX 2, TERROR, TERROR + (DRIVE, TYPE, SCREECH, TAIL), TERROR 2. LFO three times: MASTER (COMP, RATIO,
 # DUCK, MAX OUT). ENV's KNOB: K2 (ALGORITHM) given DRIVE (PRESETS to its end); SEL + K2 then turns the kick's
 # INTENSITY; K1 given T+ SCREECH (PRESETS: DUCK, TERROR 2, COMP, TERROR, T+ DRIVE, T+ TYPE, T+ SCREECH): SEL + K1 turns it.
-#   app/build/host/choppah_host tests/scenarios/reorg.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/reorg.txt app/build/scenarios
 wait 4200
 tap HOME
 wait 200

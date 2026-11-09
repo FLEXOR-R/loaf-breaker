@@ -1,6 +1,6 @@
 # LOAF BREAKER: the site's screenshots the other scenarios don't give (tools/site_shots.sh copies them into
 # app/docs/img): playing (the CDJ view), HOME held (the slices), the SEL card, a key held, RESET ALL's screen.
-#   app/build/host/choppah_host tests/scenarios/site.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/site.txt app/build/scenarios
 wait 4200
 tap PLAY
 wait 1800

@@ -1,6 +1,6 @@
 # LOAF BREAKER: HALF SPEED's LATCH (K3 while its key is held). Held: on, let go: off; LATCH on while held: it stays
 # on when let go; a press: off; a press: on; LATCH off (held): off at its release.
-#   app/build/host/choppah_host tests/scenarios/halflatch.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/halflatch.txt app/build/scenarios
 wait 4200
 tap PLAY
 wait 500

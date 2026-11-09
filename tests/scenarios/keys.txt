@@ -1,6 +1,6 @@
 # CHOPPAH: a white key held loops its slice and shows it; K1-K4 set its loop (length, pitch, start, mode), SEL
 # puts it back; a quick tap keeps the blocks
-#   app/build/host/choppah_host tests/scenarios/keys.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/keys.txt app/build/scenarios
 wait 4200
 tap PLAY
 wait 800

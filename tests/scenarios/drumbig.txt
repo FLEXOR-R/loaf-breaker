@@ -1,6 +1,6 @@
 # LOAF BREAKER: the KICK menu's big view, SELECT: the drums one by one, each in the big view (the SNARE, the HAT, the
 # CLAP, the HOOVER, then the KICK again), not the tempo; SEL + EDIT: the drums' classic view.
-#   app/build/host/choppah_host tests/scenarios/drumbig.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/drumbig.txt app/build/scenarios
 wait 4200
 tap EDIT
 wait 300

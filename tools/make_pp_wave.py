@@ -13,7 +13,7 @@ import sys
 import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-HOST = os.path.join(ROOT, "app/build/host/choppah_host")
+HOST = os.path.join(ROOT, "app/build/host/loaf-breaker_host")
 
 
 def bar(name):

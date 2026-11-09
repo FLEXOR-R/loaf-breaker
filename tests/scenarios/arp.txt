@@ -1,7 +1,7 @@
 # LOAF BREAKER: the ARP black key (the tenth), its OVERLAY effect. Held: MAIN, K1 the effect, K2 its AMOUNT, K3 its
 # TIME (RATE for CHOP, GATE, WAH, PAN; SWEEP for DIVE, RISE), K4 LATCH; FX while held: MORE, K1 THRU (KICK, BREAK,
 # BOTH), K2 ON / OFF, K3 RATE, K4 SWEEP; FX again: MAIN.
-#   app/build/host/choppah_host tests/scenarios/arp.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/arp.txt app/build/scenarios
 wait 4200
 tap PLAY
 wait 600

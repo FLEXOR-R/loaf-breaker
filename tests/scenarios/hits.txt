@@ -1,7 +1,7 @@
 # LOAF BREAKER: a drum step's own (SEQ, a step held: the foot names its knobs NOTE, HITS, CHANCE, NUDGE). The kick 4X4
 # (K3); its step 1 held, K2 HITS to 2: that kick twice in its step, the others once. Four bars: 4 kicks, then 5. Step 5
 # held, K4 NUDGE +2; K3 CHANCE down on step 9. Let go of a step after turning: it stays on (no toggle). K2 alone: DRUM FLT.
-#   app/build/host/choppah_host tests/scenarios/hits.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/hits.txt app/build/scenarios
 wait 4200
 tap SEQ
 wait 200

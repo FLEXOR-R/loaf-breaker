@@ -1,6 +1,8 @@
-# CHOPPAH's build settings (fm1-base's tools/build.py: ./build.sh)
-name = "CHOPPAH"               # the build's files: choppah.fwsc, choppah-X.Y.fwsc
-id_prefix = "FM-1_86"          # package identity: dev FM-1_8600, releases FM-1_86XXYYZZ (PRD Q5: check it is free)
+# LOAF BREAKER's build settings (fm1-base's tools/build.py: ./build.sh). LOAF BREAKER is FLEXOR's fork of CHOPPAH
+# (Laurens Profittlich, https://github.com/profikid/fm1-break-choppah): its own name, files and identity, CHOPPAH credited
+name = "LOAF-BREAKER"          # the build's files: loaf-breaker.fwsc, loaf-breaker-X.Y.fwsc, loaf-breaker_host (CHOPPAH's: choppah)
+id_prefix = "FM-1_2623"        # package identity, its own (CHOPPAH's: FM-1_86): dev FM-1_262300, releases FM-1_2623XXYYZZ;
+                               # free on the Firmware Hub's catalogue, 9 Nov 2026 (no identity there starts 2623)
 usb_manufacturer = "LOAF BREAKER"
 usb_product = "LOAF BREAKER FM-1"     # LOAF BREAKER: "FM-1" kept in the name, so the installer and the tools find the port by themselves
 ble = false                    # GLOUPI BREAKS: no Bluetooth (CHOPPAH: true, Bluetooth MIDI, PRD A-71)
@@ -18,7 +20,7 @@ o2 = ["dsp/*.c"]               # the engine, at -O2
 unity_opt = "z"                # the platform and the UI at -Oz (the engine stays -O2): smaller
 boot_pack = true               # the start-up's RAM images stored LZMA-packed: smaller
 # the site (tools/make_site.py)
-title = "LOAF BREAKER"         # the name people see (firmware.json; the site: tools/site_style.py); the build's files keep CHOPPAH's
+title = "LOAF BREAKER"         # the name people see (firmware.json; the site: tools/site_style.py)
 install_app = "site/install_app.js"   # confetti when the install is done
 tagline = "A hardcore break chopper for the FM-1"
 repo = "https://github.com/FLEXOR-R/loaf-breaker"   # LOAF BREAKER (CHOPPAH: https://github.com/profikid/fm1-break-choppah)

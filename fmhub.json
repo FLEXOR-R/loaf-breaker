@@ -1,10 +1,11 @@
 {
-  "what": "An Amen break chopper for the FM-1: eight classic breaks cut into 16 slices on the white keys, hold a key to loop it. Black keys are momentary pads for rolls, reverse, freeze, tape stop, gate, filter and dub throws. A generator rearranges the break live, with a four-slot FX chain and a DJ filter.",
-  "author": "Laurens Profittlich",
+  "what": "A hardcore break chopper: breaks cut into 16 slices on the white keys, effect pads on the black keys, a kick with its own synth, TERROR distortion and reverse bass, a 64-step sequencer with conditions, tracks with built-up drops, a HOOVER and screen effects. A fork of CHOPPAH.",
+  "author": "FLEXOR",
   "kinds": [
     "drums"
   ],
-  "play": "https://profikid.github.io/fm1-break-choppah/emu/",
-  "cheat": "https://profikid.github.io/fm1-break-choppah/manual/",
-  "image": "docs/img/card.png"
+  "play": "https://flexor-r.github.io/loaf-breaker/emu/",
+  "cheat": "https://flexor-r.github.io/loaf-breaker/manual/",
+  "image": "docs/img/loaf_breaker_card.png",
+  "color": "#FF8470"
 }

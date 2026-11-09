@@ -12,6 +12,9 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   after each release add a row (version, date, what changed) above the top one and put the version in the intro's
   "LOAF BREAKER 0.1xx". Keep its first part current whenever it is relevant: the summary paragraph, "Les grandes
   étapes", and "Les modifs importantes" (where things are, what was removed or replaced, shortcuts, "À savoir").
+- Identity (9 Nov 2026): its own, `FM-1_2623` (fm1.toml `id_prefix`; CHOPPAH's is FM-1_86), files `loaf-breaker*`
+  (`name`: loaf-breaker.fwsc, app/build/host/loaf-breaker_host), `fmhub.json` LOAF BREAKER's (author FLEXOR). CHOPPAH
+  stays credited (README, site credits, the card's text, fm1.toml). The hub checklist: docs/hub/SUBMIT.md.
 - No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository.
 - Fonts: `font_trim` is on (fm1.toml, 9 Nov 2026). LOAF BREAKER draws in FONT_T, FONT_XS and FONT_B only (cv_text2 for
   bigger: those doubled). fm1-base still generates S, M (~5 KB trimmed) and L (~9 KB trimmed, 31 px), left out of the

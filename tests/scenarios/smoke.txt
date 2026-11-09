@@ -1,5 +1,5 @@
 # CHOPPAH in fm1-base's host simulator: ./build.sh --host, then
-#   app/build/host/choppah_host tests/scenarios/smoke.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/smoke.txt app/build/scenarios
 wait 800
 shot boot.png
 peakreset

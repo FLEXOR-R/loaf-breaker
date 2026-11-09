@@ -70,7 +70,7 @@ jobs:
           PYTHON: /usr/bin/python3
         run: |
           ./build.sh --release "$VERSION" | tee build.log
-          mv "app/build/choppah-$VERSION.fwsc" "app/build/loaf-breaker-test-$VERSION.fwsc"
+          mv "app/build/loaf-breaker-$VERSION.fwsc" "app/build/loaf-breaker-test-$VERSION.fwsc"
           { echo '```'; grep -i -E 'image|flash|bank|slot' build.log | tail -15; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Size report   # (LOAF BREAKER: what takes the room, tools/size_report.py; its failing stops nothing)

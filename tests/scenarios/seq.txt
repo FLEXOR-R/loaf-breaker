@@ -1,7 +1,7 @@
 # CHOPPAH: the pattern sequencer on SEQ. ALGORITHM the lane (steps 1-16, 17-32, kick, snare, hat); white keys pick a
 # step (K1 slice, K2 pitch, K3 hits, K4 reverse) or a drum lane's steps; PRESETS the pattern (playing: at the loop's
 # end); REC records keys and MIDI notes (48.. the slices) into it; SEL + REC clears; SAVE keeps the patterns
-#   app/build/host/choppah_host tests/scenarios/seq.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/seq.txt app/build/scenarios
 wait 4200
 tap SEQ
 wait 300

@@ -1,7 +1,7 @@
 # LOAF BREAKER: the clap and the big SEQ. On SEQ: two kicks on K1 (the kick 64 steps: K1-K4 shown, the empty snare,
 # hat and clap hidden); ALGORITHM to the clap's lane (K2 K3 K4 S1 H1 C1), four claps; its LENGTH to 32: C2; the hat's
 # lane, eight hats; playing; then EDIT on the clap's lane opens the clap's sound
-#   app/build/host/choppah_host tests/scenarios/clap.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/clap.txt app/build/scenarios
 wait 4200
 tap SEQ
 wait 300

@@ -1,6 +1,6 @@
 # CHOPPAH: the demo. A minute untouched (stopped) and the five scenes run, eight seconds each, the lights with them;
 # a press ends it and does nothing else (here HOME's: the page stays PERFORM, the break stays stopped)
-#   app/build/host/choppah_host tests/scenarios/demo.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/demo.txt app/build/scenarios
 wait 4200
 tap ARP
 wait 200

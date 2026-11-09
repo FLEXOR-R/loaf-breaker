@@ -1,6 +1,6 @@
 # LOAF BREAKER: ENV held on TRACKS: a gap after the item edited (the ones after it one place right), filled with a
 # white key; K2 left on a gap: gone again; a gap left is played past. Track 1 as it starts: P1 x4, P2 x4, DROP, P3.
-#   app/build/host/choppah_host tests/scenarios/trkgap.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/trkgap.txt app/build/scenarios
 wait 4200
 tap ENV
 wait 300

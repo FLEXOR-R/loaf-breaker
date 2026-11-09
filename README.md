@@ -87,8 +87,8 @@ are built in: LOAF BREAKER does not load samples of your own.
 ```
 scripts/bootstrap.sh    # once: fm1-base (submodule), JieLi toolchain, AC79 SDK files, Python packages
 ./build.sh test         # the engine's tests, plain cc, no toolchain needed
-./build.sh              # app/build/choppah.fwsc (the build's files keep CHOPPAH's name) (macOS: the toolchain runs in Docker / OrbStack)
-./build.sh --host       # the host simulator: app/build/host/choppah_host tests/scenarios/ui.txt OUTDIR
+./build.sh              # app/build/loaf-breaker.fwsc (the build's files keep CHOPPAH's name) (macOS: the toolchain runs in Docker / OrbStack)
+./build.sh --host       # the host simulator: app/build/host/loaf-breaker_host tests/scenarios/ui.txt OUTDIR
 ./build.sh --web        # the browser emulator (Emscripten)
 ./build.sh flash        # install over USB-MIDI (docs/FLASHING.md)
 ```

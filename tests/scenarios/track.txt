@@ -2,7 +2,7 @@
 # P1 (white key 1), a DROP (K2 past P16), P2 (white key 2); DROP: no build (K1 to NONE); PLAY: track 2 played (PLAY:
 # HOME, T2 in the header): P1's two bars, the drop at its end into P2, P2's two bars, P1 again (LOOP). Then on
 # track 1, SEL + ENV: the build from the next bar.
-#   app/build/host/choppah_host tests/scenarios/track.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/track.txt app/build/scenarios
 wait 4200
 tap ENV
 wait 300

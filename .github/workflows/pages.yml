@@ -101,7 +101,7 @@ jobs:
         run: |
           ./build.sh --release "$VERSION"
           ./build.sh --web --release "$VERSION"     # the emulator shows the version too
-          /usr/bin/python3 base/tools/make_site.py app "app/build/choppah-$VERSION.fwsc" "$VERSION" site
+          /usr/bin/python3 base/tools/make_site.py app "app/build/loaf-breaker-$VERSION.fwsc" "$VERSION" site
           /usr/bin/python3 tools/site_style.py site    # CHOPPAH's look, and the control map in the manual
           /usr/bin/python3 tools/site_latest.py site   # a stable name for the package, so a catalogue's link keeps working
 
@@ -118,7 +118,7 @@ jobs:
           name: CHOPPAH ${{ env.VERSION }}
           generate_release_notes: true
           make_latest: true
-          files: app/build/choppah-${{ env.VERSION }}.fwsc
+          files: app/build/loaf-breaker-${{ env.VERSION }}.fwsc
 
   deploy:
     needs: build

@@ -1,7 +1,7 @@
 # LOAF BREAKER: TRACKS, SEL + PLAY: the item edited is where PLAY starts the track (a flag at its corner, FROM 2 at the
 # top); PLAY there plays the track from it (the page stays TRACKS); SEL + PLAY again on it: from the first again.
 # Track 1 as it starts: P1 x4, P2 x4, a DROP, P3 x8.
-#   app/build/host/choppah_host tests/scenarios/trkfrom.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/trkfrom.txt app/build/scenarios
 wait 4200
 tap ENV
 wait 300

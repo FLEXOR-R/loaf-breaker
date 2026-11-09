@@ -1,15 +1,15 @@
 #!/bin/sh
 # SPDX-License-Identifier: MPL-2.0
 # Build CHOPPAH with fm1-base (base/: run scripts/bootstrap.sh once first).
-#   ./build.sh                    app/build/choppah.fwsc (the firmware package)
-#   ./build.sh --release X.Y      app/build/choppah-X.Y.fwsc
-#   ./build.sh --host             the host simulator: app/build/host/choppah_host
+#   ./build.sh                    app/build/loaf-breaker.fwsc (the firmware package)
+#   ./build.sh --release X.Y      app/build/loaf-breaker-X.Y.fwsc
+#   ./build.sh --host             the host simulator: app/build/host/loaf-breaker_host
 #   ./build.sh --web              the browser emulator: app/build/emu/
 #   ./build.sh test               the engine's tests (plain cc, no toolchain needed)
 #   ./build.sh bank               the break bank again: app/bank_data.h from breaks/breaks.txt (every build makes it
 #                                 when the list, a WAV or tools/prep_breaks.py is newer)
 #   ./build.sh info               what the connected FM-1 is running
-#   ./build.sh flash [FILE]       install over USB-MIDI (default app/build/choppah.fwsc)
+#   ./build.sh flash [FILE]       install over USB-MIDI (default app/build/loaf-breaker.fwsc)
 # JIELI_TOOLCHAIN, AC79_SDK and PYTHON override the defaults (~/.jieli/toolchain, ~/fw-AC79_AIoT_SDK, python3).
 set -e
 cd "$(dirname "$0")"
@@ -35,7 +35,7 @@ case "$1" in
     info)
         exec "$PY" base/tools/fm1_install.py --info ;;
     flash)
-        PKG="${2:-app/build/choppah.fwsc}"
+        PKG="${2:-app/build/loaf-breaker.fwsc}"
         [ -f "$PKG" ] || { echo "build.sh: no $PKG (./build.sh first)"; exit 1; }
         echo "Installing $PKG. Keep the FM-1 plugged in and charged until it restarts."
         exec "$PY" base/tools/fm1_install.py "$PKG" ;;

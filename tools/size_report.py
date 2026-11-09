@@ -3,7 +3,7 @@
 """LOAF BREAKER: what takes the room in the firmware, from the linked ELF's section headers and symbol table.
 
   tools/size_report.py SECTIONS.txt SYMBOLS.txt [IMAGE_BYTES]
-    SECTIONS.txt: objdump -h choppah.elf    SYMBOLS.txt: objdump -t choppah.elf
+    SECTIONS.txt: objdump -h loaf-breaker.elf    SYMBOLS.txt: objdump -t loaf-breaker.elf
 
 Prints the sections, the symbols by family (the break bank, pictures, fonts, the engine, the screens, the platform,
 Bluetooth...) and the biggest symbols. Symbol sizes are what the linker placed: code and constant data in flash; the

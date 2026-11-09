@@ -1,6 +1,6 @@
 # GLOUPI BREAKS: the lanes' lengths. On SEQ: the kick 64 steps and the snare 16 at first (tabs K1-K4, S1); the
 # snare's LENGTH (K4) to 32: S2 appears, a second bar of snare; the kick's LENGTH to 32: K3 and K4 go
-#   app/build/host/choppah_host tests/scenarios/lanes.txt app/build/scenarios
+#   app/build/host/loaf-breaker_host tests/scenarios/lanes.txt app/build/scenarios
 wait 4200
 tap SEQ
 wait 300
