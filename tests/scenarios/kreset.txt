@@ -32,3 +32,41 @@ wait 200
 turn K4 1 10
 wait 300
 expect kbass1 0
+# MIX: COMP on (LFO MASTER K1), then RESET MIX: off again
+tap LFO
+wait 150
+tap LFO
+wait 150
+tap LFO
+wait 200
+turn K1 10 10
+wait 200
+expect comp 20
+tap ENV
+wait 150
+tap ENV
+wait 150
+tap ENV
+wait 150
+tap ENV
+wait 150
+tap ENV
+wait 150
+tap ENV
+wait 300
+turn K1 4 10
+wait 200
+shot a_reset_mix.png
+turn K4 1 10
+wait 200
+turn K4 1 10
+wait 300
+expect comp 0
+# TRACK: its first item back to 1
+turn K1 5 10
+wait 200
+turn K4 1 10
+wait 200
+turn K4 1 10
+wait 300
+expect trk_from 0

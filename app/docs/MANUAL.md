@@ -175,9 +175,15 @@ metronome and tap tempo are gone).
   **K3 RISER**: the rising noise, OFF to 200 % (100 %: as it was). **K4 GAP**: silence just before the drop (none, a
   16th, an 8th, a beat, half a bar), so the drop hits out of nothing. **PRESETS: TEMPO RISE**, OFF to +30 %: the
   tempo climbs with the build and drops back to yours at the drop (not while following a MIDI clock).
-- **RESET** (ENV's last part): puts a part back as it starts. **K1** picks what (DROP, BUILD, KNOB, **KICK**: each
-  says on the right what it puts back; KICK is the kick selected, KICK 1–10: ROTTERDAM again, its SYNTH and BASS at
-  0, its volume kept, its memory with it), **K4** turned right twice within 3 s resets it (once only arms it: "TURN K4
+- **RESET** (ENV's last part): puts a part back as it starts. **K1** picks what, in a list that scrolls (each says
+  on the right what it puts back): DROP, BUILD, KNOB; **KICK** (the kick selected, KICK 1–10: ROTTERDAM again, its
+  SYNTH and BASS at 0, its volume kept, its memory with it); **KICK TONE** (its EQ flat, its two FX slots empty);
+  **ALL KICKS** (KICK 1–10 as they came); **DRUMS** (the snare's, hat's, clap's and hoover's memory playing as it
+  came); **MIX** (the MIXER: levels, swing, the drums' route, COMP and DUCK off with their timing, MAX OUT −3 dB);
+  **FX CHAIN** (the four slots as they came, each effect's memory forgotten, the FX level kept); **STEPS** (this
+  pattern's drum steps: 1 hit, ALWAYS, on time; the steps themselves kept); **PADS** (the black keys' settings:
+  rolls, THRU, filter, gate, HALF's LATCH, the ARP key's effect); **KEYS** (the white keys' loops and slice effects);
+  **TRACK** (this track: from its first item, every item's break SAME; its items kept). **K4** turned right twice within 3 s resets it (once only arms it: "TURN K4
   AGAIN TO RESET").
 - **KNOB**: what SEL + each knob does, on any page. **ALGORITHM** (or white keys 1–4) picks the knob, **PRESETS**
   gives it its function: TERROR 2, TERROR, T+ DRIVE, T+ TYPE, T+ SCREECH, T+ TAIL (TERROR +'s settings, one each) or

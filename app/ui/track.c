@@ -12,12 +12,23 @@ static void break_ask(uint32_t i);      /* (main.c) */
 static const char *const TPART[NTPART] = {"TRACKS", "PLAY", "DROP", "KNOB", "BUILD", "RESET"};
 static const uint8_t TORDER[NTPART] = {0u, 1u, 2u, 4u, 3u, 5u};   /* (ENV's parts in order: BUILD after DROP, RESET last) */
 /* RESET (ENV's last part): K1 what (a list: more to come), K4 turned right twice within 3 s: back to the start */
-enum { RST_DROP, RST_BUILD, RST_KNOB, RST_KICK, NRST };
-static const char *const RST_NAME[NRST] = {"DROP", "BUILD", "KNOB", "KICK"};
+enum { RST_DROP, RST_BUILD, RST_KNOB, RST_KICK, RST_KTONE, RST_KICKS, RST_DRUMS, RST_MIX, RST_FX, RST_STEPS, RST_PADS,
+       RST_KEYS, RST_TRACK, NRST };
+static const char *const RST_NAME[NRST] = {"DROP", "BUILD", "KNOB", "KICK", "KICK TONE", "ALL KICKS", "DRUMS", "MIX",
+                                           "FX CHAIN", "STEPS", "PADS", "KEYS", "TRACK"};
 static const char *const RST_WHAT[NRST] = {"BUILD 4 BARS, NEXT PATTERN, SAME BREAK, CRASH 100%",
                                           "SNARE ROLL, HIGH-PASS, RISER 100%, NO GAP",
                                           "K1 DRIVE, K2 TERROR 2, K3 T+ SCREECH, K4 TERROR",
-                                          "THE KICK SELECTED (ITS MEMORY): ROTTERDAM, SYNTH AND BASS AT 0, VOLUME KEPT"};
+                                          "THE KICK SELECTED (ITS MEMORY): ROTTERDAM, SYNTH AND BASS AT 0, VOLUME KEPT",
+                                          "THE KICK'S EQ FLAT, ITS TWO FX SLOTS EMPTY",
+                                          "KICK 1-10 AS THEY CAME (909 .. DISTORTO), SYNTH AT 0",
+                                          "SNARE, HAT, CLAP, HOOVER: THE MEMORY PLAYING AS IT CAME",
+                                          "THE MIXER: LEVELS, SWING, COMP AND DUCK OFF, MAX OUT -3 DB",
+                                          "THE FOUR SLOTS AS THEY CAME, EACH EFFECT'S MEMORY FORGOTTEN",
+                                          "THIS PATTERN'S DRUM STEPS: 1 HIT, ALWAYS, ON TIME",
+                                          "THE BLACK KEYS: ROLLS, THRU, FILTER, GATE, LATCH, THE ARP KEY",
+                                          "THE WHITE KEYS' LOOPS AND SLICE EFFECTS",
+                                          "THIS TRACK: FROM ITEM 1, EVERY ITEM'S BREAK SAME"};
 static void reset_do(uint32_t w)
 {
     if (w == RST_DROP) {
@@ -32,7 +43,92 @@ static void reset_do(uint32_t w)
         set.drop_gap = 0u;
     } else if (w == RST_KNOB)            /* KNOB: the knobs' functions */
         set.selk_asg = set.selk_asg2 = 0u;
-    else {                               /* LOAF BREAKER: KICK: the kick selected (KICK 1-10) as it starts: ROTTERDAM,
+    else if (w == RST_KTONE) {           /* KICK TONE: its EQ flat, its FX slots empty, their memory forgotten */
+        uint32_t k;
+        for (k = 0; k < 8u; k++)
+            set.keq[k] = 0.5f;
+        for (k = 0; k < BRK_KFX_SLOTS; k++) {
+            brk_fx_slot_defaults(&set.kfx[k], FXT_EMPTY);
+            set.kfx[k].on = 0u;
+            brk_fxx_defaults(&set.kfxx[k], FXT_EMPTY);
+            brk_mbc_defaults(&set.kmbc[k]);
+        }
+        pats.kfm_ok = 0u;
+    } else if (w == RST_KICKS) {         /* ALL KICKS: KICK 1-10 as they came, the one selected with them */
+        float vol = set.kick.volume;
+        uint32_t k, j;
+        for (k = 0; k < KICK_MEMS; k++) {
+            kick_preset(&set.kmem[k], k % KICK_PRESETS);
+            set.kmem[k].volume = vol;
+            for (j = 0; j < KS_N; j++)
+                set.ksmem[k][j] = 0;
+        }
+        set.kick = set.kmem[set.kslot % KICK_MEMS];
+        for (j = 0; j < KS_N; j++)
+            set.ksyn[j] = 0;
+    } else if (w == RST_DRUMS) {         /* DRUMS: each drum's memory playing as it came (its preset) */
+        uint32_t v;
+        for (v = 0; v < PERC_VOICES; v++) {
+            uint32_t m = *perc_slot(v) % PERC_MEMS;
+            perc_preset(perc_mem(v, m), v, m % PERC_PRESETS);
+            *perc_voice(v) = *perc_mem(v, m);
+        }
+    } else if (w == RST_MIX) {           /* MIX: the MIXER's four parts as they start */
+        brk_fx_t f;
+        perc_t d;
+        brk_fx_defaults(&f);
+        perc_defaults(&d);
+        set.brk_level = 100u;
+        set.kick.volume = 0.8f;
+        set.perc.volume = d.volume;
+        set.fx.wet = f.wet;
+        set.swing = 50u;
+        set.drums_chain = 1u;
+        set.comp = set.duck = set.duck_what = set.max_out = 0u;
+        set.comp_ratio = 3u;
+        set.comp_att = 59u;
+        set.comp_rel = 55u;
+        set.duck_att = 19u;
+        set.duck_rel = 36u;
+    } else if (w == RST_FX) {            /* FX CHAIN: its slots as they came (the MIXER's FX level kept) */
+        float wet = set.fx.wet;
+        uint32_t k;
+        brk_fx_defaults(&set.fx);
+        set.fx.wet = wet;
+        for (k = 0; k < BRK_FX_SLOTS; k++) {
+            brk_mbc_defaults(&set.mbc[k]);
+            brk_fxx_defaults(&set.fxx[k], set.fx.slot[k].type);
+        }
+        pats.mem.fx_ok = 0u;
+    } else if (w == RST_STEPS) {         /* STEPS: this pattern's drum steps plain (the steps themselves kept) */
+        uint32_t k;
+        for (k = 0; k < STEPB_N; k++)
+            steps.b[set.pattern % NPAT][k] = 0u;
+        for (k = 0; k < NDRUMS; k++)
+            pats.hits[set.pattern % NPAT][k] = 0u;
+    } else if (w == RST_PADS) {          /* PADS: the black keys' settings as they came */
+        uint32_t k;
+        brk_padset_defaults(&set.pads);
+        set.half_mt_off = 0u;
+        set.ovl_pad = 0u;
+        for (k = 0; k < 16u; k++)
+            set.ovl_amt[k] = k == OV_DIVE || k == OV_RISE || k == OV_CRUSH || k == OV_DIST || k == OV_BOOM ? 70u : 100u;
+        set.ovl_rate = 2u;
+        set.ovl_sweep = 2u;
+        set.ovl_latch = 0u;
+    } else if (w == RST_KEYS) {          /* KEYS: each white key's loop and slice effect as they came */
+        uint32_t k;
+        for (k = 0; k < BRK_KEYS; k++) {
+            brk_keyset_defaults(&set.keys[k]);
+            brk_slicefx_defaults(&set.slx[k]);
+        }
+    } else if (w == RST_TRACK) {         /* TRACK: this track from its first item, each item's break SAME (its items
+                                          * kept) */
+        uint32_t k;
+        pats.trk[set.trk % NTRACKS].rsv[0] = 0u;   /* (TRK_FROM, below) */
+        for (k = 0; k < TRK_ITEMS; k++)
+            steps.tb[set.trk % NTRACKS][k] = 0u;
+    } else {                               /* LOAF BREAKER: KICK: the kick selected (KICK 1-10) as it starts: ROTTERDAM,
                                           * its TERRORs and effects with it, its SYNTH at 0, its BASS off; its volume
                                           * kept; its memory with it */
         float vol = set.kick.volume;
@@ -963,10 +1059,17 @@ static void track_picture(int32_t top)
     if (ui.tpage == 5u) {                /* RESET: the list (K1), what it puts back, K4 */
         uint32_t w = ui.rst_sel % NRST;
         int arm = ui.rst_arm && plat_ms() - ui.rst_arm < 3000u;
-        for (i = 0; i < NRST; i++) {
-            int32_t y = 6 + (int32_t)i * 20;
-            cv_rect(6, y, 108, 17, i == w ? C_HI : C_BLOCK);
-            cv_text(12, y + 2, &FONT_T, RST_NAME[i], i == w ? C_BLACK : C_GRAY);
+        {                                /* (five at a time, the one picked kept in view) */
+            uint32_t first = w < 2u ? 0u : w + 3u > NRST ? NRST - 5u : w - 2u;
+            for (i = first; i < first + 5u && i < NRST; i++) {
+                int32_t y = 6 + (int32_t)(i - first) * 20;
+                cv_rect(6, y, 108, 17, i == w ? C_HI : C_BLOCK);
+                cv_text(12, y + 2, &FONT_T, RST_NAME[i], i == w ? C_BLACK : C_GRAY);
+            }
+            if (first)                   /* (more above, more below) */
+                cv_rect(116, 6, 2, 6, C_DIM);
+            if (first + 5u < NRST)
+                cv_rect(116, 92, 2, 6, C_DIM);
         }
         cv_text(124, 8, &FONT_XS, "BACK TO THE START:", C_GRAY);
         {                                /* (what it puts back, in lines of ~18) */
