@@ -1,5 +1,6 @@
-# LOAF BREAKER: ENV's RESET. BUILD changed (KICK ROLL, a beat's gap); RESET (ENV six times): K1 to BUILD, K4 right
-# once (armed), once more: BUILD back to SNARE ROLL, no gap. KNOB: K1 given T+ TAIL, then RESET KNOB: K1 DUCK again.
+# LOAF BREAKER: ENV's RESET. BUILD changed (KICK ROLL, a beat's gap); RESET (ENV six times): K1 to BUILD; K3 four
+# clicks, a pause of 2.5 s, one more: nothing (counted from 0 again); K4 two clicks, then three: BUILD back to SNARE
+# ROLL, no gap. ALGORITHM picks as K1. KNOB: K1 given T+ TAIL, then RESET KNOB (ALGORITHM, K2 five clicks): K1 DUCK again.
 #   app/build/host/choppah_host tests/scenarios/reset.txt app/build/scenarios
 wait 4200
 tap ENV
@@ -25,16 +26,20 @@ wait 300
 expect page 8
 shot rs_reset.png
 turn K1 1 10
-turn K4 1 10
+turn K3 4 10
+wait 2500
+turn K3 1 10
+wait 200
+expect drop_style 1
+turn K4 2 10
 wait 200
 shot rs_armed.png
-turn K4 1 10
+turn K4 3 10
 wait 200
 expect drop_style 0
-turn K1 1 10
-turn K4 1 10
+turn ALGO 1 10
 wait 100
-turn K4 1 10
+turn K2 5 10
 wait 200
 expect selk1 0
 shot rs_done.png

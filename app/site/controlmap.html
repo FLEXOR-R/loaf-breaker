@@ -170,7 +170,7 @@
               ["SEL + K1–K4", "The live functions (ENV › KNOB)"], ["SEL ×2 · SEL ×3", "The effect under your hands back to its start · the drop"],
               ["HOME held", "The slices, or the CDJ view again"], ["HOME + PLAY", "Back to bar 1"], ["ARP held", "FILL"]] },
     { id: "edit", btn: "EDIT", name: "KICK · DRUMS", sub: "The kick in four sections; the other drums", again: "next section (4)", part: true, subs: [
-      { n: "SOUND", k: ["(MIX, SUB, PUNCH,", "GRIT, CLICK,", "OUT: ALGO)", ""], strip: "THE KICK'S WAVE LARGE, ITS PITCH FALLING, ITS REAL SOUND IN WHITE · 4 KNOB CARDS", note: "MIX: SUB PUNCH GRIT CLICK; a layer: LEVEL PITCH DECAY TONE" },
+      { n: "SOUND", k: ["(MIX, SUB, PUNCH,", "GRIT, CLICK,", "OUT: ALGO)", "(OUT: PRESET)"], strip: "THE KICK'S WAVE LARGE, ITS PITCH FALLING, ITS REAL SOUND IN WHITE · 4 KNOB CARDS", note: "MIX: SUB PUNCH GRIT CLICK; a layer: LEVEL PITCH DECAY TONE; OUT: VOLUME TERROR TERROR 2 PRESET (a built-in kick on the kick selected)" },
       { n: "SYNTH", k: ["DROP · RUMBLE · GLIDE", "TIME · LENGTH · REV BASS", "SHAPE · ASYM · START", "HOLD · TUNE · CURVE"], strip: "THE KICK'S WAVE · 4 KNOB CARDS", note: "ALGO: SYNTH, SYNTH +, BASS, MACRO" },
       { n: "DIRT", k: ["AMOUNT · DRIVE", "SUB · TYPE", "FIZZ · SCREECH", "SUSTAIN · TAIL"], strip: "THE KICK'S WAVE · 4 KNOB CARDS", note: "ALGO: TERROR, TERROR +, TERROR 2, each layer's effect" },
       { n: "TONE", k: ["LOW", "MID", "HIGH", "FREQ"], strip: "ITS EQ CURVE · ITS TWO FX SLOTS", note: "ALGO: EQ BANDS, EQ SHAPE, FX 1, FX 2 (MB KICK, MB OTT…)" },
@@ -178,7 +178,7 @@
       { n: "DRUM (CLASSIC)", k: ["LEVEL", "TUNE", "DECAY", "TONE"], strip: "ITS 6 SETTINGS · THE 5 DRUMS' SHAPES", note: "SEL + EDIT; EDIT again: the next drum" } ],
       algo: "Part (in its section) · drums: SOUND / SHAPE", presets: "Kick 1–10 · the drum's memories", keys: "slices", sel: "Big view: the next drum",
       notes: [["EDIT again", "The next section: SOUND, SYNTH, DIRT, TONE"], ["EDIT held", "The classic view, or the big one"], ["SELECT (big view)", "The next drum, each in its big view"],
-              ["SEL + EDIT", "The drums' classic view"], ["Keys 1–5, stopped", "Play KICK SNARE HAT CLAP HOOVER (classic view, drums)"],
+              ["SEL + EDIT", "The drums' classic view"], ["Keys 1–5, stopped", "Play KICK SNARE HAT CLAP HOOVER (big and classic views, the drums)"],
               ["SHAPE (drums)", "SNAP / CUT / SPREAD / BEND · DRIVE · PRESET"], ["SEL ×2 on a layer's FX", "That effect back to its start"],
               ["MIDI 36 · 38 · 39 · 40 · 42", "Kick · snare · clap · hoover · hat"]] },
     { id: "seq", btn: "SEQ", name: "SEQUENCER", sub: "16 patterns, every step", again: "next lane (14)", subs: [
@@ -197,8 +197,8 @@
       { n: "DROP", k: ["BUILD", "AFTER", "BREAK", "CRASH"], strip: "THE DROP'S SETTINGS", note: "SEL ×3: the build from the next bar" },
       { n: "BUILD", k: ["STYLE", "SWEEP", "RISER", "GAP"], strip: "THE BUILD BEFORE A DROP", note: "PRESETS: TEMPO RISE, up to +30 % to the drop" },
       { n: "KNOB", k: ["(ITS 1ST)", "(ITS 2ND)", "(ITS 3RD)", "(ITS 4TH)"], strip: "WHAT SEL + K1..K4 DOES, ITS SETTINGS", note: "ALGO the knob, PRESETS its function" },
-      { n: "RESET", k: ["WHAT", "", "", "RESET"], strip: "13 PARTS: DROP BUILD KNOB KICK KICK TONE ALL KICKS DRUMS MIX FX CHAIN STEPS PADS KEYS TRACK", note: "K1 the part, K4 right twice within 3 s" } ],
-      algo: "TRACKS: the item · else the break (next bar)", brk: true, presets: "Track 1–8 · BUILD: tempo rise · KNOB: function", keys: "patterns / tracks", sel: "Tempo (SEL: kick 1–10)",
+      { n: "RESET", k: ["WHAT", "RESET", "RESET", "RESET"], strip: "13 PARTS: DROP BUILD KNOB KICK KICK TONE ALL KICKS DRUMS MIX FX CHAIN STEPS PADS KEYS TRACK · 5 BOXES FILL", note: "K1 or ALGORITHM the part; K2, K3 or K4 five clicks (each within 2 s): reset" } ],
+      algo: "TRACKS: the item · RESET: what · else the break (next bar)", brk: true, presets: "Track 1–8 · BUILD: tempo rise · KNOB: function", keys: "patterns / tracks", sel: "Tempo (SEL: kick 1–10)",
       notes: [["White key (TRACKS)", "Its pattern at the item"], ["ALGORITHM (TRACKS)", "Move along the items (SEL + ALGO: the break)"],
               ["ENV held (TRACKS)", "A space after the item; on a space: it goes"], ["SEL + PLAY (TRACKS)", "The track starts here"],
               ["PLAY (TRACKS)", "The track from its start item, on TRACKS"], ["White keys 1–8 (PLAY)", "That track played"]] },

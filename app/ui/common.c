@@ -143,7 +143,8 @@ static struct {
                                           * (a gap made) */
     uint32_t env_t;
     uint8_t rst_sel;                     /* LOAF BREAKER: ENV's RESET: what it resets (RST_*) */
-    uint32_t rst_arm;                    /* (K4 turned once: when; again within 3 s, the reset) */
+    uint32_t rst_arm;                    /* (the last click of K2-K4: when; RST_TURNS clicks, each within 2 s, the reset) */
+    uint8_t rst_n;                       /* (the clicks so far) */
     uint8_t knfn;                        /* KNOB's function: 0 DUCK (K1), 1 TERROR 2, 2 COMP, 3 TERROR (K4) */
     uint8_t fx_main, kfx_last;           /* (KICK FX: the FX page on slot 4 or 5; the chain's slot kept meanwhile, and
                                           * the kick's last) */

@@ -29,6 +29,19 @@ static const char *const RST_WHAT[NRST] = {"BUILD 4 BARS, NEXT PATTERN, SAME BRE
                                           "THE BLACK KEYS: ROLLS, THRU, FILTER, GATE, LATCH, THE ARP KEY",
                                           "THE WHITE KEYS' LOOPS AND SLICE EFFECTS",
                                           "THIS TRACK: FROM ITEM 1, EVERY ITEM'S BREAK SAME"};
+#define RST_TURNS 5u                     /* LOAF BREAKER: the clicks that reset (K2, K3 or K4), each within 2 s of the last */
+static int rst_live(void)
+{
+    return ui.rst_n && ui.rst_arm && plat_ms() - ui.rst_arm < 2000u;
+}
+static void reset_pick(int32_t d)        /* RESET: the part (K1 or ALGORITHM); the clicks counted start again */
+{
+    ui.rst_sel = (uint8_t)clamp((int32_t)ui.rst_sel + (d > 0 ? 1 : -1), 0, NRST - 1);
+    ui.rst_arm = 0u;
+    ui.rst_n = 0u;
+    app_say("RESET", RST_NAME[ui.rst_sel % NRST]);
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
 static void reset_do(uint32_t w)
 {
     if (w == RST_DROP) {
@@ -623,11 +636,11 @@ static void track_value(int i, char *t)
     const track_t *tr = trk_now();
     char r[6];
     t[0] = 0;
-    if (ui.tpage == 5u) {                /* RESET: what, and K4's state */
+    if (ui.tpage == 5u) {                /* RESET: what, and K2-K4: the clicks */
         if (i == 0)
             text_cat(t, RST_NAME[ui.rst_sel % NRST]);
-        else if (i == 3)
-            text_cat(t, ui.rst_arm && plat_ms() - ui.rst_arm < 3000u ? "AGAIN!" : "TURN >");
+        else
+            text_cat(t, rst_live() ? "MORE!" : "TURN x5");
         return;
     }
     if (ui.tpage == 4u) {                /* BUILD: its style, its filter, its noise, the gap before the drop */
@@ -712,7 +725,7 @@ static void track_say(int i)             /* the knob turned, on the strip */
 {
     static const char *const N[NTPART][4] = {{"ITEM", "PUT", "LOOPS", "BREAK"}, {"PLAY", "FROM ITEM", "AT THE END", ""},
                                         {"BUILD", "AFTER DROP", "DROP BREAK", "CRASH"}, {"", "", "", ""},
-                                        {"BUILD STYLE", "SWEEP", "RISER", "GAP"}, {"RESET", "", "", "RESET"}};
+                                        {"BUILD STYLE", "SWEEP", "RISER", "GAP"}, {"RESET", "RESET", "RESET", "RESET"}};
     char t[20];
     track_value(i, t);
     app_say(N[ui.tpage % NTPART][i & 3], t);
@@ -723,20 +736,25 @@ static void track_turn(int i, int32_t d)
     track_t *t = trk_now();
     uint32_t c = ui.trk_cur % TRK_ITEMS;
     int dir = d > 0 ? 1 : -1;
-    if (ui.tpage == 5u) {                /* RESET: K1 what, K4 right twice: done */
-        uint32_t now = plat_ms();
-        if (i == 0) {
-            ui.rst_sel = (uint8_t)clamp((int32_t)ui.rst_sel + dir, 0, NRST - 1);
-            ui.rst_arm = 0u;
-            app_say("RESET", RST_NAME[ui.rst_sel % NRST]);
-        } else if (i == 3 && d > 0) {
-            if (ui.rst_arm && now - ui.rst_arm < 3000u) {
+    if (ui.tpage == 5u) {                /* RESET: K1 (or ALGORITHM) what; K2, K3 or K4 turned RST_TURNS clicks: done */
+        if (i == 0)
+            reset_pick(d);
+        else {
+            uint32_t n = (uint32_t)(d < 0 ? -d : d);
+            if (!rst_live())
+                ui.rst_n = 0u;
+            ui.rst_n = (uint8_t)(ui.rst_n + n < RST_TURNS ? ui.rst_n + n : RST_TURNS);
+            ui.rst_arm = plat_ms() | 1u;
+            if (ui.rst_n >= RST_TURNS) {
                 reset_do(ui.rst_sel % NRST);
+                ui.rst_n = 0u;
                 ui.rst_arm = 0u;
                 app_say(RST_NAME[ui.rst_sel % NRST], "RESET: DONE");
             } else {
-                ui.rst_arm = now | 1u;
-                app_say(RST_NAME[ui.rst_sel % NRST], "K4 AGAIN: RESET");
+                char t[16] = "TURN: ";
+                int_text((int32_t)ui.rst_n, t + 6);
+                text_cat(t, " / 5");
+                app_say(RST_NAME[ui.rst_sel % NRST], t);
             }
         }
         ui.redraw |= RG_BLOCKS | RG_FOOT;
@@ -1056,9 +1074,9 @@ static void track_picture(int32_t top)
     uint32_t i, n = trk_len(t);
     char s[20], r[8];
     cv_oy = -top;
-    if (ui.tpage == 5u) {                /* RESET: the list (K1), what it puts back, K4 */
+    if (ui.tpage == 5u) {                /* RESET: the list (K1, ALGORITHM), what it puts back, the clicks */
         uint32_t w = ui.rst_sel % NRST;
-        int arm = ui.rst_arm && plat_ms() - ui.rst_arm < 3000u;
+        uint32_t on = rst_live() ? ui.rst_n : 0u;
         {                                /* (five at a time, the one picked kept in view) */
             uint32_t first = w < 2u ? 0u : w + 3u > NRST ? NRST - 5u : w - 2u;
             for (i = first; i < first + 5u && i < NRST; i++) {
@@ -1094,8 +1112,10 @@ static void track_picture(int32_t top)
                 y += 12;
             }
         }
-        cv_rect(6, 104, 228, 24, arm ? C_HI : C_BLOCK);
-        cv_text(12, 110, &FONT_T, arm ? "TURN K4 AGAIN TO RESET" : "K4 RIGHT, TWICE: RESET", arm ? C_BLACK : C_GRAY);
+        cv_rect(6, 104, 148, 24, on ? C_HI : C_BLOCK);
+        cv_text(12, 110, &FONT_T, on ? "KEEP TURNING" : "TURN A KNOB x5", on ? C_BLACK : C_GRAY);
+        for (i = 0; i < RST_TURNS; i++)  /* (the clicks so far: five boxes) */
+            cv_rect(160 + (int32_t)i * 15, 106, 12, 20, i < on ? C_HI : C_BLOCK);
         cv_oy = 0;
         return;
     }

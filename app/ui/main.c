@@ -232,12 +232,14 @@ static void input(void)
         return;
     }
     for (i = 0; i < 16u; i++) {          /* white keys: slices, or a page's own */
-        if (i < NDRUMS && ((ui.page == PG_KICK && ui.kclassic) || ui.page == PG_PERC) && !playing_now()) {
-                                          /* LOAF BREAKER: the KICK menu's classic view and the drums' pages, stopped:
-                                          * keys 1-5 play the KICK, SNARE, HAT, CLAP, HOOVER once each (to hear them);
-                                          * playing, they play slices as ever */
+        if (i < NDRUMS && (ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX() || ui.page == PG_PERC) &&
+            !playing_now()) {            /* LOAF BREAKER: the KICK menu (big or classic, its EQ and FX parts too) and the
+                                          * drums' pages (big or classic), stopped: keys 1-5 play the KICK, SNARE, HAT,
+                                          * CLAP, HOOVER once each (to hear them); playing, they play slices as ever */
             if (kdn >> WK[i] & 1u) {
                 midi_drum(i);
+                if (!(ui.page == PG_KICK && ui.kclassic))   /* (where no card lights: its name on the strip) */
+                    app_say("PLAY", DRUM_NAME[i]);
                 ui.aud_t = now;
                 ui.aud_d = (uint8_t)i;
                 ui.redraw |= RG_BLOCKS;
@@ -708,6 +710,8 @@ static void input(void)
                 break_ask((set.brk + (d > 0 ? 1u : n_breaks - 1u)) % n_breaks);
             else if (ui.page == PG_TRACK && ui.tpage == 3u)
                 knob_fn(d);              /* LOAF BREAKER: ENV's KNOB: the function */
+            else if (ui.page == PG_TRACK && ui.tpage == 5u)
+                reset_pick(d);           /* LOAF BREAKER: ENV's RESET: the part, as K1 */
             else if (ui.page == PG_TRACK && ui.tpage == 0u)
                 track_turn(0, d);        /* LOAF BREAKER: ENV's TRACKS: the item, as K1 (the break: SEL + ALGORITHM) */
             else if (ui.page == PG_GLOBAL)   /* GLOBAL: its part */
@@ -1081,7 +1085,7 @@ static void draw_foot(const brk_status_t *st)
                                                     {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
         static const char *const KN_MORE[4] = {"SKIN", "AUTO SAVE", "CRT", ""};   /* GLOUPI BREAKS: GLOBAL's MORE */
         static const char *const KN_TRK[4][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
-                                                 {"STYLE", "SWEEP", "RISER", "GAP"}, {"WHAT", "", "", "RESET"}};
+                                                 {"STYLE", "SWEEP", "RISER", "GAP"}, {"WHAT", "RESET", "RESET", "RESET"}};
         const char *name = ui.page == PG_TRACK && ui.tpage == 3u ? SK_KNOB[selk_fn(ui.knfn & 3u)][i] : ui.page == PG_TRACK &&
                            ui.tpage ? KN_TRK[ui.tpage == 5u ? 3u : ui.tpage == 4u ? 2u : (ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
                            ui.gpage == 2u ? KN_MORE[i] : ui.page == PG_GLOBAL && ui.gpage
@@ -1422,6 +1426,10 @@ void app_frame(void)
         ui.kscope_drawn = now;           /* (TEST: the KICK menu's live kick, redrawn as it sounds) */
         ui.redraw |= RG_BLOCKS;
     }
+    if (ui.rst_n && now - ui.rst_arm >= 2000u) {   /* (LOAF BREAKER: RESET's clicks let go: counted from 0 again) */
+        ui.rst_n = 0u;
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+    }
     if (ui.aud_t && now - ui.aud_t >= 160u) {   /* (LOAF BREAKER: a drum played on its key: its card lit, then not) */
         ui.aud_t = 0u;
         ui.redraw |= RG_BLOCKS;
@@ -1524,8 +1532,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate"};
-    int v[54];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot"};
+    int v[57];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1591,7 +1599,10 @@ int app_expect(const char *what, int *got)
     v[51] = ui.pad_more;
     v[52] = (set.ovl_pad >> 6) & 3u;
     v[53] = set.ovl_rate;
-    for (i = 0; i < 54u; i++)
+    v[54] = ui.kpreset;
+    v[55] = ui.aud_t ? ui.aud_d : -1;
+    v[56] = set.kslot;
+    for (i = 0; i < 57u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

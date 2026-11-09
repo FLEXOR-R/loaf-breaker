@@ -101,9 +101,12 @@ lists its combinations (SEL again, or any other button, key or knob, closes it).
   its memory (KICK 1–10) and its note; under it the part's four knobs as cards, their values large. **EDIT again**: the
   next section, **ALGORITHM**: the next part in it (each section remembers where you were). **EDIT held** (half a
   second): the classic view (the part's knobs as bars, the layers' levels, the five drums' shapes, the break's wave
-  above), held again: the big view; the part stays where it is. **Stopped**, on the classic view and on the other
-  drums' pages, **white keys 1–5 play the KICK, SNARE, HAT, CLAP, HOOVER** once each, to hear them (the number on each
-  drum's card); playing, the keys play slices as ever. On the big view, **SELECT** goes from drum to drum (the KICK,
+  above), held again: the big view; the part stays where it is. **Stopped**, anywhere in the KICK menu (the big view, the
+  classic view, its EQ and FX) and on the other drums' pages (big or classic), **white keys 1–5 play the KICK, SNARE,
+  HAT, CLAP, HOOVER** once each, to hear them (the number on each drum's card; on the big views the strip names the
+  drum played); playing, the keys play slices as ever. **A built-in kick on the kick selected:** SOUND's last part,
+  **OUT** (ALGORITHM to it), **K4 PRESET**: 909, TECHNO, EARLY HC, ROTTERDAM, INDUSTRIAL, DISTORTO, on the kick
+  selected (PRESETS: KICK 1–10), its volume, steps and TERRORs kept. On the big view, **SELECT** goes from drum to drum (the KICK,
   SNARE, HAT, CLAP, HOOVER, and round), each in a big view of its own: its hit drawn large over its level, its decay
   marked in amber, its memory and tune, the five drums along the bottom (stopped: keys 1–5 play them), the part's
   knobs as cards (ALGORITHM: SOUND or SHAPE, PRESETS its memories). SELECT is not the tempo there. **SEL + EDIT** opens
@@ -181,7 +184,7 @@ metronome and tap tempo are gone).
   **K3 RISER**: the rising noise, OFF to 200 % (100 %: as it was). **K4 GAP**: silence just before the drop (none, a
   16th, an 8th, a beat, half a bar), so the drop hits out of nothing. **PRESETS: TEMPO RISE**, OFF to +30 %: the
   tempo climbs with the build and drops back to yours at the drop (not while following a MIDI clock).
-- **RESET** (ENV's last part): puts a part back as it starts. **K1** picks what, in a list that scrolls (each says
+- **RESET** (ENV's last part): puts a part back as it starts. **K1** or **ALGORITHM** picks what, in a list that scrolls (each says
   on the right what it puts back): DROP, BUILD, KNOB; **KICK** (the kick selected, KICK 1–10: ROTTERDAM again, its
   SYNTH and BASS at 0, its volume kept, its memory with it); **KICK TONE** (its EQ flat, its two FX slots empty);
   **ALL KICKS** (KICK 1–10 as they came); **DRUMS** (the snare's, hat's, clap's and hoover's memory playing as it
@@ -189,8 +192,8 @@ metronome and tap tempo are gone).
   **FX CHAIN** (the four slots as they came, each effect's memory forgotten, the FX level kept); **STEPS** (this
   pattern's drum steps: 1 hit, ALWAYS, on time; the steps themselves kept); **PADS** (the black keys' settings:
   rolls, THRU, filter, gate, HALF's LATCH, the ARP key's effect); **KEYS** (the white keys' loops and slice effects);
-  **TRACK** (this track: from its first item, every item's break SAME; its items kept). **K4** turned right twice within 3 s resets it (once only arms it: "TURN K4
-  AGAIN TO RESET").
+  **TRACK** (this track: from its first item, every item's break SAME; its items kept). To reset it, **turn K2, K3 or K4 five clicks**, each within 2 s of the last (five
+  boxes fill as you turn; a pause starts them again from 0).
 - **KNOB**: what SEL + each knob does, on any page. **ALGORITHM** (or white keys 1–4) picks the knob, **PRESETS**
   gives it its function: TERROR 2, TERROR, T+ DRIVE, T+ TYPE, T+ SCREECH, T+ TAIL (TERROR +'s settings, one each) or
   DRIVE (the kick's INTENSITY). They start as K1 DRIVE, K2 TERROR 2, K3 T+ SCREECH, K4 TERROR. K1–K4 then set the
@@ -546,7 +549,8 @@ The kick is four layers summed and pushed into a clipper:
 | Control | Does |
 | --- | --- |
 | ALGORITHM | The part: MIX, a layer (SUB, PUNCH, GRIT, CLICK), its FX, MACRO, OUT |
-| PRESETS | A built-in kick: 909, TECHNO, EARLY HC, ROTTERDAM (the start), INDUSTRIAL, DISTORTO. The steps, routing and volume stay |
+| PRESETS | The kick selected: KICK 1–10, each its own memory |
+| OUT K4 PRESET | A built-in kick on the kick selected: 909, TECHNO, EARLY HC, ROTTERDAM (the start), INDUSTRIAL, DISTORTO. The steps, routing, volume and TERRORs stay |
 | MIDI note 36 (C1) | Plays the kick, from any channel, also while stopped |
 
 | Part | K1 | K2 | K3 | K4 |
@@ -555,7 +559,7 @@ The kick is four layers summed and pushed into a clipper:
 | SUB · PUNCH · GRIT · CLICK | Level | Pitch | Decay | Tone |
 | … FX | Effect: OFF · DRIVE · CRUNCH · FILTER · RING MOD | A (gain · bits · cutoff · frequency) | B (tone · rate · resonance) | Wet |
 | MACRO | SUB (level, tail, weight) | PUNCH (level, sweep, click) | GRIT (level, dirt, tail) | INTENSITY |
-| OUT | Volume | | | |
+| OUT | Volume | TERROR | TERROR 2 | PRESET (a built-in kick) |
 
 **INTENSITY** is the drive into the clipper: low is a clean, round kick; past half the clip turns hard, the tail
 flattens into the long, distorted gabber kick. The page is laid out as the snare's and the hat's: the part's four
@@ -614,7 +618,7 @@ break alone: sweep it down and the drums stay full on top. The FLT pad throws it
 | ENV DROP | Build bars | After the drop | Break | Crash |
 | ENV BUILD (PRESETS: tempo rise) | Style | Sweep | Riser | Gap |
 | ENV KNOB (ALGORITHM: the knob; PRESETS: its function) | its function's four settings | | | |
-| ENV RESET | What (13 parts) | | | Reset (right twice) |
+| ENV RESET (ALGORITHM: what) | What (13 parts) | Reset (5 clicks) | Reset (5 clicks) | Reset (5 clicks) |
 | LFO (mixer: levels) | Break level | Kick level | Drums level | FX (the chain, dry to wet) |
 | LFO again (groove) | Swing | Drums: through the chain or around it | | |
 | LFO, MASTER | Comp | Ratio | Duck | Max out |

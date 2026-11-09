@@ -254,7 +254,8 @@ static float kick_macro_value(int m)
  * one (909 .. DISTORTO, its volume kept) */
 static int kick_preset_knob(int i)
 {
-    return ui.kpage == KP_FX && i == 2 && !KFX_PARAM[set.kick.l[ui.klayer % KICK_LAYERS].fx % KICK_FX][1][0];
+    return (ui.kpage == KP_FX && i == 2 && !KFX_PARAM[set.kick.l[ui.klayer % KICK_LAYERS].fx % KICK_FX][1][0]) ||
+           (ui.kpage == KP_OUT && i == 3);   /* (LOAF BREAKER: OUT's K4, always) */
 }
 static const char *kick_knob_name(int i)
 {
@@ -311,7 +312,9 @@ static void kick_value(int i, char *t)
         pct_text(i == 3 ? k->intensity : kick_macro_value(i), t);
         break;
     default:
-        if (i == 0)
+        if (kick_preset_knob(i))         /* (LOAF BREAKER: OUT's K4: the built-in kick) */
+            text_cat(t, KICK_PRESET_NAME[ui.kpreset % KICK_PRESETS]);
+        else if (i == 0)
             pct_text(k->volume, t);
         else if (i <= 2)                 /* LOAF BREAKER: TERROR, TERROR 2 */
             kick_hc_text(k, i, t);
@@ -393,6 +396,21 @@ static void kick_knob_turn(int i, int32_t d)
         changed();
         return;
     }
+    if (kick_preset_knob(i)) {           /* the whole kick: every layer, its effects, INTENSITY (the kick selected,
+                                          * KICK 1-10: its memory takes it); the volume and the steps kept */
+        ui.kpreset = (uint8_t)((ui.kpreset + (d > 0 ? 1u : KICK_PRESETS - 1u)) % KICK_PRESETS);
+        kick_preset(k, ui.kpreset);
+        {                                /* (LOAF BREAKER: its SYNTH back to as it always was too) */
+            uint32_t j;
+            for (j = 0; j < KS_N; j++)
+                set.ksyn[j] = 0;
+        }
+        kick_value(i, t);
+        app_say("KICK PRESET", t);
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        changed();
+        return;
+    }
     switch (ui.kpage) {
     case KP_MIX:
         k->l[i].level = knob_f(k->l[i].level, d, 0.02f, 0.0f, 1.0f);
@@ -403,20 +421,6 @@ static void kick_knob_turn(int i, int32_t d)
         break;
     }
     case KP_FX:
-        if (kick_preset_knob(i)) {       /* (the whole kick: every layer, its effects, INTENSITY) */
-            ui.kpreset = (uint8_t)((ui.kpreset + (d > 0 ? 1u : KICK_PRESETS - 1u)) % KICK_PRESETS);
-            kick_preset(k, ui.kpreset);
-            {                            /* (LOAF BREAKER: its SYNTH back to as it always was too) */
-                uint32_t j;
-                for (j = 0; j < KS_N; j++)
-                    set.ksyn[j] = 0;
-            }
-            kick_value(i, t);
-            app_say("KICK PRESET", t);
-            ui.redraw |= RG_BLOCKS | RG_FOOT;
-            changed();
-            return;
-        }
         if (i == 0) {                    /* (LOAF BREAKER: the effect left remembered, the new one as left) */
             uint32_t f = (uint32_t)clamp((int32_t)l->fx + (d > 0 ? 1 : -1), 0, KICK_FX - 1);
             if (f == l->fx)
@@ -547,7 +551,8 @@ static float kick_knob_f(int i)          /* the part's knob i, 0..1 (as its bar)
     case KP_BASS:
         return ks_norm(i);
     default:
-        return i == 0 ? k->volume : i <= 2 ? (float)*kick_hc((kick_t *)k, i) * 0.01f : 0.0f;
+        return i == 0 ? k->volume : i <= 2 ? (float)*kick_hc((kick_t *)k, i) * 0.01f :
+               (float)(ui.kpreset % KICK_PRESETS) / (float)(KICK_PRESETS - 1u);   /* (OUT K4: the preset) */
     }
 }
 /* LOAF BREAKER: the KICK menu's picture (y 44..143, no waveform of the break above it): the kick as it sounds, its
