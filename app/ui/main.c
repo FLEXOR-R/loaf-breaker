@@ -706,9 +706,9 @@ static void input(void)
             ui.fx_turned = 1u;           /* (FX + a knob: not the next slot) */
         if (!(btn & 1u << B_SEL))
             ui.help = 0u;                /* (a knob closes the card) */
-        if (k == EN_SELECT && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + SELECT, on any page: the next or previous
-                                          * kick (its memories, KICK 1..10; was the tempo by tenths: TAP's K2) */
-            kick_mem_turn(d);
+        if (k == EN_SELECT && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + SELECT, on any page: the drums' filter
+                                          * (DRUM FLT, HOME's K3; was the kick's memories, now PRESETS on the KICK menu) */
+            kick_flt_turn(d);
             continue;
         }
         if (k >= EN_K1 && k <= EN_K4 && btn & 1u << B_LFO) {   /* LOAF BREAKER: LFO + K1 the break's level, K2 the
@@ -818,10 +818,7 @@ static void input(void)
             changed();
             app_say("WAVE ZOOM", CDJ_ZNAME[set.wzoom % CDJ_ZN]);
             ui.redraw |= RG_BLOCKS;
-        } else if (k == EN_PRESET && ui.trk_on && playing_now())
-            kick_flt_turn(d);            /* LOAF BREAKER: a track playing: the drums' filter (DRUM FLT), not the pattern
-                                          * (the track has it; SEL + PRESETS still picks one) */
-        else if (k == EN_PRESET)
+        } else if (k == EN_PRESET)
             pattern_pick(d);             /* elsewhere: the pattern */
         else if (key_tuned() >= 0)       /* a white key held: K1-K4 tune its loop */
             key_knob_turn(key_tuned(), k - EN_K1, d);
@@ -1064,7 +1061,7 @@ static void page_say(void)
 /* SEL held alone: its combinations, on the strip (FX page: its own two) */
 static void draw_help(void)
 {
-    static const char *const L[8][2] = {{"+ ENV", "BUILD / DROP"}, {"+ SELECT", "KICK 1-10"}, {"+ K1", "DUCK"},
+    static const char *const L[8][2] = {{"+ ENV", "BUILD / DROP"}, {"+ SELECT", "DRUM FILTER"}, {"+ K1", "DUCK"},
                                         {"+ K2", "TERROR 2"}, {"+ K4", "TERROR"}, {"+ ALGO", "BREAK"},
                                         {"+ PRESETS", "PATTERN"}, {"+ K3", "COMP"}};   /* (LOAF BREAKER: the
                                           * live ones) */
