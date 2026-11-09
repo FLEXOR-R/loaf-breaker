@@ -167,10 +167,10 @@
       { n: "GENERATOR", k: ["COMPLEXITY", "ANCHOR", "ROLL", "FILL"], strip: "16 SLICE BLOCKS", note: "HOME again" } ],
       algo: "Break (next bar)", brk: true, presets: "Pattern P1–P16", keys: "slices",
       notes: [["SEL", "Pressed alone: every combination"], ["SEL + ALGO · SEL + PRESETS", "Break · pattern, any page"], ["ARP", "The overlays"]] },
-    { id: "arp", btn: "ARP", name: "OVERLAY", sub: "Sixteen effects to hold", again: "nothing", subs: [
-      { n: "OVERLAY", k: ["AMOUNT", "RATE", "SWEEP", "LATCH"], strip: "16 EFFECT CARDS, 4 × 4 · LIT WHILE ON · EACH ITS AMOUNT", note: "Hold a key: its effect, over everything" } ],
-      algo: "Break", presets: "Pattern P1–P16", keys: "overlays",
-      notes: [["Keys 1-8", "DIVE RISE RADIO WAH CRUSH LO-FI DIST RING"], ["Keys 9-16", "CHOP GATE DUCK PAN BOOM WOBBLE JET CUT"], ["K4 LATCH", "A press on, a press off (stays on other pages)"], ["SEL + ARP", "A random pattern (SEL + SAVE undoes)"]] },
+    { id: "arp", btn: "ARP", name: "FILL", sub: "Held: a fill", again: "nothing", subs: [
+      { n: "FILL", k: ["", "", "", ""], strip: "THE PAGE YOU ARE ON STAYS", note: "Hold: FILL steps play, NOT FILL rest, the snare rolls the last beat" } ],
+      algo: "Break", presets: "Pattern P1–P16", keys: "slices",
+      notes: [["ARP held", "FILL, while held"], ["SEL + ARP", "A random pattern (SEL + SAVE undoes)"], ["ARP black key", "Its overlay effect, as ever"]] },
     { id: "fx", btn: "FX", name: "FX CHAIN", sub: "Four slots in series", again: "next part (MAIN, MORE, MOD), then the next slot", part: true, subs: [
       { n: "MAIN", k: ["PARAM 1", "PARAM 2", "PARAM 3", "MIX"], strip: "THE EFFECT LIVE · THE CHAIN · ITS MODULATOR · IN / OUT", note: "ALGORITHM: the slot (1–4)" },
       { n: "MORE", k: ["EXTRA 1", "EXTRA 2", "EXTRA 3", "EXTRA 4"], strip: "THE EFFECT LIVE · THE CHAIN · ITS MODULATOR · IN / OUT", note: "each effect its own: see §6" },
@@ -178,15 +178,15 @@
       algo: "Slot", presets: "Effect", keys: "slices",
       notes: [["SEL + FX", "Bypass the focused slot"], ["FX held + ALGO", "Move the slot along the chain"], ["Key held + FX", "That key's slice effect on K1–K4"],
               ["MB COMP focused", "FX again steps AMOUNT · LOW · MID · HIGH · GAIN · X-OVER, then the next slot"],
-              ["MB COMP · band", "THRESH · RATIO · ATTACK · RELEASE"], ["MB COMP · GAIN / X-OVER", "LOW MID HIGH SOLO · LOW X HIGH X KNEE OUTPUT"]] },
-    { id: "glo", btn: "GLO", name: "GLOBAL", sub: "MIDI, pitch, Bluetooth audio", again: "next part (3)", subs: [
-      { n: "MIDI", k: ["CLOCK IN", "CLOCK OUT", "BLUETOOTH", "MIDI TO"], strip: "BLUETOOTH · CLOCK IN · CLOCK OUT · PORTS", note: "status" },
+              ["MB COMP · band", "THRESH · RATIO · ATTACK · RELEASE"], ["MB COMP · GAIN / X-OVER", "LOW MID HIGH SOLO · LOW X HIGH X KNEE OUTPUT"], ["PRESETS after MB COMP", "MB OTT; in KICK FX also MB KICK"]] },
+    { id: "glo", btn: "GLO", name: "GLOBAL", sub: "MIDI, pitch, skins", again: "next part (3)", subs: [
+      { n: "MIDI", k: ["CLOCK IN", "CLOCK OUT", "", "MIDI TO"], strip: "CLOCK IN · CLOCK OUT · PORTS", note: "USB and the TRS jack, no Bluetooth" },
       { n: "PITCH", k: ["PITCH", "GRAIN", "SNAP", "RESET ALL"], strip: "PITCH MODE · GRAIN · SNAP", note: "what the snap is in this break" },
-      { n: "BT AUDIO", k: ["BT AUDIO", "DEVICE · CODEC*", "SCAN · TEST L/R*", "CONNECT"], strip: "BT AUDIO: STATE · DEVICES", note: "* while streaming" } ],
-      algo: "Part", presets: "Pattern P1–P16", keys: "slices", notes: [["K4 RESET ALL", "Turn twice within 3 s"]] },
+      { n: "MORE", k: ["SKIN", "AUTO SAVE", "CRT", ""], strip: "THE SKINS' COLOURS", note: "CRT: an old tube's lines" } ],
+      algo: "Part", presets: "Pattern P1–P16", keys: "slices", notes: [["K4 RESET ALL", "Fifteen turns right"]] },
     { id: "edit", btn: "EDIT", name: "KICK", sub: "The kick, in four sections; SEL + EDIT: the other drums", again: "next section (4)", part: true, subs: [
       { n: "SOUND", k: ["(MIX, SUB, PUNCH,", "GRIT, CLICK,", "OUT: ALGO)", ""], strip: "THE KICK'S WAVE, ITS PITCH FALLING · 4 KNOB CARDS", note: "MIX: SUB PUNCH GRIT CLICK; a layer: LEVEL PITCH DECAY TONE" },
-      { n: "SYNTH", k: ["DROP · RUMBLE", "TIME · LENGTH", "SHAPE · ASYM", "HOLD · TUNE"], strip: "THE KICK'S WAVE · 4 KNOB CARDS", note: "SYNTH, SYNTH +, MACRO" },
+      { n: "SYNTH", k: ["DROP · RUMBLE", "TIME · LENGTH", "SHAPE · ASYM", "HOLD · TUNE"], strip: "THE KICK'S WAVE · 4 KNOB CARDS", note: "SYNTH, SYNTH +, BASS (GLIDE, REV BASS, START, CURVE), MACRO" },
       { n: "DIRT", k: ["AMOUNT · DRIVE", "SUB · TYPE", "FIZZ · SCREECH", "SUSTAIN · TAIL"], strip: "THE KICK'S WAVE · 4 KNOB CARDS", note: "TERROR, TERROR +, TERROR 2, the layers' effects" },
       { n: "TONE", k: ["LOW", "MID", "HIGH", "FREQ"], strip: "ITS EQ CURVE · ITS FX SLOTS", note: "EQ BANDS, EQ SHAPE, FX 1, FX 2" },
       { n: "SNARE · HAT · CLAP · HOOVER", k: ["LEVEL", "TUNE", "DECAY", "TONE"], strip: "6 SETTINGS · THE 5 DRUMS", note: "SEL + EDIT; EDIT again: the next" } ],
@@ -202,7 +202,7 @@
       { n: "TRACKS", k: ["ITEM", "PUT", "LOOPS", "BREAK"], strip: "THE TRACK'S 32 ITEMS: PATTERNS, DROPS", note: "a white key puts its pattern in; ALGORITHM moves along the items; ENV held: a space after the item; SEL + PLAY: start here; PLAY: the track from there" },
       { n: "PLAY", k: ["TRACK", "FROM", "END", ""], strip: "THE TRACK, THE ITEM PLAYING", note: "PLAY: the track, then HOME" },
       { n: "DROP", k: ["BUILD", "AFTER", "BREAK", "CRASH"], strip: "THE DROP'S SETTINGS", note: "SEL x3: the build from the next bar" },
-      { n: "BUILD", k: ["STYLE", "SWEEP", "RISER", "GAP"], strip: "THE BUILD BEFORE A DROP", note: "RANDOM: each build its own" },
+      { n: "BUILD", k: ["STYLE", "SWEEP", "RISER", "GAP"], strip: "THE BUILD BEFORE A DROP", note: "PRESETS: TEMPO RISE, up to +30 % to the drop" },
       { n: "KNOB", k: ["(ITS 1ST)", "(ITS 2ND)", "(ITS 3RD)", "(ITS 4TH)"], strip: "WHAT SEL + K1..K4 DOES", note: "ALGO the knob, PRESETS its function" },
       { n: "RESET", k: ["WHAT", "", "", "RESET"], strip: "DROP · BUILD · KNOB BACK TO THE START", note: "K4 right twice within 3 s" } ],
       algo: "TRACKS: the item; else the break (next bar)", brk: true, presets: "Track 1–8", keys: "patterns / tracks",
@@ -210,7 +210,7 @@
     { id: "seq", btn: "SEQ", name: "SEQUENCER", sub: "16 patterns, all the steps", again: "next lane (5)", subs: [
       { n: "1-16", k: ["SLICE", "PITCH", "HITS", "REVERSE"], strip: "16 STEPS · THE DRUM LANES", note: "the step edited outlined" },
       { n: "17-32", k: ["SLICE", "PITCH", "HITS", "REVERSE"], strip: "16 STEPS · THE DRUM LANES", note: "" },
-      { n: "KICK", k: ["FILL", "DRUM FLT", "CLR / 4X4", "LENGTH"], strip: "THE KEYS: THIS LANE'S STEPS · LANES", note: "a step held: NOTE, HITS, CHANCE, NUDGE" },
+      { n: "KICK", k: ["FILL", "DRUM FLT", "CLR / 4X4", "LENGTH"], strip: "THE KEYS: THIS LANE'S STEPS · LANES", note: "a step held: NOTE, HITS, COND (chance, 1:2, 2:2, FILL, NOT FILL), NUDGE" },
       { n: "SNARE", k: ["FILL", "DRUM FLT", "CLR / 4X4", "LENGTH"], strip: "THE KEYS: THIS LANE'S STEPS · LANES", note: "" },
       { n: "HAT", k: ["FILL", "DRUM FLT", "CLR / 4X4", "LENGTH"], strip: "THE KEYS: THIS LANE'S STEPS · LANES", note: "" } ],
       algo: "Lane", presets: "Pattern P1–P16", keys: "steps",

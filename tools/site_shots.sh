@@ -25,7 +25,7 @@ MAP = {  # the manual's name: the scenario's shot
     "screen-boot": "u0_splash", "screen-slicer": "site_cdj", "screen-slices": "site_slices", "screen-start": "u3_intro_full",
     "screen-selhelp": "site_selhelp", "screen-held": "site_held", "screen-keyloop": "u6_held",
     "screen-slicefx": "x_key_fx", "pad-roll8": "p_roll8", "pad-stop": "p_stop", "pad-dub": "p_dub",
-    "screen-seq": "q_seq", "screen-step": "h_step", "screen-overlay": "o_page", "screen-fxchain": "n_fx",
+    "screen-seq": "q_seq", "screen-step": "h_step", "screen-fxchain": "n_fx",
     "screen-fx-tape": "v_tape", "screen-fx-more": "n_fx2", "screen-mbcomp": "c_multiband",
     "screen-mbcomp-band": "c_mb_low", "screen-mbcomp-solo": "c_mb_solo", "screen-global": "n_glo",
     "screen-glomore": "n_glo3", "screen-lobotomized": "site_lobo", "screen-kick": "km_big",

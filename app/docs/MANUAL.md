@@ -51,7 +51,9 @@ The slicer view, top to bottom:
 
 - **Header:** play or stop, the break's name, the pattern (P1–P16; "P2>" while P2 waits for the loop's end), REC
   while recording, a level meter (left and right, what leaves after MASTER: amber from
-  −8 dB, white near full scale), the tempo.
+  −8 dB, white near full scale), the tempo: lit white on each beat. The line under the header flashes on each kick
+  and a tick under it walks the bar's four beats. The PLAY light blinks off on each kick, and during a build the
+  next white key to light blinks, faster as the drop nears.
 - **Tabs:** the button you pressed (as printed on the panel), then the page's parts as tabs, the one you are on lit:
   the button again (or ALGORITHM) goes to the next. On EDIT and FX the part edited shows at the right, "< SUB FX >".
   Opening a page, or turning to another part, says the same in the header for a moment: the button, then the part
@@ -61,12 +63,13 @@ The slicer view, top to bottom:
 - **Slice blocks:** sixteen blocks, one per white key, each with its slice's waveform. The slice sounding is lit;
   a key held is outlined; a dot marks a key with a loop of its own (§3, key loops).
 - **Pads:** the eleven black-key pads, lit while held.
-- **Knobs:** the page's four knobs and their values.
+- **Knobs:** the page's four knobs and their values; where the page knows how far a knob is turned (an FX slot, the
+  MIXER's levels, the kick's classic view), an arc beside the value shows it.
 
 **The rules.** ALGORITHM picks what you edit on the page (an FX slot, a drum's part, a SEQ lane, GLOBAL's part); on HOME (both its parts) and the MIXER, where there is nothing to pick, it is the break. PRESETS picks what goes
 in (an effect, a kick, a snare or hat sound); elsewhere it is the pattern. **SEQ is where everything is sequenced**
 (the break's steps and the kick, snare and hat lanes), **EDIT where the drums' sounds are made** (kick, snare, hat);
-the white keys play slices everywhere but SEQ, ENV (tracks) and ARP (overlays). **SEL + ALGORITHM is the break and SEL +
+the white keys play slices everywhere but SEQ and ENV (tracks). **ARP held is FILL** (§5). **SEL + ALGORITHM is the break and SEL +
 PRESETS the pattern on every page.** A page's button pressed again is its next part. **Press SEL** alone and the strip
 lists its combinations (SEL again, or any other button, key or knob, closes it). The control map (§11) shows all of it at once.
 
@@ -87,7 +90,7 @@ lists its combinations (SEL again, or any other button, key or knob, closes it).
 | PRESETS | The pattern, P1–P16 (§5); while playing the new one starts at the end of the loop |
 | SEQ · REC | The sequencer; recording the keys into the pattern (§5). SEL + REC: clear the pattern (SEL + SAVE takes it back) |
 | MIDI notes | Notes 48–63 (C3–D#4) play slices 1–16, held like the white keys; 36 the kick, 38 the snare, 42 / 44 / 46 the hat (§8); any channel |
-| ALGORITHM | (HOME, MIXER; SEL held: any page) The next or previous break: its name shows at once (amber in the header) and, while playing, it comes in at the next bar (the old one goes quiet for the bar's last 16th meanwhile); stopped, at once. THINK 114 (Lyn Collins), NUSKOOL 140, UPDOWN 165, APACHE 115 (Incredible Bongo Band), CHOPPER 172, DRUMMER 100 (James Brown, Funky Drummer), THEWORM 110 (Jimmy McGriff), HOTPANT 115 (Bobby Byrd), AMEN19 172 (The Winstons): 2 bars each, played at the tempo you set |
+| ALGORITHM | (HOME, MIXER; SEL held: any page) The next or previous break: its name shows at once (amber in the header) and, while playing, it comes in at the next bar (the old one goes quiet for the bar's last 16th meanwhile); stopped, at once. THINK 114 (Lyn Collins), NUSKOOL 140, UPDOWN 165, APACHE 115 (Incredible Bongo Band), CHOPPER 172, DRUMMER 100 (James Brown, Funky Drummer), THEWORM 110 (Jimmy McGriff), AMEN19 172 (The Winstons): 2 bars each, played at the tempo you set |
 | MASTER | Volume |
 
 ### Where things are
@@ -100,7 +103,7 @@ lists its combinations (SEL again, or any other button, key or knob, closes it).
   second): the classic view (the part's knobs as bars, the layers' levels, the five drums' shapes, the break's wave
   above), held again: the big view; the part stays where it is.
   - **SOUND**: MIX, SUB, PUNCH, GRIT, CLICK, OUT.
-  - **SYNTH**: SYNTH, SYNTH +, MACRO.
+  - **SYNTH**: SYNTH, SYNTH +, BASS, MACRO.
   - **DIRT**: TERROR, TERROR + (DRIVE, TYPE, SCREECH, TAIL), TERROR 2, then each layer's effect.
   - **TONE**: EQ BANDS, EQ SHAPE (its EQ), FX 1, FX 2 (its two FX slots).
   The TERRORs' settings are the kick's own: they go with its memory. **SEL + EDIT**: the other drums (SNARE, HAT, CLAP,
@@ -113,6 +116,10 @@ lists its combinations (SEL again, or any other button, key or knob, closes it).
   - **SYNTH +**: RUMBLE (the kick low-passed into a feedback line under it: the rolling hardcore rumble between kicks),
     LENGTH (the rumble's echo, 23–93 ms), ASYM (an uneven drive: even harmonics, warmer and harder), TUNE (the whole kick,
     −12 .. +12 semitones).
+  - **BASS**: **GLIDE** (the kick's pitch sliding from one step's note to the next, 0–400 ms: give the kick's steps
+    notes in SEQ and it slides between them), **REV BASS** (the rawstyle reverse bass: the kick's sub at its note
+    swelling up between two kicks, cut as the next one hits; it goes through the kick's drive and TERROR), **START**
+    (where in the beat it begins, 1/8 to 5/8), **CURVE** (how it swells: SLOW, SOFT, SHARP, SNAP).
   At 0 each sounds as the kick always did. They go with its memory (KICK 1–10); its PRESET puts them back to 0.
 - **LFO** (the MIXER): LEVELS, GROOVE, MASTER (K1 COMP, K2 its RATIO, K3 DUCK, K4 MAX OUT; COMP's reduction metered),
   DYNAMICS (COMP's ATTACK and RELEASE, DUCK's RELEASE, DUCKS: the break, or the break and the drums).
@@ -125,7 +132,8 @@ lists its combinations (SEL again, or any other button, key or knob, closes it).
 scrolling in from the right, the playhead at the right edge, as a track on a CDJ. Each column is coloured as
 rekordbox's RGB waveform: the lows red, the mids green, the highs blue, mixed (a kick reads red to orange, a snare
 green to cyan, the hats blue), as tall as its peak. 4 beats fill the screen; the beats are ticked top and bottom (the
-bar's first lit) and the bar and beat counted top left. **Hold HOME** (a third of a second) for the slice blocks
+bar's first lit) and the bar and beat counted top left. While a track plays, a line along the top shows how far
+along it is, and "DROP IN 4" counts the bars to its next DROP. **Hold HOME** (a third of a second) for the slice blocks
 instead, hold it again for the waveform; neither moves to HOME's next part.
 
 ![The CDJ view: the break and a kick scrolling in, the playhead at the right edge](img/c_cdj_gen.png "CDJ view") ![HOME held: the sixteen slice blocks, the slice sounding lit](img/screen-slices.png "The slices")
@@ -163,7 +171,8 @@ metronome and tap tempo are gone).
   break itself rolled in 8ths, 16ths then 32nds), SWEEP ONLY (the drums play on, only the filter and the noise build),
   RANDOM (each build picks one). **K2 SWEEP**: HIGH-PASS (as ever), LOW-PASS (closing down to ~400 Hz), NONE, RANDOM.
   **K3 RISER**: the rising noise, OFF to 200 % (100 %: as it was). **K4 GAP**: silence just before the drop (none, a
-  16th, an 8th, a beat, half a bar), so the drop hits out of nothing.
+  16th, an 8th, a beat, half a bar), so the drop hits out of nothing. **PRESETS: TEMPO RISE**, OFF to +30 %: the
+  tempo climbs with the build and drops back to yours at the drop (not while following a MIDI clock).
 - **RESET** (ENV's last part): puts a part back as it starts. **K1** picks what (DROP, BUILD, KNOB for now: each
   says on the right what it puts back), **K4** turned right twice within 3 s resets it (once only arms it: "TURN K4
   AGAIN TO RESET").
@@ -263,13 +272,13 @@ comes round (the header shows "P2>").
 
 **SEQ** opens the sequencer. **ALGORITHM** (or **SEQ again**) picks what the white keys edit:
 
-![SEQ: the break's steps and the drum lanes](img/screen-seq.png "The SEQ page") ![A kick step held: NOTE, HITS, CHANCE, NUDGE on K1–K4](img/screen-step.png "A step held")
+![SEQ: the break's steps and the drum lanes](img/screen-seq.png "The SEQ page") ![A kick step held: NOTE, HITS, COND, NUDGE on K1–K4](img/screen-step.png "A step held")
 
 | Lane | White keys | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- | --- |
 | STEPS 1-16, STEPS 17-32 | Pick a step to edit (outlined) | SLICE: OFF · LOOP · 1–16 | PITCH: −12 … +12 | HITS: ×1–×4 (a ratchet in the step) | REVERSE |
 | KICK, SNARE, HAT, CLAP, HOOVER | That lane's 16 steps, on and off (as the key comes up) | FILL: 0–16 hits spread evenly from the downbeat (Euclidean) | DRUM FLT (HOME's drums' filter) | Left CLEAR, right 4X4, 8X8, 16X16, 2-STEP, HALF-TIME | LENGTH: 16 or 32 steps (the kick: 16, 32, 64) |
-| **A step held** (a drum lane) | its own, the foot naming them | NOTE: −8 … +7 semitones (the kick's and the hoover's) | **HITS**: 1–4, the step taps that many times in its 16th | **CHANCE**: 100 % down to 12 % (it plays that often) | **NUDGE**: on time .. 7/16 of a step late |
+| **A step held** (a drum lane) | its own, the foot naming them | NOTE: −8 … +7 semitones (the kick's and the hoover's) | **HITS**: 1–4, the step taps that many times in its 16th | **COND**: ALWAYS, 75 %, 50 %, 25 % (it plays that often), 1:2 (the first loop of two), 2:2 (the second), FILL (only while ARP is held), NOT FILL (never then) | **NUDGE**: on time .. 7/16 of a step late |
 
 The upper strip shows the half's 16 steps (a number: its own slice; a dot: LOOP; a dash: off; a mark under it: hits
 or reverse), the step playing lit; the lower strip all three drum lanes.
@@ -280,45 +289,11 @@ the keys play slices) is written into the pattern at the step it lands on, and s
 other page the whole pattern. SEL + ARP (a random pattern) writes into the pattern playing. **SEL + SAVE undoes**
 either (and FILL, CLR / 4X4 and COPY on a drum lane); press it again to redo. SAVE keeps all 16.
 
-### Overlays
+### FILL (ARP)
 
-**ARP** opens OVERLAY: sixteen effects on the white keys, over everything that plays (the break, the drums, the FX
-chain's tails). Hold a key and its effect comes in (a 5 ms fade, no click), let go and it goes; hold several and
-they stack. With **LATCH** on (K4) a press switches an effect on and the next press off, and what is latched stays on
-when you go to another page, so you can play slices on HOME through it.
-
-![OVERLAY: DIVE and CHOP held (lit), CHOP touched last](img/screen-overlay.png "OVERLAY")
-
-| White key | Effect | What it does | AMOUNT (K1) |
-| --- | --- | --- | --- |
-| 1 | DIVE | A low-pass sweeping down over the SWEEP | How far down (and its resonance) |
-| 2 | RISE | A high-pass sweeping up over the SWEEP | How far up |
-| 3 | RADIO | A narrow band at 1.3 kHz, a little driven: a telephone, a radio | Its mix and how narrow |
-| 4 | WAH | A resonant band rising and falling on the beat (half the RATE) | Its mix and resonance |
-| 5 | CRUSH | Fewer bits | 15 bits down to 3 |
-| 6 | LO-FI | A lower sample rate: each sample held | Held 2 to 24 times |
-| 7 | DIST | Overdrive | Its drive |
-| 8 | RING | A ring modulator | Its pitch, 90 Hz to 1.2 kHz |
-| 9 | CHOP | The sound cut off and on at the RATE | How deep the cut |
-| 10 | GATE | The same, twice as fast | How deep |
-| 11 | DUCK | A pump: down on each beat, swelling back over it | How deep |
-| 12 | PAN | Left to right and back, a cycle every four of the RATE | How wide |
-| 13 | BOOM | The low end up, soft-clipped | How much |
-| 14 | WOBBLE | Tape wow and flutter: the pitch wandering | How far |
-| 15 | JET | A flanger sweeping once a bar | Its mix |
-| 16 | CUT | Silence: a hole for a drop | How much quieter |
-
-The cards light while their effect sounds, a latched one is outlined amber, the one K1 tunes is outlined white, and
-the bar on each card is its amount (each keeps its own). The white keys light for the effects on.
-
-| Knob | Sets |
-| --- | --- |
-| K1 AMOUNT | The amount of the effect touched last, 0–100 % |
-| K2 RATE | CHOP's rate: 1/4 · 1/8 · 1/16 (the start) · 1/32; GATE twice it, WAH half, PAN a quarter |
-| K3 SWEEP | How long DIVE and RISE take to get there: 1/4 bar · 1/2 bar · 1 bar (the start) · 2 bars |
-| K4 LATCH | OFF (on while held) · ON (a press switches on and off; turning it off lets go of all) |
-
-They follow the tempo playing (stopped, they keep time by themselves). SAVE keeps the amounts and the knobs.
+**Hold ARP** for a fill: the steps whose COND is FILL play, the ones set NOT FILL rest, and the snare rolls through
+the last beat of each bar. Let go and the pattern is as it was. **SEL + ARP** still writes a random pattern. (The
+OVERLAY page that ARP used to open is gone; the ARP black key keeps its effect, chosen on its own knobs.)
 
 ## 6. The FX chain
 
@@ -350,6 +325,11 @@ the body, where TERROR's distortion sits, is tamed (−20 dB, 4:1, 5 / 80 ms); t
 (−30 dB, 8:1, 1 / 50 ms) above 3 kHz; a 3 dB knee, every band at full amount, all wet. It is an MB COMP: its AMOUNT
 knobs ride each band (the foot shows the ratio each reaches) and FX turns through its detail to change anything. A
 CLIP in the other slot after it makes it loud without the mush. PRESETS on, or back: a plain MB COMP.
+
+**MB OTT** comes after MB COMP in PRESETS, in the FX chain and in KICK FX (after MB KICK): the dense "over the top"
+sound. Every band pressed hard and fast (−36 dB, 10:1, 1 ms in, 60 ms out) and pushed back up after it (+6 dB the
+low, +9 dB the mid and high), split at 88 Hz and 2.5 kHz, a 6 dB knee, −3 dB out and 60 % wet: the loud parts come
+down while the quiet ones, the tails and the room, come up.
 
 ![MB KICK: the sub, the body and the click held apart, split at 120 Hz and 3 kHz](img/screen-mbkick.png "MB KICK")
 
@@ -515,7 +495,7 @@ tempo's own repitch, HALF, REVERSE's speed and the tape stop stay speed effects.
 
 **MORE (GLO three times):** K1 **SKIN**, the screen's colours (RED to start; the whole screen changes at once); K2
 **AUTO SAVE**, ON: what you change is saved by itself a minute after the last change, once stopped (the flash is
-never written while it plays).
+never written while it plays); K3 **CRT**, ON: every other line of the screen dimmed, as an old tube.
 
 ![GLOBAL's MORE: the skins](img/screen-glomore.png "MORE")
 
@@ -616,7 +596,6 @@ break alone: sweep it down and the drums stay full on top. The FLT pad throws it
 | GLO (global) | Clock in | Clock out | (not used) | MIDI to |
 | GLO again (pitch, snap) | Keep length / speed | Grain | Snap | Reset all (twice) |
 | GLO a third time (BT audio) | On / off | Device | Scan | Connect / hang up |
-| ARP (overlay; white keys hold effects) | Amount (the effect touched last) | Rate | Sweep | Latch |
 | ENV TRACKS (PRESETS: the track; a white key: its pattern in) | Item | Pattern / DROP / END | Loops | Its break |
 | ENV PLAY (PLAY: the track) | Track | From item | At the end | |
 | ENV DROP | Build bars | After the drop | Break | Crash |
@@ -630,7 +609,7 @@ the slice lit in the waveform shrinks with it. It covers the loop's slices, ratc
 
 The generator rearranges the break as it plays: **complexity** is how often it jumps, **anchor** keeps the kick and
 snare on the beats, **roll** repeats a slice or takes the one next to it, **fill** breaks the rules in the last bar
-of a phrase; it is HOME's second part (HOME again). SEL + ARP writes a random pattern (ARP alone opens the overlays).
+of a phrase; it is HOME's second part (HOME again). SEL + ARP writes a random pattern (ARP alone, held, is FILL).
 
 ## 11. The control map
 
