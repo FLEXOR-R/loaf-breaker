@@ -103,7 +103,13 @@ lists its combinations (SEL again, or any other button, key or knob, closes it).
   second): the classic view (the part's knobs as bars, the layers' levels, the five drums' shapes, the break's wave
   above), held again: the big view; the part stays where it is. **Stopped**, on the classic view and on the other
   drums' pages, **white keys 1–5 play the KICK, SNARE, HAT, CLAP, HOOVER** once each, to hear them (the number on each
-  drum's card); playing, the keys play slices as ever.
+  drum's card); playing, the keys play slices as ever. On the big view, **SELECT** goes from drum to drum (the KICK,
+  SNARE, HAT, CLAP, HOOVER, and round), each in a big view of its own: its hit drawn large over its level, its decay
+  marked in amber, its memory and tune, the five drums along the bottom (stopped: keys 1–5 play them), the part's
+  knobs as cards (ALGORITHM: SOUND or SHAPE, PRESETS its memories). SELECT is not the tempo there. **SEL + EDIT** opens
+  the drums' classic view, as ever.
+
+  ![The SNARE in its big view: its hit large, its decay marked, the five drums along the bottom](img/screen-drum-big.png "A drum's big view")
   - **SOUND**: MIX, SUB, PUNCH, GRIT, CLICK, OUT.
   - **SYNTH**: SYNTH, SYNTH +, BASS, MACRO.
   - **DIRT**: TERROR, TERROR + (DRIVE, TYPE, SCREECH, TAIL), TERROR 2, then each layer's effect.

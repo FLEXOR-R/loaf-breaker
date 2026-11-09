@@ -44,3 +44,6 @@ void perc_pitches(const float *pm);      /* LOAF BREAKER: the next render's hits
 /* main loop: one hit of the voice as the screen draws it, offline: px[i] the peak (0..height) of the ith of n columns
  * over its first ms milliseconds, at its level (not the volume) */
 void perc_shape(uint32_t voice, const perc_voice_t *v, uint8_t *px, uint32_t n, uint32_t ms, uint32_t height);
+/* LOAF BREAKER: one hit drawn as its wave (the drums' big view): px[i] the ith column's sample furthest from 0, signed
+ * (-height .. +height), over its first ms milliseconds */
+void perc_wave(uint32_t voice, const perc_voice_t *v, int8_t *px, uint32_t n, uint32_t ms, uint32_t height);

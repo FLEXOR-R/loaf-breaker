@@ -393,6 +393,7 @@ static void input(void)
         int kickp = ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX();
         if (btn & 1u << B_SEL) {
             ui.einst = (uint8_t)(ui.page == PG_PERC ? ui.einst % (NDRUMS - 1u) + 1u : ui.einst ? ui.einst : 1u);
+            ui.pbig = 0u;                /* (LOAF BREAKER: SEL + EDIT: the drums' classic view) */
             edit_open();
         } else if (kickp) {
             ui.edit_hold = 1u;           /* (at its release: the next section; held: the other view) */
@@ -670,6 +671,18 @@ static void input(void)
         if (k >= EN_K1 && k <= EN_K4 && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K1 DUCK, K2 TERROR 2, K3 COMP
                                           * (was LIMIT), K4 TERROR, on any page: its amount (its settings: ENV's KNOB) */
             selk_turn(selk_fn((uint32_t)(k - EN_K1)), 0, d);
+            continue;
+        }
+        if (k == EN_SELECT && ((ui.page == PG_KICK && !ui.kclassic) || (ui.page == PG_PERC && ui.pbig))) {
+            ui.einst = (uint8_t)((ui.einst + (d > 0 ? 1u : NDRUMS - 1u)) % NDRUMS);   /* LOAF BREAKER: the big view:
+                                          * SELECT goes from drum to drum (the KICK, SNARE, HAT, CLAP, HOOVER), each in
+                                          * it (not the tempo here) */
+            if (ui.einst) {
+                ui.pbig = 1u;
+                edit_open();
+            } else
+                kick_open();
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
             continue;
         }
         if (k == EN_SELECT && ext_active()) {
@@ -1433,7 +1446,8 @@ void app_frame(void)
     }
     if (!ui.redraw)
         return;
-    if (ui.redraw & RG_WAVE && ui.page != PG_TRACK && ui.page != PG_SEQ && (ui.page != PG_KICK || ui.kclassic))   /* (LOAF BREAKER: SEQ is a grid there) */
+    if (ui.redraw & RG_WAVE && ui.page != PG_TRACK && ui.page != PG_SEQ && (ui.page != PG_KICK || ui.kclassic) &&
+        (ui.page != PG_PERC || !ui.pbig))   /* (LOAF BREAKER: SEQ is a grid there) */
         draw_wave(&st, b);
     if (ui.redraw & RG_FX) {
         if (ui.shown >= 100)
