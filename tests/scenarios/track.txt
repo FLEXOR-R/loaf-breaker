@@ -1,7 +1,7 @@
 # LOAF BREAKER: ENV's TRACK. TRACKS: track 1 as it starts (P1 x4, P2 x4, a DROP, P3 x8); track 2 (PRESETS) made:
 # P1 (white key 1), a DROP (K2 past P16), P2 (white key 2); DROP: no build (K1 to NONE); PLAY: track 2 played (PLAY:
 # HOME, T2 in the header): P1's two bars, the drop at its end into P2, P2's two bars, P1 again (LOOP). Then on
-# track 1, SEL x3: the build from the next bar.
+# track 1, SEL + ENV: the build from the next bar.
 #   app/build/host/choppah_host tests/scenarios/track.txt app/build/scenarios
 wait 4200
 tap ENV
@@ -73,9 +73,9 @@ tap PLAY
 wait 300
 expect trk_on 1
 wait 1700
-tap SEL
-tap SEL
-tap SEL
+press SEL
+tap ENV
+release SEL
 wait 2500
 shot t_build.png
 tap PLAY

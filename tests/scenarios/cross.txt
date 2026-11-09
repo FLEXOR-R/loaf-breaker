@@ -55,9 +55,9 @@ tap PLAY
 wait 1000
 wav x_crossbreed.wav
 wait 3000
-tap SEL
-tap SEL
-tap SEL
+press SEL
+tap ENV
+release SEL
 wait 3500
 shot x_build.png
 wait 4000

@@ -1187,11 +1187,11 @@ static void track_picture(int32_t top)
             cv_text(10, y + 11, &FONT_B, s, C_WHITE);
             cv_rect(120, y + 6, 1, 20, C_LINE);
         }
-        cv_text(132, 12, &FONT_XS, "SEL X3: THE DROP", C_HI);
+        cv_text(132, 12, &FONT_XS, "SEL + ENV: THE DROP", C_HI);
         cv_text(132, 26, &FONT_XS, "FROM THE NEXT BAR", C_GRAY);
         cv_text(132, 46, &FONT_XS, "NONE: THE BAR", C_GRAY);
         cv_text(132, 58, &FONT_XS, "PLAYING ENDS IN IT", C_GRAY);
-        cv_text(132, 78, &FONT_XS, "SEL X3 BUILDING:", C_GRAY);
+        cv_text(132, 78, &FONT_XS, "SEL + ENV BUILDING:", C_GRAY);
         cv_text(132, 90, &FONT_XS, "THE DROP NEXT BAR", C_GRAY);
         cv_oy = 0;
         return;

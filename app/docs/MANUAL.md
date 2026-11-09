@@ -172,9 +172,9 @@ metronome and tap tempo are gone).
   them lit), the big knob turns with it; the station shows the track's length, its items, where it starts and what it
   does at its end. **K2** the item it starts from (the same as TRACKS' SEL + PLAY, each track its own). **PLAY** (or white keys 1–8: that track) plays it from
   bar 1 and goes back to HOME; the header shows T1 … T8. Each pattern comes in at the end of the last loop of the one
-  before; a DROP's build starts at the next bar. **SEL ×3** while a track plays drops into its next pattern and the
+  before; a DROP's build starts at the next bar. **SEL + ENV** while a track plays drops into its next pattern and the
   track goes on from there. PLAY again stops it.
-- **DROP**: **K1** the build: NONE (the bar playing ends in the drop), 1, 2, 4 or 8 bars; **K2** the pattern a SEL ×3
+- **DROP**: **K1** the build: NONE (the bar playing ends in the drop), 1, 2, 4 or 8 bars; **K2** the pattern a SEL + ENV
   drop brings in (NEXT, or P1–P16); **K3** the break it brings in (SAME, or one of the bank's); **K4** the crash's
   level.
 - **BUILD**: how the build before a drop sounds, so drops don't all sound alike. **K1 STYLE**: SNARE ROLL (the
@@ -212,7 +212,7 @@ it down at once, never clipping it square. And **MAX OUT** (the MIXER's MASTER, 
 all the way up: -3 dB to start with (headroom for the FM-1's output and your speaker), right to 0 dB, left down to
 -12 dB.
 
-**SEL ×3** (playing) asks for the drop: the build starts at the next bar, so the drop always lands on a bar line.
+**SEL + ENV** (playing) asks for the drop (SEL ×3 no longer does: too easy by mistake): the build starts at the next bar, so the drop always lands on a bar line.
 
 ![TRACKS: track 1's items, P1 ×4, P2 ×4, a DROP, P3 ×8](img/t_tracks.png "TRACKS") ![PLAY: the radio, track 2 tuned in](img/t_play.png "PLAY") ![A build on its way to the drop](img/t_build.png "BUILD")
 

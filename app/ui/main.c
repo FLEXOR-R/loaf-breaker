@@ -437,7 +437,11 @@ static void input(void)
         ui.redraw |= RG_FOOT | RG_BLOCKS;
         page_say();
     }
-    if (bdn & 1u << B_ENV) {             /* LOAF BREAKER: ENV: TRACKS; again, PLAY, DROP (TAP TEMPO gone). On TRACKS:
+    if (bdn & 1u << B_ENV && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + ENV: the drop (its build from the next
+                                          * bar; was SEL x3); the page stays */
+        build_click();
+        ui.tap_combo = 1u;               /* (no SEL click) */
+    } else if (bdn & 1u << B_ENV) {      /* LOAF BREAKER: ENV: TRACKS; again, PLAY, DROP (TAP TEMPO gone). On TRACKS:
                                           * at its release; held 0.45 s, a gap after the item edited */
         if (ui.page == PG_TRACK && ui.tpage == 0u) {
             ui.env_hold = 1u;
@@ -598,15 +602,12 @@ static void input(void)
         ui.tap_combo = 1u;               /* another button with SEL held */
     if (ui.help && ((bdn & ~(1u << B_SEL)) || kdn))
         ui.help = 0u;                    /* the card open: any other button or key closes it */
-    if (ui.tap_pend && !(btn & 1u << B_SEL)) {   /* SEL up alone: counted (LOAF BREAKER: three, the build) */
+    if (ui.tap_pend && !(btn & 1u << B_SEL)) {   /* SEL up alone: counted (LOAF BREAKER: three or more, nothing;
+                                          * the drop is SEL + ENV) */
         ui.tap_pend = 0u;
         if (!ui.tap_combo) {
-            ui.sel_clicks = (uint8_t)(now - ui.sel_click_t < 400u ? ui.sel_clicks + 1u : 1u);
+            ui.sel_clicks = (uint8_t)(now - ui.sel_click_t < 400u && ui.sel_clicks < 9u ? ui.sel_clicks + 1u : 1u);
             ui.sel_click_t = now;
-            if (ui.sel_clicks >= 3u) {
-                ui.sel_clicks = 0u;
-                build_click();
-            }
         } else
             ui.sel_clicks = 0u;
     }
@@ -617,7 +618,9 @@ static void input(void)
             ui.help_t = now;
             if (ui.help)
                 app_say("SEL", "COMBINATIONS");
-        } else if (ui.page == PG_FX)        /* LOAF BREAKER: two on FX: the slot's effect reset (two again: undone) */
+        } else if (ui.sel_clicks != 2u)
+            ;                            /* (LOAF BREAKER: three or more: nothing, no drop by mistake) */
+        else if (ui.page == PG_FX)          /* LOAF BREAKER: two on FX: the slot's effect reset (two again: undone) */
             fx_reset();
         else if (ui.page == PG_KICK && ui.kpage == KP_FX)   /* (EDIT KICK's FX: the layer's effect) */
             kfx_reset();
@@ -1003,7 +1006,7 @@ static void page_say(void)
 /* SEL held alone: its combinations, on the strip (FX page: its own two) */
 static void draw_help(void)
 {
-    static const char *const L[8][2] = {{"SEL X3", "BUILD / DROP"}, {"+ SELECT", "KICK 1-10"}, {"+ K1", "DUCK"},
+    static const char *const L[8][2] = {{"+ ENV", "BUILD / DROP"}, {"+ SELECT", "KICK 1-10"}, {"+ K1", "DUCK"},
                                         {"+ K2", "TERROR 2"}, {"+ K4", "TERROR"}, {"+ ALGO", "BREAK"},
                                         {"+ PRESETS", "PATTERN"}, {"+ K3", "COMP"}};   /* (LOAF BREAKER: the
                                           * live ones) */

@@ -22,9 +22,9 @@ tap PLAY
 wait 1500
 wav t_build_drop.wav
 wait 1400
-tap SEL
-tap SEL
-tap SEL
+press SEL
+tap ENV
+release SEL
 wait 2800
 shot t_build1.png
 wait 2700
