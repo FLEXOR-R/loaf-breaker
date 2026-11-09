@@ -217,8 +217,8 @@ or K2 left once more, deletes it, the rest moving up),
     decay, tone, TERROR and SYNTH setting in between (the effects and TERROR +'s TYPE the nearer one's). From a round
     kick to a saturated one over a build, back at the drop.
   **KNOB is the kick's own**: each kick memory (KICK 1–10) keeps its four functions and their settings (CLEAN SUB,
-  REV BASS, GLIDE, MORPH and its target; the TERRORs, TUNE and DECAY were already its own). Change kick (KICK's
-  PRESETS, SEL + SELECT on SEQ) and the knobs are that kick's; come back and they are as you left them. KNOB shows
+  REV BASS, GLIDE, MORPH and its target; the TERRORs, TUNE and DECAY were already its own). Change kick (PRESETS on the KICK
+  menu) and the knobs are that kick's; come back and they are as you left them. KNOB shows
   whose they are (KICK 4) at the bottom. RESET KNOB puts back the kick playing's.
 
 **No saturation.** Whatever the effects and COMP do, a last guard holds every peak under full scale (-0.4 dB) by turning
