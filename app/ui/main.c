@@ -1280,13 +1280,17 @@ void app_frame(void)
     brk_status(&st);
     b = brk_get_break();
     {                                    /* LOAF BREAKER: AUTO SAVE. A change waits a minute, then is saved once the
-                                          * break is stopped (a flash write stalls the sound: never while playing) */
-        static uint32_t dirty_t;
+                                          * break has been stopped 3 s (a flash write stalls the sound: never while
+                                          * playing, nor just after) */
+        static uint32_t dirty_t, stop_t; /* (stop_t: when the break last played; the save waits 3 s after it, so the
+                                          * stop's tail, an effect's echo, is not cut by the flash's stall) */
+        if (st.playing || !stop_t)
+            stop_t = now | 1u;
         if (!set_dirty || !set.auto_save)
             dirty_t = 0u;
         else if (!dirty_t)
             dirty_t = now | 1u;
-        else if (now - dirty_t >= 60000u && !st.playing && !ui.lobo_t) {
+        else if (now - dirty_t >= 60000u && !st.playing && now - stop_t >= 3000u && !ui.lobo_t) {
             int ok = plat_store_save(OBJ_SETTINGS, &set, sizeof set) == 0 &&
                      plat_store_save(OBJ_PAT, &pats, sizeof pats) == 0 &&
                      plat_store_save(OBJ_STEP, &steps, sizeof steps) == 0;
@@ -1535,8 +1539,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot"};
-    int v[57];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty"};
+    int v[58];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1605,7 +1609,8 @@ int app_expect(const char *what, int *got)
     v[54] = ui.kpreset;
     v[55] = ui.aud_t ? ui.aud_d : -1;
     v[56] = set.kslot;
-    for (i = 0; i < 57u; i++)
+    v[57] = set_dirty;
+    for (i = 0; i < 58u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

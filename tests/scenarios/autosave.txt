@@ -1,0 +1,22 @@
+# LOAF BREAKER: AUTO SAVE waits 3 s after the break stops (a flash write stalls the sound: the stop's tail kept). GLO three
+# times: MORE, K2 AUTO SAVE on (a change); PLAY a minute and more: not saved while playing; stopped: not yet at 1.5 s,
+# saved by 3.5 s.
+#   app/build/host/choppah_host tests/scenarios/autosave.txt app/build/scenarios
+wait 4200
+tap GLO
+wait 100
+tap GLO
+wait 100
+tap GLO
+wait 200
+turn K2 1 10
+wait 100
+expect dirty 1
+tap PLAY
+wait 61000
+expect dirty 1
+tap PLAY
+wait 1500
+expect dirty 1
+wait 2000
+expect dirty 0
