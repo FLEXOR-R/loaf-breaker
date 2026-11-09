@@ -193,7 +193,8 @@ or K2 left once more, deletes it, the rest moving up),
   **FX CHAIN** (the four slots as they came, each effect's memory forgotten, the FX level kept); **STEPS** (this
   pattern's drum steps: 1 hit, ALWAYS, on time; the steps themselves kept); **PADS** (the black keys' settings:
   rolls, THRU, filter, gate, HALF's LATCH, the ARP key's effect); **KEYS** (the white keys' loops and slice effects);
-  **TRACK** (this track: from its first item, every item's break SAME; its items kept). To reset it, **turn K2, K3 or K4 five clicks**, each within 2 s of the last (five
+  **TRACK** (this track: from its first item, every item's break SAME; its items kept); **SCREEN** (the skin RED, the
+  screen effects off, their settings at 50 %, WAVE ZOOM one bar). To reset it, **turn K2, K3 or K4 five clicks**, each within 2 s of the last (five
   boxes fill as you turn; a pause starts them again from 0).
 - **KNOB**: what SEL + each knob does, on any page. **ALGORITHM** (or white keys 1–4) picks the knob, **PRESETS**
   gives it its function: TERROR 2, TERROR, T+ DRIVE, T+ TYPE, T+ SCREECH, T+ TAIL (TERROR +'s settings, one each) or
@@ -634,7 +635,7 @@ break alone: sweep it down and the drums stay full on top. The FLT pad throws it
 | ENV DROP | Build bars | After the drop | Break | Crash |
 | ENV BUILD (PRESETS: tempo rise) | Style | Sweep | Riser | Gap |
 | ENV KNOB (ALGORITHM: the knob; PRESETS: its function) | its function's four settings | | | |
-| ENV RESET (ALGORITHM: what) | What (13 parts) | Reset (5 clicks) | Reset (5 clicks) | Reset (5 clicks) |
+| ENV RESET (ALGORITHM: what) | What (14 parts) | Reset (5 clicks) | Reset (5 clicks) | Reset (5 clicks) |
 | LFO (mixer: levels; LFO held, any page: the same) | Break level | Kick level | Drums level | FX (the chain, dry to wet) |
 | LFO again (groove) | Swing | Drums: through the chain or around it | | |
 | LFO, MASTER | Comp | Ratio | Duck | Max out |

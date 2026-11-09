@@ -43,3 +43,36 @@ turn K2 5 10
 wait 200
 expect selk1 0
 shot rs_done.png
+# SCREEN: VHS and the skin MIAMI on (GLO EFFECTS key 2, MORE K4), then RESET SCREEN: no effect, RED again
+tap GLO
+wait 100
+tap GLO
+wait 100
+tap GLO
+wait 100
+turn K4 13 10
+tap GLO
+wait 200
+key w1 down
+wait 30
+key w1 up
+wait 100
+expect sfx_on 2
+tap ENV
+wait 150
+tap ENV
+wait 150
+tap ENV
+wait 150
+tap ENV
+wait 150
+tap ENV
+wait 150
+tap ENV
+wait 300
+turn ALGO 13 10
+wait 200
+shot rs_screen.png
+turn K4 5 10
+wait 300
+expect sfx_on 0
