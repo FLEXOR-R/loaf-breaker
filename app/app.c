@@ -449,6 +449,7 @@ static volatile uint8_t kroll;
 static volatile int16_t kscope[KSC_W];
 static volatile uint32_t kscope_hit;
 static volatile uint8_t fill_on;
+static volatile uint8_t kick_hold;       /* LOAF BREAKER: KIL (the tenth black key) held: the sequencer's kicks quiet */
 #define LIM_LA 64u                       /* LOAF BREAKER: the output limiter's look-ahead, samples (1.5 ms) */
 static inline float lim_soft(float x)    /* over 0.95: rounded off, never reaching 1 */
 {
@@ -1311,6 +1312,8 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                         spm[b - 1u] = tp;
                     }
             }
+            if (kick_hold)
+                nk = 0u;                 /* LOAF BREAKER: KIL held: the sequencer's kicks quiet (a roll still plays) */
             if (krp && st.playing) {     /* the KICK ROLL's hits in this block, at its pad's rate */
                 static const float RS[BRK_ROLL_DIVS] = {4.0f, 2.0f, 1.0f, 0.5f, 0.25f, 4.0f / 3.0f, 2.0f / 3.0f,
                                                         1.0f / 3.0f};   /* (16ths: brk.c's ROLL_STEPS) */

@@ -9,7 +9,7 @@ key b4 down
 wait 400
 shot a_flt.png
 key b4 up
-key b9 down
+key b8 down
 turn K1 8 10
 wait 300
 expect arp_fx 8
@@ -39,25 +39,25 @@ turn K2 1 10
 tap FX
 wait 200
 expect arp_more 0
-key b9 up
+key b8 up
 wait 200
-key b9 down
+key b8 down
 wait 100
-key b9 up
+key b8 up
 wait 300
 shot a_latched.png
-key b9 down
+key b8 down
 turn K4 1 10
-key b9 up
+key b8 up
 wait 200
-key b9 down
+key b8 down
 wait 100
-key b9 up
+key b8 up
 wait 300
 shot a_latch_on.png
-key b9 down
+key b8 down
 wait 100
-key b9 up
+key b8 up
 wait 300
 shot a_after.png
 wait 1600

@@ -268,7 +268,8 @@ slices you marked ring out, the classic dub throw. (Without a DELAY slot, ECHO g
 
 ## 4. The pads
 
-The black keys, left to right, act while held and combine. While a pad is held, the slice blocks give way to an
+The black keys, left to right (R8 R16 R32 REV FLT HLF VNL RND ARP KIL SUB), act while held and combine. The gate is
+HOME's K1 (GATE), no longer a pad. While a pad is held, the slice blocks give way to an
 animation of what it does, and **K1–K4 tune that pad** (the foot shows its settings; SAVE keeps them):
 
 | Pad | Does | K1 | K2 | K3 | K4 |
@@ -278,10 +279,10 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 | FLT | Throws the DJ filter | Target (LP … HP) | Resonance | Speed | |
 | HLF | Half speed | Speed | MASTER TEMPO: the pitch kept (ON) or dropped | LATCH: ON, a press turns it on and the next off | |
 | VNL | VINYL BREAK: the record slowing to a stop, spinning back up when let go | Stop (beats) | Spin-up | THRU: the break, the kick or both | |
-| GAT | Gate | Rate (1/8, 1/16, 1/32) | Length | | |
 | RND | Random slices | Amount | Random pitch | | |
 | ARP | Its OVERLAY effect over the mix, while held (or latched): DIVE, RISE, RADIO, WAH, CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, WOBBLE, JET, REESE | EFFECT | AMOUNT (that effect's) | TIME: RATE for CHOP, GATE, WAH, PAN; SWEEP for DIVE, RISE | LATCH |
 | ARP, FX while held (MORE) | | THRU: the kick, the break or both | ON / OFF (OFF: K1 browses silent) | RATE (1/4 … 1/32) | SWEEP (1/4 bar … 2 bars) |
+| KIL | While held, the sequencer's kicks are quiet; let go, they play again (a kick roll still plays) | | | | |
 | SUB | A press: the kick's SUB DRIVE on, the next off (its drive is the SUB layer's DRIVE effect, EDIT) | | | | |
 
 ![ROLL held: the caught slice repeating, each copy quieter](img/pad-roll8.png "ROLL held")

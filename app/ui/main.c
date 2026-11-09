@@ -236,7 +236,7 @@ static void input(void)
             if (kup >> WK[i] & 1u)
                 brk_key((int)i, 0);
         for (i = 0; i < 11u; i++)
-            if (kup >> BK[PAD_KEY[i]] & 1u)
+            if ((kup & PAD_BIT(i)))
                 brk_pad((int)i, 0);
         for (k = 0; k < NE; k++)
             if (plat_enc(k))
@@ -314,35 +314,35 @@ static void input(void)
     }
     for (i = 0; i < 11u; i++) {          /* black keys: the pads, held; the last one pressed has the screen */
         if (i == PAD_FREEZE) {           /* GLOUPI BREAKS: FREEZE's key turns the kick's SUB DRIVE on and off */
-            if (kdn >> BK[PAD_KEY[i]] & 1u)
+            if ((kdn & PAD_BIT(i)))
                 sub_drive_toggle();
             continue;
         }
         if (i == PAD_DUB) {              /* GLOUPI BREAKS: DUB's is the ARP key, an OVERLAY effect (ovl.c) */
-            if (kdn >> BK[PAD_KEY[i]] & 1u) {
+            if ((kdn & PAD_BIT(i))) {
                 ovl_pad_key(1);
                 ui.pad_focus = (int8_t)i;
                 ui.pad_since = now;
             }
-            if (kup >> BK[PAD_KEY[i]] & 1u)
+            if ((kup & PAD_BIT(i)))
                 ovl_pad_key(0);
             continue;
         }
         if (i <= PAD_ROLL32) {           /* LOAF BREAKER: the rolls, through their THRU (the break, the kick, both) */
-            if (kdn >> BK[PAD_KEY[i]] & 1u) {
+            if ((kdn & PAD_BIT(i))) {
                 roll_key(i, 1, (btn & 1u << B_SEL) != 0u);   /* (SEL + the pad: the kick alone, this press) */
                 if (btn & 1u << B_SEL)
                     ui.tap_combo = 1u;   /* (no SEL click) */
                 ui.pad_focus = (int8_t)i;
                 ui.pad_since = now;
             }
-            if (kup >> BK[PAD_KEY[i]] & 1u)
+            if ((kup & PAD_BIT(i)))
                 roll_key(i, 0, 0);
             continue;
         }
         if (i == PAD_HALF && set.half_mt_off & 2u) {   /* LOAF BREAKER: HALF SPEED's LATCH: a press on, a press
                                           * off (its knobs while held, as ever) */
-            if (kdn >> BK[PAD_KEY[i]] & 1u) {
+            if ((kdn & PAD_BIT(i))) {
                 half_lat ^= 1u;
                 brk_pad((int)i, half_lat);
                 ui.pad_focus = (int8_t)i;
@@ -351,23 +351,32 @@ static void input(void)
             }
             continue;
         }
-        if (i == PAD_HALF && half_lat && !(keys >> BK[PAD_KEY[i]] & 1u)) {   /* (LATCH turned off, let go: off) */
+        if (i == PAD_HALF && half_lat && !((keys & PAD_BIT(i)))) {   /* (LATCH turned off, let go: off) */
             half_lat = 0u;
             brk_pad((int)i, 0);
             continue;
         }
-        if (kdn >> BK[PAD_KEY[i]] & 1u) {
+        if ((kdn & PAD_BIT(i))) {
             brk_pad((int)i, 1);
             ui.pad_focus = (int8_t)i;
             ui.pad_since = now;
         }
-        if (kup >> BK[PAD_KEY[i]] & 1u && !(i == PAD_HALF && half_lat))
+        if ((kup & PAD_BIT(i)) && !(i == PAD_HALF && half_lat))
             brk_pad((int)i, 0);
     }
-    if (ui.pad_focus >= 0 && !(keys >> BK[PAD_KEY[ui.pad_focus]] & 1u)) {   /* let go: another pad still held, or none */
+    if (kdn >> BK[KILL_KEY] & 1u) {      /* LOAF BREAKER: KIL held: the sequencer's kicks quiet; let go: back */
+        kick_hold = 1u;
+        app_say("KICKS", "QUIET (KIL)");
+        ui.redraw |= RG_FOOT;
+    } else if (kick_hold && !(keys >> BK[KILL_KEY] & 1u)) {
+        kick_hold = 0u;
+        app_say("KICKS", "BACK");
+        ui.redraw |= RG_FOOT;
+    }
+    if (ui.pad_focus >= 0 && !((keys & PAD_BIT(ui.pad_focus)))) {   /* let go: another pad still held, or none */
         ui.pad_focus = -1;
         for (i = 0; i < 11u; i++)
-            if (i != PAD_FREEZE && keys >> BK[PAD_KEY[i]] & 1u)
+            if (i != PAD_FREEZE && (keys & PAD_BIT(i)))
                 ui.pad_focus = (int8_t)i;
     }
     if (bdn & 1u << B_PLAY) {
@@ -872,7 +881,9 @@ static void leds(void)
         k |= 1u << WK[st.slice];
     for (i = 0; i < 11u; i++)
         if (i == PAD_FREEZE ? sub_drive_on() : i == PAD_DUB ? ovl_pad_on() : (int)(st.pads >> i & 1u) || roll_lit(i))
-            k |= 1u << BK[PAD_KEY[i]];
+            k |= PAD_BIT(i);
+    if (kick_hold)                       /* (LOAF BREAKER: KIL held: lit) */
+        k |= 1u << BK[KILL_KEY];
     if (build_p >= 0.0f) {               /* LOAF BREAKER: the build: the white keys fill up left to right (TEST: the next
                                           * one blinking, faster as it builds) */
         uint32_t n = 1u + (uint32_t)(build_p * 15.0f), per = 220u - (uint32_t)(build_p * 180.0f);
@@ -1134,8 +1145,15 @@ static void draw_foot(const brk_status_t *st)
     for (i = 0; i < 11u; i++) {
         int on = i == PAD_FREEZE ? sub_drive_on() : i == PAD_DUB ? ovl_pad_on() : (int)((st->pads >> i) & 1u) || roll_lit(i);
         int32_t x = 2 + (int32_t)PAD_KEY[i] * 21;   /* (at its key) */
+        if (PAD_KEY[i] >= 11u)
+            continue;                    /* (LOAF BREAKER: GATE, no key) */
         cv_rect(x, 0, 20, 14, on ? C_HI : C_BLOCK);
         cv_text(x + (20 - text_w(&FONT_T, PAD_NAME[i])) / 2, 1, &FONT_T, PAD_NAME[i], on ? C_BLACK : C_GRAY);
+    }
+    {                                    /* LOAF BREAKER: KIL, the sequencer's kicks held quiet */
+        int32_t x = 2 + (int32_t)KILL_KEY * 21;
+        cv_rect(x, 0, 20, 14, kick_hold ? C_HI : C_BLOCK);
+        cv_text(x + (20 - text_w(&FONT_T, "KIL")) / 2, 1, &FONT_T, "KIL", kick_hold ? C_BLACK : C_GRAY);
     }
     for (i = 0; i < 4u; i++) {
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "RESET ALL"};

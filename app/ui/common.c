@@ -187,8 +187,11 @@ static const char *const PAD_NAME[BRK_NPADS] = {"R8", "R16", "R32", "REV", "SUB"
 static const uint8_t WK[16] = PLAT_WHITE_KEYS, BK[11] = PLAT_BLACK_KEYS;
 /* GLOUPI BREAKS: the black key (0..10, left to right) of each pad (PAD_*): DUB on the fifth key, FREEZE's in CHOPPAH,
  * and FREEZE on the last, DUB's. BK[PAD_KEY[pad]] is the pad's key; the strip of names follows the keys */
-static const uint8_t PAD_KEY[BRK_NPADS] = {0, 1, 2, 3, 10, 5, 6, 7, 8, 4, 9};   /* (and FILTER on the fifth key,
-                                          * DUB's; PAD_DUB the ARP key on the tenth, FILTER's: DUB itself gone) */
+static const uint8_t PAD_KEY[BRK_NPADS] = {0, 1, 2, 3, 10, 5, 6, 11, 7, 4, 8};   /* (LOAF BREAKER, 9 Nov 2026: GATE no
+                                          * key (11: none; HOME's K1 has it), RANDOM on the eighth, the ARP key on the
+                                          * ninth; the tenth is KIL, the sequencer's kicks held quiet: KILL_KEY) */
+#define KILL_KEY 9u                      /* LOAF BREAKER: the black key (0..10) that keeps the sequencer's kicks quiet */
+#define PAD_BIT(i) (PAD_KEY[i] < 11u ? 1u << BK[PAD_KEY[i]] : 0u)   /* a pad's key's bit (0: no key) */
 
 static struct {
     uint32_t keys, btn;

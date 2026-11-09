@@ -36,7 +36,7 @@ Built on [fm1-base](https://github.com/charlesvestal/fm1-base) (MPL-2.0). No Blu
 
 ![LOAF BREAKER's screens: the splash, the start screen, playing (the CDJ view), the slices, a key held, the KICK menu](docs/img/screens.png)
 
-![Holding a pad shows its effect and puts its settings on K1-K4: roll, reverse, filter, half speed, vinyl break, gate, random, DJ filter](docs/img/pads.png)
+![Holding a pad shows its effect and puts its settings on K1-K4: roll, reverse, filter, half speed, vinyl break, random, DJ filter](docs/img/pads.png)
 
 ![The kick: its SYNTH, DIRT (TERROR), TERROR + , the classic view, the HOOVER, the kick EQ](docs/img/kick.png)
 
@@ -61,7 +61,7 @@ M-VAVE's original firmware first ([docs/FLASHING.md](docs/FLASHING.md)).
 | Control | Does |
 | --- | --- |
 | White keys 1–16 | Slices: at the next snap point while playing, at once while stopped. **Hold to loop**: K1–K4 set that key's loop (length, pitch, start, mode). **Key held + FX**: that slice's own effect |
-| Black keys | Pads, while held: **R8 · R16 · R32** rolls (K2 THRU: the break, the kick or both; SEL + a roll pad: a kick roll for that press) · **REV** reverse · **FLT** filter throw · **HLF** half speed (with a LATCH) · **VNL** vinyl break · **GAT** gate · **RND** random · **ARP** an overlay effect · **SUB** SUB DRIVE. K1–K4 tune the pad held |
+| Black keys | Pads, while held: **R8 · R16 · R32** rolls (K2 THRU: the break, the kick or both; SEL + a roll pad: a kick roll for that press) · **REV** reverse · **FLT** filter throw · **HLF** half speed (with a LATCH) · **VNL** vinyl break · **RND** random · **ARP** an overlay effect · **KIL** the sequencer's kicks quiet while held · **SUB** SUB DRIVE (the gate: HOME's K1). K1–K4 tune the pad held |
 | PLAY | Play / stop · HOME + PLAY: back to bar 1 |
 | SELECT | Tempo · **SEL + SELECT**: the drums' filter (DRUM FLT) on any page |
 | SEL | **SEL ×2**: locked down, lit, for the combinations one-handed (press again: free) · **SEL + K1–K4**: four live functions you assign (DRIVE, TERROR, TERROR 2, TERROR +, its TYPE, SCREECH, TAIL…) · **SEL + REC** (on FX): the effect under your hands back to its start (again within 4 s: undo) · **SEL + ENV**: the drop · **SEL + ALGORITHM** the break, **SEL + PRESETS** the pattern · **SEL + SEQ** copy, then paste the pattern · **SEL + SAVE** undo · SEL alone: every combination on the strip |
