@@ -1,0 +1,17 @@
+# PRESS PLAY's picture: APACHE (ALGORITHM three), the kick on steps 1 and 9 (SEQ, keys 1 and 9), SUB DRIVE on (the
+# last black key), played, then the CDJ view's ring dumped (tools/make_pp_wave.py fills $OUT in)
+wait 4200
+turn ALGO 3 10
+wait 300
+tap SEQ
+wait 300
+tapkey w0
+tapkey w8
+key b10 down
+wait 50
+key b10 up
+tap HOME
+wait 200
+tap PLAY
+wait 6000
+scope_dump $OUT

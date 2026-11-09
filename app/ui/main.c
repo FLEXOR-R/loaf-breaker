@@ -1564,6 +1564,20 @@ int app_host_cmd(const char *cmd, const char *a, const char *b, const char *c, c
         app_splash();
         return 1;
     }
+    if (!strcmp(cmd, "scope_dump")) {    /* scope_dump FILE: the CDJ view's ring (r g b peak a column), the newest's
+                                          * index, the step and its phase now (tools: PRESS PLAY's picture) */
+        FILE *f = fopen(a, "w");
+        brk_status_t st;
+        uint32_t i, w = scope_w;
+        brk_status(&st);
+        if (f) {
+            fprintf(f, "%u %d %d\n", (unsigned)w, (int)st.bar16, (int)(st.phase * 1000.0f));
+            for (i = 0; i < SCOPE_N; i++)
+                fprintf(f, "%u %u %u %u\n", scope[i][0], scope[i][1], scope[i][2], scope[i][3]);
+            fclose(f);
+        }
+        return 1;
+    }
     if (!strcmp(cmd, "bta_sim")) {       /* bta_sim: a pretend Bluetooth audio (the host has no radio) for the page */
         bta_sim_on = 1u;
         return 1;

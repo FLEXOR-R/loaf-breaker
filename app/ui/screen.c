@@ -7,6 +7,7 @@
 
 /* the mark: sixteen bars like a break's hits, two of them chopped out of line */
 static const uint8_t MARK_H[16] = {30, 12, 26, 10, 34, 14, 11, 20, 12, 22, 28, 24, 34, 10, 13, 22};
+#include "pp_wave.h"                     /* (LOAF BREAKER: PRESS PLAY's picture, tools/make_pp_wave.py) */
 static void mark(int32_t y0, uint32_t shown, const uint8_t (*px)[BLK_W])
 {
     uint32_t k, c;
@@ -173,33 +174,28 @@ static void intro_draw(uint32_t now)
         shown = 16u;
     if (!ui.intro_drawn)                 /* GLOUPI BREAKS: the splash's picture away first (this screen draws in bands) */
         lcd_fill(0, 0, 240, 240, C_BLACK);
-    if (shown != ui.intro_drawn) {       /* the loaded break drops in, slice by slice (LOAF BREAKER: a 16-step pattern
-                                          * drawn fat, as a picture: APACHE's lane, each step its slice's shape, and the
-                                          * kick's on 1 and 9 with SUB DRIVE; the steps come in one by one; under the
-                                          * version, clear of the lettering) */
-        uint32_t k, c;
+    if (shown != ui.intro_drawn) {       /* LOAF BREAKER: a bar of APACHE with the kick on 1 and 9 through SUB DRIVE,
+                                          * as the CDJ view draws it (pp_wave.h: the lows red, the mids green, the highs
+                                          * blue), across the screen, as tall as it goes, coming in a step at a time,
+                                          * its red three pixels off */
+        uint32_t x, band;
         ui.intro_drawn = (uint8_t)shown;
-        cv_begin(240, 60, C_BLACK);
-        cv_text(1, 0, &FONT_XS, "APACHE 115", C_GRAY);
-        cv_text(239 - text_w(&FONT_XS, "KICK + SUB DRIVE"), 0, &FONT_XS, "KICK + SUB DRIVE", C_AMB);
-        for (k = 0; k < shown && k < 16u; k++) {
-            int32_t x = (int32_t)k * 15, kick = k == 0u || k == 8u;
-            cv_rect(x + 1, 11, 13, 26, k % 4u ? C_BLOCK : C_LINE);   /* (the break's step, the beats a shade up) */
-            for (c = 0; c < 11u; c++) {  /* (its slice's shape, about the middle) */
-                int32_t h = blk_n ? blk_px[k % BLK_N][c * BLK_W / 11u] * 6 / 5 + 1 : MARK_H[k] * 2 / 3;
-                cv_rect(x + 2 + (int32_t)c, 24 - h / 2, 1, h, kick ? C_WHITE : C_BLOCK_HI);
+        for (band = 0; band < 2u; band++) {   /* (y 38..110, two bands of 36 about y 74) */
+            cv_begin(240, 36, C_BLACK);
+            for (x = 0; x < shown * 15u && x < 240u; x++) {
+                const uint8_t *v = PP_WAVE[x];
+                uint32_t m = v[0] > v[1] ? v[0] : v[1], br = 110u + (uint32_t)v[3] * 145u / 255u;
+                int32_t h = (int32_t)((uint32_t)v[3] * 35u / 255u);
+                if (v[2] > m)
+                    m = v[2];
+                if (m && h)
+                    cv_rect((int32_t)x, 36 - (int32_t)band * 36 - h, 1, 2 * h + 1,
+                            RGB(v[0] * 255u / m * br / 255u, v[1] * 255u / m * br / 255u, v[2] * 255u / m * br / 255u));
             }
-            if (kick) {                  /* the kick: lit, a SUB DRIVE glow around it, its hit falling away in it */
-                cv_rect(x, 39, 15, 21, C_AMB);
-                cv_rect(x + 2, 41, 11, 17, C_HI);
-                for (c = 0; c < 9u; c++) {
-                    int32_t h = 15 - (int32_t)c * 3 / 2;
-                    cv_rect(x + 3 + (int32_t)c, 49 - h / 2, 1, h, C_BLACK);
-                }
-            } else
-                cv_rect(x + 1, 40, 13, 19, C_BLOCK);
+            sfx_splash_d = 3u;
+            cv_blit(0, 38u + band * 36u);
+            sfx_splash_d = 0u;
         }
-        cv_blit(0, 42);
     }
     if (ui.redraw & RG_HEAD) {
         const brk_break_t *b = brk_get_break();
