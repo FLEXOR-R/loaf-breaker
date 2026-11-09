@@ -1570,6 +1570,22 @@ int app_host_cmd(const char *cmd, const char *a, const char *b, const char *c, c
         app_splash();
         return 1;
     }
+    if (!strcmp(cmd, "kick_sub_decay")) {   /* kick_sub_decay MS: the SUB layer's decay to that (the knob's 2 % steps miss
+                                          * some: tools' pictures) */
+        float lo = 0.0f, hi = 1.0f, want = (float)atoi(a);
+        int n;
+        for (n = 0; n < 24; n++) {
+            float m = (lo + hi) * 0.5f;
+            if (kick_decay_ms(KL_SUB, m) < want)
+                lo = m;
+            else
+                hi = m;
+        }
+        set.kick.l[KL_SUB].decay = lo;
+        settings_apply();
+        printf("  kick SUB decay %d ms\n", (int)(kick_decay_ms(KL_SUB, lo) + 0.5f));
+        return 1;
+    }
     if (!strcmp(cmd, "scope_dump")) {    /* scope_dump FILE: the CDJ view's ring (r g b peak a column), the newest's
                                           * index, the step and its phase now (tools: PRESS PLAY's picture) */
         FILE *f = fopen(a, "w");

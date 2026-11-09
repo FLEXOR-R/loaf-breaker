@@ -1,15 +1,73 @@
-# PRESS PLAY's picture: APACHE (ALGORITHM three), the kick on steps 1 and 9 (SEQ, keys 1 and 9), SUB DRIVE on (the
-# last black key), played, then the CDJ view's ring dumped (tools/make_pp_wave.py fills $OUT in)
+# PRESS PLAY's picture: THEWORM (ALGORITHM six), the kick DISTORTO (EDIT, ALGORITHM five: OUT, K4 PRESET five) with
+# its SUB decay at 750 ms, no SUB DRIVE, on steps 1, 5, 9 and 13 of each of the kick lane's four bars (SEQ, keys 1, 5, 9, 13; ALGORITHM the next bar), played, then the CDJ view's
+# ring dumped (tools/make_pp_wave.py fills $OUT in)
 wait 4200
-turn ALGO 3 10
+turn ALGO 6 10
 wait 300
+tap EDIT
+wait 300
+turn ALGO 5 10
+wait 200
+turn K4 5 10
+wait 200
+expect kpreset 5
+kick_sub_decay 750
 tap SEQ
 wait 300
-tapkey w0
-tapkey w8
-key b10 down
-wait 50
-key b10 up
+key w0 down
+wait 30
+key w0 up
+key w4 down
+wait 30
+key w4 up
+key w8 down
+wait 30
+key w8 up
+key w12 down
+wait 30
+key w12 up
+turn ALGO 1 10
+wait 100
+key w0 down
+wait 30
+key w0 up
+key w4 down
+wait 30
+key w4 up
+key w8 down
+wait 30
+key w8 up
+key w12 down
+wait 30
+key w12 up
+turn ALGO 1 10
+wait 100
+key w0 down
+wait 30
+key w0 up
+key w4 down
+wait 30
+key w4 up
+key w8 down
+wait 30
+key w8 up
+key w12 down
+wait 30
+key w12 up
+turn ALGO 1 10
+wait 100
+key w0 down
+wait 30
+key w0 up
+key w4 down
+wait 30
+key w4 up
+key w8 down
+wait 30
+key w8 up
+key w12 down
+wait 30
+key w12 up
 tap HOME
 wait 200
 tap PLAY
