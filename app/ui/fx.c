@@ -660,7 +660,7 @@ static void fx_reset(void)
             pats.kfm_ok &= (uint16_t)~(1u << t);
         else
             pats.mem.fx_ok &= (uint16_t)~(1u << t);
-        app_say(BRK_FXT_NAME[t], "RESET (SEL X2: UNDO)");
+        app_say(BRK_FXT_NAME[t], "RESET (SEL+REC: UNDO)");
     }
     ui.redraw |= RG_BLOCKS | RG_FOOT;
     changed();

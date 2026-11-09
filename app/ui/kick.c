@@ -370,7 +370,7 @@ static void kfx_reset(void)
         l->fa = l->fb = 0.5f;
         l->wet = 1.0f;
         pats.mem.kfx_ok &= (uint16_t)~(1u << (ly * 4u + l->fx - 1u));
-        app_say(KICK_FX_NAME[l->fx % KICK_FX], "RESET (SEL X2: UNDO)");
+        app_say(KICK_FX_NAME[l->fx % KICK_FX], "RESET (SEL+REC: UNDO)");
     }
     ui.redraw |= RG_BLOCKS | RG_FOOT;
     changed();

@@ -1,11 +1,11 @@
-# LOAF BREAKER: SEL held 0.6 s alone locks it down (lit; it counts as held): SEL + SELECT then picks the kick without
+# LOAF BREAKER: SEL x2 (two quick clicks) locks it down (lit; it counts as held): SEL + SELECT then picks the kick without
 # holding SEL; pressed again it is free (that press no click: no combinations card), SELECT the tempo again.
 #   app/build/host/loaf-breaker_host tests/scenarios/sellock.txt app/build/scenarios
 wait 4200
 expect kslot 3
-press SEL
-wait 800
-release SEL
+tap SEL
+wait 100
+tap SEL
 wait 100
 expect sel_lock 1
 turn SELECT 1 10

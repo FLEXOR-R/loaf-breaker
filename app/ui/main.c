@@ -216,7 +216,7 @@ static void input(void)
 {
     uint32_t keys = plat_keys(), btn = plat_buttons(), now = plat_ms(), i, sel_now = btn >> B_SEL & 1u;
     uint32_t kdn, kup, bdn;
-    if (ui.sel_lock) {                   /* LOAF BREAKER: SEL locked (held 0.6 s alone): it counts as held, lit, until
+    if (ui.sel_lock) {                   /* LOAF BREAKER: SEL locked (SEL x2): it counts as held, lit, until
                                           * pressed again (that press no click) */
         if (sel_now && !ui.sel_raw) {
             ui.sel_lock = 0u;
@@ -528,7 +528,12 @@ static void input(void)
             app_say(t, "SEQ AGAIN");
         }
     }
-    if (bdn & 1u << B_REC && btn & 1u << B_SEL) {   /* SEL + REC: clear (on SEQ its lane; else the pattern) */
+    if (bdn & 1u << B_REC && btn & 1u << B_SEL && ui.page == PG_FX)
+        fx_reset();                      /* LOAF BREAKER: SEL + REC on FX: the slot's effect reset (again: undone; was
+                                          * SEL x2) */
+    else if (bdn & 1u << B_REC && btn & 1u << B_SEL && ui.page == PG_KICK && ui.kpage == KP_FX)
+        kfx_reset();                     /* (EDIT KICK's FX: the layer's effect) */
+    else if (bdn & 1u << B_REC && btn & 1u << B_SEL) {   /* SEL + REC: clear (on SEQ its lane; else the pattern) */
         seq_clear(ui.page == PG_SEQ);
     } else if (bdn & 1u << B_REC) {      /* REC: record the keys and MIDI notes into the pattern while playing */
         rec_t = now;                     /* (LOAF BREAKER: on SEQ, at its release: held, it clears the break) */
@@ -627,11 +632,6 @@ static void input(void)
     }
     if (ui.tap_pend && (btn & 1u << B_SEL) && (bdn & ~(1u << B_SEL)))
         ui.tap_combo = 1u;               /* another button with SEL held */
-    if (ui.tap_pend && !ui.tap_combo && !ui.sel_lock && ui.sel_raw && now - ui.tap_t >= 600u) {
-        ui.sel_lock = 1u;                /* LOAF BREAKER: SEL held 0.6 s alone: locked down (its release no click) */
-        ui.tap_combo = 1u;
-        app_say("SEL", "LOCKED: PRESS TO FREE");
-    }
     if (ui.help && ((bdn & ~(1u << B_SEL)) || kdn))
         ui.help = 0u;                    /* the card open: any other button or key closes it */
     if (ui.tap_pend && !(btn & 1u << B_SEL)) {   /* SEL up alone: counted (LOAF BREAKER: three or more, nothing;
@@ -640,22 +640,22 @@ static void input(void)
         if (!ui.tap_combo) {
             ui.sel_clicks = (uint8_t)(now - ui.sel_click_t < 400u && ui.sel_clicks < 9u ? ui.sel_clicks + 1u : 1u);
             ui.sel_click_t = now;
+            if (ui.sel_clicks == 2u) {   /* LOAF BREAKER: SEL x2: locked down, lit, until pressed again */
+                ui.sel_clicks = 0u;
+                ui.sel_lock = 1u;
+                app_say("SEL", "LOCKED: PRESS TO FREE");
+            }
         } else
             ui.sel_clicks = 0u;
     }
     if (ui.sel_clicks && now - ui.sel_click_t >= 400u) {   /* one click alone: the combinations card, open or
-                                          * closed (two: an effect's reset, on FX and EDIT KICK's FX) */
+                                          * closed */
         if (ui.sel_clicks == 1u) {
             ui.help ^= 1u;
             ui.help_t = now;
             if (ui.help)
                 app_say("SEL", "COMBINATIONS");
-        } else if (ui.sel_clicks != 2u)
-            ;                            /* (LOAF BREAKER: three or more: nothing, no drop by mistake) */
-        else if (ui.page == PG_FX)          /* LOAF BREAKER: two on FX: the slot's effect reset (two again: undone) */
-            fx_reset();
-        else if (ui.page == PG_KICK && ui.kpage == KP_FX)   /* (EDIT KICK's FX: the layer's effect) */
-            kfx_reset();
+        }                                /* (LOAF BREAKER: two: SEL locked, above) */
         ui.sel_clicks = 0u;
     }
     if (bdn & 1u << B_SAVE && btn & 1u << B_SEL)   /* SEL + SAVE: undo (again: redo) */
@@ -1075,7 +1075,7 @@ static void draw_help(void)
             if (i == 3u && ui.page == PG_SEQ)
                 b = "CLEAR LANE";
             if (i == 1u && (ui.page == PG_FX || (ui.page == PG_KICK && ui.kpage == KP_FX))) {
-                a = "SEL X2";            /* (LOAF BREAKER: the effect's reset) */
+                a = "+ REC";             /* (LOAF BREAKER: the effect's reset, was SEL x2) */
                 b = "RESET EFFECT";
             }
             if (ui.page == PG_FX && i >= 6u) {

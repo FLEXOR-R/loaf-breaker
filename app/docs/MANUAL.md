@@ -214,7 +214,7 @@ it down at once, never clipping it square. And **MAX OUT** (the MIXER's MASTER, 
 all the way up: -3 dB to start with (headroom for the FM-1's output and your speaker), right to 0 dB, left down to
 -12 dB.
 
-**SEL held 0.6 s alone locks it down**: SEL lights and counts as held, so every SEL combination works with one hand
+**SEL ×2 (two quick clicks) locks it down**: SEL lights and counts as held, so every SEL combination works with one hand
 (SEL + a knob, SELECT, PRESETS, ALGORITHM, ENV…); **SEL pressed again frees it**.
 
 **SEL + ENV** (playing) asks for the drop (SEL ×3 no longer does: too easy by mistake): the build starts at the next bar, so the drop always lands on a bar line.
@@ -335,12 +335,12 @@ its level in and out.
 | ALGORITHM | The slot to tune (1–4) |
 | FX again | The slot's next part: MAIN, MORE, MOD (an MB COMP: its six), then the next slot |
 | PRESETS | The effect in that slot, through the library (EMPTY first); a new effect comes in on, as you last left it (its MORE and MOD too; never touched: its starting settings) |
-| SEL ×2 | The slot's effect back to its starting settings (its MORE, MOD and MB COMP detail too); SEL ×2 again within 4 s takes the reset back. On EDIT KICK's FX parts the same for that layer's effect, which is also remembered effect by effect |
+| SEL + REC | The slot's effect back to its starting settings (its MORE, MOD and MB COMP detail too); SEL + REC again within 4 s takes the reset back. On EDIT KICK's FX parts the same for that layer's effect, which is also remembered effect by effect |
 
 **KICK FX** (EDIT KICK's parts FX 1 and FX 2, after EQ BANDS and EQ SHAPE): the FX page on the kick's own two slots,
 after its EQ and before everything else (the break's chain never sees them). Every effect of the library but REVERB
 and DELAY; PRESETS the effect (remembered as left, apart from the chain's), ALGORITHM the kick's next or previous part,
-FX the next part of the effect (MAIN, MORE, MOD), FX held + ALGORITHM moves the slot, SEL + FX bypasses, SEL ×2 resets.
+FX the next part of the effect (MAIN, MORE, MOD), FX held + ALGORITHM moves the slot, SEL + FX bypasses, SEL + REC resets.
 FX from another page: the chain.
 
 **MB KICK** comes right after MB COMP in KICK FX's PRESETS: an MB COMP set for a gabber kick (KICK GABBER). The sub is
