@@ -169,10 +169,26 @@ static void intro_draw(uint32_t now)
         shown = 16u;
     if (!ui.intro_drawn)                 /* GLOUPI BREAKS: the splash's picture away first (this screen draws in bands) */
         lcd_fill(0, 0, 240, 240, C_BLACK);
-    if (shown != ui.intro_drawn) {       /* the loaded break drops in, slice by slice */
+    if (shown != ui.intro_drawn) {       /* the loaded break drops in, slice by slice (LOAF BREAKER: the whole break,
+                                          * 240 columns tall about its middle, each in the CDJ view's colours: the lows
+                                          * red, the mids green, the highs blue; the slices' starts ticked) */
+        uint32_t x, n = blk_n ? shown * 15u : 0u;
         ui.intro_drawn = (uint8_t)shown;
         cv_begin(240, 60, C_BLACK);
-        mark(10, shown, blk_n ? (const uint8_t (*)[BLK_W])blk_px : 0);
+        if (!blk_n)
+            mark(10, shown, 0);
+        for (x = 0; x < n && x < 240u; x++) {
+            int32_t h = (int32_t)wave_px[x] * 27 / 24;
+            uint32_t br = 110u + (uint32_t)wave_px[x] * 145u / 24u;
+            const uint8_t *c = wave_rgb[x];
+            if (h)
+                cv_rect((int32_t)x, 30 - h, 1, 2 * h + 1, RGB(c[0] * br / 255u, c[1] * br / 255u, c[2] * br / 255u));
+        }
+        for (x = 0; blk_n && x < blk_n && x * 15u < n; x++) {   /* (the slices: a tick top and bottom) */
+            int32_t at = (int32_t)(brk_get_break()->slice[x] * 240u / brk_get_break()->len);
+            cv_rect(at, 0, 1, 3, C_DIM);
+            cv_rect(at, 57, 1, 3, C_DIM);
+        }
         cv_blit(0, 50);
     }
     if (ui.redraw & RG_HEAD) {
