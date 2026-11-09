@@ -263,6 +263,8 @@ static struct {
     uint8_t rst_n;                       /* (the clicks so far) */
     uint8_t lfo_hold;                    /* LOAF BREAKER: LFO down (1), a level turned with it (2): no page then */
     uint8_t sfx_cur;                     /* LOAF BREAKER: GLO EFFECTS: the effect K1 points at (SFX_CRT..SFX_8BIT) */
+    uint8_t sel_lock, sel_raw;           /* LOAF BREAKER: SEL locked down (held 0.6 s alone; pressed again: free); SEL's
+                                          * own state last frame */
     uint8_t knfn;                        /* KNOB's function: 0 DUCK (K1), 1 TERROR 2, 2 COMP, 3 TERROR (K4) */
     uint8_t fx_main, kfx_last;           /* (KICK FX: the FX page on slot 4 or 5; the chain's slot kept meanwhile, and
                                           * the kick's last) */

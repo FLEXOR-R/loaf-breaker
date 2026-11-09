@@ -214,8 +214,20 @@ static void rec_toggle(void)
 
 static void input(void)
 {
-    uint32_t keys = plat_keys(), btn = plat_buttons(), now = plat_ms(), i;
-    uint32_t kdn = keys & ~ui.keys, kup = ui.keys & ~keys, bdn = btn & ~ui.btn;
+    uint32_t keys = plat_keys(), btn = plat_buttons(), now = plat_ms(), i, sel_now = btn >> B_SEL & 1u;
+    uint32_t kdn, kup, bdn;
+    if (ui.sel_lock) {                   /* LOAF BREAKER: SEL locked (held 0.6 s alone): it counts as held, lit, until
+                                          * pressed again (that press no click) */
+        if (sel_now && !ui.sel_raw) {
+            ui.sel_lock = 0u;
+            app_say("SEL", "FREE");
+        } else
+            btn |= 1u << B_SEL;
+    }
+    ui.sel_raw = (uint8_t)sel_now;
+    kdn = keys & ~ui.keys;
+    kup = ui.keys & ~keys;
+    bdn = btn & ~ui.btn;
     int k;
     if (keys != ui.keys || btn != ui.btn)
         ui.touched = 1u;                 /* (read here too between frames: app_input_only) */
@@ -615,6 +627,11 @@ static void input(void)
     }
     if (ui.tap_pend && (btn & 1u << B_SEL) && (bdn & ~(1u << B_SEL)))
         ui.tap_combo = 1u;               /* another button with SEL held */
+    if (ui.tap_pend && !ui.tap_combo && !ui.sel_lock && ui.sel_raw && now - ui.tap_t >= 600u) {
+        ui.sel_lock = 1u;                /* LOAF BREAKER: SEL held 0.6 s alone: locked down (its release no click) */
+        ui.tap_combo = 1u;
+        app_say("SEL", "LOCKED: PRESS TO FREE");
+    }
     if (ui.help && ((bdn & ~(1u << B_SEL)) || kdn))
         ui.help = 0u;                    /* the card open: any other button or key closes it */
     if (ui.tap_pend && !(btn & 1u << B_SEL)) {   /* SEL up alone: counted (LOAF BREAKER: three or more, nothing;
@@ -835,6 +852,8 @@ static void leds(void)
         plat_lights_mid(0u, 0u);
     }
     brk_status(&st);
+    if (ui.sel_lock)                     /* (LOAF BREAKER: SEL locked: lit) */
+        b |= 1u << B_SEL;
     if (st.playing && plat_ms() - ui.kick_t >= 70u)   /* (LOAF BREAKER TEST: PLAY blinks off on each kick) */
         b |= 1u << B_PLAY;
     static const uint8_t PAGE_BTN[NPAGES] = {B_HOME, B_HOME, B_FX, B_GLO, B_EDIT, B_LFO, B_SEQ, B_EDIT, B_ENV, B_ARP,
@@ -1618,8 +1637,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on"};
-    int v[61];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock"};
+    int v[62];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1692,7 +1711,8 @@ int app_expect(const char *what, int *got)
     v[58] = set.brk_level;
     v[59] = (int)(set.kick.volume * 100.0f + 0.5f);
     v[60] = set.sfx_on;
-    for (i = 0; i < 61u; i++)
+    v[61] = ui.sel_lock;
+    for (i = 0; i < 62u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

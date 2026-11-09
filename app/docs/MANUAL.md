@@ -214,6 +214,9 @@ it down at once, never clipping it square. And **MAX OUT** (the MIXER's MASTER, 
 all the way up: -3 dB to start with (headroom for the FM-1's output and your speaker), right to 0 dB, left down to
 -12 dB.
 
+**SEL held 0.6 s alone locks it down**: SEL lights and counts as held, so every SEL combination works with one hand
+(SEL + a knob, SELECT, PRESETS, ALGORITHM, ENV…); **SEL pressed again frees it**.
+
 **SEL + ENV** (playing) asks for the drop (SEL ×3 no longer does: too easy by mistake): the build starts at the next bar, so the drop always lands on a bar line.
 
 ![TRACKS: track 1's items, P1 ×4, P2 ×4, a DROP, P3 ×8](img/t_tracks.png "TRACKS") ![PLAY: the radio, track 2 tuned in](img/t_play.png "PLAY") ![A build on its way to the drop](img/t_build.png "BUILD")
