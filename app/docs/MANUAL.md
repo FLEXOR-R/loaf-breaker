@@ -267,16 +267,17 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 | --- | --- | --- | --- | --- | --- |
 | R8 · R16 · R32 | Roll from the next 16th | RATE (1/4 … 1/64, triplets) | THRU: BREAK (the break rolled, as ever), KICK (the kick hit at the rate instead of its pattern: a kick roll; the break plays on), BOTH (the two); **SEL + the pad**: the kick alone, for that press, whatever THRU says | DRUM FLT (HOME's drums' filter) | DECAY: DOWN (each repeat quieter) or UP (a swell up to full) |
 | REV | Reverse | Speed | | | |
-| FRZ | Freeze: the slice (or part of it) loops | Length (slice, 1/2, 1/4, 1/8) | Pitch | | |
-| HLF | Half speed | Speed | MASTER TEMPO: the pitch kept (ON) or dropped | LATCH: ON, a press turns it on and the next off (turned on while held: it stays on) | |
-| STP | Tape stop; let go and it spins back up | Stop time (beats) | Spin-up (16ths) | | |
+| FLT | Throws the DJ filter | Target (LP … HP) | Resonance | Speed | |
+| HLF | Half speed | Speed | MASTER TEMPO: the pitch kept (ON) or dropped | LATCH: ON, a press turns it on and the next off | |
+| VNL | VINYL BREAK: the record slowing to a stop, spinning back up when let go | Stop (beats) | Spin-up | THRU: the break, the kick or both | |
 | GAT | Gate | Rate (1/8, 1/16, 1/32) | Length | | |
 | RND | Random slices | Amount | Random pitch | | |
-| FLT | Throws the DJ filter | Target (LP … HP) | Resonance | Speed | |
-| DUB | Throws the break into the delay (stereo ping-pong); the echoes ring on. With a DELAY in the FX chain it throws into that one, and K1–K4 are that DELAY's | Time (1/8, 3/16, 1/4, 3/8; the DELAY's all eight) | Feedback | Tone | Mix (the DELAY's: Send) |
+| ARP | Its OVERLAY effect over the mix, while held (or latched): DIVE, RISE, RADIO, WAH, CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, WOBBLE, JET, REESE | EFFECT | AMOUNT (that effect's) | TIME: RATE for CHOP, GATE, WAH, PAN; SWEEP for DIVE, RISE | LATCH |
+| ARP, FX while held (MORE) | | THRU: the kick, the break or both | ON / OFF (OFF: K1 browses silent) | RATE (1/4 … 1/32) | SWEEP (1/4 bar … 2 bars) |
+| SUB | A press: the kick's SUB DRIVE on, the next off (its drive is the SUB layer's DRIVE effect, EDIT) | | | | |
 
-![ROLL held: the caught slice repeating, each copy quieter, RATE / DECAY / PITCH on K1-K3](img/pad-roll8.png "ROLL held")
-![TAPE STOP held: two reels slowing down](img/pad-stop.png "TAPE STOP held") ![DUB held: echoes marching out](img/pad-dub.png "DUB held")
+![ROLL held: the caught slice repeating, each copy quieter](img/pad-roll8.png "ROLL held")
+![VINYL BREAK held: the record slowing down](img/pad-stop.png "VINYL BREAK held") ![The DJ filter thrown](img/pad-dub.png "Filter")
 
 ## 5. Patterns and the sequencer
 
@@ -601,26 +602,33 @@ break alone: sweep it down and the drums stay full on top. The FLT pad throws it
 
 | Page | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- |
-| HOME (perform) | Gate | DJ filter on the break (left low-pass, right high-pass) | FX (the MIXER's) | Complexity (the GENERATOR's) |
-| LFO (mixer) | Break level | Kick level | Snare and hat level | FX (the chain, dry to wet) |
-| LFO again (groove) | Swing | Drums: through the chain or around it | | |
+| HOME (perform) | Gate | Filter: the DJ filter on the break (left low-pass, right high-pass) | Drum flt: the same on the drums | Sub decay: the kick's SUB's length |
 | HOME again (generator) | Complexity | Anchor | Roll | Fill |
-| FX (the chain) | the focused slot's effect: its three settings (FX again: its MORE and MOD parts; an MB COMP its six, see §6) | | | Its mix |
-| SEQ (patterns) | Slice | Pitch | Hits | Reverse |
-| SEQ, a drum lane | Fill | Rotate | Clear / 4x4 | Copy |
-| GLO (global) | Clock in | Clock out | (not used) | MIDI to |
-| GLO again (pitch, snap) | Keep length / speed | Grain | Snap | Reset all (twice) |
-| GLO a third time (BT audio) | On / off | Device | Scan | Connect / hang up |
-| ENV TRACKS (PRESETS: the track; a white key: its pattern in) | Item | Pattern / DROP / END | Loops | Its break |
+| EDIT, the KICK menu (EDIT again: its section; ALGORITHM: its part) | SOUND: MIX, SUB … CLICK, OUT · SYNTH: SYNTH, SYNTH +, BASS, MACRO · DIRT: TERROR, TERROR +, TERROR 2, the layers' effects · TONE: EQ BANDS, EQ SHAPE, FX 1, FX 2 (§8) | | | |
+| The drums (SELECT on the big view; SEL + EDIT: classic) | Level · Snap / cut / spread / bend | Tune · Drive | Decay · Preset | Tone |
+| SEQ (the break's steps) | Slice | Pitch | Hits | Reverse |
+| SEQ, a drum lane | Fill | Drum flt | Clear / 4x4 / grooves | Length |
+| SEQ, a drum step held | Note (kick, hoover) | Hits | Cond | Nudge |
+| ENV TRACKS (PRESETS: the track; a white key: its pattern in; SEL + PLAY: start here) | Item (ALGORITHM too) | Pattern / DROP / END | Loops | Its break |
 | ENV PLAY (PLAY: the track) | Track | From item | At the end | |
 | ENV DROP | Build bars | After the drop | Break | Crash |
-| EDIT (kick; ALGORITHM its part) | see §8: MIX, SUB … CLICK FX, MACRO, OUT | | | |
-| EDIT again (snare, then hat) | Level · Snap / cut | Tune · Drive | Decay | Tone |
+| ENV BUILD (PRESETS: tempo rise) | Style | Sweep | Riser | Gap |
+| ENV KNOB (ALGORITHM: the knob; PRESETS: its function) | its function's four settings | | | |
+| ENV RESET | What (13 parts) | | | Reset (right twice) |
+| LFO (mixer: levels) | Break level | Kick level | Drums level | FX (the chain, dry to wet) |
+| LFO again (groove) | Swing | Drums: through the chain or around it | | |
+| LFO, MASTER | Comp | Ratio | Duck | Max out |
+| LFO, DYNAMICS | Comp attack | Comp release | Duck release | Ducks: the break, or the break and the drums |
+| FX (the chain) | the focused slot's effect: its three settings (FX again: its MORE and MOD parts; an MB COMP its six, see §6) | | | Its mix |
+| GLO (MIDI) | Clock in | Clock out | | |
+| GLO again (pitch, snap) | Keep length / speed | Grain | Snap | Reset all (fifteen turns) |
+| GLO a third time (MORE) | Skin | Auto save | CRT | |
+| ARP held | FILL (the page's knobs stay the page's) | | | |
 
 **Gate** (HOME K1) cuts every slice the loop plays short: at 50 % each slice sounds for half its length, then
 quiet until the next; down to 5 % for clipped, staccato chops; 100 % is off. It follows the tempo and the pitch, and
 the slice lit in the waveform shrinks with it. It covers the loop's slices, ratchets and the RANDOM pad; key loops
-(their LENGTH) and rolls keep their own; FREEZE holds the slice whole.
+(their LENGTH) and rolls keep their own.
 
 The generator rearranges the break as it plays: **complexity** is how often it jumps, **anchor** keeps the kick and
 snare on the beats, **roll** repeats a slice or takes the one next to it, **fill** breaks the rules in the last bar

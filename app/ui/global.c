@@ -35,7 +35,7 @@ static void global_value(int i, char *t)
         return;
     }
     text_cat(t, i == 0 ? (set.clk_in ? "FOLLOW" : "OFF") : i == 1 ? (set.clk_out ? "ON" : "OFF")
-                : i == 2 ? (set.ble_off ? "OFF" : "ON") : MIDI_TO_NAME[set.midi_to % 3u]);
+                : "");                   /* (LOAF BREAKER: K3, K4 nothing: no Bluetooth, MIDI goes over USB) */
 }
 
 static void global_turn(int i, int32_t d)
@@ -100,14 +100,8 @@ static void global_turn(int i, int32_t d)
         }
     } else if (i == 1)
         set.clk_out = d > 0;
-    else if (i == 2) {
-        uint8_t off = d < 0;
-        if (off != set.ble_off) {
-            set.ble_off = off;
-            plat_ble_enable(!off);       /* off ends the link and stops advertising */
-        }
-    } else
-        set.midi_to = (uint8_t)clamp((int32_t)set.midi_to + (d > 0 ? 1 : -1), 0, 2);
+    else                                 /* (LOAF BREAKER: no Bluetooth: K3, K4 do nothing) */
+        return;
     global_value(i, t);
     app_say(NAME[i], t);
     changed();
@@ -175,15 +169,10 @@ static void draw_global(const brk_status_t *st)
         cv_blit(0, 140);
         return;
     }
-    cv_begin(240, 52, C_BLACK);          /* Bluetooth, and the clock in */
-    cv_text(6, 2, &FONT_T, "BLUETOOTH", C_GRAY);
-    t[0] = 0;
-    text_cat(t, set.ble_off ? "OFF" : bs == BLE_STARTING ? "STARTING" : bs == BLE_FAILED ? "FAILED"
-                : plat_ble_connected() ? "CONNECTED" : plat_ble_linked() ? "LINKING" : bs == BLE_READY
-                ? "READY TO PAIR" : "OFF");
-    cv_text(96, 2, &FONT_T, t, plat_ble_connected() ? C_HI : set.ble_off ? C_DIM : C_WHITE);
-    if (!set.ble_off && !plat_ble_connected())
-        cv_text(96, 14, &FONT_XS, "NAME: CHOPPAH ....", C_DIM);
+    cv_begin(240, 52, C_BLACK);          /* where MIDI goes (LOAF BREAKER: no Bluetooth), and the clock in */
+    (void)bs;
+    cv_text(6, 2, &FONT_T, "MIDI", C_GRAY);
+    cv_text(96, 2, &FONT_T, "USB AND THE TRS JACK", C_WHITE);
     cv_text(6, 30, &FONT_T, "CLOCK IN", C_GRAY);
     t[0] = 0;
     if (!set.clk_in)

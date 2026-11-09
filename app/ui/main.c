@@ -530,7 +530,13 @@ static void input(void)
         fill_on = 0u;
         ui.redraw |= RG_HEAD;
     }
-    if (bdn & 1u << B_FX && key_tuned() >= 0) {   /* FX with a key held: its knobs, loop <-> slice effect */
+    if (bdn & 1u << B_FX && ui.pad_focus == PAD_DUB) {   /* LOAF BREAKER: FX with the ARP key held: its knobs, MAIN
+                                          * <-> MORE */
+        ui.pad_more ^= 1u;
+        app_say("ARP KEY", ui.pad_more ? "MORE" : "MAIN");
+        ui.redraw |= RG_BLOCKS;
+        foot_dirty = 1u;
+    } else if (bdn & 1u << B_FX && key_tuned() >= 0) {   /* FX with a key held: its knobs, loop <-> slice effect */
         ui.key_layer ^= 1u;
         ui.key_turned = 1u;
         app_say("KEY", ui.key_layer ? "SLICE FX" : "LOOP");
@@ -1051,7 +1057,7 @@ static void draw_foot(const brk_status_t *st)
     static const char *const KN[NPAGES][4] = {{"GATE", "FILTER", "DRUM FLT", "SUB DECAY"},
                                               {"CMPLX", "ANCHOR", "ROLL", "FILL"},
                                               {"P1", "P2", "P3", "MIX"},
-                                              {"CLOCK IN", "CLOCK OUT", "BLUETOOTH", "MIDI TO"},
+                                              {"CLOCK IN", "CLOCK OUT", "", ""},
                                               {"", "", "", ""},
                                               {"BREAK", "KICK", "PERC", "FX"},
                                               {"SLICE", "PITCH", "HITS", "REVERSE"},
@@ -1091,7 +1097,7 @@ static void draw_foot(const brk_status_t *st)
             continue;
         }
         if (ui.shown >= 0) {             /* a pad held: its own settings */
-            name = PAD_KNOB[ui.shown][i];
+            name = pad_knob_name(ui.shown, (int)i);
             if (!name)
                 continue;
             cv_text(4 + (int32_t)i * 60, 18, &FONT_T, name, C_HI);
@@ -1518,8 +1524,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from"};
-    int v[49];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate"};
+    int v[54];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1580,7 +1586,12 @@ int app_expect(const char *what, int *got)
     v[46] = set.kbass[1];
     v[47] = set.drop_accel;
     v[48] = TRK_FROM;
-    for (i = 0; i < 49u; i++)
+    v[49] = set.ovl_pad & 15u;
+    v[50] = set.ovl_amt[set.ovl_pad & 15u];
+    v[51] = ui.pad_more;
+    v[52] = (set.ovl_pad >> 6) & 3u;
+    v[53] = set.ovl_rate;
+    for (i = 0; i < 54u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

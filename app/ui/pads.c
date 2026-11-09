@@ -46,11 +46,32 @@ static const char *const PAD_KNOB[BRK_NPADS][4] = {
     {"RATE", "THRU", "DRUM FLT", "DECAY"}, {"RATE", "THRU", "DRUM FLT", "DECAY"}, {"RATE", "THRU", "DRUM FLT", "DECAY"},
     {"SPEED", 0, 0, 0}, {"LENGTH", "PITCH", 0, 0}, {"SPEED", "M. TEMPO", "LATCH", 0}, {"STOP", "SPIN UP", "THRU", 0},
     {"RATE", "LENGTH", 0, 0}, {"AMOUNT", "PITCH", 0, 0}, {"TARGET", "RESO", "SPEED", 0},
-    {"EFFECT", "THRU", "ON / OFF", "LATCH"}};   /* (LOAF BREAKER: held only; K2 what goes through the ARP
+    {"EFFECT", "AMOUNT", "TIME", "LATCH"}};   /* (LOAF BREAKER: the ARP key's; FX while held: MORE, pad_knob_name) */   /* (LOAF BREAKER: held only; K2 what goes through the ARP
                                           * effects: the kick, the break, or both) */   /* (GLOUPI BREAKS: PAD_DUB is the ARP key) */
 static const char *const PAD_TITLE[BRK_NPADS] = {"ROLL", "ROLL", "ROLL", "REVERSE", "SUB DRIVE", "HALF SPEED",
                                                   "VINYL BREAK", "GATE", "RANDOM", "FILTER", "OVERLAY"};
 
+/* LOAF BREAKER: the ARP key's knobs (the OVERLAY page gone, its settings here). MAIN: K1 EFFECT, K2 its AMOUNT, K3
+ * its TIME (RATE for CHOP, GATE, WAH, PAN; SWEEP for DIVE and RISE; none for the rest), K4 LATCH. MORE (FX pressed while
+ * the key is held): K1 THRU (what goes through: the kick, the break, both), K2 ON / OFF (OFF: K1 browses silent), K3
+ * RATE, K4 SWEEP. ui.pad_more */
+static int ovl_time_kind(uint32_t e)     /* 1 RATE, 2 SWEEP, 0 none */
+{
+    return e == OV_CHOP || e == OV_GATE || e == OV_WAH || e == OV_PAN ? 1 : e == OV_DIVE || e == OV_RISE ? 2 : 0;
+}
+static const char *pad_knob_name(int pad, int k)
+{
+    if (pad == PAD_DUB) {
+        static const char *const MORE[4] = {"THRU", "ON / OFF", "RATE", "SWEEP"};
+        if (ui.pad_more)
+            return MORE[k & 3];
+        if (k == 2) {
+            int tk = ovl_time_kind(set.ovl_pad & 15u);
+            return tk == 1 ? "RATE" : tk == 2 ? "SWEEP" : "TIME";
+        }
+    }
+    return PAD_KNOB[pad][k & 3];
+}
 /* -1..1 as the DJ filter's frequency: "LP 340HZ" / "HP 1.2K" */
 static void dj_text(float dj, char *t)
 {
@@ -187,12 +208,25 @@ static void pad_knob_value(int pad, int k, char *t)
         else if (k == 1) pct_text(f->flt_res, t);
         else pct_text(f->flt_speed, t);
         break;
-    case PAD_DUB:                        /* GLOUPI BREAKS: the ARP key: its OVERLAY effect, its LATCH */
-        if (k == 0) text_cat(t, OVL_NAME[set.ovl_pad & 15u]);
-        else if (k == 1) text_cat(t, THRU_NAME[(set.ovl_pad >> 6) & 3u]);
-        else if (k == 2) text_cat(t, set.ovl_pad & 32u ? "OFF" : "ON");
-        else text_cat(t, set.ovl_pad & 16u ? "ON" : "OFF");   /* (LOAF BREAKER: K4 LATCH) */
+    case PAD_DUB: {                      /* the ARP key: MAIN or MORE (pad_knob_name) */
+        uint32_t e = set.ovl_pad & 15u;
+        int tk = ovl_time_kind(e);
+        if (ui.pad_more) {
+            if (k == 0) text_cat(t, THRU_NAME[(set.ovl_pad >> 6) & 3u]);
+            else if (k == 1) text_cat(t, set.ovl_pad & 32u ? "OFF" : "ON");
+            else if (k == 2) text_cat(t, OVL_RATE_NAME[set.ovl_rate & 3u]);
+            else text_cat(t, OVL_SWEEP_NAME[set.ovl_sweep & 3u]);
+        } else if (k == 0)
+            text_cat(t, OVL_NAME[e]);
+        else if (k == 1) {
+            int_text(set.ovl_amt[e], t);
+            text_cat(t, "%");
+        } else if (k == 2)
+            text_cat(t, tk == 1 ? OVL_RATE_NAME[set.ovl_rate & 3u] : tk == 2 ? OVL_SWEEP_NAME[set.ovl_sweep & 3u] : "-");
+        else
+            text_cat(t, set.ovl_pad & 16u ? "ON" : "OFF");
         break;
+    }
     default: break;
     }
 }
@@ -209,7 +243,7 @@ static void pad_knob_turn(int pad, int k, int32_t d)
     brk_padset_t *p = &set.pads;
     brk_fx_t *f = &set.fx;
     char t[16];
-    if (pad < 0 || pad >= BRK_NPADS || k < 0 || k > 3 || !PAD_KNOB[pad][k])
+    if (pad < 0 || pad >= BRK_NPADS || k < 0 || k > 3 || !pad_knob_name(pad, k))
         return;
     switch (pad <= PAD_ROLL32 ? 0 : pad) {
     case 0:
@@ -255,24 +289,44 @@ static void pad_knob_turn(int pad, int k, int32_t d)
         break;
     case PAD_DUB:                        /* GLOUPI BREAKS: the ARP key. K1 which OVERLAY effect (the ARP page's
                                           * settings: amount, rate, sweep), K2 THRU, K3 ON / OFF, K4 LATCH */
-        if (k == 0)
-            set.ovl_pad = (uint8_t)((set.ovl_pad & ~15u) | ((set.ovl_pad + (d > 0 ? 1u : 15u)) & 15u));
-        else if (k == 1)                 /* K2 THRU (app.c's render) */
-            set.ovl_pad = (uint8_t)((set.ovl_pad & 0x3Fu) | thru_turn(set.ovl_pad >> 6, d) << 6);
-        else if (k == 2)               /* K3: ON, the key sounds its effect; OFF, K1 browses them silent */
-            set.ovl_pad = (uint8_t)(d > 0 ? set.ovl_pad & ~32u : set.ovl_pad | 32u);
-        else {                           /* LOAF BREAKER: K4 LATCH, right on (each press on or off), left off */
-            set.ovl_pad = (uint8_t)(d > 0 ? set.ovl_pad | 16u : set.ovl_pad & ~16u);
-            if (!(set.ovl_pad & 16u))
-                ovlpad_lat = 0u;         /* (latched on: off with it) */
+        {
+            uint32_t e = set.ovl_pad & 15u;
+            int tk = ovl_time_kind(e), dir = d > 0 ? 1 : -1;
+            if (ui.pad_more) {           /* MORE: THRU, ON / OFF, RATE, SWEEP */
+                if (k == 0)              /* (THRU: app.c's render) */
+                    set.ovl_pad = (uint8_t)((set.ovl_pad & 0x3Fu) | thru_turn(set.ovl_pad >> 6, d) << 6);
+                else if (k == 1)         /* (ON: the key sounds its effect; OFF: K1 browses them silent) */
+                    set.ovl_pad = (uint8_t)(d > 0 ? set.ovl_pad & ~32u : set.ovl_pad | 32u);
+                else if (k == 2)
+                    set.ovl_rate = (uint8_t)clamp((int32_t)set.ovl_rate + dir, 0, 3);
+                else
+                    set.ovl_sweep = (uint8_t)clamp((int32_t)set.ovl_sweep + dir, 0, 3);
+            } else if (k == 0)           /* MAIN: K1 the effect */
+                set.ovl_pad = (uint8_t)((set.ovl_pad & ~15u) | ((set.ovl_pad + (d > 0 ? 1u : 15u)) & 15u));
+            else if (k == 1)             /* K2 its amount */
+                set.ovl_amt[e] = (uint8_t)clamp((int32_t)set.ovl_amt[e] + d * 2, 0, 100);
+            else if (k == 2) {           /* K3 its time: RATE or SWEEP, as the effect has */
+                if (tk == 1)
+                    set.ovl_rate = (uint8_t)clamp((int32_t)set.ovl_rate + dir, 0, 3);
+                else if (tk == 2)
+                    set.ovl_sweep = (uint8_t)clamp((int32_t)set.ovl_sweep + dir, 0, 3);
+                else
+                    return;
+            } else {                     /* K4 LATCH, right on (each press on or off), left off */
+                set.ovl_pad = (uint8_t)(d > 0 ? set.ovl_pad | 16u : set.ovl_pad & ~16u);
+                if (!(set.ovl_pad & 16u))
+                    ovlpad_lat = 0u;     /* (latched on: off with it) */
+            }
+            set_dirty = 1u;
         }
         ovl_push();
+        ui.redraw |= RG_FOOT;
         ui.redraw |= RG_BLOCKS;
         break;
     default: break;
     }
     pad_knob_value(pad, k, t);
-    app_say(PAD_KNOB[pad][k], t);
+    app_say(pad_knob_name(pad, k), t);
     changed();
 }
 
@@ -465,8 +519,12 @@ static void draw_fx_band(int pad, const brk_status_t *st, uint32_t now, int32_t 
         const char *n = OVL_NAME[set.ovl_pad & 15u];
         cv_rect(6, 30, 228, 40, on ? C_HI : C_BLOCK);
         cv_text((240 - text_w(&FONT_B, n)) / 2, 38, &FONT_B, n, on ? C_BLACK : C_GRAY);
-        cv_text(6, 78, &FONT_XS, set.ovl_pad & 32u ? "OFF (K3): K1 BROWSES, SILENT"
+        cv_rect(6, 72, 228, 3, C_BLOCK); /* (LOAF BREAKER: its amount) */
+        cv_rect(6, 72, (int32_t)set.ovl_amt[set.ovl_pad & 15u] * 228 / 100, 3, on ? C_HI : C_GRAY);
+        cv_text(6, 78, &FONT_XS, set.ovl_pad & 32u ? "OFF (FX: MORE, K2): K1 BROWSES, SILENT"
                                  : set.ovl_pad & 16u ? "LATCH: EACH PRESS ON OR OFF" : "ON WHILE HELD", C_DIM);
+        cv_text(234 - text_w(&FONT_XS, ui.pad_more ? "MORE (FX: MAIN)" : "FX: MORE"), 4, &FONT_XS,
+                ui.pad_more ? "MORE (FX: MAIN)" : "FX: MORE", ui.pad_more ? C_HI : C_DIM);
         (void)held;
         break;
     }
