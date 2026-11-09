@@ -44,7 +44,8 @@ static uint32_t sfx_win(uint32_t ms)     /* a kick's or a drop's moment, by GLO 
 {
     return ms * (50u + (set.sfx_len > 100u ? 100u : set.sfx_len)) / 100u;
 }
-#define SFX_ON(e) (sfx_splash_d ? (e) == SFX_RGB : (set.sfx_on >> ((e) - 1u)) & 1u)   /* (several at once) */
+#define SFX_ON(e) (sfx_splash_d ? sfx_splash_d < 255u && (e) == SFX_RGB : (set.sfx_on >> ((e) - 1u)) & 1u)
+                                         /* (several at once; sfx_splash_d 255: none, PRESS PLAY's wave) */
 static int sfx_live(uint32_t now)       /* a kick's or a drop's moment of SHAKE, STROBE or VHS (main.c redraws the
                                           * whole screen as it starts and ends, so no strip keeps it) */
 {

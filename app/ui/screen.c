@@ -176,8 +176,8 @@ static void intro_draw(uint32_t now)
         lcd_fill(0, 0, 240, 240, C_BLACK);
     if (shown != ui.intro_drawn) {       /* LOAF BREAKER: a bar of APACHE with the kick on 1 and 9 through SUB DRIVE,
                                           * as the CDJ view draws it (pp_wave.h: the lows red, the mids green, the highs
-                                          * blue), across the screen, as tall as it goes, coming in a step at a time,
-                                          * its red three pixels off */
+                                          * blue), across the screen, nearly as tall as it goes, coming in a step at a
+                                          * time, clean of the screen effects */
         uint32_t x, band;
         ui.intro_drawn = (uint8_t)shown;
         for (band = 0; band < 2u; band++) {   /* (y 38..110, two bands of 36 about y 74) */
@@ -185,14 +185,14 @@ static void intro_draw(uint32_t now)
             for (x = 0; x < shown * 15u && x < 240u; x++) {
                 const uint8_t *v = PP_WAVE[x];
                 uint32_t m = v[0] > v[1] ? v[0] : v[1], br = 110u + (uint32_t)v[3] * 145u / 255u;
-                int32_t h = (int32_t)((uint32_t)v[3] * 35u / 255u);
+                int32_t h = (int32_t)((uint32_t)v[3] * 32u / 255u);
                 if (v[2] > m)
                     m = v[2];
                 if (m && h)
                     cv_rect((int32_t)x, 36 - (int32_t)band * 36 - h, 1, 2 * h + 1,
                             RGB(v[0] * 255u / m * br / 255u, v[1] * 255u / m * br / 255u, v[2] * 255u / m * br / 255u));
             }
-            sfx_splash_d = 3u;
+            sfx_splash_d = 255u;         /* (no screen effect on it: its colours clean) */
             cv_blit(0, 38u + band * 36u);
             sfx_splash_d = 0u;
         }
