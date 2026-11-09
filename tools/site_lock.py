@@ -30,7 +30,7 @@ padding:24px;color:#f1ead9;font:16px/1.5 system-ui,sans-serif}
 #lock p{margin:0 0 16px;color:#b9b09c;font-size:14px}
 #lock input{width:100%;box-sizing:border-box;padding:12px;border-radius:6px;border:1px solid #4a4436;background:#0c0b0a;
 color:#f1ead9;font-size:18px;letter-spacing:.12em}
-#lock button{margin-top:12px;width:100%;padding:12px;border:0;border-radius:6px;background:#f5a524;color:#111;
+#lock button{margin-top:12px;width:100%;padding:12px;border:0;border-radius:6px;background:#ff8470;color:#1a0907;
 font-weight:700;font-size:16px;cursor:pointer}
 #lock button:disabled{opacity:.6;cursor:wait}
 #lock .err{color:#ff6b5a;min-height:1.5em;margin:8px 0 0;font-size:14px}
@@ -94,7 +94,7 @@ FORM = """<form id="lock-f" autocomplete="off">
 
 CLOSED = """<div class="closed"><h2 id="lock-t">Installing is closed</h2>
 <p>LOAF BREAKER is not open to install right now. The emulator and the manual are.<br>
-L'installation est fermée pour le moment.</p><p><a href="../" style="color:#f5a524">Back</a></p></div>"""
+L'installation est fermée pour le moment.</p><p><a href="../" style="color:#ff8470">Back</a></p></div>"""
 
 
 def lock(site, code):
