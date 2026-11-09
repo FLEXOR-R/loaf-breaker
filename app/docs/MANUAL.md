@@ -523,8 +523,7 @@ TOXIC, MIAMI, LAVA, GOLD, BLAZE (flashy orange and red); K2
 
 **EFFECTS (GLO four times):** the screen effects, **several at once**: white keys **1–7** turn each on or off (lit
 while on), K1 points at one and K2 turns it on (right) or off (left). **CRT** (every other line dimmed, as an old
-tube), **VHS** (bands that slip sideways), **GRAIN** (specks that move), **RGB** (the red a few pixels off the rest: on to
-start, and after RESET ALL), **SHAKE** (the screen jolts on the kicks and at the drop), **STROBE** (the colours turn over
+tube), **VHS** (bands that slip sideways), **GRAIN** (specks that move), **RGB** (the red a few pixels off the rest), **SHAKE** (the screen jolts on the kicks and at the drop), **STROBE** (the colours turn over
 at the drop, and on the kicks when ON A KICK is past 50 %), **8-BIT** (fewer colours). VHS and RGB together, for one.
 
 **FX SET (GLO five times):** the effects' settings, for all those on: K1 **AMOUNT**, K2 **ON A KICK** (how hard each kick
