@@ -665,12 +665,16 @@ static void selk_turn(uint32_t f, int i, int32_t d)
 }
 /* PRESETS on KNOB: what SEL + the knob picked does (DUCK, TERROR 2, COMP, TERROR, T+ DRIVE, T+ TYPE, T+ SCREECH,
  * T+ TAIL, DRIVE), any of the four */
-static void selk_assign(int32_t d)
+static void selk_assign_k(uint32_t kn, int32_t d)   /* (ENV KNOB's knob, or EDIT KICK's K SET's) */
 {
-    uint32_t kn = ui.knfn & 3u, f = selk_fn(kn), c = 0u, k;
-    uint8_t *b = kn == 1u || kn == 3u ? &set.selk_asg : &set.selk_asg2;
-    uint32_t sh = kn >= 2u ? 4u : 0u;
+    uint32_t f, c = 0u, k;
+    uint8_t *b;
+    uint32_t sh;
     char n[12] = "SEL + K";
+    kn &= 3u;
+    f = selk_fn(kn);
+    sh = kn >= 2u ? 4u : 0u;
+    b = kn == 1u || kn == 3u ? &set.selk_asg : &set.selk_asg2;
     for (k = 0; k < SK_CODES; k++)       /* (where it is in the list now) */
         if (SK_CODE[k] == f)
             c = k;
@@ -686,6 +690,7 @@ static void selk_assign(int32_t d)
     changed();
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
+static void selk_assign(int32_t d) { selk_assign_k(ui.knfn, d); }
 
 /* ---- the page ---- */
 static void trk_item_text(const track_t *t, uint32_t i, char *s, char *r)   /* "P3" "X4", "DROP" "", "END" "" */

@@ -801,8 +801,12 @@ static void input(void)
             fx_type_turn(d);             /* the focused slot's effect */
         else if (k == EN_PRESET && ui.page == PG_PERC)   /* LOAF BREAKER: the snare's, hat's or clap's memories */
             perc_mem_turn(ui.pvoice, d);
-        else if (k == EN_PRESET && ui.page == PG_KICK) {   /* LOAF BREAKER: the kick memories (SEQ's SELECT too) */
-            kick_mem_turn(d);
+        else if (k == EN_PRESET && ui.page == PG_KICK) {   /* LOAF BREAKER: the kick memories; on KNOBS' K1 SET ..
+                                          * K4 SET: that knob's function (as ENV KNOB's PRESETS) */
+            if (ui.kpage == KP_KSET)
+                selk_assign_k(ui.kks, d);
+            else
+                kick_mem_turn(d);
         } else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage < 2u)
             track_pick(d);               /* LOAF BREAKER: ENV: the track */
         else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage == 3u)
