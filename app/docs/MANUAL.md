@@ -596,7 +596,9 @@ MIDI notes 38 (D1) play the snare, 42, 44 and 46 the hat, also while stopped. SA
 ## 9. The mixer
 
 **LFO** opens the MIXER: four channels side by side, each a fader with a level meter (FX shows the chain's four
-slots, lit: on). **LFO again** turns to GROOVE.
+slots, lit: on). **LFO again** turns to GROOVE. **LFO held + K1–K4**, on any page: the break's, the kick's, the
+drums' and the FX's level, the page staying where it is (LFO let go after a turn opens nothing): the mix moved without
+going into the MIXER.
 
 ![The MIXER: the break, the kick, the drums, the FX chain](img/screen-mixer.png "The MIXER") ![MASTER: COMP, RATIO, DUCK, MAX OUT](img/screen-master.png "MASTER")
 
@@ -626,7 +628,7 @@ break alone: sweep it down and the drums stay full on top. The FLT pad throws it
 | ENV BUILD (PRESETS: tempo rise) | Style | Sweep | Riser | Gap |
 | ENV KNOB (ALGORITHM: the knob; PRESETS: its function) | its function's four settings | | | |
 | ENV RESET (ALGORITHM: what) | What (13 parts) | Reset (5 clicks) | Reset (5 clicks) | Reset (5 clicks) |
-| LFO (mixer: levels) | Break level | Kick level | Drums level | FX (the chain, dry to wet) |
+| LFO (mixer: levels; LFO held, any page: the same) | Break level | Kick level | Drums level | FX (the chain, dry to wet) |
 | LFO again (groove) | Swing | Drums: through the chain or around it | | |
 | LFO, MASTER | Comp | Ratio | Duck | Max out |
 | LFO, DYNAMICS | Comp attack | Comp release | Duck release | Ducks: the break, or the break and the drums |

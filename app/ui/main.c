@@ -226,7 +226,7 @@ static void input(void)
         for (k = 0; k < NE; k++)
             if (plat_enc(k))
                 ui.touched = 1u;
-        ui.home_hold = ui.fx_hold = ui.tap_pend = ui.env_hold = 0u;
+        ui.home_hold = ui.fx_hold = ui.tap_pend = ui.env_hold = ui.lfo_hold = 0u;
         ui.keys = keys;
         ui.btn = btn;
         return;
@@ -431,11 +431,18 @@ static void input(void)
         ui.edit_hold = 0u;
         ui.redraw |= RG_FOOT | RG_BLOCKS;
     }
-    if (bdn & 1u << B_LFO) {             /* LFO: the MIXER (the break, the kick, FX main, FX overlay); again, groove */
-        ui.mpage = ui.page == PG_MIX ? (uint8_t)((ui.mpage + 1u) % 4u) : 0u;   /* (LEVELS, GROOVE, MASTER, DYNAMICS) */
-        ui.page = PG_MIX;
-        ui.redraw |= RG_FOOT | RG_BLOCKS;
-        page_say();
+    if (bdn & 1u << B_LFO)               /* LOAF BREAKER: LFO acts as it comes up, unless K1-K4 turned meanwhile (LFO +
+                                          * K1-K4: the four levels, on any page) */
+        ui.lfo_hold = 1u;
+    if (ui.lfo_hold && !(btn & 1u << B_LFO)) {   /* LFO: the MIXER (the break, the kick, FX main, FX overlay); again,
+                                          * groove */
+        if (ui.lfo_hold == 1u) {
+            ui.mpage = ui.page == PG_MIX ? (uint8_t)((ui.mpage + 1u) % 4u) : 0u;   /* (LEVELS, GROOVE, MASTER, DYNAMICS) */
+            ui.page = PG_MIX;
+            ui.redraw |= RG_FOOT | RG_BLOCKS;
+            page_say();
+        }
+        ui.lfo_hold = 0u;
     }
     if (bdn & 1u << B_ENV && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + ENV: the drop (its build from the next
                                           * bar; was SEL x3); the page stays */
@@ -677,6 +684,19 @@ static void input(void)
         if (k == EN_SELECT && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + SELECT, on any page: the next or previous
                                           * kick (its memories, KICK 1..10; was the tempo by tenths: TAP's K2) */
             kick_mem_turn(d);
+            continue;
+        }
+        if (k >= EN_K1 && k <= EN_K4 && btn & 1u << B_LFO) {   /* LOAF BREAKER: LFO + K1 the break's level, K2 the
+                                          * kick's, K3 the drums', K4 the FX's, on any page (the MIXER's LEVELS: the page
+                                          * stays) */
+            uint8_t pg = ui.page, mp = ui.mpage;
+            ui.page = PG_MIX;
+            ui.mpage = 0u;
+            knob_turn(k, d);
+            ui.page = pg;
+            ui.mpage = mp;
+            ui.lfo_hold = 2u;
+            ui.redraw |= RG_FOOT | RG_BLOCKS;
             continue;
         }
         if (k >= EN_K1 && k <= EN_K4 && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K1 DUCK, K2 TERROR 2, K3 COMP
@@ -1548,8 +1568,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty"};
-    int v[58];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol"};
+    int v[60];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1619,7 +1639,9 @@ int app_expect(const char *what, int *got)
     v[55] = ui.aud_t ? ui.aud_d : -1;
     v[56] = set.kslot;
     v[57] = set_dirty;
-    for (i = 0; i < 58u; i++)
+    v[58] = set.brk_level;
+    v[59] = (int)(set.kick.volume * 100.0f + 0.5f);
+    for (i = 0; i < 60u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;
