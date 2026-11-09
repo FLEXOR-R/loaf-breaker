@@ -824,6 +824,8 @@ static volatile float meter_brk, meter_kick, meter_perc;   /* the MIXER's channe
                                                            * and hat, before the chain */
 static volatile float meter_l, meter_r;  /* the output's peaks as it leaves (after MASTER: 1 = full scale), falling
                                           * ~20 dB a second: the render writes, the header's meter reads */
+static volatile uint8_t out_sound;       /* LOAF BREAKER: a block was heard (over -60 dB, after MASTER): the render sets
+                                          * it, AUTO SAVE clears it (no save while a tail, an echo, still sounds) */
 #define LR_TEST_LEN (4u * BRK_SR)
 static volatile uint32_t lr_test;        /* the left / right test (BT AUDIO K3 while streaming): samples left of it */
 
@@ -1663,6 +1665,8 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             float out = gain * (1.0f / 8388608.0f), a = meter(l, m, 0.0f) * out, b = meter(r, m, 0.0f) * out;
             meter_l = a > meter_l * 0.987f ? a : meter_l * 0.987f;
             meter_r = b > meter_r * 0.987f ? b : meter_r * 0.987f;
+            if (a > 0.001f || b > 0.001f)
+                out_sound = 1u;
         }
         for (i = 0; i < m; i++) {
             lr[2u * i] = (int32_t)(l[i] * gain);

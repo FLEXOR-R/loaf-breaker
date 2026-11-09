@@ -544,8 +544,9 @@ tempo's own repitch, HALF, REVERSE's speed and the tape stop stay speed effects.
 **MORE (GLO three times):** K4 **SKIN**, the screen's colours (RED to start; the whole screen changes at once): RED, AMBER, ICE BLUE, PIP-BOY,
 IRIS, PINK, MINT, WHITE, BLOOD, MAXENCE, then the two-colour ones: SYNTHWAVE (neon cyan and magenta on indigo), VAPOR,
 TOXIC, MIAMI, LAVA, GOLD, BLAZE (flashy orange and red); K2
-**AUTO SAVE**, ON: what you change is saved by itself a minute after it changed, once the break has been stopped for 3 s
-(the flash is never written while it plays, nor right after: its stall would cut the stop's tail). **PRESETS** there: **WAVE ZOOM**, how much of the past HOME's scrolling wave
+**AUTO SAVE**, ON: what you change is saved by itself a minute after it changed, once the break has been stopped and **nothing
+has been heard for 3 s** (the flash is never written while it plays, nor while a long kick tail, a reverb, an echo or a
+drum played by hand still sounds: its stall would cut it). **PRESETS** there: **WAVE ZOOM**, how much of the past HOME's scrolling wave
 (the CDJ view) holds across the screen: 1/2, 2/3, 5/6 of a bar (zoomed in), 1 BAR (as it was), 1 1/4, 1 1/2, 2 BARS
 (zoomed out).
 
