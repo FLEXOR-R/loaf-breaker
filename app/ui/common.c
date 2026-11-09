@@ -28,9 +28,10 @@ static void crt_blit(uint32_t x, uint32_t y)
 /* GLOUPI BREAKS: the screen's colours, picked on GLOBAL's MORE page (K1) and saved (set.skin). fm1-base's palette
  * (gfx.c pal[]: rules, dim, labels, secondary, values) and the app's own (a block's ground, the block sounding, the
  * white, TAP TEMPO's unlit segments and metronome) from one table */
-#define NSKINS 10u
+#define NSKINS 16u
 static const char *const SKIN_NAME[NSKINS] = {"RED", "AMBER", "ICE BLUE", "PIP-BOY", "IRIS", "PINK", "MINT",
-                                              "WHITE", "BLOOD", "MAXENCE"};
+                                              "WHITE", "BLOOD", "MAXENCE", "SYNTHWAVE", "VAPOR",
+                                              "TOXIC", "MIAMI", "LAVA", "GOLD"};
 /* each: line, dim, gray, mid (secondary), hi (values), block, white */
 static const uint8_t SKIN_RGB[NSKINS][7][3] = {
     {{34, 34, 40}, {74, 74, 82}, {150, 150, 158}, {232, 76, 60}, {255, 132, 112}, {24, 24, 30}, {255, 255, 255}},
@@ -44,7 +45,18 @@ static const uint8_t SKIN_RGB[NSKINS][7][3] = {
     /* LOAF BREAKER's BLOOD: dried blood for the grounds, fresh blood for the values, bone for the words */
     {{46, 10, 12}, {100, 20, 24}, {168, 140, 128}, {160, 0, 12}, {230, 30, 36}, {26, 4, 6}, {232, 220, 196}},
     /* LOAF BREAKER's MAXENCE: a very loud pink, neon on plum */
-    {{60, 12, 48}, {130, 36, 110}, {240, 170, 225}, {255, 0, 170}, {255, 70, 215}, {44, 0, 34}, {255, 232, 250}}};
+    {{60, 12, 48}, {130, 36, 110}, {240, 170, 225}, {255, 0, 170}, {255, 70, 215}, {44, 0, 34}, {255, 232, 250}},
+    /* LOAF BREAKER's SYNTHWAVE: a night sky's indigo, the values neon cyan, the secondary hot magenta, the words a
+     * pale sunset pink */
+    {{44, 22, 82}, {96, 58, 150}, {186, 160, 226}, {255, 46, 170}, {40, 236, 255}, {20, 8, 44}, {255, 214, 236}},
+    /* LOAF BREAKER's two-colour skins: VAPOR (mint on lavender night, pink beside it), TOXIC (acid green, poison
+     * purple), MIAMI (hot coral on deep teal, turquoise), LAVA (molten orange over crimson, on charcoal), GOLD (gold on
+     * navy, royal blue) */
+    {{50, 36, 70}, {110, 90, 140}, {200, 180, 220}, {255, 120, 200}, {120, 255, 230}, {28, 18, 44}, {240, 230, 255}},
+    {{24, 40, 20}, {60, 90, 50}, {160, 190, 150}, {170, 60, 255}, {190, 255, 40}, {10, 18, 8}, {235, 255, 220}},
+    {{20, 40, 56}, {50, 90, 110}, {150, 190, 200}, {0, 210, 200}, {255, 110, 150}, {8, 22, 32}, {255, 240, 230}},
+    {{48, 24, 20}, {100, 56, 44}, {190, 160, 150}, {230, 30, 60}, {255, 140, 20}, {24, 10, 8}, {255, 240, 220}},
+    {{24, 30, 60}, {60, 72, 120}, {160, 170, 210}, {70, 110, 255}, {255, 210, 90}, {10, 14, 34}, {240, 240, 255}}};
 static uint16_t skin_block = RGB(24, 24, 30), skin_hi = RGB(255, 132, 112), skin_white = 0xFFFFu;
 static uint16_t skin_rgb(const uint8_t *c, uint32_t pct)   /* a colour at pct % of its brightness */
 {

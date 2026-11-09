@@ -9,8 +9,8 @@ static void global_value(int i, char *t)
 {
     t[0] = 0;
     if (ui.gpage == 2u) {                /* GLOUPI BREAKS: MORE (in place of Bluetooth audio): K1 the skin */
-        if (i == 0)
-            text_cat(t, SKIN_NAME[set.skin % NSKINS]);
+        if (i == 0)                      /* (SYNTHWAVE short, to fit its column under the screen) */
+            text_cat(t, set.skin % NSKINS == 10u ? "SYNTHWV" : SKIN_NAME[set.skin % NSKINS]);
         else if (i == 1)                 /* LOAF BREAKER: K2 AUTO SAVE */
             text_cat(t, set.auto_save ? "ON" : "OFF");
         else if (i == 2)                 /* (TEST: K3 CRT) */
@@ -121,13 +121,14 @@ static void draw_global(const brk_status_t *st)
         cv_text(96, 2, &FONT_T, SKIN_NAME[set.skin % NSKINS], C_HI);
         cv_text(96, 16, &FONT_XS, "K1: THE SCREEN'S COLOURS", C_DIM);
         for (s = 0; s < NSKINS; s++) {   /* a swatch each: its value colour on its ground, the one on outlined */
-            int32_t x = 6 + (int32_t)s * 23;
+            int32_t x = 6 + (int32_t)(s % 8u) * 29, y = 27 + (int32_t)(s / 8u) * 13;   /* (LOAF BREAKER: 16, in two
+                                          * rows of eight) */
             const uint8_t (*c)[3] = SKIN_RGB[s];
             if (s == set.skin % NSKINS)
-                cv_rect(x - 2, 30, 23, 20, C_WHITE);
-            cv_rect(x, 32, 19, 16, skin_rgb(c[5], 100u));
-            cv_rect(x + 3, 35, 13, 5, skin_rgb(c[4], 100u));
-            cv_rect(x + 3, 42, 13, 3, skin_rgb(c[3], 100u));
+                cv_rect(x - 2, y - 2, 30, 15, C_WHITE);
+            cv_rect(x, y, 26, 11, skin_rgb(c[5], 100u));
+            cv_rect(x + 3, y + 2, 20, 4, skin_rgb(c[4], 100u));
+            cv_rect(x + 3, y + 7, 20, 2, skin_rgb(c[3], 100u));
         }
         cv_blit(0, 88);
         cv_begin(240, 52, C_BLACK);
