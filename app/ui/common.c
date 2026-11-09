@@ -6,6 +6,12 @@
 #define brk_exp2f brk_exp2f_c
 #define brk_log2f brk_log2f_c
 
+/* LOAF BREAKER: WAVE ZOOM (GLO MORE, PRESETS): how much of the past the screen's width holds, in twelfths of a bar
+ * (cdj.c; each pixel back is CDJ_Z / 12 of the render's columns): 1/2, 2/3, 5/6, 1 (as it was), 1 1/4, 1 1/2, 2 bars */
+#define CDJ_ZN 7u
+static const uint8_t CDJ_Z[CDJ_ZN] = {6u, 8u, 10u, 12u, 15u, 18u, 24u};
+static const char *const CDJ_ZNAME[CDJ_ZN] = {"1/2 BAR", "2/3 BAR", "5/6 BAR", "1 BAR", "1 1/4 BARS", "1 1/2 BARS",
+                                             "2 BARS"};
 /* LOAF BREAKER: the screen's EFFECTS (GLO MORE K3), K1 their AMOUNT: every blit of the UI's goes through here and the
  * canvas (a strip of at most 240 x 60, big-endian RGB565) is worked on before it goes out. CRT: every other row dimmed;
  * VHS: bands that slip sideways, more on a kick; GRAIN: specks that move; RGB: the red a few pixels off the rest;

@@ -9,12 +9,13 @@
 static void cdj_picture(const brk_status_t *st, uint32_t w, int32_t top)
 {
     int32_t x, k, mid = 52 - top, s16 = st->bar16 >= 0 ? st->bar16 : 0;
-    float ph = st->playing ? st->phase : 0.0f;
+    uint32_t z = CDJ_Z[set.wzoom % CDJ_ZN];
+    float ph = st->playing ? st->phase : 0.0f, spx = (float)CDJ_PX * 12.0f / (float)z;   /* (pixels a step) */
     for (x = 0; x < 240; x++) {          /* the newest at the right */
-        uint32_t back = 239u - (uint32_t)x, m, r, g, b;
+        uint32_t back = (239u - (uint32_t)x) * z / 12u, m, r, g, b;
         const uint8_t *v;
         int32_t h;
-        if (back >= w)
+        if (back >= w || back >= SCOPE_N)
             continue;
         v = scope[(w - 1u - back) % SCOPE_N];
         m = v[0] > v[1] ? v[0] : v[1];
@@ -29,9 +30,9 @@ static void cdj_picture(const brk_status_t *st, uint32_t w, int32_t top)
         m = 110u + (uint32_t)v[3] * 145u / 255u;
         cv_rect(x, mid - h, 1, 2 * h + 1, RGB(r * m / 255u, g * m / 255u, b * m / 255u));
     }
-    for (k = 0; k < 5; k++) {            /* the beats back from now: a tick top and bottom, the bar's first lit */
+    for (k = 0; k < 9; k++) {            /* the beats back from now: a tick top and bottom, the bar's first lit */
         int32_t at = s16 - s16 % 4 - 4 * k;
-        int32_t xb = 239 - (int32_t)((float)(s16 % 4 + 4 * k) * (float)CDJ_PX + ph * (float)CDJ_PX);
+        int32_t xb = 239 - (int32_t)((float)(s16 % 4 + 4 * k) * spx + ph * spx);
         uint16_t c = ((at % 16) + 16) % 16 ? C_GRAY : C_HI;
         if (xb < 0)
             break;

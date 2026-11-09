@@ -785,7 +785,13 @@ static void input(void)
             app_say("TEMPO RISE", t);
             ui.redraw |= RG_BLOCKS;
         }
-        else if (k == EN_PRESET)
+        else if (k == EN_PRESET && ui.page == PG_GLOBAL && ui.gpage == 2u) {   /* LOAF BREAKER: GLO MORE: WAVE ZOOM,
+                                          * how much of the past the scrolling wave holds */
+            set.wzoom = (uint8_t)clamp((int32_t)(set.wzoom % CDJ_ZN) + (d > 0 ? 1 : -1), 0, CDJ_ZN - 1);
+            changed();
+            app_say("WAVE ZOOM", CDJ_ZNAME[set.wzoom % CDJ_ZN]);
+            ui.redraw |= RG_BLOCKS;
+        } else if (k == EN_PRESET)
             pattern_pick(d);             /* elsewhere: the pattern */
         else if (key_tuned() >= 0)       /* a white key held: K1-K4 tune its loop */
             key_knob_turn(key_tuned(), k - EN_K1, d);
@@ -1185,12 +1191,17 @@ void app_frame(void)
     uint32_t now = plat_ms(), hdr;
     input();
     break_poll();
-    if (splash_t) {                      /* LOAF BREAKER: the splash 1.5 s, then the start screen from its start */
-        if (now - splash_t < 1500u) {
-            static uint32_t gl_drawn;    /* (TEST: the glitch, settling in the first 700 ms, a frame each 40 ms) */
-            if (now - splash_t < 760u && now - gl_drawn >= 40u) {
+    if (splash_t) {                      /* LOAF BREAKER: the splash 1.5 s, then the start screen from its start (the
+                                          * 1.5 s from the first frame: on the FM-1 the breaks' decoding comes between
+                                          * the splash and it, and the glitch was over before it could be seen) */
+        static uint32_t s0;
+        if (!s0)
+            s0 = now | 1u;
+        if (now - s0 < 1500u) {
+            static uint32_t gl_drawn;    /* (the glitch, settling in the first 700 ms, a frame each 40 ms) */
+            if (now - s0 < 760u && now - gl_drawn >= 40u) {
                 gl_drawn = now;
-                splash_glitch(now - splash_t);
+                splash_glitch(now - s0);
             }
             ui.touched = 0u;
             return;

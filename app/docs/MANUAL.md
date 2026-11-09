@@ -521,7 +521,9 @@ TOXIC, MIAMI, LAVA, GOLD, BLAZE (flashy orange and red); K2
 other line dimmed, as an old tube: the more, the darker), **VHS** (bands that slip sideways, more on each kick), **GRAIN**
 (specks that move), **RGB** (the red a few pixels off the rest, more on a kick), **SHAKE** (the screen jolts on each
 kick, hard at the drop), **STROBE** (the colours turn over at the drop; past 50 %, on each kick too), **8-BIT** (fewer
-colours; past 50 %, fewer still).
+colours; past 50 %, fewer still). **PRESETS** there: **WAVE ZOOM**, how much of the past HOME's scrolling wave
+(the CDJ view) holds across the screen: 1/2, 2/3, 5/6 of a bar (zoomed in), 1 BAR (as it was), 1 1/4, 1 1/2, 2 BARS
+(zoomed out).
 
 ![GLOBAL's MORE: the skins](img/screen-glomore.png "MORE")
 

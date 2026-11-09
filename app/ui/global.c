@@ -142,7 +142,7 @@ static void draw_global(const brk_status_t *st)
         cv_begin(240, 52, C_BLACK);
         cv_text(6, 2, &FONT_T, "AUTO SAVE", C_GRAY);   /* LOAF BREAKER: K2 */
         cv_text(96, 2, &FONT_T, set.auto_save ? "ON" : "OFF", set.auto_save ? C_HI : C_DIM);
-        cv_text(96, 16, &FONT_XS, "1 MIN. AFTER A CHANGE, STOPPED", C_DIM);
+        cv_text(96, 16, &FONT_XS, "1 MIN. AFTER A CHANGE", C_DIM);
         cv_text(6, 30, &FONT_T, "EFFECTS", C_GRAY);   /* K3, K1 its amount */
         cv_text(96, 30, &FONT_T, SFX_NAME[set.crt % SFX_N], set.crt % SFX_N ? C_HI : C_DIM);
         if (set.crt % SFX_N) {
@@ -150,6 +150,8 @@ static void draw_global(const brk_status_t *st)
             pct_text((float)set.scrfx * 0.01f, a);
             cv_text(170, 30, &FONT_T, a, C_WHITE);
         }
+        cv_text(6, 43, &FONT_XS, "WAVE (PRESETS)", C_GRAY);   /* (cdj.c) */
+        cv_text(96, 43, &FONT_XS, CDJ_ZNAME[set.wzoom % CDJ_ZN], C_HI);
         cv_blit(0, 140);
         return;
     }

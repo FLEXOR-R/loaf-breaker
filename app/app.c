@@ -154,6 +154,7 @@ typedef struct {
     uint8_t crt;                         /* GLO MORE K3 EFFECTS: the screen's effect, SFX_* (0 off, 1 CRT: an older
                                           * save's ON) */
     uint8_t scrfx;                       /* (appended: GLO MORE K1, the effect's AMOUNT, 0..100; an older save: 50) */
+    uint8_t wzoom;                       /* (appended: GLO MORE PRESETS, WAVE ZOOM: CDJ_Z's index, 3 one bar) */
 } settings_t;
 enum { DS_SNARE, DS_KICK, DS_BOTH, DS_STUTTER, DS_SWEEP, DS_RANDOM, DS_N };
 static const uint8_t DROP_GAP[5] = {0u, 1u, 2u, 4u, 8u};   /* its steps: none, a 16th, an 8th, a beat, half a bar */
@@ -192,7 +193,8 @@ static void settings_defaults(void)
         z[k] = 0u;
     set.magic = SET_MAGIC;
     set.kbass[2] = set.kbass[3] = 50u;
-    set.scrfx = 50u;                     /* (the screen effect's AMOUNT: half) */   /* (TEST: REV BASS from 3/8 of the beat, a curve between) */
+    set.scrfx = 50u;                     /* (the screen effect's AMOUNT: half) */
+    set.wzoom = 3u;                      /* (the scrolling wave: a bar across, as it was) */   /* (TEST: REV BASS from 3/8 of the beat, a curve between) */
     set.tempo_x10 = 1700u;               /* jungle tempo */
     set.swing = 50u;
     set.gen.anchor = 0.7f;
@@ -497,8 +499,8 @@ static volatile float comp_gr;           /* LOAF BREAKER: COMP's reduction now, 
 /* LOAF BREAKER: what leaves the mix (before MASTER), a column a 15th of a step (44100 / BPM samples): its lows (under
  * ~200 Hz), mids, highs (over ~2.5 kHz) and peak, 0..255, for HOME's CDJ view (cdj.c); a ring, scope_w the columns
  * written so far */
-#define SCOPE_N 240u
-static uint8_t scope[SCOPE_N][4] PLAT_POOL;
+#define SCOPE_N 480u                     /* (LOAF BREAKER: two bars, for WAVE ZOOM's widest; in RAM, the pool is full) */
+static uint8_t scope[SCOPE_N][4];
 static volatile uint32_t scope_w;
 static volatile float build_p = -1.0f;   /* the build's progress 0..1, -1 none (the screen's and the lights') */
 static volatile uint16_t drum_now[NDRUMS][4];   /* the pattern playing's drums, bar by bar of four (their lengths
