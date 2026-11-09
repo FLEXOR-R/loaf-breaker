@@ -191,7 +191,9 @@
       algo: "Lane", presets: "Pattern P1–P16", keys: "steps", sel: "Tempo (SEL: drum filter)",
       notes: [["REC", "Record the keys and MIDI notes into the pattern"], ["SEL + REC", "Clear: the lane here, the pattern elsewhere"],
               ["SEQ held, then SEQ", "Clear the whole pattern (SEL + SAVE undoes)"], ["SEL + SEQ", "Copy the pattern; on another: paste"],
-              ["EDIT (a drum lane)", "That drum's sound"]] },
+              ["EDIT (a drum lane)", "That drum's sound"], ["SEQ held + white key 1–4", "The bar shown copied onto that bar"],
+              ["SEQ held + K1", "The whole lane a step later / earlier, round"], ["SEQ held + REC", "Every drum lane cleared, the break kept"],
+              ["REC, playing, a drum lane", "Any white key writes the drum where it lands"], ["Playing", "The keys follow the bar playing (ALGORITHM: not, until stopped)"]] },
     { id: "env", btn: "ENV", name: "TRACK", sub: "The song: tracks, drops, builds", again: "next part (4)", subs: [
       { n: "TRACKS", k: ["ITEM", "PUT", "LOOPS", "BREAK"], strip: "THE TRACK'S 32 ITEMS: PATTERNS, DROPS, SPACES", note: "a white key puts its pattern in; K2 left of P1: EMPTY, ENV held: gone" },
       { n: "PLAY", k: ["TRACK", "FROM", "END", ""], strip: "A RADIO: THE TRACKS ON A DIAL", note: "PLAY: the track, then HOME" },

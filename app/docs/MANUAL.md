@@ -371,7 +371,20 @@ or reverse), the step playing lit; the lower strip all three drum lanes.
 the keys play slices) is written into the pattern at the step it lands on, and so are MIDI notes: 48–63 as slices,
 36 / 38 / 42 into the kick, snare and hat lanes. REC again stops. **SEL + REC** clears: on SEQ the lane shown, on any
 other page the whole pattern. SEL + ARP (a random pattern) writes into the pattern playing. **SEL + SAVE undoes**
-either (and FILL, CLR / 4X4 and COPY on a drum lane); press it again to redo. SAVE keeps all 16.
+either (and FILL, CLR / 4X4 and COPY on a drum lane, and the SEQ-held moves below); press it again to redo. SAVE keeps
+all 16.
+
+**SEQ's hands** (on SEQ):
+- **Playing, the keys follow the bar playing**: on a lane of 32 or 64 steps (the break, a kick of 64, a snare of 32),
+  the lane shown moves on with the bar the sequencer plays, so you write where you hear. ALGORITHM or SEQ again picks a
+  lane by hand: then it stays put until you stop.
+- **SEQ held + white key 1–4**: the bar shown copied onto bar 1–4 of the same lane (its steps, their HITS, COND, NUDGE
+  and notes): write the kick's first bar, then copy it onto 2, 3 and 4.
+- **SEQ held + K1**: the whole lane (every bar of its drum, or the break's 32 steps) a step later (right) or earlier
+  (left), round: shift a FILL or look for a groove.
+- **SEQ held + REC**: every drum lane of the pattern cleared, the break's steps kept.
+- **REC on, playing, a drum lane**: any white key plays that lane's drum and writes it at the nearest 16th, where it
+  lands: tap the rhythm in rather than draw it.
 
 ### FILL (ARP)
 

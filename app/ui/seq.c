@@ -340,6 +340,109 @@ static void lane_knob(int i, int32_t d)
     app_say(NAME[i], i == 2 ? (m ? "4X4" : "CLEARED") : t);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
+/* LOAF BREAKER: SEQ held, the lane shown: + a white key 1..4, its bar copied onto that one (its steps' HITS, COND,
+ * NUDGE and notes with it); + K1, the whole lane (every bar of its drum, or the break's 32 steps) a step later or
+ * earlier, round; + REC, every drum lane of the pattern cleared, the break kept. SEL + SAVE undoes each */
+static uint32_t lane_len(const pat_t *p, uint32_t sl)   /* the lane's steps: the break 32, a drum its bars' */
+{
+    return sl < SL_KICK ? PAT_STEPS : 16u * sl_bars(p, sl);
+}
+static void seq_copy_bar(uint32_t to)
+{
+    pat_t *p = pat_now();
+    uint32_t sl = ui.seq_lane % NSEQL, from = SL_BAR[sl], s, d = sl_drum(sl);
+    char t[24] = "BAR ", n[4];
+    if (to * 16u >= lane_len(p, sl)) {
+        app_say("COPY", "THE LANE HAS NO SUCH BAR");
+        return;
+    }
+    if (to == from)
+        return;
+    undo_mark(UNDO_LANE + 4u);
+    for (s = 0; s < 16u; s++) {
+        uint32_t a = from * 16u + s, b = to * 16u + s, k;
+        if (sl < SL_KICK) {
+            for (k = 0; k < 4u; k++)
+                p->st[b][k] = p->st[a][k];
+            pat_step_out(b);
+            continue;
+        }
+        *stepb(set.pattern, d, b) = *stepb(set.pattern, d, a);
+        if (d == DR_KICK)
+            kick_note_set(p, b, kick_note(p, a));
+        else if (d == DR_STAB)
+            stab_note_set(p, b, stab_note(p, a));
+    }
+    if (sl >= SL_KICK) {
+        drum_bar_set(p, d, to, drum_bar(p, d, from));
+        pat_lanes_out();
+    }
+    set_dirty = 1u;
+    int_text((int32_t)from + 1, n);
+    text_cat(t, n);
+    text_cat(t, " > BAR ");
+    int_text((int32_t)to + 1, n);
+    text_cat(t, n);
+    app_say("COPY", t);
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
+static void seq_rotate(int32_t d)
+{
+    pat_t *p = pat_now();
+    uint32_t sl = ui.seq_lane % NSEQL, n = lane_len(p, sl), dr = sl_drum(sl), s, k;
+    uint8_t on[64], sb[64], br[PAT_STEPS][4];
+    int8_t nt[64];
+    undo_mark(UNDO_LANE + 5u);
+    for (s = 0; s < n; s++) {            /* (the lane as it is) */
+        if (sl < SL_KICK) {
+            for (k = 0; k < 4u; k++)
+                br[s][k] = p->st[s][k];
+            continue;
+        }
+        on[s] = (uint8_t)(drum_bar(p, dr, s >> 4) >> (s & 15u) & 1u);
+        sb[s] = *stepb(set.pattern, dr, s);
+        nt[s] = (int8_t)(dr == DR_KICK ? kick_note(p, s) : dr == DR_STAB ? stab_note(p, s) : 0);
+    }
+    for (s = 0; s < n; s++) {            /* (each step takes the one before it, or after it) */
+        uint32_t f = (s + (d > 0 ? n - 1u : 1u)) % n;
+        if (sl < SL_KICK) {
+            for (k = 0; k < 4u; k++)
+                p->st[s][k] = br[f][k];
+            pat_step_out(s);
+            continue;
+        }
+        *stepb(set.pattern, dr, s) = sb[f];
+        if (dr == DR_KICK)
+            kick_note_set(p, s, nt[f]);
+        else if (dr == DR_STAB)
+            stab_note_set(p, s, nt[f]);
+    }
+    if (sl >= SL_KICK) {
+        for (k = 0; k < n / 16u; k++) {
+            uint32_t m = 0u;
+            for (s = 0; s < 16u; s++)
+                m |= (uint32_t)on[(k * 16u + s + (d > 0 ? n - 1u : 1u)) % n] << s;
+            drum_bar_set(p, dr, k, m);
+        }
+        pat_lanes_out();
+    }
+    set_dirty = 1u;
+    app_say("SHIFT", d > 0 ? "A STEP LATER" : "A STEP EARLIER");
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
+static void seq_clear_drums(void)
+{
+    pat_t *p = pat_now();
+    uint32_t d, b;
+    undo_mark(UNDO_LANE + 6u);
+    for (d = 0; d < NDRUMS; d++)
+        for (b = 0; b < 4u; b++)
+            drum_bar_set(p, d, b, 0u);
+    pat_lanes_out();
+    set_dirty = 1u;
+    app_say("DRUMS", "CLEARED (THE BREAK KEPT)");
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
 static void seq_key(uint32_t i)          /* a white key on SEQ: the step to edit, or a drum step on and off */
 {
     char t[8];

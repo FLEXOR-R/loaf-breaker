@@ -273,6 +273,21 @@ static void input(void)
             continue;
         }
         if (ui.page == PG_SEQ) {         /* the SEQ page: a break step to edit, or a drum lane's steps */
+            if (btn & 1u << B_SEQ) {     /* LOAF BREAKER: SEQ held + white key 1..4: the bar shown copied there */
+                if (kdn >> WK[i] & 1u) {
+                    if (i < 4u)
+                        seq_copy_bar(i);
+                    seq_wait = 0u;       /* (no next lane at SEQ's release, no CLEAR armed) */
+                    clr_arm = 0u;
+                }
+                continue;
+            }
+            if (ui.rec && sl_notes(ui.seq_lane) && playing_now()) {   /* LOAF BREAKER: REC, playing, a drum lane:
+                                          * any white key plays its drum and writes it at the nearest 16th */
+                if (kdn >> WK[i] & 1u)
+                    midi_drum(sl_drum(ui.seq_lane));
+                continue;
+            }
             if (sl_notes(ui.seq_lane)) { /* LOAF BREAKER: a drum lane's key acts as it comes up, unless a knob
                                           * turned meanwhile (then that step's own: NOTE, HITS, CHANCE, NUDGE; the foot
                                           * names them while it is held) */
@@ -527,6 +542,7 @@ static void input(void)
     if (seq_wait) {
         if (!(btn & 1u << B_SEQ)) {      /* let go: on SEQ already, the next lane */
             if (seq_wait & 2u) {
+                ui.seq_manual = 1u;      /* (a lane picked: the bar playing no longer followed, until stopped) */
                 seq_lane_step(1);
                 ui.redraw |= RG_FOOT | RG_BLOCKS;
                 page_say();
@@ -542,7 +558,12 @@ static void input(void)
             app_say(t, "SEQ AGAIN");
         }
     }
-    if (bdn & 1u << B_REC && btn & 1u << B_SEL && ui.page == PG_FX)
+    if (bdn & 1u << B_REC && btn & 1u << B_SEQ && ui.page == PG_SEQ) {   /* LOAF BREAKER: SEQ held + REC: every drum
+                                          * lane cleared, the break kept */
+        seq_clear_drums();
+        seq_wait = 0u;
+        clr_arm = 0u;
+    } else if (bdn & 1u << B_REC && btn & 1u << B_SEL && ui.page == PG_FX)
         fx_reset();                      /* LOAF BREAKER: SEL + REC on FX: the slot's effect reset (again: undone; was
                                           * SEL x2) */
     else if (bdn & 1u << B_REC && btn & 1u << B_SEL && ui.page == PG_KICK && ui.kpage == KP_FX)
@@ -740,6 +761,13 @@ static void input(void)
             ui.redraw |= RG_FOOT | RG_BLOCKS;
             continue;
         }
+        if (k == EN_K1 && ui.page == PG_SEQ && btn & 1u << B_SEQ) {   /* LOAF BREAKER: SEQ held + K1: the lane a
+                                          * step later or earlier, round */
+            seq_rotate(d);
+            seq_wait = 0u;
+            clr_arm = 0u;
+            continue;
+        }
         if (k >= EN_K1 && k <= EN_K4 && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K1 DUCK, K2 TERROR 2, K3 COMP
                                           * (was LIMIT), K4 TERROR, on any page: its amount (its settings: ENV's KNOB) */
             selk_turn(selk_fn((uint32_t)(k - EN_K1)), 0, d);
@@ -782,6 +810,7 @@ static void input(void)
                 kick_sect_step(d);
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
             } else if (ui.page == PG_SEQ) {   /* SEQ: the lane its keys edit */
+                ui.seq_manual = 1u;      /* (LOAF BREAKER: picked: not following the bar playing, until stopped) */
                 seq_lane_step(d);
                 page_say();
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
@@ -1087,7 +1116,8 @@ static void draw_help(void)
          {"SELECT", "NEXT DRUM (BIG VIEW)"}},
         {{"EDIT HELD", "BIG / CLASSIC VIEW"}, {"EDIT", "NEXT DRUM"}, {"PRESETS", "ITS MEMORIES"},
          {"SELECT", "NEXT DRUM (BIG VIEW)"}},
-        {{"+ K2", "CLEAR LANE"}, {"+ SEQ", "COPY THE PATTERN"}, {"STEP HELD", "HITS CHANCE NUDGE"}, {"+ SAVE", "UNDO"}},
+        {{"SEQ + KEY 1-4", "COPY THE BAR THERE"}, {"SEQ + K1", "SHIFT THE LANE"}, {"SEQ + REC", "CLEAR THE DRUMS"},
+         {"+ SAVE", "UNDO"}},
         {{"+ FX", "BYPASS SLOT"}, {"FX + ALGO", "MOVE SLOT"}, {"+ REC", "RESET EFFECT"}, {"PRESETS", "EFFECT TYPE"}},
         {{"+ PLAY", "START ITEM (TRACKS)"}, {"PLAY", "PLAY THE TRACK"}, {"PRESETS", "THE TRACK"},
          {"WHITE KEYS", "PATTERNS / TRACKS"}},
@@ -1554,6 +1584,20 @@ void app_frame(void)
         ui.redraw |= RG_HEAD;
     }
     /* the header's own state: playing, the tempo, the break */
+    if (!st.playing)
+        ui.seq_manual = 0u;
+    if (ui.page == PG_SEQ && st.playing && !ui.seq_manual && !ui.note_key) {   /* LOAF BREAKER: a lane of 32 or 64
+                                          * steps: the keys show the bar playing (ALGORITHM, SEQ again: not, until
+                                          * stopped) */
+        const pat_t *p = &pats.p[set.pattern % NPAT];
+        uint32_t sl = ui.seq_lane % NSEQL, n = lane_len(p, sl) / 16u, bar, want;
+        bar = sl < SL_KICK ? (st.step >= 16 ? 1u : 0u) : st.bar64 >= 0 ? (uint32_t)(st.bar64 >> 4) % n : 0u;
+        want = sl - SL_BAR[sl] + bar;
+        if (n > 1u && want != sl && want < NSEQL) {
+            ui.seq_lane = (uint8_t)want;
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
+        }
+    }
     if (kv_pend && ui.page == PG_KICK && !ui.kclassic && now - kv_t >= 100u)
         ui.redraw |= RG_BLOCKS;          /* (TEST: the kick's picture, its last change drawn) */
     if (ui.page == PG_KICK && !ui.kclassic && kscope_hit && now - ui.kscope_drawn >= 200u && st.playing) {
@@ -1725,8 +1769,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing"};
-    int v[69];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3"};
+    int v[72];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1807,7 +1851,10 @@ int app_expect(const char *what, int *got)
     v[66] = set.ksyn[KS_TUNE];
     v[67] = ui.pbig;
     v[68] = playing_now();
-    for (i = 0; i < 69u; i++)
+    v[69] = (int)drum_bar(pat_now(), DR_KICK, 1u);
+    v[70] = (int)drum_bar(pat_now(), DR_KICK, 2u);
+    v[71] = (int)drum_bar(pat_now(), DR_KICK, 3u);
+    for (i = 0; i < 72u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;
