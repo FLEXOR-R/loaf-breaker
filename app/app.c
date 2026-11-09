@@ -436,7 +436,16 @@ static volatile uint8_t kroll;
 #define KSC_N 11025u
 static volatile int16_t kscope[KSC_W];
 static volatile uint32_t kscope_hit;
-static volatile uint8_t fill_on;         /* LOAF BREAKER TEST: ARP held: FILL (the steps' FILL / NOT FILL, the snare's
+static volatile uint8_t fill_on;
+#define LIM_LA 64u                       /* LOAF BREAKER: the output limiter's look-ahead, samples (1.5 ms) */
+static inline float lim_soft(float x)    /* over 0.95: rounded off, never reaching 1 */
+{
+    float a = x < 0.0f ? -x : x;
+    if (a <= 0.95f)
+        return x;
+    a = 0.95f + 0.05f * (1.0f - 1.0f / (1.0f + (a - 0.95f) * 20.0f));
+    return x < 0.0f ? -a : a;
+}         /* LOAF BREAKER TEST: ARP held: FILL (the steps' FILL / NOT FILL, the snare's
                                           * roll on the bar's last beat) */
 static volatile uint32_t kick_hit_n;     /* (the kick's hits so far: the simulator's checks) */
 /* LOAF BREAKER: the drums' HITS (pats.hits): a hit's repeats still to come, samples from this block's start */
@@ -1496,20 +1505,28 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             comp_gr = gmax > comp_gr * 0.97f ? gmax : comp_gr * 0.97f;
         } else
             comp_gr = 0.0f;
-        {                                /* LOAF BREAKER: the last guard: a peak over 0.95 brought down at once (the
-                                          * level followed instantly up, back over ~50 ms), never clipped hard */
-            static float lpk;
+        {                                /* LOAF BREAKER: the last guard, a look-ahead limiter: the mix delayed 64 samples
+                                          * (1.5 ms) while its level, seen ahead, sets the gain, which comes down smoothly
+                                          * before a peak reaches the output (no sudden steps: they were the distortion
+                                          * heard with many sounds at once) and goes back up over ~150 ms (slow enough
+                                          * not to wobble the bass); what still passes 0.95 rounded off softly under 1 */
+            static float ll[LIM_LA], lr[LIM_LA], lenv, lg = 1.0f;
+            static uint32_t lw;
             for (i = 0; i < m; i++) {
-                float a = brk_absf(l[i]) > brk_absf(r[i]) ? brk_absf(l[i]) : brk_absf(r[i]);
-                if (a > lpk)
-                    lpk = a;
+                float a = brk_absf(l[i]) > brk_absf(r[i]) ? brk_absf(l[i]) : brk_absf(r[i]), tgt, dl, dr;
+                if (a > lenv)
+                    lenv = a;            /* (seen ahead: at once) */
                 else
-                    lpk += (a - lpk) * 0.0005f;
-                if (lpk > 0.95f) {
-                    float g = 0.95f / lpk;
-                    l[i] *= g;
-                    r[i] *= g;
-                }
+                    lenv += (a - lenv) * 0.00015f;   /* (~150 ms back) */
+                tgt = lenv > 0.95f ? 0.95f / lenv : 1.0f;
+                lg += (tgt - lg) * (tgt < lg ? 0.078f : 0.0003f);   /* (down within the look-ahead, up slowly) */
+                dl = ll[lw];
+                dr = lr[lw];
+                ll[lw] = l[i];
+                lr[lw] = r[i];
+                lw = (lw + 1u) % LIM_LA;
+                l[i] = lim_soft(dl * lg);
+                r[i] = lim_soft(dr * lg);
             }
         }
         {                                /* LOAF BREAKER: the CDJ view's columns (scope), from what leaves */
