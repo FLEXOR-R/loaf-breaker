@@ -150,7 +150,7 @@ static void mb_knob_turn(int i, int32_t d)
     text_cat(n, mb_knob_name(i));
     app_say(n, t);
     ui.redraw |= RG_BLOCKS;
-    changed();
+    changed_fx();
 }
 /* ------------------------------------------- the other effects' MORE and MOD --- */
 /* (PRD A-49b) every other effect has three parts: MAIN (its settings, as always), MORE (brk_fxx_t x[0..3]: XK) and
@@ -295,7 +295,7 @@ static void x_knob_turn(int i, int32_t d)
     x_value(i, t);
     app_say(x_name(i), t);
     ui.redraw |= RG_BLOCKS;
-    changed();
+    changed_fx();
 }
 
 /* FX again on the FX page: the focused slot's next part, past its last the next slot */
@@ -460,7 +460,7 @@ static void fx_knob_turn(uint32_t slot, int i, int32_t d)
     fx_value(slot, i, t);
     app_say(fx_param_name(slot, i), t);
     ui.redraw |= RG_BLOCKS;
-    changed();
+    changed_fx();
 }
 
 /* PRESETS on the FX page: the focused slot's effect, through the library (EMPTY first), with its own starting

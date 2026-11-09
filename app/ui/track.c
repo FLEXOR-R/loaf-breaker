@@ -664,7 +664,10 @@ static void selk_turn(uint32_t f, int i, int32_t d)
         text_cat(n, SK_KNOB[f % SK_N][i & 3]);
     }
     app_say(n, t);
-    changed();
+    if (f == 0u || f == 2u)              /* (DUCK, COMP: the mix's; the rest the kick's alone) */
+        changed();
+    else
+        changed_kick();
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
 /* PRESETS on KNOB: what SEL + the knob picked does (DUCK, TERROR 2, COMP, TERROR, T+ DRIVE, T+ TYPE, T+ SCREECH,

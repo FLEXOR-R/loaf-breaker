@@ -116,7 +116,7 @@ static void kick_mem_turn(int32_t d)
     int_text((int32_t)set.kslot + 1, t);
     app_say("KICK", t);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
-    changed();
+    changed_kick();
 }
 static const char *const KPAGE_NAME[KPAGES] = {"MIX", "LAYER", "LAYER FX", "MACRO", "OUT", "TERROR", "TERROR +",
                                                 "TERROR 2", "SYNTH", "SYNTH +", "BASS", "KNOBS", "K SET",
@@ -438,7 +438,7 @@ static void kfx_reset(void)
         app_say(KICK_FX_NAME[l->fx % KICK_FX], "RESET (SEL+REC: UNDO)");
     }
     ui.redraw |= RG_BLOCKS | RG_FOOT;
-    changed();
+    changed_kick();
 }
 static void kick_knob_turn(int i, int32_t d)
 {
@@ -468,7 +468,7 @@ static void kick_knob_turn(int i, int32_t d)
         text_cat(w, KN_KICK[ui.kpage % KPAGES][i & 3]);
         app_say(w, t);
         ui.redraw |= RG_BLOCKS | RG_FOOT;
-        changed();
+        changed_kick();
         return;
     }
     if (kick_preset_knob(i)) {           /* the whole kick: every layer, its effects, INTENSITY (the kick selected,
@@ -483,7 +483,7 @@ static void kick_knob_turn(int i, int32_t d)
         kick_value(i, t);
         app_say("KICK PRESET", t);
         ui.redraw |= RG_BLOCKS | RG_FOOT;
-        changed();
+        changed_kick();
         return;
     }
     switch (ui.kpage) {
@@ -543,7 +543,7 @@ static void kick_knob_turn(int i, int32_t d)
     } else
         app_say(kick_knob_name(i), t);
     ui.redraw |= RG_BLOCKS;
-    changed();
+    changed_kick();
 }
 
 /* the KICK page's strip: the kick's shape and its layers' levels; then its 16 steps (the one playing outlined),
@@ -827,7 +827,7 @@ static void keq_turn(int i, int32_t d)
     uint32_t j = (ui.keq_part & 1u) * 4u + (uint32_t)(i & 3);
     char t[16];
     set.keq[j] = knob_f(set.keq[j], d, 0.02f, 0.0f, 1.0f);
-    changed();
+    changed_kick();
     keq_value(i, t);
     app_say(KEQ_NAME[ui.keq_part & 1u][i & 3], t);
     ui.redraw |= RG_BLOCKS;

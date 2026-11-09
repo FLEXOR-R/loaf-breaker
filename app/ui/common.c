@@ -66,11 +66,45 @@ static int sfx_live(uint32_t now)       /* a kick's or a drop's moment of SHAKE,
     return ((SFX_ON(SFX_SHAKE) || SFX_ON(SFX_VHS)) && (km || dm)) ||
            (SFX_ON(SFX_STROBE) && ((set.sfx_drop && sd < sfx_win(160u)) || (set.sfx_kick > 50u && km)));
 }
-static uint32_t ui_blits;                /* LOAF BREAKER TEST: the strips sent to the screen (GLO MORE's METER) */
+static uint32_t ui_blits;                /* LOAF BREAKER: the strips sent to the screen (GLO MORE's METER) */
+/* LOAF BREAKER: what each screen row shows, as a hash of its pixels (0: not known): a full-width strip sends only its
+ * rows that changed (none: nothing sent). A narrower strip, a fill, a page's whole redraw forget the rows they touch */
+static uint32_t row_h[240];
+static void rows_forget(uint32_t y, uint32_t h)
+{
+    uint32_t i;
+    for (i = y; i < y + h && i < 240u; i++)
+        row_h[i] = 0u;
+}
+static void rows_send(uint32_t x, uint32_t y)
+{
+    uint32_t r, r0 = cv_h, r1 = 0u, i;
+    if (x || cv_w != 240u) {             /* (a narrow one: sent, its rows no longer known) */
+        rows_forget(y, cv_h);
+        ui_blits++;
+        cv_blit(x, y);
+        return;
+    }
+    for (r = 0; r < cv_h && y + r < 240u; r++) {
+        const uint16_t *p = cv_px + r * 240u;
+        uint32_t h = 2166136261u;
+        for (i = 0; i < 240u; i += 2u)
+            h = (h ^ ((uint32_t)p[i] | (uint32_t)p[i + 1u] << 16)) * 16777619u;
+        h |= 1u;                         /* (never 0: 0 is "not known") */
+        if (h != row_h[y + r]) {
+            row_h[y + r] = h;
+            r0 = r < r0 ? r : r0;
+            r1 = r + 1u;
+        }
+    }
+    if (r0 < r1) {
+        ui_blits++;
+        lcd_blit(x, y + r0, 240u, r1 - r0, cv_px + r0 * 240u);
+    }
+}
 static void crt_blit(uint32_t x, uint32_t y)   /* (the effects on, in this order: 8-BIT, GRAIN, CRT, RGB, VHS, SHAKE,
                                           * STROBE) */
 {
-    ui_blits++;
     uint32_t amt = set.scrfx > 100u ? 100u : set.scrfx, now = plat_ms(), r, i;
     uint32_t sinc_kick = sfx_kick_t ? now - sfx_kick_t : 99999u, sinc_drop = sfx_drop_t ? now - sfx_drop_t : 99999u;
     uint32_t ks = set.sfx_kick > 100u ? 100u : set.sfx_kick, ds = set.sfx_drop > 100u ? 100u : set.sfx_drop;
@@ -124,9 +158,15 @@ static void crt_blit(uint32_t x, uint32_t y)   /* (the effects on, in this order
     if (SFX_ON(SFX_STROBE) && ((ds && sinc_drop < sfx_win(160u)) || (ks > 50u && km)))
         for (i = 0; i < cv_w * cv_h; i++)
             cv_px[i] = (uint16_t)~cv_px[i];
-    cv_blit(x, y);
+    rows_send(x, y);                     /* (only the rows that changed) */
 }
 #define cv_blit crt_blit
+static void scr_fill(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint16_t c)
+{
+    rows_forget(y, h);                   /* (the rows it covers no longer known) */
+    lcd_fill(x, y, w, h, c);
+}
+#define lcd_fill scr_fill
 
 /* ---------------------------------------------------------------- skins --- */
 /* GLOUPI BREAKS: the screen's colours, picked on GLOBAL's MORE page (K1) and saved (set.skin). fm1-base's palette

@@ -1602,6 +1602,14 @@ void app_frame(void)
             ui.redraw |= RG_WAVE;
         last_page = ui.page;
     }
+    {                                    /* LOAF BREAKER: the screen's rows known (rows_send) forgotten on a whole redraw
+                                          * and every 2 s, whatever else drew on it then shown right again */
+        static uint32_t forget_t;
+        if ((ui.redraw & RG_ALL) == RG_ALL || now - forget_t >= 2000u) {
+            rows_forget(0u, 240u);
+            forget_t = now;
+        }
+    }
     if (!ui.redraw)
         return;
     if (ui.redraw & RG_WAVE && ui.page != PG_TRACK && ui.page != PG_SEQ && ui.page != PG_GLOBAL &&
@@ -1655,6 +1663,16 @@ int app_host_fails(void) { return host_fails; }
 int app_host_cmd(const char *cmd, const char *a, const char *b, const char *c, const char *d)
 {
     (void)a; (void)b; (void)c; (void)d;
+    if (!strcmp(cmd, "ensure_play")) {   /* ensure_play: playing (tools/soak.py's end, whatever came before) */
+        brk_status_t st;
+        set.clk_in = 0u;                 /* (a random turn may have left it following a MIDI clock that never comes) */
+        ext.i = ext.n = 0u;
+        ext.run = 0u;
+        brk_status(&st);
+        if (!st.playing)
+            transport(1, 0);
+        return 1;
+    }
     if (!strcmp(cmd, "splash")) {
         app_splash();
         return 1;
@@ -1707,8 +1725,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig"};
-    int v[68];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing"};
+    int v[69];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1788,7 +1806,8 @@ int app_expect(const char *what, int *got)
     v[65] = set.kmorph_to;
     v[66] = set.ksyn[KS_TUNE];
     v[67] = ui.pbig;
-    for (i = 0; i < 68u; i++)
+    v[68] = playing_now();
+    for (i = 0; i < 69u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

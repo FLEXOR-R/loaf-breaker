@@ -337,38 +337,47 @@ static const char *const SNAP_SHORT[SNAPS] = {"OFF", "1/8 SL", "1/4 SL", "1/2 SL
 static uint32_t snap_index(void) { return set.snap && set.snap <= SNAPS ? set.snap - 1u : 4u; }
 
 static void skin_apply(uint32_t s);    /* (ui/common.c) */
+/* LOAF BREAKER: the FX chain's part of settings_apply (its four slots and the kick's two, their extras), and the
+ * kick's (its layers, SYNTH, MORPH, CLEAN SUB, BASS, EQ, the ARP's REESE in its key): a knob of theirs applies them
+ * alone (changed_fx, changed_kick) */
+static void fx_apply(void)
+{
+    uint32_t k;
+    brk_fx_set(&set.fx);
+    for (k = 0; k < BRK_FX_SLOTS; k++) {
+        brk_fx_set_mbc(k, &set.mbc[k]);
+        brk_fx_set_fxx(k, &set.fxx[k]);
+    }
+    for (k = 0; k < BRK_KFX_SLOTS; k++) {   /* (LOAF BREAKER: KICK FX: slots 4, 5) */
+        brk_fx_set_kick_slot(k, &set.kfx[k]);
+        brk_fx_set_mbc(BRK_FX_SLOTS + k, &set.kmbc[k]);
+        brk_fx_set_fxx(BRK_FX_SLOTS + k, &set.kfxx[k]);
+    }
+    brk_fx_tempo((float)set.tempo_x10 * 0.1f);
+}
+static void kick_apply(void)
+{
+    ovl_reese_hz(kick_pitch_hz(KL_SUB, set.kick.l[KL_SUB].pitch));   /* (the ARP's REESE in the kick's key) */
+    brk_fx_set_kick_eq(set.keq);
+    kick_send();                         /* (LOAF BREAKER: the kick, its SYNTH, MORPH and CLEAN SUB) */
+    kick_set_bass((float)set.kbass[0] * (float)set.kbass[0] * 0.04f, (float)set.kbass[1] * 0.01f,
+                  (float)set.kbass[2] * 0.01f, (float)set.kbass[3] * 0.01f);   /* (TEST: its BASS) */
+}
 static void settings_apply(void)
 {
     brk_tempo((float)set.tempo_x10 * 0.1f);
     brk_pitch((float)set.pitch);
     brk_swing((float)set.swing * 0.01f);
     brk_gen(&set.gen);
-    brk_fx_set(&set.fx);
-    {
-        uint32_t k;
-        for (k = 0; k < BRK_FX_SLOTS; k++) {
-            brk_fx_set_mbc(k, &set.mbc[k]);
-            brk_fx_set_fxx(k, &set.fxx[k]);
-        }
-        for (k = 0; k < BRK_KFX_SLOTS; k++) {   /* (LOAF BREAKER: KICK FX: slots 4, 5) */
-            brk_fx_set_kick_slot(k, &set.kfx[k]);
-            brk_fx_set_mbc(BRK_FX_SLOTS + k, &set.kmbc[k]);
-            brk_fx_set_fxx(BRK_FX_SLOTS + k, &set.kfxx[k]);
-        }
-    }
-    brk_fx_tempo((float)set.tempo_x10 * 0.1f);
+    fx_apply();
     set.pads.roll_pitch = 0.0f;          /* LOAF BREAKER: the rolls' pitch gone (an older save's: off) */
     brk_padset(&set.pads);
     brk_pitch_mode(pitch_keeps(), (float)(set.grain_ms ? set.grain_ms : 30u));
     brk_half_master(!(set.half_mt_off & 1u));
     brk_vinyl((set.vinyl & 3u) != 2u);
-    ovl_reese_hz(kick_pitch_hz(KL_SUB, set.kick.l[KL_SUB].pitch));
-    brk_fx_set_kick_eq(set.keq);   /* (the ARP's REESE in the kick's key) */
     brk_gate((float)(set.gate ? set.gate : 100u) * 0.01f);
     brk_snap(SNAP_SL[snap_index()]);
-    kick_send();                         /* (LOAF BREAKER: the kick, its SYNTH, MORPH and CLEAN SUB) */
-    kick_set_bass((float)set.kbass[0] * (float)set.kbass[0] * 0.04f, (float)set.kbass[1] * 0.01f,
-                  (float)set.kbass[2] * 0.01f, (float)set.kbass[3] * 0.01f);   /* (TEST: its BASS) */
+    kick_apply();
     {
         perc_t pa;                       /* (all the drums' voices for the engine) */
         uint32_t k;
@@ -387,7 +396,8 @@ static void settings_apply(void)
     }
 }
 
-static uint8_t apply_due;                /* LOAF BREAKER TEST: a change waiting for settings_apply (apply_flush) */
+static uint8_t apply_due, apply_kick, apply_fx;   /* LOAF BREAKER: a change waiting for settings_apply, or for the
+                                          * kick's or the FX chain's part alone (apply_flush) */
 static void changed(void)
 {
     set_dirty = 1u;
@@ -395,12 +405,29 @@ static void changed(void)
     apply_due = 1u;                      /* (TEST: applied once a pass, after the input: a knob turned fast, its many
                                           * detents one settings_apply, not one each) */
 }
+static void changed_kick(void)          /* (a change to the kick alone: its part applied) */
+{
+    set_dirty = 1u;
+    foot_dirty = 1u;
+    apply_kick = 1u;
+}
+static void changed_fx(void)            /* (a change to the FX chain alone: its part applied) */
+{
+    set_dirty = 1u;
+    foot_dirty = 1u;
+    apply_fx = 1u;
+}
 static void apply_flush(void)
 {
-    if (apply_due) {
-        apply_due = 0u;
+    if (apply_due)
         settings_apply();
+    else {
+        if (apply_kick)
+            kick_apply();
+        if (apply_fx)
+            fx_apply();
     }
+    apply_due = apply_kick = apply_fx = 0u;
 }
 
 /* ------------------------------------------------------------------ patterns --- */

@@ -19,6 +19,11 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   reset code in track.c); the knobs' functions are EDIT KICK › KNOBS only. GLO MORE K1 MODE (`set.novice`): BEGINNER hides
   the KICK menu's advanced parts (`KP_ADV`); the host simulator starts EXPERT (scenarios, the manual's screens), the
   FM-1 and the web emulator BEGINNER. The manual opens with "Start in five minutes" (the hub card's `cheat` link).
+- Screen and knobs (0.178): the screen's rows are remembered as hashes (`rows_send` in common.c): a full-width strip
+  sends only its changed rows. Anything drawing on the screen other than through `cv_blit` must forget its rows
+  (`rows_forget`; `lcd_fill` is wrapped). `changed()` applies once a pass (`apply_flush`); a kick-only or FX-only change
+  uses `changed_kick()` / `changed_fx()`. GLO MORE K3 METER shows CPU / IMG / FR on the device. CI runs a 30-minute
+  random soak (`tools/soak.py`, seed = run number) at every release.
 - No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository.
 - Fonts: `font_trim` is on (fm1.toml, 9 Nov 2026). LOAF BREAKER draws in FONT_T, FONT_XS and FONT_B only (cv_text2 for
   bigger: those doubled). fm1-base still generates S, M (~5 KB trimmed) and L (~9 KB trimmed, 31 px), left out of the
@@ -50,8 +55,8 @@ files before it define. `app/dsp/*.c` are separate `o2` units (brk, brk_fx, kick
 - Bluetooth MIDI is on (`ble = true`, `ble_stack = "own"`: fm1-base's own stack, nothing of JieLi's); the GLOBAL
   page switches it, `APP_BLE_AT_BOOT` follows the saved setting. It costs ~40 KB of flash. Bluetooth audio out
   (`bt_audio = true`, A2DP) is on too: ~37 KB of flash, its packet queue in the pool (`BP_MQ_ATTR` in app.h).
-- Flash: the app slot is 581,564 B (`APP_SLOT` 0x8DFBC in base/tools/fm1pkg_make.py: not 581 KiB); 569,500 B used on
-  9 Nov 2026 (LOAF BREAKER 0.170, fonts trimmed): **~12 KB left**. The break bank (`CH_BANK`, ~369 KB) is most of it. Anything new needs something taken out first (ask Laurens what).
+- Flash: the app slot is 581,564 B (`APP_SLOT` 0x8DFBC in base/tools/fm1pkg_make.py: not 581 KiB); 571,284 B used on
+  9 Nov 2026 (LOAF BREAKER TEST 9.05, fonts trimmed): **~10 KB left**. The break bank (`CH_BANK`, ~369 KB) is most of it. Anything new needs something taken out first (ask Laurens what).
   Block-rate engine code is `BRK_COLD` (built for size) and calls the shared maths (`brk_exp2f_c` and the like,
   brk_math.c; the UI too) instead of an inline copy; the FX chain's per-sample loop (`fx_samples`) is `BRK_RAM`:
   .ram_text on the FM-1 (fast, packed in flash), so nothing it reaches may be a call (`BRK_INL` in brk_fx.c forces

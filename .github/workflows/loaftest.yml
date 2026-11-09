@@ -104,6 +104,17 @@ jobs:
           (cd screens && zip -q -r "../app/build/loaf-breaker-test-screens-$VERSION.zip" .)
           [ -z "$bad" ] || { echo "::error::scenarios failed:$bad"; exit 1; }
 
+      - name: Soak (30 minutes of random play in the simulator)   # (a crash, a hang or silence at the end fails the run)
+        run: |
+          S=$(( ${{ github.run_number }} % 1000 ))
+          echo "soak seed $S (again: python3 tools/soak.py --minutes 30 --seed $S)"
+          python3 tools/soak.py --minutes 30 --seed $S > app/build/soak.txt
+          mkdir -p app/build/soak
+          H="$(ls app/build/host/*_host | head -1)"
+          rc=0; "$H" app/build/soak.txt app/build/soak > app/build/soak.log 2>&1 || rc=$?
+          tail -3 app/build/soak.log; grep FAIL app/build/soak.log || true
+          exit $rc
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
