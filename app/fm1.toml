@@ -1,8 +1,8 @@
 # CHOPPAH's build settings (fm1-base's tools/build.py: ./build.sh)
 name = "CHOPPAH"               # the build's files: choppah.fwsc, choppah-X.Y.fwsc
 id_prefix = "FM-1_86"          # package identity: dev FM-1_8600, releases FM-1_86XXYYZZ (PRD Q5: check it is free)
-usb_manufacturer = "CHOPPAH"
-usb_product = "CHOPPAH FM-1"
+usb_manufacturer = "LOAF BREAKER"
+usb_product = "LOAF BREAKER FM-1"     # LOAF BREAKER: "FM-1" kept in the name, so the installer and the tools find the port by themselves
 ble = false                    # GLOUPI BREAKS: no Bluetooth (CHOPPAH: true, Bluetooth MIDI, PRD A-71)
 ble_stack = "own"              # fm1-base's own stack: nothing of JieLi's, ~40 KB
 bt_audio = false               # GLOUPI BREAKS: no Bluetooth audio out (CHOPPAH: true, PRD A-72)

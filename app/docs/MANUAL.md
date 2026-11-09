@@ -481,7 +481,7 @@ whose part you are on.
 
 **GLO** opens the GLOBAL page: the slice blocks give way to the state of MIDI, and K1–K4 set it (SAVE keeps it).
 **GLO again** (or ALGORITHM) turns to its second part, the pitch; **a third time**, MORE: the skins and AUTO SAVE
-(below). LOAF BREAKER has no Bluetooth: MIDI goes over USB and the TRS jack.
+(below). LOAF BREAKER has no Bluetooth: MIDI goes over USB and the TRS jack. On a computer the FM-1 shows as **LOAF BREAKER FM-1** (a MIDI device and, for recording, an audio input).
 
 ![GLOBAL: MIDI in and out](img/screen-global.png "The GLOBAL page")
 
