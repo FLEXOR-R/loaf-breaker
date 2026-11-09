@@ -64,6 +64,7 @@ static void version_text(char *t)
  * x0, y0 on the screen, w x h, in strips of 60 rows, each the screen's width (its sides black) */
 static int32_t gl_amt;                   /* LOAF BREAKER TEST: the start-up glitch: how far rows jump (0: none), its seed */
 static uint32_t gl_seed;
+static int32_t gl_band = -1;             /* (LOAF BREAKER: VHS: the tracking band's top row, -1 none) */
 static int32_t gl_shift(int32_t row)     /* a band of rows: shifted, or not (a third of the bands) */
 {
     uint32_t h = ((uint32_t)row / 5u + gl_seed) * 2654435761u;
@@ -84,13 +85,28 @@ static void grey_draw(const uint8_t *rle, uint32_t len, const uint16_t *pal, int
             uint32_t b = rle[i], c = b & 15u;
             int32_t n = (int32_t)(b >> 4) + 1;
             if (c && row >= r) {
-                int32_t g = gl_shift(row);   /* (TEST: the glitch: the band shifted, its light tinted) */
-                cv_rect(x0 + x + g, row - r, n, 1, g ? (g & 1 ? RGB(255, 60, 40) : pal[c]) : pal[c]);
+                int32_t g = gl_shift(row);   /* (the glitch: the band shifted, its light greyed) */
+                cv_rect(x0 + x + g, row - r, n, 1, g ? (g & 1 ? RGB(150, 150, 156) : pal[c]) : pal[c]);
             }
             x += n;
             if (x >= w) {
                 x = 0;
                 row++;
+            }
+        }
+        if (gl_amt) {                    /* (LOAF BREAKER: VHS: the tracking band rolling down, a smear of grey
+                                          * noise, the row above it dark; specks here and there) */
+            int32_t k;
+            for (k = 0; k < sh; k++) {
+                int32_t row = r + k, in = row >= gl_band && row < gl_band + 7;
+                uint32_t hsh = ((uint32_t)row * 2246822519u) ^ (gl_seed * 3266489917u), m;
+                if (row == gl_band - 1)
+                    cv_rect(0, k, 240, 1, C_BLACK);
+                for (m = 0; m < (in ? 26u : 2u); m++) {
+                    uint32_t q = (hsh += 0x9E3779B9u) * 2654435761u, lv = 90u + (q >> 25);
+                    cv_rect((int32_t)((q >> 8) % 240u), k, in ? 2 + (int32_t)((q >> 4) & 7u) : 1, 1,
+                            RGB(lv, lv, lv + 6u));
+                }
             }
         }
         cv_blit(0, (uint32_t)(y0 + r));
@@ -107,8 +123,10 @@ static void splash_glitch(uint32_t age)  /* LOAF BREAKER TEST: the start-up pict
 #if CH_LOGO
     gl_amt = age < 700u ? (int32_t)((700u - age) * 24u / 700u) + 1 : 0;
     gl_seed = age / 40u;
+    gl_band = age < 700u ? (int32_t)(age * (uint32_t)SPLASH_H / 560u) - 8 : -1;   /* (rolling down the picture) */
     grey_draw(SPLASH_RLE, sizeof SPLASH_RLE, SPLASH_PAL, SPLASH_W, SPLASH_H, (240 - SPLASH_W) / 2, 240 - SPLASH_H);
     gl_amt = 0;
+    gl_band = -1;
 #else
     (void)age;
 #endif
