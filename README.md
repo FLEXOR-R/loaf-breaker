@@ -1,7 +1,12 @@
-<p align="center"><img src="docs/img/banner.png" alt="LOAF BREAKER" width="600"></p>
+<p align="center">
+<picture>
+<source media="(prefers-color-scheme: light)" srcset="docs/img/banner-light.png">
+<img src="docs/img/banner.png" alt="LOAF BREAKER" width="340">
+</picture>
+</p>
 
 <h1 align="center">LOAF BREAKER</h1>
-<p align="center"><b>A hardcore break chopper for the M-VAVE FM-1.</b><br>Terror · gabber · crossbreed · uptempo</p>
+<p align="center"><b>A hardcore break chopper for the M-VAVE FM-1.</b><br>HARDCORE - TERROR - GABBER</p>
 
 <p align="center">
 <a href="https://flexor-r.github.io/loaf-breaker/"><b>Site</b></a> ·
