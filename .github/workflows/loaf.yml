@@ -130,7 +130,7 @@ jobs:
           mkdir -p screens
           H="$(ls app/build/host/*_host | head -1)"
           bad=""
-          for sc in ui kick64 lanes seq pads subdrive skins arp clap terror cross track fxmem kfx knob halflatch cdj maxout reorg drops reset synth kickmenu kroll hits trkgap mbkick trkfrom loaftest audition kreset drumbig kpreset autosave effects trkempty lfomix wavezoom sfxset sellock trkflt kill kicktools kickknob; do "$H" tests/scenarios/$sc.txt screens || bad="$bad $sc"; done
+          for sc in ui kick64 lanes seq pads subdrive skins arp clap terror cross track fxmem kfx knob halflatch cdj maxout reorg drops reset synth kickmenu kroll hits trkgap mbkick trkfrom loaftest audition kreset drumbig kpreset autosave effects trkempty lfomix wavezoom sfxset sellock trkflt kill kicktools kickknob kickknobs; do "$H" tests/scenarios/$sc.txt screens || bad="$bad $sc"; done
           # (LOAF BREAKER: the update loader's screen, its drawing on a stand-in panel)
           cc -std=c99 -Wall -I tests/loader/src tests/loader/src/preview.c -o app/build/ldr_preview \
             && (cd screens && ../app/build/ldr_preview) \

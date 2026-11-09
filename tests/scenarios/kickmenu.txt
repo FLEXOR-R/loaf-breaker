@@ -1,4 +1,4 @@
-# LOAF BREAKER: the KICK menu. EDIT: SOUND (MIX), ALGORITHM: SUB; EDIT: SYNTH, DIRT, TONE (its EQ); EDIT: SOUND again (SUB
+# LOAF BREAKER: the KICK menu. EDIT: SOUND (MIX), ALGORITHM: SUB; EDIT: SYNTH, DIRT, TONE (its EQ), KNOBS; EDIT: SOUND again (SUB
 # kept). EDIT held: the classic view (the part's bars, the five drums' shapes), the part kept; held again: the big view.
 # SEL + EDIT: the other drums (SNARE), EDIT: HAT, CLAP, HOOVER, then the KICK menu again.
 #   app/build/host/loaf-breaker_host tests/scenarios/kickmenu.txt app/build/scenarios
@@ -24,6 +24,9 @@ tap EDIT
 wait 300
 expect page 10
 shot km_tone.png
+tap EDIT
+wait 300
+expect kpage 11
 tap EDIT
 wait 300
 expect page 4

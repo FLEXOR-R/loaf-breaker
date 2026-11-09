@@ -463,6 +463,8 @@ static const char *const T_TYPE_NAME[5] = {"FOLD", "CLIP", "CRUSH", "RECT", "TUB
 static const uint8_t SK_CODE[SK_CODES] = {0u, 1u, 2u, 3u, 4u, 6u, 7u, 8u, 5u, 9u, 10u, 11u, 12u, 13u, 14u};
 static const uint8_t SK_OWN[4] = {5u, 1u, 7u, 3u};   /* K1 DRIVE, K2 TERROR 2, K3 T+ SCREECH, K4 TERROR (LOAF BREAKER:
                                           * DUCK and COMP no more: the MIXER's MASTER has them) */
+static const char *sk_short(uint32_t f) { return SK_SHORT[f % SK_N]; }   /* (EDIT KICK's KNOBS) */
+static const char *sk_kname(uint32_t f, int i) { return SK_KNOB[f % SK_N][i & 3]; }
 static int sk_live(uint32_t f) { return f != 0u && f != 2u; }   /* (a function a SEL + knob may have) */
 static uint32_t sk_code(uint32_t knob)   /* the knob's code, 0 its own */
 {

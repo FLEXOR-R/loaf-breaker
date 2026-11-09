@@ -99,7 +99,12 @@ lists its combinations (SEL again, or any other button, key or knob, closes it).
 - **EDIT**: the **KICK menu**. Its picture: the kick's hit over a quarter of a second, its wave large (the cycles
   stretching as its pitch falls, squared off where it is driven), its level behind, the SUB's pitch falling in amber,
   its memory (KICK 1–10) and its note; under it the part's four knobs as cards, their values large. **EDIT again**: the
-  next section, **ALGORITHM**: the next part in it (each section remembers where you were). **EDIT held** (half a
+  next section (SOUND, SYNTH, DIRT, TONE, **KNOBS**), **ALGORITHM**: the next part in it (each section remembers where
+  you were). **KNOBS** puts the live knobs on the kick's picture: its first part, KNOBS, has K1–K4 turn what SEL + K1–K4
+  turn (DRIVE, TERROR 2, T+ SCREECH, TERROR to start: their first setting, their value large), so you hear and see the
+  kick as you set them; then **K1 SET .. K4 SET**, each knob's function with all its settings (as ENV › KNOB; TERROR:
+  AMOUNT, SUB, FIZZ, SUSTAIN; MORPH: AMOUNT, TO KICK…), the function's name by the kick's (KICK 4  K4 TERROR). They
+  are the kick playing's (PRESETS: KICK 1–10, each its own); which function a knob has stays ENV › KNOB's choice. **EDIT held** (half a
   second): the classic view (the part's knobs as bars, the layers' levels, the five drums' shapes, the break's wave
   above), held again: the big view; the part stays where it is. **Stopped**, anywhere in the KICK menu (the big view, the
   classic view, its EQ and FX) and on the other drums' pages (big or classic), **white keys 1–5 play the KICK, SNARE,
