@@ -122,15 +122,18 @@ static void draw_global(const brk_status_t *st)
     char t[32], v[16];
     uint32_t p;
     int bs = plat_ble_state();
-    if (ui.gpage == 2u) {                /* MORE: the skin, and every skin's colours to pick from */
+    cv_begin(240, 44, C_BLACK);          /* LOAF BREAKER: no waveform on GLOBAL: its place the skins' on MORE, black
+                                          * on the others */
+    if (ui.gpage == 2u) {                /* MORE: the skin, and every skin's colours to pick from (K4) */
         uint32_t s;
-        cv_begin(240, 52, C_BLACK);
-        cv_text(6, 2, &FONT_T, "SKIN", C_GRAY);
-        cv_text(96, 2, &FONT_T, SKIN_NAME[set.skin % NSKINS], C_HI);
-        cv_text(96, 16, &FONT_XS, "K4: THE SCREEN'S COLOURS", C_DIM);
+        static const char *const SFX_SAYS[SFX_N] = {"K3 PICKS ONE, K1 ITS AMOUNT", "AN OLD TUBE'S LINES",
+                                                    "BANDS SLIP, MORE ON KICKS", "SPECKS THAT MOVE",
+                                                    "THE RED OFF THE REST", "JOLTS ON KICKS AND DROPS",
+                                                    "FLASHES AT THE DROP", "FEWER COLOURS"};
+        cv_text(6, 1, &FONT_T, "SKIN", C_GRAY);
+        cv_text(96, 1, &FONT_T, SKIN_NAME[set.skin % NSKINS], C_HI);
         for (s = 0; s < NSKINS; s++) {   /* a swatch each: its value colour on its ground, the one on outlined */
-            int32_t x = 6 + (int32_t)(s % 9u) * 26, y = 27 + (int32_t)(s / 9u) * 13;   /* (LOAF BREAKER: 17, in two
-                                          * rows of nine) */
+            int32_t x = 6 + (int32_t)(s % 9u) * 26, y = 18 + (int32_t)(s / 9u) * 13;   /* (17, two rows of nine) */
             const uint8_t (*c)[3] = SKIN_RGB[s];
             if (s == set.skin % NSKINS)
                 cv_rect(x - 2, y - 2, 27, 15, C_WHITE);
@@ -138,23 +141,29 @@ static void draw_global(const brk_status_t *st)
             cv_rect(x + 3, y + 2, 17, 4, skin_rgb(c[4], 100u));
             cv_rect(x + 3, y + 7, 17, 2, skin_rgb(c[3], 100u));
         }
-        cv_blit(0, 88);
+        cv_blit(0, 44);
         cv_begin(240, 52, C_BLACK);
-        cv_text(6, 2, &FONT_T, "AUTO SAVE", C_GRAY);   /* LOAF BREAKER: K2 */
-        cv_text(96, 2, &FONT_T, set.auto_save ? "ON" : "OFF", set.auto_save ? C_HI : C_DIM);
-        cv_text(96, 16, &FONT_XS, "1 MIN. AFTER A CHANGE", C_DIM);
-        cv_text(6, 30, &FONT_T, "EFFECTS", C_GRAY);   /* K3, K1 its amount */
-        cv_text(96, 30, &FONT_T, SFX_NAME[set.crt % SFX_N], set.crt % SFX_N ? C_HI : C_DIM);
+        cv_text(6, 2, &FONT_T, "EFFECTS", C_GRAY);   /* K3, K1 its amount */
+        cv_text(96, 2, &FONT_T, SFX_NAME[set.crt % SFX_N], set.crt % SFX_N ? C_HI : C_DIM);
         if (set.crt % SFX_N) {
             char a[8];
             pct_text((float)set.scrfx * 0.01f, a);
-            cv_text(170, 30, &FONT_T, a, C_WHITE);
+            cv_text(170, 2, &FONT_T, a, C_WHITE);
         }
-        cv_text(6, 43, &FONT_XS, "WAVE (PRESETS)", C_GRAY);   /* (cdj.c) */
-        cv_text(96, 43, &FONT_XS, CDJ_ZNAME[set.wzoom % CDJ_ZN], C_HI);
+        cv_text(96, 16, &FONT_XS, SFX_SAYS[set.crt % SFX_N], C_DIM);
+        cv_text(6, 30, &FONT_T, "WAVE ZOOM", C_GRAY);   /* PRESETS (cdj.c) */
+        cv_text(96, 30, &FONT_T, CDJ_ZNAME[set.wzoom % CDJ_ZN], C_HI);
+        cv_text(96, 43, &FONT_XS, "PRESETS: HOME'S WAVE", C_DIM);
+        cv_blit(0, 88);
+        cv_begin(240, 52, C_BLACK);
+        cv_text(6, 2, &FONT_T, "AUTO SAVE", C_GRAY);   /* K2 */
+        cv_text(96, 2, &FONT_T, set.auto_save ? "ON" : "OFF", set.auto_save ? C_HI : C_DIM);
+        cv_text(96, 16, &FONT_XS, "A MINUTE AFTER A CHANGE,", C_DIM);
+        cv_text(96, 28, &FONT_XS, "3 S AFTER THE STOP", C_DIM);
         cv_blit(0, 140);
         return;
     }
+    cv_blit(0, 44);
     if (ui.gpage) {                      /* the pitch: what the mode does, the pitch now */
         cv_begin(240, 52, C_BLACK);
         cv_text(6, 2, &FONT_T, "PITCH", C_GRAY);

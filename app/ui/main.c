@@ -16,6 +16,9 @@ static void kfx_open(int on)             /* to KICK FX (on), or the FX page back
         ui.fx_page = 0u;
     }
 }
+static uint8_t lvl_fast;                /* LOAF BREAKER: LFO + K1-K4: the levels by 5 % up, 8 % down (the MIXER's
+                                          * own page: 2 %) */
+static float lvl_step(int32_t d) { return lvl_fast ? (d > 0 ? 0.05f : 0.08f) : 0.02f; }
 static void knob_turn(int k, int32_t d)
 {
     brk_fx_t *f = &set.fx;
@@ -70,17 +73,17 @@ static void knob_turn(int k, int32_t d)
             } else
                 return;
         } else if (k == EN_K1) {
-            set.brk_level = (uint8_t)clamp((int32_t)set.brk_level + d * 2, 0, 100);
+            set.brk_level = (uint8_t)clamp((int32_t)set.brk_level + d * (int32_t)(lvl_step(d) * 100.0f + 0.5f), 0, 100);
             say_int("BREAK", set.brk_level, "%");
         } else if (k == EN_K2) {
-            set.kick.volume = knob_f(set.kick.volume, d, 0.02f, 0.0f, 1.0f);
+            set.kick.volume = knob_f(set.kick.volume, d, lvl_step(d), 0.0f, 1.0f);
             pct_text(set.kick.volume, t);
             app_say("KICK", t);
         } else if (k == EN_K3) {         /* PERC: the snare and the hat */
-            set.perc.volume = knob_f(set.perc.volume, d, 0.02f, 0.0f, 1.0f);
+            set.perc.volume = knob_f(set.perc.volume, d, lvl_step(d), 0.0f, 1.0f);
             say_int("PERC", (int32_t)(set.perc.volume * 100.0f + 0.5f), "%");
         } else {                         /* FX: the whole chain against the dry sound */
-            f->wet = knob_f(f->wet, d, 0.02f, 0.0f, 1.0f);
+            f->wet = knob_f(f->wet, d, lvl_step(d), 0.0f, 1.0f);
             say_int("FX", (int32_t)(f->wet * 100.0f + 0.5f), "%");
         }
         ui.redraw |= RG_BLOCKS;
@@ -688,11 +691,13 @@ static void input(void)
         }
         if (k >= EN_K1 && k <= EN_K4 && btn & 1u << B_LFO) {   /* LOAF BREAKER: LFO + K1 the break's level, K2 the
                                           * kick's, K3 the drums', K4 the FX's, on any page (the MIXER's LEVELS: the page
-                                          * stays) */
+                                          * stays), 5 % a detent up, 8 % down */
             uint8_t pg = ui.page, mp = ui.mpage;
             ui.page = PG_MIX;
             ui.mpage = 0u;
+            lvl_fast = 1u;
             knob_turn(k, d);
+            lvl_fast = 0u;
             ui.page = pg;
             ui.mpage = mp;
             ui.lfo_hold = 2u;
@@ -1501,13 +1506,15 @@ void app_frame(void)
     }
     {                                    /* LOAF BREAKER: SEQ left, its grid's top goes: the waveform back */
         static uint8_t last_page;
-        if (ui.page != last_page && (last_page == PG_SEQ || last_page == PG_KICK))   /* (and the KICK menu's picture) */
+        if (ui.page != last_page && (last_page == PG_SEQ || last_page == PG_KICK || last_page == PG_GLOBAL))
+                                         /* (and the KICK menu's picture, GLOBAL's top) */
             ui.redraw |= RG_WAVE;
         last_page = ui.page;
     }
     if (!ui.redraw)
         return;
-    if (ui.redraw & RG_WAVE && ui.page != PG_TRACK && ui.page != PG_SEQ && (ui.page != PG_KICK || ui.kclassic) &&
+    if (ui.redraw & RG_WAVE && ui.page != PG_TRACK && ui.page != PG_SEQ && ui.page != PG_GLOBAL &&
+        (ui.page != PG_KICK || ui.kclassic) &&
         (ui.page != PG_PERC || !ui.pbig))   /* (LOAF BREAKER: SEQ is a grid there) */
         draw_wave(&st, b);
     if (ui.redraw & RG_FX) {
