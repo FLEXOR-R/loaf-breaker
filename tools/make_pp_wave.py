@@ -50,12 +50,12 @@ def main():
     for x, (b, k) in enumerate(zip(brk, kick)):
         bh = min(1.0, b[3] / bpk) * 0.8            # the break: up to 80 % of the height
         since = x % 60                             # (the kick's hits: steps 1, 5, 9, 13, 60 columns apart)
-        kh = k[3] / kpk * math.exp(-since / 9.0)   # the kick: each hit, falling away within a step or so
+        kh = k[3] / kpk * math.exp(-since / 16.0)  # the kick: each hit, falling away over a step and a half
         h = max(bh, kh)
         m = max(b[0], b[1], b[2]) or 1
         br = [b[0] / m, b[1] / m, b[2] / m]        # the break's colour, its loudest band at 1
-        kw = 1.0 if kh >= bh else (kh / bh) ** 2 if bh else 0.0   # the kick's red where it is the taller
-        col = [br[0] * (1 - kw) + 1.0 * kw, br[1] * (1 - kw) + 0.06 * kw, br[2] * (1 - kw) + 0.02 * kw]
+        kw = kh / (kh + bh) if kh + bh else 0.0    # how much of the column is the kick
+        col = [br[0] * (1 - kw) + 1.0 * kw, br[1] * (1 - kw) + 0.12 * kw, br[2] * (1 - kw) + 0.05 * kw]
         cols.append((col, min(1.0, h)))
     for x in range(240):                           # 32 steps on the screen's width: two columns in one
         (c1, h1), (c2, h2) = cols[2 * x], cols[2 * x + 1]
