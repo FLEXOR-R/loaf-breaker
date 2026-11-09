@@ -150,3 +150,18 @@ shot s_15more.png
 tap EDIT
 wait 300
 shot s_15kick.png
+tap GLO
+wait 100
+tap GLO
+wait 100
+tap GLO
+wait 200
+turn K1 1 10
+wait 300
+shot s_16more.png
+tap HOME
+wait 300
+shot s_16.png
+tap EDIT
+wait 300
+shot s_16kick.png
