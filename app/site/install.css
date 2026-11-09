@@ -24,10 +24,10 @@ body.install .lang {
 }
 body.install .lang:hover { background: #3a3426; }
 
-/* buttons: hardware caps; the main one amber */
+/* buttons: hardware caps; the main one red */
 body.install button {
   font: 600 14px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; cursor: pointer;
-  background: var(--amber); color: #1a1406; border: 0; border-radius: 6px; padding: 13px 22px;
+  background: var(--amber); color: #1a0907; border: 0; border-radius: 6px; padding: 13px 22px;
   box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .3);
 }
 body.install button:hover:not(:disabled) { filter: brightness(1.08); }
@@ -43,13 +43,13 @@ body.install #go { width: 100%; padding: 18px 22px; font-size: 16px; letter-spac
 
 /* the warning to back up, and the M-BOOT choice */
 body.install .backup {
-  border: 1px solid rgba(255, 178, 26, .55); background: var(--amber-soft); border-radius: 8px; padding: 12px 14px; margin: 0 0 16px;
+  border: 1px solid rgba(255, 132, 112, .55); background: var(--amber-soft); border-radius: 8px; padding: 12px 14px; margin: 0 0 16px;
 }
 body.install .backup strong { color: var(--amber); }
 body.install .opt { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 8px; }
 body.install .opt input { margin-top: 5px; width: 17px; height: 17px; accent-color: var(--amber); flex: none; }
 
-/* progress: the header meter's amber, in segments */
+/* progress: the header meter's red, in segments */
 body.install progress {
   -webkit-appearance: none; appearance: none; display: block; width: 100%; height: 14px; margin-top: 18px;
   border: 1px solid var(--line); border-radius: 4px; background: var(--panel); overflow: hidden;

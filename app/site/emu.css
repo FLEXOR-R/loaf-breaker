@@ -1,7 +1,7 @@
 /* CHOPPAH's emulator page (tools/site_style.py: after site.css, in place of fm1-base's emulator style). The markup
    and script are fm1-base's (web/emu/index.html): the panel is its SVG drawing of the FM-1 (its own colours), and
    every class the script sets (.hit, .lit, .held, .latched, .dim, [hidden]) keeps its job; this dresses the page
-   around it and lights the panel in CHOPPAH's amber. */
+   around it and lights the panel in the screen's red (LOAF BREAKER; CHOPPAH's was amber). */
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 body.emu main { max-width: 1160px; margin: 0 auto; }
 body.emu .intro { display: flex; flex-wrap: wrap; align-items: end; gap: 6px 24px; margin: 0 0 18px; }
@@ -24,20 +24,20 @@ body.emu .intro p { margin: 0 0 6px; color: var(--dim); max-width: 60ch; }
 .ctl { cursor: pointer; }
 .ctl.knob { cursor: ns-resize; }
 .btnface, .keyface { transition: fill .06s; }
-.lit .btnface { fill: #ffb21a; }
-.lit text.btn { fill: #1a1406; }
-.held .btnface, .held .keyface { stroke: #ffb21a; stroke-width: 3; }
+.lit .btnface { fill: #ff8470; }
+.lit text.btn { fill: #1a0907; }
+.held .btnface, .held .keyface { stroke: #ff8470; stroke-width: 3; }
 .latched .btnface, .latched .keyface { stroke: #7fb6ff; stroke-width: 3; }
-.lit .keyface.white { fill: #ffd27a; }
+.lit .keyface.white { fill: #ffb3a3; }
 .lit .keyface.black { fill: #7fb6ff; }
-.dim .btnface { fill: #6b5120; }                /* the dim lights: half bright */
-.dim .keyface.white { fill: #e9d6ad; }
+.dim .btnface { fill: #6b2a20; }                /* the dim lights: half bright */
+.dim .keyface.white { fill: #e9c4bb; }
 .dim .keyface.black { fill: #8fa6c8; }
 .start { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(8, 7, 5, .6); border-radius: 4.4% / 6.9%; }
 .start[hidden] { display: none; }
 .start button {
   font: 600 15px/1 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; padding: 18px 30px; cursor: pointer;
-  border: 0; border-radius: 7px; background: var(--amber); color: #1a1406; box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .3), 0 10px 30px rgba(0, 0, 0, .5);
+  border: 0; border-radius: 7px; background: var(--amber); color: #1a0907; box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .3), 0 10px 30px rgba(0, 0, 0, .5);
 }
 .start button:hover:not(:disabled) { filter: brightness(1.08); }
 .start button:disabled { opacity: .6; cursor: progress; }
@@ -60,7 +60,7 @@ body.emu .intro p { margin: 0 0 6px; color: var(--dim); max-width: 60ch; }
   color: var(--hot); background: #2a261d; border: 0; border-radius: 6px; padding: 0 13px; box-shadow: inset 0 -2px 0 #11100c;
 }
 .bar button:hover, .speak button:hover:not(:disabled) { background: #3a3426; }
-.bar button[aria-pressed="true"] { background: var(--amber); color: #1a1406; }
+.bar button[aria-pressed="true"] { background: var(--amber); color: #1a0907; }
 .speak button:disabled { opacity: .45; cursor: default; }
 
 /* where to start (CHOPPAH's) */
@@ -68,7 +68,7 @@ body.emu .start-here { display: grid; grid-template-columns: repeat(auto-fit, mi
 body.emu .start-here div { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; }
 body.emu .start-here b { display: block; font: 600 16px var(--f-display); color: var(--fg); margin-bottom: 4px; }
 body.emu .start-here p { margin: 0; color: var(--dim); font-size: 14.5px; }
-body.emu .start-here .k { font: 600 11px var(--f-mono); letter-spacing: .06em; color: #1a1406; background: var(--amber); padding: 2px 6px; border-radius: 4px; }
+body.emu .start-here .k { font: 600 11px var(--f-mono); letter-spacing: .06em; color: #1a0907; background: var(--amber); padding: 2px 6px; border-radius: 4px; }
 
 /* the screen reader */
 .speak { margin: 16px 0 0; padding: 4px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }

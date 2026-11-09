@@ -19,13 +19,13 @@
   font: 600 11px var(--f-mono); letter-spacing: .06em; text-align: center; padding: 5px 0; border-radius: 4px;
   background: #2a261d; color: var(--hot); box-shadow: inset 0 -2px 0 #11100c;
 }
-.cmap .pbtn[aria-pressed="true"] .cap { background: var(--amber); color: #1a1406; }
+.cmap .pbtn[aria-pressed="true"] .cap { background: var(--amber); color: #1a0907; }
 .cmap .pname { font: 600 14.5px/1.25 var(--f-display); }
 .cmap .pname small { display: block; font: 12px var(--f-body); color: var(--dim); }
 .cmap .device { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 16px; min-width: 0; }
 .cmap .subs { display: flex; flex-wrap: wrap; gap: 6px; }
 .cmap .sub { font: 500 12px var(--f-mono); padding: 5px 9px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--dim); cursor: pointer; }
-.cmap .sub[aria-pressed="true"] { color: #1a1406; background: var(--amber); border-color: var(--amber); }
+.cmap .sub[aria-pressed="true"] { color: #1a0907; background: var(--amber); border-color: var(--amber); }
 .cmap .devtop { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 18px; align-items: start; }
 .cmap .screen {
   width: 240px; max-width: 100%; aspect-ratio: 1; background: #000; border: 6px solid #050505; border-radius: 6px;
@@ -68,7 +68,7 @@
 .cmap .kbd-wrap { overflow-x: auto; }
 .cmap .kbd { position: relative; height: 104px; min-width: 520px; }
 .cmap .wk { position: absolute; top: 0; height: 104px; width: calc(100% / 16 - 2px); background: #e8e2d2; border-radius: 0 0 4px 4px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; font: 600 10px var(--f-mono); color: #3a3426; }
-.cmap .wk.lit { background: var(--amber); color: #1a1406; }
+.cmap .wk.lit { background: var(--amber); color: #1a0907; }
 .cmap .bk { position: absolute; top: 0; height: 62px; width: calc(100% / 16 * .62); background: #15130f; border: 1px solid #000; border-radius: 0 0 3px 3px; z-index: 2; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px; font: 500 8px var(--f-mono); color: var(--pad); }
 .cmap .keyrole { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13.5px; color: var(--dim); }
 .cmap .keyrole b { color: var(--fg); font-weight: 500; }
@@ -235,7 +235,7 @@
     const r = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
     for (let x = 0; x < 240; x += 2) {
       const hit = (x % 15) < 2 ? 1 : Math.pow(1 - (x % 15) / 15, 2.2), h = Math.max(1, (hit * .85 + r() * .15) * 14);
-      d += '<rect x="' + x + '" y="' + (16 - h) + '" width="1.4" height="' + (h * 2) + '" fill="' + (x >= 60 && x < 75 ? "#ffb21a" : "#5a5a66") + '"/>';
+      d += '<rect x="' + x + '" y="' + (16 - h) + '" width="1.4" height="' + (h * 2) + '" fill="' + (x >= 60 && x < 75 ? "#ff8470" : "#5a5a66") + '"/>';
     }
     $("wave").innerHTML = d + '<rect x="68" y="0" width="1" height="32" fill="#fff"/>';
   })();

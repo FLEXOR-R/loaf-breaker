@@ -1,11 +1,12 @@
 /* CHOPPAH's site (tools/site_style.py puts this in place of fm1-base's paper-and-ink style). One committed dark
-   look, the FM-1's own screen: warm black, amber for what you press, a pale cream for type. Display: Chakra Petch;
+   look, the FM-1's own screen: warm black, the screen's red (RED skin, #ff8470) for what you press, a pale cream for
+   type (LOAF BREAKER: the amber was CHOPPAH's). Display: Chakra Petch;
    body: IBM Plex Sans; labels, code and numbers: IBM Plex Mono. The manual reads in a column with its contents
    beside it on wide screens. */
 :root {
   --bg: #0e0d0b; --panel: #171510; --raise: #201d16; --line: #2f2a20;
   --fg: #ede6d4; --dim: #a39a85; --faint: #6b6353;
-  --amber: #ffb21a; --amber-soft: rgba(255, 178, 26, .13); --hot: #fff3d3;
+  --amber: #ff8470; --amber-soft: rgba(255, 132, 112, .13); --hot: #ffe1da;
   --pad: #9fb0d0;
   --f-display: "Chakra Petch", "Arial Narrow", system-ui, sans-serif;
   --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -43,7 +44,7 @@ header.site nav a {
   color: var(--hot); background: #2a261d; padding: 9px 12px; border-radius: 5px; box-shadow: inset 0 -2px 0 #11100c;
 }
 header.site nav a:hover { background: #3a3426; }
-header.site nav a[aria-current] { background: var(--amber); color: #1a1406; }
+header.site nav a[aria-current] { background: var(--amber); color: #1a0907; }
 
 #controls { display: block; scroll-margin-top: 84px; }
 @media (max-width: 700px) {
@@ -61,7 +62,7 @@ h2 {
   display: flex; align-items: baseline; gap: 14px; scroll-margin-top: 84px;
 }
 h2 .num {
-  flex: none; font: 600 13px/1 var(--f-mono); color: #1a1406; background: var(--amber); min-width: 34px;
+  flex: none; font: 600 13px/1 var(--f-mono); color: #1a0907; background: var(--amber); min-width: 34px;
   text-align: center; padding: 7px 8px; border-radius: 5px; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .3);
   transform: translateY(-3px);
 }
@@ -77,7 +78,7 @@ em { color: var(--dim); }
 a { color: var(--fg); text-decoration-color: var(--amber); text-decoration-thickness: 2px; text-underline-offset: 3px; }
 a:hover { color: var(--amber); }
 :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
-.skip { position: absolute; left: 16px; top: -100px; background: var(--amber); color: #1a1406; padding: 8px 14px; border-radius: 0 0 6px 6px; z-index: 10; }
+.skip { position: absolute; left: 16px; top: -100px; background: var(--amber); color: #1a0907; padding: 8px 14px; border-radius: 0 0 6px 6px; z-index: 10; }
 .skip:focus { top: 0; }
 code, pre { font-family: var(--f-mono); font-size: .86em; }
 code { background: var(--raise); color: var(--hot); padding: .1em .38em; border-radius: 4px; }
