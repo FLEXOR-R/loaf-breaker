@@ -599,7 +599,7 @@ MIDI notes 38 (D1) play the snare, 42, 44 and 46 the hat, also while stopped. SA
 
 **LFO** opens the MIXER: four channels side by side, each a fader with a level meter (FX shows the chain's four
 slots, lit: on). **LFO again** turns to GROOVE. **LFO held + K1–K4**, on any page: the break's, the kick's, the
-drums' and the FX's level, 5 % a detent up and 8 % down (the MIXER's own page: 2 %), the page staying where it is (LFO let go after a turn opens nothing): the mix moved without
+drums' and the FX's level, 5 % a detent (the MIXER's own page: 2 %), the page staying where it is (LFO let go after a turn opens nothing): the mix moved without
 going into the MIXER.
 
 ![The MIXER: the break, the kick, the drums, the FX chain](img/screen-mixer.png "The MIXER") ![MASTER: COMP, RATIO, DUCK, MAX OUT](img/screen-master.png "MASTER")

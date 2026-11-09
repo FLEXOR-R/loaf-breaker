@@ -16,9 +16,9 @@ static void kfx_open(int on)             /* to KICK FX (on), or the FX page back
         ui.fx_page = 0u;
     }
 }
-static uint8_t lvl_fast;                /* LOAF BREAKER: LFO + K1-K4: the levels by 5 % up, 8 % down (the MIXER's
-                                          * own page: 2 %) */
-static float lvl_step(int32_t d) { return lvl_fast ? (d > 0 ? 0.05f : 0.08f) : 0.02f; }
+static uint8_t lvl_fast;                /* LOAF BREAKER: LFO + K1-K4: the levels by 5 % a detent (the MIXER's own
+                                          * page: 2 %) */
+static float lvl_step(int32_t d) { (void)d; return lvl_fast ? 0.05f : 0.02f; }
 static void knob_turn(int k, int32_t d)
 {
     brk_fx_t *f = &set.fx;
@@ -691,7 +691,7 @@ static void input(void)
         }
         if (k >= EN_K1 && k <= EN_K4 && btn & 1u << B_LFO) {   /* LOAF BREAKER: LFO + K1 the break's level, K2 the
                                           * kick's, K3 the drums', K4 the FX's, on any page (the MIXER's LEVELS: the page
-                                          * stays), 5 % a detent up, 8 % down */
+                                          * stays), 5 % a detent */
             uint8_t pg = ui.page, mp = ui.mpage;
             ui.page = PG_MIX;
             ui.mpage = 0u;
