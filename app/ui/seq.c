@@ -253,18 +253,10 @@ static void midi_drum(uint32_t d)        /* a drum note (DR_*): the hit now, and
  * place of ROTATE: the kick's DJ filter, HOME's K3's),
  * CLEAR (left) or four on the floor (right), LENGTH (GLOUPI BREAKS, in place of COPY: the kick 16, 32 or 64 steps, the
  * snare 16 or 32) */
-/* K3's grooves by kind of drum (kick; snare and clap; hat): cleared, 4X4, 8X8, 16X16, then (LOAF BREAKER, crossbreed)
- * drum & bass's 2-STEP (the kick on 1 and 11, the snare on 5 and 13, the hat off the beat) and HALF-TIME (the kick on
- * 1, the snare on 9, the hat on 3 and 11) */
-static const uint16_t GROOVE[3][6] = {{0u, 0x1111u, 0x5555u, 0xFFFFu, 0x0401u, 0x0001u},
-                                      {0u, 0x1111u, 0x5555u, 0xFFFFu, 0x1010u, 0x0100u},
-                                      {0u, 0x1111u, 0x5555u, 0xFFFFu, 0x4444u, 0x0404u}};
-static const char *const GROOVE_NAME[6] = {"CLEARED", "4X4", "8X8", "16X16", "2-STEP", "HALF-TIME"};
 static void lane_knob(int i, int32_t d)
 {
     static const char *const NAME[4] = {"FILL", "DRUM FILTER", "LANE", "LENGTH"};
-    uint32_t m = sl_get(pat_now(), ui.seq_lane), n = 0u, k, kind;
-    int32_t at = 0;
+    uint32_t m = sl_get(pat_now(), ui.seq_lane), n = 0u, k;
     char t[16];
     if (ui.note_key && sl_notes(ui.seq_lane) && (i || !sl_tuned(ui.seq_lane))) {   /* LOAF BREAKER: a step held, K2
                                           * its HITS (1..4 in its step), K3 its CHANCE, K4 its NUDGE (later) */
@@ -338,21 +330,14 @@ static void lane_knob(int i, int32_t d)
         for (m = 0u, k = 0u; k < 16u; k++)
             if (k * n % 16u < n)
                 m |= 1u << k;
-    } else {                             /* CLR / 4X4: left clear; right, a detent at a time (LOAF BREAKER): four on
-                                          * the floor, then eighths, then every step */
-        int32_t x;                       /* (LOAF BREAKER, crossbreed: then 2-STEP and HALF-TIME, drum & bass's) */
-        kind = sl_drum(ui.seq_lane) == DR_KICK ? 0u : sl_drum(ui.seq_lane) == DR_HAT ? 2u : 1u;
-        for (x = 1; x < 6; x++)
-            if (m == GROOVE[kind][x])
-                at = x;
-        at = d > 0 ? clamp(at + d, 1, 5) : 0;
-        m = GROOVE[kind][at];
-    }
+    } else                               /* CLR / 4X4: left the lane's bar cleared, right four on the floor (LOAF
+                                          * BREAKER: no more 8X8, 16X16, 2-STEP, HALF-TIME after it) */
+        m = d > 0 ? 0x1111u : 0u;
     sl_set(pat_now(), ui.seq_lane, m);
     pat_lanes_out();
     set_dirty = 1u;
     seq_value(i, t);
-    app_say(NAME[i], i == 2 ? GROOVE_NAME[at] : t);
+    app_say(NAME[i], i == 2 ? (m ? "4X4" : "CLEARED") : t);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
 static void seq_key(uint32_t i)          /* a white key on SEQ: the step to edit, or a drum step on and off */
