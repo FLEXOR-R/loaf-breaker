@@ -123,10 +123,12 @@ static void splash_glitch(uint32_t age)  /* LOAF BREAKER TEST: the start-up pict
 #if CH_LOGO
     gl_amt = age < 700u ? (int32_t)((700u - age) * 24u / 700u) + 1 : 0;
     gl_seed = age / 40u;
+    sfx_splash_d = (uint8_t)(2 + gl_amt / 4);   /* (LOAF BREAKER: its red off, the more as it jumps) */
     gl_band = age < 700u ? (int32_t)(age * (uint32_t)SPLASH_H / 560u) - 8 : -1;   /* (rolling down the picture) */
     grey_draw(SPLASH_RLE, sizeof SPLASH_RLE, SPLASH_PAL, SPLASH_W, SPLASH_H, (240 - SPLASH_W) / 2, 240 - SPLASH_H);
     gl_amt = 0;
     gl_band = -1;
+    sfx_splash_d = 0u;
 #else
     (void)age;
 #endif
@@ -135,7 +137,9 @@ void app_splash(void)
 {
     lcd_fill(0, 0, 240, 240, C_BLACK);
 #if CH_LOGO
+    sfx_splash_d = 2u;                   /* (LOAF BREAKER: the picture's red two pixels off) */
     grey_draw(SPLASH_RLE, sizeof SPLASH_RLE, SPLASH_PAL, SPLASH_W, SPLASH_H, (240 - SPLASH_W) / 2, 240 - SPLASH_H);
+    sfx_splash_d = 0u;
     {
         char t[16];
         version_text(t);

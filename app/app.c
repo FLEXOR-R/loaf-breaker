@@ -155,6 +155,8 @@ typedef struct {
                                           * save's ON) */
     uint8_t scrfx;                       /* (appended: GLO MORE K1, the effect's AMOUNT, 0..100; an older save: 50) */
     uint8_t wzoom;                       /* (appended: GLO MORE PRESETS, WAVE ZOOM: CDJ_Z's index, 3 one bar) */
+    uint8_t sfx_kick, sfx_drop, sfx_len; /* (appended: GLO EFFECTS K2-K4, the screen effect on a kick, at the drop, how
+                                          * long; 0..100, 50 as it was) */
 } settings_t;
 enum { DS_SNARE, DS_KICK, DS_BOTH, DS_STUTTER, DS_SWEEP, DS_RANDOM, DS_N };
 static const uint8_t DROP_GAP[5] = {0u, 1u, 2u, 4u, 8u};   /* its steps: none, a 16th, an 8th, a beat, half a bar */
@@ -196,7 +198,8 @@ static void settings_defaults(void)
     set.scrfx = 50u;                     /* (the screen effect's AMOUNT: half) */
     set.crt = 4u;                        /* (the screen effect: RGB, common.c's SFX_RGB, at the start and after RESET
                                           * ALL) */
-    set.wzoom = 3u;                      /* (the scrolling wave: a bar across, as it was) */   /* (TEST: REV BASS from 3/8 of the beat, a curve between) */
+    set.wzoom = 3u;                      /* (the scrolling wave: a bar across, as it was) */
+    set.sfx_kick = set.sfx_drop = set.sfx_len = 50u;   /* (TEST: REV BASS from 3/8 of the beat, a curve between) */
     set.tempo_x10 = 1700u;               /* jungle tempo */
     set.swing = 50u;
     set.gen.anchor = 0.7f;

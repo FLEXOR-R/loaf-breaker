@@ -5,9 +5,17 @@
 static void reset_all(void);             /* (below, with the break's change) */
 /* the GLOBAL page's knobs: clock in, clock out, Bluetooth, where MIDI goes */
 static const char *const MIDI_TO_NAME[3] = {"USB+BT", "USB", "BT"};
+static uint8_t *sfx_knob(int i)          /* LOAF BREAKER: GLO EFFECTS' K1-K4: AMOUNT, on a KICK, at the DROP, LENGTH */
+{
+    return i == 0 ? &set.scrfx : i == 1 ? &set.sfx_kick : i == 2 ? &set.sfx_drop : &set.sfx_len;
+}
 static void global_value(int i, char *t)
 {
     t[0] = 0;
+    if (ui.gpage == 3u) {                /* (EFFECTS: each 0..100 %) */
+        pct_text((float)*sfx_knob(i) * 0.01f, t);
+        return;
+    }
     if (ui.gpage == 2u) {                /* GLOUPI BREAKS: MORE (in place of Bluetooth audio): K1 the skin */
         if (i == 3)                      /* (LOAF BREAKER: K4 the skin; SYNTHWAVE short, to fit its column) */
             text_cat(t, set.skin % NSKINS == 10u ? "SYNTHWV" : SKIN_NAME[set.skin % NSKINS]);
@@ -43,6 +51,16 @@ static void global_turn(int i, int32_t d)
 {
     static const char *const NAME[4] = {"CLOCK IN", "CLOCK OUT", "BLUETOOTH", "MIDI TO"};
     char t[16];
+    if (ui.gpage == 3u) {                /* LOAF BREAKER: EFFECTS: K1 AMOUNT, K2 KICK, K3 DROP, K4 LENGTH, 5 % a detent */
+        static const char *const SN[4] = {"EFFECT AMOUNT", "ON A KICK", "AT THE DROP", "MOMENTS' LENGTH"};
+        uint8_t *p = sfx_knob(i);
+        *p = (uint8_t)clamp((int32_t)*p + d * 5, 0, 100);
+        changed();
+        global_value(i, t);
+        app_say(SN[i & 3], t);
+        ui.redraw = RG_ALL;
+        return;
+    }
     if (ui.gpage == 2u) {                /* MORE: K4 the skin, the whole screen in its colours at once */
         if (i == 3) {
             set.skin = (uint8_t)((set.skin + (d > 0 ? 1u : NSKINS - 1u)) % NSKINS);
@@ -124,6 +142,32 @@ static void draw_global(const brk_status_t *st)
     int bs = plat_ble_state();
     cv_begin(240, 44, C_BLACK);          /* LOAF BREAKER: no waveform on GLOBAL: its place the skins' on MORE, black
                                           * on the others */
+    if (ui.gpage == 3u) {                /* LOAF BREAKER: EFFECTS: the effect picked (MORE's K3), its four settings as
+                                          * bars */
+        static const char *const L[4] = {"AMOUNT", "ON A KICK", "AT THE DROP", "LENGTH"};
+        uint32_t k;
+        cv_text(6, 1, &FONT_T, "EFFECT", C_GRAY);
+        cv_text(96, 1, &FONT_T, SFX_NAME[set.crt % SFX_N], set.crt % SFX_N ? C_HI : C_DIM);
+        cv_text(96, 16, &FONT_XS, set.crt % SFX_N ? "MORE'S K3 PICKS IT" : "OFF: MORE'S K3 PICKS ONE", C_DIM);
+        cv_text(96, 28, &FONT_XS, "KICK, DROP: 0 = NONE", C_DIM);
+        cv_blit(0, 44);
+        for (k = 0; k < 2u; k++) {
+            uint32_t j;
+            cv_begin(240, 52, C_BLACK);
+            for (j = 0; j < 2u; j++) {
+                uint32_t n = k * 2u + j, v = *sfx_knob((int)n);
+                char a[8];
+                int32_t y = (int32_t)j * 26;
+                cv_text(6, y + 2, &FONT_T, L[n], C_GRAY);
+                pct_text((float)v * 0.01f, a);
+                cv_text(196, y + 2, &FONT_T, a, C_WHITE);
+                cv_rect(96, y + 7, 94, 5, C_LINE);
+                cv_rect(96, y + 7, (int32_t)(v * 94u / 100u), 5, C_HI);
+            }
+            cv_blit(0, 88u + k * 52u);
+        }
+        return;
+    }
     if (ui.gpage == 2u) {                /* MORE: the skin, and every skin's colours to pick from (K4) */
         uint32_t s;
         static const char *const SFX_SAYS[SFX_N] = {"K3 PICKS ONE, K1 ITS AMOUNT", "AN OLD TUBE'S LINES",

@@ -391,7 +391,7 @@ static void input(void)
         }
     }
     if (bdn & 1u << B_GLO)               /* GLOBAL: MIDI clock and Bluetooth; again, the pitch; again, BT audio */
-        global_part(ui.page == PG_GLOBAL ? (ui.gpage + 1u) % 3u : 0u);
+        global_part(ui.page == PG_GLOBAL ? (ui.gpage + 1u) % 4u : 0u);
     if (bdn & 1u << B_EDIT) {            /* LOAF BREAKER: EDIT: the KICK menu; again, its next section (SOUND SYNTH
                                           * DIRT TONE). SEL + EDIT: the other drums (EDIT again: the next, after the
                                           * HOOVER the kick) */
@@ -743,7 +743,7 @@ static void input(void)
             else if (ui.page == PG_TRACK && ui.tpage == 0u)
                 track_turn(0, d);        /* LOAF BREAKER: ENV's TRACKS: the item, as K1 (the break: SEL + ALGORITHM) */
             else if (ui.page == PG_GLOBAL)   /* GLOBAL: its part */
-                global_part((ui.gpage + (d > 0 ? 1u : 2u)) % 3u);
+                global_part((ui.gpage + (d > 0 ? 1u : 3u)) % 4u);
             else if (ui.page == PG_KICK) {    /* LOAF BREAKER: the KICK menu: the next part of its section */
                 kick_sect_step(d);
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
@@ -933,7 +933,7 @@ static int32_t tab(int32_t x, const char *s, int on)
 /* the pages' buttons as printed, GLOBAL's parts, SEQ's lanes: for the tabs and the header (page_say) */
 static const char *const BTN[NPAGES] = {"HOME", "HOME", "FX", "GLO", "EDIT", "LFO", "SEQ", "EDIT", "ENV", "ARP",
                                         "EDIT"};
-static const char *const GPART[3] = {"MIDI", "PITCH", "MORE"};
+static const char *const GPART[4] = {"MIDI", "PITCH", "MORE", "EFFECTS"};
 static const char *const SEQL[NSEQL] = {"1-16", "17-32", "K1", "K2", "K3", "K4", "S1", "S2", "H1", "H2", "C1", "C2",
                                          "V1", "V2"};   /* (LOAF BREAKER: the HOOVER's, in the stab's place) */
 static void draw_tabs(void)
@@ -952,7 +952,7 @@ static void draw_tabs(void)
         for (i = 0; i < NTPART; i++)   /* (TRACKS, PLAY, DROP, BUILD, KNOB, RESET: no "ENV" before them, for the room) */
             x = tab(x, TPART[TORDER[i]], TORDER[i] == ui.tpage);
     else if (ui.page == PG_GLOBAL)
-        for (i = 0; i < 3u; i++)
+        for (i = 0; i < 4u; i++)
             x = tab(x, GPART[i], i == ui.gpage);
     else if (ui.page == PG_MIX) {
         x = tab(x, "LEVELS", !ui.mpage);
@@ -1006,7 +1006,7 @@ static void page_say(void)
     case PG_HOME: text_cat(t, "PERFORM"); break;
     case PG_GEN: text_cat(t, "GENERATOR"); break;
     case PG_KEQ: text_cat(t, ui.keq_part ? "KICK EQ SHAPE" : "KICK EQ BANDS"); break;
-    case PG_GLOBAL: text_cat(t, GPART[ui.gpage % 3u]); break;
+    case PG_GLOBAL: text_cat(t, GPART[ui.gpage % 4u]); break;
     case PG_MIX: text_cat(t, ui.mpage == 3u ? "DYNAMICS" : ui.mpage == 2u ? "MASTER" : ui.mpage ? "GROOVE" : "LEVELS"); break;
     case PG_SEQ: text_cat(t, SEQL[ui.seq_lane % NSEQL]); break;
     case PG_TRACK: text_cat(t, TPART[ui.tpage % NTPART]); break;
@@ -1117,12 +1117,13 @@ static void draw_foot(const brk_status_t *st)
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "RESET ALL"};
         static const char *const KN_GROOVE[3][4] = {{"SWING", "DRUMS", "", ""}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
                                                     {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
-        static const char *const KN_MORE[4] = {"AMOUNT", "AUTO SAVE", "EFFECTS", "SKIN"};   /* GLOUPI BREAKS: GLOBAL's MORE */
+        static const char *const KN_MORE[2][4] = {{"AMOUNT", "AUTO SAVE", "EFFECTS", "SKIN"},   /* GLOBAL's MORE */
+                                                  {"AMOUNT", "KICK", "DROP", "LENGTH"}};   /* (LOAF BREAKER: EFFECTS) */
         static const char *const KN_TRK[4][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
                                                  {"STYLE", "SWEEP", "RISER", "GAP"}, {"WHAT", "RESET", "RESET", "RESET"}};
         const char *name = ui.page == PG_TRACK && ui.tpage == 3u ? SK_KNOB[selk_fn(ui.knfn & 3u)][i] : ui.page == PG_TRACK &&
                            ui.tpage ? KN_TRK[ui.tpage == 5u ? 3u : ui.tpage == 4u ? 2u : (ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
-                           ui.gpage == 2u ? KN_MORE[i] : ui.page == PG_GLOBAL && ui.gpage
+                           ui.gpage >= 2u ? KN_MORE[ui.gpage == 3u][i] : ui.page == PG_GLOBAL && ui.gpage
                            ? KN_PITCH[i] : ui.page == PG_MIX && ui.mpage
                            ? KN_GROOVE[ui.mpage >= 3u ? 2u : ui.mpage == 2u][i] : KN[ui.page][i];
         if (ui.shown >= 100) {           /* a white key held: its loop, or its slice's effect */

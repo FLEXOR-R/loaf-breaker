@@ -525,6 +525,12 @@ colours; past 50 %, fewer still). **PRESETS** there: **WAVE ZOOM**, how much of 
 (the CDJ view) holds across the screen: 1/2, 2/3, 5/6 of a bar (zoomed in), 1 BAR (as it was), 1 1/4, 1 1/2, 2 BARS
 (zoomed out).
 
+**EFFECTS (GLO four times):** the screen effect MORE's K3 picks, set finer: K1 **AMOUNT** (the same as MORE's K1), K2
+**ON A KICK** (how hard each kick shows: VHS's bands, RGB's shift, SHAKE's jolt, GRAIN's specks, STROBE's flash past
+50 %; 0: the kicks show nothing), K3 **AT THE DROP** (how hard the drop shows: SHAKE, STROBE, VHS; 0: nothing), K4
+**LENGTH** (how long a kick's or the drop's moment lasts: 50 % as given, 0 half, 100 % half as long again). 5 % a
+detent; 50 % each to start.
+
 ![GLOBAL's MORE: the skins](img/screen-glomore.png "MORE")
 
 ## 8. The drums: kick, snare, hat
@@ -638,6 +644,7 @@ break alone: sweep it down and the drums stay full on top. The FLT pad throws it
 | GLO (MIDI) | Clock in | Clock out | | |
 | GLO again (pitch, snap) | Keep length / speed | Grain | Snap | Reset all (fifteen turns) |
 | GLO a third time (MORE) | Effect amount | Auto save | Effects | Skin |
+| GLO a fourth time (EFFECTS) | Amount | On a kick | At the drop | Length |
 | ARP held | FILL (the page's knobs stay the page's) | | | |
 
 **Gate** (HOME K1) cuts every slice the loop plays short: at 50 % each slice sounds for half its length, then
