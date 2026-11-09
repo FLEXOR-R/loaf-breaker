@@ -299,6 +299,7 @@ static struct {
     uint8_t keq_part;                    /* (the KICK EQ page: 0 its bands, 1 their shape) */                     /* (FX pressed off its page: the page at its release, if not held) */       /* (crossbreed) SEQ, a kick lane: the key held + 1 (0 none); K1 turned since */
     uint8_t tpage;                       /* LOAF BREAKER: ENV's part: 0 TRACKS, 1 PLAY, 2 DROP, 3 KNOB */
     float radio;                         /* LOAF BREAKER: ENV PLAY's dial: where its needle is (eased to the track) */
+    uint8_t kil_focus;                   /* LOAF BREAKER: KIL held (its K1: LATCH) */
     uint8_t seq_manual;                  /* LOAF BREAKER: SEQ's lane picked by hand while playing: the bar playing not
                                           * followed until the next stop */
     uint8_t meter_on;                    /* (TEST) GLO MORE K3 METER: the load, once a second in the header */

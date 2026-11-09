@@ -341,7 +341,7 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 | RND | Random slices | Amount | Random pitch | | |
 | ARP | Its OVERLAY effect over the mix, while held (or latched): DIVE, RISE, RADIO, WAH, CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, WOBBLE, JET, REESE | EFFECT | AMOUNT (that effect's) | TIME: RATE for CHOP, GATE, WAH, PAN; SWEEP for DIVE, RISE | LATCH |
 | ARP, FX while held (MORE) | | THRU: the kick, the break or both | ON / OFF (OFF: K1 browses silent) | RATE (1/4 … 1/32) | SWEEP (1/4 bar … 2 bars) |
-| KIL | While held, the sequencer's kicks are quiet; let go, they play again (a kick roll still plays) | | | | |
+| KIL | While held, the sequencer's kicks are quiet; let go, they play again (a kick roll still plays) | LATCH: ON, a press quiets them and the next brings them back | | | |
 | SUB | A press: the kick's SUB DRIVE on, the next off (its drive is the SUB layer's DRIVE effect, EDIT) | | | | |
 
 ![ROLL held: the caught slice repeating, each copy quieter](img/pad-roll8.png "ROLL held")
@@ -624,7 +624,7 @@ SYNTH, BASS, CLEAN SUB and MORPH at 0, its volume kept, its memory with it); **K
 came); **MIX** (the MIXER: levels, swing, the drums' route, COMP and DUCK off with their timing, MAX OUT −3 dB);
 **FX CHAIN** (the four slots as they came, each effect's memory forgotten, the FX level kept); **STEPS** (this
 pattern's drum steps: 1 hit, ALWAYS, on time; the steps themselves kept); **PADS** (the black keys' settings:
-rolls, THRU, filter, gate, HALF's LATCH, the ARP key's effect); **KEYS** (the white keys' loops and slice effects);
+rolls, THRU, filter, gate, HALF's and KIL's LATCH, the ARP key's effect); **KEYS** (the white keys' loops and slice effects);
 **TRACK** (this track: from its first item, every item's break SAME; its items kept); **SCREEN** (the skin RED, the
 screen effects off, their settings at 50 %, WAVE ZOOM one bar). To reset it, **turn K2, K3 or K4 five clicks**, each within 2 s of the last (five
 boxes fill as you turn; a pause starts them again from 0).

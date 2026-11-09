@@ -380,14 +380,22 @@ static void input(void)
         if ((kup & PAD_BIT(i)) && !(i == PAD_HALF && half_lat))
             brk_pad((int)i, 0);
     }
-    if (kdn >> BK[KILL_KEY] & 1u) {      /* LOAF BREAKER: KIL held: the sequencer's kicks quiet; let go: back */
-        kick_hold = 1u;
-        app_say("KICKS", "QUIET (KIL)");
+    if (kdn >> BK[KILL_KEY] & 1u) {      /* LOAF BREAKER: KIL held: the sequencer's kicks quiet; let go: back. Its
+                                          * LATCH (K1 while held): a press quiet, the next back */
+        ui.kil_focus = 1u;
+        kick_hold = set.half_mt_off & 4u ? (uint8_t)!kick_hold : 1u;
+        app_say("KICKS", kick_hold ? (set.half_mt_off & 4u ? "QUIET (KIL LATCHED)" : "QUIET (KIL)") : "BACK");
         ui.redraw |= RG_FOOT;
-    } else if (kick_hold && !(keys >> BK[KILL_KEY] & 1u)) {
-        kick_hold = 0u;
-        app_say("KICKS", "BACK");
-        ui.redraw |= RG_FOOT;
+    } else if (!(keys >> BK[KILL_KEY] & 1u)) {
+        if (ui.kil_focus) {
+            ui.kil_focus = 0u;
+            ui.redraw |= RG_FOOT;
+        }
+        if (kick_hold && !(set.half_mt_off & 4u)) {   /* (let go, no LATCH: back) */
+            kick_hold = 0u;
+            app_say("KICKS", "BACK");
+            ui.redraw |= RG_FOOT;
+        }
     }
     if (ui.pad_focus >= 0 && !((keys & PAD_BIT(ui.pad_focus)))) {   /* let go: another pad still held, or none */
         ui.pad_focus = -1;
@@ -863,7 +871,15 @@ static void input(void)
             ui.redraw |= RG_BLOCKS;
         } else if (k == EN_PRESET)
             pattern_pick(d);             /* elsewhere: the pattern */
-        else if (key_tuned() >= 0)       /* a white key held: K1-K4 tune its loop */
+        else if (ui.kil_focus && k == EN_K1) {   /* LOAF BREAKER: KIL held, K1: its LATCH, right on (held now: it
+                                          * stays quiet), left off */
+            set.half_mt_off = (uint8_t)(d > 0 ? set.half_mt_off | 4u : set.half_mt_off & ~4u);
+            if (d > 0)
+                kick_hold = 1u;
+            set_dirty = 1u;
+            app_say("KIL LATCH", d > 0 ? "ON" : "OFF");
+            ui.redraw |= RG_FOOT;
+        } else if (key_tuned() >= 0)     /* a white key held: K1-K4 tune its loop */
             key_knob_turn(key_tuned(), k - EN_K1, d);
         else if (ui.pad_focus >= 0)      /* a pad held: K1-K4 tune it */
             pad_knob_turn(ui.pad_focus, k - EN_K1, d);
@@ -1226,6 +1242,11 @@ static void draw_foot(const brk_status_t *st)
             else
                 key_knob_value(ui.shown - 100, (int)i, t);
             cv_text(4 + (int32_t)i * 60, 30, &FONT_XS, t, C_WHITE);
+            continue;
+        }
+        if (ui.kil_focus && i == 0u && ui.shown < 100) {   /* LOAF BREAKER: KIL held: K1 its LATCH */
+            cv_text(4, 18, &FONT_T, "LATCH", C_HI);
+            cv_text(4, 30, &FONT_XS, set.half_mt_off & 4u ? "ON" : "OFF", C_WHITE);
             continue;
         }
         if (ui.shown >= 0) {             /* a pad held: its own settings */

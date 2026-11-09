@@ -83,7 +83,8 @@ typedef struct {
     int8_t kick_dj;                      /* GLOUPI BREAKS: HOME's KICK FLT (SEQ's K2 too), LOAF BREAKER: 0 off .. 100
                                           * high-pass (an older save's low-pass, below 0: off) */
     uint8_t half_mt_off;                 /* GLOUPI BREAKS: HALF SPEED's K2, bit 0 MASTER TEMPO off (0, older saves: on);
-                                          * LOAF BREAKER: bit 1 its K3 LATCH (a press on, a press off) */
+                                          * LOAF BREAKER: bit 1 its K3 LATCH (a press on, a press off); bit 2 KIL's
+                                          * LATCH (KIL held, K1) */
     uint8_t ovl_pad;                     /* GLOUPI BREAKS: the ARP black key, bits 0-3 its OVERLAY effect (OV_*),
                                           * bit 4 its LATCH (gone), bit 5 OFF (K3: the effects browsed silent),
                                           * bits 6-7 THRU (K2): 0 BOTH, 1 BREAK (the kick around the chain and
