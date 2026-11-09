@@ -174,7 +174,8 @@ or K2 left once more, deletes it, the rest moving up),
   does at its end. **K2** the item it starts from (the same as TRACKS' SEL + PLAY, each track its own). **PLAY** (or white keys 1–8: that track) plays it from
   bar 1 and goes back to HOME; the header shows T1 … T8. Each pattern comes in at the end of the last loop of the one
   before; a DROP's build starts at the next bar. **SEL + ENV** while a track plays drops into its next pattern and the
-  track goes on from there. PLAY again stops it.
+  track goes on from there. PLAY again stops it. **While a track plays, PRESETS turns the drums' filter** (DRUM FLT)
+  instead of the pattern (the track has it; SEL + PRESETS still picks one).
 - **DROP**: **K1** the build: NONE (the bar playing ends in the drop), 1, 2, 4 or 8 bars; **K2** the pattern a SEL + ENV
   drop brings in (NEXT, or P1–P16); **K3** the break it brings in (SAME, or one of the bank's); **K4** the crash's
   level.

@@ -818,7 +818,10 @@ static void input(void)
             changed();
             app_say("WAVE ZOOM", CDJ_ZNAME[set.wzoom % CDJ_ZN]);
             ui.redraw |= RG_BLOCKS;
-        } else if (k == EN_PRESET)
+        } else if (k == EN_PRESET && ui.trk_on && playing_now())
+            kick_flt_turn(d);            /* LOAF BREAKER: a track playing: the drums' filter (DRUM FLT), not the pattern
+                                          * (the track has it; SEL + PRESETS still picks one) */
+        else if (k == EN_PRESET)
             pattern_pick(d);             /* elsewhere: the pattern */
         else if (key_tuned() >= 0)       /* a white key held: K1-K4 tune its loop */
             key_knob_turn(key_tuned(), k - EN_K1, d);
@@ -1637,8 +1640,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock"};
-    int v[62];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj"};
+    int v[63];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1712,7 +1715,8 @@ int app_expect(const char *what, int *got)
     v[59] = (int)(set.kick.volume * 100.0f + 0.5f);
     v[60] = set.sfx_on;
     v[61] = ui.sel_lock;
-    for (i = 0; i < 62u; i++)
+    v[62] = set.kick_dj;
+    for (i = 0; i < 63u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;
