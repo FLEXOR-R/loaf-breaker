@@ -1,6 +1,7 @@
-# LOAF BREAKER's break tests: the firmware as it is (this branch), each build with one list of breaks/tests/testN.txt
-# (the breaks not on the machine, tools from breaks/breaks.txt's '-' lines) in place of breaks/breaks.txt, to try them
-# on the FM-1 and pick. The six .fwsc go to one pre-release, "break-tests", replaced on every run. Runs when the lists or
+# LOAF BREAKER's break tests: the firmware as it is (this branch), each build with one list of breaks/tests/picksN.txt
+# in place of breaks/breaks.txt, to try them on the FM-1 and pick. Now (9 Nov 2026) the breaks kept in the first round
+# (the Break Picks page; test1-6, in git's history) that are not on the machine, in two sets (the flash holds ~370 KB of
+# breaks). The .fwsc go to one pre-release, "break-picks", replaced on every run. Runs when the lists or
 # this file change on loaf, or by hand (Actions → Break tests → Run workflow). Not a release of LOAF BREAKER itself.
 name: Break tests
 
@@ -19,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        set: [1, 2, 3, 4, 5, 6]
+        set: [1, 2]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -44,18 +45,18 @@ jobs:
           BOOTSTRAP_USB: 0
         run: sh scripts/bootstrap.sh
 
-      - name: Firmware with test ${{ matrix.set }}
+      - name: Firmware with picks ${{ matrix.set }}
         env:
           PYTHON: /usr/bin/python3
         run: |
-          cp breaks/tests/test${{ matrix.set }}.txt breaks/breaks.txt
+          cp breaks/tests/picks${{ matrix.set }}.txt breaks/breaks.txt
           ./build.sh
-          mv app/build/choppah.fwsc app/build/loaf-breaker-test${{ matrix.set }}.fwsc
+          mv app/build/choppah.fwsc app/build/loaf-breaker-picks${{ matrix.set }}.fwsc
 
       - uses: actions/upload-artifact@v4
         with:
-          name: test${{ matrix.set }}
-          path: app/build/loaf-breaker-test${{ matrix.set }}.fwsc
+          name: picks${{ matrix.set }}
+          path: app/build/loaf-breaker-picks${{ matrix.set }}.fwsc
 
   release:
     needs: build
@@ -70,10 +71,10 @@ jobs:
       - name: Notes
         run: |
           {
-            echo "LOAF BREAKER as it is, with the breaks not on the machine: a set per firmware, to try and pick. Each"
-            echo "shows DEV at power-on; ALGORITHM steps through its breaks. Not a release of LOAF BREAKER."
+            echo "LOAF BREAKER as it is, with the breaks you kept in the first tests that are not on the machine: a set per"
+            echo "firmware, to try and pick. Each shows DEV at power-on; ALGORITHM steps through its breaks. Not a release of LOAF BREAKER."
             echo
-            for f in breaks/tests/test*.txt; do
+            for f in breaks/tests/picks*.txt; do
               n="$(basename "$f" .txt)"
               printf -- '- **%s**: ' "$n"
               grep '^\*' "$f" | awk '{for (i = 6; i <= NF; i++) printf "%s%s", $i, (i < NF ? " " : ""); printf " · "}' | sed 's/ · $//'
@@ -82,9 +83,9 @@ jobs:
           } > notes.md
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: break-tests
+          tag_name: break-picks
           target_commitish: ${{ github.sha }}
-          name: LOAF BREAKER break tests
+          name: LOAF BREAKER break picks
           body_path: notes.md
           prerelease: true
           make_latest: false
