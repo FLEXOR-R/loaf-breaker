@@ -1,0 +1,7 @@
+# PRESS PLAY's picture, its break: THEWORM (ALGORITHM six) alone, played, the CDJ view's ring dumped ($OUT)
+wait 4200
+turn ALGO 6 10
+wait 300
+tap PLAY
+wait 6000
+scope_dump $OUT

@@ -1,9 +1,7 @@
-# PRESS PLAY's picture: THEWORM (ALGORITHM six), the kick DISTORTO (EDIT, ALGORITHM five: OUT, K4 PRESET five) with
-# its SUB decay at 750 ms, no SUB DRIVE, on steps 1, 5, 9 and 13 of each of the kick lane's four bars (SEQ, keys 1, 5, 9, 13; ALGORITHM the next bar), played, then the CDJ view's
-# ring dumped (tools/make_pp_wave.py fills $OUT in)
+# PRESS PLAY's picture, its kick: DISTORTO (EDIT, ALGORITHM five: OUT, K4 PRESET five), its SUB decay short for the
+# picture (250 ms), no SUB DRIVE, on steps 1, 5, 9, 13 of the kick lane's four bars, the break's level at 0 (LFO + K1),
+# played, the CDJ view's ring dumped ($OUT)
 wait 4200
-turn ALGO 6 10
-wait 300
 tap EDIT
 wait 300
 turn ALGO 5 10
@@ -11,7 +9,7 @@ wait 200
 turn K4 5 10
 wait 200
 expect kpreset 5
-kick_sub_decay 750
+kick_sub_decay 250
 tap SEQ
 wait 300
 key w0 down
@@ -70,6 +68,10 @@ wait 30
 key w12 up
 tap HOME
 wait 200
+press LFO
+turn K1 -20 10
+release LFO
+wait 100
 tap PLAY
 wait 6000
 scope_dump $OUT
