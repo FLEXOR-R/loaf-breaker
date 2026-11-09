@@ -117,7 +117,8 @@ lists its combinations (SEL again, or any other button, key or knob, closes it).
   SNARE, HAT, CLAP, HOOVER, and round), each in a big view of its own: its hit drawn large over its level, its decay
   marked in amber, its memory and tune, the five drums along the bottom (stopped: keys 1–5 play them), the part's
   knobs as cards (ALGORITHM: SOUND or SHAPE, PRESETS its memories). SELECT is not the tempo there. **SEL + EDIT** opens
-  the drums' classic view, as ever.
+  the drums in the view the kick has (big or classic), and **EDIT held** switches them too, from either view: one view
+  for the kick and the drums alike.
 
   ![The SNARE in its big view: its hit large, its decay marked, the five drums along the bottom](img/screen-drum-big.png "A drum's big view")
   - **SOUND**: MIX, SUB, PUNCH, GRIT, CLICK, OUT.
@@ -654,7 +655,7 @@ break alone: sweep it down and the drums stay full on top. The FLT pad throws it
 | HOME (perform) | Gate | Filter: the DJ filter on the break (left low-pass, right high-pass) | Drum flt: the same on the drums | Sub decay: the kick's SUB's length |
 | HOME again (generator) | Complexity | Anchor | Roll | Fill |
 | EDIT, the KICK menu (EDIT again: its section; ALGORITHM: its part) | SOUND: MIX, SUB … CLICK, OUT · SYNTH: SYNTH, SYNTH +, BASS, CLEAN MORPH, MACRO · DIRT: TERROR, TERROR +, TERROR 2, the layers' effects · TONE: EQ BANDS, EQ SHAPE, FX 1, FX 2 (§8) | | | |
-| The drums (SELECT on the big view; SEL + EDIT: classic) | Level · Snap / cut / spread / bend | Tune · Drive | Decay · Preset | Tone |
+| The drums (SELECT on the big view; SEL + EDIT; EDIT held: the other view) | Level · Snap / cut / spread / bend | Tune · Drive | Decay · Preset | Tone |
 | SEQ (the break's steps) | Slice | Pitch | Hits | Reverse |
 | SEQ, a drum lane | Fill | Drum flt | Clear / 4x4 / grooves | Length |
 | SEQ, a drum step held | Note (kick, hoover) | Hits | Cond | Nudge |
