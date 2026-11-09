@@ -173,27 +173,33 @@ static void intro_draw(uint32_t now)
         shown = 16u;
     if (!ui.intro_drawn)                 /* GLOUPI BREAKS: the splash's picture away first (this screen draws in bands) */
         lcd_fill(0, 0, 240, 240, C_BLACK);
-    if (shown != ui.intro_drawn) {       /* the loaded break drops in, slice by slice (LOAF BREAKER: the whole break,
-                                          * 240 columns tall about its middle, each in the CDJ view's colours: the lows
-                                          * red, the mids green, the highs blue; the slices' starts ticked) */
-        uint32_t x, n = blk_n ? shown * 15u : 0u;
+    if (shown != ui.intro_drawn) {       /* the loaded break drops in, slice by slice (LOAF BREAKER: a 16-step pattern
+                                          * drawn fat, as a picture: APACHE's lane, each step its slice's shape, and the
+                                          * kick's on 1 and 9 with SUB DRIVE; the steps come in one by one; under the
+                                          * version, clear of the lettering) */
+        uint32_t k, c;
         ui.intro_drawn = (uint8_t)shown;
         cv_begin(240, 60, C_BLACK);
-        if (!blk_n)
-            mark(10, shown, 0);
-        for (x = 0; x < n && x < 240u; x++) {
-            int32_t h = (int32_t)wave_px[x] * 27 / 24;
-            uint32_t br = 110u + (uint32_t)wave_px[x] * 145u / 24u;
-            const uint8_t *c = wave_rgb[x];
-            if (h)
-                cv_rect((int32_t)x, 30 - h, 1, 2 * h + 1, RGB(c[0] * br / 255u, c[1] * br / 255u, c[2] * br / 255u));
+        cv_text(1, 0, &FONT_XS, "APACHE 115", C_GRAY);
+        cv_text(239 - text_w(&FONT_XS, "KICK + SUB DRIVE"), 0, &FONT_XS, "KICK + SUB DRIVE", C_AMB);
+        for (k = 0; k < shown && k < 16u; k++) {
+            int32_t x = (int32_t)k * 15, kick = k == 0u || k == 8u;
+            cv_rect(x + 1, 11, 13, 26, k % 4u ? C_BLOCK : C_LINE);   /* (the break's step, the beats a shade up) */
+            for (c = 0; c < 11u; c++) {  /* (its slice's shape, about the middle) */
+                int32_t h = blk_n ? blk_px[k % BLK_N][c * BLK_W / 11u] * 6 / 5 + 1 : MARK_H[k] * 2 / 3;
+                cv_rect(x + 2 + (int32_t)c, 24 - h / 2, 1, h, kick ? C_WHITE : C_BLOCK_HI);
+            }
+            if (kick) {                  /* the kick: lit, a SUB DRIVE glow around it, its hit falling away in it */
+                cv_rect(x, 39, 15, 21, C_AMB);
+                cv_rect(x + 2, 41, 11, 17, C_HI);
+                for (c = 0; c < 9u; c++) {
+                    int32_t h = 15 - (int32_t)c * 3 / 2;
+                    cv_rect(x + 3 + (int32_t)c, 49 - h / 2, 1, h, C_BLACK);
+                }
+            } else
+                cv_rect(x + 1, 40, 13, 19, C_BLOCK);
         }
-        for (x = 0; blk_n && x < blk_n && x * 15u < n; x++) {   /* (the slices: a tick top and bottom) */
-            int32_t at = (int32_t)(brk_get_break()->slice[x] * 240u / brk_get_break()->len);
-            cv_rect(at, 0, 1, 3, C_DIM);
-            cv_rect(at, 57, 1, 3, C_DIM);
-        }
-        cv_blit(0, 50);
+        cv_blit(0, 42);
     }
     if (ui.redraw & RG_HEAD) {
         const brk_break_t *b = brk_get_break();

@@ -728,8 +728,6 @@ static uint32_t n_synth;                 /* 0; 1 in a build with no bank: a synt
 static uint32_t n_breaks;                /* then the bank's valid slots */
 static int32_t brk_next = -1;            /* a break chosen, waiting for the next bar (break_ask), or -1 */
 static uint8_t wave_px[240];             /* the waveform's height per column, for the screen */
-static uint8_t wave_rgb[240][3];         /* LOAF BREAKER: each column's lows, mids and highs (the CDJ view's colours,
-                                          * 0..255 at the column's loudest band), for PRESS PLAY's wave */
 #define BLK_N 16u                        /* the slicer view's blocks: one per white key */
 #define BLK_W 26u                        /* columns of waveform in a block */
 static uint8_t blk_px[BLK_N][BLK_W];     /* each slice's waveform, 0..19 */
@@ -745,30 +743,14 @@ static volatile uint32_t lr_test;        /* the left / right test (BT AUDIO K3 w
 static void wave_build(const brk_break_t *b)
 {
     uint32_t x, i;
-    float l1 = 0.0f, l2 = 0.0f;          /* (one-poles at ~200 Hz and ~2.5 kHz, as app.c's scope) */
-    float k1 = 1256.6f / (float)(b->rate ? b->rate : 22050u), k2 = 15708.0f / (float)(b->rate ? b->rate : 22050u);
-    if (k2 > 1.0f)
-        k2 = 1.0f;
     for (x = 0; x < 240u; x++) {
-        uint32_t a = b->len * x / 240u, z = b->len * (x + 1u) / 240u, pk = 0u, k;
-        float e[3] = {0.0f, 0.0f, 0.0f}, m;
+        uint32_t a = b->len * x / 240u, z = b->len * (x + 1u) / 240u, pk = 0u;
         for (i = a; i < z; i++) {
-            float v = (float)b->pcm[i];
             int32_t s = b->pcm[i] < 0 ? -b->pcm[i] : b->pcm[i];
             if ((uint32_t)s > pk)
                 pk = (uint32_t)s;
-            l1 += (v - l1) * k1;
-            l2 += (v - l2) * k2;
-            e[0] += brk_absf(l1);
-            e[1] += brk_absf(l2 - l1) * 1.3f;
-            e[2] += brk_absf(v - l2) * 2.0f;   /* (the highs up: they are quieter) */
         }
         wave_px[x] = (uint8_t)(pk * 24u / 32768u);
-        m = e[0] > e[1] ? e[0] : e[1];
-        if (e[2] > m)
-            m = e[2];
-        for (k = 0; k < 3u; k++)
-            wave_rgb[x][k] = (uint8_t)(m > 0.0f ? e[k] * 255.0f / m : 0.0f);
     }
     blk_n = (uint8_t)(b->nslices < BLK_N ? b->nslices : BLK_N);
     for (x = 0; x < BLK_N; x++) {
