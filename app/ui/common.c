@@ -423,15 +423,24 @@ static int32_t cv_textn(int32_t x, int32_t y, const felucca_font_t *f, const cha
     for (; *s; s++) {
         uint32_t gi = glyph(f, (uint8_t)*s), gx, gy, w = f->bw[gi], bpr = (w + 1u) / 2u;
         const uint8_t *gd = f->data + f->off[gi];
-        for (gy = 0; gy < f->h; gy++)
+#ifdef FONT_TRIM                         /* (LOAF BREAKER: the fonts stored trimmed, fm1.toml font_trim: the glyph its lit
+                                          * box, after its left, top and rows) */
+        int32_t ox = gd[0], oy = gd[1];
+        uint32_t rows = gd[2];
+        gd += 3;
+#else
+        int32_t ox = 0, oy = 0;
+        uint32_t rows = f->h;
+#endif
+        for (gy = 0; gy < rows; gy++)
             for (gx = 0; gx < w; gx++) {
                 uint32_t a = gd[gy * bpr + gx / 2u], k;
                 a = (gx & 1u) ? (a & 15u) : (a >> 4);
                 if (!a)
                     continue;
                 for (k = 0; k < n * n; k++) {
-                    int32_t px = x + (int32_t)n * ((int32_t)gx - f->pad) + (int32_t)(k % n),
-                            py = y + (int32_t)n * (int32_t)gy + (int32_t)(k / n) + cv_oy;
+                    int32_t px = x + (int32_t)n * ((int32_t)gx + ox - f->pad) + (int32_t)(k % n),
+                            py = y + (int32_t)n * ((int32_t)gy + oy) + (int32_t)(k / n) + cv_oy;
                     uint32_t at, bg;
                     if ((uint32_t)px >= cv_w || py < cv_y0 || py >= cv_y1)
                         continue;

@@ -13,6 +13,10 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   "LOAF BREAKER 0.1xx". Keep its first part current whenever it is relevant: the summary paragraph, "Les grandes
   étapes", and "Les modifs importantes" (where things are, what was removed or replaced, shortcuts, "À savoir").
 - No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository.
+- Fonts: `font_trim` is on (fm1.toml, 9 Nov 2026). LOAF BREAKER draws in FONT_T, FONT_XS and FONT_B only (cv_text2 for
+  bigger: those doubled). fm1-base still generates S, M (~5 KB trimmed) and L (~9 KB trimmed, 31 px), left out of the
+  image as never read. FLEXOR asked to be reminded of them whenever bigger or other text would help (a big tempo, a
+  title): say what one would cost then.
 
 ## Layout
 

@@ -10,6 +10,9 @@ usb_audio_in = true            # the FM-1 recordable over USB (PRD A-50)
 usb_audio_out = false
 midi_stamp = true             # LOAF BREAKER: MIDI in (the clock) stamped where it lands, USB and TRS (fm1-base)
 words = "words.tsv"
+font_trim = true               # LOAF BREAKER: each glyph stored as its lit box (the same pixels, the fonts ~55 % smaller);
+                               # the unused faces (S, M, L: base's sys_text, APP_SYS_TEXT here) are left out by the
+                               # compiler, being static and never read
 include = ["dsp"]
 o2 = ["dsp/*.c"]               # the engine, at -O2
 unity_opt = "z"                # the platform and the UI at -Oz (the engine stays -O2): smaller
