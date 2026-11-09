@@ -101,7 +101,9 @@ lists its combinations (SEL again, or any other button, key or knob, closes it).
   its memory (KICK 1–10) and its note; under it the part's four knobs as cards, their values large. **EDIT again**: the
   next section, **ALGORITHM**: the next part in it (each section remembers where you were). **EDIT held** (half a
   second): the classic view (the part's knobs as bars, the layers' levels, the five drums' shapes, the break's wave
-  above), held again: the big view; the part stays where it is.
+  above), held again: the big view; the part stays where it is. **Stopped**, on the classic view and on the other
+  drums' pages, **white keys 1–5 play the KICK, SNARE, HAT, CLAP, HOOVER** once each, to hear them (the number on each
+  drum's card); playing, the keys play slices as ever.
   - **SOUND**: MIX, SUB, PUNCH, GRIT, CLICK, OUT.
   - **SYNTH**: SYNTH, SYNTH +, BASS, MACRO.
   - **DIRT**: TERROR, TERROR + (DRIVE, TYPE, SCREECH, TAIL), TERROR 2, then each layer's effect.
@@ -173,8 +175,9 @@ metronome and tap tempo are gone).
   **K3 RISER**: the rising noise, OFF to 200 % (100 %: as it was). **K4 GAP**: silence just before the drop (none, a
   16th, an 8th, a beat, half a bar), so the drop hits out of nothing. **PRESETS: TEMPO RISE**, OFF to +30 %: the
   tempo climbs with the build and drops back to yours at the drop (not while following a MIDI clock).
-- **RESET** (ENV's last part): puts a part back as it starts. **K1** picks what (DROP, BUILD, KNOB for now: each
-  says on the right what it puts back), **K4** turned right twice within 3 s resets it (once only arms it: "TURN K4
+- **RESET** (ENV's last part): puts a part back as it starts. **K1** picks what (DROP, BUILD, KNOB, **KICK**: each
+  says on the right what it puts back; KICK is the kick selected, KICK 1–10: ROTTERDAM again, its SYNTH and BASS at
+  0, its volume kept, its memory with it), **K4** turned right twice within 3 s resets it (once only arms it: "TURN K4
   AGAIN TO RESET").
 - **KNOB**: what SEL + each knob does, on any page. **ALGORITHM** (or white keys 1–4) picks the knob, **PRESETS**
   gives it its function: TERROR 2, TERROR, T+ DRIVE, T+ TYPE, T+ SCREECH, T+ TAIL (TERROR +'s settings, one each) or

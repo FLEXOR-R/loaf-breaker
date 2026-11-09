@@ -1,0 +1,34 @@
+# LOAF BREAKER: ENV RESET, KICK: the kick selected (its memory) back to its start (ROTTERDAM, SYNTH and BASS at 0, its
+# volume kept). The kick's BASS part (EDIT, EDIT: SYNTH; ALGORITHM twice): REV BASS to 50 %, then RESET KICK: off.
+#   app/build/host/choppah_host tests/scenarios/kreset.txt app/build/scenarios
+wait 4200
+tap EDIT
+wait 150
+tap EDIT
+wait 200
+turn ALGO 2 10
+wait 300
+expect kpage 10
+turn K2 25 10
+wait 200
+expect kbass1 50
+tap ENV
+wait 150
+tap ENV
+wait 150
+tap ENV
+wait 150
+tap ENV
+wait 150
+tap ENV
+wait 150
+tap ENV
+wait 300
+turn K1 3 10
+wait 200
+shot a_reset_kick.png
+turn K4 1 10
+wait 200
+turn K4 1 10
+wait 300
+expect kbass1 0

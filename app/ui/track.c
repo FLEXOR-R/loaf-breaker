@@ -12,11 +12,12 @@ static void break_ask(uint32_t i);      /* (main.c) */
 static const char *const TPART[NTPART] = {"TRACKS", "PLAY", "DROP", "KNOB", "BUILD", "RESET"};
 static const uint8_t TORDER[NTPART] = {0u, 1u, 2u, 4u, 3u, 5u};   /* (ENV's parts in order: BUILD after DROP, RESET last) */
 /* RESET (ENV's last part): K1 what (a list: more to come), K4 turned right twice within 3 s: back to the start */
-enum { RST_DROP, RST_BUILD, RST_KNOB, NRST };
-static const char *const RST_NAME[NRST] = {"DROP", "BUILD", "KNOB"};
+enum { RST_DROP, RST_BUILD, RST_KNOB, RST_KICK, NRST };
+static const char *const RST_NAME[NRST] = {"DROP", "BUILD", "KNOB", "KICK"};
 static const char *const RST_WHAT[NRST] = {"BUILD 4 BARS, NEXT PATTERN, SAME BREAK, CRASH 100%",
                                           "SNARE ROLL, HIGH-PASS, RISER 100%, NO GAP",
-                                          "K1 DRIVE, K2 TERROR 2, K3 T+ SCREECH, K4 TERROR"};
+                                          "K1 DRIVE, K2 TERROR 2, K3 T+ SCREECH, K4 TERROR",
+                                          "THE KICK SELECTED (ITS MEMORY): ROTTERDAM, SYNTH AND BASS AT 0, VOLUME KEPT"};
 static void reset_do(uint32_t w)
 {
     if (w == RST_DROP) {
@@ -29,8 +30,23 @@ static void reset_do(uint32_t w)
         set.drop_sweep = 0u;
         set.drop_riser = 50u;
         set.drop_gap = 0u;
-    } else                               /* KNOB: the knobs' functions */
+    } else if (w == RST_KNOB)            /* KNOB: the knobs' functions */
         set.selk_asg = set.selk_asg2 = 0u;
+    else {                               /* LOAF BREAKER: KICK: the kick selected (KICK 1-10) as it starts: ROTTERDAM,
+                                          * its TERRORs and effects with it, its SYNTH at 0, its BASS off; its volume
+                                          * kept; its memory with it */
+        float vol = set.kick.volume;
+        uint32_t j;
+        kick_defaults(&set.kick);
+        set.kick.volume = vol;
+        for (j = 0; j < KS_N; j++)
+            set.ksyn[j] = 0;
+        set.kbass[0] = set.kbass[1] = 0u;
+        set.kbass[2] = set.kbass[3] = 50u;
+        set.kmem[set.kslot % KICK_MEMS] = set.kick;
+        for (j = 0; j < KS_N; j++)
+            set.ksmem[set.kslot % KICK_MEMS][j] = 0;
+    }
     changed();
 }
 static const char *const DS_NAME[DS_N] = {"SNARE ROLL", "KICK ROLL", "KICK+SNARE", "STUTTER", "SWEEP ONLY", "RANDOM"};

@@ -87,6 +87,9 @@ static struct {
     uint32_t kick_t;                     /* LOAF BREAKER TEST: when the kick last hit (the header's flash) */
     uint32_t kick_seen;
     uint32_t kscope_drawn;
+    uint32_t aud_t;                      /* LOAF BREAKER: a drum played on its key (the classic view, the drums' pages):
+                                          * when, which */
+    uint8_t aud_d;
     uint32_t intro_t0;                   /* the start screen: when it began (0: over) */
     uint8_t intro, intro_drawn;          /* showing it; blocks drawn so far */
     uint8_t touched;                     /* a key, button or encoder moved since app_frame last looked */

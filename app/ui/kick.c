@@ -505,12 +505,16 @@ static void draw_drums(const brk_status_t *st)
     cv_begin(240, 52, C_BLACK);
     for (i = 0; i < NDRUMS; i++) {
         int32_t x = 1 + (int32_t)i * 48;
-        int sel = i == ui.einst, hit = st->playing && st->bar64 >= 0 &&
-            (drum_now[i][st->bar64 >> 4 & 3] >> (st->bar64 & 15) & 1u);
+        int sel = i == ui.einst, hit = (st->playing && st->bar64 >= 0 &&
+            (drum_now[i][st->bar64 >> 4 & 3] >> (st->bar64 & 15) & 1u)) ||
+            (ui.aud_d == i && plat_ms() - ui.aud_t < 150u);   /* (LOAF BREAKER: or just played on its key) */
+        char kn[2] = {(char)('1' + i), 0};
         uint16_t ink = hit ? C_BLACK : sel ? C_HI : C_GRAY;
         cv_rect(x, 2, 46, 48, sel ? C_WHITE : C_LINE);
         cv_rect(x + 1, 3, 44, 46, hit ? C_BLOCK_HI : C_BLACK);
         cv_text(x + 5, 4, &FONT_T, DRUM_NAME[i], hit ? C_BLACK : sel ? C_HI : C_GRAY);
+        if (!st->playing)                /* (its key, to play it: stopped) */
+            cv_text(x + 42 - text_w(&FONT_T, kn), 37, &FONT_T, kn, hit ? C_BLACK : C_DIM);
         cv_rect(x + 5, 33, DW, 1, hit ? C_BLACK : C_LINE);   /* the centre line, the hit mirrored about it */
         for (c = 0; c < DW; c++)
             if (drum_px[i][c])

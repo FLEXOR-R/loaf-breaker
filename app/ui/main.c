@@ -232,6 +232,18 @@ static void input(void)
         return;
     }
     for (i = 0; i < 16u; i++) {          /* white keys: slices, or a page's own */
+        if (i < NDRUMS && ((ui.page == PG_KICK && ui.kclassic) || ui.page == PG_PERC) && !playing_now()) {
+                                          /* LOAF BREAKER: the KICK menu's classic view and the drums' pages, stopped:
+                                          * keys 1-5 play the KICK, SNARE, HAT, CLAP, HOOVER once each (to hear them);
+                                          * playing, they play slices as ever */
+            if (kdn >> WK[i] & 1u) {
+                midi_drum(i);
+                ui.aud_t = now;
+                ui.aud_d = (uint8_t)i;
+                ui.redraw |= RG_BLOCKS;
+            }
+            continue;
+        }
         if (ui.page == PG_TRACK) {       /* LOAF BREAKER: ENV: a pattern into the track, or a track played */
             if (kdn >> WK[i] & 1u)
                 track_key(i);
@@ -1389,6 +1401,10 @@ void app_frame(void)
     /* the header's own state: playing, the tempo, the break */
     if (ui.page == PG_KICK && !ui.kclassic && kscope_hit && now - ui.kscope_drawn >= 120u && st.playing) {
         ui.kscope_drawn = now;           /* (TEST: the KICK menu's live kick, redrawn as it sounds) */
+        ui.redraw |= RG_BLOCKS;
+    }
+    if (ui.aud_t && now - ui.aud_t >= 160u) {   /* (LOAF BREAKER: a drum played on its key: its card lit, then not) */
+        ui.aud_t = 0u;
         ui.redraw |= RG_BLOCKS;
     }
     if (kick_hit_n != ui.kick_seen) {    /* (TEST: the kick's flash) */
