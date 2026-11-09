@@ -644,6 +644,8 @@ static float kick_knob_f(int i)          /* the part's knob i, 0..1 (as its bar)
 static uint8_t kv_px[KV_W];              /* the hit's level, column by column */
 static int8_t kv_wave[KV_W];             /* and its wave (the pitch falling: the cycles stretching) */
 static uint32_t kv_sig;
+static uint32_t kv_t;                    /* (TEST: when the hit was last worked out) */
+static uint8_t kv_pend;                  /* (TEST: a change not drawn yet) */
 static void kick_picture(int32_t top)
 {
     const kick_t *k = &set.kick;
@@ -774,9 +776,14 @@ static void draw_kick(const brk_status_t *st)
         draw_kick_classic(st);
         return;
     }
-    if (sig != kv_sig) {                 /* (its hit again, only when it changed) */
+    if (sig != kv_sig && plat_ms() - kv_t < 100u)
+        kv_pend = 1u;                    /* (TEST: a knob turning: the hit again at most every 100 ms, the last one
+                                          * drawn then: main.c) */
+    else if (sig != kv_sig) {            /* (its hit again, only when it changed) */
         uint32_t pk = 0u;
         kv_sig = sig;
+        kv_t = plat_ms();
+        kv_pend = 0u;
         kick_shape(&set.kick, kv_px, KV_W, KV_MS, 34u);
         kick_wave(&set.kick, kv_wave, KV_W, KV_MS, 34u);
         for (top = 0; top < KV_W; top++)

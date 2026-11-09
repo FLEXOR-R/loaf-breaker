@@ -1,7 +1,7 @@
-# LOAF BREAKER TEST (branch loaf-test): the firmware made easier to learn, nothing taken out: ENV the song alone (KNOB
-# out, RESET to GLO), GLO MORE's MODE (BEGINNER / EXPERT), the SEL card by page, the KICK menu saying what each part is
-# for, a quick start (app/docs/QUICKSTART.md). Every push to loaf-test is a pre-release of its own: test-vX.YY (the
-# splash shows the number), loaf-breaker-test-X.YY.fwsc and the simulator's screens. The main line (loaf) is untouched.
+# LOAF BREAKER TEST (branch loaf-test): the interface lighter and measured: GLO MORE's METER (the audio's load, the
+# screen's strips and the passes a second), the CDJ view and the MIXER at 20 frames a second, the kick's picture worked
+# out at most every 100 ms while turning, a pass's changes applied once. Every push to loaf-test is a pre-release of its
+# own: test-vX.YY. The main line (loaf) is untouched.
 name: LOAF BREAKER TEST
 
 on:
@@ -117,29 +117,26 @@ jobs:
           target_commitish: ${{ github.sha }}
           name: LOAF BREAKER TEST ${{ env.VERSION }}
           body: |
-            **FIRMWARE DE TEST** (le firmware principal loaf-v… n'est pas touché). Installe loaf-breaker-test-${{ env.VERSION }}.fwsc avec l'installateur web de fm1-base (Chrome ou Edge, le FM-1 en USB) ; le splash affiche ${{ env.VERSION }}. Pour revenir en arrière : réinstalle la dernière loaf-v….
+            **FIRMWARE DE TEST** (le firmware principal loaf-v… n'est pas touché). Installe loaf-breaker-test-${{ env.VERSION }}.fwsc avec l'installateur web (Chrome ou Edge, le FM-1 en USB) ; le splash affiche ${{ env.VERSION }}. Pour revenir en arrière : réinstalle la dernière loaf-v….
 
-            ## Plus digeste, sans rien perdre
+            ## Un compteur pour mesurer, et une interface plus légère
 
-            **ENV = le morceau :** TRACKS, PLAY, DROP, BUILD. La partie KNOB disparaît : les fonctions des knobs se choisissent et se règlent dans **EDIT › KNOBS** (K1 SET à K4 SET, PRESETS = la fonction).
+            **METER** (GLO › MORE, **K3** à droite ; pas sauvegardé, éteint au redémarrage) : chaque seconde, l'en-tête affiche
+            - **CPU a% PK b%** : la part du temps que prend le son (moyenne et pire moment de la seconde). Au-delà de ~85 % en pic, le son est à la limite ;
+            - **IMG n** : les bandes d'image envoyées à l'écran dans la seconde ;
+            - **FR n** : combien de fois par seconde l'interface a tourné (lire les boutons, dessiner). Plus c'est haut, plus c'est réactif.
 
-            **RESET passe dans GLO** (6e partie, après FX SET), à côté de RESET ALL. Même fonctionnement : K1 ou ALGORITHM choisit, K2/K3/K4 cinq crans.
+            **Allègements :**
+            - la vue CDJ de HOME et les vumètres du mixer passent de 30 à 20 images par seconde ;
+            - le kick blanc en direct dans EDIT se redessine 5 fois par seconde au lieu de 8 ;
+            - le visuel du kick se recalcule au plus toutes les 100 ms quand tu tournes un knob (le son, lui, change à chaque cran) ;
+            - quand tu tournes vite un knob, tous les crans d'un même passage sont appliqués en une fois au lieu d'un par cran.
 
-            **Mode DÉBUTANT / EXPERT** (GLO › MORE, **K1**) : en DÉBUTANT, ALGORITHM saute les parties avancées du menu KICK (couches PUNCH/GRIT/CLICK et leurs effets, TERROR +, TERROR 2, SYNTH +, CLEAN MORPH, EQ SHAPE, FX 2, K SET). Rien n'est supprimé : EXPERT les remontre, réglages intacts. Une FM-1 neuve, l'émulateur web et RESET ALL démarrent en DÉBUTANT ; **ta FM-1 reste en EXPERT** (elle a déjà une sauvegarde).
+            ## À faire
+            1. Allume METER, lance un morceau, et note **CPU / PK / IMG / FR** sur : HOME (vue CDJ), EDIT (le kick), SEQ, LFO, FX, et pendant un drop. Note aussi pendant que tu tournes vite un knob.
+            2. Dis-moi si l'interface te paraît plus fluide qu'en 0.177, et si la vue CDJ à 20 images par seconde te va visuellement.
 
-            **SEL tapé seul :** en haut les 4 combinaisons valables partout, en bas celles de la page où tu es (KICK, drums, SEQ, FX, ENV, LFO, GLO ; ailleurs les fonctions de SEL + K1–K4).
-
-            **Menu KICK :** chaque partie dit en quelques mots à quoi elle sert, à côté de KICK 4 (« FOLD DISTORTION », « GLIDE, REVERSE BASS »…).
-
-            **Démarrer en 5 minutes :** QUICKSTART.md, joint à cette release (en anglais, pour le Firmware Hub). Il ira sur le site et deviendra le lien « cheat » de la fiche du hub quand tu valideras.
-
-            ## À tester en priorité
-            1. Le live sans ENV › KNOB : changer une fonction depuis EDIT › KNOBS, est-ce aussi rapide pour toi ?
-            2. RESET dans GLO : tu le trouves ?
-            3. Le mode DÉBUTANT (GLO › MORE, K1 à gauche) : le menu KICK te paraît-il clair pour quelqu'un qui découvre ?
-            4. SEL tapé seul sur chaque page.
-
-            Dis-moi ce que tu gardes, j'intègre dans le firmware principal.
+            Avec ces chiffres je saurai si le deuxième cœur vaut la peine, ou si alléger l'écran suffit.
           generate_release_notes: true
           make_latest: false
           prerelease: true
@@ -147,4 +144,3 @@ jobs:
             app/build/loaf-breaker-test-${{ env.VERSION }}.fwsc
             app/build/loaf-breaker-test-screens-${{ env.VERSION }}.zip
             app/build/loaf-breaker-test-size-${{ env.VERSION }}.txt
-            app/docs/QUICKSTART.md

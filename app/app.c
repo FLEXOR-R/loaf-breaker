@@ -387,11 +387,20 @@ static void settings_apply(void)
     }
 }
 
+static uint8_t apply_due;                /* LOAF BREAKER TEST: a change waiting for settings_apply (apply_flush) */
 static void changed(void)
 {
     set_dirty = 1u;
     foot_dirty = 1u;
-    settings_apply();
+    apply_due = 1u;                      /* (TEST: applied once a pass, after the input: a knob turned fast, its many
+                                          * detents one settings_apply, not one each) */
+}
+static void apply_flush(void)
+{
+    if (apply_due) {
+        apply_due = 0u;
+        settings_apply();
+    }
 }
 
 /* ------------------------------------------------------------------ patterns --- */

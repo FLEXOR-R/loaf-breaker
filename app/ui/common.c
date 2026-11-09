@@ -66,9 +66,11 @@ static int sfx_live(uint32_t now)       /* a kick's or a drop's moment of SHAKE,
     return ((SFX_ON(SFX_SHAKE) || SFX_ON(SFX_VHS)) && (km || dm)) ||
            (SFX_ON(SFX_STROBE) && ((set.sfx_drop && sd < sfx_win(160u)) || (set.sfx_kick > 50u && km)));
 }
+static uint32_t ui_blits;                /* LOAF BREAKER TEST: the strips sent to the screen (GLO MORE's METER) */
 static void crt_blit(uint32_t x, uint32_t y)   /* (the effects on, in this order: 8-BIT, GRAIN, CRT, RGB, VHS, SHAKE,
                                           * STROBE) */
 {
+    ui_blits++;
     uint32_t amt = set.scrfx > 100u ? 100u : set.scrfx, now = plat_ms(), r, i;
     uint32_t sinc_kick = sfx_kick_t ? now - sfx_kick_t : 99999u, sinc_drop = sfx_drop_t ? now - sfx_drop_t : 99999u;
     uint32_t ks = set.sfx_kick > 100u ? 100u : set.sfx_kick, ds = set.sfx_drop > 100u ? 100u : set.sfx_drop;
@@ -257,6 +259,7 @@ static struct {
     uint8_t keq_part;                    /* (the KICK EQ page: 0 its bands, 1 their shape) */                     /* (FX pressed off its page: the page at its release, if not held) */       /* (crossbreed) SEQ, a kick lane: the key held + 1 (0 none); K1 turned since */
     uint8_t tpage;                       /* LOAF BREAKER: ENV's part: 0 TRACKS, 1 PLAY, 2 DROP, 3 KNOB */
     float radio;                         /* LOAF BREAKER: ENV PLAY's dial: where its needle is (eased to the track) */
+    uint8_t meter_on;                    /* (TEST) GLO MORE K3 METER: the load, once a second in the header */
     uint8_t ksect, kpos[5], kks;         /* (kks: KNOBS' K SET, the knob 0..3) */
     uint8_t kclassic, edit_hold;         /* (EDIT held on the KICK menu: the view as it was, the drums' shapes; EDIT
                                           * down: when, and whether it has done its hold) */

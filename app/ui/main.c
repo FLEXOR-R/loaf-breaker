@@ -843,6 +843,7 @@ static void input(void)
     }
     ui.keys = keys;
     ui.btn = btn;
+    apply_flush();                       /* (TEST: the pass's changes, applied once) */
 }
 
 void app_input_only(void) { input(); }
@@ -1178,7 +1179,7 @@ static void draw_foot(const brk_status_t *st)
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "RESET ALL"};
         static const char *const KN_GROOVE[3][4] = {{"SWING", "DRUMS", "", ""}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
                                                     {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
-        static const char *const KN_MORE[3][4] = {{"MODE", "AUTO SAVE", "", "SKIN"},   /* GLOBAL's MORE */
+        static const char *const KN_MORE[3][4] = {{"MODE", "AUTO SAVE", "METER", "SKIN"},   /* GLOBAL's MORE */
                                                   {"EFFECT", "ON / OFF", "", ""},   /* (LOAF BREAKER: EFFECTS, */
                                                   {"AMOUNT", "KICK", "DROP", "LENGTH"}};   /* FX SET) */
         static const char *const KN_TRK[4][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
@@ -1258,6 +1259,35 @@ void app_frame(void)
     const brk_break_t *b;
     uint32_t now = plat_ms(), hdr;
     input();
+    {                                    /* LOAF BREAKER TEST: GLO MORE's METER: the audio's load (average and peak, % of
+                                          * its block), the strips sent to the screen and the passes, a second's worth */
+        static uint32_t m_t, m_frames, m_blits, m_sum, m_n, m_pk;
+        uint32_t c = plat_cpu_pct();
+        m_frames++;
+        m_sum += c;
+        m_n++;
+        m_pk = c > m_pk ? c : m_pk;
+        if (now - m_t >= 1000u) {
+            if (ui.meter_on && m_n) {
+                char a[24] = "CPU ", v[24] = "IMG ", n[8];
+                int_text((int32_t)(m_sum / m_n), n);
+                text_cat(a, n);
+                text_cat(a, "% PK ");
+                int_text((int32_t)m_pk, n);
+                text_cat(a, n);
+                text_cat(a, "%");
+                int_text((int32_t)(ui_blits - m_blits), n);
+                text_cat(v, n);
+                text_cat(v, " FR ");
+                int_text((int32_t)m_frames, n);
+                text_cat(v, n);
+                app_say(a, v);
+            }
+            m_t = now;
+            m_frames = m_sum = m_n = m_pk = 0u;
+            m_blits = ui_blits;
+        }
+    }
     break_poll();
     if (splash_t) {                      /* LOAF BREAKER: the splash 1.5 s, then the start screen from its start */
         if (now - splash_t < 1500u) {
@@ -1422,7 +1452,7 @@ void app_frame(void)
     }
     {                                    /* LOAF BREAKER: PERFORM and GENERATOR show the CDJ view (the default);
                                           * HOME held 0.35 s there: the slice blocks instead, held again: the CDJ
-                                          * view (HOME's next part not taken); ~30 times a second */
+                                          * view (HOME's next part not taken); ~20 times a second (TEST) */
         int home = ui.page == PG_HOME || ui.page == PG_GEN;
         if (!(ui.btn & 1u << B_HOME))
             ui.cdj_skip = 0u;
@@ -1435,7 +1465,7 @@ void app_frame(void)
             app_say("HOME", ui.blocks ? "SLICES" : "WAVEFORM");
         }
         ui.cdj = (uint8_t)(home && !ui.blocks);
-        if (ui.cdj && now - ui.panel_drawn >= 33u) {
+        if (ui.cdj && now - ui.panel_drawn >= 50u) {   /* (TEST: 20 times a second, was 30) */
             ui.redraw |= RG_BLOCKS;
             ui.panel_drawn = now;
         }
@@ -1476,7 +1506,7 @@ void app_frame(void)
         ui.redraw |= RG_BLOCKS;
         ui.panel_drawn = now;
     }
-    if (ui.page == PG_MIX && now - ui.mix_drawn >= 33u)   /* the MIXER's meters: about 30 times a second */
+    if (ui.page == PG_MIX && now - ui.mix_drawn >= 50u)   /* the MIXER's meters: about 20 times a second (TEST: was 30) */
         ui.redraw |= RG_BLOCKS;
     brk_fx_watch(ui.page == PG_FX ? fx_foc() : BRK_FX_ALL);   /* (the engine meters that slot alone) */
     {                                    /* the overload guard shed a slot: say so */
@@ -1524,7 +1554,9 @@ void app_frame(void)
         ui.redraw |= RG_HEAD;
     }
     /* the header's own state: playing, the tempo, the break */
-    if (ui.page == PG_KICK && !ui.kclassic && kscope_hit && now - ui.kscope_drawn >= 120u && st.playing) {
+    if (kv_pend && ui.page == PG_KICK && !ui.kclassic && now - kv_t >= 100u)
+        ui.redraw |= RG_BLOCKS;          /* (TEST: the kick's picture, its last change drawn) */
+    if (ui.page == PG_KICK && !ui.kclassic && kscope_hit && now - ui.kscope_drawn >= 200u && st.playing) {
         ui.kscope_drawn = now;           /* (TEST: the KICK menu's live kick, redrawn as it sounds) */
         ui.redraw |= RG_BLOCKS;
     }

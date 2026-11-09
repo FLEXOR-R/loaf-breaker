@@ -41,6 +41,8 @@ static void global_value(int i, char *t)
             text_cat(t, set.auto_save ? "ON" : "OFF");
         else if (i == 0)                 /* (TEST: K1 MODE) */
             text_cat(t, set.novice ? "BEGINNER" : "EXPERT");
+        else if (i == 2)                 /* (TEST: K3 METER, not saved) */
+            text_cat(t, ui.meter_on ? "ON" : "OFF");
         return;                          /* (K3: nothing; the effects: GLO EFFECTS) */
     }
     if (ui.gpage) {                      /* the pitch: speed or keep length, the grains */
@@ -93,6 +95,10 @@ static void global_turn(int i, int32_t d)
             changed();                   /* (settings_apply: skin_apply) */
             app_say("SKIN", SKIN_NAME[set.skin % NSKINS]);
             ui.redraw = RG_ALL;
+        } else if (i == 2) {             /* (TEST) K3 METER: right on, left off (not saved) */
+            ui.meter_on = d > 0 ? 1u : 0u;
+            app_say("METER", ui.meter_on ? "ON: CPU, IMG, FR" : "OFF");
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
         } else if (i == 0) {             /* (TEST) K1 MODE: right EXPERT, left BEGINNER */
             set.novice = d > 0 ? 0u : 1u;
             changed();
