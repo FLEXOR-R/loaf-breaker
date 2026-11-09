@@ -19,5 +19,7 @@ turn K4 10 10
 wait 200
 shot sfx_set.png
 tap GLO
+wait 150
+tap GLO
 wait 300
 expect gpage 0

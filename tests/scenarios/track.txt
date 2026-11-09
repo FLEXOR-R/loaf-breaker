@@ -31,10 +31,6 @@ wait 200
 tap ENV
 wait 200
 tap ENV
-wait 200
-tap ENV
-wait 200
-tap ENV
 wait 300
 tap PLAY
 wait 300
@@ -59,10 +55,6 @@ turn K1 -1 10
 tap ENV
 wait 200
 turn K1 3 10
-tap ENV
-wait 200
-tap ENV
-wait 200
 tap ENV
 wait 200
 tap ENV

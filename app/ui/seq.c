@@ -508,7 +508,7 @@ static uint32_t keys_lit(const brk_status_t *st)   /* the white keys' lights on 
     if (ui.page == PG_TRACK)
         return track_keys_lit();
     if (ui.page == PG_GLOBAL)            /* (LOAF BREAKER: GLO EFFECTS: the effects on) */
-        return set.sfx_on;
+        return ui.gpage == 3u ? set.sfx_on : 0u;
     uint32_t m = 0u, i;
     if (ui.seq_lane >= SL_KICK) {
         int now = sl_now(st, ui.seq_lane);

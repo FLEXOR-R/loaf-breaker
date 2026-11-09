@@ -10,7 +10,11 @@ static void page_say(void);
 static void break_ask(uint32_t i);      /* (main.c) */
 #define NTPART 6u
 static const char *const TPART[NTPART] = {"TRACKS", "PLAY", "DROP", "KNOB", "BUILD", "RESET"};
-static const uint8_t TORDER[NTPART] = {0u, 1u, 2u, 4u, 3u, 5u};   /* (ENV's parts in order: BUILD after DROP, RESET last) */
+#define NTORD 4u
+static const uint8_t TORDER[NTORD] = {0u, 1u, 2u, 4u};   /* (ENV's parts in order: BUILD after DROP; LOAF BREAKER TEST:
+                                          * KNOB out (EDIT KICK's KNOBS has it all), RESET on GLO, its sixth part) */
+#define NGPART 6u                        /* (GLO's parts: MIDI, PITCH, MORE, EFFECTS, FX SET, RESET) */
+#define RST_ON (ui.page == PG_GLOBAL && ui.gpage == 5u)   /* (GLO RESET: drawn and turned by ENV's code here) */
 /* RESET (ENV's last part): K1 what (a list: more to come), K4 turned right twice within 3 s: back to the start */
 enum { RST_DROP, RST_BUILD, RST_KNOB, RST_KICK, RST_KTONE, RST_KICKS, RST_DRUMS, RST_MIX, RST_FX, RST_STEPS, RST_PADS,
        RST_KEYS, RST_TRACK, RST_SCREEN, NRST };
@@ -690,7 +694,6 @@ static void selk_assign_k(uint32_t kn, int32_t d)   /* (ENV KNOB's knob, or EDIT
     changed();
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
-static void selk_assign(int32_t d) { selk_assign_k(ui.knfn, d); }
 
 /* ---- the page ---- */
 static void trk_item_text(const track_t *t, uint32_t i, char *s, char *r)   /* "P3" "X4", "DROP" "", "END" "" */
@@ -715,7 +718,7 @@ static void track_value(int i, char *t)
     const track_t *tr = trk_now();
     char r[6];
     t[0] = 0;
-    if (ui.tpage == 5u) {                /* RESET: what, and K2-K4: the clicks */
+    if (RST_ON) {                        /* RESET (GLO): what, and K2-K4: the clicks */
         if (i == 0)
             text_cat(t, RST_NAME[ui.rst_sel % NRST]);
         else
@@ -738,10 +741,6 @@ static void track_value(int i, char *t)
             static const char *const G[5] = {"NONE", "1/16", "1/8", "1 BEAT", "1/2 BAR"};
             text_cat(t, G[set.drop_gap % 5u]);
         }
-        return;
-    }
-    if (ui.tpage == 3u) {                /* KNOB */
-        selk_value(selk_fn(ui.knfn & 3u), i, t);
         return;
     }
     if (ui.tpage == 2u) {                /* DROP */
@@ -815,7 +814,8 @@ static void track_turn(int i, int32_t d)
     track_t *t = trk_now();
     uint32_t c = ui.trk_cur % TRK_ITEMS;
     int dir = d > 0 ? 1 : -1;
-    if (ui.tpage == 5u) {                /* RESET: K1 (or ALGORITHM) what; K2, K3 or K4 turned RST_TURNS clicks: done */
+    if (RST_ON) {                        /* RESET (GLO): K1 (or ALGORITHM) what; K2, K3 or K4 turned RST_TURNS clicks:
+                                          * done */
         if (i == 0)
             reset_pick(d);
         else {
@@ -850,10 +850,6 @@ static void track_turn(int i, int32_t d)
             set.drop_gap = (uint8_t)clamp((int32_t)set.drop_gap + dir, 0, 4);
         changed();
         track_say(i);
-        return;
-    }
-    if (ui.tpage == 3u) {
-        selk_turn(selk_fn(ui.knfn & 3u), i, d);
         return;
     }
     if (ui.tpage == 2u) {
@@ -923,12 +919,6 @@ static void track_turn(int i, int32_t d)
     track_say(i);
 }
 /* PRESETS on ENV: the track (TRACKS and PLAY the same) */
-static void knob_fn(int32_t d)           /* ALGORITHM or PRESETS on KNOB: the function */
-{
-    ui.knfn = (uint8_t)((ui.knfn + (d > 0 ? 1u : 3u)) & 3u);
-    app_say("KNOB", SK_NAME[selk_fn(ui.knfn)]);
-    ui.redraw |= RG_BLOCKS | RG_FOOT;
-}
 static void track_pick(int32_t d)
 {
     set.trk = (uint8_t)clamp((int32_t)set.trk + (d > 0 ? 1 : -1), 0, (int32_t)NTRACKS - 1);
@@ -955,14 +945,6 @@ static void track_from_here(void)
  * track played (keys 1-8) */
 static void track_key(uint32_t k)
 {
-    if (ui.tpage == 3u) {                /* KNOB: keys 1-4, the function (K1..K4's) */
-        if (k < 4u) {
-            ui.knfn = (uint8_t)k;
-            app_say("KNOB", SK_NAME[selk_fn(k)]);
-            ui.redraw |= RG_BLOCKS | RG_FOOT;
-        }
-        return;
-    }
     if (ui.tpage == 1u) {
         if (k < NTRACKS) {
             set.trk = (uint8_t)k;
@@ -1048,8 +1030,6 @@ static void track_gap(void)
 static uint32_t track_keys_lit(void)     /* TRACKS: the item's pattern; PLAY: the tracks there are; KNOB: its function */
 {
     uint32_t m = 0u, i;
-    if (ui.tpage == 3u)
-        return 1u << (ui.knfn & 3u);
     if (ui.tpage == 1u) {
         for (i = 0; i < NTRACKS; i++)
             if (trk_len(&pats.trk[i]))
@@ -1154,7 +1134,7 @@ static void track_picture(int32_t top)
     uint32_t i, n = trk_len(t);
     char s[20], r[8];
     cv_oy = -top;
-    if (ui.tpage == 5u) {                /* RESET: the list (K1, ALGORITHM), what it puts back, the clicks */
+    if (RST_ON) {                        /* RESET (GLO): the list (K1, ALGORITHM), what it puts back, the clicks */
         uint32_t w = ui.rst_sel % NRST;
         uint32_t on = rst_live() ? ui.rst_n : 0u;
         {                                /* (five at a time, the one picked kept in view) */
@@ -1223,43 +1203,6 @@ static void track_picture(int32_t top)
             text_cat(s, "% TO THE DROP");
         }
         cv_text(134, 116, &FONT_XS, s, set.drop_accel ? C_HI : C_DIM);
-        cv_oy = 0;
-        return;
-    }
-    if (ui.tpage == 3u) {                /* KNOB: the four functions (the one edited lit), its settings large; COMP its
-                                          * reduction now */
-        uint32_t kn = ui.knfn & 3u, f = selk_fn(kn);
-        for (i = 0; i < 4u; i++) {       /* (each knob and the function it has) */
-            s[0] = 'K';
-            s[1] = (char)('1' + i);
-            s[2] = ' ';
-            s[3] = 0;
-            text_cat(s, SK_SHORT[selk_fn(i)]);
-            cv_rect(1 + (int32_t)i * 60, 2, 57, 14, i == kn ? C_HI : C_BLOCK);
-            cv_text(4 + (int32_t)i * 60, 3, &FONT_XS, s, i == kn ? C_BLACK : C_GRAY);
-        }
-        for (i = 0; i < 4u; i++) {
-            int32_t x = 8 + (int32_t)(i & 1u) * 116, y = 26 + (int32_t)(i >> 1) * 40;
-            cv_text(x, y, &FONT_XS, SK_KNOB[f][i], C_GRAY);
-            selk_value(f, (int)i, s);
-            cv_text(x, y + 11, &FONT_B, s, i == 0u && f != 5u && !*sk_byte(f, 0) ? C_DIM : C_WHITE);
-        }
-        if (f == 2u) {                   /* COMP: its reduction, 0 .. 18 dB */
-            float g = comp_gr;
-            int32_t w = (int32_t)(brk_clampf(g / 18.0f, 0.0f, 1.0f) * 220.0f);
-            cv_text(8, 110, &FONT_XS, "REDUCTION", C_GRAY);
-            cv_rect(8, 122, 220, 8, C_BLOCK);
-            cv_rect(8, 122, w, 8, C_HI);
-            tenths_text((int32_t)(g * 10.0f), s);
-            text_cat(s, " DB");
-            cv_text(170, 110, &FONT_XS, s, C_WHITE);
-        } else {                         /* (whose: the kick playing's, each kick memory its own) */
-            s[0] = 0;
-            text_cat(s, "KICK ");
-            int_text((int32_t)set.kslot % KICK_MEMS + 1, s + 5);
-            cv_text(8, 112, &FONT_XS, s, C_HI);
-            cv_text(58, 112, &FONT_XS, "PRESETS: WHAT SEL + IT DOES", C_DIM);
-        }
         cv_oy = 0;
         return;
     }
@@ -1366,14 +1309,14 @@ static void draw_track(void)
         cv_blit(0, (uint32_t)(44 + top));
     }
 }
-/* ENV: TRACKS; again, PLAY, DROP, BUILD, KNOB, and back */
+/* ENV: TRACKS; again, PLAY, DROP, BUILD, and back */
 static void track_open(void)
 {
     if (ui.page == PG_TRACK) {
         uint32_t k;
-        for (k = 0; k < NTPART && TORDER[k] != ui.tpage; k++)
+        for (k = 0; k < NTORD && TORDER[k] != ui.tpage; k++)
             ;
-        ui.tpage = TORDER[(k + 1u) % NTPART];
+        ui.tpage = TORDER[(k + 1u) % NTORD];
     }
     else {
         ui.page = PG_TRACK;

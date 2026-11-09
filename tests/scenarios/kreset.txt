@@ -1,4 +1,4 @@
-# LOAF BREAKER: ENV RESET, KICK: the kick selected (its memory) back to its start (ROTTERDAM, SYNTH and BASS at 0, its
+# LOAF BREAKER: GLO RESET (LOAF BREAKER TEST: ENV's no more), KICK: the kick selected (its memory) back to its start (ROTTERDAM, SYNTH and BASS at 0, its
 # volume kept). The kick's BASS part (EDIT, EDIT: SYNTH; ALGORITHM twice): REV BASS to 50 %, then RESET KICK: off.
 #   app/build/host/loaf-breaker_host tests/scenarios/kreset.txt app/build/scenarios
 wait 4200
@@ -12,17 +12,17 @@ expect kpage 10
 turn K2 25 10
 wait 200
 expect kbass1 50
-tap ENV
+tap GLO
 wait 150
-tap ENV
+tap GLO
 wait 150
-tap ENV
+tap GLO
 wait 150
-tap ENV
+tap GLO
 wait 150
-tap ENV
+tap GLO
 wait 150
-tap ENV
+tap GLO
 wait 300
 turn K1 3 10
 wait 200
@@ -40,17 +40,17 @@ wait 200
 turn K1 10 10
 wait 200
 expect comp 20
-tap ENV
+tap GLO
 wait 150
-tap ENV
+tap GLO
 wait 150
-tap ENV
+tap GLO
 wait 150
-tap ENV
+tap GLO
 wait 150
-tap ENV
+tap GLO
 wait 150
-tap ENV
+tap GLO
 wait 300
 turn K1 4 10
 wait 200
