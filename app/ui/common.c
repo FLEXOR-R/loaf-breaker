@@ -326,9 +326,6 @@ static struct {
     uint8_t drop_pat;                    /* the pattern the drop moves to (0xFF: none) */
     uint8_t drop_early, drop_asked;      /* (crossbreed) the drop asked early; its break asked for */
     uint8_t note_key, note_turned;
-    uint8_t piano, pcur;                 /* LOAF BREAKER: SEQ's HV KEYS on; its cursor (the step a note goes to) */
-    int8_t poct, pnote;                  /* its octave (-2 .. +2), the last note played */
-    uint32_t pnote_t;                    /* (when: its row lit a moment) */
     uint8_t fx_open;
     uint8_t keq_part;                    /* (the KICK EQ page: 0 its bands, 1 their shape) */                     /* (FX pressed off its page: the page at its release, if not held) */       /* (crossbreed) SEQ, a kick lane: the key held + 1 (0 none); K1 turned since */
     uint8_t tpage;                       /* LOAF BREAKER: ENV's part: 0 TRACKS, 1 PLAY, 2 DROP, 3 KNOB */
@@ -348,6 +345,8 @@ static struct {
     uint8_t rst_sel;                     /* LOAF BREAKER: ENV's RESET: what it resets (RST_*) */
     uint32_t rst_arm;                    /* (the last click of K2-K4: when; RST_TURNS clicks, each within 2 s, the reset) */
     uint8_t rst_n;                       /* (the clicks so far) */
+    uint32_t rst_done;                   /* (LOAF BREAKER: a reset done, when: the RESET page's knobs do nothing for
+                                          * RST_COOL ms after, the clicks past the last one lost, DONE left to read) */
     uint8_t lfo_hold;                    /* LOAF BREAKER: LFO down (1), a level turned with it (2): no page then */
     uint8_t sfx_cur;                     /* LOAF BREAKER: GLO EFFECTS: the effect K1 points at (SFX_CRT..SFX_8BIT) */
     uint8_t sel_lock, sel_raw;           /* LOAF BREAKER: SEL locked down (SEL x2; pressed again: free); SEL's

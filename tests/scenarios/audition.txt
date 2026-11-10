@@ -1,5 +1,5 @@
-# LOAF BREAKER: the KICK menu's classic view (EDIT held) and the drums' pages: white keys 1-5 play the KICK, SNARE, HAT,
-# CLAP, HOOVER once each, to hear them (stopped too); their cards light as they play.
+# LOAF BREAKER: the KICK menu's classic view (EDIT held) and the drums' pages: white keys 1-4 play the KICK, SNARE, HAT,
+# CLAP once each, to hear them (stopped too); their cards light as they play.
 #   app/build/host/loaf-breaker_host tests/scenarios/audition.txt app/build/scenarios
 wait 4200
 tap EDIT
@@ -19,9 +19,6 @@ key w1 down
 key w1 up
 wait 40
 shot a_snare.png
-wait 200
-key w4 down
-key w4 up
 wait 300
 press SEL
 tap EDIT

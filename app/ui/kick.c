@@ -654,7 +654,7 @@ static void kick_knob_turn(int i, int32_t d)
  * again when its sound changes), the one edited outlined, lit on its hits */
 #define DW 36u                           /* a drum's waveform: its columns */
 static uint8_t drum_px[NDRUMS][DW];
-static uint32_t drum_sig[NDRUMS] = {1u, 1u, 1u, 1u, 1u};
+static uint32_t drum_sig[NDRUMS] = {1u, 1u, 1u, 1u};
 static uint32_t sig_of(const void *p, uint32_t n)
 {
     uint32_t i, h = 2166136261u;

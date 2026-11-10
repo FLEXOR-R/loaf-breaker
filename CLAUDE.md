@@ -31,22 +31,16 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   (https://claude.ai/artifact/MCakoDjuGTXjMLFiobM1k3; the choice in its store, `tri/choix`): 9 breaks, NUSKOOL first (FLEXOR's order; LO-FI out in 0.200 for room).
 - Patterns (10 Nov 2026, 0.197): 64, four groups of 16 (`NGRP`, `NPAT_ALL`); the group in RAM is pats.p/kn/hits and
   steps.b (`set.pgrp`; `set.pattern` its slot; `pat_cur()` 0..63; `pat_go()` brings one in). Each group has its own
-  objects (OBJ_PG0/KG0/SG0/NG0 + g); SAVE (`store_all`) writes 7. Leaving a group with unsaved changes while playing is
+  objects (OBJ_PG0/KG0/SG0 + g; NG0 unused since 0.209); SAVE (`store_all`) writes 7 (with OBJ_KLAB). Leaving a group with unsaved changes while playing is
   refused ("SAVE OR STOP", FLEXOR's choice: never a cut in the sound). Track items, `drop_after`, `ui.drop_pat` and
   `pat_next` are 0..63 (or 1..64); `drop_to` stays a slot (0xFF: another group's, read in at the drop).
-- KEYS (10 Nov 2026, 0.198, then HV KEYS): SEQ's piano for the MELODY (`ui.piano`, ALGORITHM past the last lane; seq.c piano_*):
-  all 27 keys notes (PIANO_W / PIANO_B), the pads' loop skipped there. Hoover notes -24..+39: `stab_note` adds hvx's
-  2 bits (HVX_ADD) to the 4 in st[k][2]; hvx is the group's (OBJ_NG0 + g), copied with paste and undo.
-- FILL (10 Nov 2026, 0.199): ARP held (LATCH: toggled); SEL + ARP opens FILL's page, GLO part `GP_FILL` (6, no tab:
-  the tab row is full); `set.fill_cfg` (LATCH, DRUM, LENGTH, RATE). SEL + ARP's random pattern is gone (FLEXOR's ask).
-- MELODY (10 Nov 2026, 0.200): the HOOVER's voice (PV_STAB) is the pattern's instrument, MEL_ACID/LEAD/PAD/REESE (perc.c
-  stab_tick, mel_hit; the render passes each note's length and MEL_SLIDE/ACCENT/TIE: perc_notes, perc_mel per block);
-  `hv.inst[slot]` (with hvx in OBJ_NG0 + g); `set.sslot` the instrument playing, `smem[0..3]` the four sounds,
-  `mel_follow()` in pat_apply swaps them. SEQ K2 on drum lanes: what the lane plays (lane_sound_turn). MIXER LEVELS
-  K4 MELO (`set.mel_vol`), GROOVE K3 FX. HV KEYS is called KEYS now.
+- MELODY and KEYS (0.198-0.208) removed in 0.209 (FLEXOR: "kicks and drums only"): perc.c's PV_STAB is an empty place
+  (perc_t's layout in the saves), DR_STAB gone (NDRUMS 4; `NDRUMS_SAVED` 5 for pats.hits), OBJ_NG0 + g no longer
+  saved or read (SAVE writes 7 objects), settings' pstab/smem/sslot/mel_vol/mel_ver unused, st[k][2] bits 3-7 unused.
+  Don't bring a melody back without FLEXOR asking.
 - Domains (10 Nov 2026, 0.201; 0.200 is the layout before, FLEXOR may want it back): the header and the tabs name the
   domain (`DOM[]`, `dom_name()` in main.c): LIVE, SOUNDS, PATTERN, SONG, MIX, EFFECTS, SYSTEM. SOUNDS' sources: KICK,
-  DRUMS (einst 1-3), MELODY (einst 4), BREAK (PG_GLOBAL `GP_BREAK`, GLO's old PITCH code, K4 LEVEL); SEL + EDIT the
+  DRUMS (einst 1-3), BREAK (PG_GLOBAL `GP_BREAK`, GLO's old PITCH code, K4 LEVEL); SEL + EDIT the
   next. PATTERN's GROOVE is PG_GLOBAL `GP_FILL` (SWING, LATCH, DRUM, LENGTH), reached from SEQ's ALGORITHM and SEL + ARP;
   LEDs light EDIT / SEQ for those two. SYSTEM's parts `GLO_ORD` (MIDI, SETUP, EFFECTS, FX SET, RESET); RESET ALL is
   RESET's last item, EVERYTHING (15 turns). MIX's second part is SENDS (FX, DRUMS).
@@ -57,13 +51,14 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   `kick_lab_t` (kick.h) per kick in its own object `klab` (OBJ_KLAB 0xB6000: cur + mem[10], swapped with the kick in
   kick_mem_go, copied with COPY K n, off with a built-in PRESET / RESET); engine `kick_set_lab`, `kick_set_stack`
   (a second kick voice, kv2, until STACK's hand-over), `kick_set_solo`. All 0 renders bit for bit as 0.203: keep it so.
-  The tabs drop the "KICK" label on the KICK menu (six sections). SAVE writes 8 objects.
+  The tabs drop the "KICK" label on the KICK menu (six sections).
 - KICK menu by anatomy (10 Nov 2026, 0.205, FLEXOR's choice): KSECT ATTACK, BODY, TAIL, DIRT, TONE, KNOBS (kick.c);
   app_ui_init opens it on BODY (ui.ksect 1, its MIX: the first EDIT still kpage 0); the parts in a row at the
   picture's foot (kick_chip; 0.207: a full-width bar of tabs, FONT_T if it fits, the wave up: its middle y 45, 29
   px each way). Views (ui.kview, EDIT held): RGB (kick_rgb, 500 ms), WAVE, then CLASSIC (ui.kclassic).
 - GLO EFFECTS K3 WAVE (`set.wstyle`: REKORDBOX / SERATO, common.c serato_col; the kick's RGB and cdj.c) and K4 KICK
   VIEW (`set.kfocus`: the whole kick / the part edited: kick.c kv_ms, kv_kick) (10 Nov 2026, 0.206).
+- RESET (0.209): after a reset its page's knobs do nothing for 3 s (`RST_COOL`, `ui.rst_done`, rst_cool()), DONE shown.
 - No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository.
 - Fonts: `font_trim` is on (fm1.toml, 9 Nov 2026). LOAF BREAKER draws in FONT_T, FONT_XS and FONT_B only (cv_text2 for
   bigger: those doubled). fm1-base still generates S, M (~5 KB trimmed) and L (~9 KB trimmed, 31 px), left out of the

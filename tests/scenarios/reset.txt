@@ -1,6 +1,6 @@
 # LOAF BREAKER: RESET (LOAF BREAKER TEST: GLO's sixth part, ENV's no more). BUILD changed (KICK ROLL, a beat's gap); RESET (GLO six times): K1 to BUILD; K3 four
 # clicks, a pause of 2.5 s, one more: nothing (counted from 0 again); K4 two clicks, then three: BUILD back to SNARE
-# ROLL, no gap. ALGORITHM picks as K1. KNOB: K1 given T+ TAIL (EDIT KICK KNOBS, K1 SET, PRESETS), then RESET KNOB (ALGORITHM, K2 five clicks): K1 DUCK again.
+# ROLL, no gap; then 3 s where RESET's knobs do nothing (a turn there: lost), DONE shown. ALGORITHM picks as K1. KNOB: K1 given T+ TAIL (EDIT KICK KNOBS, K1 SET, PRESETS), then RESET KNOB (ALGORITHM, K2 five clicks): K1 DUCK again.
 #   app/build/host/loaf-breaker_host tests/scenarios/reset.txt app/build/scenarios
 wait 4200
 tap ENV
@@ -55,12 +55,21 @@ shot rs_armed.png
 turn K4 3 10
 wait 200
 expect drop_style 0
+expect rst_cool 1
+shot rs_done_build.png
+turn K4 2 10
+turn ALGO 1 10
+wait 200
+expect rst_cool 1
+wait 2800
+expect rst_cool 0
 turn ALGO 1 10
 wait 100
 turn K2 5 10
 wait 200
 expect selk1 0
 shot rs_done.png
+wait 3100
 # SCREEN: VHS and the skin MIAMI on (GLO EFFECTS key 2, MORE K4), then RESET SCREEN: no effect, RED again
 tap GLO
 wait 100

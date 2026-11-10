@@ -37,12 +37,16 @@ static const char *const RST_WHAT[NRST] = {"BUILD 4 BARS, NEXT PATTERN, SAME BRE
                                           "SKIN RED, SCREEN EFFECTS OFF, THEIR SETTINGS 50%, WAVE ZOOM 1 BAR",
                                           "EVERYTHING AS IT CAME, ALL 64 PATTERNS, SAVED AT ONCE: 15 TURNS"};
 #define RST_TURNS 5u                     /* LOAF BREAKER: the clicks that reset (K2, K3 or K4), each within 2 s of the last */
+#define RST_COOL 3000u                   /* LOAF BREAKER: after a reset, the RESET page's knobs at rest this long */
+static int rst_cool(void) { return ui.rst_done && plat_ms() - ui.rst_done < RST_COOL; }
 static int rst_live(void)
 {
     return ui.rst_n && ui.rst_arm && plat_ms() - ui.rst_arm < 2000u;
 }
 static void reset_pick(int32_t d)        /* RESET: the part (K1 or ALGORITHM); the clicks counted start again */
 {
+    if (rst_cool())                      /* (LOAF BREAKER: just reset: nothing for 3 s) */
+        return;
     ui.rst_sel = (uint8_t)clamp((int32_t)ui.rst_sel + (d > 0 ? 1 : -1), 0, NRST - 1);
     ui.rst_arm = 0u;
     ui.rst_n = 0u;
@@ -960,7 +964,8 @@ static void track_value(int i, char *t)
         if (i == 0)
             text_cat(t, RST_NAME[ui.rst_sel % NRST]);
         else
-            text_cat(t, rst_live() ? "MORE!" : ui.rst_sel % NRST == RST_ALL ? "TURN x" CH_RESET_TEXT : "TURN x5");
+            text_cat(t, rst_cool() ? "DONE" : rst_live() ? "MORE!" : ui.rst_sel % NRST == RST_ALL ? "TURN x" CH_RESET_TEXT
+                        : "TURN x5");
         return;
     }
     if (ui.tpage == 4u) {                /* BUILD: its style, its filter, its noise, the gap before the drop */
@@ -1061,7 +1066,9 @@ static void track_turn(int i, int32_t d)
     uint32_t c = ui.trk_cur % TRK_ITEMS;
     int dir = d > 0 ? 1 : -1;
     if (RST_ON) {                        /* RESET (GLO): K1 (or ALGORITHM) what; K2, K3 or K4 turned RST_TURNS clicks:
-                                          * done */
+                                          * done (then 3 s of nothing: the clicks past the last don't count) */
+        if (rst_cool())
+            return;
         if (i == 0)
             reset_pick(d);
         else {
@@ -1073,6 +1080,7 @@ static void track_turn(int i, int32_t d)
             if (ui.rst_n >= need) {
                 ui.rst_n = 0u;
                 ui.rst_arm = 0u;
+                ui.rst_done = plat_ms() | 1u;
                 if (ui.rst_sel % NRST == RST_ALL) {   /* (LOAF BREAKER: RESET ALL: its own screen says so) */
                     reset_all();
                     return;
@@ -1436,13 +1444,14 @@ static void track_picture(int32_t top)
                 y += 12;
             }
         }
-        cv_rect(6, 104, 148, 24, on ? C_HI : C_BLOCK);
-        {                                /* (LOAF BREAKER: EVERYTHING: 15 clicks, three to a box) */
-            uint32_t all = ui.rst_sel % NRST == RST_ALL, per = all ? CH_RESET_TURNS / RST_TURNS : 1u;
-            cv_text(12, 110, &FONT_T, on ? "KEEP TURNING" : all ? "TURN A KNOB x" CH_RESET_TEXT : "TURN A KNOB x5",
-                    on ? C_BLACK : C_GRAY);
+        {                                /* (LOAF BREAKER: EVERYTHING: 15 clicks, three to a box; just reset: DONE, the
+                                          * five lit, the knobs at rest 3 s) */
+            uint32_t all = ui.rst_sel % NRST == RST_ALL, per = all ? CH_RESET_TURNS / RST_TURNS : 1u, done = rst_cool();
+            cv_rect(6, 104, 148, 24, on || done ? C_HI : C_BLOCK);
+            cv_text(12, 110, &FONT_T, done ? "DONE  (WAIT 3 S)" : on ? "KEEP TURNING" : all ? "TURN A KNOB x" CH_RESET_TEXT
+                    : "TURN A KNOB x5", on || done ? C_BLACK : C_GRAY);
             for (i = 0; i < RST_TURNS; i++)  /* (the clicks so far: five boxes) */
-                cv_rect(160 + (int32_t)i * 15, 106, 12, 20, i * per < on ? C_HI : C_BLOCK);
+                cv_rect(160 + (int32_t)i * 15, 106, 12, 20, done || i * per < on ? C_HI : C_BLOCK);
         }
         cv_oy = 0;
         return;

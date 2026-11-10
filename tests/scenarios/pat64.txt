@@ -24,7 +24,7 @@ wait 200
 expect pattern 0
 expect pgrp 0
 expect grp_dirty 0
-expect store_writes 4
+expect store_writes 3
 turn PRESET -1 10
 wait 200
 expect pattern 63

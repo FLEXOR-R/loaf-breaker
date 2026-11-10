@@ -33,8 +33,8 @@ static void mix_value(uint32_t h, int i, char *t)
     if (i == 0) {
         int_text(set.brk_level, t);
         text_cat(t, "%");
-    } else
-        pct_text(i == 1 ? set.kick.volume : i == 2 ? set.perc.volume : (float)set.mel_vol * 0.01f, t);
+    } else if (i < 3)                    /* (K4: the MELODY's, 0.200-0.208) */
+        pct_text(i == 1 ? set.kick.volume : set.perc.volume, t);
 }
 
 /* the MIXER's strip: four channels side by side (a fader, its value; BREAK and KICK with their level meters, FX with
@@ -64,7 +64,7 @@ static void mix_fader(int32_t x, float v, int on)   /* 0..1 from the bottom */
 }
 static void mix_picture(int32_t top)
 {
-    static const char *const NAME[4][4] = {{"BREAK", "KICK", "PERC", "MELO"}, {"FX", "DRUMS", "", ""},
+    static const char *const NAME[4][4] = {{"BREAK", "KICK", "PERC", ""}, {"FX", "DRUMS", "", ""},
                                            {"COMP", "RATIO", "DUCK", "MAX OUT"},
                                            {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
     uint32_t c;
@@ -120,7 +120,6 @@ static void mix_picture(int32_t top)
     mix_meter(90, meter_kick);
     mix_fader(130, set.perc.volume, set.perc.volume > 0.0f);
     mix_meter(150, meter_perc);
-    mix_fader(190, (float)set.mel_vol * 0.01f, set.mel_vol > 0u);   /* (LOAF BREAKER: the MELODY's; FX: GROOVE) */
 }
 static void draw_mixer(void)
 {

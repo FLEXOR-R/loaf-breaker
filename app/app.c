@@ -176,7 +176,7 @@ typedef struct {
     uint8_t fill_cfg;                    /* (appended) LOAF BREAKER: FILL (ARP; SEL + ARP its page): bit 0 LATCH, bits
                                           * 1-2 the drum it rolls, 3-4 how long, 5 in 8ths; 0: the snare, 16ths, the
                                           * bar's last beat, while held (as before) */
-    uint8_t mel_vol;                     /* (appended) LOAF BREAKER: the MELODY's fader (MIXER LEVELS K4), 0..100 */
+    uint8_t mel_vol;                     /* (appended) LOAF BREAKER: the MELODY's fader, 0.200-0.208 (unused since) */
     uint8_t mel_ver;                     /* (appended) 1: smem[0..3] are the MELODY's instruments' sounds (an older
                                           * save: the HOOVER's memories, put back to the instruments' own) */
     uint8_t wstyle;                      /* (appended) LOAF BREAKER: the waves' colours (the KICK menu's picture, HOME's
@@ -305,7 +305,6 @@ static void kick_send(void)
     kick_set_clean_sub((float)(set.csub > 100u ? 100u : set.csub) * 0.01f);
     klab_send();
 }
-static void mel_sounds(void);
 static void settings_defaults(void)
 {
     uint32_t k;
@@ -363,8 +362,6 @@ static void settings_defaults(void)
         for (k = 0; k < PERC_VOICES * PERC_MEMS; k++)   /* (the memories begin as the presets, again and again) */
             perc_preset(perc_mem(k / PERC_MEMS, k % PERC_MEMS), k / PERC_MEMS, k % PERC_MEMS % PERC_PRESETS);
     }
-    mel_sounds();                        /* (LOAF BREAKER: the MELODY's instruments, each its own sound) */
-    set.mel_vol = 80u;
     for (k = 0; k < 16u; k++)            /* the overlays: full, the sweeps and the dirt a little less */
         set.ovl_amt[k] = k == OV_DIVE || k == OV_RISE || k == OV_CRUSH || k == OV_DIST || k == OV_BOOM ? 70u : 100u;
     set.ovl_rate = 2u;                   /* 1/16 */
@@ -507,7 +504,8 @@ static void apply_flush(void)
 #define PAT1_MAGIC 0x31544150u           /* "PAT1": the kick one bar; loaded with it four times */
 enum { LANE_KICK, LANE_SNARE, LANE_HAT, NLANES };
 /* LOAF BREAKER: the drums the pattern plays (LANE_* the first three, pat_t's lane[]), DR_SNARE.. the PV_* voices + 1 */
-enum { DR_KICK, DR_SNARE, DR_HAT, DR_CLAP, DR_STAB, NDRUMS };
+enum { DR_KICK, DR_SNARE, DR_HAT, DR_CLAP, NDRUMS };   /* (LOAF BREAKER, 0.209: the MELODY's out: kicks and drums only) */
+#define NDRUMS_SAVED 5u                  /* (pats.hits' layout in the saves: the MELODY's place kept) */
 typedef struct {
     uint8_t st[PAT_STEPS][4];            /* per step: slice + 2 (0 off, 1 follow the loop, 2.. slice 1..), pitch
                                           * (int8), flags (bit 0 reverse, bits 1-2 ratchet - 1), spare (GLOUPI
@@ -547,39 +545,10 @@ typedef struct {
     uint16_t kfm[BRK_NFXT][FXM_N];       /* KICK FX's effects as left (its own: not the chain's) */
     uint16_t kfm_ok, kfm_rsv;
     uint8_t kn[NPAT][13];                /* LOAF BREAKER: the kick's notes past its 38th step (kick_note) */
-    uint8_t hits[NPAT][NDRUMS];          /* LOAF BREAKER: each drum's HITS in the pattern (SEQ's K2): 0, 1 once a step
+    uint8_t hits[NPAT][NDRUMS_SAVED];    /* LOAF BREAKER: each drum's HITS in the pattern (SEQ's K2): 0, 1 once a step
                                           * (as ever), 2..4 that many times in its step */
 } pats_t;
 static pats_t pats PLAT_POOL;            /* (LOAF BREAKER: in the pool, 3.7 KB of RAM freed) */
-static struct {
-    uint8_t x[NPAT][8];                  /* LOAF BREAKER (KEYS): each melody step's note past -8 .. +7, 2 bits a step of
-                                          * its 32 (HVX_ADD's) */
-    uint8_t inst[NPAT];                  /* each pattern's MELODY instrument (MEL_*) */
-} hv PLAT_POOL;                          /* (the group's, in its own object, OBJ_NG0 + g; one saved before the
-                                          * instruments: x alone, every pattern ACID) */
-#define hvx hv.x
-#define HV_OLD_SIZE sizeof hv.x
-static void mel_sounds(void)             /* LOAF BREAKER: each MELODY instrument's own sound in smem[0..3], ACID's in
-                                          * pstab (the one playing: sslot) */
-{
-    uint32_t i;
-    for (i = 0; i < MEL_N; i++)
-        perc_mel_default(&set.smem[i], i);
-    set.pstab = set.smem[0];
-    set.sslot = 0u;
-    set.mel_ver = 1u;
-}
-static void mel_follow(void)             /* LOAF BREAKER: the pattern playing's instrument, its sound in (its sound as
-                                          * left kept in its memory) */
-{
-    uint32_t want = hv.inst[set.pattern % NPAT] % MEL_N;
-    if (set.sslot != want) {
-        set.smem[set.sslot % MEL_N] = set.pstab;
-        set.pstab = set.smem[want];
-        set.sslot = (uint8_t)want;
-        perc_apply();
-    }
-}
 #define PATS_SIZE_OLD offsetof(pats_t, trk)   /* (a save before the tracks) */
 #define PATS_SIZE_TRK offsetof(pats_t, mem)   /* (one before the effects' memory) */
 #define PATS_SIZE_MEM offsetof(pats_t, kfm)   /* (one before KICK FX's) */
@@ -629,10 +598,10 @@ static uint8_t grp_new;                  /* the group has none of its own object
 static uint32_t pat_cur(void) { return set.pgrp % NGRP * NPAT + set.pattern % NPAT; }   /* 0..63 */
 static uint32_t grp_hash(void)
 {
-    const uint8_t *r[4] = {(const uint8_t *)pats.p, pats.kn[0], steps.b[0], (const uint8_t *)&hv};
-    const uint32_t n[4] = {sizeof pats.p, KH_SIZE, sizeof steps.b, sizeof hv};
+    const uint8_t *r[3] = {(const uint8_t *)pats.p, pats.kn[0], steps.b[0]};
+    const uint32_t n[3] = {sizeof pats.p, KH_SIZE, sizeof steps.b};
     uint32_t h = 2166136261u, i, k;
-    for (k = 0; k < 4u; k++)
+    for (k = 0; k < 3u; k++)
         for (i = 0; i < n[k]; i++)
             h = (h ^ r[k][i]) * 16777619u;
     return h;
@@ -643,8 +612,8 @@ static int grp_save(void)                /* the group in RAM to its objects: 1 d
     uint32_t g = set.pgrp % NGRP;
     int ok = plat_store_save(OBJ_PG0 + g, pats.p, sizeof pats.p) == 0 &&
              plat_store_save(OBJ_KG0 + g, pats.kn, KH_SIZE) == 0 &&
-             plat_store_save(OBJ_SG0 + g, steps.b, sizeof steps.b) == 0 &&
-             plat_store_save(OBJ_NG0 + g, &hv, sizeof hv) == 0;
+             plat_store_save(OBJ_SG0 + g, steps.b, sizeof steps.b) == 0;   /* (LOAF BREAKER, 0.209: OBJ_NG0 + g, the
+                                          * MELODY's notes, no more) */
     if (ok) {
         grp_sum = grp_hash();
         grp_new = 0u;
@@ -669,7 +638,6 @@ static void grp_blank(void)              /* the group in RAM: 16 empty patterns 
     }
     memset(pats.kn, 0, KH_SIZE);
     memset(steps.b, 0, sizeof steps.b);
-    memset(&hv, 0, sizeof hv);
 }
 static void grp_load(uint32_t g)         /* group g into RAM (none saved yet: empty) */
 {
@@ -678,13 +646,6 @@ static void grp_load(uint32_t g)         /* group g into RAM (none saved yet: em
         plat_store_load(OBJ_KG0 + g, pats.kn, KH_SIZE) != (int)KH_SIZE ||
         plat_store_load(OBJ_SG0 + g, steps.b, sizeof steps.b) != (int)sizeof steps.b)
         grp_blank();
-    else {                               /* (a group saved before KEYS: its notes -8 .. +7; before the instruments: x
-                                          * alone, every pattern ACID) */
-        int z = plat_store_size(OBJ_NG0 + g);
-        memset(&hv, 0, sizeof hv);
-        if (z == (int)sizeof hv || z == (int)HV_OLD_SIZE)
-            (void)plat_store_load(OBJ_NG0 + g, &hv, (uint32_t)z);
-    }
     set.pgrp = (uint8_t)g;
     grp_sum = grp_hash();
     grp_new = 0u;
@@ -781,9 +742,7 @@ static inline float lim_soft(float x)    /* over 0.95: rounded off, never reachi
 static volatile uint32_t kick_hit_n;     /* (the kick's hits so far: the simulator's checks) */
 /* LOAF BREAKER: the drums' HITS (pats.hits): a hit's repeats still to come, samples from this block's start */
 #define HQ_N 16u
-static struct { int32_t at; uint8_t kick, who, fl; float pm, gt; } hq[HQ_N];
-static float hq_gt;                      /* LOAF BREAKER: the MELODY note being queued: how long, its flags (step_hit's) */
-static uint8_t hq_fl;
+static struct { int32_t at; uint8_t kick, who; float pm; } hq[HQ_N];
 static uint32_t hq_n;
 static void hq_push(int32_t at, uint8_t kick, uint8_t who, float pm);
 /* a drum's hit on step si of pattern pi, at off (len: a 16th): its step's CHANCE (0: skipped), its NUDGE (later) and
@@ -804,8 +763,6 @@ static int step_hit(uint32_t pi, uint32_t d, uint32_t si, int32_t off, int32_t l
     at = off + (int32_t)nd * len / 16;
     if (nd)
         hq_push(at, kick, who, pm);
-    if (hn > 1u && hq_gt > 0.0f)         /* (LOAF BREAKER: the MELODY's repeats: each as long as its share) */
-        hq_gt = (float)len / (float)hn;
     for (j = 1; j < hn; j++)
         hq_push(at + len * (int32_t)j / (int32_t)hn, kick, who, pm);
     return !nd;
@@ -817,8 +774,6 @@ static void hq_push(int32_t at, uint8_t kick, uint8_t who, float pm)
         hq[hq_n].kick = kick;
         hq[hq_n].who = who;
         hq[hq_n].pm = pm;
-        hq[hq_n].gt = hq_gt;
-        hq[hq_n].fl = hq_fl;
         hq_n++;
     }
 }
@@ -865,11 +820,10 @@ static void pat_defaults(void)
     }
     trk_defaults();
     pats.mem.fx_ok = pats.mem.kfx_ok = pats.kfm_ok = 0u;
-    memset(&hv, 0, sizeof hv);
     for (i = 0; i < NPAT; i++) {
         for (k = 0; k < 13u; k++)
             pats.kn[i][k] = 0u;
-        for (k = 0; k < NDRUMS; k++)
+        for (k = 0; k < NDRUMS_SAVED; k++)
             pats.hits[i][k] = 0u;
     }
 }
@@ -918,41 +872,7 @@ static uint32_t kick_bars(const pat_t *p)   /* the kick's bars played: 1, 2 or 4
 }
 /* LOAF BREAKER: every drum, bar b of its two (the kick's four): the hat's second in the spare bytes of steps 7-8, the
  * clap's two in 9-12; 32 steps or 16: step 6's spare byte, bit 3 the hat, bit 4 the clap */
-static const uint8_t LEN_BIT[NDRUMS] = {0u, PAT_SNARE32, 8u, 16u, 32u};   /* (the stab: bit 5) */
-/* LOAF BREAKER: the rave stab, in each step's flags byte (st[k][2], its bits 0-2 the break's): bit 7 its hit, bits
- * 3-6 its note (-8 .. +7 semitones), for each of the 32 steps (its two bars); HV KEYS: hvx's 2 bits add 0, +16, -16 or
- * +32 (a pattern of pats.p; another: none): -24 .. +39 */
-#define HV_LO (-24)
-#define HV_HI 39
-static const int8_t HVX_ADD[4] = {0, 16, -16, 32};
-static uint32_t hvx_of(const pat_t *p)   /* its slot in pats.p, NPAT: none */
-{
-    return p >= pats.p && p < pats.p + NPAT ? (uint32_t)(p - pats.p) : NPAT;
-}
-static int32_t stab_note(const pat_t *p, uint32_t k)
-{
-    uint32_t v = (uint32_t)p->st[k % PAT_STEPS][2] >> 3 & 15u, pi = hvx_of(p);
-    int32_t n = v >= 8u ? (int32_t)v - 16 : (int32_t)v;
-    k %= PAT_STEPS;
-    if (pi < NPAT)
-        n += HVX_ADD[hvx[pi][k >> 2] >> (k & 3u) * 2u & 3u];
-    return n;
-}
-static void stab_note_set(pat_t *p, uint32_t k, int32_t v)
-{
-    uint8_t *b = &p->st[k % PAT_STEPS][2];
-    uint32_t pi = hvx_of(p), h;
-    v = v < HV_LO ? HV_LO : v > HV_HI ? HV_HI : v;
-    h = pi >= NPAT ? 0u : v >= 24 ? 3u : v >= 8 ? 1u : v <= -9 ? 2u : 0u;
-    v -= HVX_ADD[h];
-    v = v < -8 ? -8 : v > 7 ? 7 : v;
-    *b = (uint8_t)((*b & 0x87u) | ((uint32_t)v & 15u) << 3);
-    if (pi < NPAT) {
-        uint8_t *x = &hvx[pi][(k % PAT_STEPS) >> 2];
-        uint32_t sh = (k & 3u) * 2u;
-        *x = (uint8_t)((*x & ~(3u << sh)) | h << sh);
-    }
-}
+static const uint8_t LEN_BIT[NDRUMS] = {0u, PAT_SNARE32, 8u, 16u};   /* (bit 5: the MELODY's, 0.200-0.208) */
 static uint32_t drum_at(uint32_t d, uint32_t b) { return d == DR_HAT ? 7u : 9u + (b & 1u) * 2u; }
 static uint32_t drum_bar(const pat_t *p, uint32_t d, uint32_t b)
 {
@@ -963,12 +883,6 @@ static uint32_t drum_bar(const pat_t *p, uint32_t d, uint32_t b)
         return snare_bar(p, b);
     if (d == DR_HAT && !(b & 1u))
         return p->lane[LANE_HAT];
-    if (d == DR_STAB) {                  /* (its hits: bit 7 of the bar's steps) */
-        uint32_t m = 0u, s;
-        for (s = 0; s < 16u; s++)
-            m |= (uint32_t)(p->st[(b & 1u) * 16u + s][2] >> 7) << s;
-        return m;
-    }
     k = drum_at(d, b);
     return (uint32_t)p->st[k][3] | (uint32_t)p->st[k + 1u][3] << 8;
 }
@@ -981,13 +895,7 @@ static void drum_bar_set(pat_t *p, uint32_t d, uint32_t b, uint32_t m)
         snare_bar_set(p, b, m);
     else if (d == DR_HAT && !(b & 1u))
         p->lane[LANE_HAT] = (uint16_t)m;
-    else if (d == DR_STAB) {
-        uint32_t s;
-        for (s = 0; s < 16u; s++) {
-            uint8_t *f = &p->st[(b & 1u) * 16u + s][2];
-            *f = (uint8_t)((*f & 0x7Fu) | (m >> s & 1u) << 7);
-        }
-    } else {
+    else {
         k = drum_at(d, b);
         p->st[k][3] = (uint8_t)m;
         p->st[k + 1u][3] = (uint8_t)(m >> 8);
@@ -1051,7 +959,6 @@ static void pat_apply(void)              /* the pattern playing, all of it to th
     for (k = 0; k < PAT_STEPS; k++)
         pat_step_out(k);
     pat_lanes_out();
-    mel_follow();                        /* (LOAF BREAKER: its MELODY instrument) */
 }
 static void pat_read_back(void)          /* the engine's steps into the pattern playing (after RANDOMIZE) */
 {
@@ -1212,8 +1119,6 @@ void app_init(void)
             set.magic = 0u;
         else if (sz <= (int)offsetof(settings_t, novice))
             set.novice = 0u;             /* (TEST: a save from before the MODE: its owner knows the way, EXPERT) */
-        if (set.magic == SET_MAGIC && sz <= (int)offsetof(settings_t, mel_ver))
-            mel_sounds();                /* (LOAF BREAKER: a save from the HOOVER's time: the instruments' own sounds) */
     }
     if (set.magic != SET_MAGIC || set.tempo_x10 < 400u || set.tempo_x10 > 3000u || set.swing < 50u ||
         set.swing > 75u) {
@@ -1364,9 +1269,8 @@ void app_loop(void)
             uint32_t note = pkt >> 16 & 0x7Fu, on = (st & 0xF0u) == 0x90u && (pkt >> 24 & 0x7Fu);
             if (note >= MIDI_SLICE0 && note < MIDI_SLICE0 + 16u)
                 midi_slice((int)(note - MIDI_SLICE0), (int)on);
-            else if (on && (note == 36u || (note >= 38u && note <= 40u) || note == 42u || note == 44u || note == 46u))
-                midi_drum(note == 36u ? DR_KICK : note == 38u ? DR_SNARE : note == 39u ? DR_CLAP : note == 40u ? DR_STAB
-                          : DR_HAT);     /* (LOAF BREAKER: 39 the clap, 40 the stab) */   /* (LOAF
+            else if (on && (note == 36u || note == 38u || note == 39u || note == 42u || note == 44u || note == 46u))
+                midi_drum(note == 36u ? DR_KICK : note == 38u ? DR_SNARE : note == 39u ? DR_CLAP : DR_HAT);   /* (LOAF
                                           * BREAKER: 39 the clap) */
             continue;
         }
@@ -1497,9 +1401,6 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
         {                                /* the drums: on the steps of the bar their lanes have, at their samples */
             uint16_t off[8], ka[8], pa[8];
             float kpm[8];                /* (crossbreed: each kick's note, a factor) */
-            float spm[8];                /* (each stab's note, a factor, by its hit) */
-            float sgt[8];                /* (LOAF BREAKER: each MELODY note's length, samples; 0 a short one) */
-            uint8_t sfl[8];              /* (and its flags, MEL_*) */
             uint8_t idx[8], who[8];
             uint32_t k, ne = brk_step_events(off, idx, 8u), nk = 0u, np = 0u;
             static int32_t kr_next = -1;     /* (the KICK ROLL's next hit, samples from this block's start; -1:
@@ -1623,33 +1524,14 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                         ka[nk++] = off[k];
                     }
                 }
-                hq_gt = 0.0f;
-                hq_fl = 0u;
-                if (w >> PV_STAB & 1u) {     /* the stab: its step's note (its bars: its length; LOAF BREAKER: the
-                                          * MELODY: how long to the next note, the note before the step before: a
-                                          * slide, a beat: an accent, the next step a note: a tie) */
-                    const pat_t *sp = &pats.p[set.pattern % NPAT];
-                    uint32_t sl = 16u * drum_bars(sp, DR_STAB), sk = (bar % (sl / 16u)) * 16u + s, dn;
-                    int32_t sn = stab_note(sp, sk);
-                    float slen = (float)BRK_SR * 15.0f / brk_get_tempo();
-                    for (dn = 1; dn < sl; dn++)
-                        if (drum_bar(sp, DR_STAB, (sk + dn) % sl / 16u) >> ((sk + dn) % 16u) & 1u)
-                            break;
-                    spm[np] = sn ? brk_exp2f((float)sn * (1.0f / 12.0f)) : 1.0f;
-                    hq_gt = sgt[np] = (float)dn * slen;
-                    hq_fl = sfl[np] = (uint8_t)((drum_bar(sp, DR_STAB, (sk + sl - 1u) % sl / 16u) >> ((sk + sl - 1u) % 16u) & 1u
-                                                 ? MEL_SLIDE : 0u) | (s % 4u ? 0u : MEL_ACCENT) | (dn == 1u ? MEL_TIE : 0u));
-                }
                 if (w && np < 8u) {      /* (LOAF BREAKER: each drum's step, its CHANCE, NUDGE, HITS) */
                     uint32_t dd2, now = 0u;
                     int32_t len = (int32_t)((float)BRK_SR * 15.0f / brk_get_tempo());
                     const pat_t *pp = &pats.p[set.pattern % NPAT];
-                    float mg = hq_gt;
-                    uint8_t mf = hq_fl;
                     for (dd2 = DR_SNARE; dd2 < NDRUMS; dd2++)
-                        if ((hq_gt = dd2 == DR_STAB ? mg : 0.0f, hq_fl = dd2 == DR_STAB ? mf : 0u, w >> (dd2 - 1u) & 1u) &&
+                        if (w >> (dd2 - 1u) & 1u &&
                             step_hit(set.pattern, dd2, (bar % drum_bars(pp, dd2)) * 16u + s, (int32_t)off[k], len, 0u,
-                                     (uint8_t)(1u << (dd2 - 1u)), dd2 == DR_STAB ? spm[np] : 1.0f))
+                                     (uint8_t)(1u << (dd2 - 1u)), 1.0f))
                             now |= 1u << (dd2 - 1u);
                     if (now) {
                         pa[np] = off[k];
@@ -1674,9 +1556,6 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                             kpm[nk] = hq[q].pm;
                             ka[nk++] = (uint16_t)(hq[q].at < 0 ? 0 : hq[q].at);
                         } else if (!hq[q].kick && np < 8u) {
-                            spm[np] = hq[q].pm;
-                            sgt[np] = hq[q].gt;
-                            sfl[np] = hq[q].fl;
                             pa[np] = (uint16_t)(hq[q].at < 0 ? 0 : hq[q].at);
                             who[np++] = hq[q].who;
                         }
@@ -1699,18 +1578,10 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                     for (b = a; b > 0u && pa[b - 1u] > pa[b]; b--) {
                         uint16_t to = pa[b];
                         uint8_t tw = who[b];
-                        float tp = spm[b], tg = sgt[b];
-                        uint8_t tf = sfl[b];
                         pa[b] = pa[b - 1u];
                         who[b] = who[b - 1u];
-                        spm[b] = spm[b - 1u];
-                        sgt[b] = sgt[b - 1u];
-                        sfl[b] = sfl[b - 1u];
                         pa[b - 1u] = to;
                         who[b - 1u] = tw;
-                        spm[b - 1u] = tp;
-                        sgt[b - 1u] = tg;
-                        sfl[b - 1u] = tf;
                     }
             }
             if (kick_hold)
@@ -1761,10 +1632,6 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             }
             brk_fx_kick_eq(kick, m);    /* LOAF BREAKER: HOME's KICK EQ */
             brk_fx_kick(kick, m);        /* and its KICK FX */
-            perc_pitches(spm);
-            perc_notes(sgt, sfl);        /* (LOAF BREAKER: the MELODY's notes: how long, their flags; its instrument, its
-                                          * fader, a 16th) */
-            perc_mel(set.sslot, (float)set.mel_vol * 0.01f, (float)BRK_SR * 15.0f / brk_get_tempo());
             perc_render(perc, m, pa, who, np);
             if (set.duck) {              /* LOAF BREAKER (crossbreed): DUCK: the break (and its throws; DRUMS: the
                                           * other drums too) pushed down at each kick, in its attack, back up over its

@@ -26,7 +26,7 @@ turn K1 3 10
 wait 200
 shot a_reset_kick.png
 turn K4 5 10
-wait 300
+wait 3100
 expect kbass1 0
 # MIX: COMP on (LFO MASTER K1), then RESET MIX: off again
 tap LFO
