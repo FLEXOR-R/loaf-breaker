@@ -50,6 +50,9 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   next. PATTERN's GROOVE is PG_GLOBAL `GP_FILL` (SWING, LATCH, DRUM, LENGTH), reached from SEQ's ALGORITHM and SEL + ARP;
   LEDs light EDIT / SEQ for those two. SYSTEM's parts `GLO_ORD` (MIDI, SETUP, EFFECTS, FX SET, RESET); RESET ALL is
   RESET's last item, EVERYTHING (15 turns). MIX's second part is SENDS (FX, DRUMS).
+- Knob presets (10 Nov 2026, 0.203): STYLE's PRESETS goes on past the eight styles to PRESET 1-4 (track.c, `KPRESETS`):
+  `steps.kpre[4][9]` (appended to steps_t: four codes, four values 0..200, stored), the same for every kick; an empty
+  one gives back `kcust` (the knobs before PRESETS turned); SAVE on STYLE with one picked stores them (`kpre_store`).
 - No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository.
 - Fonts: `font_trim` is on (fm1.toml, 9 Nov 2026). LOAF BREAKER draws in FONT_T, FONT_XS and FONT_B only (cv_text2 for
   bigger: those doubled). fm1-base still generates S, M (~5 KB trimmed) and L (~9 KB trimmed, 31 px), left out of the

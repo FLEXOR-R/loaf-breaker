@@ -746,8 +746,11 @@ static void input(void)
     if (bdn & 1u << B_SAVE && btn & 1u << B_SEL)   /* SEL + SAVE: undo (again: redo) */
         undo_swap();
     else if (bdn & 1u << B_SAVE) {
-        app_say("SAVE", store_all() ? "DONE" : "FAILED");
+        int pre = kpre_store();          /* (LOAF BREAKER: on STYLE, PRESET n picked: the knobs into it first) */
+        int ok = store_all();
+        app_say(pre ? KPRE_NAME[kstyle_at - KSTYLES] : "SAVE", ok ? (pre ? "STORED, SAVED" : "DONE") : "FAILED");
         set_dirty = 0u;
+        ui.redraw |= RG_BLOCKS;
     }
     /* OCT- / OCT+: pitch in semitones, repeating faster while held; both: back to 0. LOAF BREAKER: REC stopped (step by
      * step), OCT+ a REST (the step kept, the next one), OCT- a step back */
@@ -1944,8 +1947,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst"};
-    int v[88];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre"};
+    int v[89];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -2044,7 +2047,8 @@ int app_expect(const char *what, int *got)
     v[85] = (int)mel_inst();
     v[86] = set.mel_vol;
     v[87] = ui.einst;
-    for (i = 0; i < 88u; i++)
+    v[88] = steps.kpre[0][8] + steps.kpre[1][8] + steps.kpre[2][8] + steps.kpre[3][8];
+    for (i = 0; i < 89u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

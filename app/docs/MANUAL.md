@@ -320,6 +320,11 @@ or K2 left once more, deletes it, the rest moving up),
     RUMBLE, HOLD): DRIVE always on K1, DISTO always on K4. The kick's picture shows the style ("PRESETS: EARLY NEXT GEN", CUSTOM once a knob is changed on its
     own); their settings stay where they are. Each card also shows its function's value by the knob's name, and its bar
     moves as SEL + that knob turns it (SEL twice: locked, both hands free).
+    After LIVE BUILD (or back from TERROR), **PRESET 1–4** are yours: the four functions *and their values*, the same
+    for every kick. An empty one ("PRESET 1 (EMPTY)") gives the knobs back as you had them before PRESETS turned;
+    **SAVE** there stores them in it ("PRESET 1 STORED, SAVED", everything saved with it). A stored one gives the kick
+    playing its four functions and puts their values where they were: any kick, KICK 1 as KICK 10. To change one: pick
+    it, change the knobs (SEL + them, or K1–K4 their functions), SAVE again.
   Every one of them has its place on the KICK menu too, the kick's own with no knob given it: the DISTO and SCREAM and DISTO +
   (DIRT), DRIVE (SYNTH's MACRO, INTENSITY), DECAY (SOUND's SUB), REV BASS and GLIDE (SYNTH's BASS),
   CLEAN SUB and MORPH (SYNTH's CLEAN MORPH).

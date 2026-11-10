@@ -569,11 +569,14 @@ typedef struct {
     uint8_t tk[8][32];                   /* (appended) each track item's kick: 0 the one playing, 1.. KICK n (TRACKS K1;
                                           * NTRACKS x TRK_ITEMS; an older save: none) */
     uint8_t kxh[KICK_MEMS];              /* (appended) each kick memory's selk_hi (kx's, as kx_put) */
+    uint8_t kpre[4][9];                  /* (appended) LOAF BREAKER: STYLE's PRESET 1-4, the same for every kick: the
+                                          * four knobs' codes (sk_code's), their values (0..200, sk_norm's), 1 stored */
 } steps_t;
 #define STEPS_SIZE_OLD offsetof(steps_t, tb)
 #define STEPS_SIZE_TB offsetof(steps_t, kx)   /* (one before the kicks' own knobs) */
 #define STEPS_SIZE_KX offsetof(steps_t, tk)   /* (one before the track items' kicks) */
 #define STEPS_SIZE_TK offsetof(steps_t, kxh)  /* (one before the knobs' fifth bits) */
+#define STEPS_SIZE_KXH offsetof(steps_t, kpre)   /* (one before STYLE's presets) */
 _Static_assert(sizeof(steps_t) <= 3840u, "a store object holds 3840 bytes");
 
 static steps_t steps PLAT_POOL;
@@ -1198,7 +1201,8 @@ void app_init(void)
     if (pats.magic != PAT_MAGIC && pats.magic != PAT2_MAGIC && pats.magic != PAT1_MAGIC)
         pat_defaults();
     int ssz = plat_store_load(OBJ_STEP, &steps, sizeof steps), sok;
-    sok = (ssz == (int)sizeof steps || ssz == (int)STEPS_SIZE_TK || ssz == (int)STEPS_SIZE_KX || ssz == (int)STEPS_SIZE_TB ||
+    sok = (ssz == (int)sizeof steps || ssz == (int)STEPS_SIZE_KXH || ssz == (int)STEPS_SIZE_TK || ssz == (int)STEPS_SIZE_KX ||
+           ssz == (int)STEPS_SIZE_TB ||
            ssz == (int)STEPS_SIZE_OLD) && steps.magic == STEPS_MAGIC;
     if (!sok)
         steps_defaults();                /* (LOAF BREAKER: the drum steps' own settings) */
@@ -1208,8 +1212,10 @@ void app_init(void)
         kx_all();                        /* (a save before the kicks' own knobs: every kick with the ones it had) */
     if (!sok || ssz < (int)STEPS_SIZE_TK)
         memset(steps.tk, 0, sizeof steps.tk);   /* (a save before the items' kicks: the one playing) */
-    if (!sok || ssz != (int)sizeof steps)
+    if (!sok || ssz < (int)STEPS_SIZE_KXH)
         memset(steps.kxh, 0, sizeof steps.kxh);   /* (a save before the knobs past 15: none) */
+    if (!sok || ssz != (int)sizeof steps)
+        memset(steps.kpre, 0, sizeof steps.kpre);   /* (a save before STYLE's presets: none stored) */
     if (sok && pats.magic != PAT_MAGIC) {   /* an older save: its kick again over four bars, as it played */
         uint32_t i;
         for (i = 0; i < NPAT; i++) {

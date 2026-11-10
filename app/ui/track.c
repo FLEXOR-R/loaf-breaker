@@ -721,6 +721,7 @@ static float sk_norm(uint32_t f, int i)  /* a setting 0..1, as its bar */
     return (float)v * 0.01f;
 }
 /* turned: SEL + its knob (i 0), on KNOB, or on EDIT KICK's TERROR parts */
+static uint8_t sk_quiet;                 /* (LOAF BREAKER: a preset putting values back: nothing said) */
 static void selk_turn(uint32_t f, int i, int32_t d)
 {
     char t[16], n[20];
@@ -781,14 +782,16 @@ static void selk_turn(uint32_t f, int i, int32_t d)
         else
             *b = (uint8_t)clamp((int32_t)*b + d * 2, 0, 100);
     }
-    selk_value(f, i, t);
-    n[0] = 0;
-    text_cat(n, SK_NAME[f % SK_N]);
-    if (i || f == 4u) {
-        text_cat(n, " ");
-        text_cat(n, SK_KNOB[f % SK_N][i & 3]);
+    if (!sk_quiet) {
+        selk_value(f, i, t);
+        n[0] = 0;
+        text_cat(n, SK_NAME[f % SK_N]);
+        if (i || f == 4u) {
+            text_cat(n, " ");
+            text_cat(n, SK_KNOB[f % SK_N][i & 3]);
+        }
+        app_say(n, t);
     }
-    app_say(n, t);
     if (f == 0u || f == 2u)              /* (DUCK, COMP: the mix's; KICK FX the chain's; the rest the kick's alone) */
         changed();
     else if (f == 20u)
@@ -821,29 +824,110 @@ static void selk_assign_k(uint32_t kn, int32_t d)   /* (ENV KNOB's knob, or EDIT
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
 
+/* LOAF BREAKER: after the eight styles, PRESET 1-4: FLEXOR's own, the four knobs' functions and their values, the same
+ * for every kick (steps.kpre); PRESETS onto one: the kick playing takes it; SAVE there: the kick's four knobs into it */
+#define KPRESETS 4u
+static const char *const KPRE_NAME[KPRESETS] = {"PRESET 1", "PRESET 2", "PRESET 3", "PRESET 4"};
+static void sk_set_norm(uint32_t f, float want)   /* a knob's function to a value (0..1), turned there quietly */
+{
+    uint32_t n;
+    float was = sk_norm(f, 0), now;
+    sk_quiet = 1u;
+    for (n = 0; n < 600u && (was < want - 0.004f || was > want + 0.004f); n++) {
+        int32_t d = was < want ? 1 : -1;
+        selk_turn(f, 0, d);
+        now = sk_norm(f, 0);
+        if (now == was || (d > 0 ? now > want : now < want)) {   /* (stuck, or past it: the nearer of the two) */
+            if (now != was && (d > 0 ? now - want > want - was : want - now > was - want))
+                selk_turn(f, 0, -d);
+            break;
+        }
+        was = now;
+    }
+    sk_quiet = 0u;
+}
 static const char *kstyle_name(void)    /* the style the four knobs have now, or CUSTOM */
 {
+    static const char *const EMPTY[KPRESETS] = {"PRESET 1 (EMPTY)", "PRESET 2 (EMPTY)", "PRESET 3 (EMPTY)",
+                                                "PRESET 4 (EMPTY)"};
     uint32_t s, k;
+    if (kstyle_at >= KSTYLES) {          /* (LOAF BREAKER: the PRESET n picked first, its knobs still as it gave them) */
+        const uint8_t *p = steps.kpre[kstyle_at - KSTYLES];
+        for (k = 0; k < 4u && sk_code(k) == p[k]; k++)
+            ;
+        if (!p[8])
+            return EMPTY[kstyle_at - KSTYLES];
+        if (k == 4u)
+            return KPRE_NAME[kstyle_at - KSTYLES];
+    }
     for (s = 0; s < KSTYLES; s++) {
         for (k = 0; k < 4u && selk_fn(k) == KSTYLE[s][k]; k++)
             ;
         if (k == 4u)
             return KSTYLE_NAME[s];
     }
+    for (s = 0; s < KPRESETS; s++) {     /* (LOAF BREAKER: a preset's four functions) */
+        for (k = 0; k < 4u && steps.kpre[s][8] && sk_code(k) == steps.kpre[s][k]; k++)
+            ;
+        if (k == 4u)
+            return KPRE_NAME[s];
+    }
     return "CUSTOM";
+}
+static uint8_t kcust[9], kleft[9];      /* the knobs as FLEXOR had them before PRESETS turned; as PRESETS left them */
+static void kpre_take(uint8_t *p)        /* the four knobs now: codes, values (0..200), 1 */
+{
+    uint32_t k;
+    for (k = 0; k < 4u; k++) {
+        float v = sk_norm(selk_fn(k), 0);
+        p[k] = (uint8_t)sk_code(k);
+        p[4 + k] = (uint8_t)(v < 0.0f ? 0.0f : v > 1.0f ? 200.0f : v * 200.0f + 0.5f);
+    }
+    p[8] = 1u;
+}
+static void kpre_put(const uint8_t *p)   /* the kick playing takes them */
+{
+    uint32_t k;
+    for (k = 0; k < 4u; k++)
+        sk_code_set(k, p[k]);
+    for (k = 0; k < 4u; k++)
+        sk_set_norm(selk_fn(k), (float)p[4 + k] * 0.005f);
+    changed();
 }
 static void kstyle_turn(int32_t d)
 {
     uint32_t k, c;
-    kstyle_at = (uint8_t)((kstyle_at + (d > 0 ? 1u : KSTYLES - 1u)) % KSTYLES);
-    for (k = 0; k < 4u; k++) {           /* (each knob: the function's code, its place in SK_CODE + 1) */
-        for (c = 0; c < SK_CODES && SK_CODE[c] != KSTYLE[kstyle_at][k]; c++)
-            ;
-        sk_code_set(k, c + 1u);
+    uint8_t now[9];
+    kpre_take(now);                      /* (changed since PRESETS last turned: those are FLEXOR's knobs, kept for an
+                                          * empty PRESET n, so that SAVE there stores them) */
+    for (k = 0; k < 8u && now[k] == kleft[k]; k++)
+        ;
+    if (k < 8u)
+        for (k = 0; k < 9u; k++)
+            kcust[k] = now[k];
+    kstyle_at = (uint8_t)((kstyle_at + (d > 0 ? 1u : KSTYLES + KPRESETS - 1u)) % (KSTYLES + KPRESETS));
+    if (kstyle_at >= KSTYLES) {          /* (LOAF BREAKER: PRESET 1-4: stored, its knobs; empty, FLEXOR's own back) */
+        const uint8_t *p = steps.kpre[kstyle_at - KSTYLES];
+        kpre_put(p[8] ? p : kcust);
+        app_say(p[8] ? "STYLE" : KPRE_NAME[kstyle_at - KSTYLES], p[8] ? KPRE_NAME[kstyle_at - KSTYLES] : "EMPTY: SAVE STORES");
+    } else {
+        for (k = 0; k < 4u; k++) {       /* (each knob: the function's code, its place in SK_CODE + 1) */
+            for (c = 0; c < SK_CODES && SK_CODE[c] != KSTYLE[kstyle_at][k]; c++)
+                ;
+            sk_code_set(k, c + 1u);
+        }
+        app_say("STYLE", KSTYLE_NAME[kstyle_at]);
     }
-    app_say("STYLE", KSTYLE_NAME[kstyle_at]);
+    kpre_take(kleft);
     set_dirty = 1u;
     ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
+static int kpre_store(void)              /* LOAF BREAKER: SAVE on STYLE, PRESET n picked: the four knobs into it; 0 not */
+{
+    if (ui.page != PG_KICK || ui.kpage != KP_STYLE || kstyle_at < KSTYLES)
+        return 0;
+    kpre_take(steps.kpre[kstyle_at - KSTYLES]);
+    return 1;
 }
 
 /* ---- the page ---- */
