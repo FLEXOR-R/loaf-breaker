@@ -801,7 +801,7 @@ static void kick_picture(int32_t top)
                 g = g * g / 255u;
                 b = b * b / 255u;
                 cv_rect(4 + (int32_t)i, 50 - (int32_t)h, 1, 2 * (int32_t)h + 1,
-                        RGB(r * br / 255u, g * br / 255u, b * br / 255u));
+                        set.wstyle ? serato_col(v[0], v[1], v[2], br) : RGB(r * br / 255u, g * br / 255u, b * br / 255u));
             }
         }
     } else

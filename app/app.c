@@ -179,6 +179,9 @@ typedef struct {
     uint8_t mel_vol;                     /* (appended) LOAF BREAKER: the MELODY's fader (MIXER LEVELS K4), 0..100 */
     uint8_t mel_ver;                     /* (appended) 1: smem[0..3] are the MELODY's instruments' sounds (an older
                                           * save: the HOOVER's memories, put back to the instruments' own) */
+    uint8_t wstyle;                      /* (appended) LOAF BREAKER: the waves' colours (the KICK menu's picture, HOME's
+                                          * CDJ view): 0 REKORDBOX (the bands mixed: RGB, white where all are), 1 SERATO
+                                          * (the bands as one hue, red to blue, never white) */
 } settings_t;
 #define FILL_LATCH (set.fill_cfg & 1u)
 #define FILL_DRUM (set.fill_cfg >> 1 & 3u)

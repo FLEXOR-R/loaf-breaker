@@ -28,7 +28,8 @@ static void cdj_picture(const brk_status_t *st, uint32_t w, int32_t top)
         g = (uint32_t)v[1] * 255u / m;
         b = (uint32_t)v[2] * 255u / m;
         m = 110u + (uint32_t)v[3] * 145u / 255u;
-        cv_rect(x, mid - h, 1, 2 * h + 1, RGB(r * m / 255u, g * m / 255u, b * m / 255u));
+        cv_rect(x, mid - h, 1, 2 * h + 1, set.wstyle ? serato_col(v[0], v[1], v[2], m)   /* (LOAF BREAKER: SERATO) */
+                                                     : RGB(r * m / 255u, g * m / 255u, b * m / 255u));
     }
     for (k = 0; k < 9; k++) {            /* the beats back from now: a tick top and bottom, the bar's first lit */
         int32_t at = s16 - s16 % 4 - 4 * k;

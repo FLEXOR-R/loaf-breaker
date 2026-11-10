@@ -207,6 +207,35 @@ static const uint8_t SKIN_RGB[NSKINS][7][3] = {
      * black */
     {{46, 42, 14}, {98, 92, 40}, {196, 190, 140}, {255, 64, 28}, {255, 234, 0}, {22, 20, 6}, {255, 255, 228}}};
 static uint16_t skin_block = RGB(24, 24, 30), skin_hi = RGB(255, 132, 112), skin_white = 0xFFFFu;
+/* LOAF BREAKER: SERATO's colours for a wave's column: its lows, mids and highs (0..255 each) as one hue, red (the lows)
+ * through yellow, green (the mids), cyan to blue (the highs), at full saturation, br bright (0..255) */
+static uint16_t serato_col(uint32_t lo, uint32_t mi, uint32_t hi, uint32_t br)
+{
+    uint32_t a = 3u * lo, b = mi, c = hi, s = a + b + c, h, r, g, bl;   /* (the lows weighed three times: a loud
+                                          * kick, its three bands near full, orange, its tail red; a snare yellow-green,
+                                          * a hat blue) */
+    if (!s)
+        return RGB(0, 0, 0);
+    h = (b * 120u + c * 240u) / s;       /* (0 red .. 120 green .. 240 blue) */
+    if (h < 60u) {
+        r = 255u;
+        g = h * 255u / 60u;
+        bl = 0u;
+    } else if (h < 120u) {
+        r = (120u - h) * 255u / 60u;
+        g = 255u;
+        bl = 0u;
+    } else if (h < 180u) {
+        r = 0u;
+        g = 255u;
+        bl = (h - 120u) * 255u / 60u;
+    } else {
+        r = 0u;
+        g = (240u - h) * 255u / 60u;
+        bl = 255u;
+    }
+    return RGB(r * br / 255u, g * br / 255u, bl * br / 255u);
+}
 static uint16_t skin_rgb(const uint8_t *c, uint32_t pct)   /* a colour at pct % of its brightness */
 {
     return RGB(c[0] * pct / 100u, c[1] * pct / 100u, c[2] * pct / 100u);
