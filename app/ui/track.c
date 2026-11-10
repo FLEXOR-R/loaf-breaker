@@ -519,11 +519,13 @@ static const char *sk_kname(uint32_t f, int i) { return SK_KNOB[f % SK_N][i & 3]
 static const char *const KSTYLE_NAME[KSTYLES] = {"TERROR", "EARLY NEXT GEN", "HARDCORE", "NEW SCHOOL", "RAWSTYLE",
                                                  "INDUSTRIAL", "FRENCHCORE", "LIVE BUILD"};
 /* (FLEXOR's rule: a style with DRIVE has it on K1, one with TERROR has it on K4) */
-static const uint8_t KSTYLE[KSTYLES][4] = {{5u, 1u, 7u, 3u}, {15u, 16u, 17u, 18u}, {5u, 9u, 10u, 3u}, {5u, 13u, 6u, 3u},
-                                           {11u, 12u, 9u, 8u}, {7u, 6u, 10u, 20u}, {5u, 10u, 1u, 9u},
-                                           {18u, 14u, 16u, 19u}};
+static const uint8_t KSTYLE[KSTYLES][4] = {{5u, 1u, 7u, 3u}, {15u, 16u, 17u, 18u}, {5u, 17u, 10u, 3u}, {5u, 13u, 6u, 3u},
+                                           {11u, 12u, 15u, 8u}, {7u, 6u, 10u, 20u}, {5u, 10u, 1u, 15u},
+                                           {18u, 14u, 16u, 19u}};   /* (no TUNE: not a knob's) */
 static uint8_t kstyle_at;                /* (the style picked last: where turning goes on from) */
-static int sk_live(uint32_t f) { return f != 0u && f != 2u; }   /* (a function a SEL + knob may have) */
+static int sk_live(uint32_t f) { return f != 0u && f != 2u && f != 9u; }   /* (a function a SEL + knob may have;
+                                          * LOAF BREAKER: TUNE no more, SYNTH +'s K4 has it; a knob given it before: its
+                                          * own again) */
 static uint32_t sk_code(uint32_t knob)   /* the knob's code, 0 its own */
 {
     uint8_t b = knob == 1u || knob == 3u ? set.selk_asg : set.selk_asg2;

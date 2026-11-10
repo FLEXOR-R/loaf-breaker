@@ -1,6 +1,6 @@
 # LOAF BREAKER: the kick's new tools on EDIT KICK's KNOBS, K1 SET .. K4 SET (LOAF BREAKER TEST: ENV's KNOB no more; PRESETS gives a SEL + knob its function; K1-K4 its settings):
 # K1 to CLEAN SUB (the round sine under the distortion) at 50 %; K2 to MORPH, towards KICK 3, 60 % of the way; K3 to
-# T+ TYPE, RECT then TUBE; K4 to TUNE, SEL + K4 three up. Then a kick on every beat with TERROR, played.
+# T+ TYPE, RECT then TUBE; K4 to PITCH DROP (TUNE is no knob's), SEL + K4 three up. Then a kick on every beat with TERROR, played.
 #   app/build/host/loaf-breaker_host tests/scenarios/kicktools.txt app/build/scenarios
 wait 4200
 tap EDIT
@@ -17,7 +17,7 @@ expect kpage 11
 turn ALGO 1 10
 wait 100
 expect kpage 12
-turn PRESET 5 10
+turn PRESET 4 10
 wait 100
 turn K1 25 10
 wait 100
@@ -25,7 +25,7 @@ expect csub 50
 shot kt_csub.png
 turn ALGO 1 10
 wait 100
-turn PRESET 12 10
+turn PRESET 11 10
 wait 100
 turn K2 2 10
 turn K1 30 10
@@ -46,13 +46,13 @@ wait 100
 expect t_type 4
 turn ALGO 1 10
 wait 100
-turn PRESET 6 10
+turn PRESET 11 10
 wait 100
 press SEL
 turn K4 3 10
 release SEL
 wait 100
-expect ktune 3
+expect kdrop 6
 tap SEQ
 wait 200
 key w0 down

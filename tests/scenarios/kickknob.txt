@@ -1,5 +1,5 @@
-# LOAF BREAKER: the knobs are the kick playing's (LOAF BREAKER TEST: EDIT KICK's KNOBS, K1 SET, K3 SET): KICK 4's K1 to CLEAN SUB at 50 %, its K3 to TUNE; KICK 5 (KICK's
-# PRESETS once) has its own (CLEAN SUB off, K3 T+ SCREECH), and KICK 4 again its CLEAN SUB and TUNE back. Saved with the steps.
+# LOAF BREAKER: the knobs are the kick playing's (LOAF BREAKER TEST: EDIT KICK's KNOBS, K1 SET, K3 SET): KICK 4's K1 to CLEAN SUB at 50 %, its K3 to DECAY; KICK 5 (KICK's
+# PRESETS once) has its own (CLEAN SUB off, K3 T+ SCREECH), and KICK 4 again its CLEAN SUB and DECAY back. Saved with the steps.
 #   app/build/host/loaf-breaker_host tests/scenarios/kickknob.txt app/build/scenarios
 wait 4200
 tap EDIT
@@ -17,7 +17,7 @@ expect kslot 3
 turn ALGO 1 10
 wait 100
 expect kpage 12
-turn PRESET 5 10
+turn PRESET 4 10
 wait 100
 turn K1 25 10
 wait 100
@@ -27,7 +27,7 @@ wait 100
 expect kpage 12
 turn PRESET 3 10
 wait 100
-expect selk3_fn 9
+expect selk3_fn 10
 shot kk_kick4.png
 tap EDIT
 wait 300
@@ -40,7 +40,7 @@ turn PRESET -1 10
 wait 200
 expect kslot 3
 expect csub 50
-expect selk3_fn 9
+expect selk3_fn 10
 tap SAVE
 wait 50
 expect store_writes 3

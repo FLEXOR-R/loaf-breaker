@@ -151,7 +151,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
   kick as you set them; then **K1 SET .. K4 SET**, each knob's function with all its settings (TERROR:
   AMOUNT, SUB, FIZZ, SUSTAIN; MORPH: AMOUNT, TO KICK…), the function's name by the kick's (KICK 4  K4 TERROR). They
   are the kick playing's (PRESETS on KNOBS: KICK 1–10, each its own). **On K1 SET .. K4 SET, PRESETS gives that knob
-  another function** (the TERRORs, DRIVE, TUNE, DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH), for
+  another function** (the TERRORs, DRIVE, DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH and the rest), for
   the kick playing. **EDIT held** (half a
   second): the classic view (the part's knobs as bars, the layers' levels, the five drums' shapes, the break's wave
   above), held again: the big view; the part stays where it is. **Stopped**, anywhere in the KICK menu (the big view, the
@@ -247,7 +247,7 @@ or K2 left once more, deletes it, the rest moving up),
   tempo climbs with the build and drops back to yours at the drop (not while following a MIDI clock).
 - **The live knobs** (EDIT › KNOBS): what SEL + each knob does, on any page. On the KICK menu's KNOBS section,
   **ALGORITHM** goes to K1 SET .. K4 SET, and **PRESETS** there gives that knob its function: TERROR 2, TERROR, T+ DRIVE, T+ TYPE, T+ SCREECH, T+ TAIL (TERROR +'s settings, one each),
-  DRIVE (the kick's INTENSITY), TUNE, DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH, PITCH DROP, RUMBLE, PUNCH, DRUM FLT,
+  DRIVE (the kick's INTENSITY), DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH, PITCH DROP, RUMBLE, PUNCH, DRUM FLT,
   HOLD or KICK FX. They start as K1 DRIVE, K2 TERROR 2, K3 T+ SCREECH, K4 TERROR. K1–K4 then set the
   function's settings (K1 is what SEL + its knob turns). DUCK and COMP are not here: the MIXER (LFO) has them, MASTER and
   DYNAMICS.
@@ -258,7 +258,8 @@ or K2 left once more, deletes it, the rest moving up),
     scream, CLIP squared off, CRUSH in steps, RECT rectified: an octave up, hollow and metallic, TUBE uneven: warm
     and fat), SCREECH (a resonant band, ~500 Hz–5 kHz, the whistle; OFF to the left),
     TAIL (the distortion dying fast, or hanging on between kicks).
-  - **TUNE**: the whole kick, −12 to +12 semitones (SYNTH +'s TUNE). **DECAY**: the SUB's tail (HOME's K4 the same).
+  - **DECAY**: the SUB's tail (HOME's K4 the same). (TUNE is no knob's: SYNTH +'s K4 has it; a knob given it
+    before has its own function again.)
   - **REV BASS**: AMOUNT, START, CURVE (the kick's BASS part). **GLIDE**: its TIME.
   - **CLEAN SUB**: AMOUNT. A pure sine at the SUB's note (its drop, its tail) laid **after** all the distortion, the
     distorted kick's own lows (under ~90 Hz) taken out as much: the round, fat bass under the dirt, as new-school
@@ -274,14 +275,14 @@ or K2 left once more, deletes it, the rest moving up),
   - **STYLE** (KNOBS' last part, ALGORITHM back from KNOBS): **K1–K4** each give their own knob its function, one at a
     time (the cards show them); **PRESETS** turns through eight styles, each giving the four at once (the kick
     playing's): **TERROR** (DRIVE, TERROR 2, T+ SCREECH, TERROR, as they
-    start), **EARLY NEXT GEN** (PITCH DROP, RUMBLE, PUNCH, DRUM FLT), **HARDCORE** (DRIVE, TUNE, DECAY, TERROR), **NEW
-    SCHOOL** (DRIVE, CLEAN SUB, T+ TYPE, TERROR), **RAWSTYLE** (REV BASS, GLIDE, TUNE, T+ TAIL), **INDUSTRIAL** (T+
-    SCREECH, T+ TYPE, DECAY, KICK FX), **FRENCHCORE** (DRIVE, DECAY, TERROR 2, TUNE), **LIVE BUILD** (DRUM FLT, MORPH,
+    start), **EARLY NEXT GEN** (PITCH DROP, RUMBLE, PUNCH, DRUM FLT), **HARDCORE** (DRIVE, PUNCH, DECAY, TERROR), **NEW
+    SCHOOL** (DRIVE, CLEAN SUB, T+ TYPE, TERROR), **RAWSTYLE** (REV BASS, GLIDE, PITCH DROP, T+ TAIL), **INDUSTRIAL** (T+
+    SCREECH, T+ TYPE, DECAY, KICK FX), **FRENCHCORE** (DRIVE, DECAY, TERROR 2, PITCH DROP), **LIVE BUILD** (DRUM FLT, MORPH,
     RUMBLE, HOLD): DRIVE always on K1, TERROR always on K4. The kick's picture shows the style ("PRESETS: EARLY NEXT GEN", CUSTOM once a knob is changed on its
     own); their settings stay where they are. Each card also shows its function's value by the knob's name, and its bar
     moves as SEL + that knob turns it (SEL twice: locked, both hands free).
   Every one of them has its place on the KICK menu too, the kick's own with no knob given it: the TERRORs and TERROR +
-  (DIRT), DRIVE (SYNTH's MACRO, INTENSITY), TUNE (SYNTH +), DECAY (SOUND's SUB), REV BASS and GLIDE (SYNTH's BASS),
+  (DIRT), DRIVE (SYNTH's MACRO, INTENSITY), DECAY (SOUND's SUB), REV BASS and GLIDE (SYNTH's BASS),
   CLEAN SUB and MORPH (SYNTH's CLEAN MORPH).
   **KNOB is the kick's own**: each kick memory (KICK 1–10) keeps its four functions and their settings (CLEAN SUB,
   REV BASS, GLIDE, MORPH and its target; the TERRORs, TUNE and DECAY were already its own). Change kick (PRESETS on the KICK
