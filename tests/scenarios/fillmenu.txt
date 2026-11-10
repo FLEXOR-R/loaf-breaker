@@ -1,0 +1,33 @@
+# LOAF BREAKER: FILL on the ARP button. SEL + ARP: FILL's page (no random pattern any more): K1 LATCH, K2 the drum,
+# K3 how long, K4 16ths or 8ths. LATCH on: ARP once on, again off; off: on while held (as before).
+#   app/build/host/loaf-breaker_host tests/scenarios/fillmenu.txt app/build/scenarios
+wait 4200
+tap PLAY
+wait 300
+press SEL
+tap ARP
+release SEL
+wait 300
+expect page 3
+expect gpage 6
+expect fill 0
+shot g_fill.png
+turn K1 1 10
+turn K2 1 10
+turn K3 1 10
+turn K4 1 10
+wait 100
+tap ARP
+wait 1500
+expect fill 1
+shot g_fill_on.png
+tap ARP
+wait 100
+expect fill 0
+turn K1 -1 10
+press ARP
+wait 300
+expect fill 1
+release ARP
+wait 100
+expect fill 0

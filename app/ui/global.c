@@ -19,9 +19,17 @@ static void sfx_toggle(uint32_t e, int on)   /* LOAF BREAKER: GLO EFFECTS: effec
     app_say(SFX_NAME[e], set.sfx_on & b ? "ON" : "OFF");
     ui.redraw = RG_ALL;
 }
+#define GP_FILL 6u                       /* LOAF BREAKER: FILL's page, a GLO part without a tab (SEL + ARP) */
+static const char *const FILL_DRUM_NAME[4] = {"SNARE", "CLAP", "HAT", "ALL 3"};
+static const char *const FILL_LEN_NAME[4] = {"1 BEAT", "2 BEATS", "1 BAR", "2 STEPS"};
 static void global_value(int i, char *t)
 {
     t[0] = 0;
+    if (ui.gpage == GP_FILL) {           /* (FILL: LATCH, DRUM, LENGTH, RATE) */
+        text_cat(t, i == 0 ? (FILL_LATCH ? "ON" : "OFF") : i == 1 ? FILL_DRUM_NAME[FILL_DRUM] : i == 2
+                 ? FILL_LEN_NAME[FILL_LEN] : FILL_RATE ? "8THS" : "16THS");
+        return;
+    }
     if (ui.gpage == 4u) {                /* (FX SET: each 0..100 %) */
         pct_text((float)*sfx_knob(i) * 0.01f, t);
         return;
@@ -69,6 +77,26 @@ static void global_turn(int i, int32_t d)
 {
     static const char *const NAME[4] = {"CLOCK IN", "CLOCK OUT", "BLUETOOTH", "MIDI TO"};
     char t[16];
+    if (ui.gpage == GP_FILL) {           /* LOAF BREAKER: FILL: K1 LATCH, K2 the drum, K3 how long, K4 16ths or 8ths */
+        static const char *const FN[4] = {"FILL LATCH", "FILL DRUM", "FILL LENGTH", "FILL RATE"};
+        uint32_t c = set.fill_cfg;
+        if (i == 0)
+            c = (c & ~1u) | (d > 0 ? 1u : 0u);
+        else if (i == 1)
+            c = (c & ~6u) | (uint32_t)clamp((int32_t)FILL_DRUM + (d > 0 ? 1 : -1), 0, 3) << 1;
+        else if (i == 2)
+            c = (c & ~24u) | (uint32_t)clamp((int32_t)FILL_LEN + (d > 0 ? 1 : -1), 0, 3) << 3;
+        else
+            c = (c & ~32u) | (d > 0 ? 32u : 0u);
+        set.fill_cfg = (uint8_t)c;
+        if (!FILL_LATCH && !(ui.btn & 1u << B_ARP))
+            fill_on = 0u;                /* (LATCH off: no FILL left on) */
+        set_dirty = 1u;
+        global_value(i, t);
+        app_say(FN[i & 3], t);
+        ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
+        return;
+    }
     if (ui.gpage == 3u) {                /* LOAF BREAKER: EFFECTS: K1 the effect, K2 it on (right) or off (left) */
         uint32_t e = ui.sfx_cur < SFX_CRT || ui.sfx_cur >= SFX_N ? SFX_CRT : ui.sfx_cur;
         if (i == 0) {
@@ -167,6 +195,35 @@ static void draw_global(const brk_status_t *st)
     int bs = plat_ble_state();
     cv_begin(240, 44, C_BLACK);          /* LOAF BREAKER: no waveform on GLOBAL: its place the skins' on MORE, black
                                           * on the others */
+    if (ui.gpage == GP_FILL) {           /* LOAF BREAKER: FILL: what ARP does, its four settings as cards */
+        static const char *const L[4] = {"LATCH", "DRUM", "LENGTH", "RATE"};
+        uint32_t j;
+        cv_text(6, 1, &FONT_T, fill_on ? "FILL  ON" : "FILL", fill_on ? C_HI : C_GRAY);
+        cv_text(6, 16, &FONT_XS, FILL_LATCH ? "ARP: ON, ARP AGAIN: OFF" : "ARP HELD: THE FILL", C_DIM);
+        cv_text(6, 28, &FONT_XS, "STEPS SET FILL PLAY, NOT FILL REST", C_DIM);
+        cv_blit(0, 44);
+        cv_begin(240, 52, C_BLACK);
+        for (j = 0; j < 4u; j++) {
+            int32_t x = 4 + (int32_t)j * 59;
+            char v[12];
+            global_value((int)j, v);
+            cv_rect(x, 4, 53, 42, j == 0 && FILL_LATCH ? C_HI : C_BLOCK);
+            cv_text(x + 4, 6, &FONT_XS, L[j], j == 0 && FILL_LATCH ? C_BLACK : C_GRAY);
+            cv_text(x + 4, 26, &FONT_T, v, j == 0 && FILL_LATCH ? C_BLACK : C_WHITE);
+        }
+        cv_blit(0, 88);
+        cv_begin(240, 52, C_BLACK);
+        {                                /* the bar: its 16ths, the ones the fill rolls lit */
+            uint32_t s;
+            cv_text(6, 2, &FONT_XS, "THE BAR: THE FILL'S 16THS", C_DIM);
+            for (s = 0; s < 16u; s++) {
+                int on = s >= FILL_FROM[FILL_LEN] && (!FILL_RATE || !(s & 1u));
+                cv_rect(6 + (int32_t)s * 14, 18, 12, 22, on ? (fill_on ? C_WHITE : C_HI) : (s & 3u) ? C_BLOCK : C_LINE);
+            }
+        }
+        cv_blit(0, 140);
+        return;
+    }
     if (ui.gpage == 3u) {                /* LOAF BREAKER: EFFECTS: the seven, lit when on (keys 1-7), K1's outlined */
         uint32_t e, cur = ui.sfx_cur < SFX_CRT || ui.sfx_cur >= SFX_N ? SFX_CRT : ui.sfx_cur;
         cv_text(6, 1, &FONT_T, "SCREEN EFFECTS", C_GRAY);

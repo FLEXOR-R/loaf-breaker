@@ -72,7 +72,7 @@ M-VAVE's original firmware first ([docs/FLASHING.md](docs/FLASHING.md)).
 | ENV | **TRACK**: TRACKS (patterns, loops, drops and each item's own break and kick; ENV held: a space after the item, or the space taken out), PLAY (a radio: tune a track, press PLAY), DROP, BUILD (the build before a drop: style, sweep, riser, a gap; PRESETS: the tempo rising to the drop) |
 | LFO | **LFO held + K1–K4**: the break, kick, drums and FX levels on any page · The **MIXER**: LEVELS, GROOVE, MASTER (COMP, RATIO, DUCK, MAX OUT), DYN (the compressor's and the ducker's timing) |
 | FX | The master FX chain: four slots (FILTER, CRUNCH, DRIVE, PUNCH, FLANGER, RING MOD, TREMOLO, REVERB, DELAY, EQ, TAPE, MB COMP, CLIP); each effect remembers its settings when you change it and back; presets MB KICK and MB OTT after MB COMP |
-| ARP | **Held: FILL** (the steps set FILL play, NOT FILL rest, the snare rolls the bar's last beat) · SEL + ARP: a random pattern |
+| ARP | **Held: FILL** (the steps set FILL play, NOT FILL rest, the snare rolls the bar's last beat; LATCH: a press on, the next off) · SEL + ARP: FILL's page (LATCH, DRUM, LENGTH, RATE) |
 | GLO | GLOBAL: MIDI clock in and out (USB, TRS); the pitch and snap, RESET ALL; MORE: MODE (BEGINNER: the KICK menu's basics; EXPERT: all of it), AUTO SAVE, 18 skins, WAVE ZOOM; EFFECTS: the screen effects, several at once (CRT, VHS, GRAIN, RGB, SHAKE, STROBE, 8-BIT); FX SET: their settings; RESET: one part at a time |
 | SAVE | Keep the settings, the patterns, the tracks and the steps |
 

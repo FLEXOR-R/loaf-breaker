@@ -173,7 +173,15 @@ typedef struct {
                                           * TERROR off (TER) */
     uint8_t pgrp;                        /* (appended) LOAF BREAKER: the patterns' group in RAM, 0..3 (P1-16 .. P49-64);
                                           * pattern its slot there */
+    uint8_t fill_cfg;                    /* (appended) LOAF BREAKER: FILL (ARP; SEL + ARP its page): bit 0 LATCH, bits
+                                          * 1-2 the drum it rolls, 3-4 how long, 5 in 8ths; 0: the snare, 16ths, the
+                                          * bar's last beat, while held (as before) */
 } settings_t;
+#define FILL_LATCH (set.fill_cfg & 1u)
+#define FILL_DRUM (set.fill_cfg >> 1 & 3u)
+#define FILL_LEN (set.fill_cfg >> 3 & 3u)
+#define FILL_RATE (set.fill_cfg >> 5 & 1u)
+static const uint8_t FILL_FROM[4] = {12u, 8u, 0u, 14u};   /* its first 16th of the bar: 1 BEAT, 2 BEATS, 1 BAR, 2 STEPS */
 enum { DS_SNARE, DS_KICK, DS_BOTH, DS_STUTTER, DS_SWEEP, DS_RANDOM, DS_N };
 static const uint8_t DROP_GAP[5] = {0u, 1u, 2u, 4u, 8u};   /* its steps: none, a 16th, an 8th, a beat, half a bar */
 static const float COMP_RATIO[8] = {1.5f, 2.0f, 3.0f, 4.0f, 6.0f, 8.0f, 12.0f, 20.0f};
@@ -1542,10 +1550,12 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                         who[np++] = (uint8_t)now;
                     }
                 }
-                if (fill_on && s >= 12u && np < 8u && !b_on) {   /* LOAF BREAKER TEST: FILL: the snare on every 16th of
-                                          * the bar's last beat */
+                if (fill_on && s >= FILL_FROM[FILL_LEN] && (!FILL_RATE || !(s & 1u)) && np < 8u && !b_on) {
+                                          /* LOAF BREAKER TEST: FILL: its drum on every 16th (or 8th) of the bar's
+                                          * last beat (FILL's LENGTH) */
                     pa[np] = off[k];
-                    who[np++] = 1u << PV_SNARE;
+                    who[np++] = (uint8_t)(FILL_DRUM == 1u ? 1u << PV_CLAP : FILL_DRUM == 2u ? 1u << PV_HAT : FILL_DRUM == 3u
+                                          ? 1u << PV_SNARE | 1u << PV_CLAP | 1u << PV_HAT : 1u << PV_SNARE);
                 }
             }
             {                            /* LOAF BREAKER: the HITS due in this block, in with the steps' (in order) */

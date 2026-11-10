@@ -132,7 +132,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 | ENV | **TRACK**: tracks of patterns and drops, playing them, the drop's settings (below) |
 | SEL (pressed alone) | The combinations card: every SEL combination on the strip. SEL used with something else (SEL + a knob, SEL + ALGORITHM, SEL + REC…) does that instead |
 | SEL + ALGORITHM · SEL + PRESETS | The break · the pattern, from any page |
-| SEL + SAVE | **Undo** the last pattern wipe (SEL + ARP, SEL + REC, a drum lane's FILL, CLR / 4X4 or COPY); again: redo |
+| SEL + SAVE | **Undo** the last pattern wipe (SEL + REC, a drum lane's FILL, CLR / 4X4 or COPY); again: redo |
 | OCT− / OCT+ | Pitch in semitones (hold to go faster). Both: back to 0 |
 | PRESETS | The pattern, P1–P64 (§5); while playing the new one starts at the end of the loop |
 | SEQ · REC | The sequencer; recording the keys into the pattern (§5). SEL + REC: clear the pattern (SEL + SAVE takes it back) |
@@ -415,7 +415,7 @@ steps across (16 or 32: its LENGTH), its notes up the side, the cursor's step fr
 **REC** records: while it is lit and the break plays, every white key you press (on HOME and the other pages where
 the keys play slices) is written into the pattern at the step it lands on, and so are MIDI notes: 48–63 as slices,
 36 / 38 / 42 into the kick, snare and hat lanes. REC again stops. **SEL + REC** clears: on SEQ the lane shown, on any
-other page the whole pattern. SEL + ARP (a random pattern) writes into the pattern playing. **SEL + SAVE undoes**
+other page the whole pattern. **SEL + SAVE undoes**
 either (and FILL, CLR / 4X4 and COPY on a drum lane, and the SEQ-held moves below); press it again to redo. SAVE keeps
 all 16.
 
@@ -434,8 +434,19 @@ all 16.
 ### FILL (ARP)
 
 **Hold ARP** for a fill: the steps whose COND is FILL play, the ones set NOT FILL rest, and the snare rolls through
-the last beat of each bar. Let go and the pattern is as it was. **SEL + ARP** still writes a random pattern. (The
-OVERLAY page that ARP used to open is gone; the ARP black key keeps its effect, chosen on its own knobs.)
+the last beat of each bar. Let go and the pattern is as it was. (The OVERLAY page that ARP used to open is gone; the
+ARP black key keeps its effect, chosen on its own knobs.)
+
+**SEL + ARP opens FILL's page**, its settings (saved with the rest):
+
+| K1 LATCH | K2 DRUM | K3 LENGTH | K4 RATE |
+| --- | --- | --- | --- |
+| OFF: FILL while ARP is held. ON: ARP once, FILL on; ARP again, off | What rolls: SNARE, CLAP, HAT or ALL 3 | How much of each bar: 1 BEAT (the last), 2 BEATS, 1 BAR, 2 STEPS | 16THS or 8THS |
+
+![FILL's page](img/screen-fill.png "FILL")
+
+The page shows the bar's 16ths, the ones the fill rolls lit (white while it plays). SEL + ARP no longer writes a random
+pattern: the generator (HOME's second part) does that job.
 
 ## 6. The FX chain
 
@@ -796,7 +807,7 @@ the slice lit in the waveform shrinks with it. It covers the loop's slices, ratc
 
 The generator rearranges the break as it plays: **complexity** is how often it jumps, **anchor** keeps the kick and
 snare on the beats, **roll** repeats a slice or takes the one next to it, **fill** breaks the rules in the last bar
-of a phrase; it is HOME's second part (HOME again). SEL + ARP writes a random pattern (ARP alone, held, is FILL).
+of a phrase; it is HOME's second part (HOME again). (ARP, held, is FILL; SEL + ARP its settings.)
 
 ## 11. The control map
 

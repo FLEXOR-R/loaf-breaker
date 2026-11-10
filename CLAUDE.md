@@ -37,6 +37,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - HV KEYS (10 Nov 2026, 0.198): SEQ's piano for the HOOVER (`ui.piano`, ALGORITHM past the last lane; seq.c piano_*):
   all 27 keys notes (PIANO_W / PIANO_B), the pads' loop skipped there. Hoover notes -24..+39: `stab_note` adds hvx's
   2 bits (HVX_ADD) to the 4 in st[k][2]; hvx is the group's (OBJ_NG0 + g), copied with paste and undo.
+- FILL (10 Nov 2026, 0.199): ARP held (LATCH: toggled); SEL + ARP opens FILL's page, GLO part `GP_FILL` (6, no tab:
+  the tab row is full); `set.fill_cfg` (LATCH, DRUM, LENGTH, RATE). SEL + ARP's random pattern is gone (FLEXOR's ask).
 - No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository.
 - Fonts: `font_trim` is on (fm1.toml, 9 Nov 2026). LOAF BREAKER draws in FONT_T, FONT_XS and FONT_B only (cv_text2 for
   bigger: those doubled). fm1-base still generates S, M (~5 KB trimmed) and L (~9 KB trimmed, 31 px), left out of the

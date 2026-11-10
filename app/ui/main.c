@@ -623,20 +623,17 @@ static void input(void)
             seq_clear(2);
         }
     }
-    if (bdn & 1u << B_ARP && btn & 1u << B_SEL) {   /* SEL + ARP: a random pattern (SEL + SAVE takes it back) */
-        undo_mark(UNDO_RANDOM);              /* (the generator itself is HOME's second part) */
-        brk_randomize();
-        pat_read_back();                 /* (into the pattern playing: SAVE keeps it) */
-        set_dirty = 1u;
-        app_say("RANDOMIZE", "");
-        ui.redraw |= RG_BLOCKS;
+    if (bdn & 1u << B_ARP && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + ARP: FILL's page (its settings; was a
+                                          * random pattern: the generator is HOME's second part) */
+        global_part(GP_FILL);
     } else if (bdn & 1u << B_ARP) {      /* LOAF BREAKER TEST: ARP held: FILL (the steps set FILL play, NOT FILL
-                                          * ones rest, the snare rolls the bar's last beat) */
-        fill_on = 1u;
-        app_say("FILL", "");
-        ui.redraw |= RG_HEAD;
+                                          * ones rest, the snare rolls the bar's last beat: FILL's page); LATCH: a
+                                          * press on, the next off */
+        fill_on = FILL_LATCH ? (uint8_t)!fill_on : 1u;
+        app_say("FILL", FILL_LATCH ? (fill_on ? "ON" : "OFF") : "");
+        ui.redraw |= RG_HEAD | (ui.page == PG_GLOBAL ? RG_BLOCKS : 0u);
     }
-    if (fill_on && !(btn & 1u << B_ARP)) {
+    if (fill_on && !FILL_LATCH && !(btn & 1u << B_ARP)) {
         fill_on = 0u;
         ui.redraw |= RG_HEAD;
     }
@@ -1077,6 +1074,8 @@ static void draw_tabs(void)
     else if (ui.page == PG_TRACK)        /* LOAF BREAKER: ENV: TRACKS, PLAY, DROP */
         for (i = 0; i < NTORD; i++)   /* (TRACKS, PLAY, DROP, BUILD: no "ENV" before them, for the room) */
             x = tab(x, TPART[TORDER[i]], TORDER[i] == ui.tpage);
+    else if (ui.page == PG_GLOBAL && ui.gpage == GP_FILL)   /* (LOAF BREAKER: FILL's page: SEL + ARP, no tab) */
+        tab(x, "FILL", 1);
     else if (ui.page == PG_GLOBAL)
         for (i = 0; i < NGPART; i++)
             x = tab(x, GPART[i], i == ui.gpage);
@@ -1132,7 +1131,7 @@ static void page_say(void)
     case PG_HOME: text_cat(t, "PERFORM"); break;
     case PG_GEN: text_cat(t, "GENERATOR"); break;
     case PG_KEQ: text_cat(t, ui.keq_part ? "KICK EQ SHAPE" : "KICK EQ BANDS"); break;
-    case PG_GLOBAL: text_cat(t, GPART[ui.gpage % NGPART]); break;
+    case PG_GLOBAL: text_cat(t, ui.gpage == GP_FILL ? "FILL" : GPART[ui.gpage % NGPART]); break;
     case PG_MIX: text_cat(t, ui.mpage == 3u ? "DYNAMICS" : ui.mpage == 2u ? "MASTER" : ui.mpage ? "GROOVE" : "LEVELS"); break;
     case PG_SEQ: text_cat(t, ui.piano ? "KEYS" : SEQL[ui.seq_lane % NSEQL]); break;
     case PG_TRACK: text_cat(t, TPART[ui.tpage % NTPART]); break;
@@ -1286,7 +1285,8 @@ static void draw_foot(const brk_status_t *st)
                                                   {"AMOUNT", "KICK", "DROP", "LENGTH"}};   /* FX SET) */
         static const char *const KN_TRK[4][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
                                                  {"STYLE", "SWEEP", "RISER", "GAP"}, {"WHAT", "RESET", "RESET", "RESET"}};
-        const char *name = RST_ON ? KN_TRK[3][i] : ui.page == PG_TRACK &&
+        static const char *const KN_FILL[4] = {"LATCH", "DRUM", "LENGTH", "RATE"};   /* (LOAF BREAKER: FILL) */
+        const char *name = ui.page == PG_GLOBAL && ui.gpage == GP_FILL ? KN_FILL[i] : RST_ON ? KN_TRK[3][i] : ui.page == PG_TRACK &&
                            ui.tpage ? KN_TRK[ui.tpage == 4u ? 2u : (ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
                            ui.gpage >= 2u ? KN_MORE[(ui.gpage - 2u) % 3u][i] : ui.page == PG_GLOBAL && ui.gpage
                            ? KN_PITCH[i] : ui.page == PG_MIX && ui.mpage
