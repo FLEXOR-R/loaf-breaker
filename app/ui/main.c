@@ -380,6 +380,12 @@ static void input(void)
         if ((kup & PAD_BIT(i)) && !(i == PAD_HALF && half_lat))
             brk_pad((int)i, 0);
     }
+    if (kdn >> BK[TERR_KEY] & 1u) {      /* LOAF BREAKER: TER: the kick's TERROR off (its amount kept), again on */
+        terror_off ^= 1u;
+        app_say("TERROR", terror_off ? "OFF (TER)" : "ON");
+        changed_kick();
+        ui.redraw |= RG_FOOT;
+    }
     if (kdn >> BK[KILL_KEY] & 1u) {      /* LOAF BREAKER: KIL held: the sequencer's kicks quiet; let go: back. Its
                                           * LATCH (K1 while held): a press quiet, the next back */
         ui.kil_focus = 1u;
@@ -946,6 +952,8 @@ static void leds(void)
             k |= PAD_BIT(i);
     if (kick_hold)                       /* (LOAF BREAKER: KIL held: lit) */
         k |= 1u << BK[KILL_KEY];
+    if (KICK_TERROR(&set.kick) && !terror_off)   /* (LOAF BREAKER: TER lit while the kick's TERROR sounds) */
+        k |= 1u << BK[TERR_KEY];
     if (build_p >= 0.0f) {               /* LOAF BREAKER: the build: the white keys fill up left to right (TEST: the next
                                           * one blinking, faster as it builds) */
         uint32_t n = 1u + (uint32_t)(build_p * 15.0f), per = 220u - (uint32_t)(build_p * 180.0f);
@@ -1231,6 +1239,12 @@ static void draw_foot(const brk_status_t *st)
         int32_t x = 2 + (int32_t)KILL_KEY * 21;
         cv_rect(x, 0, 20, 14, kick_hold ? C_HI : C_BLOCK);
         cv_text(x + (20 - text_w(&FONT_T, "KIL")) / 2, 1, &FONT_T, "KIL", kick_hold ? C_BLACK : C_GRAY);
+    }
+    {                                    /* LOAF BREAKER: TER, lit while the kick's TERROR sounds */
+        int32_t x = 2 + (int32_t)TERR_KEY * 21;
+        int on = KICK_TERROR(&set.kick) && !terror_off;
+        cv_rect(x, 0, 20, 14, on ? C_HI : C_BLOCK);
+        cv_text(x + (20 - text_w(&FONT_T, "TER")) / 2, 1, &FONT_T, "TER", on ? C_BLACK : C_GRAY);
     }
     for (i = 0; i < 4u; i++) {
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "RESET ALL"};
@@ -1822,8 +1836,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop"};
-    int v[75];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off"};
+    int v[76];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1910,7 +1924,8 @@ int app_expect(const char *what, int *got)
     v[72] = (int)selk_fn(0u);
     v[73] = (int)selk_fn(3u);
     v[74] = set.ksyn[KS_DROP];
-    for (i = 0; i < 75u; i++)
+    v[75] = terror_off;
+    for (i = 0; i < 76u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

@@ -17,8 +17,9 @@ Play two or three in turn and you are already chopping.
 ## 3. Hold a black key: the effects
 
 The black keys act while held and can be combined: **R8 · R16 · R32** roll the break, **REV** plays it backwards,
-**FLT** throws a DJ filter, **HLF** halves the speed, **VNL** stops it like a record, **RND** shuffles the slices,
-**KIL** cuts the kick while held (let go: it drops back in, in time). While one is held, K1–K4 tune it.
+**RND** shuffles the slices, **HLF** halves the speed, **VNL** stops it like a record,
+**KIL** cuts the kick while held (let go: it drops back in, in time), **TER** turns the kick's TERROR off and
+on again. While one is held, K1–K4 tune it.
 
 ## 4. EDIT: shape the kick
 

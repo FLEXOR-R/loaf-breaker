@@ -150,7 +150,7 @@
     <p>First match wins.</p>
     <div class="stack">
       <div class="layer"><div class="rank">1</div><b>A white key held</b><ul><li>Anywhere but SEQ and ENV (tracks)</li><li>Its loop: LENGTH, PITCH, START, MODE</li><li>FX flips to its slice effect: EFFECT, AMOUNT, TONE, LEVEL</li><li>SEL resets the key</li></ul></div>
-      <div class="layer"><div class="rank">2</div><b>A pad held</b><ul><li>Any page; a pad pressed after the key wins</li><li>R8 · R16 · R32: RATE, THRU, DRUM FLT, DECAY (SEL + a roll: the kick alone)</li><li>REV: SPEED · FLT: TARGET, RESO, SPEED</li><li>HLF: SPEED, M. TEMPO, LATCH · VNL: STOP, SPIN UP, THRU</li><li>RND: AMOUNT, PITCH · KIL: the sequencer's kicks quiet while held</li><li>ARP: EFFECT, AMOUNT, TIME, LATCH; FX while held: THRU, ON / OFF, RATE, SWEEP</li><li>SUB: a press, the kick's SUB DRIVE on or off</li></ul></div>
+      <div class="layer"><div class="rank">2</div><b>A pad held</b><ul><li>Any page; a pad pressed after the key wins</li><li>R8 · R16 · R32: RATE, THRU, DRUM FLT, DECAY (SEL + a roll: the kick alone)</li><li>REV: SPEED · RND: AMOUNT, PITCH</li><li>HLF: SPEED, M. TEMPO, LATCH · VNL: STOP, SPIN UP, THRU</li><li>KIL: the sequencer's kicks quiet while held (K1 LATCH) · TER: the kick's TERROR off, again on</li><li>ARP: EFFECT, AMOUNT, TIME, LATCH; FX while held: THRU, ON / OFF, RATE, SWEEP</li><li>SUB: a press, the kick's SUB DRIVE on or off</li></ul></div>
       <div class="layer"><div class="rank">3</div><b>The page</b><ul><li>What the explorer shows</li><li>SELECT is the tempo (SEL + SELECT: the drums' filter), but on the KICK menu's big view: the next drum</li><li>MASTER the volume</li><li>ALGORITHM and PRESETS follow the page</li></ul></div>
     </div>
   </div>
@@ -231,7 +231,7 @@
       algo: "Break", presets: "Pattern P1–P16", keys: "slices", sel: "Tempo (SEL: drum filter)",
       notes: [["ARP held", "FILL, while held"], ["SEL + ARP", "A random pattern (SEL + SAVE undoes)"], ["The ARP black key", "Its overlay effect: EFFECT, AMOUNT, TIME, LATCH; FX while held: THRU, ON / OFF, RATE, SWEEP"]] }
   ];
-  const PADS = ["R8", "R16", "R32", "REV", "FLT", "HLF", "VNL", "RND", "ARP", "KIL", "SUB"];
+  const PADS = ["R8", "R16", "R32", "REV", "RND", "HLF", "VNL", "ARP", "KIL", "TER", "SUB"];
   let cur = 0, sub = 0;
 
   (function wave() {

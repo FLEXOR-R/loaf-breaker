@@ -62,33 +62,33 @@ tap HOME
 tap PLAY
 wait 1300
 expect khits 4
-key b9 down
+key b8 down
 wait 100
 expect khits 0
 wait 1500
 expect khits 0
 shot kil_held.png
-key b9 up
+key b8 up
 wait 1500
 expect khits 4
 # KIL's LATCH (K1 while it is held, right): let go, the kicks stay quiet; KIL again: back. K1 left: held only again
-key b9 down
+key b8 down
 wait 50
 turn K1 1 10
 wait 100
 shot kil_latch.png
-key b9 up
+key b8 up
 wait 1500
 expect khits 0
-key b9 down
+key b8 down
 wait 30
-key b9 up
+key b8 up
 wait 1500
 expect khits 4
-key b9 down
+key b8 down
 wait 50
 turn K1 -1 10
 wait 100
-key b9 up
+key b8 up
 wait 1500
 expect khits 4

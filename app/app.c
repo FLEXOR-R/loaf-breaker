@@ -204,11 +204,16 @@ static uint8_t foot_dirty;               /* a setting changed: the slicer's foot
  * far towards kick memory kmorph_to: every level, pitch, decay, tone, effect setting, TERROR and SYNTH setting in
  * between; the layers' effects and TERROR + 's TYPE the nearer one's. CLEAN SUB with it */
 static int32_t morph_i(int32_t a, int32_t b, uint32_t m) { return a + (b - a) * (int32_t)m / 100; }
+static uint8_t terror_off;               /* LOAF BREAKER: TER (the tenth black key): the kick's TERROR off, whatever its
+                                          * amount (kept as it is); a press again: on */
 static void kick_send(void)
 {
     uint32_t m = set.kmorph > 100u ? 100u : set.kmorph, i, j;
     if (!m) {
-        kick_set(&set.kick);
+        kick_t k = set.kick;
+        if (terror_off)
+            KICK_TERROR(&k) = 0u;
+        kick_set(&k);
         kick_set_synth(set.ksyn);
     } else {
         kick_t k = set.kick;
@@ -245,6 +250,8 @@ static void kick_send(void)
         k.intensity += (b->intensity - k.intensity) * t;
         for (j = 0; j < KS_N; j++)
             sy[j] = (int8_t)morph_i(set.ksyn[j], set.ksmem[set.kmorph_to % KICK_MEMS][j], m);
+        if (terror_off)
+            KICK_TERROR(&k) = 0u;
         kick_set(&k);
         kick_set_synth(sy);
     }

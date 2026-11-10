@@ -29,8 +29,9 @@ Play two or three in turn and you are already chopping.
 ### 3. Hold a black key: the effects
 
 The black keys act while held and can be combined: **R8 · R16 · R32** roll the break, **REV** plays it backwards,
-**FLT** throws a DJ filter, **HLF** halves the speed, **VNL** stops it like a record, **RND** shuffles the slices,
-**KIL** cuts the kick while held (let go: it drops back in, in time). While one is held, K1–K4 tune it.
+**RND** shuffles the slices, **HLF** halves the speed, **VNL** stops it like a record,
+**KIL** cuts the kick while held (let go: it drops back in, in time), **TER** turns the kick's TERROR off and
+on again. While one is held, K1–K4 tune it.
 
 ### 4. EDIT: shape the kick
 
@@ -348,25 +349,25 @@ slices you marked ring out, the classic dub throw. (Without a DELAY slot, ECHO g
 
 ## 4. The pads
 
-The black keys, left to right (R8 R16 R32 REV FLT HLF VNL RND ARP KIL SUB), act while held and combine. The gate is
-HOME's K1 (GATE), no longer a pad. While a pad is held, the slice blocks give way to an
+The black keys, left to right (R8 R16 R32 REV RND HLF VNL ARP KIL TER SUB), act while held and combine. The gate is
+HOME's K1 (GATE) and the DJ filter HOME's K2, no longer pads. While a pad is held, the slice blocks give way to an
 animation of what it does, and **K1–K4 tune that pad** (the foot shows its settings; SAVE keeps them):
 
 | Pad | Does | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- | --- |
 | R8 · R16 · R32 | Roll from the next 16th | RATE (1/4 … 1/64, triplets) | THRU: BREAK (the break rolled, as ever), KICK (the kick hit at the rate instead of its pattern: a kick roll; the break plays on), BOTH (the two); **SEL + the pad**: the kick alone, for that press, whatever THRU says | DRUM FLT (HOME's drums' filter) | DECAY: DOWN (each repeat quieter) or UP (a swell up to full) |
 | REV | Reverse | Speed | | | |
-| FLT | Throws the DJ filter | Target (LP … HP) | Resonance | Speed | |
 | HLF | Half speed | Speed | MASTER TEMPO: the pitch kept (ON) or dropped | LATCH: ON, a press turns it on and the next off | |
 | VNL | VINYL BREAK: the record slowing to a stop, spinning back up when let go | Stop (beats) | Spin-up | THRU: the break, the kick or both | |
 | RND | Random slices | Amount | Random pitch | | |
 | ARP | Its OVERLAY effect over the mix, while held (or latched): DIVE, RISE, RADIO, WAH, CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, WOBBLE, JET, REESE | EFFECT | AMOUNT (that effect's) | TIME: RATE for CHOP, GATE, WAH, PAN; SWEEP for DIVE, RISE | LATCH |
 | ARP, FX while held (MORE) | | THRU: the kick, the break or both | ON / OFF (OFF: K1 browses silent) | RATE (1/4 … 1/32) | SWEEP (1/4 bar … 2 bars) |
 | KIL | While held, the sequencer's kicks are quiet; let go, they play again (a kick roll still plays) | LATCH: ON, a press quiets them and the next brings them back | | | |
+| TER | A press: the kick's TERROR off, whatever its amount (kept as it is); again: on. Lit while it sounds | | | | |
 | SUB | A press: the kick's SUB DRIVE on, the next off (its drive is the SUB layer's DRIVE effect, EDIT) | | | | |
 
 ![ROLL held: the caught slice repeating, each copy quieter](img/pad-roll8.png "ROLL held")
-![VINYL BREAK held: the record slowing down](img/pad-stop.png "VINYL BREAK held") ![The DJ filter thrown](img/pad-dub.png "Filter")
+![VINYL BREAK held: the record slowing down](img/pad-stop.png "VINYL BREAK held")
 
 ## 5. Patterns and the sequencer
 
@@ -734,7 +735,7 @@ going into the MIXER.
 
 FX is how much of the chain you hear (the drums routed around it stay dry). Bring BREAK down to drop the break and
 let the drums run alone, then up again for the drop. HOME keeps the gate, FX and COMPLEXITY to ride (K1, K3, K4) and the **DJ filter** (K2), which filters the
-break alone: sweep it down and the drums stay full on top. The FLT pad throws it the same way.
+break alone: sweep it down and the drums stay full on top.
 
 ## 10. Pages and knobs
 
