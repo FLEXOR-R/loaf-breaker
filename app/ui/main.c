@@ -845,6 +845,8 @@ static void input(void)
                                           * K4 SET: that knob's function (as ENV KNOB's PRESETS) */
             if (ui.kpage == KP_KSET)
                 selk_assign_k(ui.kks, d);
+            else if (ui.kpage == KP_STYLE)
+                kstyle_turn(d);          /* (KNOBS' STYLE: a style, the four knobs at once) */
             else
                 kick_mem_turn(d);
         } else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage == 2u) {   /* LOAF BREAKER: DROP's BUILD KICK */

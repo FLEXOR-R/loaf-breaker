@@ -22,9 +22,10 @@ static int kn_i(int i) { return ui.kpage == KP_KSET ? i : 0; }
 /* LOAF BREAKER: SYNTH's CLEAN · MORPH part: K1 CLEAN SUB, K2 MORPH, K3 its TO KICK (ENV KNOB's functions 13, 14: their
  * own place, the kick's own, with no knob given them) */
 static uint32_t cm_fn(int i) { return i == 0 ? 13u : 14u; }
-/* LOAF BREAKER: KNOBS' STYLE part: any of K1-K4 picks a style (TERROR, EARLY NEXT GEN, HARDCORE ..), which gives the
- * four SEL + knobs their functions at once (the kick playing's), each card one knob's; track.c has them */
+/* LOAF BREAKER: KNOBS' STYLE part: K1-K4 each its knob's function (one at a time), PRESETS a style (TERROR, EARLY NEXT
+ * GEN, HARDCORE ..) giving the four SEL + knobs their functions at once (the kick playing's); track.c has them */
 static void kstyle_turn(int32_t d);
+static void selk_assign_k(uint32_t kn, int32_t d);
 static const char *kstyle_name(void);
 static int cm_i(int i) { return i == 2 ? 1 : 0; }
 static uint32_t kp_fn(void) { return ui.kpage == KP_TERROR ? 3u : ui.kpage == KP_TMORE ? 4u : 1u; }
@@ -503,8 +504,8 @@ static void kick_knob_turn(int i, int32_t d)
             selk_turn(cm_fn(i), cm_i(i), d);
         return;
     }
-    if (ui.kpage == KP_STYLE) {          /* STYLE: any knob, the next style or the one before */
-        kstyle_turn(d);
+    if (ui.kpage == KP_STYLE) {          /* STYLE: K1-K4 each its own knob's function (PRESETS: a style) */
+        selk_assign_k((uint32_t)i, d);
         return;
     }
     if (ui.kpage >= KP_SYN1) {           /* SYNTH, SYNTH + */
@@ -772,8 +773,10 @@ static void kick_picture(int32_t top)
         t[0] = 0;
         if (p >= KP_BASE + 11u && p <= KP_BASE + 14u)
             kick_part_name(p, t);
-        else if (p == KP_BASE + 16u)     /* (STYLE: the one the knobs have now) */
+        else if (p == KP_BASE + 16u) {   /* (STYLE: the one the knobs have now; PRESETS picks one) */
+            text_cat(t, "PRESETS: ");
             text_cat(t, kstyle_name());
+        }
         else if (p < 27u)
             text_cat(t, D[p]);
         cv_text(12 + text_w(&FONT_B, "KICK 10"), 4, &FONT_XS, t, kp_knobs() || ui.kpage == KP_STYLE ? C_HI : C_GRAY);

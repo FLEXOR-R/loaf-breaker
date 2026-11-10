@@ -271,13 +271,14 @@ or K2 left once more, deletes it, the rest moving up),
     (level, sweep, click): the attack. **DRUM FLT**: the drums' filter (SEL + SELECT's), on a knob. **HOLD**: SYNTH's
     HOLD, the kick square for longer before it falls. **KICK FX**: FX 1 MIX, FX 2 MIX, the kick's own two FX slots
     (an MB OTT or MB KICK on them) more or less.
-  - **STYLE** (KNOBS' last part, ALGORITHM back from KNOBS): any of K1–K4 turns through eight styles, each giving the
-    four knobs their functions at once (the kick playing's): **TERROR** (DRIVE, TERROR 2, T+ SCREECH, TERROR, as they
+  - **STYLE** (KNOBS' last part, ALGORITHM back from KNOBS): **K1–K4** each give their own knob its function, one at a
+    time (the cards show them); **PRESETS** turns through eight styles, each giving the four at once (the kick
+    playing's): **TERROR** (DRIVE, TERROR 2, T+ SCREECH, TERROR, as they
     start), **EARLY NEXT GEN** (PITCH DROP, RUMBLE, PUNCH, DRUM FLT), **HARDCORE** (DRIVE, TUNE, DECAY, TERROR), **NEW
     SCHOOL** (CLEAN SUB, TERROR, T+ TYPE, TUNE), **RAWSTYLE** (REV BASS, GLIDE, TUNE, T+ TAIL), **INDUSTRIAL** (T+
     SCREECH, T+ TYPE, DECAY, KICK FX), **FRENCHCORE** (TUNE, DECAY, TERROR 2, DRIVE), **LIVE BUILD** (DRUM FLT, MORPH,
-    RUMBLE, HOLD). The cards show each knob's function, the kick's picture the style (CUSTOM once one is changed on K1
-    SET .. K4 SET); their settings stay where they are.
+    RUMBLE, HOLD). The kick's picture shows the style ("PRESETS: EARLY NEXT GEN", CUSTOM once a knob is changed on its
+    own); their settings stay where they are.
   Every one of them has its place on the KICK menu too, the kick's own with no knob given it: the TERRORs and TERROR +
   (DIRT), DRIVE (SYNTH's MACRO, INTENSITY), TUNE (SYNTH +), DECAY (SOUND's SUB), REV BASS and GLIDE (SYNTH's BASS),
   CLEAN SUB and MORPH (SYNTH's CLEAN MORPH).
