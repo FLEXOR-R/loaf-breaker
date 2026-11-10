@@ -3,7 +3,7 @@
 LOAF BREAKER is a hardcore firmware for the M-VAVE FM-1, built by FLEXOR on **CHOPPAH**, Laurens Profittlich's Amen
 chopper. A break is cut into sixteen slices, one on each white key, and plays in time while you rearrange it, roll
 it, reverse it, stop it like a tape and push it through effects; under it a kick made for terror, gabber and
-crossbreed (TERROR, its own synth, its own effects, notes on every step), a sequencer of 16, 32 or 64 steps, tracks
+crossbreed (DISTO, its own synth, its own effects, notes on every step), a sequencer of 16, 32 or 64 steps, tracks
 with built-up drops, a HOOVER, a compressor and a CDJ-style waveform of what leaves the mix.
 
 ![LOAF BREAKER playing: the mix scrolling in as on a CDJ, the playhead at the right edge](img/screen-slicer.png "Playing")
@@ -30,14 +30,14 @@ Play two or three in turn and you are already chopping.
 
 The black keys act while held and can be combined: **R8 · R16 · R32** roll the break, **REV** plays it backwards,
 **RND** shuffles the slices, **HLF** halves the speed, **VNL** stops it like a record,
-**KIL** cuts the kick while held (let go: it drops back in, in time), **TER** turns the kick's TERROR off and
+**KIL** cuts the kick while held (let go: it drops back in, in time), **TER** turns the kick's DISTO off and
 on again. While one is held, K1–K4 tune it.
 
 ### 4. EDIT: shape the kick
 
 **EDIT** opens the kick, drawn large: what you hear, its pitch falling in amber. K1–K4 change the part shown;
 **ALGORITHM** goes to the next part, **EDIT** again to the next section (SOUND, SYNTH, DIRT, TONE, KNOBS). Each part
-says in a few words what it is for. Try **DIRT › TERROR** (K1: the distortion) and **SYNTH › BASS** (K2: the
+says in a few words what it is for. Try **DIRT › DISTO** (K1: the distortion) and **SYNTH › BASS** (K2: the
 rawstyle reverse bass). **PRESETS** there picks one of the 10 kick memories: each keeps its own sound.
 
 ### 5. Build and drop
@@ -52,7 +52,7 @@ steps of the lane shown; ALGORITHM: the lane) and chain them on **ENV** (TRACKS:
 - **SAVE**: keeps everything (or GLO › MORE: AUTO SAVE).
 
 When you know your way around: **GLO › MORE, K1 → EXPERT** shows every page (the kick's layers and their effects,
-TERROR 2 and TERROR +, SYNTH +, CLEAN MORPH, each knob's settings…). The rest of this manual covers everything.
+SCREAM and DISTO +, SYNTH +, CLEAN MORPH, each knob's settings…). The rest of this manual covers everything.
 
 ---
 
@@ -148,11 +148,11 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
   its memory (KICK 1–10), what the part is for in a few words ("FOLD DISTORTION") and its note; under it the part's four knobs as cards, their values large. **EDIT again**: the
   next section (SOUND, SYNTH, DIRT, TONE, **KNOBS**), **ALGORITHM**: the next part in it (each section remembers where
   you were). **KNOBS** puts the live knobs on the kick's picture: its first part, KNOBS, has K1–K4 turn what SEL + K1–K4
-  turn (DRIVE, TERROR 2, T+ SCREECH, TERROR to start: their first setting, their value large), so you hear and see the
-  kick as you set them; then **K1 SET .. K4 SET**, each knob's function with all its settings (TERROR:
-  AMOUNT, SUB, FIZZ, SUSTAIN; MORPH: AMOUNT, TO KICK…), the function's name by the kick's (KICK 4  K4 TERROR). They
+  turn (DRIVE, SCREAM, D+ SCREECH, DISTO to start: their first setting, their value large), so you hear and see the
+  kick as you set them; then **K1 SET .. K4 SET**, each knob's function with all its settings (DISTO:
+  AMOUNT, SUB, FIZZ, SUSTAIN; MORPH: AMOUNT, TO KICK…), the function's name by the kick's (KICK 4  K4 DISTO). They
   are the kick playing's (PRESETS on KNOBS: KICK 1–10, each its own). **On K1 SET .. K4 SET, PRESETS gives that knob
-  another function** (the TERRORs, DRIVE, DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH and the rest), for
+  another function** (the DISTO and SCREAM, DRIVE, DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH and the rest), for
   the kick playing. **EDIT held** (half a
   second): the classic view (the part's knobs as bars, the layers' levels, the five drums' shapes, the break's wave
   above), held again: the big view; the part stays where it is. **Stopped**, anywhere in the KICK menu (the big view, the
@@ -160,7 +160,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
   HAT, CLAP, HOOVER** once each, to hear them (the number on each drum's card; on the big views the strip names the
   drum played); playing, the keys play slices as ever. **A built-in kick on the kick selected:** SOUND's last part,
   **OUT** (ALGORITHM to it), **K4 PRESET**: 909, TECHNO, EARLY HC, ROTTERDAM, INDUSTRIAL, DISTORTO, on the kick
-  selected (PRESETS: KICK 1–10), its volume, steps and TERRORs kept. **A kick copied onto another:** K4 PRESET past
+  selected (PRESETS: KICK 1–10), its volume, steps and DISTO and SCREAM kept. **A kick copied onto another:** K4 PRESET past
   them, **COPY K1 … COPY K10**: that memory's kick, its SYNTH and its knobs (KNOBS, CLEAN SUB, BASS, MORPH) onto the
   kick selected, its volume kept (pick the kick to fill with PRESETS, then the one to copy with K4). On the big view, **SELECT** goes from drum to drum (the KICK,
   SNARE, HAT, CLAP, HOOVER, and round), each in a big view of its own: its hit drawn large over its level, its decay
@@ -173,9 +173,10 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
   - **SOUND**: MIX, SUB, PUNCH, GRIT, CLICK, OUT.
   - **SYNTH**: SYNTH, SYNTH +, BASS, **CLEAN MORPH** (K1 CLEAN SUB, K2 MORPH, K3 TO KICK: the kick's own, no knob
     needed), MACRO.
-  - **DIRT**: TERROR, TERROR + (DRIVE, TYPE, SCREECH, TAIL), TERROR 2, then each layer's effect.
+  - **DIRT**: DISTO, DISTO + (DRIVE, TYPE, SCREECH, TAIL), SCREAM, then each layer's effect.
+    (DISTO, DISTO + and SCREAM were called TERROR, TERROR + and TERROR 2 before 0.190: names a newcomer reads.)
   - **TONE**: EQ BANDS, EQ SHAPE (its EQ), FX 1, FX 2 (its two FX slots).
-  The TERRORs' settings are the kick's own: they go with its memory. **SEL + EDIT**: the other drums (SNARE, HAT, CLAP,
+  The DISTO and SCREAM's settings are the kick's own: they go with its memory. **SEL + EDIT**: the other drums (SNARE, HAT, CLAP,
   HOOVER; EDIT again the next, after the HOOVER the kick). The HOOVER (in the rave stab's place) is a hardcore synth:
   six saws spread wide, starting BEND octaves below and rising into its note (presets CLASSIC, DIVE, SCREAM, DARK).
   The kick's **SYNTH** section:
@@ -187,7 +188,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
     −12 .. +12 semitones).
   - **BASS**: **GLIDE** (the kick's pitch sliding from one step's note to the next, 0–400 ms: give the kick's steps
     notes in SEQ and it slides between them), **REV BASS** (the rawstyle reverse bass: the kick's sub at its note
-    swelling up between two kicks, cut as the next one hits; it goes through the kick's drive and TERROR), **START**
+    swelling up between two kicks, cut as the next one hits; it goes through the kick's drive and DISTO), **START**
     (where in the beat it begins, 1/8 to 5/8), **CURVE** (how it swells: SLOW, SOFT, SHARP, SNAP).
   At 0 each sounds as the kick always did. They go with its memory (KICK 1–10); its PRESET puts them back to 0.
 - **LFO** (the MIXER): LEVELS, GROOVE, MASTER (K1 COMP, K2 its RATIO, K3 DUCK, K4 MAX OUT; COMP's reduction metered),
@@ -247,15 +248,15 @@ or K2 left once more, deletes it, the rest moving up),
   16th, an 8th, a beat, half a bar), so the drop hits out of nothing. **PRESETS: TEMPO RISE**, OFF to +30 %: the
   tempo climbs with the build and drops back to yours at the drop (not while following a MIDI clock).
 - **The live knobs** (EDIT › KNOBS): what SEL + each knob does, on any page. On the KICK menu's KNOBS section,
-  **ALGORITHM** goes to K1 SET .. K4 SET, and **PRESETS** there gives that knob its function: TERROR 2, TERROR, T+ DRIVE, T+ TYPE, T+ SCREECH, T+ TAIL (TERROR +'s settings, one each),
+  **ALGORITHM** goes to K1 SET .. K4 SET, and **PRESETS** there gives that knob its function: SCREAM, DISTO, D+ DRIVE, D+ TYPE, D+ SCREECH, D+ TAIL (DISTO +'s settings, one each),
   DRIVE (the kick's INTENSITY), DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH, PITCH DROP, RUMBLE, PUNCH, DRUM FLT,
-  HOLD or KICK FX. They start as K1 DRIVE, K2 TERROR 2, K3 T+ SCREECH, K4 TERROR. K1–K4 then set the
+  HOLD or KICK FX. They start as K1 DRIVE, K2 SCREAM, K3 D+ SCREECH, K4 DISTO. K1–K4 then set the
   function's settings (K1 is what SEL + its knob turns). DUCK and COMP are not here: the MIXER (LFO) has them, MASTER and
   DYNAMICS.
-  - **TERROR 2**: AMOUNT, SUB (what stays clean under it, ~48–250 Hz), SCREAM (the mids it pushes, ~150 Hz–2.4 kHz),
+  - **SCREAM**: AMOUNT, SUB (what stays clean under it, ~48–250 Hz), SCREAM (the mids it pushes, ~150 Hz–2.4 kHz),
     PUSH (how hard).
-  - **TERROR**: AMOUNT, SUB, FIZZ (its top, darker or brighter), SUSTAIN (the fold dying with the kick, or a wall).
-  - **TERROR +** (its settings on EDIT KICK too): DRIVE (the fold's gain, apart from AMOUNT's mix), TYPE (FOLD the
+  - **DISTO**: AMOUNT, SUB, FIZZ (its top, darker or brighter), SUSTAIN (the fold dying with the kick, or a wall).
+  - **DISTO +** (its settings on EDIT KICK too): DRIVE (the fold's gain, apart from AMOUNT's mix), TYPE (FOLD the
     scream, CLIP squared off, CRUSH in steps, RECT rectified: an octave up, hollow and metallic, TUBE uneven: warm
     and fat), SCREECH (a resonant band, ~500 Hz–5 kHz, the whistle; OFF to the left),
     TAIL (the distortion dying fast, or hanging on between kicks).
@@ -266,7 +267,7 @@ or K2 left once more, deletes it, the rest moving up),
     distorted kick's own lows (under ~90 Hz) taken out as much: the round, fat bass under the dirt, as new-school
     gabber and uptempo do.
   - **MORPH**: AMOUNT, TO KICK. The kick playing slides towards another of the ten memories: every level, pitch,
-    decay, tone, TERROR and SYNTH setting in between (the effects and TERROR +'s TYPE the nearer one's). From a round
+    decay, tone, DISTO and SYNTH setting in between (the effects and DISTO +'s TYPE the nearer one's). From a round
     kick to a saturated one over a build, back at the drop.
   - **PITCH DROP**: AMOUNT, TIME (SYNTH's DROP and TIME): how far and how fast the kick's pitch falls, a short "tok"
     or a long dive. **RUMBLE**: AMOUNT, TIME (SYNTH +'s): the tail rolling between kicks. **PUNCH**: the MACRO's PUNCH
@@ -275,18 +276,18 @@ or K2 left once more, deletes it, the rest moving up),
     (an MB OTT or MB KICK on them) more or less.
   - **STYLE** (KNOBS' last part, ALGORITHM back from KNOBS): **K1–K4** each give their own knob its function, one at a
     time (the cards show them); **PRESETS** turns through eight styles, each giving the four at once (the kick
-    playing's): **TERROR** (DRIVE, TERROR 2, T+ SCREECH, TERROR, as they
-    start), **EARLY NEXT GEN** (PITCH DROP, RUMBLE, PUNCH, DRUM FLT), **HARDCORE** (DRIVE, PUNCH, DECAY, TERROR), **NEW
-    SCHOOL** (DRIVE, CLEAN SUB, T+ TYPE, TERROR), **RAWSTYLE** (REV BASS, GLIDE, PITCH DROP, T+ TAIL), **INDUSTRIAL** (T+
-    SCREECH, T+ TYPE, DECAY, KICK FX), **FRENCHCORE** (DRIVE, DECAY, TERROR 2, PITCH DROP), **LIVE BUILD** (DRUM FLT, MORPH,
-    RUMBLE, HOLD): DRIVE always on K1, TERROR always on K4. The kick's picture shows the style ("PRESETS: EARLY NEXT GEN", CUSTOM once a knob is changed on its
+    playing's): **TERROR** (DRIVE, SCREAM, D+ SCREECH, DISTO, as they
+    start), **EARLY NEXT GEN** (PITCH DROP, RUMBLE, PUNCH, DRUM FLT), **HARDCORE** (DRIVE, PUNCH, DECAY, DISTO), **NEW
+    SCHOOL** (DRIVE, CLEAN SUB, D+ TYPE, DISTO), **RAWSTYLE** (REV BASS, GLIDE, PITCH DROP, D+ TAIL), **INDUSTRIAL** (T+
+    SCREECH, D+ TYPE, DECAY, KICK FX), **FRENCHCORE** (DRIVE, DECAY, SCREAM, PITCH DROP), **LIVE BUILD** (DRUM FLT, MORPH,
+    RUMBLE, HOLD): DRIVE always on K1, DISTO always on K4. The kick's picture shows the style ("PRESETS: EARLY NEXT GEN", CUSTOM once a knob is changed on its
     own); their settings stay where they are. Each card also shows its function's value by the knob's name, and its bar
     moves as SEL + that knob turns it (SEL twice: locked, both hands free).
-  Every one of them has its place on the KICK menu too, the kick's own with no knob given it: the TERRORs and TERROR +
+  Every one of them has its place on the KICK menu too, the kick's own with no knob given it: the DISTO and SCREAM and DISTO +
   (DIRT), DRIVE (SYNTH's MACRO, INTENSITY), DECAY (SOUND's SUB), REV BASS and GLIDE (SYNTH's BASS),
   CLEAN SUB and MORPH (SYNTH's CLEAN MORPH).
   **KNOB is the kick's own**: each kick memory (KICK 1–10) keeps its four functions and their settings (CLEAN SUB,
-  REV BASS, GLIDE, MORPH and its target; the TERRORs, TUNE and DECAY were already its own). Change kick (PRESETS on the KICK
+  REV BASS, GLIDE, MORPH and its target; the DISTO and SCREAM, TUNE and DECAY were already its own). Change kick (PRESETS on the KICK
   menu) and the knobs are that kick's; come back and they are as you left them. KNOB shows
   whose they are (KICK 4) at the bottom. RESET KNOB puts back the kick playing's.
 
@@ -363,7 +364,7 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 | ARP | Its OVERLAY effect over the mix, while held (or latched): DIVE, RISE, RADIO, WAH, CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, WOBBLE, JET, REESE | EFFECT | AMOUNT (that effect's) | TIME: RATE for CHOP, GATE, WAH, PAN; SWEEP for DIVE, RISE | LATCH |
 | ARP, FX while held (MORE) | | THRU: the kick, the break or both | ON / OFF (OFF: K1 browses silent) | RATE (1/4 … 1/32) | SWEEP (1/4 bar … 2 bars) |
 | KIL | While held, the sequencer's kicks are quiet; let go, they play again (a kick roll still plays) | LATCH: ON, a press quiets them and the next brings them back | | | |
-| TER | As SUB: a press, the kick's TERROR on (an amount at nothing: 50 %), the next off, whatever its amount (kept as it is). Lit while it sounds; the kick's own (KICK 1–10), saved with SAVE | | | | |
+| TER | As SUB: a press, the kick's DISTO on (an amount at nothing: 50 %), the next off, whatever its amount (kept as it is). Lit while it sounds; the kick's own (KICK 1–10), saved with SAVE | | | | |
 | SUB | A press: the kick's SUB DRIVE on, the next off (its drive is the SUB layer's DRIVE effect, EDIT) | | | | |
 
 ![ROLL held: the caught slice repeating, each copy quieter](img/pad-roll8.png "ROLL held")
@@ -440,7 +441,7 @@ FX from another page: the chain.
 
 **MB KICK** comes right after MB COMP in KICK FX's PRESETS: an MB COMP set for a gabber kick (KICK GABBER). The sub is
 split from the body at 120 Hz and held even (−24 dB, 6:1, a 15 ms attack that lets the punch through, 120 ms back);
-the body, where TERROR's distortion sits, is tamed (−20 dB, 4:1, 5 / 80 ms); the click and the screech are held fast
+the body, where DISTO's distortion sits, is tamed (−20 dB, 4:1, 5 / 80 ms); the click and the screech are held fast
 (−30 dB, 8:1, 1 / 50 ms) above 3 kHz; a 3 dB knee, every band at full amount, all wet. It is an MB COMP: its AMOUNT
 knobs ride each band (the foot shows the ratio each reaches) and FX turns through its detail to change anything. A
 CLIP in the other slot after it makes it loud without the mush. PRESETS on, or back: a plain MB COMP.
@@ -616,7 +617,7 @@ tempo's own repitch, HALF, REVERSE's speed and the tape stop stay speed effects.
 IRIS, PINK, MINT, WHITE, BLOOD, MAXENCE, then the two-colour ones: SYNTHWAVE (neon cyan and magenta on indigo), VAPOR,
 TOXIC, MIAMI, LAVA, GOLD, BLAZE (flashy orange and red), ACID (acid yellow and red-orange); K1 **MODE**: BEGINNER
 (left) or EXPERT (right). In BEGINNER, ALGORITHM on the KICK menu passes over its advanced parts: SOUND has MIX, SUB
-and OUT, SYNTH has SYNTH, BASS and MACRO, DIRT has TERROR, TONE has EQ BANDS and FX 1, KNOBS has KNOBS. Nothing is
+and OUT, SYNTH has SYNTH, BASS and MACRO, DIRT has DISTO, TONE has EQ BANDS and FX 1, KNOBS has KNOBS. Nothing is
 lost: EXPERT shows them all again, as they were left. A new FM-1, the web emulator and RESET ALL start in BEGINNER; an
 FM-1 updated with its settings saved stays in EXPERT. K3 **METER** (not saved: off at every start): once a second the
 header shows CPU (the share of its time the sound takes, average and peak: past ~85 % at its peak the sound is at its
@@ -683,7 +684,7 @@ The kick is four layers summed and pushed into a clipper:
 | --- | --- |
 | ALGORITHM | The part: MIX, a layer (SUB, PUNCH, GRIT, CLICK), its FX, MACRO, OUT |
 | PRESETS | The kick selected: KICK 1–10, each its own memory |
-| OUT K4 PRESET | A built-in kick on the kick selected: 909, TECHNO, EARLY HC, ROTTERDAM (the start), INDUSTRIAL, DISTORTO. The steps, routing, volume and TERRORs stay |
+| OUT K4 PRESET | A built-in kick on the kick selected: 909, TECHNO, EARLY HC, ROTTERDAM (the start), INDUSTRIAL, DISTORTO. The steps, routing, volume and DISTO and SCREAM stay |
 | MIDI note 36 (C1) | Plays the kick, from any channel, also while stopped |
 
 | Part | K1 | K2 | K3 | K4 |
@@ -692,7 +693,7 @@ The kick is four layers summed and pushed into a clipper:
 | SUB · PUNCH · GRIT · CLICK | Level | Pitch | Decay | Tone |
 | … FX | Effect: OFF · DRIVE · CRUNCH · FILTER · RING MOD | A (gain · bits · cutoff · frequency) | B (tone · rate · resonance) | Wet |
 | MACRO | SUB (level, tail, weight) | PUNCH (level, sweep, click) | GRIT (level, dirt, tail) | INTENSITY |
-| OUT | Volume | TERROR | TERROR 2 | PRESET (a built-in kick) |
+| OUT | Volume | DISTO | SCREAM | PRESET (a built-in kick) |
 
 **INTENSITY** is the drive into the clipper: low is a clean, round kick; past half the clip turns hard, the tail
 flattens into the long, distorted gabber kick. The page is laid out as the snare's and the hat's: the part's four
@@ -743,7 +744,7 @@ break alone: sweep it down and the drums stay full on top.
 | --- | --- | --- | --- | --- |
 | HOME (perform) | Gate | Filter: the DJ filter on the break (left low-pass, right high-pass) | Drum flt: the same on the drums | Sub decay: the kick's SUB's length |
 | HOME again (generator) | Complexity | Anchor | Roll | Fill |
-| EDIT, the KICK menu (EDIT again: its section; ALGORITHM: its part) | SOUND: MIX, SUB … CLICK, OUT · SYNTH: SYNTH, SYNTH +, BASS, CLEAN MORPH, MACRO · DIRT: TERROR, TERROR +, TERROR 2, the layers' effects · TONE: EQ BANDS, EQ SHAPE, FX 1, FX 2 (§8) | | | |
+| EDIT, the KICK menu (EDIT again: its section; ALGORITHM: its part) | SOUND: MIX, SUB … CLICK, OUT · SYNTH: SYNTH, SYNTH +, BASS, CLEAN MORPH, MACRO · DIRT: DISTO, DISTO +, SCREAM, the layers' effects · TONE: EQ BANDS, EQ SHAPE, FX 1, FX 2 (§8) | | | |
 | The drums (SELECT on the big view; SEL + EDIT; EDIT held: the other view) | Level · Snap / cut / spread / bend | Tune · Drive | Decay · Preset | Tone |
 | SEQ (the break's steps) | Slice | Pitch | Hits | Reverse |
 | SEQ, a drum lane | Fill | Drum flt | Clear / 4x4 / grooves | Length |

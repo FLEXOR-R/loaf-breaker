@@ -1,5 +1,5 @@
 # LOAF BREAKER TEST: GLO MORE's MODE (K1). BEGINNER (left): the KICK menu's ALGORITHM passes over the advanced parts:
-# SOUND MIX, SUB, OUT (no PUNCH, GRIT, CLICK, no layer effects); KNOBS and STYLE (no K SET). EXPERT (right): all again.
+# SOUND MIX, SUB, OUT (no PUNCH, GRIT, CLICK, no layer effects); SYNTH SYNTH alone (no BASS, MACRO); LFO LEVELS, GROOVE; KNOBS and STYLE (no K SET). EXPERT (right): all again.
 #   app/build/host/loaf-breaker_host tests/scenarios/novice.txt app/build/scenarios
 wait 4200
 tap GLO
@@ -25,6 +25,31 @@ turn ALGO 1 10
 wait 150
 expect kpage 0
 shot nv_kick.png
+tap EDIT
+wait 300
+expect kpage 8
+turn ALGO 1 10
+wait 150
+expect kpage 8
+tap LFO
+wait 150
+tap LFO
+wait 150
+expect mpage 1
+tap LFO
+wait 150
+expect mpage 0
+tap EDIT
+wait 150
+tap EDIT
+wait 150
+tap EDIT
+wait 150
+tap EDIT
+wait 150
+tap EDIT
+wait 300
+expect kpage 0
 tap EDIT
 wait 150
 tap EDIT

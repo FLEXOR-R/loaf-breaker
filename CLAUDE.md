@@ -24,6 +24,9 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   (`rows_forget`; `lcd_fill` is wrapped). `changed()` applies once a pass (`apply_flush`); a kick-only or FX-only change
   uses `changed_kick()` / `changed_fx()`. GLO MORE K3 METER shows CPU / IMG / FR on the device. CI runs a 30-minute
   random soak (`tools/soak.py`, seed = run number) at every release.
+- Names (10 Nov 2026, 0.190): what the code calls TERROR, TERROR 2, TERROR + the screen and the docs call DISTO,
+  SCREAM, DISTO + (D+ TYPE, D+ SCREECH ..); the black key DST. Keep newcomers' names on the screen; TERROR stays the
+  genre (README's tagline) and a STYLE.
 - No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository.
 - Fonts: `font_trim` is on (fm1.toml, 9 Nov 2026). LOAF BREAKER draws in FONT_T, FONT_XS and FONT_B only (cv_text2 for
   bigger: those doubled). fm1-base still generates S, M (~5 KB trimmed) and L (~9 KB trimmed, 31 px), left out of the

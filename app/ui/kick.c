@@ -151,15 +151,15 @@ static void kick_mem_turn(int32_t d)
 {
     kick_mem_go((set.kslot % KICK_MEMS + (d > 0 ? 1u : KICK_MEMS - 1u)) % KICK_MEMS);
 }
-static const char *const KPAGE_NAME[KPAGES] = {"MIX", "LAYER", "LAYER FX", "MACRO", "OUT", "TERROR", "TERROR +",
-                                                "TERROR 2", "SYNTH", "SYNTH +", "BASS", "KNOBS", "K SET",
+static const char *const KPAGE_NAME[KPAGES] = {"MIX", "LAYER", "LAYER FX", "MACRO", "OUT", "DISTO", "DISTO +",
+                                                "SCREAM", "SYNTH", "SYNTH +", "BASS", "KNOBS", "K SET",
                                                 "CLEAN MORPH", "STYLE"};
 /* the kick's parts in a row, as ALGORITHM turns through them: MIX, SUB, SUB FX, PUNCH, PUNCH FX, GRIT, GRIT FX,
  * CLICK, CLICK FX, MACRO, OUT (each a sub-page, and for a layer its layer); LOAF BREAKER TEST: then EQ BANDS, EQ
  * SHAPE (the KICK EQ page), FX 1, FX 2 (the FX page on the kick's slots), TERROR, TERROR +, TERROR 2 */
 #define KP_BASE (3u + 2u * KICK_LAYERS)
 #define KPARTS (KP_BASE + 17u)
-static const char *const KP_MORE_NAME[11] = {"EQ BANDS", "EQ SHAPE", "FX 1", "FX 2", "TERROR", "TERROR +", "TERROR 2",
+static const char *const KP_MORE_NAME[11] = {"EQ BANDS", "EQ SHAPE", "FX 1", "FX 2", "DISTO", "DISTO +", "SCREAM",
                                             "SYNTH", "SYNTH +", "BASS", "KNOBS"};   /* (then K1 SET .. K4 SET: "K1 C SUB") */   /* (SYNTH, SYNTH +: ALGORITHM left from MIX) */
 static uint32_t kick_part(void)
 {
@@ -229,10 +229,11 @@ static void ksect_find(uint32_t p)       /* the part's section and place in it, 
 }
 static void kick_part_set(uint32_t p);
 /* LOAF BREAKER TEST: GLO MORE's MODE BEGINNER: ALGORITHM passes over the advanced parts (each as it is, EXPERT shows
- * it again): SOUND MIX, SUB, OUT; SYNTH SYNTH, BASS, MACRO; DIRT TERROR; TONE EQ BANDS, FX 1; KNOBS KNOBS */
-#define KP_ADV ((1u << 2) | (1u << 3) | (1u << 4) | (1u << 5) | (1u << 6) | (1u << 7) | (1u << 8) | (1u << 12) | \
-                (1u << 14) | (1u << 16) | (1u << 17) | (1u << 19) | (1u << 22) | (1u << 23) | (1u << 24) | (1u << 25) | \
-                (1u << 26))
+ * it again): SOUND MIX, SUB, OUT; SYNTH SYNTH; DIRT DISTO; TONE EQ BANDS, FX 1; KNOBS KNOBS, STYLE (10 Nov 2026:
+ * MACRO and BASS for EXPERT too) */
+#define KP_ADV ((1u << 2) | (1u << 3) | (1u << 4) | (1u << 5) | (1u << 6) | (1u << 7) | (1u << 8) | (1u << 9) | \
+                (1u << 12) | (1u << 14) | (1u << 16) | (1u << 17) | (1u << 19) | (1u << 20) | (1u << 22) | (1u << 23) | \
+                (1u << 24) | (1u << 25) | (1u << 26))
 static int kp_hidden(uint32_t p) { return set.novice && p < 32u && (KP_ADV >> p & 1u); }
 static void kick_open(void)              /* the KICK menu, at its section's part */
 {
@@ -296,7 +297,7 @@ static const char *const KN_KICK[KPAGES][4] = {{"SUB", "PUNCH", "GRIT", "CLICK"}
                                                {"LEVEL", "PITCH", "DECAY", "TONE"},
                                                {"EFFECT", "", "", "WET"},
                                                {"SUB", "PUNCH", "GRIT", "INTENSITY"},
-                                               {"VOLUME", "TERROR", "TERROR 2", ""},   /* (LOAF BREAKER: OUT's K2, K3) */
+                                               {"VOLUME", "DISTO", "SCREAM", ""},   /* (LOAF BREAKER: OUT's K2, K3; DISTO, SCREAM: TERROR, TERROR 2 renamed) */
                                                {"AMOUNT", "SUB", "FIZZ", "SUSTAIN"},
                                                {"DRIVE", "TYPE", "SCREECH", "TAIL"},
                                                {"AMOUNT", "SUB", "SCREAM", "PUSH"},
@@ -723,7 +724,7 @@ static void kick_picture(int32_t top)
     float hz = kick_pitch_hz(KL_SUB, k->l[KL_SUB].pitch) * brk_exp2f_c((float)set.ksyn[KS_TUNE] * (1.0f / 12.0f));
     float drop = 2.0f * brk_exp2f_c((float)set.ksyn[KS_DROP] * 0.04f);
     float tms = 120.0f * brk_exp2f_c((float)set.ksyn[KS_TIME] * 0.04f);
-    char t[24], u[8];
+    char t[32], u[8];                    /* (t: the part's words, "PRESETS: EARLY NEXT GEN": room to spare) */
     cv_oy = -top;
     cv_rect(4, 50, KV_W, 1, C_LINE);     /* (the middle) */
     for (i = 0; i < KV_W; i++) {         /* the hit: its level (dim, mirrored), its wave over it */
@@ -766,7 +767,7 @@ static void kick_picture(int32_t top)
                                           "THE PUNCH'S EFFECT", "THE DIRTY LAYER", "THE GRIT'S EFFECT", "THE ATTACK",
                                           "THE CLICK'S EFFECT", "ALL LAYERS AT ONCE", "VOLUME, BUILT-IN KICKS", "",
                                           "", "", "", "FOLD DISTORTION", "THE DISTORTION'S DETAIL",
-                                          "MID SCREAM, SUB KEPT", "PITCH DROP AND BODY", "RUMBLE, TUNE",
+                                          "MIDS PUSHED, SUB KEPT", "PITCH DROP AND BODY", "RUMBLE, TUNE",
                                           "GLIDE, REVERSE BASS", "WHAT SEL + K1-K4 DO", "", "", "", "",
                                           "ROUND SUB, BLEND KICKS"};
         uint32_t p = kick_part();

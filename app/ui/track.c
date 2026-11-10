@@ -22,7 +22,7 @@ static const char *const RST_NAME[NRST] = {"DROP", "BUILD", "KNOB", "KICK", "KIC
                                            "FX CHAIN", "STEPS", "PADS", "KEYS", "TRACK", "SCREEN"};
 static const char *const RST_WHAT[NRST] = {"BUILD 4 BARS, NEXT PATTERN, SAME BREAK, CRASH 100%",
                                           "SNARE ROLL, HIGH-PASS, RISER 100%, NO GAP",
-                                          "THIS KICK'S: K1 DRIVE, K2 TERROR 2, K3 T+ SCREECH, K4 TERROR",
+                                          "THIS KICK'S: K1 DRIVE, K2 SCREAM, K3 D+ SCREECH, K4 DISTO",
                                           "THE KICK SELECTED (ITS MEMORY): ROTTERDAM, SYNTH, BASS, C SUB, MORPH AT 0, VOLUME KEPT",
                                           "THE KICK'S EQ FLAT, ITS TWO FX SLOTS EMPTY",
                                           "KICK 1-10 AS THEY CAME (909 .. DISTORTO), SYNTH AT 0, THEIR KNOBS AS THEY START",
@@ -492,11 +492,13 @@ static void track_dropped(void)
  * time), 17 PUNCH (MACRO's), 18 DRUM FLT (the drums' filter, SEL + SELECT's), 19 HOLD (SYNTH's), 20 KICK FX (the
  * kick's two FX slots' mix) */
 #define SK_N 21u
-static const char *const SK_NAME[SK_N] = {"DUCK", "TERROR 2", "COMP", "TERROR", "TERROR +", "DRIVE", "T+ TYPE",
-                                          "T+ SCREECH", "T+ TAIL", "TUNE", "DECAY", "REV BASS", "GLIDE", "CLEAN SUB",
+/* (LOAF BREAKER, 10 Nov 2026: on the screen TERROR is DISTO, TERROR 2 SCREAM, TERROR + DISTO +, its settings D+ ..: names
+ * a newcomer reads; the code keeps TERROR's) */
+static const char *const SK_NAME[SK_N] = {"DUCK", "SCREAM", "COMP", "DISTO", "DISTO +", "DRIVE", "D+ TYPE",
+                                          "D+ SCREECH", "D+ TAIL", "TUNE", "DECAY", "REV BASS", "GLIDE", "CLEAN SUB",
                                           "MORPH", "PITCH DROP", "RUMBLE", "PUNCH", "DRUM FLT", "HOLD", "KICK FX"};
-static const char *const SK_SHORT[SK_N] = {"DUCK", "TERR 2", "COMP", "TERROR", "T+ DRIVE", "DRIVE", "T+ TYPE", "SCRCH",
-                                           "T+ TAIL", "TUNE", "DECAY", "REV B", "GLIDE", "C SUB", "MORPH", "P DROP",
+static const char *const SK_SHORT[SK_N] = {"DUCK", "SCREAM", "COMP", "DISTO", "D+ DRIVE", "DRIVE", "D+ TYPE", "SCRCH",
+                                           "D+ TAIL", "TUNE", "DECAY", "REV B", "GLIDE", "C SUB", "MORPH", "P DROP",
                                            "RUMBLE", "PUNCH", "D FLT", "HOLD", "K FX"};
 static const char *const SK_KNOB[SK_N][4] = {{"AMOUNT", "ATTACK", "RELEASE", "DUCKS"}, {"AMOUNT", "SUB", "SCREAM", "PUSH"},
                                              {"AMOUNT", "RATIO", "ATTACK", "RELEASE"}, {"AMOUNT", "SUB", "FIZZ", "SUSTAIN"},

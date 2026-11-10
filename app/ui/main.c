@@ -389,7 +389,7 @@ static void input(void)
             if (!KICK_TERROR(&set.kick))
                 KICK_TERROR(&set.kick) = 50u;
         }
-        app_say("TERROR", terror_off ? "OFF" : "ON");
+        app_say("DISTO", terror_off ? "OFF" : "ON");
         changed_kick();
         ui.redraw |= RG_FOOT | RG_BLOCKS;
     }
@@ -507,7 +507,8 @@ static void input(void)
     if (ui.lfo_hold && !(btn & 1u << B_LFO)) {   /* LFO: the MIXER (the break, the kick, FX main, FX overlay); again,
                                           * groove */
         if (ui.lfo_hold == 1u) {
-            ui.mpage = ui.page == PG_MIX ? (uint8_t)((ui.mpage + 1u) % 4u) : 0u;   /* (LEVELS, GROOVE, MASTER, DYNAMICS) */
+            ui.mpage = ui.page == PG_MIX ? (uint8_t)((ui.mpage + 1u) % (set.novice ? 2u : 4u)) : 0u;   /* (LEVELS,
+                                          * GROOVE, MASTER, DYNAMICS; LOAF BREAKER: BEGINNER LEVELS and GROOVE alone) */
             ui.page = PG_MIX;
             ui.redraw |= RG_FOOT | RG_BLOCKS;
             page_say();
@@ -1251,7 +1252,7 @@ static void draw_foot(const brk_status_t *st)
         int32_t x = 2 + (int32_t)TERR_KEY * 21;
         int on = KICK_TERROR(&set.kick) && !terror_off;
         cv_rect(x, 0, 20, 14, on ? C_HI : C_BLOCK);
-        cv_text(x + (20 - text_w(&FONT_T, "TER")) / 2, 1, &FONT_T, "TER", on ? C_BLACK : C_GRAY);
+        cv_text(x + (20 - text_w(&FONT_T, "DST")) / 2, 1, &FONT_T, "DST", on ? C_BLACK : C_GRAY);
     }
     for (i = 0; i < 4u; i++) {
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "RESET ALL"};
@@ -1843,8 +1844,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror"};
-    int v[77];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage"};
+    int v[78];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1933,7 +1934,8 @@ int app_expect(const char *what, int *got)
     v[74] = set.ksyn[KS_DROP];
     v[75] = terror_off ? 1 : 0;
     v[76] = KICK_TERROR(&set.kick);
-    for (i = 0; i < 77u; i++)
+    v[77] = ui.mpage;
+    for (i = 0; i < 78u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

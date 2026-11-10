@@ -22,8 +22,8 @@ LOAF BREAKER is FLEXOR's firmware for the [M-VAVE FM-1](https://www.m-vave.com/)
 heart (a break cut into sixteen slices on the white keys, effect pads on the black keys, a generator, a master effects
 chain, 16 patterns) and drives it into hardcore:
 
-- **The kick first.** Its own menu, its own synth (pitch drop, hold, rumble, tune), **TERROR**, **TERROR 2** and
-  **TERROR +**, a **GLIDE** between notes and the rawstyle **REVERSE BASS**, its own EQ and FX (**MB KICK**, **MB OTT**),
+- **The kick first.** Its own menu, its own synth (pitch drop, hold, rumble, tune), **DISTO**, **SCREAM** and
+  **DISTO +**, a **GLIDE** between notes and the rawstyle **REVERSE BASS**, its own EQ and FX (**MB KICK**, **MB OTT**),
   ten memories, a note on every step, and its real sound drawn live on screen.
 - **A sequencer for live.** Kick over 16, 32 or 64 steps; per step **NOTE, HITS, COND** (chance, 1:2, 2:2, FILL, NOT
   FILL) and **NUDGE**; **ARP held = FILL**.
@@ -39,7 +39,7 @@ Built on [fm1-base](https://github.com/charlesvestal/fm1-base) (MPL-2.0). No Blu
 
 ![Holding a pad shows its effect and puts its settings on K1-K4: roll, reverse, filter, half speed, vinyl break, random, DJ filter](docs/img/pads.png)
 
-![The kick: its SYNTH, DIRT (TERROR), TERROR + , the classic view, the HOOVER, the kick EQ](docs/img/kick.png)
+![The kick: its SYNTH, DIRT (DISTO), DISTO + , the classic view, the HOOVER, the kick EQ](docs/img/kick.png)
 
 ![Live: TRACKS, PLAY (the radio), a build before the drop, a step's HITS, the MASTER (COMP, DUCK, MAX OUT), SEL + knob assignments](docs/img/live.png)
 
@@ -62,12 +62,12 @@ M-VAVE's original firmware first ([docs/FLASHING.md](docs/FLASHING.md)).
 | Control | Does |
 | --- | --- |
 | White keys 1–16 | Slices: at the next snap point while playing, at once while stopped. **Hold to loop**: K1–K4 set that key's loop (length, pitch, start, mode). **Key held + FX**: that slice's own effect |
-| Black keys | Pads, while held: **R8 · R16 · R32** rolls (K2 THRU: the break, the kick or both; SEL + a roll pad: a kick roll for that press) · **REV** reverse · **RND** random · **HLF** half speed (with a LATCH) · **VNL** vinyl break · **ARP** an overlay effect · **KIL** the sequencer's kicks quiet while held (or latched) · **TER** the kick's TERROR off / on · **SUB** SUB DRIVE (the gate: HOME's K1, the DJ filter: K2). K1–K4 tune the pad held |
+| Black keys | Pads, while held: **R8 · R16 · R32** rolls (K2 THRU: the break, the kick or both; SEL + a roll pad: a kick roll for that press) · **REV** reverse · **RND** random · **HLF** half speed (with a LATCH) · **VNL** vinyl break · **ARP** an overlay effect · **KIL** the sequencer's kicks quiet while held (or latched) · **TER** the kick's DISTO off / on · **SUB** SUB DRIVE (the gate: HOME's K1, the DJ filter: K2). K1–K4 tune the pad held |
 | PLAY | Play / stop · HOME + PLAY: back to bar 1 |
 | SELECT | Tempo · **SEL + SELECT**: the drums' filter (DRUM FLT) on any page |
-| SEL | **Tapped alone**: the shortcuts card, those that work everywhere and this page's own · **SEL ×2**: locked down, lit, for the combinations one-handed (press again: free) · **SEL + K1–K4**: four live functions you assign on EDIT › KNOBS (or all four at once with a STYLE: TERROR, EARLY NEXT GEN, HARDCORE …), each kick its own (PITCH DROP, RUMBLE, PUNCH, DRIVE, TERROR, TERROR 2, TERROR +, its TYPE, SCREECH, TAIL…) · **SEL + REC** (on FX): the effect under your hands back to its start (again within 4 s: undo) · **SEL + ENV**: the drop · **SEL + ALGORITHM** the break, **SEL + PRESETS** the pattern · **SEL + SEQ** copy, then paste the pattern · **SEL + SAVE** undo · SEL alone: every combination on the strip |
+| SEL | **Tapped alone**: the shortcuts card, those that work everywhere and this page's own · **SEL ×2**: locked down, lit, for the combinations one-handed (press again: free) · **SEL + K1–K4**: four live functions you assign on EDIT › KNOBS (or all four at once with a STYLE: TERROR, EARLY NEXT GEN, HARDCORE …), each kick its own (PITCH DROP, RUMBLE, PUNCH, DRIVE, DISTO, SCREAM, DISTO +, its TYPE, SCREECH, TAIL…) · **SEL + REC** (on FX): the effect under your hands back to its start (again within 4 s: undo) · **SEL + ENV**: the drop · **SEL + ALGORITHM** the break, **SEL + PRESETS** the pattern · **SEL + SEQ** copy, then paste the pattern · **SEL + SAVE** undo · SEL alone: every combination on the strip |
 | HOME | PERFORM and GENERATOR, with the **CDJ view** (the mix scrolling in, rekordbox's RGB colours, the playhead at the right edge); HOME held: the slices |
-| EDIT | The **KICK menu**: SOUND, SYNTH (DROP, HOLD, RUMBLE, ASYM, TUNE…; BASS: GLIDE between notes, the rawstyle REVERSE BASS), DIRT (TERROR, TERROR 2, TERROR +), TONE (EQ and two FX slots of its own), KNOBS (what SEL + K1–K4 turn, each kick its own, their settings and functions); EDIT again: the next section; EDIT held: the classic view. **SEL + EDIT**: the snare, the hat, the clap and the HOOVER |
+| EDIT | The **KICK menu**: SOUND, SYNTH (DROP, HOLD, RUMBLE, ASYM, TUNE…; BASS: GLIDE between notes, the rawstyle REVERSE BASS), DIRT (DISTO, SCREAM, DISTO +), TONE (EQ and two FX slots of its own), KNOBS (what SEL + K1–K4 turn, each kick its own, their settings and functions); EDIT again: the next section; EDIT held: the classic view. **SEL + EDIT**: the snare, the hat, the clap and the HOOVER |
 | SEQ | The sequencer: the break's steps and the drum lanes, the kick over 16, 32 or 64 steps. **A step held**: K1 NOTE, K2 HITS (1–4 taps in the step), K3 COND (chance, 1:2, 2:2, FILL, NOT FILL), K4 NUDGE. Playing, the keys follow the bar playing. **SEQ held** + key 1–4: copy the bar there; + K1: shift the lane a step; + REC: clear the drums; then SEQ again: clear the pattern. **REC** on a drum lane: tap it in |
 | ENV | **TRACK**: TRACKS (patterns, loops, drops and each item's own break and kick; ENV held: a space after the item, or the space taken out), PLAY (a radio: tune a track, press PLAY), DROP, BUILD (the build before a drop: style, sweep, riser, a gap; PRESETS: the tempo rising to the drop) |
 | LFO | **LFO held + K1–K4**: the break, kick, drums and FX levels on any page · The **MIXER**: LEVELS, GROOVE, MASTER (COMP, RATIO, DUCK, MAX OUT), DYN (the compressor's and the ducker's timing) |
