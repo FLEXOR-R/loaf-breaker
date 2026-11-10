@@ -158,12 +158,12 @@ static void perc_cards(void)             /* the part's knobs: its name, its valu
 static void draw_perc_big(const brk_status_t *st)
 {
     const perc_voice_t *v = perc_voice(ui.pvoice);
-    uint32_t sig = sig_of(v, sizeof *v) ^ (ui.pvoice * 2654435761u), top;
+    uint32_t sig = sig_of(v, sizeof *v) ^ (ui.pvoice * 2654435761u) ^ set.ezoom * 40503u, top;
     if (sig != pw_sig) {                 /* (its hit again, only when it changed) */
         uint32_t pk = 0u;
         float d = perc_decay_ms(ui.pvoice, v->decay) * 1.4f;
         pw_sig = sig;
-        pw_ms = (uint32_t)brk_clampf(d, 60.0f, 900.0f);
+        pw_ms = set.ezoom % EZ_N ? EZ_MS[set.ezoom % EZ_N] : (uint32_t)brk_clampf(d, 60.0f, 900.0f);   /* (EDIT ZOOM) */
         perc_shape(ui.pvoice, v, pw_px, PW_W, pw_ms, 34u);
         perc_wave(ui.pvoice, v, pw_wave, PW_W, pw_ms, 34u);
         for (top = 0; top < PW_W; top++)

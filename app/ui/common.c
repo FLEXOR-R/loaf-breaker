@@ -261,6 +261,10 @@ static const char *const PAD_NAME[BRK_NPADS] = {"R8", "R16", "R32", "REV", "SUB"
 static const uint8_t WK[16] = PLAT_WHITE_KEYS, BK[11] = PLAT_BLACK_KEYS;
 /* LOAF BREAKER: what the TUTORIAL (tutor.c) watches, counted where it happens: white keys pressed, black keys pressed
  * (a bit each), K1-K4 turned on the KICK menu, SEL + K4 turned, drum steps set on SEQ, SAVEs */
+/* LOAF BREAKER (0.216, FLEXOR): EDIT ZOOM, how much time EDIT's pictures show (SYSTEM › EFFECTS, PRESETS) */
+#define EZ_N 6u
+static const uint16_t EZ_MS[EZ_N] = {0u, 250u, 500u, 1000u, 1500u, 2000u};
+static const char *const EZ_NAME[EZ_N] = {"AUTO", "250 MS", "500 MS", "1 S", "1.5 S", "2 S"};
 static uint32_t tut_wk, tut_pads, tut_padn, tut_kturn, tut_sk4, tut_lane, tut_saves, tut_home, tut_kpre;
 /* GLOUPI BREAKS: the black key (0..10, left to right) of each pad (PAD_*): DUB on the fifth key, FREEZE's in CHOPPAH,
  * and FREEZE on the last, DUB's. BK[PAD_KEY[pad]] is the pad's key; the strip of names follows the keys */

@@ -186,6 +186,8 @@ typedef struct {
                                           * edited (a layer alone, the attack close, the tail whole); GLO EFFECTS K4 */
     uint8_t tut;                         /* (appended) LOAF BREAKER: the TUTORIAL (tutor.c): 0 off, 1.. its step running,
                                           * 0xFE finished; a new FM-1 starts it, the simulator not */
+    uint8_t ezoom;                       /* (appended) LOAF BREAKER: EDIT's pictures (the kick, the drums), the time they
+                                          * show: 0 AUTO (as each part wants), 1.. EZ_MS[]; SYSTEM › EFFECTS, PRESETS */
 } settings_t;
 #define FILL_LATCH (set.fill_cfg & 1u)
 #define FILL_DRUM (set.fill_cfg >> 1 & 3u)

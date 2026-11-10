@@ -272,7 +272,11 @@ static void draw_global(const brk_status_t *st)
     }
     if (ui.gpage == 3u) {                /* LOAF BREAKER: EFFECTS: the seven, lit when on (keys 1-7), K1's outlined */
         uint32_t e, cur = ui.sfx_cur < SFX_CRT || ui.sfx_cur >= SFX_N ? SFX_CRT : ui.sfx_cur;
-        cv_text(6, 1, &FONT_T, "SCREEN EFFECTS", C_GRAY);
+        cv_text(6, 2, &FONT_XS, "EDIT ZOOM", C_GRAY);   /* (LOAF BREAKER, 0.216: EDIT's pictures' time, PRESETS) */
+        {
+            int32_t x = cv_text(84, 1, &FONT_T, EZ_NAME[set.ezoom % EZ_N], C_HI);
+            cv_text(x + 8, 2, &FONT_XS, "PRESETS", C_DIM);
+        }
         cv_text(6, 16, &FONT_XS, "K3 WAVE", C_GRAY);   /* (LOAF BREAKER: the waves' colours, the kick's picture) */
         cv_text(84, 15, &FONT_T, set.wstyle ? "SERATO" : "REKORDBOX", C_HI);
         cv_text(6, 30, &FONT_XS, "K4 KICK VIEW", C_GRAY);

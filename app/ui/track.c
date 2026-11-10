@@ -27,14 +27,14 @@ static const char *const RST_WHAT[NRST] = {"BUILD 4 BARS, NEXT PATTERN, SAME BRE
                                           "THE KICK SELECTED (ITS MEMORY): ROTTERDAM, SYNTH, BASS, C SUB, MORPH AT 0, VOLUME KEPT",
                                           "THE KICK'S EQ FLAT, ITS TWO FX SLOTS EMPTY",
                                           "KICK 1-10 AS THEY CAME (909 .. DISTORTO), SYNTH AT 0, THEIR KNOBS AS THEY START",
-                                          "SNARE, HAT, CLAP, MELODY: THE MEMORY PLAYING AS IT CAME",
+                                          "SNARE, HAT, CLAP: THE MEMORY PLAYING AS IT CAME",
                                           "THE MIXER: LEVELS, SWING, COMP AND DUCK OFF, MAX OUT -3 DB",
                                           "THE FOUR SLOTS AS THEY CAME, EACH EFFECT'S MEMORY FORGOTTEN",
                                           "THIS PATTERN'S DRUM STEPS: 1 HIT, ALWAYS, ON TIME",
                                           "THE BLACK KEYS: ROLLS, THRU, FILTER, GATE, LATCH, THE ARP KEY",
                                           "THE WHITE KEYS' LOOPS AND SLICE EFFECTS",
                                           "THIS TRACK: FROM ITEM 1, EVERY ITEM'S BREAK SAME",
-                                          "SKIN RED, SCREEN EFFECTS OFF, THEIR SETTINGS 50%, WAVE ZOOM 1 BAR",
+                                          "SKIN RED, SCREEN EFFECTS OFF, THEIR SETTINGS 50%, WAVE ZOOM 1 BAR, EDIT ZOOM AUTO",
                                           "EVERYTHING AS IT CAME, ALL 64 PATTERNS, SAVED AT ONCE: 15 TURNS"};
 #define RST_TURNS 5u                     /* LOAF BREAKER: the clicks that reset (K2, K3 or K4), each within 2 s of the last */
 #define RST_COOL 3000u                   /* LOAF BREAKER: after a reset, the RESET page's knobs at rest this long */
@@ -165,6 +165,7 @@ static void reset_do(uint32_t w)
         set.sfx_on = 0u;
         set.scrfx = set.sfx_kick = set.sfx_drop = set.sfx_len = 50u;
         set.wzoom = 3u;
+        set.ezoom = 0u;                  /* (LOAF BREAKER: EDIT ZOOM AUTO) */
         ui.redraw = RG_ALL;
     } else {                               /* LOAF BREAKER: KICK: the kick selected (KICK 1-10) as it starts: ROTTERDAM,
                                           * its TERRORs and effects with it, its SYNTH at 0, its BASS, CLEAN SUB

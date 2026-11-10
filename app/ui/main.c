@@ -940,7 +940,13 @@ static void input(void)
             app_say("TEMPO RISE", t);
             ui.redraw |= RG_BLOCKS;
         }
-        else if (k == EN_PRESET && ui.page == PG_GLOBAL && ui.gpage == 2u) {   /* LOAF BREAKER: GLO MORE: WAVE ZOOM,
+        else if (k == EN_PRESET && ui.page == PG_GLOBAL && ui.gpage == 3u) {   /* LOAF BREAKER: SYSTEM › EFFECTS:
+                                          * EDIT ZOOM, the time EDIT's pictures show (the kick, the drums) */
+            set.ezoom = (uint8_t)clamp((int32_t)(set.ezoom % EZ_N) + (d > 0 ? 1 : -1), 0, EZ_N - 1);
+            changed();
+            app_say("EDIT ZOOM", set.ezoom ? EZ_NAME[set.ezoom] : "AUTO (EACH PART ITS OWN)");
+            ui.redraw |= RG_BLOCKS;
+        } else if (k == EN_PRESET && ui.page == PG_GLOBAL && ui.gpage == 2u) {   /* LOAF BREAKER: GLO MORE: WAVE ZOOM,
                                           * how much of the past the scrolling wave holds */
             set.wzoom = (uint8_t)clamp((int32_t)(set.wzoom % CDJ_ZN) + (d > 0 ? 1 : -1), 0, CDJ_ZN - 1);
             changed();
@@ -1950,8 +1956,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut"};
-    int v[100];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms"};
+    int v[102];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -2057,7 +2063,9 @@ int app_expect(const char *what, int *got)
     v[97] = set.kfocus;
     v[98] = rst_cool();
     v[99] = set.tut;
-    for (i = 0; i < 100u; i++)
+    v[100] = set.ezoom;
+    v[101] = (int)kv_ms();
+    for (i = 0; i < 102u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

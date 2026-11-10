@@ -753,6 +753,8 @@ static float kick_knob_f(int i)          /* the part's knob i, 0..1 (as its bar)
  * EFFECTS K4 KICK VIEW on PART: CLICK's 50 ms, PUNCH's and STACK's 150, the TAIL section's whole second) */
 static uint32_t kv_ms(void)
 {
+    if (set.ezoom % EZ_N)                /* (LOAF BREAKER: EDIT ZOOM, SYSTEM › EFFECTS: the time chosen, every part) */
+        return EZ_MS[set.ezoom % EZ_N];
     if (set.kfocus) {
         if ((ui.kpage == KP_LAYER || ui.kpage == KP_FX) && ui.klayer == KL_CLICK)
             return 50u;
@@ -781,7 +783,7 @@ static void kv_kick(kick_t *k)
 }
 static uint32_t kv_part_sig(void)        /* (what the picture shows, for its redraw) */
 {
-    return set.kfocus ? (uint32_t)ui.kpage * 8u + ui.klayer + 1u + kv_ms() * 64u + (uint32_t)klab.cur.src * 99991u : 0u;
+    return (set.kfocus ? (uint32_t)ui.kpage * 8u + ui.klayer + 1u + (uint32_t)klab.cur.src * 99991u : 0u) + kv_ms() * 64u;
 }
 static uint8_t kv_px[KV_W];              /* the hit's level, column by column */
 static int8_t kv_wave[KV_W];             /* and its wave (the pitch falling: the cycles stretching) */
@@ -934,13 +936,24 @@ static void kick_picture(int32_t top)
         cv_text(12 + text_w(&FONT_B, "KICK 10"), 4, &FONT_XS, t, kp_knobs() || ui.kpage == KP_STYLE ? C_HI : C_GRAY);
     }
     t[0] = 0;
-    if (set.kfocus && kv_ms() != (ui.kview == 0u ? 500u : 250u)) {   /* (LOAF BREAKER: KICK VIEW PART, its time) */
-        int_text((int32_t)kv_ms(), t);
-        text_cat(t, " MS  ");
-    }
-    int_text((int32_t)(hz + 0.5f), t + text_n(t));
+    int_text((int32_t)(hz + 0.5f), t);
     text_cat(t, " HZ");
     cv_text(234 - text_w(&FONT_XS, t), 4, &FONT_XS, t, C_AMB);
+    if (kv_ms() != (ui.kview == 0u ? 500u : 250u)) {   /* (LOAF BREAKER: KICK VIEW PART or EDIT ZOOM: the picture's
+                                          * time, under the pitch: the right end, the tail's quiet) */
+        uint32_t ms = kv_ms();
+        t[0] = 0;
+        if (ms >= 1000u) {               /* ("1.5 S") */
+            int_text((int32_t)(ms / 1000u), t);
+            if (ms % 1000u)
+                text_cat(t, ".5");
+            text_cat(t, " S");
+        } else {
+            int_text((int32_t)ms, t);
+            text_cat(t, " MS");
+        }
+        cv_text(234 - text_w(&FONT_XS, t), 13, &FONT_XS, t, C_AMB);
+    }
     {                                    /* LOAF BREAKER (0.205; 0.207 a bar): the section's parts at the foot, as the
                                           * tabs: the whole width, the one open lit (BEGINNER: those it passes over
                                           * dim); the tabs' letters if they fit, else smaller */

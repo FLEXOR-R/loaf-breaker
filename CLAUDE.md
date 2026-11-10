@@ -65,6 +65,9 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   OUT's K4 the built-in kicks. 0.213: a step done waits 5 s (`TUT_WAIT`, the header counting) only where there is
   something to hear (TUT[].wait: slices, effects, kicks, DISTO, steps, the drop); a button step goes on at once. Keep
   its steps true when a control they teach moves.
+- EDIT ZOOM (0.216, FLEXOR: "a wider view"): `set.ezoom` (appended after `tut`; 0 AUTO), SYSTEM › EFFECTS PRESETS,
+  EZ_MS[] in common.c (250 ms .. 2 s): kick.c kv_ms() and perc.c draw_perc_big's pw_ms; the time drawn under the HZ.
+  The picture's cost grows with its time (kick_rgb ticks the kick: 2 s = 88,200 samples a redraw, main loop only).
 - SETUP (0.213, FLEXOR): the knobs in the screen's order, K1 SKIN, K2 WAVE ZOOM (PRESETS too), K3 MODE, K4 AUTO SAVE;
   the METER moved to MIDI's K3, EXPERT only (BEGINNER turns it off).
 - RESET (0.209): after a reset its page's knobs do nothing for 3 s (`RST_COOL`, `ui.rst_done`, rst_cool()), DONE shown.
