@@ -190,6 +190,7 @@ static void lane_toggle(uint32_t sl, uint32_t i)   /* sl: SL_KICK.. */
 {
     uint32_t m = sl_get(pat_now(), sl) ^ 1u << i;
     sl_set(pat_now(), sl, m);
+    tut_lane++;                          /* (LOAF BREAKER: the TUTORIAL's count) */
     pat_lanes_out();
     say_int(m >> i & 1u ? DRUM_NAME[sl_drum(sl)] : "OFF", (int32_t)i + 1 + 16 * (int32_t)SL_BAR[sl % NSEQL], "");
     ui.redraw |= RG_BLOCKS | RG_FOOT;

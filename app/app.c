@@ -184,6 +184,8 @@ typedef struct {
                                           * (the bands as one hue, red to blue, never white); GLO EFFECTS K3 */
     uint8_t kfocus;                      /* (appended) LOAF BREAKER: the KICK menu's picture: 0 the WHOLE kick, 1 the PART
                                           * edited (a layer alone, the attack close, the tail whole); GLO EFFECTS K4 */
+    uint8_t tut;                         /* (appended) LOAF BREAKER: the TUTORIAL (tutor.c): 0 off, 1.. its step running,
+                                          * 0xFE finished; a new FM-1 starts it, the simulator not */
 } settings_t;
 #define FILL_LATCH (set.fill_cfg & 1u)
 #define FILL_DRUM (set.fill_cfg >> 1 & 3u)
@@ -322,6 +324,7 @@ static void settings_defaults(void)
                                           * a scenario turns GLO MORE's K1 for BEGINNER) */
 #else
     set.novice = 1u;                     /* (TEST: BEGINNER to start, on the FM-1 and the web emulator) */
+    set.tut = 1u;                        /* (LOAF BREAKER: and the TUTORIAL running, its first step) */
 #endif
     set.sfx_kick = set.sfx_drop = set.sfx_len = 50u;   /* (TEST: REV BASS from 3/8 of the beat, a curve between) */
     set.tempo_x10 = 1700u;               /* jungle tempo */
@@ -1119,6 +1122,9 @@ void app_init(void)
             set.magic = 0u;
         else if (sz <= (int)offsetof(settings_t, novice))
             set.novice = 0u;             /* (TEST: a save from before the MODE: its owner knows the way, EXPERT) */
+        if (set.magic == SET_MAGIC && sz <= (int)offsetof(settings_t, tut))
+            set.tut = 0u;                /* (LOAF BREAKER: a save from before the TUTORIAL: an FM-1 in use, none started;
+                                          * SETUP K1 starts it) */
     }
     if (set.magic != SET_MAGIC || set.tempo_x10 < 400u || set.tempo_x10 > 3000u || set.swing < 50u ||
         set.swing > 75u) {
@@ -1881,6 +1887,7 @@ void app_panic(void)
 #include "ui/perc.c"
 #include "ui/mixer.c"
 #include "ui/track.c"                 /* (LOAF BREAKER: ENV's TRACKS, PLAY, DROP) */
+#include "ui/tutor.c"                 /* (LOAF BREAKER: the TUTORIAL) */
 #include "ui/screen.c"
 #if CH_DEMO
 #include "ui/demo.c"

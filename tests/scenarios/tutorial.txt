@@ -1,0 +1,91 @@
+# LOAF BREAKER: the TUTORIAL. SYSTEM › SETUP (GLO twice), K1 left twice: BEGINNER, then TUTORIAL. Its 16 steps, each
+# done as it says: PLAY, four slices, PLAY (stop); PLAY, a black key, another; EDIT, K1 K2 turned, PRESETS; SEL + K4;
+# SEQ, two kicks, ALGORITHM to the snare and one; SEL + ENV (the drop); SAVE; the last read, then finished (254).
+#   app/build/host/loaf-breaker_host tests/scenarios/tutorial.txt app/build/scenarios
+wait 4200
+tap GLO
+wait 150
+tap GLO
+wait 300
+expect gpage 2
+turn K1 -1 80
+wait 200
+turn K1 -1 80
+wait 300
+expect tut 1
+wait 1500
+shot tu_1.png
+tap PLAY
+wait 300
+expect tut 2
+wait 1500
+shot tu_2.png
+tapkey w0
+wait 100
+tapkey w3
+wait 100
+tapkey w5
+wait 100
+tapkey w8
+wait 300
+expect tut 3
+tap PLAY
+wait 300
+expect tut 4
+tap PLAY
+wait 300
+expect tut 5
+key b1 down
+wait 400
+key b1 up
+wait 300
+expect tut 6
+key b4 down
+wait 400
+key b4 up
+wait 300
+expect tut 7
+tap EDIT
+wait 300
+expect tut 8
+wait 1500
+shot tu_8.png
+turn K1 3 60
+turn K2 3 60
+wait 300
+expect tut 9
+turn PRESET 1 80
+wait 300
+expect tut 10
+press SEL
+turn K4 3 60
+release SEL
+wait 300
+expect tut 11
+tap SEQ
+wait 300
+expect tut 12
+tapkey w0
+wait 100
+tapkey w8
+wait 300
+expect tut 13
+turn ALGO 4 80
+wait 200
+tapkey w4
+wait 300
+expect tut 14
+wait 1500
+shot tu_14.png
+press SEL
+tap ENV
+release SEL
+wait 12000
+expect tut 15
+tap SAVE
+wait 300
+expect tut 16
+wait 1500
+shot tu_16.png
+wait 6000
+expect tut 254

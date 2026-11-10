@@ -17,6 +17,15 @@ LOAF BREAKER turns the M-VAVE FM-1 into a hardcore break machine: a breakbeat cu
 built from scratch, drums, effects and drops. You don't need the whole manual to start: these five steps are enough.
 The FM-1 starts in **BEGINNER** mode (SYSTEM › SETUP: GLO, then GLO again; K1): the advanced pages stay hidden until you want them.
 
+**Or let the FM-1 show you: the TUTORIAL.** A new FM-1 starts with it (and SYSTEM › SETUP K1, turned left past
+BEGINNER, starts it again). The header says one thing to do at a time, the button or the keys that do it blink, and
+when it's done, "OK!" and the next: 16 steps in seven lessons, THE BREAK (PLAY, the slices, stop), EFFECTS (the black
+keys), THE KICK (EDIT, K1–K4, PRESETS), DISTO (SEL + K4), THE PATTERN (SEQ: kicks, a snare), THE DROP (SEL + ENV) and
+SAVE. Everything is real: you play the firmware itself. **SEL + GLO** skips a step, **GLO** quits (SETUP K1 starts it
+again where you left it; SAVE keeps where you are). An FM-1 already in use when it updates doesn't start it.
+
+![The TUTORIAL: step 1, PRESS PLAY](img/screen-tutorial.png "TUTORIAL")
+
 ### 1. Press PLAY
 
 The break plays with its kick at once (NUSKOOL 140 to start). **ALGORITHM** picks the next break (it changes on the next
@@ -675,8 +684,8 @@ tempo's own repitch, HALF, REVERSE's speed and the tape stop stay speed effects.
 
 **SETUP (GLO twice):** K4 **SKIN**, the screen's colours (RED to start; the whole screen changes at once): RED, AMBER, ICE BLUE, PIP-BOY,
 IRIS, PINK, MINT, WHITE, BLOOD, MAXENCE, then the two-colour ones: SYNTHWAVE (neon cyan and magenta on indigo), VAPOR,
-TOXIC, MIAMI, LAVA, GOLD, BLAZE (flashy orange and red), ACID (acid yellow and red-orange); K1 **MODE**: BEGINNER
-(left) or EXPERT (right). In BEGINNER, ALGORITHM on the KICK menu passes over its advanced parts: SOUND has MIX, SUB
+TOXIC, MIAMI, LAVA, GOLD, BLAZE (flashy orange and red), ACID (acid yellow and red-orange); K1 **MODE**: TUTORIAL (left of
+BEGINNER: the tutorial, above), BEGINNER or EXPERT (right). In BEGINNER, ALGORITHM on the KICK menu passes over its advanced parts: SOUND has MIX, SUB
 and OUT, SYNTH has SYNTH, BASS and MACRO, DIRT has DISTO, TONE has EQ BANDS and FX 1, KNOBS has KNOBS. Nothing is
 lost: EXPERT shows them all again, as they were left. A new FM-1, the web emulator and RESET ALL start in BEGINNER; an
 FM-1 updated with its settings saved stays in EXPERT. K3 **METER** (not saved: off at every start): once a second the

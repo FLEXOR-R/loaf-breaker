@@ -58,6 +58,10 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   px each way). Views (ui.kview, EDIT held): RGB (kick_rgb, 500 ms), WAVE, then CLASSIC (ui.kclassic).
 - GLO EFFECTS K3 WAVE (`set.wstyle`: REKORDBOX / SERATO, common.c serato_col; the kick's RGB and cdj.c) and K4 KICK
   VIEW (`set.kfocus`: the whole kick / the part edited: kick.c kv_ms, kv_kick) (10 Nov 2026, 0.206).
+- TUTORIAL (0.211, FLEXOR: "a sober name"): ui/tutor.c (included before screen.c), TUT[] steps (lesson, condition TC_*,
+  keys and buttons to blink, text), `set.tut` (appended: 0 off, 1..TUT_N the step, 0xFE done; a new FM-1 starts it,
+  an older save not), the counters tut_* in common.c; the header draws the step (screen.c); SETUP K1 left of
+  BEGINNER; GLO quits, SEL + GLO skips. Keep its steps true when a control they teach moves.
 - RESET (0.209): after a reset its page's knobs do nothing for 3 s (`RST_COOL`, `ui.rst_done`, rst_cool()), DONE shown.
 - No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository.
 - Fonts: `font_trim` is on (fm1.toml, 9 Nov 2026). LOAF BREAKER draws in FONT_T, FONT_XS and FONT_B only (cv_text2 for
@@ -72,7 +76,7 @@ without Bluetooth; the screen, the controls, the order of the work). Keep it cur
 
 
 `app/app.c` is the core (settings, patterns, MIDI, the render); it ends by including `app/ui/*.c` in order (common,
-fx, pads, keys, bta, global, ovl, seq, kick, perc, mixer, screen, demo, main): one unity build, so a page file sees what the
+fx, pads, keys, bta, global, ovl, seq, kick, perc, mixer, track, tutor, screen, demo, cdj, main): one unity build, so a page file sees what the
 files before it define. `app/dsp/*.c` are separate `o2` units (brk, brk_fx, kick, perc, ovl, …).
 
 ## Hard rules

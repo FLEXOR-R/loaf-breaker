@@ -37,6 +37,9 @@ static uint32_t glo_next(int32_t d)      /* SYSTEM's next or previous part (from
 static const char *const FILL_DRUM_NAME[4] = {"SNARE", "CLAP", "HAT", "ALL 3"};
 static const char *const FILL_LEN_NAME[7] = {"1 BEAT", "1 BEAT /8", "2 BEATS", "2 BEATS /8", "1 BAR", "1 BAR /8",
                                              "2 STEPS"};
+static int tut_on(void);                 /* (LOAF BREAKER: the TUTORIAL, tutor.c: further on) */
+static void tut_start(void);
+static void tut_quit(void);
 static uint32_t fill_len_i(void) { return FILL_LEN < 3u ? FILL_LEN * 2u + FILL_RATE : 6u; }   /* (LENGTH and RATE, one) */
 static void global_value(int i, char *t)
 {
@@ -71,8 +74,8 @@ static void global_value(int i, char *t)
             text_cat(t, set.skin % NSKINS == 10u ? "SYNTHWV" : SKIN_NAME[set.skin % NSKINS]);
         else if (i == 1)                 /* LOAF BREAKER: K2 AUTO SAVE */
             text_cat(t, set.auto_save ? "ON" : "OFF");
-        else if (i == 0)                 /* (TEST: K1 MODE) */
-            text_cat(t, set.novice ? "BEGINNER" : "EXPERT");
+        else if (i == 0)                 /* (TEST: K1 MODE; LOAF BREAKER: TUTORIAL, left of BEGINNER) */
+            text_cat(t, tut_on() ? "TUTORIAL" : set.novice ? "BEGINNER" : "EXPERT");
         else if (i == 2)                 /* (TEST: K3 METER, not saved) */
             text_cat(t, ui.meter_on ? "ON" : "OFF");
         return;                          /* (K3: nothing; the effects: GLO EFFECTS) */
@@ -166,10 +169,18 @@ static void global_turn(int i, int32_t d)
             ui.meter_on = d > 0 ? 1u : 0u;
             app_say("METER", ui.meter_on ? "ON: CPU, IMG, FR" : "OFF");
             ui.redraw |= RG_BLOCKS | RG_FOOT;
-        } else if (i == 0) {             /* (TEST) K1 MODE: right EXPERT, left BEGINNER */
-            set.novice = d > 0 ? 0u : 1u;
-            changed();
-            app_say("MODE", set.novice ? "BEGINNER" : "EXPERT");
+        } else if (i == 0) {             /* (TEST) K1 MODE: right EXPERT, left BEGINNER (LOAF BREAKER: left again, the
+                                          * TUTORIAL; right from it, BEGINNER) */
+            if (d < 0 && set.novice && !tut_on())
+                tut_start();
+            else if (d > 0 && tut_on()) {
+                tut_quit();
+                app_say("MODE", "BEGINNER");
+            } else {
+                set.novice = d > 0 ? 0u : 1u;
+                changed();
+                app_say("MODE", set.novice ? "BEGINNER" : "EXPERT");
+            }
             ui.redraw |= RG_BLOCKS | RG_FOOT;
         } else if (i == 1) {             /* K2 AUTO SAVE: right on, left off */
             set.auto_save = d > 0 ? 1u : 0u;
@@ -323,7 +334,7 @@ static void draw_global(const brk_status_t *st)
         cv_text(96, 16, &FONT_XS, "PRESETS: HOME'S WAVE", C_DIM);
         cv_text(96, 26, &FONT_XS, "SCREEN EFFECTS: GLO AGAIN", C_DIM);
         cv_text(6, 38, &FONT_T, "MODE", C_GRAY);   /* (TEST) K1 */
-        cv_text(96, 38, &FONT_T, set.novice ? "BEGINNER" : "EXPERT", C_HI);
+        cv_text(96, 38, &FONT_T, tut_on() ? "TUTORIAL" : set.novice ? "BEGINNER" : "EXPERT", C_HI);
         cv_blit(0, 88);
         cv_begin(240, 52, C_BLACK);
         cv_text(6, 2, &FONT_T, "AUTO SAVE", C_GRAY);   /* K2 */

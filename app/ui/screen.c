@@ -375,6 +375,11 @@ static void draw_head(const brk_status_t *st, const brk_break_t *b, uint32_t now
     if (now < ui.msg_until) {
         int32_t x = cv_text(8, 6, &FONT_B, ui.msg[0], C_WHITE);
         cv_text(x + 8, 6, &FONT_B, ui.msg[1], C_HI);
+    } else if (tut_on()) {               /* LOAF BREAKER: the TUTORIAL: its step, what to do */
+        char a[40], w[40];
+        tut_head(a, w);
+        cv_text(8, 2, &FONT_T, a, C_AMB);
+        cv_text(8, 14, &FONT_T, w, C_WHITE);
     } else {
         if (st->playing) {               /* a play triangle, or a stop square */
             int32_t r;

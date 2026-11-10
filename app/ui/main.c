@@ -233,6 +233,13 @@ static void input(void)
     kdn = keys & ~ui.keys;
     kup = ui.keys & ~keys;
     bdn = btn & ~ui.btn;
+    for (i = 0; i < 16u; i++)            /* (LOAF BREAKER: the TUTORIAL's counts: white keys, black keys) */
+        tut_wk += kdn >> WK[i] & 1u;
+    for (i = 0; i < 11u; i++)
+        if (kdn >> BK[i] & 1u) {
+            tut_pads |= 1u << i;
+            tut_padn++;
+        }
     int k;
     if (keys != ui.keys || btn != ui.btn)
         ui.touched = 1u;                 /* (read here too between frames: app_input_only) */
@@ -457,7 +464,12 @@ static void input(void)
             page_say();
         }
     }
-    if (bdn & 1u << B_GLO)               /* GLOBAL: MIDI clock and Bluetooth; again, the pitch; again, BT audio */
+    if (bdn & 1u << B_GLO && tut_on()) { /* LOAF BREAKER: the TUTORIAL running: GLO quits it, SEL + GLO skips a step */
+        if (btn & 1u << B_SEL)
+            tut_skip();
+        else
+            tut_quit();
+    } else if (bdn & 1u << B_GLO)        /* GLOBAL: MIDI clock and Bluetooth; again, the pitch; again, BT audio */
         global_part(glo_next(1));        /* (LOAF BREAKER: SYSTEM's parts: MIDI, SETUP, EFFECTS, FX SET, RESET) */
     if (bdn & 1u << B_EDIT) {            /* LOAF BREAKER: EDIT: SOUNDS, the KICK menu; again, its next section (SOUND
                                           * ...). SEL + EDIT: the next source: KICK, DRUMS, BREAK (0.201; the MELODY
@@ -739,6 +751,7 @@ static void input(void)
         undo_swap();
     else if (bdn & 1u << B_SAVE) {
         int pre = kpre_store();          /* (LOAF BREAKER: on STYLE, PRESET n picked: the knobs into it first) */
+        tut_saves++;
         int ok = store_all();
         if (ok)
             ab_take();                   /* (TOOLS' A/B: B is the kick as now saved) */
@@ -780,6 +793,12 @@ static void input(void)
         if (!d)
             continue;
         ui.touched = 1u;
+        if (k >= EN_K1 && k <= EN_K4) {  /* (LOAF BREAKER: the TUTORIAL's counts: the kick's knobs, SEL + K4) */
+            if (btn & 1u << B_SEL)
+                tut_sk4 += k == EN_K4 ? (uint32_t)(d < 0 ? -d : d) : 0u;
+            else if (ui.page == PG_KICK)
+                tut_kturn += (uint32_t)(d < 0 ? -d : d);
+        }
         if (btn & 1u << B_SEL)
             ui.tap_combo = 1u;           /* (SEL + a knob is no tap) */
         if (ui.fx_hold)
@@ -1009,6 +1028,7 @@ static void leds(void)
         } else
             b = k = 0u;
     }
+    tut_leds(&b, &k, st.playing);        /* (LOAF BREAKER: the TUTORIAL's step: its buttons and keys blinking) */
     plat_glow(1);
     plat_leds(b, k);
 }
@@ -1540,7 +1560,8 @@ void app_frame(void)
             kick_mem_go(drop_kick_want - 1u);
         }
         b_was = b;
-        if (drop_kick_back && !st.playing) {
+        if (drop_kick_back && !playing_now()) {   /* (LOAF BREAKER, 0.211: st is filled further down: it was read
+                                          * before it, the build's kick sometimes back at once) */
             kick_mem_go(drop_kick_back - 1u);
             drop_kick_back = drop_kick_want = 0u;
         }
@@ -1749,6 +1770,7 @@ void app_frame(void)
             ui.redraw |= RG_BLOCKS | RG_FOOT;
         }
     }
+    tut_frame(&st);                      /* LOAF BREAKER: the TUTORIAL: its step done, the next */
     if (ui.rst_done && !rst_cool()) {    /* LOAF BREAKER: RESET's 3 s at rest over: its picture as it was */
         ui.rst_done = 0u;
         if (RST_ON)
@@ -1925,8 +1947,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool"};
-    int v[99];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut"};
+    int v[100];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -2031,7 +2053,8 @@ int app_expect(const char *what, int *got)
     v[96] = set.wstyle;
     v[97] = set.kfocus;
     v[98] = rst_cool();
-    for (i = 0; i < 99u; i++)
+    v[99] = set.tut;
+    for (i = 0; i < 100u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;
