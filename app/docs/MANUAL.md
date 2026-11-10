@@ -159,7 +159,9 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
   HAT, CLAP, HOOVER** once each, to hear them (the number on each drum's card; on the big views the strip names the
   drum played); playing, the keys play slices as ever. **A built-in kick on the kick selected:** SOUND's last part,
   **OUT** (ALGORITHM to it), **K4 PRESET**: 909, TECHNO, EARLY HC, ROTTERDAM, INDUSTRIAL, DISTORTO, on the kick
-  selected (PRESETS: KICK 1–10), its volume, steps and TERRORs kept. On the big view, **SELECT** goes from drum to drum (the KICK,
+  selected (PRESETS: KICK 1–10), its volume, steps and TERRORs kept. **A kick copied onto another:** K4 PRESET past
+  them, **COPY K1 … COPY K10**: that memory's kick, its SYNTH and its knobs (KNOBS, CLEAN SUB, BASS, MORPH) onto the
+  kick selected, its volume kept (pick the kick to fill with PRESETS, then the one to copy with K4). On the big view, **SELECT** goes from drum to drum (the KICK,
   SNARE, HAT, CLAP, HOOVER, and round), each in a big view of its own: its hit drawn large over its level, its decay
   marked in amber, its memory and tune, the five drums along the bottom (stopped: keys 1–5 play them), the part's
   knobs as cards (ALGORITHM: SOUND or SHAPE, PRESETS its memories). SELECT is not the tempo there. **SEL + EDIT** opens
@@ -210,13 +212,14 @@ instead, hold it again for the waveform; neither moves to HOME's next part.
 metronome and tap tempo are gone).
 
 - **TRACKS**: eight tracks (**PRESETS** picks one), each up to 32 items in four rows of eight: a pattern (P1–P16)
-  played for its loops (×1–×16), a **DROP** (the build, then the drop into the pattern after it), and its END. **K1**
-  the item, **K2** what it is: END, EMPTY, P1–P16, DROP (EMPTY, left of P1, empties the case and keeps its place: ENV held on it,
+  played for its loops (×1–×16), a **DROP** (the build, then the drop into the pattern after it), and its END.
+  **ALGORITHM** the item, **K1** its **kick**: SAME (the one playing goes on) or KICK 1–10, taken as the item's pattern
+  comes in (playing from it: at once; a DROP into it: with the drop; its cell shows it, "K7"), **K2** what it is: END, EMPTY, P1–P16, DROP (EMPTY, left of P1, empties the case and keeps its place: ENV held on it,
 or K2 left once more, deletes it, the rest moving up),
   **K3** its loops, **K4** its **break**: SAME (the one playing goes on) or one of the bank's, in with the item
   (swapped at the bar's end, as ALGORITHM does; a cell with its own break shows it, "X4 B3"; a DROP into it brings
   it in, in DROP BREAK's place). What the track does at its end (LOOP, STOP, HOLD) is on **PLAY**'s K3.
-  **ALGORITHM** moves along the items too, as K1 does (the break stays as it is: SEL + ALGORITHM changes it). A
+  ALGORITHM moves along the items (the break stays as it is: SEL + ALGORITHM changes it). A
   **white key** puts its pattern at the item and moves to the next one. **ENV held** (0.45 s) makes room: the items after the one edited move one place right and an empty item (a + in an outline) opens after it, the one
   edited staying where it is; the cursor goes onto it, for a white key (a pattern) or **K2** (a DROP; K2 left: the
   space gone again). An empty item left is played past. **ENV held on an empty item** takes it out: the items on

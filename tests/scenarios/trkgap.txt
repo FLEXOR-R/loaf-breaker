@@ -14,20 +14,20 @@ expect page 8
 expect trk_cur 1
 expect trk_it 253
 shot t_gap.png
-turn K1 1 10
+turn ALGO 1 10
 wait 100
 expect trk_it 2
-turn K1 -1 10
+turn ALGO -1 10
 key w4 down
 key w4 up
 wait 200
 expect trk_cur 2
 expect trk_it 2
-turn K1 -1 10
+turn ALGO -1 10
 wait 100
 expect trk_it 5
 shot t_gap_put.png
-turn K1 -1 10
+turn ALGO -1 10
 press ENV
 wait 600
 release ENV
@@ -43,7 +43,7 @@ key w0 down
 key w0 up
 key w1 down
 key w1 up
-turn K1 -2 10
+turn ALGO -2 10
 press ENV
 wait 600
 release ENV
@@ -66,8 +66,8 @@ wait 300
 tap ENV
 wait 300
 expect page 8
-turn K1 -5 10
-turn K1 1 10
+turn ALGO -5 10
+turn ALGO 1 10
 wait 100
 expect trk_it 253
 press ENV
@@ -76,10 +76,10 @@ release ENV
 wait 200
 expect trk_cur 0
 expect trk_it 1
-turn K1 1 10
+turn ALGO 1 10
 wait 100
 expect trk_it 2
-# ALGORITHM on TRACKS: the item (as K1), the break left as it is
+# ALGORITHM on TRACKS: the item (K1 is its kick), the break left as it is
 turn ALGO 1 10
 wait 200
 expect trk_cur 2
@@ -95,7 +95,7 @@ key w0 down
 key w0 up
 key w1 down
 key w1 up
-turn K1 -1 10
+turn ALGO -1 10
 turn K4 3 10
 wait 200
 shot t_brk.png

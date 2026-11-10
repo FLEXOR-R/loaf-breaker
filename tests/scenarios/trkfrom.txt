@@ -7,7 +7,7 @@ tap ENV
 wait 300
 expect page 8
 expect trk_from 0
-turn K1 1 10
+turn ALGO 1 10
 wait 100
 press SEL
 tap PLAY

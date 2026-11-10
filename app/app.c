@@ -506,9 +506,12 @@ typedef struct {
     uint8_t kx[KICK_MEMS][KX_N];         /* (appended) each kick memory's knobs, kx_put's order: ENV KNOB's choices,
                                           * CLEAN SUB, BASS (GLIDE, REV BASS, START, CURVE), MORPH and its target; the
                                           * kick playing's in set (selk_asg ..), here when another is picked */
+    uint8_t tk[8][32];                   /* (appended) each track item's kick: 0 the one playing, 1.. KICK n (TRACKS K1;
+                                          * NTRACKS x TRK_ITEMS; an older save: none) */
 } steps_t;
 #define STEPS_SIZE_OLD offsetof(steps_t, tb)
 #define STEPS_SIZE_TB offsetof(steps_t, kx)   /* (one before the kicks' own knobs) */
+#define STEPS_SIZE_KX offsetof(steps_t, tk)   /* (one before the track items' kicks) */
 static steps_t steps PLAT_POOL;
 /* LOAF BREAKER: the kick memory k's knobs from the ones playing (kx_put), the ones playing from k's (kx_get); kx_all:
  * every memory's as the ones playing (an older save, RESET ALL) */
@@ -547,6 +550,7 @@ static void steps_defaults(void)          /* (none: from the patterns' HITS) */
 {
     uint32_t pi, d, s;
     steps.magic = STEPS_MAGIC;
+    memset(steps.tk, 0, sizeof steps.tk);
     memset(steps.tb, 0, sizeof steps.tb);
     for (pi = 0; pi < NPAT; pi++)
         for (d = 0; d < NDRUMS; d++)
@@ -1015,14 +1019,16 @@ void app_init(void)
     if (pats.magic != PAT_MAGIC && pats.magic != PAT2_MAGIC && pats.magic != PAT1_MAGIC)
         pat_defaults();
     int ssz = plat_store_load(OBJ_STEP, &steps, sizeof steps), sok;
-    sok = (ssz == (int)sizeof steps || ssz == (int)STEPS_SIZE_TB || ssz == (int)STEPS_SIZE_OLD) &&
-          steps.magic == STEPS_MAGIC;
+    sok = (ssz == (int)sizeof steps || ssz == (int)STEPS_SIZE_KX || ssz == (int)STEPS_SIZE_TB ||
+           ssz == (int)STEPS_SIZE_OLD) && steps.magic == STEPS_MAGIC;
     if (!sok)
         steps_defaults();                /* (LOAF BREAKER: the drum steps' own settings) */
     else if (ssz == (int)STEPS_SIZE_OLD)
         memset(steps.tb, 0, sizeof steps.tb);   /* (a save before the tracks' breaks) */
-    if (!sok || ssz != (int)sizeof steps)
+    if (!sok || ssz < (int)STEPS_SIZE_KX)
         kx_all();                        /* (a save before the kicks' own knobs: every kick with the ones it had) */
+    if (!sok || ssz != (int)sizeof steps)
+        memset(steps.tk, 0, sizeof steps.tk);   /* (a save before the items' kicks: the one playing) */
     if (sok && pats.magic != PAT_MAGIC) {   /* an older save: its kick again over four bars, as it played */
         uint32_t i;
         for (i = 0; i < NPAT; i++) {

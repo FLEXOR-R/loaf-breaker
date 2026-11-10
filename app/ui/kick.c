@@ -98,7 +98,7 @@ static void ks_turn(int i, int32_t d)
 
 /* LOAF BREAKER: the kick memories, KICK 1..10 (KICK's PRESETS, SEQ's SELECT): the one playing kept as it is, the next
  * as it was left (the volume kept), its knobs with it: ENV KNOB's choices, CLEAN SUB, BASS, MORPH (kx_put, kx_get) */
-static void kick_mem_turn(int32_t d)
+static void kick_mem_go(uint32_t n)      /* (LOAF BREAKER: KICK n, 0..9, as above; a track item's too) */
 {
     float vol = set.kick.volume;
     char t[4];
@@ -107,7 +107,7 @@ static void kick_mem_turn(int32_t d)
     for (j = 0; j < KS_N; j++)           /* (LOAF BREAKER: its SYNTH with it) */
         set.ksmem[set.kslot % KICK_MEMS][j] = set.ksyn[j];
     kx_put(set.kslot);
-    set.kslot = (uint8_t)((set.kslot % KICK_MEMS + (d > 0 ? 1u : KICK_MEMS - 1u)) % KICK_MEMS);
+    set.kslot = (uint8_t)(n % KICK_MEMS);
     set.kick = set.kmem[set.kslot];
     for (j = 0; j < KS_N; j++)
         set.ksyn[j] = set.ksmem[set.kslot][j];
@@ -117,6 +117,23 @@ static void kick_mem_turn(int32_t d)
     app_say("KICK", t);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
     changed_kick();
+}
+/* LOAF BREAKER: OUT's K4 PRESET: the built-in kicks (909 .. DISTORTO), then COPY KICK 1..10: that memory's kick, its
+ * SYNTH and its knobs (KNOBS, CLEAN SUB, BASS, MORPH) onto the kick selected, its volume kept */
+#define KPRE_N (KICK_PRESETS + KICK_MEMS)
+static void kpre_text(char *t)
+{
+    uint32_t p = ui.kpreset % KPRE_N;
+    if (p < KICK_PRESETS) {
+        text_cat(t, KICK_PRESET_NAME[p]);
+        return;
+    }
+    text_cat(t, "COPY K");
+    int_text((int32_t)(p - KICK_PRESETS) + 1, t + 6);
+}
+static void kick_mem_turn(int32_t d)
+{
+    kick_mem_go((set.kslot % KICK_MEMS + (d > 0 ? 1u : KICK_MEMS - 1u)) % KICK_MEMS);
 }
 static const char *const KPAGE_NAME[KPAGES] = {"MIX", "LAYER", "LAYER FX", "MACRO", "OUT", "TERROR", "TERROR +",
                                                 "TERROR 2", "SYNTH", "SYNTH +", "BASS", "KNOBS", "K SET",
@@ -358,7 +375,7 @@ static void kick_value(int i, char *t)
         break;
     case KP_FX:
         if (kick_preset_knob(i))
-            text_cat(t, KICK_PRESET_NAME[ui.kpreset % KICK_PRESETS]);
+            kpre_text(t);
         else if (i == 0)
             text_cat(t, KICK_FX_NAME[l->fx % KICK_FX]);
         else if (i == 3)
@@ -378,7 +395,7 @@ static void kick_value(int i, char *t)
         break;
     default:
         if (kick_preset_knob(i))         /* (LOAF BREAKER: OUT's K4: the built-in kick) */
-            text_cat(t, KICK_PRESET_NAME[ui.kpreset % KICK_PRESETS]);
+            kpre_text(t);
         else if (i == 0)
             pct_text(k->volume, t);
         else if (i <= 2)                 /* LOAF BREAKER: TERROR, TERROR 2 */
@@ -473,12 +490,30 @@ static void kick_knob_turn(int i, int32_t d)
     }
     if (kick_preset_knob(i)) {           /* the whole kick: every layer, its effects, INTENSITY (the kick selected,
                                           * KICK 1-10: its memory takes it); the volume and the steps kept */
-        ui.kpreset = (uint8_t)((ui.kpreset + (d > 0 ? 1u : KICK_PRESETS - 1u)) % KICK_PRESETS);
-        kick_preset(k, ui.kpreset);
-        {                                /* (LOAF BREAKER: its SYNTH back to as it always was too) */
+        ui.kpreset = (uint8_t)((ui.kpreset % KPRE_N + (d > 0 ? 1u : KPRE_N - 1u)) % KPRE_N);
+        if (ui.kpreset < KICK_PRESETS) {
             uint32_t j;
-            for (j = 0; j < KS_N; j++)
+            kick_preset(k, ui.kpreset);
+            for (j = 0; j < KS_N; j++)   /* (LOAF BREAKER: its SYNTH back to as it always was too) */
                 set.ksyn[j] = 0;
+        } else {                         /* (COPY KICK n: that memory's, if it is another) */
+            uint32_t n = ui.kpreset - KICK_PRESETS, j;
+            float vol = k->volume;
+            kick_value(i, t);
+            if (n == set.kslot % KICK_MEMS) {
+                app_say(t, "(THIS ONE)");
+                ui.redraw |= RG_FOOT;
+                return;
+            }
+            *k = set.kmem[n];
+            k->volume = vol;
+            for (j = 0; j < KS_N; j++)
+                set.ksyn[j] = set.ksmem[n][j];
+            kx_get(n);
+            app_say(t, "ON THIS KICK");
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
+            changed_kick();
+            return;
         }
         kick_value(i, t);
         app_say("KICK PRESET", t);
@@ -632,7 +667,7 @@ static float kick_knob_f(int i)          /* the part's knob i, 0..1 (as its bar)
         return i < 3 ? sk_norm(cm_fn(i), cm_i(i)) : 0.0f;
     default:
         return i == 0 ? k->volume : i <= 2 ? (float)*kick_hc((kick_t *)k, i) * 0.01f :
-               (float)(ui.kpreset % KICK_PRESETS) / (float)(KICK_PRESETS - 1u);   /* (OUT K4: the preset) */
+               (float)(ui.kpreset % KPRE_N) / (float)(KPRE_N - 1u);   /* (OUT K4: the preset, the copies) */
     }
 }
 /* LOAF BREAKER: the KICK menu's picture (y 44..143, no waveform of the break above it): the kick as it sounds, its

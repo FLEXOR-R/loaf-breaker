@@ -811,7 +811,8 @@ static void input(void)
             else if (RST_ON)
                 reset_pick(d);           /* LOAF BREAKER: GLO's RESET: the part, as K1 */
             else if (ui.page == PG_TRACK && ui.tpage == 0u)
-                track_turn(0, d);        /* LOAF BREAKER: ENV's TRACKS: the item, as K1 (the break: SEL + ALGORITHM) */
+                track_turn(-1, d);       /* LOAF BREAKER: ENV's TRACKS: the item (the break: SEL + ALGORITHM; K1 the
+                                          * item's kick) */
             else if (ui.page == PG_GLOBAL)   /* GLOBAL: its part */
                 global_part((ui.gpage + (d > 0 ? 1u : NGPART - 1u)) % NGPART);
             else if (ui.page == PG_KICK) {    /* LOAF BREAKER: the KICK menu: the next part of its section */
@@ -1201,7 +1202,7 @@ static void draw_foot(const brk_status_t *st)
                                               {"BREAK", "KICK", "PERC", "FX"},
                                               {"SLICE", "PITCH", "HITS", "REVERSE"},
                                               {"", "", "", ""},
-                                              {"ITEM", "PUT", "LOOPS", "BREAK"},
+                                              {"KICK", "PUT", "LOOPS", "BREAK"},
                                               {"AMOUNT", "RATE", "SWEEP", "LATCH"},
                                               {"LOW", "MID", "HIGH", "FREQ"}};
     uint32_t i;

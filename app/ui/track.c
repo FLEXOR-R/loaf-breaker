@@ -149,7 +149,7 @@ static void reset_do(uint32_t w)
         uint32_t k;
         pats.trk[set.trk % NTRACKS].rsv[0] = 0u;   /* (TRK_FROM, below) */
         for (k = 0; k < TRK_ITEMS; k++)
-            steps.tb[set.trk % NTRACKS][k] = 0u;
+            steps.tb[set.trk % NTRACKS][k] = steps.tk[set.trk % NTRACKS][k] = 0u;
     } else if (w == RST_SCREEN) {        /* SCREEN: the skin, the screen effects and their settings, WAVE ZOOM as they
                                           * start (GLO MORE, EFFECTS, FX SET) */
         set.skin = 0u;
@@ -190,6 +190,21 @@ static track_t *trk_now(void) { return &pats.trk[set.trk % NTRACKS]; }
 #define TRK_FROM (trk_now()->rsv[0])     /* LOAF BREAKER: the track's first item (TRACKS: SEL + PLAY; PLAY's FROM), saved
                                           * with it */
 static uint8_t *trk_brk(uint32_t i) { return &steps.tb[set.trk % NTRACKS][i % TRK_ITEMS]; }   /* (the item's break) */
+static uint8_t *trk_kick(uint32_t i) { return &steps.tk[set.trk % NTRACKS][i % TRK_ITEMS]; }   /* (LOAF BREAKER: its
+                                          * kick: 0 the one playing, n KICK n) */
+static uint8_t trk_kick_due;             /* (a track's next item's kick, + 1: taken as its pattern comes in) */
+static void kick_mem_go(uint32_t n);
+static void trk_kick_go(uint32_t i, int now)   /* a pattern item coming: its own kick, now or as it comes in */
+{
+    uint32_t k = *trk_kick(i);
+    trk_kick_due = 0u;
+    if (!k || k > KICK_MEMS || k - 1u == set.kslot % KICK_MEMS)
+        return;
+    if (now)
+        kick_mem_go(k - 1u);
+    else
+        trk_kick_due = (uint8_t)k;
+}
 static int trk_is_pat(const track_t *t, uint32_t i)
 {
     uint32_t v = t->it[i % TRK_ITEMS];
@@ -322,6 +337,7 @@ static void track_play(int home)
     pat_next = -1;
     pat_apply();
     trk_brk_go((uint32_t)i);             /* (its break) */
+    trk_kick_go((uint32_t)i, 1);         /* (LOAF BREAKER: its kick) */
     if (playing_now())
         transport(1, 1);                 /* (from bar 1) */
     else {
@@ -343,6 +359,7 @@ static void track_stop(const char *why)
 {
     ui.trk_on = 0u;
     ui.trk_drop = 0xFFu;
+    trk_kick_due = 0u;
     app_say("TRACK", why);
     ui.redraw |= RG_HEAD | RG_BLOCKS;
 }
@@ -386,6 +403,7 @@ static void track_next(void)
     if (t->it[i] - 1u != set.pattern)
         pat_next = (int8_t)(t->it[i] - 1u);
     trk_brk_go(i);                       /* (its break, from the same bar: break_poll swaps at its last 16th) */
+    trk_kick_go(i, 0);                   /* (LOAF BREAKER: its kick, as its pattern comes in) */
     ui.redraw |= RG_HEAD | RG_BLOCKS;
 }
 /* the main loop, each frame: the loops counted (one as its last bar begins), the next item asked for */
@@ -403,6 +421,10 @@ static void track_poll(const brk_status_t *st)
         return;
     if (st->step < ui.trk_prev) {        /* a new loop */
         ui.trk_cnt = 0u;
+        if (trk_kick_due) {              /* (LOAF BREAKER: the item come in: its kick) */
+            kick_mem_go(trk_kick_due - 1u);
+            trk_kick_due = 0u;
+        }
         if (ui.trk_stop) {
             transport(0, 0);
             track_stop("END");
@@ -438,6 +460,7 @@ static void track_dropped(void)
         return;
     ui.trk_pos = ui.trk_drop;
     ui.trk_drop = 0xFFu;
+    trk_kick_go(ui.trk_pos, 1);          /* (LOAF BREAKER: the pattern dropped into: its kick, with the drop) */
     ui.trk_loops = 0u;
     ui.trk_cnt = 0u;
     ui.trk_prev = -1;
@@ -784,8 +807,16 @@ static void track_value(int i, char *t)
             text_cat(t, TRK_END_NAME[tr->end % 3u]);
         return;
     }
-    if (i == 0)                          /* TRACKS */
-        int_text((int32_t)ui.trk_cur + 1, t);
+    if (i == 0) {                        /* TRACKS: the item's kick (LOAF BREAKER; the item: ALGORITHM) */
+        if (!trk_is_pat(tr, ui.trk_cur))
+            text_cat(t, "-");
+        else if (!*trk_kick(ui.trk_cur))
+            text_cat(t, "SAME");
+        else {
+            text_cat(t, "KICK ");
+            int_text((int32_t)*trk_kick(ui.trk_cur), t + 5);
+        }
+    }
     else if (i == 1)
         trk_item_text(tr, ui.trk_cur % TRK_ITEMS, t, r);
     else if (i == 2) {
@@ -804,7 +835,7 @@ static void track_value(int i, char *t)
 }
 static void track_say(int i)             /* the knob turned, on the strip */
 {
-    static const char *const N[NTPART][4] = {{"ITEM", "PUT", "LOOPS", "BREAK"}, {"PLAY", "FROM ITEM", "AT THE END", ""},
+    static const char *const N[NTPART][4] = {{"KICK", "PUT", "LOOPS", "BREAK"}, {"PLAY", "FROM ITEM", "AT THE END", ""},
                                         {"BUILD", "AFTER DROP", "DROP BREAK", "CRASH"}, {"", "", "", ""},
                                         {"BUILD STYLE", "SWEEP", "RISER", "GAP"}, {"RESET", "RESET", "RESET", "RESET"}};
     char t[20];
@@ -879,9 +910,18 @@ static void track_turn(int i, int32_t d)
         } else
             return;
     } else {
-        if (i == 0) {                    /* the item: up to the one after the last */
+        if (i < 0) {                     /* (ALGORITHM) the item: up to the one after the last */
             uint32_t n = trk_len(t);
+            char s[8];
             ui.trk_cur = (uint8_t)clamp((int32_t)c + dir, 0, (int32_t)(n < TRK_ITEMS ? n : TRK_ITEMS - 1u));
+            int_text((int32_t)ui.trk_cur + 1, s);
+            app_say("ITEM", s);
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
+            return;
+        } else if (i == 0) {             /* LOAF BREAKER: K1 the item's kick: SAME (the one playing), KICK 1..10 */
+            if (!trk_is_pat(t, c))
+                return;
+            *trk_kick(c) = (uint8_t)clamp((int32_t)*trk_kick(c) + dir, 0, (int32_t)KICK_MEMS);
         } else if (i == 1) {             /* END, EMPTY, P1..P16, DROP (LOAF BREAKER: EMPTY left of P1, a case
                                           * emptied: gone with one more turn left, or ENV held) */
             int32_t v = t->it[c] == TI_DROP ? (int32_t)NPAT + 2 : t->it[c] == TI_GAP ? 1 :
@@ -893,9 +933,10 @@ static void track_turn(int i, int32_t d)
                     t->it[k] = t->it[k + 1u];
                     t->rep[k] = t->rep[k + 1u];
                     *trk_brk(k) = *trk_brk(k + 1u);
+                    *trk_kick(k) = *trk_kick(k + 1u);
                 }
                 t->it[TRK_ITEMS - 1u] = TI_END;
-                *trk_brk(TRK_ITEMS - 1u) = 0u;
+                *trk_brk(TRK_ITEMS - 1u) = *trk_kick(TRK_ITEMS - 1u) = 0u;
                 if (TRK_FROM > c)        /* (the first item: where it was) */
                     TRK_FROM--;
                 app_say("ITEM", "DELETED");
@@ -987,9 +1028,10 @@ static void track_gap(void)
             t->it[k] = t->it[k + 1u];
             t->rep[k] = t->rep[k + 1u];
             *trk_brk(k) = *trk_brk(k + 1u);
+            *trk_kick(k) = *trk_kick(k + 1u);
         }
         t->it[TRK_ITEMS - 1u] = TI_END;
-        *trk_brk(TRK_ITEMS - 1u) = 0u;
+        *trk_brk(TRK_ITEMS - 1u) = *trk_kick(TRK_ITEMS - 1u) = 0u;
         if (ui.trk_on && ui.trk_pos > c)
             ui.trk_pos--;
         if (ui.trk_drop != 0xFFu && ui.trk_drop > c)
@@ -1014,10 +1056,11 @@ static void track_gap(void)
         t->it[k] = t->it[k - 1u];
         t->rep[k] = t->rep[k - 1u];
         *trk_brk(k) = *trk_brk(k - 1u);
+        *trk_kick(k) = *trk_kick(k - 1u);
     }
     t->it[c + 1u] = TI_GAP;
     t->rep[c + 1u] = 0u;
-    *trk_brk(c + 1u) = 0u;
+    *trk_brk(c + 1u) = *trk_kick(c + 1u) = 0u;
     ui.trk_cur = (uint8_t)(c + 1u);
     if (ui.trk_on && ui.trk_pos > c && ui.trk_pos + 1u < TRK_ITEMS)
         ui.trk_pos++;                    /* (a track playing: on where it was) */
@@ -1286,17 +1329,39 @@ static void track_picture(int32_t top)
                 cv_text(x + (28 - text_w(&FONT_XS, "DRP")) / 2, y + 9, &FONT_XS, "DRP", c);
             else {
                 cv_text(x + (28 - text_w(&FONT_T, s)) / 2, y + 3, &FONT_T, s, c);
-                if (r[0] && *trk_brk(i) && *trk_brk(i) <= n_breaks) {   /* (its own break: "X4 B3") */
-                    char b[4] = "B";
-                    int_text((int32_t)*trk_brk(i), b + 1);
-                    if (text_w(&FONT_XS, r) + text_w(&FONT_XS, b) + 3 <= 27) {
-                        int32_t w = text_w(&FONT_XS, r) + 3 + text_w(&FONT_XS, b), x0 = x + (28 - w) / 2;
-                        cv_text(x0, y + 16, &FONT_XS, r, now ? C_BLACK : C_GRAY);
-                        cv_text(x0 + text_w(&FONT_XS, r) + 3, y + 16, &FONT_XS, b, now ? C_BLACK : C_AMB);
-                    } else
-                        cv_text(x + (28 - text_w(&FONT_XS, b)) / 2, y + 16, &FONT_XS, b, now ? C_BLACK : C_AMB);
-                } else if (r[0])
-                    cv_text(x + (28 - text_w(&FONT_XS, r)) / 2, y + 16, &FONT_XS, r, now ? C_BLACK : C_GRAY);
+                if (r[0]) {                  /* (its loops, its own break, its own kick: "X4 B3 K7", the first ones
+                                          * left out where they don't fit) */
+                    char b[4] = "B", kk[4] = "K";
+                    const char *part[3];
+                    uint16_t col[3];
+                    uint32_t np = 0u, q, a = 0u;
+                    int32_t w = 0, x0;
+                    part[np] = r;
+                    col[np++] = now ? C_BLACK : C_GRAY;
+                    if (*trk_brk(i) && *trk_brk(i) <= n_breaks) {
+                        int_text((int32_t)*trk_brk(i), b + 1);
+                        part[np] = b;
+                        col[np++] = now ? C_BLACK : C_AMB;
+                    }
+                    if (*trk_kick(i) && *trk_kick(i) <= KICK_MEMS) {
+                        int_text((int32_t)*trk_kick(i), kk + 1);
+                        part[np] = kk;
+                        col[np++] = now ? C_BLACK : C_HI;
+                    }
+                    for (;;) {                   /* (from the first that fits on) */
+                        w = 0;
+                        for (q = a; q < np; q++)
+                            w += text_w(&FONT_XS, part[q]) + (q > a ? 3 : 0);
+                        if (w <= 27 || a + 1u >= np)
+                            break;
+                        a++;
+                    }
+                    x0 = x + (28 - w) / 2;
+                    for (q = a; q < np; q++) {
+                        cv_text(x0, y + 16, &FONT_XS, part[q], col[q]);
+                        x0 += text_w(&FONT_XS, part[q]) + 3;
+                    }
+                }
             }
         }
     }

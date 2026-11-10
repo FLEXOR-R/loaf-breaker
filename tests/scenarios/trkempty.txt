@@ -17,7 +17,7 @@ release ENV
 wait 200
 expect trk_cur 0
 expect trk_it 2
-turn K1 3 10
+turn ALGO 3 10
 wait 100
 expect trk_cur 3
 expect trk_it 0
