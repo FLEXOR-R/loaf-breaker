@@ -13,27 +13,29 @@ static const char *const TPART[NTPART] = {"TRACKS", "PLAY", "DROP", "KNOB", "BUI
 #define NTORD 4u
 static const uint8_t TORDER[NTORD] = {0u, 1u, 2u, 4u};   /* (ENV's parts in order: BUILD after DROP; LOAF BREAKER TEST:
                                           * KNOB out (EDIT KICK's KNOBS has it all), RESET on GLO, its sixth part) */
-#define NGPART 6u                        /* (GLO's parts: MIDI, PITCH, MORE, EFFECTS, FX SET, RESET) */
+#define NGPART 6u                        /* (GLO's parts' code: MIDI, PITCH (SOUNDS' BREAK), SETUP, EFFECTS, FX SET,
+                                          * RESET; SYSTEM shows GLO_ORD's) */
 #define RST_ON (ui.page == PG_GLOBAL && ui.gpage == 5u)   /* (GLO RESET: drawn and turned by ENV's code here) */
 /* RESET (ENV's last part): K1 what (a list: more to come), K4 turned right twice within 3 s: back to the start */
 enum { RST_DROP, RST_BUILD, RST_KNOB, RST_KICK, RST_KTONE, RST_KICKS, RST_DRUMS, RST_MIX, RST_FX, RST_STEPS, RST_PADS,
-       RST_KEYS, RST_TRACK, RST_SCREEN, NRST };
+       RST_KEYS, RST_TRACK, RST_SCREEN, RST_ALL, NRST };   /* (LOAF BREAKER: ALL, RESET ALL, was the PITCH part's K4) */
 static const char *const RST_NAME[NRST] = {"DROP", "BUILD", "KNOB", "KICK", "KICK TONE", "ALL KICKS", "DRUMS", "MIX",
-                                           "FX CHAIN", "STEPS", "PADS", "KEYS", "TRACK", "SCREEN"};
+                                           "FX CHAIN", "STEPS", "PADS", "KEYS", "TRACK", "SCREEN", "EVERYTHING"};
 static const char *const RST_WHAT[NRST] = {"BUILD 4 BARS, NEXT PATTERN, SAME BREAK, CRASH 100%",
                                           "SNARE ROLL, HIGH-PASS, RISER 100%, NO GAP",
                                           "THIS KICK'S: K1 DRIVE, K2 SCREAM, K3 D+ SCREECH, K4 DISTO",
                                           "THE KICK SELECTED (ITS MEMORY): ROTTERDAM, SYNTH, BASS, C SUB, MORPH AT 0, VOLUME KEPT",
                                           "THE KICK'S EQ FLAT, ITS TWO FX SLOTS EMPTY",
                                           "KICK 1-10 AS THEY CAME (909 .. DISTORTO), SYNTH AT 0, THEIR KNOBS AS THEY START",
-                                          "SNARE, HAT, CLAP, HOOVER: THE MEMORY PLAYING AS IT CAME",
+                                          "SNARE, HAT, CLAP, MELODY: THE MEMORY PLAYING AS IT CAME",
                                           "THE MIXER: LEVELS, SWING, COMP AND DUCK OFF, MAX OUT -3 DB",
                                           "THE FOUR SLOTS AS THEY CAME, EACH EFFECT'S MEMORY FORGOTTEN",
                                           "THIS PATTERN'S DRUM STEPS: 1 HIT, ALWAYS, ON TIME",
                                           "THE BLACK KEYS: ROLLS, THRU, FILTER, GATE, LATCH, THE ARP KEY",
                                           "THE WHITE KEYS' LOOPS AND SLICE EFFECTS",
                                           "THIS TRACK: FROM ITEM 1, EVERY ITEM'S BREAK SAME",
-                                          "SKIN RED, SCREEN EFFECTS OFF, THEIR SETTINGS 50%, WAVE ZOOM 1 BAR"};
+                                          "SKIN RED, SCREEN EFFECTS OFF, THEIR SETTINGS 50%, WAVE ZOOM 1 BAR",
+                                          "EVERYTHING AS IT CAME, ALL 64 PATTERNS, SAVED AT ONCE: 15 TURNS"};
 #define RST_TURNS 5u                     /* LOAF BREAKER: the clicks that reset (K2, K3 or K4), each within 2 s of the last */
 static int rst_live(void)
 {
@@ -871,7 +873,7 @@ static void track_value(int i, char *t)
         if (i == 0)
             text_cat(t, RST_NAME[ui.rst_sel % NRST]);
         else
-            text_cat(t, rst_live() ? "MORE!" : "TURN x5");
+            text_cat(t, rst_live() ? "MORE!" : ui.rst_sel % NRST == RST_ALL ? "TURN x" CH_RESET_TEXT : "TURN x5");
         return;
     }
     if (ui.tpage == 4u) {                /* BUILD: its style, its filter, its noise, the gap before the drop */
@@ -976,20 +978,24 @@ static void track_turn(int i, int32_t d)
         if (i == 0)
             reset_pick(d);
         else {
-            uint32_t n = (uint32_t)(d < 0 ? -d : d);
+            uint32_t n = (uint32_t)(d < 0 ? -d : d), need = ui.rst_sel % NRST == RST_ALL ? CH_RESET_TURNS : RST_TURNS;
             if (!rst_live())
                 ui.rst_n = 0u;
-            ui.rst_n = (uint8_t)(ui.rst_n + n < RST_TURNS ? ui.rst_n + n : RST_TURNS);
+            ui.rst_n = (uint8_t)(ui.rst_n + n < need ? ui.rst_n + n : need);
             ui.rst_arm = plat_ms() | 1u;
-            if (ui.rst_n >= RST_TURNS) {
-                reset_do(ui.rst_sel % NRST);
+            if (ui.rst_n >= need) {
                 ui.rst_n = 0u;
                 ui.rst_arm = 0u;
+                if (ui.rst_sel % NRST == RST_ALL) {   /* (LOAF BREAKER: RESET ALL: its own screen says so) */
+                    reset_all();
+                    return;
+                }
+                reset_do(ui.rst_sel % NRST);
                 app_say(RST_NAME[ui.rst_sel % NRST], "RESET: DONE");
             } else {
                 char t[16] = "TURN: ";
                 int_text((int32_t)ui.rst_n, t + 6);
-                text_cat(t, " / 5");
+                text_cat(t, need == RST_TURNS ? " / 5" : " / " CH_RESET_TEXT);
                 app_say(RST_NAME[ui.rst_sel % NRST], t);
             }
         }
@@ -1344,9 +1350,13 @@ static void track_picture(int32_t top)
             }
         }
         cv_rect(6, 104, 148, 24, on ? C_HI : C_BLOCK);
-        cv_text(12, 110, &FONT_T, on ? "KEEP TURNING" : "TURN A KNOB x5", on ? C_BLACK : C_GRAY);
-        for (i = 0; i < RST_TURNS; i++)  /* (the clicks so far: five boxes) */
-            cv_rect(160 + (int32_t)i * 15, 106, 12, 20, i < on ? C_HI : C_BLOCK);
+        {                                /* (LOAF BREAKER: EVERYTHING: 15 clicks, three to a box) */
+            uint32_t all = ui.rst_sel % NRST == RST_ALL, per = all ? CH_RESET_TURNS / RST_TURNS : 1u;
+            cv_text(12, 110, &FONT_T, on ? "KEEP TURNING" : all ? "TURN A KNOB x" CH_RESET_TEXT : "TURN A KNOB x5",
+                    on ? C_BLACK : C_GRAY);
+            for (i = 0; i < RST_TURNS; i++)  /* (the clicks so far: five boxes) */
+                cv_rect(160 + (int32_t)i * 15, 106, 12, 20, i * per < on ? C_HI : C_BLOCK);
+        }
         cv_oy = 0;
         return;
     }

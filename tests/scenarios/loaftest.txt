@@ -49,8 +49,6 @@ shot x_build.png
 tap GLO
 wait 200
 tap GLO
-wait 200
-tap GLO
 wait 300
 turn K3 1 10
 wait 400

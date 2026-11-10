@@ -8,7 +8,7 @@ tap SEQ
 wait 300
 expect seq_lane 2
 expect minst 0
-turn ALGO -3 10
+turn ALGO -4 10
 wait 200
 expect piano 1
 tap REC

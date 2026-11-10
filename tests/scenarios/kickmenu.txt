@@ -1,7 +1,7 @@
 # LOAF BREAKER: the KICK menu. EDIT: SOUND (MIX), ALGORITHM: SUB; EDIT: SYNTH, DIRT, TONE (its EQ), KNOBS; EDIT: SOUND again (SUB
 # kept). EDIT held: the classic view (the part's bars, the five drums' shapes), the part kept; held again: the big view.
 # SEL + EDIT: the other drums (SNARE) in the kick's view (big); EDIT held there: classic, held again: big (one view for
-# them all); EDIT: HAT, CLAP, HOOVER, then the KICK menu again.
+# them all); EDIT: HAT, CLAP, SNARE again (0.201: the DRUMS' parts); SEL + EDIT three times: MELODY, BREAK, KICK.
 #   app/build/host/loaf-breaker_host tests/scenarios/kickmenu.txt app/build/scenarios
 wait 4200
 tap EDIT
@@ -69,7 +69,14 @@ tap EDIT
 wait 100
 tap EDIT
 wait 200
-shot km_hoover.png
+expect page 7
+shot km_snare_again.png
+press SEL
 tap EDIT
+wait 100
+tap EDIT
+wait 100
+tap EDIT
+release SEL
 wait 300
 expect page 4

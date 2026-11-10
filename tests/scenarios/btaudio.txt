@@ -13,7 +13,6 @@ tap PLAY
 wait 200
 tap GLO
 tap GLO
-tap GLO
 wait 300
 shot b_notbuilt.png
 bta_sim

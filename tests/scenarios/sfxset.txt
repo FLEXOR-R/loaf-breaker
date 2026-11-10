@@ -10,8 +10,6 @@ wait 100
 tap GLO
 wait 100
 tap GLO
-wait 100
-tap GLO
 wait 300
 expect gpage 4
 turn K2 -10 10

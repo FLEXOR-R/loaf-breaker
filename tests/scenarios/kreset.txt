@@ -21,8 +21,6 @@ wait 150
 tap GLO
 wait 150
 tap GLO
-wait 150
-tap GLO
 wait 300
 turn K1 3 10
 wait 200
@@ -40,8 +38,6 @@ wait 200
 turn K1 10 10
 wait 200
 expect comp 20
-tap GLO
-wait 150
 tap GLO
 wait 150
 tap GLO

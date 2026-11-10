@@ -26,11 +26,11 @@ expect page 3
 shot n_glo.png
 tap GLO
 wait 120
-expect gpage 1
+expect gpage 2
 shot n_glo2.png
 turn ALGO 1 10
 wait 120
-expect gpage 2
+expect gpage 3
 shot n_glo3.png
 tap EDIT
 wait 120
@@ -39,7 +39,9 @@ shot n_edit.png
 turn ALGO 2 10
 wait 120
 shot n_edit_part.png
+press SEL
 tap EDIT
+release SEL
 wait 120
 expect page 7
 shot n_edit2.png
@@ -65,5 +67,5 @@ expect page 6
 shot n_seq.png
 tap SEQ
 wait 120
-expect seq_lane 1
+expect seq_lane 3
 shot n_seq2.png

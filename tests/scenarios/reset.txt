@@ -39,8 +39,6 @@ wait 100
 tap GLO
 wait 100
 tap GLO
-wait 100
-tap GLO
 wait 300
 expect page 3
 expect gpage 5
@@ -68,8 +66,6 @@ tap GLO
 wait 100
 tap GLO
 wait 100
-tap GLO
-wait 100
 turn K4 13 10
 tap GLO
 wait 200
@@ -83,7 +79,7 @@ wait 150
 tap GLO
 wait 300
 expect gpage 5
-turn ALGO 13 10
+turn ALGO 11 10
 wait 200
 shot rs_screen.png
 turn K4 5 10

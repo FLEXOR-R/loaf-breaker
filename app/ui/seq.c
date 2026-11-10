@@ -59,13 +59,15 @@ static void seq_lane_step(int32_t d)     /* ALGORITHM / SEQ again: the next lane
                                           * the last, HV KEYS; then the first again) */
 {
     uint32_t n, was = ui.seq_lane;
-    if (ui.piano) {
+    if (ui.piano) {                      /* (LOAF BREAKER: past KEYS, PATTERN's GROOVE; then the first lane) */
         piano_set(0);
         ui.seq_lane = (uint8_t)(d > 0 ? SL_BREAK1 : sl_active(&pats.p[set.pattern % NPAT], SL_STAB2) ? SL_STAB2 : SL_STAB);
+        if (d > 0)
+            global_part(GP_FILL);
         return;
     }
     if (d < 0 && was == SL_BREAK1) {
-        piano_set(1);
+        global_part(GP_FILL);
         return;
     }
     for (n = 0; n < NSEQL; n++) {

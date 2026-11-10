@@ -14,7 +14,7 @@ with built-up drops, a MELODY (ACID, LEAD, PAD or REESE, one a pattern), a compr
 
 LOAF BREAKER turns the M-VAVE FM-1 into a hardcore break machine: a breakbeat cut into 16 slices, a distorted kick
 built from scratch, drums, effects and drops. You don't need the whole manual to start: these five steps are enough.
-The FM-1 starts in **BEGINNER** mode (GLO › MORE, K1): the advanced pages stay hidden until you want them.
+The FM-1 starts in **BEGINNER** mode (SYSTEM › SETUP: GLO, then GLO again; K1): the advanced pages stay hidden until you want them.
 
 ### 1. Press PLAY
 
@@ -49,9 +49,9 @@ steps of the lane shown; ALGORITHM: the lane) and chain them on **ENV** (TRACKS:
 
 - **SEL**, tapped alone: the card of shortcuts, those that work everywhere and those of the page you are on.
   Twice quickly: SEL stays held (lit) for one-handed shortcuts; once more frees it.
-- **SAVE**: keeps everything (or GLO › MORE: AUTO SAVE).
+- **SAVE**: keeps everything (or SYSTEM › SETUP: AUTO SAVE).
 
-When you know your way around: **GLO › MORE, K1 → EXPERT** shows every page (the kick's layers and their effects,
+When you know your way around: **SYSTEM › SETUP (GLO twice), K1 → EXPERT** shows every page (the kick's layers and their effects,
 SCREAM and DISTO +, SYNTH +, CLEAN MORPH, each knob's settings…). The rest of this manual covers everything.
 
 ---
@@ -64,7 +64,7 @@ SCREAM and DISTO +, SYNTH +, CLEAN MORPH, each knob's settings…). The rest of 
 4. The pads
 5. Patterns and the sequencer
 6. The FX chain
-7. GLOBAL: MIDI, pitch, skins, reset
+7. SYSTEM (GLO): MIDI, setup, screen effects, reset
 8. The drums: kick, snare, hat
 9. The mixer
 10. Pages and knobs
@@ -100,10 +100,10 @@ The slicer view, top to bottom:
   −8 dB, white near full scale), the tempo: lit white on each beat. The line under the header flashes on each kick
   and a tick under it walks the bar's four beats. The PLAY light blinks off on each kick, and during a build the
   next white key to light blinks, faster as the drop nears.
-- **Tabs:** the button you pressed (as printed on the panel), then the page's parts as tabs, the one you are on lit:
-  the button again (or ALGORITHM) goes to the next. On EDIT and FX the part edited shows at the right, "< SUB FX >".
-  Opening a page, or turning to another part, says the same in the header for a moment: the button, then the part
-  ("GLO PITCH", "EDIT KICK SUB FX", "FX SLOT 2 TREMOLO", "SEQ HAT"). The tabs sit right under the header on every
+- **Tabs:** the page's domain (on SOUNDS, the source: KICK, DRUMS, MELODY, BREAK), then its parts as tabs, the one
+  you are on lit: the button again (or ALGORITHM) goes to the next. On SOUNDS and EFFECTS the part edited shows at the
+  right, "< SUB FX >". Opening a page, or turning to another part, says the same in the header for a moment: the
+  domain, then the part ("SYSTEM SETUP", "SOUNDS KICK DIRT DISTO", "EFFECTS SLOT 2 TREMOLO", "PATTERN H1"). The tabs sit right under the header on every
   page, tap tempo's too.
 - **The break:** its waveform, the slice markers, the slice sounding lit, the playhead.
 - **Slice blocks:** sixteen blocks, one per white key, each with its slice's waveform. The slice sounding is lit;
@@ -112,7 +112,36 @@ The slicer view, top to bottom:
 - **Knobs:** the page's four knobs and their values; where the page knows how far a knob is turned (an FX slot, the
   MIXER's levels, the kick's classic view), an arc beside the value shows it.
 
-**The rules.** ALGORITHM picks what you edit on the page (an FX slot, a drum's part, a SEQ lane, GLOBAL's part); on HOME (both its parts) and the MIXER, where there is nothing to pick, it is the break. PRESETS picks what goes
+### How it is organised (0.201)
+
+Each button is a **domain**, named on the screen (the button keeps its print), in the order the sound travels:
+sources, the pattern, the song, the mix, the effects, the system.
+
+| Button | Domain | Its parts |
+| --- | --- | --- |
+| HOME | LIVE | PERFORM, GENERATOR |
+| EDIT | SOUNDS | Four sources, **SEL + EDIT** the next: **KICK** (its menu: SOUND, SYNTH, DIRT, TONE, KNOBS), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **MELODY** (the pattern's instrument; EDIT again SOUND / SHAPE), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
+| SEQ | PATTERN | The lanes, KEYS, **GROOVE** (SWING and FILL's settings; also SEL + ARP) |
+| ENV | SONG | TRACKS, PLAY, DROP, BUILD |
+| LFO | MIX | LEVELS (BREAK, KICK, PERC, MELO), SENDS (FX, the drums' route), MASTER, DYNAMICS |
+| FX | EFFECTS | The four slots: MAIN, MORE, MOD |
+| GLO | SYSTEM | MIDI, SETUP (MODE, AUTO SAVE, METER, SKIN), EFFECTS (the screen's), FX SET, RESET |
+
+The same gestures everywhere: **the button again** is the next part; **ALGORITHM** the element in the part (a slot, a
+lane, a drum's part; where there is nothing to pick, the break); **PRESETS** the pattern, but on SOUNDS the source's
+memory (KICK 1–10, a drum's sound, the melody's instrument); **SEL + a button** that domain's second function, one
+table (tap SEL alone to see it):
+
+| SEL + | Does | SEL + | Does |
+| --- | --- | --- | --- |
+| EDIT | The next source | REC | Clear (the lane on SEQ, the pattern elsewhere) |
+| SEQ | Copy the pattern; on another, paste | SAVE | Undo |
+| ENV | The build, then the drop | ALGORITHM | The break |
+| ARP | PATTERN's GROOVE | SELECT | The drums' filter |
+
+(0.200 had the earlier layout: its release stays on GitHub, to go back to it.)
+
+**The rules.** ALGORITHM picks what you edit on the page (an FX slot, a drum's part, a SEQ lane, SYSTEM's part); on HOME (both its parts) and the MIXER, where there is nothing to pick, it is the break. PRESETS picks what goes
 in (an effect, a kick, a snare or hat sound); elsewhere it is the pattern. **SEQ is where everything is sequenced**
 (the break's steps and the kick, snare and hat lanes), **EDIT where the drums' sounds are made** (kick, snare, hat);
 the white keys play slices everywhere but SEQ and ENV (tracks). **ARP held is FILL** (§5). **SEL + ALGORITHM is the break and SEL +
@@ -127,7 +156,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 | Control | Does |
 | --- | --- |
 | PLAY | Play / stop. HOME + PLAY: back to bar 1 |
-| White keys | Slices 1–16. Playing: at the next snap point (GLOBAL: 1 slice, an 8th on the 2-bar breaks, by default; OFF, 1/8 … 4 slices). Stopped: at once. Held: the key loops (below), playing or stopped |
+| White keys | Slices 1–16. Playing: at the next snap point (SOUNDS › BREAK, SNAP: 1 slice, an 8th on the 2-bar breaks, by default; OFF, 1/8 … 4 slices). Stopped: at once. Held: the key loops (below), playing or stopped |
 | SELECT | Tempo, 1 BPM a detent · **SEL + SELECT**, on any page: the drums' filter (DRUM FLT, as HOME's K3) |
 | ENV | **TRACK**: tracks of patterns and drops, playing them, the drop's settings (below) |
 | SEL (pressed alone) | The combinations card: every SEL combination on the strip. SEL used with something else (SEL + a knob, SEL + ALGORITHM, SEL + REC…) does that instead |
@@ -176,8 +205,8 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
   - **DIRT**: DISTO, DISTO + (DRIVE, TYPE, SCREECH, TAIL), SCREAM, then each layer's effect.
     (DISTO, DISTO + and SCREAM were called TERROR, TERROR + and TERROR 2 before 0.191: names a newcomer reads.)
   - **TONE**: EQ BANDS, EQ SHAPE (its EQ), FX 1, FX 2 (its two FX slots).
-  The DISTO and SCREAM's settings are the kick's own: they go with its memory. **SEL + EDIT**: the other drums (SNARE, HAT, CLAP,
-  MELODY; EDIT again the next, after the MELODY the kick). The **MELODY** (in the HOOVER's place since 0.200) is the
+  The DISTO and SCREAM's settings are the kick's own: they go with its memory. **SEL + EDIT**: the next source, DRUMS
+  (SNARE, HAT, CLAP; EDIT again the next), then MELODY (EDIT again: SOUND or SHAPE), then BREAK, then the kick. The **MELODY** (in the HOOVER's place since 0.200) is the
   pattern's instrument, one of four, each with its own sound (the knobs name its own settings):
   - **ACID**: one saw through a resonant low-pass that snaps shut after each note (ENV DECAY, CUTOFF, RESO); notes on
     the beat accented, a note right after another slides into it.
@@ -198,10 +227,11 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
     swelling up between two kicks, cut as the next one hits; it goes through the kick's drive and DISTO), **START**
     (where in the beat it begins, 1/8 to 5/8), **CURVE** (how it swells: SLOW, SOFT, SHARP, SNAP).
   At 0 each sounds as the kick always did. They go with its memory (KICK 1–10); its PRESET puts them back to 0.
-- **LFO** (the MIXER): LEVELS, GROOVE, MASTER (K1 COMP, K2 its RATIO, K3 DUCK, K4 MAX OUT; COMP's reduction metered),
+- **LFO** (MIX): LEVELS, SENDS, MASTER (K1 COMP, K2 its RATIO, K3 DUCK, K4 MAX OUT; COMP's reduction metered),
   DYNAMICS (COMP's ATTACK and RELEASE, DUCK's RELEASE, DUCKS: the break, or the break and the drums).
 - **ENV**: the song. TRACKS, PLAY, DROP, BUILD. (What SEL + each knob does: EDIT › KNOBS; RESET: GLO.)
-- **GLO**: MIDI, PITCH, MORE (MODE, AUTO SAVE, SKIN, WAVE ZOOM), EFFECTS (several at once, keys 1–7), FX SET, RESET.
+- **GLO** (SYSTEM): MIDI, SETUP (MODE, AUTO SAVE, METER, SKIN, WAVE ZOOM), EFFECTS (several at once, keys 1–7), FX SET, RESET.
+  The break's PITCH, GRAIN and SNAP are SOUNDS › BREAK; SWING is PATTERN › GROOVE.
 
 ### The CDJ view (HOME)
 
@@ -444,13 +474,14 @@ all 16.
 the last beat of each bar. Let go and the pattern is as it was. (The OVERLAY page that ARP used to open is gone; the
 ARP black key keeps its effect, chosen on its own knobs.)
 
-**SEL + ARP opens FILL's page**, its settings (saved with the rest):
+**PATTERN › GROOVE** (SEQ's ALGORITHM past KEYS, or **SEL + ARP**) holds the swing and FILL's settings (saved with
+the rest):
 
-| K1 LATCH | K2 DRUM | K3 LENGTH | K4 RATE |
+| K1 SWING | K2 LATCH | K3 DRUM | K4 LENGTH |
 | --- | --- | --- | --- |
-| OFF: FILL while ARP is held. ON: ARP once, FILL on; ARP again, off | What rolls: SNARE, CLAP, HAT or ALL 3 | How much of each bar: 1 BEAT (the last), 2 BEATS, 1 BAR, 2 STEPS | 16THS or 8THS |
+| 50–75 % (was the MIXER's) | OFF: FILL while ARP is held. ON: ARP once, FILL on; ARP again, off | What rolls: SNARE, CLAP, HAT or ALL 3 | How much of each bar, in 16ths or 8ths ("/8"): 1 BEAT (the last), 2 BEATS, 1 BAR, 2 STEPS |
 
-![FILL's page](img/screen-fill.png "FILL")
+![GROOVE](img/screen-fill.png "GROOVE")
 
 The page shows the bar's 16ths, the ones the fill rolls lit (white while it plays). SEL + ARP no longer writes a random
 pattern: the generator (HOME's second part) does that job.
@@ -496,7 +527,7 @@ down while the quiet ones, the tails and the room, come up.
 | K1–K3 · K4 | Its settings · its mix |
 | SEL + FX | That slot on / bypassed |
 | FX held + ALGORITHM | Moves that slot along the chain (the order is the sound: DRIVE before a FILTER is not a FILTER before DRIVE) |
-| MIXER GROOVE K3 FX | The whole chain against the dry sound: fade every effect in or out at once (the FX page shows it, bottom right) |
+| MIX SENDS K1 FX | The whole chain against the dry sound: fade every effect in or out at once (the FX page shows it, bottom right) |
 
 | Effect | K1 | K2 | K3 |
 | --- | --- | --- | --- |
@@ -621,13 +652,12 @@ whose part you are on.
 
 ![MB COMP's GAIN part with the low soloed: the rest of the spectrum falls away](img/screen-mbcomp-solo.png "MB COMP solo")
 
-## 7. GLOBAL: MIDI, pitch, skins, reset
+## 7. SYSTEM (GLO): MIDI, setup, screen effects, reset
 
-**GLO** opens the GLOBAL page: the slice blocks give way to the state of MIDI, and K1–K4 set it (SAVE keeps it).
-**GLO again** (or ALGORITHM) turns to its second part, the pitch; **a third time**, MORE: the mode, the skins and
-AUTO SAVE; then EFFECTS, FX SET and RESET (below). LOAF BREAKER has no Bluetooth: MIDI goes over USB and the TRS jack. On a computer the FM-1 shows as **LOAF BREAKER FM-1** (a MIDI device and, for recording, an audio input).
+**GLO** opens SYSTEM: the slice blocks give way to the state of MIDI, and K1–K4 set it (SAVE keeps it).
+**GLO again** (or ALGORITHM) turns to SETUP: the mode, the skins and AUTO SAVE; then EFFECTS, FX SET and RESET (below). LOAF BREAKER has no Bluetooth: MIDI goes over USB and the TRS jack. On a computer the FM-1 shows as **LOAF BREAKER FM-1** (a MIDI device and, for recording, an audio input).
 
-![GLOBAL: MIDI in and out](img/screen-global.png "The GLOBAL page")
+![SYSTEM: MIDI in and out](img/screen-global.png "SYSTEM")
 
 | Knob | Sets | |
 | --- | --- | --- |
@@ -639,21 +669,21 @@ AUTO SAVE; then EFFECTS, FX SET and RESET (below). LOAF BREAKER has no Bluetooth
 The panel shows the clock coming in (its tempo, where from, running or stopped), the clock going out, and a light for
 MIDI in and out on each port. The FM-1 has no MIDI out jack: MIDI goes out over USB only.
 
-**Pitch and snap (GLO twice):**
+**The break's sound: pitch and snap (SOUNDS › BREAK: SEL + EDIT from the MELODY, or three times from the kick; ALGORITHM there: the break):**
 
 | Knob | Sets | |
 | --- | --- | --- |
 | K1 PITCH | KEEP LENGTH (the default) · SPEED | KEEP LENGTH changes the pitch only: each slice keeps its length (a granular pitch shift), so a key pitched +7 still fills its loop. SPEED is the classic repitch: up plays faster and shorter, down slower and longer (K1 left) |
 | K2 GRAIN | 10 … 80 ms | KEEP LENGTH's grains: shorter keeps hits tight, longer sounds smoother on held sounds |
 | K3 SNAP | OFF · 1/8 · 1/4 · 1/2 · 1 (the default) · 2 · 4 slices | Where a white key pressed while playing lands: at once (OFF), or at the next point of a grid that many slices apart, counted from the top of the pattern. The panel says what it is in this break (on the 2-bar breaks 1 slice = 1/8, 1/2 slice = 1/16, 2 slices = 1/4). Stopped, keys always play at once |
-| K4 RESET ALL | Fifteen turns right (the header counts them: "RESET ALL? 2 / 15 TURNS") | Clears everything back to how it came: tempo, generator, FX chain, kick, snare and hat, mixer, keys, slices, GLOBAL, the tracks, and all 64 patterns; the first break is chosen and it is saved at once. The screen says so: LOBOTOMIZED, for 3 seconds (a key or button ends it sooner) |
+| K4 LEVEL | 0 … 100 % | The break's level, the MIXER's BREAK (2 % a detent) |
 
 It covers every pitch in semitones: OCT, a key's pitch, the roll's pitch a repeat, the freeze's pitch, steps. The
 tempo's own repitch, HALF, REVERSE's speed and the tape stop stay speed effects.
 
 ![RESET ALL done: the lobotomy screen](img/screen-lobotomized.png "LOBOTOMIZED")
 
-**MORE (GLO three times):** K4 **SKIN**, the screen's colours (RED to start; the whole screen changes at once): RED, AMBER, ICE BLUE, PIP-BOY,
+**SETUP (GLO twice):** K4 **SKIN**, the screen's colours (RED to start; the whole screen changes at once): RED, AMBER, ICE BLUE, PIP-BOY,
 IRIS, PINK, MINT, WHITE, BLOOD, MAXENCE, then the two-colour ones: SYNTHWAVE (neon cyan and magenta on indigo), VAPOR,
 TOXIC, MIAMI, LAVA, GOLD, BLAZE (flashy orange and red), ACID (acid yellow and red-orange); K1 **MODE**: BEGINNER
 (left) or EXPERT (right). In BEGINNER, ALGORITHM on the KICK menu passes over its advanced parts: SOUND has MIX, SUB
@@ -678,9 +708,9 @@ at the drop, and on the kicks when ON A KICK is past 50 %), **8-BIT** (fewer col
 shows; 0: nothing), K3 **AT THE DROP** (how hard the drop shows; 0: nothing), K4 **LENGTH** (how long those moments last:
 50 % as given, 0 half, 100 % half as long again). 5 % a detent; 50 % each to start.
 
-![GLOBAL's MORE: the skins](img/screen-glomore.png "MORE")
+![SYSTEM's SETUP: the skins](img/screen-glomore.png "SETUP")
 
-**RESET** (GLO's sixth part, next to PITCH's RESET ALL): puts one part back as it starts, the rest kept. **K1** or **ALGORITHM** picks what, in a list that scrolls (each says
+**RESET** (SYSTEM's last part): puts one part back as it starts, the rest kept. **K1** or **ALGORITHM** picks what, in a list that scrolls (each says
 on the right what it puts back): DROP, BUILD, KNOB; **KICK** (the kick selected, KICK 1–10: ROTTERDAM again, its
 SYNTH, BASS, CLEAN SUB and MORPH at 0, its volume kept, its memory with it); **KICK TONE** (its EQ flat, its two FX slots empty);
 **ALL KICKS** (KICK 1–10 as they came, their knobs as they start); **DRUMS** (the snare's, hat's, clap's memory and the melody's sound playing as it
@@ -689,16 +719,19 @@ came); **MIX** (the MIXER: levels, swing, the drums' route, COMP and DUCK off wi
 pattern's drum steps: 1 hit, ALWAYS, on time; the steps themselves kept); **PADS** (the black keys' settings:
 rolls, THRU, filter, gate, HALF's and KIL's LATCH, the ARP key's effect); **KEYS** (the white keys' loops and slice effects);
 **TRACK** (this track: from its first item, every item's break SAME; its items kept); **SCREEN** (the skin RED, the
-screen effects off, their settings at 50 %, WAVE ZOOM one bar). To reset it, **turn K2, K3 or K4 five clicks**, each within 2 s of the last (five
-boxes fill as you turn; a pause starts them again from 0).
+screen effects off, their settings at 50 %, WAVE ZOOM one bar); and last **EVERYTHING**: RESET ALL, everything back
+to how it came (tempo, generator, FX chain, the drums, mixer, keys, slices, SYSTEM, the tracks and all 64 patterns; the
+first break, saved at once; the screen says so: LOBOTOMIZED, for 3 seconds). To reset it, **turn K2, K3 or K4 five
+clicks** (EVERYTHING: fifteen), each within 2 s of the last (five boxes fill as you turn; a pause starts them again
+from 0).
 
 ## 8. The drums: kick, snare, hat
 
 Three synthesised drums play under the break, in time with it (swing included), on the pattern's drum lanes (§5):
 their steps are SEQ's KICK, SNARE and HAT lanes; their sounds are made on **EDIT**. They go through the FX chain or
-around it together (MIXER GROOVE K2).
+around it together (MIX › SENDS K2).
 
-**EDIT** opens the drum edited last; **EDIT again** goes to the next: KICK → SNARE → HAT → KICK (the tabs show which).
+**EDIT** opens SOUNDS' KICK; **SEL + EDIT** the next source: DRUMS (SNARE, HAT, CLAP: **EDIT again** the next), MELODY, BREAK, the KICK again (the tabs show which).
 **ALGORITHM** turns through the drum's parts, **PRESETS** loads a built-in sound. The lower strip shows the three
 drums side by side, each with its waveform (one hit, drawn again as you change the sound), the one edited outlined,
 lit on its hits. The white keys keep playing slices.
@@ -763,7 +796,7 @@ MIDI notes 38 (D1) play the snare, 42, 44 and 46 the hat, also while stopped. SA
 ## 9. The mixer
 
 **LFO** opens the MIXER: four channels side by side, each a fader (BREAK, KICK and PERC with a level meter).
-**LFO again** turns to GROOVE (SWING, DRUMS and the FX fader, the chain's four slots beside it, lit: on). **LFO held +
+**LFO again** turns to SENDS (the FX fader, the chain's four slots beside it, lit: on; DRUMS, their route). **LFO held +
 K1–K4**, on any page: the break's, the kick's, the drums' and the melody's level, 5 % a detent (the MIXER's own page: 2 %), the page staying where it is (LFO let go after a turn opens nothing): the mix moved without
 going into the MIXER.
 
@@ -772,7 +805,7 @@ going into the MIXER.
 | Half | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- |
 | LEVELS | BREAK: the break's level (its throws into the delay and the reverb too) | KICK: the kick's level (the KICK page's VOLUME) | PERC: the snare, the hat and the clap together | MELO: the MELODY's level (whatever instrument the pattern plays) |
-| GROOVE | SWING (50–75 %) | DRUMS: through the FX chain or around it | FX: the master FX chain against the dry sound | |
+| SENDS | FX: the master FX chain against the dry sound | DRUMS: through the FX chain or around it | | |
 
 FX is how much of the chain you hear (the drums routed around it stay dry). Bring BREAK down to drop the break and
 let the drums run alone, then up again for the drop. HOME keeps the gate, FX and COMPLEXITY to ride (K1, K3, K4) and the **DJ filter** (K2), which filters the
@@ -826,9 +859,9 @@ owns K1–K4. Here, in short: §2 has the rules, §10 every page's knobs.
 ## 12. Saving
 
 SAVE keeps the tempo, pitch, swing, generator, the FX chain, the break chosen, each key's loop, the drums, the
-mixer, the GLOBAL settings and the patterns (the group of 16 in memory: the others were saved when you left them); SAVE is lit when something changed. A new version keeps what an older
+mixer, the SYSTEM settings and the patterns (the group of 16 in memory: the others were saved when you left them); SAVE is lit when something changed. A new version keeps what an older
 one saved: new settings start at their defaults. (Version 0.32 changed the layout: what 0.31 and older saved starts
-over at the defaults once.) GLOBAL's RESET ALL clears it all on purpose (§7).
+over at the defaults once.) SYSTEM › RESET › EVERYTHING clears it all on purpose (§7).
 
 ## 13. Troubleshooting
 

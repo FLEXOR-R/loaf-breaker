@@ -7,8 +7,6 @@ wait 4200
 tap GLO
 wait 100
 tap GLO
-wait 100
-tap GLO
 wait 200
 turn K2 1 10
 wait 100

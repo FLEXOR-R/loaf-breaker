@@ -1,10 +1,15 @@
 # CHOPPAH: pitch that keeps the length (GLOBAL, its second half: GLO twice), and the roll's level and swell
 #   app/build/host/loaf-breaker_host tests/scenarios/pitch.txt app/build/scenarios
 wait 4200
-tap GLO
-wait 200
-tap GLO
+press SEL
+tap EDIT
+wait 100
+tap EDIT
+wait 100
+tap EDIT
+release SEL
 wait 300
+expect gpage 1
 shot g_pitch_default.png
 turn K1 -1 10
 wait 300

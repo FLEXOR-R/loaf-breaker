@@ -19,15 +19,35 @@ static void sfx_toggle(uint32_t e, int on)   /* LOAF BREAKER: GLO EFFECTS: effec
     app_say(SFX_NAME[e], set.sfx_on & b ? "ON" : "OFF");
     ui.redraw = RG_ALL;
 }
-#define GP_FILL 6u                       /* LOAF BREAKER: FILL's page, a GLO part without a tab (SEL + ARP) */
+/* LOAF BREAKER (0.201, the pages by domain): two parts of this page's code are shown elsewhere: GP_BREAK, the break's
+ * PITCH, GRAIN, SNAP and LEVEL, is SOUNDS' BREAK (SEL + EDIT); GP_FILL, SWING and FILL, is PATTERN's GROOVE (SEQ's
+ * ALGORITHM past KEYS, SEL + ARP). SYSTEM (GLO) itself: MIDI, SETUP, EFFECTS, FX SET, RESET */
+#define GP_BREAK 1u
+#define GP_FILL 6u
+#define NGLO 5u
+static const uint8_t GLO_ORD[NGLO] = {0u, 2u, 3u, 4u, 5u};
+static uint32_t glo_next(int32_t d)      /* SYSTEM's next or previous part (from the break's or GROOVE: MIDI) */
+{
+    uint32_t i;
+    for (i = 0; i < NGLO; i++)
+        if (GLO_ORD[i] == ui.gpage && ui.page == PG_GLOBAL)
+            return GLO_ORD[(i + (d > 0 ? 1u : NGLO - 1u)) % NGLO];
+    return 0u;
+}
 static const char *const FILL_DRUM_NAME[4] = {"SNARE", "CLAP", "HAT", "ALL 3"};
-static const char *const FILL_LEN_NAME[4] = {"1 BEAT", "2 BEATS", "1 BAR", "2 STEPS"};
+static const char *const FILL_LEN_NAME[7] = {"1 BEAT", "1 BEAT /8", "2 BEATS", "2 BEATS /8", "1 BAR", "1 BAR /8",
+                                             "2 STEPS"};
+static uint32_t fill_len_i(void) { return FILL_LEN < 3u ? FILL_LEN * 2u + FILL_RATE : 6u; }   /* (LENGTH and RATE, one) */
 static void global_value(int i, char *t)
 {
     t[0] = 0;
-    if (ui.gpage == GP_FILL) {           /* (FILL: LATCH, DRUM, LENGTH, RATE) */
-        text_cat(t, i == 0 ? (FILL_LATCH ? "ON" : "OFF") : i == 1 ? FILL_DRUM_NAME[FILL_DRUM] : i == 2
-                 ? FILL_LEN_NAME[FILL_LEN] : FILL_RATE ? "8THS" : "16THS");
+    if (ui.gpage == GP_FILL) {           /* (GROOVE: SWING, FILL's LATCH, DRUM, LENGTH) */
+        if (i == 0) {
+            int_text(set.swing, t);
+            text_cat(t, "%");
+        } else
+            text_cat(t, i == 1 ? (FILL_LATCH ? "ON" : "OFF") : i == 2 ? FILL_DRUM_NAME[FILL_DRUM]
+                     : FILL_LEN_NAME[fill_len_i()]);
         return;
     }
     if (ui.gpage == 4u) {                /* (FX SET: each 0..100 %) */
@@ -61,12 +81,11 @@ static void global_value(int i, char *t)
             text_cat(t, " MS");
         } else if (i == 2)
             text_cat(t, SNAP_SHORT[snap_index()]);
-        else
-            if (ui.reset_t && plat_ms() - ui.reset_t < 3000u) {   /* GLOUPI BREAKS: 15 turns, the count so far */
-                int_text((int32_t)ui.reset_n, t);
-                text_cat(t, " / " CH_RESET_TEXT);
-            } else
-                text_cat(t, "TURN " CH_RESET_TEXT "X");
+        else {                           /* (LOAF BREAKER: K4 the break's LEVEL, the MIXER's BREAK; RESET ALL: SYSTEM
+                                          * RESET, EVERYTHING) */
+            int_text(set.brk_level, t);
+            text_cat(t, "%");
+        }
         return;
     }
     text_cat(t, i == 0 ? (set.clk_in ? "FOLLOW" : "OFF") : i == 1 ? (set.clk_out ? "ON" : "OFF")
@@ -77,17 +96,20 @@ static void global_turn(int i, int32_t d)
 {
     static const char *const NAME[4] = {"CLOCK IN", "CLOCK OUT", "BLUETOOTH", "MIDI TO"};
     char t[16];
-    if (ui.gpage == GP_FILL) {           /* LOAF BREAKER: FILL: K1 LATCH, K2 the drum, K3 how long, K4 16ths or 8ths */
-        static const char *const FN[4] = {"FILL LATCH", "FILL DRUM", "FILL LENGTH", "FILL RATE"};
+    if (ui.gpage == GP_FILL) {           /* LOAF BREAKER: GROOVE: K1 SWING; FILL: K2 LATCH, K3 the drum, K4 how long (16ths
+                                          * or 8ths) */
+        static const char *const FN[4] = {"SWING", "FILL LATCH", "FILL DRUM", "FILL LENGTH"};
         uint32_t c = set.fill_cfg;
         if (i == 0)
-            c = (c & ~1u) | (d > 0 ? 1u : 0u);
+            set.swing = (uint8_t)clamp((int32_t)set.swing + d, 50, 75);
         else if (i == 1)
-            c = (c & ~6u) | (uint32_t)clamp((int32_t)FILL_DRUM + (d > 0 ? 1 : -1), 0, 3) << 1;
+            c = (c & ~1u) | (d > 0 ? 1u : 0u);
         else if (i == 2)
-            c = (c & ~24u) | (uint32_t)clamp((int32_t)FILL_LEN + (d > 0 ? 1 : -1), 0, 3) << 3;
-        else
-            c = (c & ~32u) | (d > 0 ? 32u : 0u);
+            c = (c & ~6u) | (uint32_t)clamp((int32_t)FILL_DRUM + (d > 0 ? 1 : -1), 0, 3) << 1;
+        else {
+            uint32_t l = (uint32_t)clamp((int32_t)fill_len_i() + (d > 0 ? 1 : -1), 0, 6);
+            c = (c & ~56u) | (l < 6u ? (l / 2u) << 3 | (l & 1u) << 5 : 3u << 3);
+        }
         set.fill_cfg = (uint8_t)c;
         if (!FILL_LATCH && !(ui.btn & 1u << B_ARP))
             fill_on = 0u;                /* (LATCH off: no FILL left on) */
@@ -147,26 +169,11 @@ static void global_turn(int i, int32_t d)
             set.grain_ms = (uint8_t)clamp((int32_t)(set.grain_ms ? set.grain_ms : 30u) + d * 5, 10, 80);
         else if (i == 2)
             set.snap = (uint8_t)(clamp((int32_t)snap_index() + (d > 0 ? 1 : -1), 0, SNAPS - 1) + 1);
-        else {                           /* RESET ALL: GLOUPI BREAKS, 15 turns of K4, each within 3 s of the last
-                                          * (CHOPPAH: 2); a pause starts the count again */
-            char n[12];
-            ui.reset_n = (uint8_t)(ui.reset_t && plat_ms() - ui.reset_t < 3000u ? ui.reset_n + 1u : 1u);
-            ui.reset_t = plat_ms() | 1u;
-            if (ui.reset_n >= CH_RESET_TURNS) {
-                ui.reset_t = 0u;
-                ui.reset_n = 0u;
-                reset_all();
-            } else {
-                int_text((int32_t)ui.reset_n, n);
-                text_cat(n, " / " CH_RESET_TEXT " TURNS");
-                app_say("RESET ALL?", n);
-            }
-            foot_dirty = 1u;
-            return;
-        }
+        else                             /* (LOAF BREAKER: K4 the break's LEVEL) */
+            set.brk_level = (uint8_t)clamp((int32_t)set.brk_level + d * 2, 0, 100);
         global_value(i, t);
-        app_say(i == 0 ? "PITCH" : i == 1 ? "GRAIN" : "SNAP", i == 0 && pitch_keeps() ? "KEEP LENGTH"
-                : i == 2 ? SNAP_NAME[snap_index()] : t);
+        app_say(i == 0 ? "PITCH" : i == 1 ? "GRAIN" : i == 2 ? "SNAP" : "BREAK LEVEL", i == 0 && pitch_keeps()
+                ? "KEEP LENGTH" : i == 2 ? SNAP_NAME[snap_index()] : t);
         changed();
         return;
     }
@@ -195,10 +202,10 @@ static void draw_global(const brk_status_t *st)
     int bs = plat_ble_state();
     cv_begin(240, 44, C_BLACK);          /* LOAF BREAKER: no waveform on GLOBAL: its place the skins' on MORE, black
                                           * on the others */
-    if (ui.gpage == GP_FILL) {           /* LOAF BREAKER: FILL: what ARP does, its four settings as cards */
-        static const char *const L[4] = {"LATCH", "DRUM", "LENGTH", "RATE"};
+    if (ui.gpage == GP_FILL) {           /* LOAF BREAKER: GROOVE: the swing, what ARP's FILL does, as cards */
+        static const char *const L[4] = {"SWING", "FILL LATCH", "FILL DRUM", "FILL LEN"};
         uint32_t j;
-        cv_text(6, 1, &FONT_T, fill_on ? "FILL  ON" : "FILL", fill_on ? C_HI : C_GRAY);
+        cv_text(6, 1, &FONT_T, fill_on ? "GROOVE  FILL ON" : "GROOVE", fill_on ? C_HI : C_GRAY);
         cv_text(6, 16, &FONT_XS, FILL_LATCH ? "ARP: ON, ARP AGAIN: OFF" : "ARP HELD: THE FILL", C_DIM);
         cv_text(6, 28, &FONT_XS, "STEPS SET FILL PLAY, NOT FILL REST", C_DIM);
         cv_blit(0, 44);
@@ -207,9 +214,9 @@ static void draw_global(const brk_status_t *st)
             int32_t x = 4 + (int32_t)j * 59;
             char v[12];
             global_value((int)j, v);
-            cv_rect(x, 4, 53, 42, j == 0 && FILL_LATCH ? C_HI : C_BLOCK);
-            cv_text(x + 4, 6, &FONT_XS, L[j], j == 0 && FILL_LATCH ? C_BLACK : C_GRAY);
-            cv_text(x + 4, 26, &FONT_T, v, j == 0 && FILL_LATCH ? C_BLACK : C_WHITE);
+            cv_rect(x, 4, 53, 42, j == 1 && FILL_LATCH ? C_HI : C_BLOCK);
+            cv_text(x + 4, 6, &FONT_XS, L[j], j == 1 && FILL_LATCH ? C_BLACK : C_GRAY);
+            cv_text(x + 4, 26, text_w(&FONT_T, v) <= 47 ? &FONT_T : &FONT_XS, v, j == 1 && FILL_LATCH ? C_BLACK : C_WHITE);
         }
         cv_blit(0, 88);
         cv_begin(240, 52, C_BLACK);
@@ -377,7 +384,8 @@ static void draw_global(const brk_status_t *st)
     cv_blit(0, 140);
 }
 
-static void global_part(uint32_t g)      /* GLO (again: the next part) and ALGORITHM on GLOBAL */
+static void global_part(uint32_t g)      /* GLO (again: the next part) and ALGORITHM on GLOBAL (LOAF BREAKER: and the
+                                          * break's page, GROOVE) */
 {
     ui.gpage = (uint8_t)g;
     ui.page = PG_GLOBAL;

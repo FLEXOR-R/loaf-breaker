@@ -5,8 +5,6 @@ wait 4200
 tap GLO
 wait 150
 tap GLO
-wait 150
-tap GLO
 wait 300
 expect gpage 2
 turn K1 -1 10
@@ -65,8 +63,6 @@ expect kpage 14
 turn ALGO 1 10
 wait 150
 expect kpage 11
-tap GLO
-wait 150
 tap GLO
 wait 150
 tap GLO

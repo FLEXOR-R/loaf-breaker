@@ -1,10 +1,15 @@
 # CHOPPAH: the snap (GLOBAL, second half, K3): where a key pressed while playing lands, in slices
 #   app/build/host/loaf-breaker_host tests/scenarios/snap.txt app/build/scenarios
 wait 4200
-tap GLO
-wait 200
-tap GLO
+press SEL
+tap EDIT
+wait 100
+tap EDIT
+wait 100
+tap EDIT
+release SEL
 wait 300
+expect gpage 1
 shot s_default.png
 turn K3 -3 10
 wait 300

@@ -46,7 +46,7 @@ static void knob_turn(int k, int32_t d)
         keq_turn(k - EN_K1, d);
         return;
     }
-    if (ui.page == PG_MIX) {             /* LEVELS: break, kick, snare and hat, MELODY; GROOVE: swing, the drums' route, FX */
+    if (ui.page == PG_MIX) {             /* LEVELS: break, kick, snare and hat, MELODY; SENDS: FX, the drums' route (LOAF BREAKER 0.201) */
         char t[16];
         if (ui.mpage == 3u) {            /* DYNAMICS: COMP's attack and release, DUCK's release, what it ducks */
             if (k == EN_K1 || k == EN_K2)
@@ -63,16 +63,14 @@ static void knob_turn(int k, int32_t d)
                 mix_value(2u, 3, t);
                 app_say("MAX OUT", t);
             }
-        } else if (ui.mpage) {
+        } else if (ui.mpage) {           /* LOAF BREAKER: SENDS: K1 FX (the chain against the dry), K2 the drums' route
+                                          * (SWING: PATTERN's GROOVE) */
             if (k == EN_K1) {
-                set.swing = (uint8_t)clamp((int32_t)set.swing + d, 50, 75);
-                say_int("SWING", set.swing, "%");
+                f->wet = knob_f(f->wet, d, lvl_step(d), 0.0f, 1.0f);
+                say_int("FX", (int32_t)(f->wet * 100.0f + 0.5f), "%");
             } else if (k == EN_K2) {
                 set.drums_chain = d > 0 ? 0u : 1u;   /* right: around the chain, left: through it */
                 app_say("DRUMS", set.drums_chain ? "THRU FX" : "AROUND FX");
-            } else if (k == EN_K3) {     /* LOAF BREAKER: FX here (LEVELS' K4 the MELODY's): the chain against the dry */
-                f->wet = knob_f(f->wet, d, lvl_step(d), 0.0f, 1.0f);
-                say_int("FX", (int32_t)(f->wet * 100.0f + 0.5f), "%");
             } else
                 return;
         } else if (k == EN_K1) {
@@ -85,7 +83,7 @@ static void knob_turn(int k, int32_t d)
         } else if (k == EN_K3) {         /* PERC: the snare and the hat */
             set.perc.volume = knob_f(set.perc.volume, d, lvl_step(d), 0.0f, 1.0f);
             say_int("PERC", (int32_t)(set.perc.volume * 100.0f + 0.5f), "%");
-        } else {                         /* LOAF BREAKER: MELO, the MELODY's own fader (FX: GROOVE's K3) */
+        } else {                         /* LOAF BREAKER: MELO, the MELODY's own fader (FX: SENDS' K1) */
             set.mel_vol = (uint8_t)clamp((int32_t)set.mel_vol + d * (int32_t)(lvl_step(d) * 100.0f + 0.5f), 0, 100);
             say_int("MELODY", set.mel_vol, "%");
         }
@@ -472,16 +470,31 @@ static void input(void)
         }
     }
     if (bdn & 1u << B_GLO)               /* GLOBAL: MIDI clock and Bluetooth; again, the pitch; again, BT audio */
-        global_part(ui.page == PG_GLOBAL ? (ui.gpage + 1u) % NGPART : 0u);
-    if (bdn & 1u << B_EDIT) {            /* LOAF BREAKER: EDIT: the KICK menu; again, its next section (SOUND SYNTH
-                                          * DIRT TONE). SEL + EDIT: the other drums (EDIT again: the next, after the
-                                          * HOOVER the kick) */
+        global_part(glo_next(1));        /* (LOAF BREAKER: SYSTEM's parts: MIDI, SETUP, EFFECTS, FX SET, RESET) */
+    if (bdn & 1u << B_EDIT) {            /* LOAF BREAKER: EDIT: SOUNDS, the KICK menu; again, its next section (SOUND
+                                          * SYNTH DIRT TONE KNOBS). SEL + EDIT: the next source: KICK, DRUMS, MELODY,
+                                          * BREAK (0.201) */
         int kickp = ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX();
         if (btn & 1u << B_SEL) {
-            ui.einst = (uint8_t)(ui.page == PG_PERC ? ui.einst % (NDRUMS - 1u) + 1u : ui.einst ? ui.einst : 1u);
-            ui.pbig = (uint8_t)!ui.kclassic;   /* (LOAF BREAKER: SEL + EDIT: the drums in the view the kick has) */
-            edit_open();
-        } else if (kickp || ui.page == PG_PERC) {
+            ui.pbig = (uint8_t)!ui.kclassic;   /* (the drums in the view the kick has) */
+            if (kickp) {
+                ui.einst = DR_SNARE;
+                edit_open();
+            } else if (ui.page == PG_PERC && ui.einst != DR_STAB) {
+                ui.einst = DR_STAB;
+                edit_open();
+            } else if (ui.page == PG_PERC)
+                global_part(GP_BREAK);
+            else if (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK) {
+                ui.einst = 0u;
+                kick_open();
+            } else {
+                ui.einst = (uint8_t)(ui.einst >= DR_SNARE && ui.einst < DR_STAB ? ui.einst : DR_SNARE);
+                edit_open();
+            }
+        } else if (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK)
+            app_say("BREAK", "ONE PART");    /* (the break's page: one part; SEL + EDIT the kick) */
+        else if (kickp || ui.page == PG_PERC) {
             ui.edit_hold = 1u;           /* (at its release: the next section, the next drum; held: the other view) */
             ui.edit_t = now;
         } else if (ui.page == PG_SEQ && ui.seq_lane >= SL_KICK && sl_drum(ui.seq_lane)) {
@@ -507,13 +520,13 @@ static void input(void)
             lcd_fill(0, 44, 240, 44, C_BLACK);
     }
     if (ui.edit_hold && !(btn & 1u << B_EDIT)) {
-        if (ui.edit_hold == 1u && ui.page == PG_PERC) {   /* (let go before the hold, on a drum: the next one,
-                                          * after the HOOVER the kick) */
-            ui.einst = (uint8_t)((ui.einst + 1u) % NDRUMS);
-            if (ui.einst)
-                edit_open();
-            else
-                kick_open();
+        if (ui.edit_hold == 1u && ui.page == PG_PERC && ui.einst == DR_STAB) {   /* (LOAF BREAKER: let go before the
+                                          * hold: the MELODY's next part, SOUND or SHAPE) */
+            ui.ppage ^= 1u;
+            page_say();
+        } else if (ui.edit_hold == 1u && ui.page == PG_PERC) {   /* (on a drum: the next one, SNARE HAT CLAP round) */
+            ui.einst = (uint8_t)(ui.einst >= DR_CLAP ? DR_SNARE : ui.einst + 1u);
+            edit_open();
         } else if (ui.edit_hold == 1u)
             kick_sect_next();            /* (let go before the hold: the next section) */
         ui.edit_hold = 0u;
@@ -526,7 +539,7 @@ static void input(void)
                                           * groove */
         if (ui.lfo_hold == 1u) {
             ui.mpage = ui.page == PG_MIX ? (uint8_t)((ui.mpage + 1u) % (set.novice ? 2u : 4u)) : 0u;   /* (LEVELS,
-                                          * GROOVE, MASTER, DYNAMICS; LOAF BREAKER: BEGINNER LEVELS and GROOVE alone) */
+                                          * SENDS, MASTER, DYNAMICS; LOAF BREAKER: BEGINNER LEVELS and SENDS alone) */
             ui.page = PG_MIX;
             ui.redraw |= RG_FOOT | RG_BLOCKS;
             page_say();
@@ -840,8 +853,20 @@ static void input(void)
             else if (ui.page == PG_TRACK && ui.tpage == 0u)
                 track_turn(-1, d);       /* LOAF BREAKER: ENV's TRACKS: the item (the break: SEL + ALGORITHM; K1 the
                                           * item's kick) */
-            else if (ui.page == PG_GLOBAL)   /* GLOBAL: its part */
-                global_part((ui.gpage + (d > 0 ? 1u : NGPART - 1u)) % NGPART);
+            else if (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK)   /* LOAF BREAKER: SOUNDS' BREAK: the break */
+                break_ask((set.brk + (d > 0 ? 1u : n_breaks - 1u)) % n_breaks);
+            else if (ui.page == PG_GLOBAL && ui.gpage == GP_FILL) {   /* PATTERN's GROOVE: back to SEQ's lanes (left:
+                                          * KEYS) */
+                ui.page = PG_SEQ;
+                ui.seq_manual = 1u;
+                if (d > 0)
+                    ui.seq_lane = SL_BREAK1;
+                else
+                    piano_set(1);
+                page_say();
+                ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
+            } else if (ui.page == PG_GLOBAL)   /* GLOBAL: its part (LOAF BREAKER: SYSTEM's) */
+                global_part(glo_next(d));
             else if (ui.page == PG_KICK) {    /* LOAF BREAKER: the KICK menu: the next part of its section */
                 kick_sect_step(d);
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
@@ -956,7 +981,8 @@ static void leds(void)
         b |= 1u << B_PLAY;
     static const uint8_t PAGE_BTN[NPAGES] = {B_HOME, B_HOME, B_FX, B_GLO, B_EDIT, B_LFO, B_SEQ, B_EDIT, B_ENV, B_ARP,
                                              B_EDIT};   /* (TEST: KICK EQ under EDIT) */
-    b |= 1u << (IS_KFX() ? B_EDIT : PAGE_BTN[ui.page]);
+    b |= 1u << (IS_KFX() || (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK) ? B_EDIT : ui.page == PG_GLOBAL &&
+                ui.gpage == GP_FILL ? B_SEQ : PAGE_BTN[ui.page]);   /* (LOAF BREAKER: SOUNDS' BREAK, PATTERN's GROOVE) */
     if (ui.rec)
         b |= 1u << B_REC;
     if (set_dirty)
@@ -1059,7 +1085,19 @@ static int32_t tab(int32_t x, const char *s, int on)
 /* the pages' buttons as printed, GLOBAL's parts, SEQ's lanes: for the tabs and the header (page_say) */
 static const char *const BTN[NPAGES] = {"HOME", "HOME", "FX", "GLO", "EDIT", "LFO", "SEQ", "EDIT", "ENV", "ARP",
                                         "EDIT"};
-static const char *const GPART[NGPART] = {"MIDI", "PITCH", "MORE", "EFFECTS", "FX SET", "RESET"};
+static const char *const GPART[NGPART] = {"MIDI", "PITCH", "SETUP", "EFFECTS", "FX SET", "RESET"};
+/* LOAF BREAKER (0.201): each button a domain, its name on the screen (the button keeps its print): LIVE (HOME), SOUNDS
+ * (EDIT: the kick, the drums, the melody, the break), PATTERN (SEQ), SONG (ENV), MIX (LFO), EFFECTS (FX), SYSTEM (GLO) */
+static const char *const DOM[NPAGES] = {"LIVE", "LIVE", "EFFECTS", "SYSTEM", "SOUNDS", "MIX", "PATTERN", "SOUNDS", "SONG",
+                                        "OVERLAY", "SOUNDS"};
+static const char *dom_name(void)
+{
+    if (IS_KFX() || (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK))
+        return "SOUNDS";
+    if (ui.page == PG_GLOBAL && ui.gpage == GP_FILL)
+        return "PATTERN";
+    return DOM[ui.page % NPAGES];
+}
 static const char *const SEQL[NSEQL] = {"1-16", "17-32", "K1", "K2", "K3", "K4", "S1", "S2", "H1", "H2", "C1", "C2",
                                          "V1", "V2"};   /* (LOAF BREAKER: the HOOVER's, in the stab's place) */
 static void draw_tabs(void)
@@ -1069,7 +1107,12 @@ static void draw_tabs(void)
     char part[20];
     part[0] = 0;
     cv_begin(240, 14, C_BLACK);
-    x = ui.page == PG_TRACK ? 2 : cv_text(4, 1, &FONT_T, IS_KFX() ? "EDIT" : BTN[ui.page % NPAGES], C_WHITE) + 6;
+    {                                    /* (LOAF BREAKER: the domain; SOUNDS: the source, KICK, DRUMS, MELODY, BREAK) */
+        const char *lab = ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX() ? "KICK" : ui.page == PG_PERC
+                          ? (ui.einst == DR_STAB ? "MELODY" : "DRUMS") : ui.page == PG_GLOBAL && ui.gpage == GP_BREAK
+                          ? "BREAK" : dom_name();
+        x = ui.page == PG_TRACK ? 2 : cv_text(4, 1, &FONT_T, lab, C_WHITE) + 6;
+    }
     if (ui.page == PG_HOME || ui.page == PG_GEN) {   /* HOME: PERFORM, GENERATOR (TEST: the kick's EQ and FX on EDIT) */
         x = tab(x, "PERFORM", ui.page == PG_HOME);
         tab(x, "GENERATOR", ui.page == PG_GEN);
@@ -1077,14 +1120,19 @@ static void draw_tabs(void)
     else if (ui.page == PG_TRACK)        /* LOAF BREAKER: ENV: TRACKS, PLAY, DROP */
         for (i = 0; i < NTORD; i++)   /* (TRACKS, PLAY, DROP, BUILD: no "ENV" before them, for the room) */
             x = tab(x, TPART[TORDER[i]], TORDER[i] == ui.tpage);
-    else if (ui.page == PG_GLOBAL && ui.gpage == GP_FILL)   /* (LOAF BREAKER: FILL's page: SEL + ARP, no tab) */
-        tab(x, "FILL", 1);
+    else if (ui.page == PG_GLOBAL && ui.gpage == GP_FILL) {   /* (LOAF BREAKER: PATTERN's GROOVE) */
+        char pn[6] = "P";
+        int_text((int32_t)pat_cur() + 1, pn + 1);
+        x = tab(x, pn, 0);
+        tab(x, "GROOVE", 1);
+    } else if (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK)   /* (SOUNDS' BREAK: the break playing) */
+        tab(x, break_name(set.brk), 1);
     else if (ui.page == PG_GLOBAL)
-        for (i = 0; i < NGPART; i++)
-            x = tab(x, GPART[i], i == ui.gpage);
+        for (i = 0; i < NGLO; i++)
+            x = tab(x, GPART[GLO_ORD[i]], GLO_ORD[i] == ui.gpage);
     else if (ui.page == PG_MIX) {
         x = tab(x, "LEVELS", !ui.mpage);
-        x = tab(x, "GROOVE", ui.mpage == 1u);
+        x = tab(x, "SENDS", ui.mpage == 1u);
         x = tab(x, "MASTER", ui.mpage == 2u);
         tab(x, "DYN", ui.mpage == 3u);   /* (LOAF BREAKER: COMP's and DUCK's timing, what DUCK ducks) */
     } else if (ui.page == PG_SEQ) {
@@ -1116,9 +1164,12 @@ static void draw_tabs(void)
         kick_part_name(kick_part(), part);
         if (x + text_w(&FONT_T, part) + 16 > 236)
             part[0] = 0;
-    } else {                             /* EDIT: the drum, and its part */
-        for (i = 1; i < NDRUMS; i++)
-            x = tab(x, DRUM_TAG[i], i == ui.einst);   /* (SN HH CP HV: the kick has its own menu) */
+    } else {                             /* SOUNDS: the drum, and its part (LOAF BREAKER: the melody its instrument) */
+        if (ui.einst == DR_STAB)
+            x = tab(x, MEL_NAME[mel_inst()], 1);
+        else
+            for (i = 1; i < DR_STAB; i++)
+                x = tab(x, DRUM_TAG[i], i == ui.einst);   /* (SN HH CP) */
         text_cat(part, ui.ppage ? "SHAPE" : "SOUND");
     }
     if (part[0]) {                       /* "< PART >": ALGORITHM turns it */
@@ -1140,8 +1191,8 @@ static void page_say(void)
     case PG_HOME: text_cat(t, "PERFORM"); break;
     case PG_GEN: text_cat(t, "GENERATOR"); break;
     case PG_KEQ: text_cat(t, ui.keq_part ? "KICK EQ SHAPE" : "KICK EQ BANDS"); break;
-    case PG_GLOBAL: text_cat(t, ui.gpage == GP_FILL ? "FILL" : GPART[ui.gpage % NGPART]); break;
-    case PG_MIX: text_cat(t, ui.mpage == 3u ? "DYNAMICS" : ui.mpage == 2u ? "MASTER" : ui.mpage ? "GROOVE" : "LEVELS"); break;
+    case PG_GLOBAL: text_cat(t, ui.gpage == GP_FILL ? "GROOVE" : ui.gpage == GP_BREAK ? "BREAK" : GPART[ui.gpage % NGPART]); break;
+    case PG_MIX: text_cat(t, ui.mpage == 3u ? "DYNAMICS" : ui.mpage == 2u ? "MASTER" : ui.mpage ? "SENDS" : "LEVELS"); break;
     case PG_SEQ: text_cat(t, ui.piano ? "KEYS" : SEQL[ui.seq_lane % NSEQL]); break;
     case PG_TRACK: text_cat(t, TPART[ui.tpage % NTPART]); break;
     case PG_OVL: text_cat(t, "OVERLAY"); break;
@@ -1156,6 +1207,7 @@ static void page_say(void)
         }
         break;
     case PG_KICK:
+        text_cat(t, "KICK ");
         text_cat(t, KSECT_NAME[ui.ksect % KSECTS]);
         text_cat(t, " ");
         kick_part_name(kick_part(), t);
@@ -1165,7 +1217,7 @@ static void page_say(void)
         text_cat(t, ui.ppage ? " SHAPE" : " SOUND");
         break;
     }
-    app_say(IS_KFX() ? "EDIT" : BTN[ui.page % NPAGES], t);
+    app_say(dom_name(), t);
 }
 
 /* SEL held alone: its combinations, on the strip (FX page: its own two) */
@@ -1173,28 +1225,35 @@ static void draw_help(void)
 {
     /* LOAF BREAKER TEST: above, SEL's combinations on any page; below, this page's own ("+": with SEL; on HOME and the
      * pages with no shortcuts of their own: SEL + K1..K4, the functions EDIT KICK's KNOBS gave them) */
-    static const char *const G[4][2] = {{"+ ENV", "BUILD / DROP"}, {"+ SELECT", "DRUM FILTER"}, {"+ ALGO", "BREAK"},
-                                        {"+ PRESETS", "PATTERN"}};
-    static const char *const P[8][4][2] = {
-        {{"EDIT HELD", "BIG / CLASSIC VIEW"}, {"+ EDIT", "SNARE HAT CLAP MELODY"}, {"PRESETS", "KICK 1-10"},
+    static const char *const G[8][2] = {{"+EDIT", "NEXT SOURCE"}, {"+SEQ", "COPY / PASTE"}, {"+ENV", "BUILD / DROP"},
+                                        {"+ARP", "GROOVE"}, {"+REC", "CLEAR"}, {"+SAVE", "UNDO"}, {"+ALGO", "BREAK"},
+                                        {"+SELECT", "DRUM FILTER"}};   /* (LOAF BREAKER 0.201: SEL + a button, one
+                                          * table: its domain's second function) */
+    static const char *const P[10][4][2] = {
+        {{"EDIT HELD", "BIG / CLASSIC VIEW"}, {"EDIT", "NEXT SECTION"}, {"PRESETS", "KICK 1-10"},
          {"SELECT", "NEXT DRUM (BIG VIEW)"}},
-        {{"EDIT HELD", "BIG / CLASSIC VIEW"}, {"EDIT", "NEXT DRUM"}, {"PRESETS", "ITS MEMORIES"},
+        {{"EDIT HELD", "BIG / CLASSIC VIEW"}, {"EDIT", "NEXT DRUM / PART"}, {"PRESETS", "MEMORY / INSTRUMENT"},
          {"SELECT", "NEXT DRUM (BIG VIEW)"}},
         {{"SEQ + KEY 1-4", "COPY THE BAR THERE"}, {"SEQ + K1", "SHIFT THE LANE"}, {"SEQ + REC", "CLEAR THE DRUMS"},
          {"+ SAVE", "UNDO"}},
         {{"+ FX", "BYPASS SLOT"}, {"FX + ALGO", "MOVE SLOT"}, {"+ REC", "RESET EFFECT"}, {"PRESETS", "EFFECT TYPE"}},
         {{"+ PLAY", "START ITEM (TRACKS)"}, {"PLAY", "PLAY THE TRACK"}, {"PRESETS", "THE TRACK"},
          {"WHITE KEYS", "PATTERNS / TRACKS"}},
-        {{"LFO + K1", "BREAK LEVEL"}, {"LFO + K2", "KICK LEVEL"}, {"LFO + K3", "DRUMS LEVEL"}, {"LFO + K4", "FX LEVEL"}},
-        {{"MORE: K1", "BEGINNER / EXPERT"}, {"RESET", "ONE PART AT A TIME"}, {"PITCH: K4", "RESET ALL"},
+        {{"LFO + K1", "BREAK LEVEL"}, {"LFO + K2", "KICK LEVEL"}, {"LFO + K3", "DRUMS LEVEL"}, {"LFO + K4", "MELODY LEVEL"}},
+        {{"SETUP: K1", "BEGINNER / EXPERT"}, {"RESET", "ONE PART AT A TIME"}, {"RESET: ALL", "EVERYTHING, 15 TURNS"},
          {"SEL x2", "SEL LOCKED, LIT"}},
-        {{"+ K1", ""}, {"+ K2", ""}, {"+ K3", ""}, {"+ K4", ""}}};
+        {{"+ K1", ""}, {"+ K2", ""}, {"+ K3", ""}, {"+ K4", ""}},
+        {{"ALGO", "THE BREAK"}, {"K1 - K3", "PITCH, GRAIN, SNAP"}, {"K4", "ITS LEVEL"}, {"+ EDIT", "THE KICK"}},
+        {{"ARP", "FILL (LATCH: ON / OFF)"}, {"ALGO", "SEQ'S LANES"}, {"K1", "SWING"}, {"K2 - K4", "THE FILL"}}};
     uint32_t i, w = ui.page == PG_KICK ? 0u : ui.page == PG_PERC ? 1u : ui.page == PG_SEQ ? 2u : ui.page == PG_FX ? 3u
-                    : ui.page == PG_TRACK ? 4u : ui.page == PG_MIX ? 5u : ui.page == PG_GLOBAL ? 6u : 7u;
+                    : ui.page == PG_TRACK ? 4u : ui.page == PG_MIX ? 5u : ui.page == PG_GLOBAL && ui.gpage == GP_BREAK
+                    ? 8u : ui.page == PG_GLOBAL && ui.gpage == GP_FILL ? 9u : ui.page == PG_GLOBAL ? 6u : 7u;
     cv_begin(240, 52, C_BLACK);
-    for (i = 0; i < 4u; i++) {
-        cv_text(10, (int32_t)i * 13, &FONT_XS, G[i][0], C_HI);
-        cv_text(104, (int32_t)i * 13, &FONT_XS, G[i][1], C_WHITE);
+    for (i = 0; i < 4u; i++) {           /* (SEL + a button: two columns) */
+        cv_text(6, (int32_t)i * 13, &FONT_XS, G[i][0], C_HI);
+        cv_text(46, (int32_t)i * 13, &FONT_XS, G[i][1], C_WHITE);
+        cv_text(124, (int32_t)i * 13, &FONT_XS, G[i + 4u][0], C_HI);
+        cv_text(170, (int32_t)i * 13, &FONT_XS, G[i + 4u][1], C_WHITE);
     }
     cv_blit(0, 88u);
     cv_begin(240, 52, C_BLACK);
@@ -1287,15 +1346,15 @@ static void draw_foot(const brk_status_t *st)
             cv_text(x + (20 - text_w(&FONT_T, nn)) / 2, 1, &FONT_T, nn, on ? C_BLACK : C_HI);
         }
     for (i = 0; i < 4u; i++) {
-        static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "RESET ALL"};
-        static const char *const KN_GROOVE[3][4] = {{"SWING", "DRUMS", "FX", ""}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
+        static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "LEVEL"};   /* (SOUNDS' BREAK) */
+        static const char *const KN_GROOVE[3][4] = {{"FX", "DRUMS", "", ""}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
                                                     {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
         static const char *const KN_MORE[3][4] = {{"MODE", "AUTO SAVE", "METER", "SKIN"},   /* GLOBAL's MORE */
                                                   {"EFFECT", "ON / OFF", "", ""},   /* (LOAF BREAKER: EFFECTS, */
                                                   {"AMOUNT", "KICK", "DROP", "LENGTH"}};   /* FX SET) */
         static const char *const KN_TRK[4][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
                                                  {"STYLE", "SWEEP", "RISER", "GAP"}, {"WHAT", "RESET", "RESET", "RESET"}};
-        static const char *const KN_FILL[4] = {"LATCH", "DRUM", "LENGTH", "RATE"};   /* (LOAF BREAKER: FILL) */
+        static const char *const KN_FILL[4] = {"SWING", "LATCH", "DRUM", "LENGTH"};   /* (LOAF BREAKER: GROOVE) */
         const char *name = ui.page == PG_GLOBAL && ui.gpage == GP_FILL ? KN_FILL[i] : RST_ON ? KN_TRK[3][i] : ui.page == PG_TRACK &&
                            ui.tpage ? KN_TRK[ui.tpage == 4u ? 2u : (ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
                            ui.gpage >= 2u ? KN_MORE[(ui.gpage - 2u) % 3u][i] : ui.page == PG_GLOBAL && ui.gpage
@@ -1885,8 +1944,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol"};
-    int v[87];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst"};
+    int v[88];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1984,7 +2043,8 @@ int app_expect(const char *what, int *got)
         v[82 + i] = hv_on(i) ? (int)stab_note(pat_now(), i) : -99;
     v[85] = (int)mel_inst();
     v[86] = set.mel_vol;
-    for (i = 0; i < 87u; i++)
+    v[87] = ui.einst;
+    for (i = 0; i < 88u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;
