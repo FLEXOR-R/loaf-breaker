@@ -72,6 +72,10 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 
 ## Layout
 
+Porting to other hardware (FLEXOR's question, 10 Nov 2026): `docs/PORTING.md` (the 31 `plat_*` the app calls, 18
+without Bluetooth; the screen, the controls, the order of the work). Keep it current when the app calls a new one.
+
+
 `app/app.c` is the core (settings, patterns, MIDI, the render); it ends by including `app/ui/*.c` in order (common,
 fx, pads, keys, bta, global, ovl, seq, kick, perc, mixer, screen, demo, main): one unity build, so a page file sees what the
 files before it define. `app/dsp/*.c` are separate `o2` units (brk, brk_fx, kick, perc, ovl, …).
