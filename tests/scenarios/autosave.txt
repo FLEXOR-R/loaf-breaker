@@ -1,7 +1,7 @@
-# LOAF BREAKER: AUTO SAVE waits 3 s after the break stops (a flash write stalls the sound: the stop's tail kept). GLO three
-# times: MORE, K2 AUTO SAVE on (a change); PLAY a minute and more: not saved while playing; stopped: not yet at 1.5 s,
-# saved by 3.5 s. Then the output heard holds it too: a change, stopped, the kick played by hand each second (EDIT, key 1)
-# past the minute: not saved while it sounds; saved 3 s after the last one.
+# LOAF BREAKER: AUTO SAVE waits 10 s after the break stops (a flash write stalls the sound: the stop's tail kept). GLO
+# twice: SETUP, K2 AUTO SAVE on (a change); PLAY a minute and more: not saved while playing; stopped: not yet at 9 s,
+# saved by 10.5 s. Then the output heard holds it too: a change, stopped, the kick played by hand each second (EDIT, key 1)
+# past the minute: not saved while it sounds; saved 10 s after the last one.
 #   app/build/host/loaf-breaker_host tests/scenarios/autosave.txt app/build/scenarios
 wait 4200
 tap GLO
@@ -15,9 +15,9 @@ tap PLAY
 wait 61000
 expect dirty 1
 tap PLAY
-wait 1500
+wait 9000
 expect dirty 1
-wait 2000
+wait 1500
 expect dirty 0
 turn K4 1 10
 wait 100
@@ -60,7 +60,7 @@ wait 30
 key w0 up
 wait 970
 expect dirty 1
-wait 1500
+wait 9000
 expect dirty 1
-wait 2500
+wait 1500
 expect dirty 0

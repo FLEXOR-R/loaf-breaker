@@ -1607,7 +1607,7 @@ void app_frame(void)
     brk_status(&st);
     b = brk_get_break();
     {                                    /* LOAF BREAKER: AUTO SAVE. A change waits a minute, then is saved once the
-                                          * break has been stopped and the output silent 3 s (a flash write stalls the
+                                          * break has been stopped and the output silent 10 s (a flash write stalls the
                                           * sound: never while playing, nor while anything still sounds) */
         static uint32_t dirty_t, stop_t; /* (stop_t: when the break last played or the output was last heard, over
                                           * -60 dB: a long kick tail, a reverb, an echo, a drum played by hand) */
@@ -1618,7 +1618,7 @@ void app_frame(void)
             dirty_t = 0u;
         else if (!dirty_t)
             dirty_t = now | 1u;
-        else if (now - dirty_t >= 60000u && !st.playing && now - stop_t >= 3000u && !ui.lobo_t) {
+        else if (now - dirty_t >= 60000u && !st.playing && now - stop_t >= 10000u && !ui.lobo_t) {   /* (10 s: FLEXOR) */
             int ok = store_all();
             set_dirty = 0u;
             dirty_t = 0u;

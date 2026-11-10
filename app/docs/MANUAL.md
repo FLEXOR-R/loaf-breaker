@@ -694,7 +694,7 @@ header shows CPU (the share of its time the sound takes, average and peak: past 
 limit), IMG (the screen strips sent that second) and FR (how many times a second the interface went round: the higher,
 the quicker it answers). For telling what slows it down. K2
 **AUTO SAVE**, ON: what you change is saved by itself a minute after it changed, once the break has been stopped and **nothing
-has been heard for 3 s** (the flash is never written while it plays, nor while a long kick tail, a reverb, an echo or a
+has been heard for 10 s** (the flash is never written while it plays, nor while a long kick tail, a reverb, an echo or a
 drum played by hand still sounds: its stall would cut it). **PRESETS** there: **WAVE ZOOM**, how much of the past HOME's scrolling wave
 (the CDJ view) holds across the screen: 1/2, 2/3, 5/6 of a bar (zoomed in), 1 BAR (as it was), 1 1/4, 1 1/2, 2 BARS
 (zoomed out).
@@ -834,7 +834,7 @@ break alone: sweep it down and the drums stay full on top.
 | FX (the chain) | the focused slot's effect: its three settings (FX again: its MORE and MOD parts; an MB COMP its six, see §6) | | | Its mix |
 | GLO (MIDI) | Clock in | Clock out | | |
 | GLO again (pitch, snap) | Keep length / speed | Grain | Snap | Reset all (fifteen turns) |
-| GLO a third time (MORE; PRESETS: wave zoom) | Mode: beginner / expert | Auto save | Meter | Skin |
+| GLO twice (SETUP; PRESETS: wave zoom) | Mode: beginner / expert | Auto save | Meter | Skin |
 | GLO a fourth time (EFFECTS; keys 1–7: each on or off) | The effect | On / off | | |
 | GLO a fifth time (FX SET) | Amount | On a kick | At the drop | Length |
 | GLO a sixth time (RESET; ALGORITHM: what too) | What | Reset (five clicks) | Reset (five clicks) | Reset (five clicks) |
