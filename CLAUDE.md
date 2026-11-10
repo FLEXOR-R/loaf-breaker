@@ -24,7 +24,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   (`rows_forget`; `lcd_fill` is wrapped). `changed()` applies once a pass (`apply_flush`); a kick-only or FX-only change
   uses `changed_kick()` / `changed_fx()`. GLO MORE K3 METER shows CPU / IMG / FR on the device. CI runs a 30-minute
   random soak (`tools/soak.py`, seed = run number) at every release.
-- Names (10 Nov 2026, 0.190): what the code calls TERROR, TERROR 2, TERROR + the screen and the docs call DISTO,
+- Names (10 Nov 2026, 0.191): what the code calls TERROR, TERROR 2, TERROR + the screen and the docs call DISTO,
   SCREAM, DISTO + (D+ TYPE, D+ SCREECH ..); the black key DST. Keep newcomers' names on the screen; TERROR stays the
   genre (README's tagline) and a STYLE.
 - No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository.
