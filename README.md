@@ -78,8 +78,8 @@ M-VAVE's original firmware first ([docs/FLASHING.md](docs/FLASHING.md)).
 
 ## Breaks
 
-LOAF BREAKER has 10 breaks on ALGORITHM, 2 bars each: THINK 114, NUSKOOL 140, UPDOWN 165, APACHE 115, AMEN04 170,
-AMEN13 173, THEWORM 110, AMEN19 172, AMEN15 174 and BREAKIN 175. [`breaks/breaks.txt`](breaks/breaks.txt) marks with `*` the ones
+LOAF BREAKER has 9 breaks on ALGORITHM, 2 bars each: THINK 114, NUSKOOL 140, UPDOWN 165, APACHE 115, THEWORM 110,
+AMEN19 172, AMEN10 135, AMEN20 164 and IDM 169. [`breaks/breaks.txt`](breaks/breaks.txt) marks with `*` the ones
 built in (the bank has 400 KB); `./build.sh` builds them into `app/bank_data.h` (generated, git-ignored). The breaks
 are built in: LOAF BREAKER does not load samples of your own.
 

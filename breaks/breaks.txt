@@ -9,19 +9,24 @@
 #
 # in  file                                        bpm     bars  of  name
 #
-# LOAF BREAKER's base: the 10 breaks in the firmware, in ALGORITHM's order (THINK at power-on). Break Swap (9 Nov 2026):
-# AMEN04 170 in CHOPPER's place, AMEN13 173 in DRUMMER's, AMEN15 174 and BREAKING after AMEN19 (each break's number
-# on ALGORITHM kept for the ones that stayed). Before: the Break Picks tests, AMEN02 165, UPDOWN and AMEN19 172 in.
+# LOAF BREAKER's base: the 9 breaks in the firmware, in ALGORITHM's order (THINK at power-on). Break Sort
+# (10 Nov 2026, FLEXOR's listening page): AMEN10 135, AMEN20 164 and IDM 169 in; AMEN04, AMEN13, AMEN15 and BREAKIN
+# out (~20 KB freed). Before: Break Swap (9 Nov), the Break Picks tests.
 *   classics/lyn_collins_think_about_it.wav     113.78  2     4   THINK 114
 *   huge/cw_amen_nuskool.wav                    139.99  2     4   NUSKOOL 140
 *   huge/cw_amen_updown.wav                     165     2     2   UPDOWN 165
 *   classics/incredible_bongo_band_apache.wav   114.78  2     4   APACHE 115
-*   cw/cw_amen04_170.wav                        170     2     2   AMEN04 170
-*   cw/cw_amen13_173.wav                        173     2     4   AMEN13 173
 *   classics/jimmy_mcgriff_the_worm.wav         109.79  2     4   THEWORM 110
 *   cw/cw_amen19_172.wav                        172     2     4   AMEN19 172
-*   cw/cw_amen15_174.wav                        174     2     4   AMEN15 174
-*   huge/cw_amen_breaking.wav                   175     2     2   BREAKIN 175
+*   cw/cw_amen10_135.wav                        135     2     2   AMEN10 135
+*   cw/cw_amen20_164.wav                        164     2     2   AMEN20 164
+*   huge/cw_amen_idm.wav                        169     2     4   IDM 169
+#
+# out of the base on 10 Nov 2026 (Break Sort):
+-   cw/cw_amen04_170.wav                        170     2     2   AMEN04 170
+-   cw/cw_amen13_173.wav                        173     2     4   AMEN13 173
+-   cw/cw_amen15_174.wav                        174     2     4   AMEN15 174
+-   huge/cw_amen_breaking.wav                   175     2     2   BREAKIN 175
 #
 # out of the base on 9 Nov 2026 (Break Swap): CHOPPER, DRUMMER; kept aside (Break Swap KEEP): AMEN02, AMEN08, AMEN10,
 # AMEN11, AMEN12, EARLY, AMEN01, EQUIL, AMEN18
@@ -43,7 +48,6 @@
 #
 # cw/, huge/: Cyberworm's 60 royalty-free Amen loops (the firmware's breaks until 1 Nov 2026)
 -   huge/cw_amen_beasty.wav                     127.27  2     4   BEASTY 127
--   cw/cw_amen10_135.wav                        135     2     2   AMEN10 135
 -   cw/cw_amen12_137.wav                        137     2     2   AMEN12 137
 -   huge/cw_amen_comp.wav                       140     2     4   COMP 140
 -   huge/cw_amen_negative.wav                   140     2     4   NEGATIV 140
@@ -58,7 +62,6 @@
 -   huge/cw_amen_classic.wav                    160     2     3   CLASSIC 160
 -   huge/cw_amen_hype.wav                       160     2     2   HYPE 160
 -   huge/cw_amen_tube.wav                       163.81  2     3   TUBE 164
--   cw/cw_amen20_164.wav                        164     2     2   AMEN20 164
 -   huge/cw_amen_replay.wav                     164.92  2     6   REPLAY 165
 -   huge/cw_amen_deeptouch.wav                  164.94  2     6   DEEPTOU 165
 -   cw/cw_amen08_165.wav                        165     2     2   AMEN08 165
@@ -67,7 +70,6 @@
 -   cw/cw_amen03_167.wav                        167     2     2   AMEN03 167
 -   cw/cw_amen16_167.wav                        167     2     4   AMEN16 167
 -   cw/cw_amen06_169.wav                        169     2     2   AMEN06 169
--   huge/cw_amen_idm.wav                        169     2     4   IDM 169
 -   huge/cw_amen_early.wav                      170     2     2   EARLY 170
 -   huge/cw_amen_finger.wav                     170     2     2   FINGER 170
 -   cw/cw_amen07_172.wav                        172     2     2   AMEN07 172

@@ -1,4 +1,4 @@
-# PRESS PLAY's picture, its break: THEWORM (ALGORITHM six) alone, played, the CDJ view's ring dumped ($OUT)
+# PRESS PLAY's picture, its break: THEWORM (ALGORITHM five) alone, played, the CDJ view's ring dumped ($OUT)
 wait 4200
 turn ALGO 6 10
 wait 300
