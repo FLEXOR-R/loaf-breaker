@@ -28,17 +28,22 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   SCREAM, DISTO + (D+ TYPE, D+ SCREECH ..); the black key DST. Keep newcomers' names on the screen; TERROR stays the
   genre (README's tagline) and a STYLE.
 - Breaks (10 Nov 2026, 0.193): FLEXOR chose the bank on a listening page of all 70 breaks as the FM-1 holds them
-  (https://claude.ai/artifact/MCakoDjuGTXjMLFiobM1k3; the choice in its store, `tri/choix`): 10 breaks, NUSKOOL first, LO-FI one bar (FLEXOR's order, 0.196).
+  (https://claude.ai/artifact/MCakoDjuGTXjMLFiobM1k3; the choice in its store, `tri/choix`): 9 breaks, NUSKOOL first (FLEXOR's order; LO-FI out in 0.200 for room).
 - Patterns (10 Nov 2026, 0.197): 64, four groups of 16 (`NGRP`, `NPAT_ALL`); the group in RAM is pats.p/kn/hits and
   steps.b (`set.pgrp`; `set.pattern` its slot; `pat_cur()` 0..63; `pat_go()` brings one in). Each group has its own
   objects (OBJ_PG0/KG0/SG0/NG0 + g); SAVE (`store_all`) writes 7. Leaving a group with unsaved changes while playing is
   refused ("SAVE OR STOP", FLEXOR's choice: never a cut in the sound). Track items, `drop_after`, `ui.drop_pat` and
   `pat_next` are 0..63 (or 1..64); `drop_to` stays a slot (0xFF: another group's, read in at the drop).
-- HV KEYS (10 Nov 2026, 0.198): SEQ's piano for the HOOVER (`ui.piano`, ALGORITHM past the last lane; seq.c piano_*):
+- KEYS (10 Nov 2026, 0.198, then HV KEYS): SEQ's piano for the MELODY (`ui.piano`, ALGORITHM past the last lane; seq.c piano_*):
   all 27 keys notes (PIANO_W / PIANO_B), the pads' loop skipped there. Hoover notes -24..+39: `stab_note` adds hvx's
   2 bits (HVX_ADD) to the 4 in st[k][2]; hvx is the group's (OBJ_NG0 + g), copied with paste and undo.
 - FILL (10 Nov 2026, 0.199): ARP held (LATCH: toggled); SEL + ARP opens FILL's page, GLO part `GP_FILL` (6, no tab:
   the tab row is full); `set.fill_cfg` (LATCH, DRUM, LENGTH, RATE). SEL + ARP's random pattern is gone (FLEXOR's ask).
+- MELODY (10 Nov 2026, 0.200): the HOOVER's voice (PV_STAB) is the pattern's instrument, MEL_ACID/LEAD/PAD/REESE (perc.c
+  stab_tick, mel_hit; the render passes each note's length and MEL_SLIDE/ACCENT/TIE: perc_notes, perc_mel per block);
+  `hv.inst[slot]` (with hvx in OBJ_NG0 + g); `set.sslot` the instrument playing, `smem[0..3]` the four sounds,
+  `mel_follow()` in pat_apply swaps them. SEQ K2 on drum lanes: what the lane plays (lane_sound_turn). MIXER LEVELS
+  K4 MELO (`set.mel_vol`), GROOVE K3 FX. HV KEYS is called KEYS now.
 - No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository.
 - Fonts: `font_trim` is on (fm1.toml, 9 Nov 2026). LOAF BREAKER draws in FONT_T, FONT_XS and FONT_B only (cv_text2 for
   bigger: those doubled). fm1-base still generates S, M (~5 KB trimmed) and L (~9 KB trimmed, 31 px), left out of the
@@ -83,7 +88,7 @@ files before it define. `app/dsp/*.c` are separate `o2` units (brk, brk_fx, kick
 - Breaks: `breaks/breaks.txt` (paths relative to `breaks/`) marks with `*` the WAVs built into the firmware;
   `./build.sh` regenerates `app/bank_data.h` (never commit it, never edit it). The bank has 400 KB (`IMAGE_CAPACITY`
   in `tools/prep_breaks.py`) and 16 slots, a break at most `CH_PCM_MAX` 106,496 samples (pool ~326 of 344 KB). The breaks are the bank's only: brk_synth is the no-bank fallback (and
-  the tests'). No loading of samples of your own (dropped from scope), and the breaks stay 2 bars (32 steps), but LO-FI 165's one (FLEXOR's pick, 0.196; one bar plays twice in 32 steps).
+  the tests'). No loading of samples of your own (dropped from scope), and the breaks stay 2 bars (32 steps; a one-bar break plays twice, LO-FI 165 was one in 0.196-0.199).
 - Releases are automatic: every push to main is the last `vX.Y` tag + 1 minor (`scripts/next_version.sh`, floor
   `VERSION`). Don't tag by hand or bump `VERSION` for a minor; raise `VERSION` only for a new major.
 - **Always push to GitHub after changes** (Laurens' standing rule, 4 Nov 2026): commit and push as soon as a change is

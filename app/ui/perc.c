@@ -6,8 +6,19 @@ static const char *const PERC_KNOB[PERC_VOICES][2][4] = {
     {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SNAP", "DRIVE", "PRESET", ""}},
     {{"LEVEL", "TUNE", "DECAY", "METAL/NZ"}, {"CUT", "DRIVE", "PRESET", ""}},
     {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SPREAD", "DRIVE", "PRESET", ""}},
-    {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"BEND", "DRIVE", "PRESET", ""}}};   /* (LOAF BREAKER: the HOOVER's) */   /* (LOAF BREAKER: the clap's; SHAPE's K3
-                                          * PRESET, the memory back to a built-in sound) */
+    {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SNAP", "DRIVE", "PRESET", ""}}};   /* (LOAF BREAKER: the clap's; SHAPE's K3
+                                          * PRESET, the memory back to a built-in sound; the MELODY's: MEL_KNOB) */
+/* LOAF BREAKER: the MELODY's knobs, its instrument's (perc.c's MELODY: decay, tone, snap mean its own) */
+static const char *const MEL_KNOB[MEL_N][2][4] = {
+    {{"LEVEL", "TUNE", "ENV DECAY", "CUTOFF"}, {"RESO", "DRIVE", "PRESET", ""}},
+    {{"LEVEL", "TUNE", "RELEASE", "BRIGHT"}, {"DETUNE", "DRIVE", "PRESET", ""}},
+    {{"LEVEL", "TUNE", "SWELL", "BRIGHT"}, {"CHORD", "DRIVE", "PRESET", ""}},
+    {{"LEVEL", "TUNE", "MOVE", "CUTOFF"}, {"DETUNE", "DRIVE", "PRESET", ""}}};
+static const char *perc_kname(uint32_t v, uint32_t pg, int i)
+{
+    v %= PERC_VOICES;
+    return v == PV_STAB ? MEL_KNOB[mel_inst()][pg & 1u][i & 3] : PERC_KNOB[v][pg & 1u][i & 3];
+}
 
 /* LOAF BREAKER: the snare's, the hat's and the clap's memories, as the kick's (kick_mem_turn): SNARE 1..10, the one
  * playing kept as it is, the next as it was left (PRESETS on EDIT, SELECT on the drum's SEQ lane) */
@@ -16,6 +27,10 @@ static void perc_mem_turn(uint32_t v, int32_t d)
     uint8_t *s = perc_slot(v);
     char t[4];
     v %= PERC_VOICES;
+    if (v == PV_STAB) {                  /* (LOAF BREAKER: the MELODY: the pattern's instrument) */
+        mel_inst_turn(d);
+        return;
+    }
     *perc_mem(v, *s) = *perc_voice(v);
     *s = (uint8_t)((*s % PERC_MEMS + (d > 0 ? 1u : PERC_MEMS - 1u)) % PERC_MEMS);
     *perc_voice(v) = *perc_mem(v, *s);
@@ -41,6 +56,11 @@ static void perc_value(int i, char *t)
     }
     if (!p)
         return;
+    if (ui.pvoice % PERC_VOICES == PV_STAB && ui.ppage && i == 0 && mel_inst() == MEL_PAD) {   /* (LOAF BREAKER:
+                                          * PAD's CHORD) */
+        text_cat(t, *p < 0.34f ? "MINOR" : *p < 0.67f ? "MAJOR" : "POWER");
+        return;
+    }
     if (!ui.ppage && i == 1)
         hz_text(perc_tune_hz(ui.pvoice, *p), t);
     else if (!ui.ppage && i == 2) {
@@ -67,7 +87,7 @@ static void perc_turn(int i, int32_t d)
         return;
     *p = knob_f(*p, d, 0.02f, 0.0f, 1.0f);
     perc_value(i, t);
-    app_say(PERC_KNOB[ui.pvoice % PERC_VOICES][ui.ppage][i], t);
+    app_say(perc_kname(ui.pvoice, ui.ppage, i), t);
     ui.redraw |= RG_BLOCKS;
     changed();
 }
@@ -115,10 +135,14 @@ static void perc_picture(const brk_status_t *st, int32_t top)
         cv_text(dx + 3 < 200 ? dx + 3 : dx - 3 - text_w(&FONT_XS, t), 72, &FONT_XS, t, C_AMB);
     }
     t[0] = 0;                            /* SNARE 3, its tune */
-    text_cat(t, PERC_VOICE_NAME[ui.pvoice % PERC_VOICES]);
-    int_text((int32_t)*perc_slot(ui.pvoice) + 1, u);
-    text_cat(t, " ");
-    text_cat(t, u);
+    if (ui.pvoice % PERC_VOICES == PV_STAB)   /* (LOAF BREAKER: the MELODY: its instrument, the pattern's) */
+        text_cat(t, MEL_NAME[mel_inst()]);
+    else {
+        text_cat(t, PERC_VOICE_NAME[ui.pvoice % PERC_VOICES]);
+        int_text((int32_t)*perc_slot(ui.pvoice) + 1, u);
+        text_cat(t, " ");
+        text_cat(t, u);
+    }
     cv_text(6, 2, &FONT_B, t, C_WHITE);
     t[0] = 0;
     hz_text(perc_tune_hz(ui.pvoice, v->tune), t);
@@ -127,7 +151,7 @@ static void perc_picture(const brk_status_t *st, int32_t top)
         int32_t x = 4 + (int32_t)i * 47;
         int sel = i == ui.einst, hit = ui.aud_d == i && plat_ms() - ui.aud_t < 150u;
         cv_rect(x, 87, 44, 12, hit ? C_HI : sel ? C_BLOCK_HI : C_BLOCK);
-        cv_text(x + 3, 88, &FONT_T, i == DR_STAB ? "HOOV" : DRUM_NAME[i], hit ? C_BLACK : sel ? C_WHITE : C_GRAY);
+        cv_text(x + 3, 88, &FONT_T, i == DR_STAB ? "MELO" : DRUM_NAME[i], hit ? C_BLACK : sel ? C_WHITE : C_GRAY);
         if (!st->playing) {
             char kn[2] = {(char)('1' + i), 0};
             cv_text(x + 41 - text_w(&FONT_T, kn), 88, &FONT_T, kn, hit ? C_BLACK : C_DIM);
@@ -142,7 +166,7 @@ static void perc_cards(void)             /* the part's knobs: its name, its valu
     cv_begin(240, 48, C_BLACK);
     for (i = 0; i < 4u; i++) {
         int32_t x = 2 + (int32_t)i * 60;
-        const char *n = PERC_KNOB[ui.pvoice % PERC_VOICES][ui.ppage & 1u][i];
+        const char *n = perc_kname(ui.pvoice, ui.ppage, i);
         cv_rect(x, 0, 56, 46, C_BLOCK);
         if (!n[0])
             continue;
@@ -207,7 +231,7 @@ static void draw_perc(const brk_status_t *st)
     for (i = 0; i < 6u; i++) {
         int32_t x = 6 + (int32_t)(i % 4u) * 58, y = 16 + (int32_t)(i / 4u) * 18;
         int lit = (i >= 4u) == (ui.ppage != 0u);
-        cv_text(x, y, &FONT_XS, PERC_KNOB[ui.pvoice % PERC_VOICES][i / 4u][i % 4u], lit ? C_GRAY : C_DIM);
+        cv_text(x, y, &FONT_XS, perc_kname(ui.pvoice, i / 4u, (int)(i % 4u)), lit ? C_GRAY : C_DIM);
         cv_rect(x, y + 13, 52, 3, C_BLOCK);
         cv_rect(x, y + 13, (int32_t)(52.0f * P[i] + 0.5f), 3, lit ? C_HI : C_DIM);
     }

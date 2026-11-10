@@ -29,13 +29,15 @@ static void mix_value(uint32_t h, int i, char *t)
             text_cat(t, "%");
         } else if (i == 1)
             text_cat(t, set.drums_chain ? "THRU FX" : "AROUND FX");
+        else if (i == 2)                 /* (LOAF BREAKER: FX here) */
+            pct_text(set.fx.wet, t);
         return;
     }
     if (i == 0) {
         int_text(set.brk_level, t);
         text_cat(t, "%");
     } else
-        pct_text(i == 1 ? set.kick.volume : i == 2 ? set.perc.volume : set.fx.wet, t);
+        pct_text(i == 1 ? set.kick.volume : i == 2 ? set.perc.volume : (float)set.mel_vol * 0.01f, t);
 }
 
 /* the MIXER's strip: four channels side by side (a fader, its value; BREAK and KICK with their level meters, FX with
@@ -65,7 +67,7 @@ static void mix_fader(int32_t x, float v, int on)   /* 0..1 from the bottom */
 }
 static void mix_picture(int32_t top)
 {
-    static const char *const NAME[4][4] = {{"BREAK", "KICK", "PERC", "FX"}, {"SWING", "DRUMS", "", ""},
+    static const char *const NAME[4][4] = {{"BREAK", "KICK", "PERC", "MELO"}, {"SWING", "DRUMS", "FX", ""},
                                            {"COMP", "RATIO", "DUCK", "MAX OUT"},
                                            {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
     uint32_t c;
@@ -104,7 +106,16 @@ static void mix_picture(int32_t top)
             cv_rect(66, 62, 48, 26, thru ? C_BLOCK : C_BLOCK_HI);
             cv_text(70, 67, &FONT_XS, "AROUND", thru ? C_GRAY : C_BLACK);
         }
-        cv_text(126, 40, &FONT_XS, "LFO: LEVELS", C_DIM);
+        mix_fader(130, set.fx.wet, set.fx.wet > 0.005f);   /* (LOAF BREAKER: FX here, its slots beside it) */
+        for (c = 0; c < BRK_FX_SLOTS; c++) {
+            const brk_fxslot_t *sl = &set.fx.slot[c];
+            int on = sl->on && sl->type != FXT_EMPTY;
+            cv_rect(150, MX_Y + (int32_t)c * 21, 6, 17, on ? C_BLOCK_HI : sl->type == FXT_EMPTY ? C_BLACK : C_BLOCK);
+            if (sl->type == FXT_EMPTY)
+                cv_rect(150, MX_Y + (int32_t)c * 21 + 8, 6, 1, C_LINE);
+        }
+        cv_text(186, 40, &FONT_XS, "LFO:", C_DIM);
+        cv_text(186, 52, &FONT_XS, "LEVELS", C_DIM);
         return;
     }
     mix_fader(10, (float)set.brk_level * 0.01f, set.brk_level > 0u);
@@ -113,14 +124,7 @@ static void mix_picture(int32_t top)
     mix_meter(90, meter_kick);
     mix_fader(130, set.perc.volume, set.perc.volume > 0.0f);
     mix_meter(150, meter_perc);
-    mix_fader(190, set.fx.wet, set.fx.wet > 0.005f);
-    for (c = 0; c < BRK_FX_SLOTS; c++) { /* the chain's four slots, lit while on */
-        const brk_fxslot_t *sl = &set.fx.slot[c];
-        int on = sl->on && sl->type != FXT_EMPTY;
-        cv_rect(210, MX_Y + (int32_t)c * 21, 6, 17, on ? C_BLOCK_HI : sl->type == FXT_EMPTY ? C_BLACK : C_BLOCK);
-        if (sl->type == FXT_EMPTY)
-            cv_rect(210, MX_Y + (int32_t)c * 21 + 8, 6, 1, C_LINE);
-    }
+    mix_fader(190, (float)set.mel_vol * 0.01f, set.mel_vol > 0u);   /* (LOAF BREAKER: the MELODY's; FX: GROOVE) */
 }
 static void draw_mixer(void)
 {

@@ -46,7 +46,7 @@ static void knob_turn(int k, int32_t d)
         keq_turn(k - EN_K1, d);
         return;
     }
-    if (ui.page == PG_MIX) {             /* LEVELS: break, kick, snare and hat, FX; GROOVE: swing, the drums' route */
+    if (ui.page == PG_MIX) {             /* LEVELS: break, kick, snare and hat, MELODY; GROOVE: swing, the drums' route, FX */
         char t[16];
         if (ui.mpage == 3u) {            /* DYNAMICS: COMP's attack and release, DUCK's release, what it ducks */
             if (k == EN_K1 || k == EN_K2)
@@ -70,6 +70,9 @@ static void knob_turn(int k, int32_t d)
             } else if (k == EN_K2) {
                 set.drums_chain = d > 0 ? 0u : 1u;   /* right: around the chain, left: through it */
                 app_say("DRUMS", set.drums_chain ? "THRU FX" : "AROUND FX");
+            } else if (k == EN_K3) {     /* LOAF BREAKER: FX here (LEVELS' K4 the MELODY's): the chain against the dry */
+                f->wet = knob_f(f->wet, d, lvl_step(d), 0.0f, 1.0f);
+                say_int("FX", (int32_t)(f->wet * 100.0f + 0.5f), "%");
             } else
                 return;
         } else if (k == EN_K1) {
@@ -82,9 +85,9 @@ static void knob_turn(int k, int32_t d)
         } else if (k == EN_K3) {         /* PERC: the snare and the hat */
             set.perc.volume = knob_f(set.perc.volume, d, lvl_step(d), 0.0f, 1.0f);
             say_int("PERC", (int32_t)(set.perc.volume * 100.0f + 0.5f), "%");
-        } else {                         /* FX: the whole chain against the dry sound */
-            f->wet = knob_f(f->wet, d, lvl_step(d), 0.0f, 1.0f);
-            say_int("FX", (int32_t)(f->wet * 100.0f + 0.5f), "%");
+        } else {                         /* LOAF BREAKER: MELO, the MELODY's own fader (FX: GROOVE's K3) */
+            set.mel_vol = (uint8_t)clamp((int32_t)set.mel_vol + d * (int32_t)(lvl_step(d) * 100.0f + 0.5f), 0, 100);
+            say_int("MELODY", set.mel_vol, "%");
         }
         ui.redraw |= RG_BLOCKS;
     } else if (ui.page == PG_HOME) {
@@ -779,7 +782,7 @@ static void input(void)
             continue;
         }
         if (k >= EN_K1 && k <= EN_K4 && btn & 1u << B_LFO) {   /* LOAF BREAKER: LFO + K1 the break's level, K2 the
-                                          * kick's, K3 the drums', K4 the FX's, on any page (the MIXER's LEVELS: the page
+                                          * kick's, K3 the drums', K4 the MELODY's, on any page (the MIXER's LEVELS: the page
                                           * stays), 5 % a detent */
             uint8_t pg = ui.page, mp = ui.mpage;
             ui.page = PG_MIX;
@@ -1091,7 +1094,13 @@ static void draw_tabs(void)
         if (pat_next >= 0)
             text_cat(pn, ">");
         x = tab(x, pn, 0);
-        tab(x, ui.piano ? "HV KEYS" : SEQ_LANE_NAME[ui.seq_lane % NSEQL], 1);
+        if (ui.piano) {                  /* (LOAF BREAKER: KEYS, the pattern's instrument: "ACID KEYS") */
+            char kt[12] = "";
+            text_cat(kt, MEL_NAME[mel_inst()]);
+            text_cat(kt, " KEYS");
+            tab(x, kt, 1);
+        } else
+            tab(x, SEQ_LANE_NAME[ui.seq_lane % NSEQL], 1);
     } else if (ui.page == PG_FX && !IS_KFX()) {
         for (i = 0; i < BRK_FX_SLOTS; i++)
             x = tab(x, SLOT_NUM[i], i == fx_foc());
@@ -1167,7 +1176,7 @@ static void draw_help(void)
     static const char *const G[4][2] = {{"+ ENV", "BUILD / DROP"}, {"+ SELECT", "DRUM FILTER"}, {"+ ALGO", "BREAK"},
                                         {"+ PRESETS", "PATTERN"}};
     static const char *const P[8][4][2] = {
-        {{"EDIT HELD", "BIG / CLASSIC VIEW"}, {"+ EDIT", "SNARE HAT CLAP HOOVER"}, {"PRESETS", "KICK 1-10"},
+        {{"EDIT HELD", "BIG / CLASSIC VIEW"}, {"+ EDIT", "SNARE HAT CLAP MELODY"}, {"PRESETS", "KICK 1-10"},
          {"SELECT", "NEXT DRUM (BIG VIEW)"}},
         {{"EDIT HELD", "BIG / CLASSIC VIEW"}, {"EDIT", "NEXT DRUM"}, {"PRESETS", "ITS MEMORIES"},
          {"SELECT", "NEXT DRUM (BIG VIEW)"}},
@@ -1226,7 +1235,8 @@ static float foot_norm(int i)            /* the page's knob i, 0..1, or -1 (no g
     if (ui.page == PG_KICK)
         return kick_knob_f(i);
     if (ui.page == PG_MIX && !ui.mpage)
-        return i == 0 ? (float)set.brk_level * 0.01f : i == 1 ? set.kick.volume : i == 2 ? set.perc.volume : set.fx.wet;
+        return i == 0 ? (float)set.brk_level * 0.01f : i == 1 ? set.kick.volume : i == 2 ? set.perc.volume
+               : (float)set.mel_vol * 0.01f;
     return -1.0f;
 }
 /* the foot: the pads, then the page and its knobs with their values */
@@ -1237,7 +1247,7 @@ static void draw_foot(const brk_status_t *st)
                                               {"P1", "P2", "P3", "MIX"},
                                               {"CLOCK IN", "CLOCK OUT", "", ""},
                                               {"", "", "", ""},
-                                              {"BREAK", "KICK", "PERC", "FX"},
+                                              {"BREAK", "KICK", "PERC", "MELO"},
                                               {"SLICE", "PITCH", "HITS", "REVERSE"},
                                               {"", "", "", ""},
                                               {"KICK", "PUT", "LOOPS", "BREAK"},
@@ -1278,7 +1288,7 @@ static void draw_foot(const brk_status_t *st)
         }
     for (i = 0; i < 4u; i++) {
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "RESET ALL"};
-        static const char *const KN_GROOVE[3][4] = {{"SWING", "DRUMS", "", ""}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
+        static const char *const KN_GROOVE[3][4] = {{"SWING", "DRUMS", "FX", ""}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
                                                     {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
         static const char *const KN_MORE[3][4] = {{"MODE", "AUTO SAVE", "METER", "SKIN"},   /* GLOBAL's MORE */
                                                   {"EFFECT", "ON / OFF", "", ""},   /* (LOAF BREAKER: EFFECTS, */
@@ -1319,17 +1329,19 @@ static void draw_foot(const brk_status_t *st)
         else if (ui.page == PG_KICK)
             name = kick_knob_name((int)i);
         else if (ui.page == PG_PERC)
-            name = PERC_KNOB[ui.pvoice % PERC_VOICES][ui.ppage][i];
+            name = perc_kname(ui.pvoice, ui.ppage, (int)i);
         else if (ui.page == PG_KEQ)
             name = KEQ_NAME[ui.keq_part & 1u][i];
         else if (ui.page == PG_SEQ && ui.piano) {   /* (LOAF BREAKER: HV KEYS) */
             static const char *const KN_PIANO[4] = {"STEP", "OCTAVE", "NOTE", "OUT / REST"};
             name = KN_PIANO[i];
         } else if (ui.page == PG_SEQ && ui.seq_lane >= SL_KICK) {
-            static const char *const KN_LANE[2][4] = {{"FILL", "DRUM FLT", "CLR / 4X4", "LENGTH"},
+            static const char *const KN_LANE[2][4] = {{"FILL", "SOUND", "CLR / 4X4", "LENGTH"},
                                                       {"NOTE", "HITS", "COND", "NUDGE"}};   /* (LOAF BREAKER: a
-                                          * step held, its own) */
+                                          * step held, its own; K2 what the lane plays: KICK, the drum's SOUND, MELODY) */
             name = KN_LANE[ui.note_key != 0u][i];
+            if (!ui.note_key && i == 1)
+                name = sl_kick(ui.seq_lane) ? "KICK" : sl_drum(ui.seq_lane) == DR_STAB ? "MELODY" : "SOUND";
         }
         cv_text(4 + (int32_t)i * 60, 18, &FONT_T, name, ui.page == PG_FX
                 ? (fx_sl(fx_foc())->on ? C_HI : C_DIM) : C_GRAY);
@@ -1873,8 +1885,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3"};
-    int v[85];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol"};
+    int v[87];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1970,7 +1982,9 @@ int app_expect(const char *what, int *got)
     v[81] = ui.pcur;
     for (i = 0; i < 3u; i++)             /* (the hoover's steps 1-3: their notes, -99 none) */
         v[82 + i] = hv_on(i) ? (int)stab_note(pat_now(), i) : -99;
-    for (i = 0; i < 85u; i++)
+    v[85] = (int)mel_inst();
+    v[86] = set.mel_vol;
+    for (i = 0; i < 87u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

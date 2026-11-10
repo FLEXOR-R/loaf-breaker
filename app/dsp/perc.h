@@ -42,6 +42,17 @@ void perc_render(float *out, uint32_t n, const uint16_t *at, const uint8_t *who,
 void perc_speed(const float *sp);        /* LOAF BREAKER: the VINYL BREAK's, as kick_speed */
 void perc_pitches(const float *pm);      /* LOAF BREAKER: the next render's hits' pitches for the stab (pm[k] for at[k],
                                           * a factor; 0: as set) */
+/* LOAF BREAKER: the MELODY (PV_STAB, the HOOVER's place): one of four instruments, the pattern's (perc_mel) */
+enum { MEL_ACID, MEL_LEAD, MEL_PAD, MEL_REESE, MEL_N };
+extern const char *const MEL_NAME[MEL_N];
+#define MEL_SLIDE 1u                     /* (perc_notes' flags: the note before was the step before: glide into it) */
+#define MEL_ACCENT 2u                    /* (on a beat: ACID's accent) */
+#define MEL_TIE 4u                       /* (a note on the next step: ACID holds into it) */
+void perc_mel(uint32_t inst, float volume, float step);   /* the instrument (MEL_*), its fader (0..1, in place of
+                                          * the drums' volume), a 16th in samples; main loop or render */
+void perc_notes(const float *gate, const uint8_t *fl);   /* the next render's stab hits: how long each holds (samples,
+                                          * 0: a short one) and its flags (MEL_*) */
+void perc_mel_default(perc_voice_t *v, uint32_t inst);   /* the instrument's own sound */
 /* main loop: one hit of the voice as the screen draws it, offline: px[i] the peak (0..height) of the ith of n columns
  * over its first ms milliseconds, at its level (not the volume) */
 void perc_shape(uint32_t voice, const perc_voice_t *v, uint8_t *px, uint32_t n, uint32_t ms, uint32_t height);

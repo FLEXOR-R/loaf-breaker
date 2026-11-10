@@ -29,7 +29,7 @@ chain, patterns: 64 of them here) and drives it into hardcore:
   FILL) and **NUDGE**; **ARP held = FILL**.
 - **Tracks and drops.** Patterns in order with loops and per-item breaks, a radio-style PLAY, builds that don't sound
   alike (snare or kick rolls, stutter, sweeps, a gap, the **tempo rising** to the drop).
-- **A mix that holds.** COMP, DUCK, MAX OUT, a HOOVER synth, rolls on the break or the kick.
+- **A mix that holds.** COMP, DUCK, MAX OUT, a MELODY a pattern (ACID, LEAD, PAD or REESE, played on the keys as a piano), rolls on the break or the kick.
 - **A screen that moves.** The mix scrolling as a CDJ in rekordbox colours, the track's progress and "DROP IN 4",
   beat-lit tempo, kick flashes, screen effects (CRT, VHS, GRAIN, RGB, SHAKE, STROBE, 8-BIT), a glitched start-up.
 
@@ -39,7 +39,7 @@ Built on [fm1-base](https://github.com/charlesvestal/fm1-base) (MPL-2.0). No Blu
 
 ![Holding a pad shows its effect and puts its settings on K1-K4: roll, reverse, filter, half speed, vinyl break, random, DJ filter](docs/img/pads.png)
 
-![The kick: its SYNTH, DIRT (DISTO), DISTO + , the classic view, the HOOVER, the kick EQ](docs/img/kick.png)
+![The kick: its SYNTH, DIRT (DISTO), DISTO + , the classic view, the drums, the kick EQ](docs/img/kick.png)
 
 ![Live: TRACKS, PLAY (the radio), a build before the drop, a step's HITS, the MASTER (COMP, DUCK, MAX OUT), SEL + knob assignments](docs/img/live.png)
 
@@ -78,8 +78,8 @@ M-VAVE's original firmware first ([docs/FLASHING.md](docs/FLASHING.md)).
 
 ## Breaks
 
-LOAF BREAKER has 10 breaks on ALGORITHM, 2 bars each but LO-FI's one: NUSKOOL 140, AMEN20 164, AMEN19 172,
-UPDOWN 165, AMEN15 174, JUNGLE 175, THINK 114, APACHE 115, THEWORM 110 and LO-FI 165. [`breaks/breaks.txt`](breaks/breaks.txt) marks with `*` the ones
+LOAF BREAKER has 9 breaks on ALGORITHM, 2 bars each: NUSKOOL 140, AMEN20 164, AMEN19 172,
+UPDOWN 165, AMEN15 174, JUNGLE 175, THINK 114, APACHE 115 and THEWORM 110. [`breaks/breaks.txt`](breaks/breaks.txt) marks with `*` the ones
 built in (the bank has 400 KB); `./build.sh` builds them into `app/bank_data.h` (generated, git-ignored). The breaks
 are built in: LOAF BREAKER does not load samples of your own.
 

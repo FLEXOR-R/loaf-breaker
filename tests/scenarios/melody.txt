@@ -1,0 +1,77 @@
+# LOAF BREAKER: the MELODY in the HOOVER's place, an instrument a pattern (ACID, LEAD, PAD, REESE), each its own sound.
+# KEYS (ALGORITHM left of the break's steps) writes a riff; ALGORITHM once more left: the MELODY's lane, K2 its
+# instrument (in the drums' filter's place); P2 keeps its own (ACID); the MIXER's K4 MELO, its fader; SAVE, a reboot:
+# kept. A wav of each instrument (m_acid.wav ..).
+#   app/build/host/loaf-breaker_host tests/scenarios/melody.txt app/build/scenarios
+wait 4200
+tap SEQ
+wait 300
+expect seq_lane 2
+expect minst 0
+turn ALGO -3 10
+wait 200
+expect piano 1
+tap REC
+tapkey w7
+turn K4 1 10
+tapkey w7
+tapkey b6
+turn K4 1 10
+tapkey w7
+tapkey w11
+turn K4 1 10
+tapkey w10
+turn K4 1 10
+tapkey b6
+turn K4 1 10
+tapkey w8
+tapkey b6
+turn K4 1 10
+tapkey w4
+tap REC
+wait 200
+shot q_keys_acid.png
+turn ALGO -1 10
+wait 200
+expect piano 0
+expect seq_lane 12
+wav m_acid.wav
+tap PLAY
+wait 2900
+turn K2 1 10
+wait 100
+expect minst 1
+shot q_mel_lead.png
+wait 2800
+turn K2 1 10
+expect minst 2
+wait 2800
+turn K2 1 10
+expect minst 3
+wait 2800
+wavstop
+tap PLAY
+wait 200
+turn K2 -2 10
+expect minst 1
+turn PRESET 1 10
+wait 200
+expect pattern 1
+expect minst 0
+turn PRESET -1 10
+wait 200
+expect pattern 0
+expect minst 1
+tap LFO
+wait 200
+turn K4 -2 10
+wait 100
+expect mel_vol 76
+shot q_mixer_melo.png
+tap SAVE
+wait 300
+reboot
+wait 4200
+expect pattern 0
+expect minst 1
+expect mel_vol 76

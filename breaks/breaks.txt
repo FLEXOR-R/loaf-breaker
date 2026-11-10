@@ -9,9 +9,9 @@
 #
 # in  file                                        bpm     bars  of  name
 #
-# LOAF BREAKER's base: the 10 breaks in the firmware, in ALGORITHM's order (NUSKOOL at power-on). Break Sort
-# (10 Nov 2026, FLEXOR's listening page, 0.193-0.196): AMEN20 164, JUNGLE 175 and LO-FI 165 (one bar) in; AMEN04,
-# AMEN13, IDM, AMEN10 and BREAKIN out, in FLEXOR's order. Before: Break Swap (9 Nov), the Break Picks tests.
+# LOAF BREAKER's base: the 9 breaks in the firmware, in ALGORITHM's order (NUSKOOL at power-on). Break Sort
+# (10 Nov 2026, FLEXOR's listening page, 0.193-0.196): AMEN20 164 and JUNGLE 175 in; AMEN04, AMEN13, IDM,
+# AMEN10, BREAKIN and (0.200, for room) LO-FI out, in FLEXOR's order. Before: Break Swap (9 Nov), the Break Picks tests.
 *   huge/cw_amen_nuskool.wav                    139.99  2     4   NUSKOOL 140
 *   cw/cw_amen20_164.wav                        164     2     2   AMEN20 164
 *   cw/cw_amen19_172.wav                        172     2     4   AMEN19 172
@@ -21,9 +21,9 @@
 *   classics/lyn_collins_think_about_it.wav     113.78  2     4   THINK 114
 *   classics/incredible_bongo_band_apache.wav   114.78  2     4   APACHE 115
 *   classics/jimmy_mcgriff_the_worm.wav         109.79  2     4   THEWORM 110
-*   huge/cw_amen_lo-fi.wav                      165.06  1     1   LO-FI 165
 #
-# out of the base on 10 Nov 2026 (Break Sort; IDM was in 0.193-0.194, AMEN10 0.193-0.195):
+# out of the base on 10 Nov 2026 (Break Sort; IDM was in 0.193-0.194, AMEN10 0.193-0.195, LO-FI 0.196-0.199):
+-   huge/cw_amen_lo-fi.wav                      165.06  1     1   LO-FI 165
 -   cw/cw_amen10_135.wav                        135     2     2   AMEN10 135
 -   cw/cw_amen04_170.wav                        170     2     2   AMEN04 170
 -   cw/cw_amen13_173.wav                        173     2     4   AMEN13 173
