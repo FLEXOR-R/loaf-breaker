@@ -28,7 +28,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   SCREAM, DISTO + (D+ TYPE, D+ SCREECH ..); the black key DST. Keep newcomers' names on the screen; TERROR stays the
   genre (README's tagline) and a STYLE.
 - Breaks (10 Nov 2026, 0.193): FLEXOR chose the bank on a listening page of all 70 breaks as the FM-1 holds them
-  (https://claude.ai/artifact/MCakoDjuGTXjMLFiobM1k3; the choice in its store, `tri/choix`): 9 breaks, AMEN10 first (FLEXOR's order, 0.195).
+  (https://claude.ai/artifact/MCakoDjuGTXjMLFiobM1k3; the choice in its store, `tri/choix`): 10 breaks, NUSKOOL first, LO-FI one bar (FLEXOR's order, 0.196).
 - No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository.
 - Fonts: `font_trim` is on (fm1.toml, 9 Nov 2026). LOAF BREAKER draws in FONT_T, FONT_XS and FONT_B only (cv_text2 for
   bigger: those doubled). fm1-base still generates S, M (~5 KB trimmed) and L (~9 KB trimmed, 31 px), left out of the
@@ -61,7 +61,7 @@ files before it define. `app/dsp/*.c` are separate `o2` units (brk, brk_fx, kick
   page switches it, `APP_BLE_AT_BOOT` follows the saved setting. It costs ~40 KB of flash. Bluetooth audio out
   (`bt_audio = true`, A2DP) is on too: ~37 KB of flash, its packet queue in the pool (`BP_MQ_ATTR` in app.h).
 - Flash: the app slot is 581,564 B (`APP_SLOT` 0x8DFBC in base/tools/fm1pkg_make.py: not 581 KiB); 577,288 B used at
-  0.192 with a 357 KB bank; the Break Sort (0.193) took the bank to 337.7 KB: **~24 KB left**. The break bank (`CH_BANK`) is most of it. Anything new needs something taken out first (ask Laurens what).
+  0.192 with a 357 KB bank; the Break Sort (0.193-0.196) took the bank to 343.9 KB (10 breaks): **~17 KB left**. The break bank (`CH_BANK`) is most of it. Anything new needs something taken out first (ask Laurens what).
   Block-rate engine code is `BRK_COLD` (built for size) and calls the shared maths (`brk_exp2f_c` and the like,
   brk_math.c; the UI too) instead of an inline copy; the FX chain's per-sample loop (`fx_samples`) is `BRK_RAM`:
   .ram_text on the FM-1 (fast, packed in flash), so nothing it reaches may be a call (`BRK_INL` in brk_fx.c forces
@@ -73,7 +73,7 @@ files before it define. `app/dsp/*.c` are separate `o2` units (brk, brk_fx, kick
 - Breaks: `breaks/breaks.txt` (paths relative to `breaks/`) marks with `*` the WAVs built into the firmware;
   `./build.sh` regenerates `app/bank_data.h` (never commit it, never edit it). The bank has 400 KB (`IMAGE_CAPACITY`
   in `tools/prep_breaks.py`) and 16 slots, a break at most `CH_PCM_MAX` 106,496 samples (pool ~326 of 344 KB). The breaks are the bank's only: brk_synth is the no-bank fallback (and
-  the tests'). No loading of samples of your own (dropped from scope), and the breaks stay 2 bars (32 steps).
+  the tests'). No loading of samples of your own (dropped from scope), and the breaks stay 2 bars (32 steps), but LO-FI 165's one (FLEXOR's pick, 0.196; one bar plays twice in 32 steps).
 - Releases are automatic: every push to main is the last `vX.Y` tag + 1 minor (`scripts/next_version.sh`, floor
   `VERSION`). Don't tag by hand or bump `VERSION` for a minor; raise `VERSION` only for a new major.
 - **Always push to GitHub after changes** (Laurens' standing rule, 4 Nov 2026): commit and push as soon as a change is

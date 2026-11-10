@@ -9,20 +9,22 @@
 #
 # in  file                                        bpm     bars  of  name
 #
-# LOAF BREAKER's base: the 9 breaks in the firmware, in ALGORITHM's order (AMEN10 at power-on). Break Sort
-# (10 Nov 2026, FLEXOR's listening page): AMEN10 135 and AMEN20 164 in; AMEN04, AMEN13, IDM and BREAKIN out
-# (~20 KB freed), in FLEXOR's order (0.195). Before: Break Swap (9 Nov), the Break Picks tests.
-*   cw/cw_amen10_135.wav                        135     2     2   AMEN10 135
+# LOAF BREAKER's base: the 10 breaks in the firmware, in ALGORITHM's order (NUSKOOL at power-on). Break Sort
+# (10 Nov 2026, FLEXOR's listening page, 0.193-0.196): AMEN20 164, JUNGLE 175 and LO-FI 165 (one bar) in; AMEN04,
+# AMEN13, IDM, AMEN10 and BREAKIN out, in FLEXOR's order. Before: Break Swap (9 Nov), the Break Picks tests.
 *   huge/cw_amen_nuskool.wav                    139.99  2     4   NUSKOOL 140
 *   cw/cw_amen20_164.wav                        164     2     2   AMEN20 164
 *   cw/cw_amen19_172.wav                        172     2     4   AMEN19 172
 *   huge/cw_amen_updown.wav                     165     2     2   UPDOWN 165
 *   cw/cw_amen15_174.wav                        174     2     4   AMEN15 174
+*   huge/cw_amen_jungle.wav                     175     2     2   JUNGLE 175
 *   classics/lyn_collins_think_about_it.wav     113.78  2     4   THINK 114
 *   classics/incredible_bongo_band_apache.wav   114.78  2     4   APACHE 115
 *   classics/jimmy_mcgriff_the_worm.wav         109.79  2     4   THEWORM 110
+*   huge/cw_amen_lo-fi.wav                      165.06  1     1   LO-FI 165
 #
-# out of the base on 10 Nov 2026 (Break Sort; IDM was in 0.193-0.194):
+# out of the base on 10 Nov 2026 (Break Sort; IDM was in 0.193-0.194, AMEN10 0.193-0.195):
+-   cw/cw_amen10_135.wav                        135     2     2   AMEN10 135
 -   cw/cw_amen04_170.wav                        170     2     2   AMEN04 170
 -   cw/cw_amen13_173.wav                        173     2     4   AMEN13 173
 -   huge/cw_amen_idm.wav                        169     2     4   IDM 169
@@ -34,10 +36,6 @@
 -   classics/james_brown_funky_drummer.wav      99.81   2     4   DRUMMER 100
 -   cw/cw_amen02_165.wav                        165     2     2   AMEN02 165
 -   classics/bobby_byrd_hot_pants.wav           114.78  2     4   HOTPANT 115
-#
-# out of the base (were in it until 0.35):
--   huge/cw_amen_jungle.wav                     175     2     2   JUNGLE 175
--   huge/cw_amen_lo-fi.wav                      165.06  1     1   LO-FI 165
 #
 # classics/: ten breaks from the records (32-bit float WAV, 4 bars each, tempos from their lengths)
 -   classics/the_winstons_amen_brother.wav      141.82  2     4   AMEN 142
