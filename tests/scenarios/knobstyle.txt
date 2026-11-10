@@ -54,3 +54,20 @@ turn PRESET 1 10
 wait 200
 expect selk1_fn 5
 expect selk4_fn 3
+# STYLE's cards: each knob's value by its name, its bar as SEL + it turns (SEL locked: SEL twice)
+turn PRESET -1 10
+wait 200
+tap SEL
+wait 120
+tap SEL
+wait 500
+expect sel_lock 1
+turn K1 8 10
+turn K2 10 10
+turn K3 -6 10
+turn K4 15 10
+wait 300
+shot ks_bars.png
+tap SEL
+wait 300
+expect sel_lock 0

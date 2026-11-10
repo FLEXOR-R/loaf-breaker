@@ -697,8 +697,8 @@ static float kick_knob_f(int i)          /* the part's knob i, 0..1 (as its bar)
         return sk_norm(kn_fn(i), kn_i(i));
     case KP_CMORPH:
         return i < 3 ? sk_norm(cm_fn(i), cm_i(i)) : 0.0f;
-    case KP_STYLE:
-        return 0.0f;
+    case KP_STYLE:                       /* (STYLE: how far each knob's function is turned, SEL + it live) */
+        return sk_norm(selk_fn((uint32_t)i), 0);
     default:
         return i == 0 ? k->volume : i <= 2 ? (float)*kick_hc((kick_t *)k, i) * 0.01f :
                (float)(ui.kpreset % KPRE_N) / (float)(KPRE_N - 1u);   /* (OUT K4: the preset, the copies) */
@@ -804,7 +804,14 @@ static void kick_cards(void)             /* the part's four knobs: its name, its
         cv_rect(x, 0, 56, 46, C_BLOCK);
         if (!n[0])
             continue;
-        cv_text(x + 4, 3, &FONT_XS, n, C_GRAY);
+        if (ui.kpage == KP_STYLE) {      /* (LOAF BREAKER: STYLE: the function's value too, by its knob's name; too
+                                          * long for both, the value alone) */
+            selk_value(selk_fn(i), 0, t);
+            if (text_w(&FONT_XS, t) <= 34)
+                cv_text(x + 4, 3, &FONT_XS, n, C_GRAY);
+            cv_text(x + 52 - text_w(&FONT_XS, t), 3, &FONT_XS, t, C_WHITE);
+        } else
+            cv_text(x + 4, 3, &FONT_XS, n, C_GRAY);
         kick_value((int)i, t);
         cv_text(x + 4, 16, text_w(&FONT_B, t) <= 50 ? &FONT_B : &FONT_XS, t, C_WHITE);
         cv_rect(x + 4, 38, 48, 3, C_BLACK);

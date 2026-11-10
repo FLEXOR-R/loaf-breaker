@@ -278,7 +278,8 @@ or K2 left once more, deletes it, the rest moving up),
     SCHOOL** (CLEAN SUB, TERROR, T+ TYPE, TUNE), **RAWSTYLE** (REV BASS, GLIDE, TUNE, T+ TAIL), **INDUSTRIAL** (T+
     SCREECH, T+ TYPE, DECAY, KICK FX), **FRENCHCORE** (TUNE, DECAY, TERROR 2, DRIVE), **LIVE BUILD** (DRUM FLT, MORPH,
     RUMBLE, HOLD). The kick's picture shows the style ("PRESETS: EARLY NEXT GEN", CUSTOM once a knob is changed on its
-    own); their settings stay where they are.
+    own); their settings stay where they are. Each card also shows its function's value by the knob's name, and its bar
+    moves as SEL + that knob turns it (SEL twice: locked, both hands free).
   Every one of them has its place on the KICK menu too, the kick's own with no knob given it: the TERRORs and TERROR +
   (DIRT), DRIVE (SYNTH's MACRO, INTENSITY), TUNE (SYNTH +), DECAY (SOUND's SUB), REV BASS and GLIDE (SYNTH's BASS),
   CLEAN SUB and MORPH (SYNTH's CLEAN MORPH).
