@@ -61,7 +61,7 @@ static void reset_do(uint32_t w)
         set.drop_riser = 50u;
         set.drop_gap = 0u;
     } else if (w == RST_KNOB)            /* KNOB: the knobs' functions */
-        set.selk_asg = set.selk_asg2 = 0u;
+        set.selk_asg = set.selk_asg2 = set.selk_hi = 0u;
     else if (w == RST_KTONE) {           /* KICK TONE: its EQ flat, its FX slots empty, their memory forgotten */
         uint32_t k;
         for (k = 0; k < 8u; k++)
@@ -85,7 +85,7 @@ static void reset_do(uint32_t w)
         set.kick = set.kmem[set.kslot % KICK_MEMS];
         for (j = 0; j < KS_N; j++)
             set.ksyn[j] = 0;
-        set.selk_asg = set.selk_asg2 = set.csub = set.kmorph = set.kmorph_to = 0u;   /* (their knobs as they start) */
+        set.selk_asg = set.selk_asg2 = set.selk_hi = set.csub = set.kmorph = set.kmorph_to = 0u;   /* (their knobs as they start) */
         set.kbass[0] = set.kbass[1] = 0u;
         set.kbass[2] = set.kbass[3] = 50u;
         kx_all();
@@ -486,32 +486,54 @@ static void track_dropped(void)
  * DUCK, SEL + K3 COMP; SEL + K2 and SEL + K4 each the function KNOB gives them (LOAF BREAKER TEST: set.selk_asg) ---- */
 /* LOAF BREAKER (9 Nov 2026): 9 TUNE (the kick's, SYNTH's), 10 DECAY (the SUB's), 11 REV BASS (its amount, start,
  * curve), 12 GLIDE, 13 CLEAN SUB (the round sine under the distortion), 14 MORPH (towards another kick memory) */
-#define SK_N 15u
+/* LOAF BREAKER (10 Nov 2026, early next gen): 15 PITCH DROP (SYNTH's DROP, its TIME), 16 RUMBLE (its amount, its
+ * time), 17 PUNCH (MACRO's), 18 DRUM FLT (the drums' filter, SEL + SELECT's), 19 HOLD (SYNTH's), 20 KICK FX (the
+ * kick's two FX slots' mix) */
+#define SK_N 21u
 static const char *const SK_NAME[SK_N] = {"DUCK", "TERROR 2", "COMP", "TERROR", "TERROR +", "DRIVE", "T+ TYPE",
                                           "T+ SCREECH", "T+ TAIL", "TUNE", "DECAY", "REV BASS", "GLIDE", "CLEAN SUB",
-                                          "MORPH"};
+                                          "MORPH", "PITCH DROP", "RUMBLE", "PUNCH", "DRUM FLT", "HOLD", "KICK FX"};
 static const char *const SK_SHORT[SK_N] = {"DUCK", "TERR 2", "COMP", "TERROR", "T+ DRIVE", "DRIVE", "T+ TYPE", "SCRCH",
-                                           "T+ TAIL", "TUNE", "DECAY", "REV B", "GLIDE", "C SUB", "MORPH"};
+                                           "T+ TAIL", "TUNE", "DECAY", "REV B", "GLIDE", "C SUB", "MORPH", "P DROP",
+                                           "RUMBLE", "PUNCH", "D FLT", "HOLD", "K FX"};
 static const char *const SK_KNOB[SK_N][4] = {{"AMOUNT", "ATTACK", "RELEASE", "DUCKS"}, {"AMOUNT", "SUB", "SCREAM", "PUSH"},
                                              {"AMOUNT", "RATIO", "ATTACK", "RELEASE"}, {"AMOUNT", "SUB", "FIZZ", "SUSTAIN"},
                                              {"DRIVE", "TYPE", "SCREECH", "TAIL"}, {"AMOUNT", "", "", ""},
                                              {"TYPE", "", "", ""}, {"SCREECH", "", "", ""}, {"TAIL", "", "", ""},
                                              {"SEMITONES", "", "", ""}, {"SUB DECAY", "", "", ""},
                                              {"AMOUNT", "START", "CURVE", ""}, {"TIME", "", "", ""}, {"AMOUNT", "", "", ""},
-                                             {"AMOUNT", "TO KICK", "", ""}};
+                                             {"AMOUNT", "TO KICK", "", ""}, {"AMOUNT", "TIME", "", ""},
+                                             {"AMOUNT", "TIME", "", ""}, {"AMOUNT", "", "", ""}, {"FILTER", "", "", ""},
+                                             {"HOLD", "", "", ""}, {"FX 1 MIX", "FX 2 MIX", "", ""}};
 static const char *const T_TYPE_NAME[5] = {"FOLD", "CLIP", "CRUSH", "RECT", "TUBE"};
 /* what a SEL + knob can be given (KNOB, PRESETS), in that order: its code 1..15 is its place + 1 (0: the knob's own) */
-#define SK_CODES 15u
-static const uint8_t SK_CODE[SK_CODES] = {0u, 1u, 2u, 3u, 4u, 6u, 7u, 8u, 5u, 9u, 10u, 11u, 12u, 13u, 14u};
+#define SK_CODES 21u                     /* (codes past 15: selk_hi's fifth bit) */
+static const uint8_t SK_CODE[SK_CODES] = {0u, 1u, 2u, 3u, 4u, 6u, 7u, 8u, 5u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u,
+                                          17u, 18u, 19u, 20u};
 static const uint8_t SK_OWN[4] = {5u, 1u, 7u, 3u};   /* K1 DRIVE, K2 TERROR 2, K3 T+ SCREECH, K4 TERROR (LOAF BREAKER:
                                           * DUCK and COMP no more: the MIXER's MASTER has them) */
 static const char *sk_short(uint32_t f) { return SK_SHORT[f % SK_N]; }   /* (EDIT KICK's KNOBS) */
 static const char *sk_kname(uint32_t f, int i) { return SK_KNOB[f % SK_N][i & 3]; }
+/* LOAF BREAKER: KNOBS' STYLE: the four functions a style gives SEL + K1..K4 (SK_* indexes) */
+#define KSTYLES 8u
+static const char *const KSTYLE_NAME[KSTYLES] = {"TERROR", "EARLY NEXT GEN", "HARDCORE", "NEW SCHOOL", "RAWSTYLE",
+                                                 "INDUSTRIAL", "FRENCHCORE", "LIVE BUILD"};
+static const uint8_t KSTYLE[KSTYLES][4] = {{5u, 1u, 7u, 3u}, {15u, 16u, 17u, 18u}, {5u, 9u, 10u, 3u}, {13u, 3u, 6u, 9u},
+                                           {11u, 12u, 9u, 8u}, {7u, 6u, 10u, 20u}, {9u, 10u, 1u, 5u},
+                                           {18u, 14u, 16u, 19u}};
+static uint8_t kstyle_at;                /* (the style picked last: where turning goes on from) */
 static int sk_live(uint32_t f) { return f != 0u && f != 2u; }   /* (a function a SEL + knob may have) */
 static uint32_t sk_code(uint32_t knob)   /* the knob's code, 0 its own */
 {
     uint8_t b = knob == 1u || knob == 3u ? set.selk_asg : set.selk_asg2;
-    return knob >= 2u ? b >> 4 : b & 15u;
+    return (knob >= 2u ? b >> 4 : b & 15u) | (uint32_t)(set.selk_hi >> (knob & 3u) & 1u) << 4;
+}
+static void sk_code_set(uint32_t kn, uint32_t code)   /* (LOAF BREAKER: its code, the fifth bit in selk_hi) */
+{
+    uint8_t *b = kn == 1u || kn == 3u ? &set.selk_asg : &set.selk_asg2;
+    uint32_t sh = kn >= 2u ? 4u : 0u;
+    *b = (uint8_t)((*b & ~(15u << sh)) | (code & 15u) << sh);
+    set.selk_hi = (uint8_t)((set.selk_hi & ~(1u << (kn & 3u))) | (code >> 4 & 1u) << (kn & 3u));
 }
 static uint32_t selk_fn(uint32_t knob)   /* the function SEL + K1..K4 turns */
 {
@@ -544,6 +566,21 @@ static void selk_value(uint32_t f, int i, char *t)
     uint8_t v;
     int32_t sv;
     t[0] = 0;
+    if (f >= 15u) {                      /* LOAF BREAKER: PITCH DROP, RUMBLE, PUNCH, DRUM FLT, HOLD, KICK FX */
+        if (f == 15u && i < 2)
+            ks_text(i ? KS_TIME : KS_DROP, t);
+        else if (f == 16u && i < 2)
+            ks_text(i ? KS_RTIME : KS_RUMBLE, t);
+        else if (f == 17u && i == 0)
+            pct_text(kick_macro_value(1), t);
+        else if (f == 18u && i == 0)
+            kick_flt_text(t);
+        else if (f == 19u && i == 0)
+            ks_text(KS_HOLD, t);
+        else if (f == 20u && i < 2)
+            pct_text(set.kfx[i].mix, t);
+        return;
+    }
     if (f >= 9u) {                       /* LOAF BREAKER: TUNE, DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH */
         int32_t x = f == 9u ? set.ksyn[KS_TUNE] : 0;
         if (f == 9u && i == 0) {
@@ -630,6 +667,12 @@ static void selk_value(uint32_t f, int i, char *t)
 static float sk_norm(uint32_t f, int i)  /* a setting 0..1, as its bar */
 {
     uint8_t v;
+    if (f >= 15u)                        /* (LOAF BREAKER: PITCH DROP .. KICK FX) */
+        return f == 15u ? (i < 2 ? ks_normj(i ? KS_TIME : KS_DROP) : 0.0f) :
+               f == 16u ? (i < 2 ? ks_normj(i ? KS_RTIME : KS_RUMBLE) : 0.0f) :
+               f == 17u ? (i ? 0.0f : kick_macro_value(1)) :
+               f == 18u ? (i ? 0.0f : ((float)set.kick_dj + 100.0f) * 0.005f) :
+               f == 19u ? (i ? 0.0f : ks_normj(KS_HOLD)) : (i < 2 ? set.kfx[i].mix : 0.0f);
     if (f >= 9u)                         /* (LOAF BREAKER: TUNE .. MORPH) */
         return f == 9u ? (i ? 0.0f : ((float)set.ksyn[KS_TUNE] + 12.0f) * (1.0f / 24.0f)) :
                f == 10u ? (i ? 0.0f : set.kick.l[KL_SUB].decay) :
@@ -656,7 +699,26 @@ static float sk_norm(uint32_t f, int i)  /* a setting 0..1, as its bar */
 static void selk_turn(uint32_t f, int i, int32_t d)
 {
     char t[16], n[20];
-    if (f >= 9u) {                       /* LOAF BREAKER: TUNE, DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH */
+    if (f == 18u) {                      /* LOAF BREAKER: DRUM FLT: SEL + SELECT's own (its say, its change) */
+        if (i == 0)
+            kick_flt_turn(d);
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        return;
+    }
+    if (f >= 15u) {                      /* LOAF BREAKER: PITCH DROP, RUMBLE, PUNCH, HOLD, KICK FX */
+        if ((f == 15u || f == 16u) && i < 2)
+            ks_add(f == 15u ? (i ? KS_TIME : KS_DROP) : (i ? KS_RTIME : KS_RUMBLE), d);
+        else if (f == 17u && i == 0) {
+            uint32_t j;
+            for (j = 0; j < KM_N; j++)
+                *kick_macro(1, j) = knob_f(*kick_macro(1, j), d, 0.02f, 0.0f, 1.0f);
+        } else if (f == 19u && i == 0)
+            ks_add(KS_HOLD, d);
+        else if (f == 20u && i < 2)
+            set.kfx[i].mix = knob_f(set.kfx[i].mix, d, 0.02f, 0.0f, 1.0f);
+        else
+            return;
+    } else if (f >= 9u) {                /* LOAF BREAKER: TUNE, DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH */
         if (f == 9u && i == 0)
             set.ksyn[KS_TUNE] = (int8_t)clamp((int32_t)set.ksyn[KS_TUNE] + (d > 0 ? 1 : -1), -12, 12);
         else if (f == 10u && i == 0)
@@ -702,8 +764,10 @@ static void selk_turn(uint32_t f, int i, int32_t d)
         text_cat(n, SK_KNOB[f % SK_N][i & 3]);
     }
     app_say(n, t);
-    if (f == 0u || f == 2u)              /* (DUCK, COMP: the mix's; the rest the kick's alone) */
+    if (f == 0u || f == 2u)              /* (DUCK, COMP: the mix's; KICK FX the chain's; the rest the kick's alone) */
         changed();
+    else if (f == 20u)
+        changed_fx();
     else
         changed_kick();
     ui.redraw |= RG_BLOCKS | RG_FOOT;
@@ -713,13 +777,9 @@ static void selk_turn(uint32_t f, int i, int32_t d)
 static void selk_assign_k(uint32_t kn, int32_t d)   /* (ENV KNOB's knob, or EDIT KICK's K SET's) */
 {
     uint32_t f, c = 0u, k;
-    uint8_t *b;
-    uint32_t sh;
     char n[12] = "SEL + K";
     kn &= 3u;
     f = selk_fn(kn);
-    sh = kn >= 2u ? 4u : 0u;
-    b = kn == 1u || kn == 3u ? &set.selk_asg : &set.selk_asg2;
     for (k = 0; k < SK_CODES; k++)       /* (where it is in the list now) */
         if (SK_CODE[k] == f)
             c = k;
@@ -728,11 +788,36 @@ static void selk_assign_k(uint32_t kn, int32_t d)   /* (ENV KNOB's knob, or EDIT
     while (!sk_live(SK_CODE[c]) && c > 0u && c < SK_CODES - 1u);
     if (!sk_live(SK_CODE[c]))
         c = c ? SK_CODES - 1u : 1u;
-    *b = (uint8_t)((*b & ~(15u << sh)) | (c + 1u) << sh);
+    sk_code_set(kn, c + 1u);
     n[7] = (char)('1' + kn);
     n[8] = 0;
     app_say(n, SK_NAME[selk_fn(kn)]);
     changed();
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
+
+static const char *kstyle_name(void)    /* the style the four knobs have now, or CUSTOM */
+{
+    uint32_t s, k;
+    for (s = 0; s < KSTYLES; s++) {
+        for (k = 0; k < 4u && selk_fn(k) == KSTYLE[s][k]; k++)
+            ;
+        if (k == 4u)
+            return KSTYLE_NAME[s];
+    }
+    return "CUSTOM";
+}
+static void kstyle_turn(int32_t d)
+{
+    uint32_t k, c;
+    kstyle_at = (uint8_t)((kstyle_at + (d > 0 ? 1u : KSTYLES - 1u)) % KSTYLES);
+    for (k = 0; k < 4u; k++) {           /* (each knob: the function's code, its place in SK_CODE + 1) */
+        for (c = 0; c < SK_CODES && SK_CODE[c] != KSTYLE[kstyle_at][k]; c++)
+            ;
+        sk_code_set(k, c + 1u);
+    }
+    app_say("STYLE", KSTYLE_NAME[kstyle_at]);
+    set_dirty = 1u;
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
 

@@ -168,6 +168,8 @@ typedef struct {
                                           * ALL: BEGINNER; an older save: EXPERT, as it was) */
     uint8_t drop_kick;                   /* (appended) ENV DROP's PRESETS: the kick a SEL + ENV drop's build plays, 0 the
                                           * one playing, n KICK n (a track's DROP item: its own, TRACKS K1); back at the drop */
+    uint8_t selk_hi;                     /* (appended) each SEL + knob's function code's fifth bit (bit 0 K1 .. bit 3 K4:
+                                          * selk_asg2, selk_asg hold the four below; codes past 15) */
 } settings_t;
 enum { DS_SNARE, DS_KICK, DS_BOTH, DS_STUTTER, DS_SWEEP, DS_RANDOM, DS_N };
 static const uint8_t DROP_GAP[5] = {0u, 1u, 2u, 4u, 8u};   /* its steps: none, a 16th, an 8th, a beat, half a bar */
@@ -510,10 +512,13 @@ typedef struct {
                                           * kick playing's in set (selk_asg ..), here when another is picked */
     uint8_t tk[8][32];                   /* (appended) each track item's kick: 0 the one playing, 1.. KICK n (TRACKS K1;
                                           * NTRACKS x TRK_ITEMS; an older save: none) */
+    uint8_t kxh[KICK_MEMS];              /* (appended) each kick memory's selk_hi (kx's, as kx_put) */
 } steps_t;
 #define STEPS_SIZE_OLD offsetof(steps_t, tb)
 #define STEPS_SIZE_TB offsetof(steps_t, kx)   /* (one before the kicks' own knobs) */
 #define STEPS_SIZE_KX offsetof(steps_t, tk)   /* (one before the track items' kicks) */
+#define STEPS_SIZE_TK offsetof(steps_t, kxh)  /* (one before the knobs' fifth bits) */
+_Static_assert(sizeof(steps_t) <= 3840u, "a store object holds 3840 bytes");
 static steps_t steps PLAT_POOL;
 /* LOAF BREAKER: the kick memory k's knobs from the ones playing (kx_put), the ones playing from k's (kx_get); kx_all:
  * every memory's as the ones playing (an older save, RESET ALL) */
@@ -526,6 +531,7 @@ static void kx_put(uint32_t k)
     memcpy(x + 3, set.kbass, 4);
     x[7] = set.kmorph;
     x[8] = set.kmorph_to;
+    steps.kxh[k % KICK_MEMS] = set.selk_hi;
 }
 static void kx_get(uint32_t k)
 {
@@ -536,6 +542,7 @@ static void kx_get(uint32_t k)
     memcpy(set.kbass, x + 3, 4);
     set.kmorph = x[7];
     set.kmorph_to = x[8];
+    set.selk_hi = steps.kxh[k % KICK_MEMS];
 }
 static void kx_all(void)
 {
@@ -1021,7 +1028,7 @@ void app_init(void)
     if (pats.magic != PAT_MAGIC && pats.magic != PAT2_MAGIC && pats.magic != PAT1_MAGIC)
         pat_defaults();
     int ssz = plat_store_load(OBJ_STEP, &steps, sizeof steps), sok;
-    sok = (ssz == (int)sizeof steps || ssz == (int)STEPS_SIZE_KX || ssz == (int)STEPS_SIZE_TB ||
+    sok = (ssz == (int)sizeof steps || ssz == (int)STEPS_SIZE_TK || ssz == (int)STEPS_SIZE_KX || ssz == (int)STEPS_SIZE_TB ||
            ssz == (int)STEPS_SIZE_OLD) && steps.magic == STEPS_MAGIC;
     if (!sok)
         steps_defaults();                /* (LOAF BREAKER: the drum steps' own settings) */
@@ -1029,8 +1036,10 @@ void app_init(void)
         memset(steps.tb, 0, sizeof steps.tb);   /* (a save before the tracks' breaks) */
     if (!sok || ssz < (int)STEPS_SIZE_KX)
         kx_all();                        /* (a save before the kicks' own knobs: every kick with the ones it had) */
-    if (!sok || ssz != (int)sizeof steps)
+    if (!sok || ssz < (int)STEPS_SIZE_TK)
         memset(steps.tk, 0, sizeof steps.tk);   /* (a save before the items' kicks: the one playing) */
+    if (!sok || ssz != (int)sizeof steps)
+        memset(steps.kxh, 0, sizeof steps.kxh);   /* (a save before the knobs past 15: none) */
     if (sok && pats.magic != PAT_MAGIC) {   /* an older save: its kick again over four bars, as it played */
         uint32_t i;
         for (i = 0; i < NPAT; i++) {

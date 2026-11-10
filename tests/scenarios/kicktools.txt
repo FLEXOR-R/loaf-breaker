@@ -25,7 +25,7 @@ expect csub 50
 shot kt_csub.png
 turn ALGO 1 10
 wait 100
-turn PRESET 13 10
+turn PRESET 12 10
 wait 100
 turn K2 2 10
 turn K1 30 10
