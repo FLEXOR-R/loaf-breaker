@@ -527,13 +527,14 @@ static const uint8_t PIANO_W[16] = {0u, 2u, 4u, 5u, 7u, 9u, 11u, 12u, 14u, 16u, 
 static const uint8_t PIANO_B[11] = {1u, 3u, 6u, 8u, 10u, 13u, 15u, 18u, 20u, 22u, 25u};
 static uint32_t hv_len(void) { return 16u * drum_bars(pat_now(), DR_STAB); }
 static int hv_on(uint32_t k) { return (int)(drum_bar(pat_now(), DR_STAB, k / 16u) >> (k & 15u) & 1u); }
+static uint32_t text_n(const char *t) { uint32_t n = 0u; while (t[n]) n++; return n; }   /* (no libc's strlen on the FM-1) */
 static void note_name(int32_t n, char *t)   /* "C3", "F#4" (0: C3) */
 {
     static const char *const NN[12] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
     int32_t o = (n + 120) / 12 - 10;
     t[0] = 0;
     text_cat(t, NN[(n + 120) % 12]);
-    int_text(3 + o, t + strlen(t));
+    int_text(3 + o, t + text_n(t));
 }
 static void hv_play(int32_t n) { perc_hit_pm(PV_STAB, brk_exp2f_c((float)n * (1.0f / 12.0f))); }
 static void hv_put(uint32_t k, int32_t n)   /* step k: the hoover, note n (-128: out) */
@@ -583,7 +584,7 @@ static void piano_key(uint32_t semi)
             ui.pcur = (uint8_t)((k + 1u) % hv_len());
         hv_put(k, n);
         text_cat(t, " > ");
-        int_text((int32_t)k + 1, t + strlen(t));
+        int_text((int32_t)k + 1, t + text_n(t));
     }
     app_say("HOOVER", t);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
@@ -621,11 +622,11 @@ static void piano_value(int i, char *t)
     if (i == 0) {
         int_text((int32_t)k + 1, t);
         text_cat(t, " / ");
-        int_text((int32_t)hv_len(), t + strlen(t));
+        int_text((int32_t)hv_len(), t + text_n(t));
     } else if (i == 1) {
         note_name(-12 + 12 * ui.poct, t);
         text_cat(t, "-");
-        note_name(14 + 12 * ui.poct, t + strlen(t));
+        note_name(14 + 12 * ui.poct, t + text_n(t));
     } else if (i == 2) {
         if (hv_on(k))
             note_name(stab_note(pat_now(), k), t);
