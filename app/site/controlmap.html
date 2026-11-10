@@ -212,14 +212,14 @@
       { n: "MASTER", k: ["COMP", "RATIO", "DUCK", "MAX OUT"], strip: "COMP AND ITS REDUCTION · DUCK · MAX OUT", note: "the mix as it leaves" },
       { n: "DYNAMICS", k: ["C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"], strip: "THE FOUR VALUES", note: "COMP's and DUCK's timing" } ],
       algo: "Break (next bar)", brk: true, presets: "Pattern P1–P64", keys: "slices", sel: "Tempo (SEL: drum filter)", notes: [] },
-    { id: "fx", btn: "FX", name: "EFFECTS", sub: "The FX chain: four slots in series", again: "next part (MAIN, MORE, MOD), then the next slot", part: true, subs: [
+    { id: "fx", btn: "FX", name: "EFFECTS", sub: "The FX chain: four slots in series", again: "next part (MAIN, MORE, MOD), round; ALGORITHM: the slot", part: true, subs: [
       { n: "MAIN", k: ["PARAM 1", "PARAM 2", "PARAM 3", "MIX"], strip: "THE EFFECT LIVE · THE CHAIN · ITS MODULATOR · IN / OUT", note: "ALGORITHM: the slot (1–4)" },
       { n: "MORE", k: ["EXTRA 1", "EXTRA 2", "EXTRA 3", "EXTRA 4"], strip: "THE EFFECT LIVE · THE CHAIN · ITS MODULATOR · IN / OUT", note: "each effect its own: see §6" },
       { n: "MOD", k: ["RATE", "DEPTH", "SHAPE", "TARGET"], strip: "THE EFFECT LIVE · THE CHAIN · ITS MODULATOR · IN / OUT", note: "ENV follows the effect's input" } ],
       algo: "Slot", presets: "Effect (MB COMP, then MB OTT)", keys: "slices", sel: "Tempo (SEL: drum filter)",
       notes: [["SEL + FX", "Bypass the focused slot"], ["SEL + REC", "The effect back to its start (again within 4 s: undo)"], ["FX held + ALGO", "Move the slot along the chain"],
               ["Key held + FX", "That key's slice effect on K1–K4"], ["Each effect", "Remembers its settings when you change it and back"],
-              ["MB COMP focused", "FX again steps AMOUNT · LOW · MID · HIGH · GAIN · X-OVER, then the next slot"],
+              ["MB COMP focused", "FX again steps AMOUNT · LOW · MID · HIGH · GAIN · X-OVER, then AMOUNT again"],
               ["MB COMP · band", "THRESH · RATIO · ATTACK · RELEASE"], ["MB COMP · GAIN / X-OVER", "LOW MID HIGH SOLO · LOW X HIGH X KNEE OUTPUT"]] },
     { id: "glo", btn: "GLO", name: "SYSTEM", sub: "MIDI, setup, screen effects, reset", again: "next part (5)", subs: [
       { n: "MIDI", k: ["CLOCK IN", "CLOCK OUT", "METER", ""], strip: "MIDI OVER USB AND THE TRS JACK · CLOCK IN · CLOCK OUT", note: "no Bluetooth; K3 METER (EXPERT only): CPU, IMG, FR in the header" },

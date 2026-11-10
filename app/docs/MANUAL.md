@@ -501,7 +501,7 @@ its level in and out.
 | Control | Does |
 | --- | --- |
 | ALGORITHM | The slot to tune (1–4) |
-| FX again | The slot's next part: MAIN, MORE, MOD (an MB COMP: its six), then the next slot |
+| FX again | The slot's next part, round: MAIN, MORE, MOD, MAIN again (an MB COMP: its six); never another slot (ALGORITHM picks the slot) |
 | PRESETS | The effect in that slot, through the library (EMPTY first); a new effect comes in on, as you last left it (its MORE and MOD too; never touched: its starting settings) |
 | SEL + REC | The slot's effect back to its starting settings (its MORE, MOD and MB COMP detail too); SEL + REC again within 4 s takes the reset back. On EDIT KICK's FX parts the same for that layer's effect, which is also remembered effect by effect |
 
@@ -632,7 +632,7 @@ screen turns into the compressor:
 
 ![MB COMP on AMOUNT: the low pressed 8:1, its reduction a dip in the spectrum](img/screen-mbcomp.png "MB COMP")
 
-**FX again** steps through the six parts, then on to the next slot; ALGORITHM still jumps straight to another slot
+**FX again** steps through the six parts and back to AMOUNT, staying on the slot; ALGORITHM jumps straight to another slot
 (and an MB COMP there opens on AMOUNT). The tab bar names the part: `< MB COMP LOW >`.
 
 | Part | K1 | K2 | K3 | K4 |

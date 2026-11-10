@@ -679,7 +679,7 @@ static void input(void)
             changed();
         }
         ui.redraw |= RG_FOOT | RG_BLOCKS;
-    } else if (bdn & 1u << B_FX) {       /* FX: the chain's page; again (let go alone): the next slot (LOAF BREAKER:
+    } else if (bdn & 1u << B_FX) {       /* FX: the chain's page; again (let go alone): the slot's next part (LOAF BREAKER:
                                           * both at its release; held 0.7 s, the MIXER's FX fader 0 % or 100 %) */
         ui.fx_hold = 1u;
         ui.fx_turned = 0u;
@@ -694,7 +694,7 @@ static void input(void)
         ui.fx_turned = 1u;               /* (no slot, no page at its release) */
         ui.redraw |= RG_BLOCKS | RG_FOOT;
     }
-    if (ui.fx_hold && !(btn & 1u << B_FX)) {   /* FX let go: alone, the page or the next slot; with ALGORITHM turned, a
+    if (ui.fx_hold && !(btn & 1u << B_FX)) {   /* FX let go: alone, the page or the slot's next part; with ALGORITHM turned, a
                                           * move */
         ui.fx_hold = 0u;
         if (!ui.fx_turned) {
@@ -704,7 +704,7 @@ static void input(void)
                 page_say();
                 ui.redraw |= RG_FOOT | RG_BLOCKS;
             } else if (ui.page == PG_FX)
-                fx_next_part();          /* (an MB COMP: its next part first) */
+                fx_next_part();          /* (the slot's next part, round: MAIN, MORE, MOD; an MB COMP its six) */
         }
     }
     if (bdn & 1u << B_SEL && key_tuned() >= 0) {   /* SEL while a key is held: its loop back to the defaults */
@@ -803,7 +803,7 @@ static void input(void)
         if (btn & 1u << B_SEL)
             ui.tap_combo = 1u;           /* (SEL + a knob is no tap) */
         if (ui.fx_hold)
-            ui.fx_turned = 1u;           /* (FX + a knob: not the next slot) */
+            ui.fx_turned = 1u;           /* (FX + a knob: not the next part) */
         if (!(btn & 1u << B_SEL))
             ui.help = 0u;                /* (a knob closes the card) */
         if (k == EN_SELECT && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + SELECT, on any page: the drums' filter

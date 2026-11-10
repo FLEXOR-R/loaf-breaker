@@ -22,7 +22,7 @@ static const char *const FXP_NAME[BRK_NFXT][3] = {
 /* ------------------------------------------------------- MB COMP's detail --- */
 /* (PRD A-49a) an MB COMP focused has six parts: AMOUNT (the slot's own knobs: each band's amount, MIX), each band's
  * THRESH RATIO ATTACK RELEASE, GAIN (each band's level after it, SOLO) and X-OVER (the splits, KNEE, OUTPUT). FX
- * again steps them, then on to the next slot; ALGORITHM still picks the slot (and starts at AMOUNT) */
+ * again steps them, round (0.218: never the next slot); ALGORITHM still picks the slot (and starts at AMOUNT) */
 enum { MBP_AMOUNT, MBP_LOW, MBP_MID, MBP_HIGH, MBP_GAIN, MBP_XOVER, NMBP };
 static const char *const MBP_NAME[NMBP] = {"AMOUNT", "LOW", "MID", "HIGH", "GAIN", "X-OVER"};
 static const char *const MBP_TAB[NMBP] = {"AMT", "LOW", "MID", "HIGH", "GAIN", "XOVER"};
@@ -154,7 +154,7 @@ static void mb_knob_turn(int i, int32_t d)
 }
 /* ------------------------------------------- the other effects' MORE and MOD --- */
 /* (PRD A-49b) every other effect has three parts: MAIN (its settings, as always), MORE (brk_fxx_t x[0..3]: XK) and
- * MOD (x[4..7]: a modulator on one of its settings). FX again steps them, then on to the next slot */
+ * MOD (x[4..7]: a modulator on one of its settings). FX again steps them, round (0.218) */
 enum { XP_MAIN, XP_MORE, XP_MOD, NXP };
 static const char *const XP_NAME[NXP] = {"MAIN", "MORE", "MOD"};
 enum { XU_PCT, XU_HZ, XU_DB, XU_CH, XU_MS, XU_DEG, XU_Q, XU_HZF };
@@ -298,17 +298,15 @@ static void x_knob_turn(int i, int32_t d)
     changed_fx();
 }
 
-/* FX again on the FX page: the focused slot's next part, past its last the next slot */
+/* FX again on the FX page: the focused slot's next part, past its last its first again (LOAF BREAKER, 0.218, FLEXOR:
+ * never the next slot: ALGORITHM does that) */
 static void fx_algo(int32_t d, uint32_t sel);
 static void fx_next_part(void)
 {
-    if (ui.fx_page + 1u < fx_npages(fx_sl(fx_foc())->type)) {
-        ui.fx_page++;
-        page_say();
-        ui.redraw |= RG_BLOCKS | RG_FOOT;
-        return;
-    }
-    fx_algo(1, 0u);
+    uint32_t n = fx_npages(fx_sl(fx_foc())->type);
+    ui.fx_page = (uint8_t)(ui.fx_page + 1u < n ? ui.fx_page + 1u : 0u);
+    page_say();
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
 
 static const char *fx_param_name(uint32_t slot, int i)

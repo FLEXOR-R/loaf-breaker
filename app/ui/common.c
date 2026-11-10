@@ -323,7 +323,7 @@ static struct {
     uint8_t cdj, cdj_skip, blocks;       /* LOAF BREAKER: the CDJ view up (PERFORM / GENERATOR's default); this HOME
                                           * press done with it; the slice blocks instead (HOME held: either) */
     uint32_t home_t;                     /* (when HOME went down) */
-    uint8_t fx_hold, fx_turned;          /* FX held on the FX page (up alone: the next slot); a knob turned meanwhile */
+    uint8_t fx_hold, fx_turned;          /* FX held on the FX page (up alone: the slot's next part); a knob turned meanwhile */
     uint8_t fx_page;                     /* the focused slot's part: MAIN, MORE, MOD (an MB COMP: MBP_*) */
     float mb_hold[3];                    /* its bands' reduction peaks held (dB), and since when */
     uint32_t mb_hold_t[3];
