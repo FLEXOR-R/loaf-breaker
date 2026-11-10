@@ -214,7 +214,7 @@ static void rec_toggle(void)
 {
     ui.rec ^= 1u;
     rec_step = 0u;                       /* (stopped: step by step from step 1) */
-    app_say("REC", ui.rec ? (playing_now() ? "ON" : "ON  STEP 1") : "OFF");
+    app_say("REC", ui.rec ? (playing_now() ? "ON" : ui.page == PG_SEQ && ui.piano ? "ON  KEYS WRITE" : "ON  STEP 1") : "OFF");
     ui.redraw |= RG_HEAD | RG_BLOCKS;
 }
 
@@ -278,6 +278,11 @@ static void input(void)
             continue;
         }
         if (ui.page == PG_SEQ) {         /* the SEQ page: a break step to edit, or a drum lane's steps */
+            if (ui.piano && !(btn & 1u << B_SEQ)) {   /* LOAF BREAKER: HV KEYS: a note of the hoover */
+                if (kdn >> WK[i] & 1u)
+                    piano_key(PIANO_W[i]);
+                continue;
+            }
             if (btn & 1u << B_SEQ) {     /* LOAF BREAKER: SEQ held + white key 1..4: the bar shown copied there */
                 if (kdn >> WK[i] & 1u) {
                     if (i < 4u)
@@ -333,6 +338,11 @@ static void input(void)
                     ui.key_since = now;
                 }
     }
+    if (ui.page == PG_SEQ && ui.piano) { /* LOAF BREAKER: HV KEYS: the black keys notes too (left to right) */
+        for (i = 0; i < 11u; i++)
+            if (kdn >> BK[i] & 1u)
+                piano_key(PIANO_B[i]);
+    } else
     for (i = 0; i < 11u; i++) {          /* black keys: the pads, held; the last one pressed has the screen */
         if (i == PAD_FREEZE) {           /* GLOUPI BREAKS: FREEZE's key turns the kick's SUB DRIVE on and off */
             if ((kdn & PAD_BIT(i)))
@@ -1082,7 +1092,7 @@ static void draw_tabs(void)
         if (pat_next >= 0)
             text_cat(pn, ">");
         x = tab(x, pn, 0);
-        tab(x, SEQ_LANE_NAME[ui.seq_lane % NSEQL], 1);
+        tab(x, ui.piano ? "HV KEYS" : SEQ_LANE_NAME[ui.seq_lane % NSEQL], 1);
     } else if (ui.page == PG_FX && !IS_KFX()) {
         for (i = 0; i < BRK_FX_SLOTS; i++)
             x = tab(x, SLOT_NUM[i], i == fx_foc());
@@ -1124,7 +1134,7 @@ static void page_say(void)
     case PG_KEQ: text_cat(t, ui.keq_part ? "KICK EQ SHAPE" : "KICK EQ BANDS"); break;
     case PG_GLOBAL: text_cat(t, GPART[ui.gpage % NGPART]); break;
     case PG_MIX: text_cat(t, ui.mpage == 3u ? "DYNAMICS" : ui.mpage == 2u ? "MASTER" : ui.mpage ? "GROOVE" : "LEVELS"); break;
-    case PG_SEQ: text_cat(t, SEQL[ui.seq_lane % NSEQL]); break;
+    case PG_SEQ: text_cat(t, ui.piano ? "KEYS" : SEQL[ui.seq_lane % NSEQL]); break;
     case PG_TRACK: text_cat(t, TPART[ui.tpage % NTPART]); break;
     case PG_OVL: text_cat(t, "OVERLAY"); break;
     case PG_FX:
@@ -1257,6 +1267,16 @@ static void draw_foot(const brk_status_t *st)
         cv_rect(x, 0, 20, 14, on ? C_HI : C_BLOCK);
         cv_text(x + (20 - text_w(&FONT_T, "DST")) / 2, 1, &FONT_T, "DST", on ? C_BLACK : C_GRAY);
     }
+    if (ui.page == PG_SEQ && ui.piano)   /* LOAF BREAKER: HV KEYS: the black keys are notes (their names) */
+        for (i = 0; i < 11u; i++) {
+            int32_t x = 2 + (int32_t)i * 21, n = (int32_t)PIANO_B[i] - 12 + 12 * ui.poct;
+            int on = ui.pnote_t && plat_ms() - ui.pnote_t < 600u && ui.pnote == n;
+            char nn[6];
+            note_name(n, nn);
+            nn[2] = 0;                   /* (the name alone: C#, D#..) */
+            cv_rect(x, 0, 20, 14, on ? C_HI : C_BLOCK);
+            cv_text(x + (20 - text_w(&FONT_T, nn)) / 2, 1, &FONT_T, nn, on ? C_BLACK : C_HI);
+        }
     for (i = 0; i < 4u; i++) {
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "RESET ALL"};
         static const char *const KN_GROOVE[3][4] = {{"SWING", "DRUMS", "", ""}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
@@ -1302,7 +1322,10 @@ static void draw_foot(const brk_status_t *st)
             name = PERC_KNOB[ui.pvoice % PERC_VOICES][ui.ppage][i];
         else if (ui.page == PG_KEQ)
             name = KEQ_NAME[ui.keq_part & 1u][i];
-        else if (ui.page == PG_SEQ && ui.seq_lane >= SL_KICK) {
+        else if (ui.page == PG_SEQ && ui.piano) {   /* (LOAF BREAKER: HV KEYS) */
+            static const char *const KN_PIANO[4] = {"STEP", "OCTAVE", "NOTE", "OUT / REST"};
+            name = KN_PIANO[i];
+        } else if (ui.page == PG_SEQ && ui.seq_lane >= SL_KICK) {
             static const char *const KN_LANE[2][4] = {{"FILL", "DRUM FLT", "CLR / 4X4", "LENGTH"},
                                                       {"NOTE", "HITS", "COND", "NUDGE"}};   /* (LOAF BREAKER: a
                                           * step held, its own) */
@@ -1667,7 +1690,7 @@ void app_frame(void)
     /* the header's own state: playing, the tempo, the break */
     if (!st.playing)
         ui.seq_manual = 0u;
-    if (ui.page == PG_SEQ && st.playing && !ui.seq_manual && !ui.note_key) {   /* LOAF BREAKER: a lane of 32 or 64
+    if (ui.page == PG_SEQ && st.playing && !ui.seq_manual && !ui.note_key && !ui.piano) {   /* LOAF BREAKER: a lane of 32 or 64
                                           * steps: the keys show the bar playing (ALGORITHM, SEQ again: not, until
                                           * stopped) */
         const pat_t *p = &pats.p[set.pattern % NPAT];
@@ -1850,8 +1873,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty"};
-    int v[80];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3"};
+    int v[85];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1943,7 +1966,11 @@ int app_expect(const char *what, int *got)
     v[77] = ui.mpage;
     v[78] = set.pgrp;
     v[79] = grp_changed();
-    for (i = 0; i < 80u; i++)
+    v[80] = ui.piano;
+    v[81] = ui.pcur;
+    for (i = 0; i < 3u; i++)             /* (the hoover's steps 1-3: their notes, -99 none) */
+        v[82 + i] = hv_on(i) ? (int)stab_note(pat_now(), i) : -99;
+    for (i = 0; i < 85u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

@@ -182,12 +182,13 @@
               ["SEL + EDIT", "The drums' classic view"], ["Keys 1–5, stopped", "Play KICK SNARE HAT CLAP HOOVER (big and classic views, the drums)"],
               ["SHAPE (drums)", "SNAP / CUT / SPREAD / BEND · DRIVE · PRESET"], ["SEL + REC on a layer's FX", "That effect back to its start"],
               ["MIDI 36 · 38 · 39 · 40 · 42", "Kick · snare · clap · hoover · hat"]] },
-    { id: "seq", btn: "SEQ", name: "SEQUENCER", sub: "64 patterns, every step", again: "next lane (14)", subs: [
+    { id: "seq", btn: "SEQ", name: "SEQUENCER", sub: "64 patterns, every step", again: "next lane (14, then HV KEYS)", subs: [
       { n: "STEPS 1-16", k: ["SLICE", "PITCH", "HITS", "REVERSE"], strip: "THE BREAK'S STEPS · THE DRUM LANES", note: "the step edited outlined" },
       { n: "STEPS 17-32", k: ["SLICE", "PITCH", "HITS", "REVERSE"], strip: "THE BREAK'S STEPS · THE DRUM LANES", note: "" },
       { n: "KICK 1-64", k: ["FILL", "DRUM FLT", "CLR / 4X4", "LENGTH"], strip: "THE KEYS: THIS BAR'S 16 STEPS · ALL THE LANES", note: "four lanes: 1-16 … 49-64; LENGTH 16, 32 or 64" },
       { n: "SNARE · HAT · CLAP · HOOVER", k: ["FILL", "DRUM FLT", "CLR / 4X4", "LENGTH"], strip: "THE KEYS: THIS BAR'S 16 STEPS · ALL THE LANES", note: "two lanes each: 1-16, 17-32" },
-      { n: "A STEP HELD", k: ["NOTE", "HITS", "COND", "NUDGE"], strip: "THAT STEP'S OWN (THE FOOT NAMES THEM)", note: "COND: ALWAYS 75% 50% 25% 1:2 2:2 FILL NOT FILL" } ],
+      { n: "A STEP HELD", k: ["NOTE", "HITS", "COND", "NUDGE"], strip: "THAT STEP'S OWN (THE FOOT NAMES THEM)", note: "COND: ALWAYS 75% 50% 25% 1:2 2:2 FILL NOT FILL" },
+      { n: "HV KEYS", k: ["STEP", "OCTAVE", "NOTE", "OUT / REST"], strip: "THE HOOVER'S NOTES: A PIANO ROLL", note: "all 27 keys a piano (white and black); REC stopped: a key writes at the cursor, which moves on; playing: at the nearest 16th" } ],
       algo: "Lane", presets: "Pattern P1–P64", keys: "steps", sel: "Tempo (SEL: drum filter)",
       notes: [["REC", "Record the keys and MIDI notes into the pattern"], ["SEL + REC", "Clear: the lane here, the pattern elsewhere"],
               ["SEQ held, then SEQ", "Clear the whole pattern (SEL + SAVE undoes)"], ["SEL + SEQ", "Copy the pattern; on another: paste"],

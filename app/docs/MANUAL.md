@@ -392,10 +392,25 @@ another group. A new group starts with 16 empty patterns; what you had before th
 | --- | --- | --- | --- | --- | --- |
 | STEPS 1-16, STEPS 17-32 | Pick a step to edit (outlined) | SLICE: OFF · LOOP · 1–16 | PITCH: −12 … +12 | HITS: ×1–×4 (a ratchet in the step) | REVERSE |
 | KICK, SNARE, HAT, CLAP, HOOVER | That lane's 16 steps, on and off (as the key comes up) | FILL: 0–16 hits spread evenly from the downbeat (Euclidean) | DRUM FLT (HOME's drums' filter) | Left CLEAR, right 4X4 (the lane's bar shown) | LENGTH: 16 or 32 steps (the kick: 16, 32, 64) |
-| **A step held** (a drum lane) | its own, the foot naming them | NOTE: −8 … +7 semitones (the kick's and the hoover's) | **HITS**: 1–4, the step taps that many times in its 16th | **COND**: ALWAYS, 75 %, 50 %, 25 % (it plays that often), 1:2 (the first loop of two), 2:2 (the second), FILL (only while ARP is held), NOT FILL (never then) | **NUDGE**: on time .. 7/16 of a step late |
+| **A step held** (a drum lane) | its own, the foot naming them | NOTE: −8 … +7 semitones (the kick's; the hoover's −24 … +39) | **HITS**: 1–4, the step taps that many times in its 16th | **COND**: ALWAYS, 75 %, 50 %, 25 % (it plays that often), 1:2 (the first loop of two), 2:2 (the second), FILL (only while ARP is held), NOT FILL (never then) | **NUDGE**: on time .. 7/16 of a step late |
 
 The upper strip shows the half's 16 steps (a number: its own slice; a dot: LOOP; a dash: off; a mark under it: hits
 or reverse), the step playing lit; the lower strip all three drum lanes.
+
+**HV KEYS: the keyboard as a piano for the HOOVER.** ALGORITHM past the last lane (or left of STEPS 1-16) opens HV KEYS:
+the whole keyboard, white **and** black keys, becomes a piano from C, two octaves and a D (27 notes; the black keys
+stop being effects while you are there, and the strip names their notes). The screen is a piano roll: the hoover's
+steps across (16 or 32: its LENGTH), its notes up the side, the cursor's step framed, the step playing lit.
+
+![HV KEYS: the hoover's notes as a piano roll](img/screen-hvkeys.png "HV KEYS")
+
+- **A key plays its note** on the HOOVER (its sound: EDIT, as ever), REC off.
+- **REC, stopped: step by step.** Each key writes its note into the cursor's step and the cursor moves on; **K4 right**
+  is a rest (the step emptied, the cursor on). **REC, playing:** each key goes into the 16th nearest.
+- **K1** the cursor (its note heard), **K2** the keyboard's octave (C1–D3 up to C5–D7), **K3** the cursor's note a
+  semitone up or down (an empty step: on, at the last note played), **K4** left: the cursor's note out.
+- Notes reach from 24 semitones under the hoover's TUNE to 39 over it, named as from C3. A held step's NOTE on the
+  HOOVER lanes (K1) reaches as far.
 
 **REC** records: while it is lit and the break plays, every white key you press (on HOME and the other pages where
 the keys play slices) is written into the pattern at the step it lands on, and so are MIDI notes: 48–63 as slices,

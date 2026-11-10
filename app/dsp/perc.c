@@ -207,7 +207,13 @@ BRK_COLD void perc_init(void)
     }
 }
 BRK_COLD void perc_set(const perc_t *p) { *(perc_t *)&p_p = *p; }
-void perc_hit(uint32_t voice) { p_hits[voice % PERC_VOICES]++; }
+static volatile float p_live_pm[PERC_VOICES] = {1.0f, 1.0f, 1.0f, 1.0f};   /* LOAF BREAKER: a live hit's pitch */
+void perc_hit(uint32_t voice) { perc_hit_pm(voice, 1.0f); }
+void perc_hit_pm(uint32_t voice, float pm)
+{
+    p_live_pm[voice % PERC_VOICES] = pm > 0.0f ? pm : 1.0f;
+    p_hits[voice % PERC_VOICES]++;
+}
 
 static const float *vs_sp;               /* LOAF BREAKER: the vinyl's speed (perc_speed), as the kick's */
 static float vs_ph, vs_a, vs_b, vs_last;
@@ -226,7 +232,7 @@ void perc_render(float *out, uint32_t n, const uint16_t *at, const uint8_t *who,
         if (p_hits[k] != hits_seen[k]) {     /* a MIDI note: now */
             hits_seen[k] = p_hits[k];
             pv_hit(&pv[k]);
-            pv[k].pm = 1.0f;
+            pv[k].pm = p_live_pm[k];
             hit = 1u;
         }
     if (!hit && pv[0].env < 3e-5f && pv[0].env2 < 3e-5f && pv[1].env < 3e-5f && pv[2].env < 3e-5f &&

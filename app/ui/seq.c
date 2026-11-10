@@ -8,6 +8,8 @@ enum { SL_BREAK1, SL_BREAK2, SL_KICK, SL_KICK2, SL_KICK3, SL_KICK4, SL_SNARE, SL
 static const char *const SEQ_LANE_NAME[NSEQL] = {"STEPS 1-16", "STEPS 17-32", "KICK 1-16", "KICK 17-32", "KICK 33-48",
                                                  "KICK 49-64", "SNARE 1-16", "SNARE 17-32", "HAT 1-16", "HAT 17-32",
                                                  "CLAP 1-16", "CLAP 17-32", "HOOVER 1-16", "HOOVER 17-32"};
+#define SQ_H 148                         /* the picture's rows (screen 44..191) */
+#define SQ_X 30                          /* the steps begin (the names before) */
 static const char *const DRUM_NAME[NDRUMS] = {"KICK", "SNARE", "HAT", "CLAP", "HOOVER"};
 static const char *const DRUM_TAG[NDRUMS] = {"KICK", "SN", "HH", "CP", "HV"};   /* (EDIT's tabs) */
 static const uint8_t SL_DR[NSEQL] = {0u, 0u, DR_KICK, DR_KICK, DR_KICK, DR_KICK, DR_SNARE, DR_SNARE, DR_HAT, DR_HAT,
@@ -45,19 +47,34 @@ static int sl_now(const brk_status_t *st, uint32_t sl)   /* the step playing in 
         return -1;
     return st->bar64 & 15;
 }
+static void piano_set(int on);
 static void seq_lane_fix(void)           /* a lane the pattern hasn't (a length shortened, another pattern): its first */
 {
     const pat_t *p = &pats.p[set.pattern % NPAT];
     if (!sl_active(p, ui.seq_lane))
         ui.seq_lane = (uint8_t)(ui.seq_lane - SL_BAR[ui.seq_lane % NSEQL]);
 }
-static void seq_lane_step(int32_t d)     /* ALGORITHM / SEQ again: the next lane the pattern has */
+static void seq_lane_step(int32_t d)     /* ALGORITHM / SEQ again: the next lane the pattern has (LOAF BREAKER: past
+                                          * the last, HV KEYS; then the first again) */
 {
-    uint32_t n;
+    uint32_t n, was = ui.seq_lane;
+    if (ui.piano) {
+        piano_set(0);
+        ui.seq_lane = (uint8_t)(d > 0 ? SL_BREAK1 : sl_active(&pats.p[set.pattern % NPAT], SL_STAB2) ? SL_STAB2 : SL_STAB);
+        return;
+    }
+    if (d < 0 && was == SL_BREAK1) {
+        piano_set(1);
+        return;
+    }
     for (n = 0; n < NSEQL; n++) {
         ui.seq_lane = (uint8_t)((ui.seq_lane + (d > 0 ? 1u : NSEQL - 1u)) % NSEQL);
         if (sl_active(&pats.p[set.pattern % NPAT], ui.seq_lane))
             break;
+    }
+    if (d > 0 && ui.seq_lane < was) {     /* (wrapped: HV KEYS first) */
+        ui.seq_lane = (uint8_t)was;
+        piano_set(1);
     }
 }
 static void seq_value(int i, char *t);
@@ -74,6 +91,7 @@ static pat_t *pat_now(void) { return &pats.p[set.pattern % NPAT]; }
  * 4X4, COPY); a burst of the same change within 1.5 s is one. SEL + SAVE swaps it back in, and again swaps it out (redo) */
 static pat_t undo_pat;
 static uint8_t undo_kn[13];              /* (LOAF BREAKER: its kick notes kept apart, pats.kn; its drums' HITS) */
+static uint8_t undo_hvx[8];              /* (and its hoover notes' extra bits, hvx) */
 static uint8_t undo_steps[STEPB_N];
 static uint8_t undo_idx = 0xFFu, undo_what;
 static uint32_t undo_t;
@@ -88,6 +106,8 @@ static void undo_mark(uint32_t what)     /* what: which change (UNDO_*), a burst
             undo_kn[k] = pats.kn[undo_idx][k];
         for (k = 0; k < STEPB_N; k++)
             undo_steps[k] = steps.b[undo_idx][k];
+        for (k = 0; k < 8u; k++)
+            undo_hvx[k] = hvx[undo_idx][k];
     }
     undo_t = now;
 }
@@ -114,19 +134,24 @@ static void undo_swap(void)
             steps.b[undo_idx][k] = undo_steps[k];
             undo_steps[k] = b;
         }
+        for (k = 0; k < 8u; k++) {
+            uint8_t b = hvx[undo_idx][k];
+            hvx[undo_idx][k] = undo_hvx[k];
+            undo_hvx[k] = b;
+        }
     }
     undo_t = 0u;                         /* (the next change takes a fresh copy) */
     if (undo_idx == set.pattern % NPAT)
         pat_apply();
     set_dirty = 1u;
-    int_text((int32_t)undo_idx + 1, n + 1);
+    int_text((int32_t)(set.pgrp % NGRP * NPAT + undo_idx) + 1, n + 1);
     app_say("UNDO", n);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
 /* LOAF BREAKER: SEL + SEQ copies the pattern playing; SEL + SEQ on another pattern pastes it there (all of it: the
  * break's steps, every drum and its length), once (SEL + SAVE takes it back) */
 static pat_t clip_pat;
-static uint8_t clip_kn[13], clip_steps[STEPB_N];
+static uint8_t clip_kn[13], clip_steps[STEPB_N], clip_hvx[8];
 static int8_t clip_from = -1;            /* the pattern copied, -1 none */
 static void pat_copy_paste(void)
 {
@@ -138,6 +163,8 @@ static void pat_copy_paste(void)
             clip_kn[k] = pats.kn[cur][k];
         for (k = 0; k < STEPB_N; k++)
             clip_steps[k] = steps.b[cur][k];
+        for (k = 0; k < 8u; k++)
+            clip_hvx[k] = hvx[cur][k];
         clip_from = (int8_t)all;
         int_text((int32_t)all + 1, t + 1);
         app_say("COPIED", t);
@@ -149,6 +176,8 @@ static void pat_copy_paste(void)
         pats.kn[cur][k] = clip_kn[k];
     for (k = 0; k < STEPB_N; k++)
         steps.b[cur][k] = clip_steps[k];
+    for (k = 0; k < 8u; k++)
+        hvx[cur][k] = clip_hvx[k];
     pat_apply();
     set_dirty = 1u;
     {
@@ -280,7 +309,8 @@ static void lane_knob(int i, int32_t d)
         return;
     }
     if (i == 0 && ui.note_key && sl_tuned(ui.seq_lane)) {   /* LOAF BREAKER: a kick or stab step held, K1: its note,
-                                          * -8 .. +7 semitones (that step of the lane's bar: K1..K4, T1, T2) */
+                                          * -8 .. +7 semitones (the hoover's -24 .. +39: HV KEYS; that step of the
+                                          * lane's bar: K1..K4, T1, T2) */
         uint32_t s = ui.note_key - 1u, stab = sl_drum(ui.seq_lane) == DR_STAB, ks = SL_BAR[ui.seq_lane % NSEQL] * 16u + s;
         int32_t v = (stab ? stab_note(pat_now(), ks) : kick_note(pat_now(), ks)) + (d > 0 ? 1 : -1);
         if (stab)
@@ -479,6 +509,8 @@ static void seq_clear(int mode)
             kick_note_set(p, k, 0);
         for (k = 0; k < STEPB_N; k++)    /* (and every drum step's own settings) */
             steps.b[set.pattern % NPAT][k] = 0u;
+        for (k = 0; k < 8u; k++)         /* (the hoover notes past -8 .. +7) */
+            hvx[set.pattern % NPAT][k] = 0u;
     }
     else if (mode == 1 && ui.seq_lane >= SL_KICK)
         sl_set(p, ui.seq_lane, 0u);
@@ -487,8 +519,177 @@ static void seq_clear(int mode)
     app_say("CLEARED", mode == 1 ? SEQ_LANE_NAME[ui.seq_lane] : mode ? "BREAK 1-32" : "PATTERN");
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
+/* LOAF BREAKER: HV KEYS (SEQ, ALGORITHM past the last lane): the 27 keys a piano for the HOOVER, white and black from
+ * C (two octaves and a D; K2 the octave). A key plays its note; with REC, stopped, it goes into the cursor's step and
+ * the cursor moves on; playing, into the nearest 16th. K1 the cursor, K3 its step's note, K4 left its note out, right a
+ * rest (out, the cursor on). Notes -24 .. +39 semitones from the hoover's TUNE, named as from C3 */
+static const uint8_t PIANO_W[16] = {0u, 2u, 4u, 5u, 7u, 9u, 11u, 12u, 14u, 16u, 17u, 19u, 21u, 23u, 24u, 26u};
+static const uint8_t PIANO_B[11] = {1u, 3u, 6u, 8u, 10u, 13u, 15u, 18u, 20u, 22u, 25u};
+static uint32_t hv_len(void) { return 16u * drum_bars(pat_now(), DR_STAB); }
+static int hv_on(uint32_t k) { return (int)(drum_bar(pat_now(), DR_STAB, k / 16u) >> (k & 15u) & 1u); }
+static void note_name(int32_t n, char *t)   /* "C3", "F#4" (0: C3) */
+{
+    static const char *const NN[12] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+    int32_t o = (n + 120) / 12 - 10;
+    t[0] = 0;
+    text_cat(t, NN[(n + 120) % 12]);
+    int_text(3 + o, t + strlen(t));
+}
+static void hv_play(int32_t n) { perc_hit_pm(PV_STAB, brk_exp2f_c((float)n * (1.0f / 12.0f))); }
+static void hv_put(uint32_t k, int32_t n)   /* step k: the hoover, note n (-128: out) */
+{
+    pat_t *p = pat_now();
+    uint32_t b = k / 16u, m = drum_bar(p, DR_STAB, b);
+    undo_mark(UNDO_LANE + 4u);
+    if (n == -128)
+        m &= ~(1u << (k & 15u));
+    else {
+        m |= 1u << (k & 15u);
+        stab_note_set(p, k, n);
+    }
+    drum_bar_set(p, DR_STAB, b, m);
+    pat_lanes_out();
+    set_dirty = 1u;
+}
+static void piano_set(int on)
+{
+    uint32_t i;
+    ui.piano = (uint8_t)(on != 0);
+    if (on) {
+        ui.pcur = (uint8_t)(ui.pcur % hv_len());
+        ui.note_key = 0u;
+        for (i = 0; i < 11u; i++)        /* (no pad left on: the black keys are notes now) */
+            brk_pad((int)i, 0);
+        app_say("HV KEYS", ui.rec ? "REC: KEYS WRITE" : "KEYS PLAY");
+    }
+    ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
+}
+static void piano_key(uint32_t semi)
+{
+    int32_t n = (int32_t)semi - 12 + 12 * ui.poct;
+    char t[16];
+    n = n < HV_LO ? HV_LO : n > HV_HI ? HV_HI : n;
+    hv_play(n);
+    ui.pnote = (int8_t)n;
+    ui.pnote_t = plat_ms() | 1u;
+    note_name(n, t);
+    if (ui.rec) {
+        uint32_t k = ui.pcur;
+        if (playing_now()) {             /* (into the 16th nearest) */
+            brk_status_t st;
+            brk_status(&st);
+            k = ((uint32_t)(st.bar64 < 0 ? 0 : st.bar64) + (st.phase > 0.5f ? 1u : 0u)) % 64u % hv_len();
+        } else
+            ui.pcur = (uint8_t)((k + 1u) % hv_len());
+        hv_put(k, n);
+        text_cat(t, " > ");
+        int_text((int32_t)k + 1, t + strlen(t));
+    }
+    app_say("HOOVER", t);
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
+static void piano_turn(int i, int32_t d)
+{
+    uint32_t len = hv_len(), k = ui.pcur % len;
+    int32_t dir = d > 0 ? 1 : -1;
+    char t[16];
+    if (i == 0) {                        /* K1: the cursor (its note heard) */
+        ui.pcur = (uint8_t)((k + len + (uint32_t)(dir > 0 ? 1 : (int32_t)len - 1)) % len);
+        k = ui.pcur;
+        if (hv_on(k))
+            hv_play(stab_note(pat_now(), k));
+    } else if (i == 1) {                 /* K2: the keyboard's octave */
+        ui.poct = (int8_t)clamp(ui.poct + dir, -2, 2);
+    } else if (i == 2) {                 /* K3: the cursor's note (none: on, from the last one played) */
+        int32_t n = hv_on(k) ? stab_note(pat_now(), k) + dir : ui.pnote;
+        hv_put(k, n < HV_LO ? HV_LO : n > HV_HI ? HV_HI : n);
+        hv_play(stab_note(pat_now(), k));
+    } else {                             /* K4: left the cursor's note out; right a rest (out, the cursor on) */
+        hv_put(k, -128);
+        if (dir > 0)
+            ui.pcur = (uint8_t)((k + 1u) % len);
+    }
+    t[0] = 0;
+    seq_value(i, t);
+    app_say(i == 0 ? "STEP" : i == 1 ? "OCTAVE" : i == 2 ? "NOTE" : dir > 0 ? "REST" : "NOTE OUT", t);
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
+static void piano_value(int i, char *t)
+{
+    uint32_t k = ui.pcur % hv_len();
+    t[0] = 0;
+    if (i == 0) {
+        int_text((int32_t)k + 1, t);
+        text_cat(t, " / ");
+        int_text((int32_t)hv_len(), t + strlen(t));
+    } else if (i == 1) {
+        note_name(-12 + 12 * ui.poct, t);
+        text_cat(t, "-");
+        note_name(14 + 12 * ui.poct, t + strlen(t));
+    } else if (i == 2) {
+        if (hv_on(k))
+            note_name(stab_note(pat_now(), k), t);
+        else
+            text_cat(t, "-");
+    } else
+        text_cat(t, "OUT / REST");
+}
+static void piano_picture(const brk_status_t *st, int32_t top)
+{
+    const pat_t *p = pat_now();
+    uint32_t len = hv_len(), k, cur = ui.pcur % len;
+    int32_t lo = -12 + 12 * ui.poct, hi = lo + 26, rh = 5, n, y, now = -1;
+    int32_t lit = ui.pnote_t && plat_ms() - ui.pnote_t < 600u ? ui.pnote : -999;
+    char t[8];
+    cv_oy = -top;
+    if (st->playing && st->bar64 >= 0)
+        now = st->bar64 % (int32_t)len;
+    for (n = hi; n >= lo; n--) {         /* the rows: the black keys' darker; a C named */
+        uint32_t s = (uint32_t)(n + 120) % 12u;
+        int black = s == 1u || s == 3u || s == 6u || s == 8u || s == 10u;
+        y = (hi - n) * rh;
+        cv_rect(SQ_X, y, 240 - SQ_X, rh - 1, black ? C_BLACK : C_LINE);
+        if (n == lit)
+            cv_rect(SQ_X - 4, y, 3, rh - 1, C_HI);
+        if (!s) {
+            note_name(n, t);
+            cv_text(SQ_X - 6 - text_w(&FONT_XS, t), y - 2, &FONT_XS, t, n == lit ? C_HI : C_GRAY);
+        }
+    }
+    for (k = 0; k < len; k++) {
+        int32_t x = SQ_X + (int32_t)(k * (240u - SQ_X) / len), w = SQ_X + (int32_t)((k + 1u) * (240u - SQ_X) / len) - x;
+        int32_t h = (hi - lo + 1) * rh;
+        if (!(k & 3u))                   /* (a beat: a line) */
+            cv_rect(x, 0, 1, h, C_DIM);
+        if ((int32_t)k == now)
+            cv_rect(x + 1, 0, w - 1, h, C_BLOCK);
+        if (k == cur) {                  /* the cursor: a frame */
+            cv_rect(x, 0, w, 1, C_WHITE);
+            cv_rect(x, h - 1, w, 1, C_WHITE);
+        }
+        if (hv_on(k)) {
+            int32_t v = stab_note(p, k);
+            uint16_t c = (int32_t)k == now ? C_WHITE : k == cur ? C_HI : C_AMB;
+            if (v < lo)                  /* (out of the keyboard's reach: a mark at its edge) */
+                cv_rect(x + 1, h - 2, w - 2, 2, C_GRAY);
+            else if (v > hi)
+                cv_rect(x + 1, 0, w - 2, 2, C_GRAY);
+            else
+                cv_rect(x + 1, (hi - v) * rh, w - 2, rh - 1, c);
+        }
+    }
+    y = (hi - lo + 1) * rh + 2;          /* under it: REC's word, the cursor's step */
+    t[0] = 0;
+    text_cat(t, ui.rec ? "REC" : "PLAY");
+    cv_text(SQ_X, y, &FONT_XS, t, ui.rec ? C_HI : C_GRAY);
+    cv_oy = 0;
+}
 static void seq_value(int i, char *t)    /* the step edited: SLICE, PITCH, HITS, REVERSE */
 {
+    if (ui.piano) {                      /* (LOAF BREAKER: HV KEYS) */
+        piano_value(i, t);
+        return;
+    }
     const uint8_t *b = pat_now()->st[ui.seq_step % PAT_STEPS];
     t[0] = 0;
     if (ui.seq_lane >= SL_KICK && ui.note_key) {   /* LOAF BREAKER: a step held: its NOTE, HITS, CHANCE, NUDGE */
@@ -554,6 +755,10 @@ static void seq_value(int i, char *t)    /* the step edited: SLICE, PITCH, HITS,
 }
 static void seq_turn(int i, int32_t d)
 {
+    if (ui.piano) {                      /* (LOAF BREAKER: HV KEYS) */
+        piano_turn(i, d);
+        return;
+    }
     uint8_t *b = pat_now()->st[ui.seq_step % PAT_STEPS];
     char t[12];
     seq_lane_fix();
@@ -651,8 +856,6 @@ static uint32_t keys_lit(const brk_status_t *st)   /* the white keys' lights on 
  * over the length it has (the kick's 1, 2 or 4 bars, the snare's, hat's and clap's 1 or 2), named by its letters
  * ("K", "SN"; its other bars "2", "3", "4"). The rows share the height: fewer rows, bigger steps. The step playing
  * white; the lane the keys edit named lit, a line under it */
-#define SQ_H 148                         /* the picture's rows (screen 44..191) */
-#define SQ_X 30                          /* the steps begin (the names before) */
 static uint32_t seq_rows(uint8_t *row)   /* the rows, top to bottom (SL_*); their count */
 {
     uint32_t sl, n = 0u;
@@ -738,7 +941,10 @@ static void draw_seq(const brk_status_t *st)
     for (top = 0; top < SQ_H; top += 60) {   /* (the canvas holds 60 rows) */
         int32_t h = SQ_H - top < 60 ? SQ_H - top : 60;
         cv_begin(240, (uint32_t)h, C_BLACK);
-        seq_picture(st, top);
+        if (ui.piano)                    /* (LOAF BREAKER: HV KEYS: the hoover's notes, a piano roll) */
+            piano_picture(st, top);
+        else
+            seq_picture(st, top);
         cv_blit(0, (uint32_t)(44 + top));
     }
 }

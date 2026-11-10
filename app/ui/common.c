@@ -297,6 +297,9 @@ static struct {
     uint8_t drop_pat;                    /* the pattern the drop moves to (0xFF: none) */
     uint8_t drop_early, drop_asked;      /* (crossbreed) the drop asked early; its break asked for */
     uint8_t note_key, note_turned;
+    uint8_t piano, pcur;                 /* LOAF BREAKER: SEQ's HV KEYS on; its cursor (the step a note goes to) */
+    int8_t poct, pnote;                  /* its octave (-2 .. +2), the last note played */
+    uint32_t pnote_t;                    /* (when: its row lit a moment) */
     uint8_t fx_open;
     uint8_t keq_part;                    /* (the KICK EQ page: 0 its bands, 1 their shape) */                     /* (FX pressed off its page: the page at its release, if not held) */       /* (crossbreed) SEQ, a kick lane: the key held + 1 (0 none); K1 turned since */
     uint8_t tpage;                       /* LOAF BREAKER: ENV's part: 0 TRACKS, 1 PLAY, 2 DROP, 3 KNOB */

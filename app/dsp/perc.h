@@ -35,6 +35,7 @@ float perc_decay_ms(uint32_t voice, float decay); /* to -40 dB: SNARE 60..700 ms
 void perc_init(void);
 void perc_set(const perc_t *p);          /* main loop: read at the next render */
 void perc_hit(uint32_t voice);           /* main loop (a MIDI note): at the next render */
+void perc_hit_pm(uint32_t voice, float pm);   /* LOAF BREAKER: the same at a pitch (the stab: a factor; HV KEYS) */
 /* render: n samples into out (overwritten); hits at the sample offsets at[0..nat-1] (rising), who[k] the voices
  * (bit PV_*) hit there */
 void perc_render(float *out, uint32_t n, const uint16_t *at, const uint8_t *who, uint32_t nat);

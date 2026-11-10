@@ -502,6 +502,8 @@ typedef struct {
                                           * (as ever), 2..4 that many times in its step */
 } pats_t;
 static pats_t pats PLAT_POOL;            /* (LOAF BREAKER: in the pool, 3.7 KB of RAM freed) */
+static uint8_t hvx[NPAT][8] PLAT_POOL;  /* LOAF BREAKER (HV KEYS): each hoover step's note past -8 .. +7, 2 bits a step
+                                          * of its 32 (HVX_ADD's); the group's, in its own object (OBJ_NG0 + g) */
 #define PATS_SIZE_OLD offsetof(pats_t, trk)   /* (a save before the tracks) */
 #define PATS_SIZE_TRK offsetof(pats_t, mem)   /* (one before the effects' memory) */
 #define PATS_SIZE_MEM offsetof(pats_t, kfm)   /* (one before KICK FX's) */
@@ -548,10 +550,10 @@ static uint8_t grp_new;                  /* the group has none of its own object
 static uint32_t pat_cur(void) { return set.pgrp % NGRP * NPAT + set.pattern % NPAT; }   /* 0..63 */
 static uint32_t grp_hash(void)
 {
-    const uint8_t *r[3] = {(const uint8_t *)pats.p, pats.kn[0], steps.b[0]};
-    const uint32_t n[3] = {sizeof pats.p, KH_SIZE, sizeof steps.b};
+    const uint8_t *r[4] = {(const uint8_t *)pats.p, pats.kn[0], steps.b[0], hvx[0]};
+    const uint32_t n[4] = {sizeof pats.p, KH_SIZE, sizeof steps.b, sizeof hvx};
     uint32_t h = 2166136261u, i, k;
-    for (k = 0; k < 3u; k++)
+    for (k = 0; k < 4u; k++)
         for (i = 0; i < n[k]; i++)
             h = (h ^ r[k][i]) * 16777619u;
     return h;
@@ -562,7 +564,8 @@ static int grp_save(void)                /* the group in RAM to its objects: 1 d
     uint32_t g = set.pgrp % NGRP;
     int ok = plat_store_save(OBJ_PG0 + g, pats.p, sizeof pats.p) == 0 &&
              plat_store_save(OBJ_KG0 + g, pats.kn, KH_SIZE) == 0 &&
-             plat_store_save(OBJ_SG0 + g, steps.b, sizeof steps.b) == 0;
+             plat_store_save(OBJ_SG0 + g, steps.b, sizeof steps.b) == 0 &&
+             plat_store_save(OBJ_NG0 + g, hvx, sizeof hvx) == 0;
     if (ok) {
         grp_sum = grp_hash();
         grp_new = 0u;
@@ -587,6 +590,7 @@ static void grp_blank(void)              /* the group in RAM: 16 empty patterns 
     }
     memset(pats.kn, 0, KH_SIZE);
     memset(steps.b, 0, sizeof steps.b);
+    memset(hvx, 0, sizeof hvx);
 }
 static void grp_load(uint32_t g)         /* group g into RAM (none saved yet: empty) */
 {
@@ -595,6 +599,9 @@ static void grp_load(uint32_t g)         /* group g into RAM (none saved yet: em
         plat_store_load(OBJ_KG0 + g, pats.kn, KH_SIZE) != (int)KH_SIZE ||
         plat_store_load(OBJ_SG0 + g, steps.b, sizeof steps.b) != (int)sizeof steps.b)
         grp_blank();
+    else if (plat_store_size(OBJ_NG0 + g) != (int)sizeof hvx ||
+             plat_store_load(OBJ_NG0 + g, hvx, sizeof hvx) != (int)sizeof hvx)
+        memset(hvx, 0, sizeof hvx);      /* (a group saved before HV KEYS: its notes -8 .. +7) */
     set.pgrp = (uint8_t)g;
     grp_sum = grp_hash();
     grp_new = 0u;
@@ -768,6 +775,7 @@ static void pat_defaults(void)
     }
     trk_defaults();
     pats.mem.fx_ok = pats.mem.kfx_ok = pats.kfm_ok = 0u;
+    memset(hvx, 0, sizeof hvx);
     for (i = 0; i < NPAT; i++) {
         for (k = 0; k < 13u; k++)
             pats.kn[i][k] = 0u;
@@ -822,16 +830,38 @@ static uint32_t kick_bars(const pat_t *p)   /* the kick's bars played: 1, 2 or 4
  * clap's two in 9-12; 32 steps or 16: step 6's spare byte, bit 3 the hat, bit 4 the clap */
 static const uint8_t LEN_BIT[NDRUMS] = {0u, PAT_SNARE32, 8u, 16u, 32u};   /* (the stab: bit 5) */
 /* LOAF BREAKER: the rave stab, in each step's flags byte (st[k][2], its bits 0-2 the break's): bit 7 its hit, bits
- * 3-6 its note (-8 .. +7 semitones), for each of the 32 steps (its two bars) */
+ * 3-6 its note (-8 .. +7 semitones), for each of the 32 steps (its two bars); HV KEYS: hvx's 2 bits add 0, +16, -16 or
+ * +32 (a pattern of pats.p; another: none): -24 .. +39 */
+#define HV_LO (-24)
+#define HV_HI 39
+static const int8_t HVX_ADD[4] = {0, 16, -16, 32};
+static uint32_t hvx_of(const pat_t *p)   /* its slot in pats.p, NPAT: none */
+{
+    return p >= pats.p && p < pats.p + NPAT ? (uint32_t)(p - pats.p) : NPAT;
+}
 static int32_t stab_note(const pat_t *p, uint32_t k)
 {
-    uint32_t v = (uint32_t)p->st[k % PAT_STEPS][2] >> 3 & 15u;
-    return v >= 8u ? (int32_t)v - 16 : (int32_t)v;
+    uint32_t v = (uint32_t)p->st[k % PAT_STEPS][2] >> 3 & 15u, pi = hvx_of(p);
+    int32_t n = v >= 8u ? (int32_t)v - 16 : (int32_t)v;
+    k %= PAT_STEPS;
+    if (pi < NPAT)
+        n += HVX_ADD[hvx[pi][k >> 2] >> (k & 3u) * 2u & 3u];
+    return n;
 }
 static void stab_note_set(pat_t *p, uint32_t k, int32_t v)
 {
     uint8_t *b = &p->st[k % PAT_STEPS][2];
-    *b = (uint8_t)((*b & 0x87u) | ((uint32_t)(v < -8 ? -8 : v > 7 ? 7 : v) & 15u) << 3);
+    uint32_t pi = hvx_of(p), h;
+    v = v < HV_LO ? HV_LO : v > HV_HI ? HV_HI : v;
+    h = pi >= NPAT ? 0u : v >= 24 ? 3u : v >= 8 ? 1u : v <= -9 ? 2u : 0u;
+    v -= HVX_ADD[h];
+    v = v < -8 ? -8 : v > 7 ? 7 : v;
+    *b = (uint8_t)((*b & 0x87u) | ((uint32_t)v & 15u) << 3);
+    if (pi < NPAT) {
+        uint8_t *x = &hvx[pi][(k % PAT_STEPS) >> 2];
+        uint32_t sh = (k & 3u) * 2u;
+        *x = (uint8_t)((*x & ~(3u << sh)) | h << sh);
+    }
 }
 static uint32_t drum_at(uint32_t d, uint32_t b) { return d == DR_HAT ? 7u : 9u + (b & 1u) * 2u; }
 static uint32_t drum_bar(const pat_t *p, uint32_t d, uint32_t b)
