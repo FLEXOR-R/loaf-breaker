@@ -523,6 +523,13 @@ sound. Every band pressed hard and fast (−36 dB, 10:1, 1 ms in, 60 ms out) and
 low, +9 dB the mid and high), split at 88 Hz and 2.5 kHz, a 6 dB knee, −3 dB out and 60 % wet: the loud parts come
 down while the quiet ones, the tails and the room, come up.
 
+**MAGIC EQ** and **MAGIC MBC** are FLEXOR's own, at the very end of PRESETS (past CLIP), in the FX chain and in KICK
+FX. MAGIC EQ is an EQ: LOW −5.8 dB (shelf at 182 Hz), MID −2.9 dB at 999 Hz (Q 1.59), HIGH +1.9 dB (shelf at 8 kHz),
+0 dB out. MAGIC MBC is an MB COMP split at 200 Hz and 2.5 kHz with a hard knee: the LOW at 0 dB, 8:1 (10 / 150 ms)
+and 6 dB down, the MID at −34 dB, 3:1 (5 / 100 ms), the HIGH at −48 dB, 2:1 (2 / 60 ms) and 2 dB up; the AMOUNTs at
+4.5:1, 1.7:1 and 1.5:1, 60 % wet. Both stay what they are underneath: every knob and part works as on a plain EQ or
+MB COMP.
+
 ![MB KICK: the sub, the body and the click held apart, split at 120 Hz and 3 kHz](img/screen-mbkick.png "MB KICK")
 
 | K1–K3 · K4 | Its settings · its mix |

@@ -509,16 +509,25 @@ static int fx_mem_get(brk_fxslot_t *sl, brk_fxx_t *x)   /* 1: sl and x as the ef
  * 3 kHz, a 3 dB knee; every band at full amount, all wet. An MB COMP marked so (its detail's rsv[0]: 1) is MB KICK */
 #define FXT_MBKICK BRK_NFXT
 #define FXT_MBOTT (BRK_NFXT + 1)         /* LOAF BREAKER TEST: MB OTT, after MB COMP (KICK FX: after MB KICK) */
-static uint32_t mb_preset(uint32_t k)    /* an MB COMP set as a preset: 1 MB KICK, 2 MB OTT (its detail's rsv[0]), 0 */
+#define FXT_MAGMB (BRK_NFXT + 2)         /* LOAF BREAKER: MAGIC MBC, last (FLEXOR's own MB COMP) */
+#define FXT_MAGEQ (BRK_NFXT + 3)         /* LOAF BREAKER: MAGIC EQ, after CLIP (FLEXOR's own EQ) */
+static uint32_t mb_preset(uint32_t k)    /* an MB COMP set as a preset: 1 MB KICK, 2 MB OTT, 3 MAGIC MBC (its detail's
+                                          * rsv[0]), 0 */
 {
     uint32_t r = mbc_at(k)->rsv[0];
-    return fx_sl(k)->type == FXT_MBCOMP && (r == 2u || (r == 1u && k >= BRK_FX_SLOTS)) ? r : 0u;
+    return fx_sl(k)->type == FXT_MBCOMP && (r == 2u || r == 3u || (r == 1u && k >= BRK_FX_SLOTS)) ? r : 0u;
 }
 static int mb_kick_is(uint32_t k) { return mb_preset(k) == 1u; }
+static int eq_magic_is(uint32_t k)       /* an EQ set as MAGIC EQ: its extras' rsv[0] 1 */
+{
+    const brk_fxx_t *x = fxx_at(k);
+    return fx_sl(k)->type == FXT_EQ && x->type == FXT_EQ && x->rsv[0] == 1u;
+}
 static const char *fx_name(uint32_t k)
 {
     uint32_t r = mb_preset(k);
-    return r == 1u ? "MB KICK" : r == 2u ? "MB OTT" : BRK_FXT_NAME[fx_sl(k)->type % BRK_NFXT];
+    return r == 1u ? "MB KICK" : r == 2u ? "MB OTT" : r == 3u ? "MAGIC MBC" : eq_magic_is(k) ? "MAGIC EQ"
+                                                                                               : BRK_FXT_NAME[fx_sl(k)->type % BRK_NFXT];
 }
 static void mb_kick_preset(brk_fxslot_t *sl, brk_mbc_t *m)
 {
@@ -561,12 +570,47 @@ static void mb_ott_preset(brk_fxslot_t *sl, brk_mbc_t *m)
     m->rsv[0] = 2u;
     sl->mix = 0.6f;
 }
+/* LOAF BREAKER: MAGIC MBC, FLEXOR's MB COMP (10 Nov 2026, set by ear on the FM-1): the low untouched at its threshold
+ * (0 dB, 8:1, 10 / 150 ms) and 6 dB down, the mid -34 dB 3:1 5 / 100 ms, the high -48 dB 2:1 2 / 60 ms and 2 dB up;
+ * split at 200 Hz and 2.5 kHz, a hard knee, 0 dB out; the amounts LOW 4.5:1, MID 1.7:1, HIGH 1.5:1, 60 % wet */
+static void mb_magic_preset(brk_fxslot_t *sl, brk_mbc_t *m)
+{
+    static const float THR[3] = {1.0f, 14.0f / 48.0f, 0.0f}, RAT[3] = {9.0f / 14.0f, 5.0f / 14.0f, 3.0f / 14.0f},
+                       GAIN[3] = {0.25f, 0.5f, 0.5f + 2.0f / 24.0f}, AMT[3] = {0.5f, 0.35f, 0.5f};
+    uint32_t b;
+    brk_mbc_defaults(m);                 /* (its attacks, releases, splits, knee and output: MB COMP's own) */
+    for (b = 0; b < MB_BANDS; b++) {
+        m->thr[b] = THR[b];
+        m->ratio[b] = RAT[b];
+        m->gain[b] = GAIN[b];
+        sl->p[b] = AMT[b];
+    }
+    m->rsv[0] = 3u;
+    sl->mix = 0.6f;
+}
+/* LOAF BREAKER: MAGIC EQ, FLEXOR's EQ (10 Nov 2026): LOW -5.8 dB at 182 Hz, MID -2.9 dB at 999 Hz (Q 1.59), HIGH
+ * +1.9 dB at 8 kHz, 0 dB out, no MOD; marked in its extras' rsv[0] (1) */
+static void eq_magic_preset(brk_fxslot_t *sl, brk_fxx_t *x)
+{
+    brk_fx_slot_defaults(sl, FXT_EQ);
+    brk_fxx_defaults(x, FXT_EQ);
+    sl->p[0] = 0.26f;                    /* -5.8 dB */
+    sl->p[1] = 0.38f;                    /* -2.9 dB */
+    sl->p[2] = 0.58f;                    /* +1.9 dB */
+    sl->mix = 0.5f;                      /* the mid at 999 Hz */
+    x->x[0] = 0.65712f;                  /* LOW F 182 Hz */
+    x->x[1] = 0.64413f;                  /* MID Q 1.59 */
+    x->x[2] = 2.0f / 3.0f;               /* HIGH F 8 kHz */
+    x->x[3] = 0.5f;                      /* LEVEL 0 dB */
+    x->rsv[0] = 1u;
+}
 static void fx_type_turn(int32_t d)
 {
     brk_fxslot_t *sl = fx_sl(fx_foc());
     brk_mbc_t *mc = mbc_at(fx_foc());
     uint32_t pre = mb_preset(fx_foc());
-    int32_t list[BRK_NFXT + 2], n = 0, pos = 0, t, q, dir = d > 0 ? 1 : -1, cur;
+    int32_t list[BRK_NFXT + 4], n = 0, pos = 0, t, q, dir = d > 0 ? 1 : -1, cur;
+    int meq = eq_magic_is(fx_foc());
     char nm[16];
     int had;
     for (q = 0; q < BRK_NFXT; q++) {     /* (this chain's list: KICK FX without REVERB and DELAY; the presets after MB
@@ -580,28 +624,41 @@ static void fx_type_turn(int32_t d)
             list[n++] = FXT_MBOTT;
         }
     }
-    cur = pre == 1u ? FXT_MBKICK : pre == 2u ? FXT_MBOTT : (int32_t)sl->type;
+    list[n++] = FXT_MAGEQ;               /* (LOAF BREAKER: FLEXOR's own, at the list's end, past CLIP) */
+    list[n++] = FXT_MAGMB;
+    cur = pre == 1u ? FXT_MBKICK : pre == 2u ? FXT_MBOTT : pre == 3u ? FXT_MAGMB : meq ? FXT_MAGEQ : (int32_t)sl->type;
     for (q = 0; q < n; q++)
         if (list[q] == cur)
             pos = q;
     t = list[clamp(pos + dir, 0, n - 1)];
     if (t == cur)
         return;
-    if (!pre)
-        fx_mem_put(sl, fxx_at(fx_foc()));   /* (LOAF BREAKER: the effect left, as it was) */
+    if (!pre && !meq)
+        fx_mem_put(sl, fxx_at(fx_foc()));   /* (LOAF BREAKER: the effect left, as it was; a preset not kept) */
     nm[0] = 0;
     text_cat(nm, FX_KICK() ? "KICK FX " : "SLOT ");
     int_text((int32_t)(fx_foc() % BRK_FX_SLOTS) + 1, nm + (FX_KICK() ? 8 : 5));
     ui.fx_page = 0u;
-    if (t == FXT_MBKICK || t == FXT_MBOTT) {   /* (LOAF BREAKER: an MB COMP preset) */
+    if (t == FXT_MAGEQ) {                /* (LOAF BREAKER: an EQ preset) */
+        mc->rsv[0] = 0u;
+        eq_magic_preset(sl, fxx_at(fx_foc()));
+        sl->on = 1u;
+        app_say(nm, "MAGIC EQ");
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        changed();
+        return;
+    }
+    if (t == FXT_MBKICK || t == FXT_MBOTT || t == FXT_MAGMB) {   /* (LOAF BREAKER: an MB COMP preset) */
         brk_fx_slot_defaults(sl, FXT_MBCOMP);
         sl->on = 1u;
         brk_fxx_defaults(fxx_at(fx_foc()), FXT_MBCOMP);
         if (t == FXT_MBKICK)
             mb_kick_preset(sl, mc);
-        else
+        else if (t == FXT_MBOTT)
             mb_ott_preset(sl, mc);
-        app_say(nm, t == FXT_MBKICK ? "MB KICK GABBER" : "MB OTT");
+        else
+            mb_magic_preset(sl, mc);
+        app_say(nm, t == FXT_MBKICK ? "MB KICK GABBER" : t == FXT_MBOTT ? "MB OTT" : "MAGIC MBC");
         ui.redraw |= RG_BLOCKS | RG_FOOT;
         changed();
         return;

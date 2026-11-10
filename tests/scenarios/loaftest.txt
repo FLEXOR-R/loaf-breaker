@@ -27,7 +27,7 @@ shot x_bass.png
 tap FX
 wait 300
 turn PRESET 20 10
-turn PRESET -1 10
+turn PRESET -3 10
 wait 300
 expect mb_pre 2
 shot x_ott.png
