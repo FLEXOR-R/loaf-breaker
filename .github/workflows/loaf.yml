@@ -50,9 +50,12 @@ jobs:
           fi
           echo "VERSION=$V" >> "$GITHUB_ENV"
           # (the package's own number: fm1-base's build takes X.Y[.Z], two digits each, its identity FM-1_XXYYZZ; past
-          # 0.99, 0.100 is packaged as 0.99.1, 0.101 as 0.99.2 ... while the splash, the tag and the files say 0.100)
+          # 0.99, 0.100 is packaged as 0.99.1, 0.101 as 0.99.2 ... 0.198 as 0.99.99; then 0.199 as 1.0.0, 0.200 as
+          # 1.0.1 ... (always higher), while the splash, the tag and the files say 0.199)
           MIN="${V#*.}"; MAJ="${V%%.*}"
-          if [ "${#MIN}" -gt 2 ]; then PKG="$MAJ.99.$((10#$MIN - 99))"; else PKG="$V"; fi
+          if [ "${#MIN}" -gt 2 ] && [ $((10#$MIN)) -ge 199 ]; then
+            M=$((10#$MIN - 199)); PKG="$((MAJ + 1)).$((M / 100)).$((M % 100))"
+          elif [ "${#MIN}" -gt 2 ]; then PKG="$MAJ.99.$((10#$MIN - 99))"; else PKG="$V"; fi
           echo "PKG=$PKG" >> "$GITHUB_ENV"
           printf '#define LOAF_VERSION "%s"\n' "$V" > app/loaf_version.h
           echo "LOAF BREAKER $V" >> "$GITHUB_STEP_SUMMARY"
