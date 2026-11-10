@@ -20,7 +20,7 @@
 LOAF BREAKER is FLEXOR's firmware for the [M-VAVE FM-1](https://www.m-vave.com/), built on
 **[CHOPPAH](https://github.com/profikid/fm1-break-choppah)**, Laurens Profittlich's Amen chopper. It keeps CHOPPAH's
 heart (a break cut into sixteen slices on the white keys, effect pads on the black keys, a generator, a master effects
-chain, 16 patterns) and drives it into hardcore:
+chain, patterns: 64 of them here) and drives it into hardcore:
 
 - **The kick first.** Its own menu, its own synth (pitch drop, hold, rumble, tune), **DISTO**, **SCREAM** and
   **DISTO +**, a **GLIDE** between notes and the rawstyle **REVERSE BASS**, its own EQ and FX (**MB KICK**, **MB OTT**),

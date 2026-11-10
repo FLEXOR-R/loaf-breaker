@@ -171,6 +171,8 @@ typedef struct {
     uint8_t selk_hi;                     /* (appended) each SEL + knob's function code's fifth bit (bit 0 K1 .. bit 3 K4:
                                           * selk_asg2, selk_asg hold the four below; codes past 15); bit 4 the kick's
                                           * TERROR off (TER) */
+    uint8_t pgrp;                        /* (appended) LOAF BREAKER: the patterns' group in RAM, 0..3 (P1-16 .. P49-64);
+                                          * pattern its slot there */
 } settings_t;
 enum { DS_SNARE, DS_KICK, DS_BOTH, DS_STUTTER, DS_SWEEP, DS_RANDOM, DS_N };
 static const uint8_t DROP_GAP[5] = {0u, 1u, 2u, 4u, 8u};   /* its steps: none, a 16th, an 8th, a beat, half a bar */
@@ -528,7 +530,80 @@ typedef struct {
 #define STEPS_SIZE_KX offsetof(steps_t, tk)   /* (one before the track items' kicks) */
 #define STEPS_SIZE_TK offsetof(steps_t, kxh)  /* (one before the knobs' fifth bits) */
 _Static_assert(sizeof(steps_t) <= 3840u, "a store object holds 3840 bytes");
+
 static steps_t steps PLAT_POOL;
+
+/* LOAF BREAKER: 64 patterns, four groups of 16 (P1-16, P17-32, P33-48, P49-64). The group in RAM is pats.p, pats.kn,
+ * pats.hits and steps.b (set.pattern its slot, set.pgrp the group); each group has its own three store objects
+ * (OBJ_PG0, OBJ_KG0, OBJ_SG0 + g). A save writes the group in RAM to its own (OBJ_PAT and OBJ_STEP keep the tracks and
+ * the rest, and the group in RAM: an older firmware reads that one as P1-16); another group comes in from its own (a
+ * read: the sound plays on). Leaving a group whose patterns changed since: saved first while stopped, refused while
+ * playing (a write stops the sound for a moment): SAVE or STOP first */
+#define NGRP 4u
+#define NPAT_ALL (NPAT * NGRP)
+#define KH_SIZE (sizeof pats.kn + sizeof pats.hits)
+_Static_assert(offsetof(pats_t, hits) == offsetof(pats_t, kn) + sizeof(((pats_t *)0)->kn), "kn, hits: one run");
+static uint32_t grp_sum;                 /* the group's hash as it came in or was saved */
+static uint8_t grp_new;                  /* the group has none of its own objects yet (an older save's P1-16) */
+static uint32_t pat_cur(void) { return set.pgrp % NGRP * NPAT + set.pattern % NPAT; }   /* 0..63 */
+static uint32_t grp_hash(void)
+{
+    const uint8_t *r[3] = {(const uint8_t *)pats.p, pats.kn[0], steps.b[0]};
+    const uint32_t n[3] = {sizeof pats.p, KH_SIZE, sizeof steps.b};
+    uint32_t h = 2166136261u, i, k;
+    for (k = 0; k < 3u; k++)
+        for (i = 0; i < n[k]; i++)
+            h = (h ^ r[k][i]) * 16777619u;
+    return h;
+}
+static int grp_changed(void) { return grp_new || grp_hash() != grp_sum; }
+static int grp_save(void)                /* the group in RAM to its objects: 1 done */
+{
+    uint32_t g = set.pgrp % NGRP;
+    int ok = plat_store_save(OBJ_PG0 + g, pats.p, sizeof pats.p) == 0 &&
+             plat_store_save(OBJ_KG0 + g, pats.kn, KH_SIZE) == 0 &&
+             plat_store_save(OBJ_SG0 + g, steps.b, sizeof steps.b) == 0;
+    if (ok) {
+        grp_sum = grp_hash();
+        grp_new = 0u;
+    }
+    return ok;
+}
+static int grp_has(uint32_t g)           /* the group's own objects there, whole */
+{
+    return plat_store_size(OBJ_PG0 + g) == (int)sizeof pats.p && plat_store_size(OBJ_KG0 + g) == (int)KH_SIZE &&
+           plat_store_size(OBJ_SG0 + g) == (int)sizeof steps.b;
+}
+static void grp_blank(void)              /* the group in RAM: 16 empty patterns (pat_defaults' own) */
+{
+    uint32_t i, k;
+    for (i = 0; i < NPAT; i++) {
+        for (k = 0; k < PAT_STEPS; k++) {
+            pats.p[i].st[k][0] = 1u;
+            pats.p[i].st[k][1] = pats.p[i].st[k][2] = pats.p[i].st[k][3] = 0u;
+        }
+        pats.p[i].lane[LANE_KICK] = pats.p[i].lane[LANE_SNARE] = pats.p[i].lane[LANE_HAT] = 0u;
+        pats.p[i].kick2 = 0u;
+    }
+    memset(pats.kn, 0, KH_SIZE);
+    memset(steps.b, 0, sizeof steps.b);
+}
+static void grp_load(uint32_t g)         /* group g into RAM (none saved yet: empty) */
+{
+    g %= NGRP;
+    if (!grp_has(g) || plat_store_load(OBJ_PG0 + g, pats.p, sizeof pats.p) != (int)sizeof pats.p ||
+        plat_store_load(OBJ_KG0 + g, pats.kn, KH_SIZE) != (int)KH_SIZE ||
+        plat_store_load(OBJ_SG0 + g, steps.b, sizeof steps.b) != (int)sizeof steps.b)
+        grp_blank();
+    set.pgrp = (uint8_t)g;
+    grp_sum = grp_hash();
+    grp_new = 0u;
+}
+static int store_all(void)               /* SAVE: the settings, the patterns (the group in RAM too), the steps: 1 done */
+{
+    return plat_store_save(OBJ_SETTINGS, &set, sizeof set) == 0 && plat_store_save(OBJ_PAT, &pats, sizeof pats) == 0 &&
+           plat_store_save(OBJ_STEP, &steps, sizeof steps) == 0 && grp_save();
+}
 /* LOAF BREAKER: the kick memory k's knobs from the ones playing (kx_put), the ones playing from k's (kx_get); kx_all:
  * every memory's as the ones playing (an older save, RESET ALL) */
 static void kx_put(uint32_t k)
@@ -1059,6 +1134,16 @@ void app_init(void)
             kick_bar_set(p, 3u, kick_bar(p, 1u));
         }
         pats.magic = PAT_MAGIC;
+    }
+    set.pgrp %= NGRP;                    /* LOAF BREAKER: the group saved with its own objects: those; none (a save from
+                                          * before the 64): OBJ_PAT's, written to its own now (the sound not started) */
+    if (grp_has(set.pgrp))
+        grp_load(set.pgrp);
+    else {
+        grp_sum = grp_hash();
+        grp_new = (uint8_t)(plat_store_size(OBJ_PAT) > 0);
+        if (grp_new)
+            (void)grp_save();
     }
     brk_set_break(break_load(set.brk));  /* boot: the audio isn't running yet */
     settings_apply();

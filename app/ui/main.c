@@ -154,9 +154,14 @@ static void reset_all(void)
     settings_apply();
     pat_apply();
     pat_next = -1;
-    (void)plat_store_save(OBJ_SETTINGS, &set, sizeof set);
-    (void)plat_store_save(OBJ_PAT, &pats, sizeof pats);
-    (void)plat_store_save(OBJ_STEP, &steps, sizeof steps);
+    {                                    /* (LOAF BREAKER: the four groups of patterns empty, P1-16 in) */
+        uint32_t g;
+        for (g = NGRP; g-- > 0u;) {
+            set.pgrp = (uint8_t)g;
+            (void)grp_save();
+        }
+    }
+    (void)store_all();
     set_dirty = 0u;
     app_say("ALL CLEARED", "");
     ui.lobo_t = plat_ms() | 1u;          /* the lobotomy screen (app_frame) */
@@ -575,7 +580,7 @@ static void input(void)
             seq_wait = 0u;
             clr_arm = 1u;
             clr_t = now;
-            int_text((int32_t)set.pattern % NPAT + 1, t + 7);
+            int_text((int32_t)pat_cur() + 1, t + 7);
             text_cat(t, "?");
             app_say(t, "SEQ AGAIN");
         }
@@ -718,9 +723,7 @@ static void input(void)
     if (bdn & 1u << B_SAVE && btn & 1u << B_SEL)   /* SEL + SAVE: undo (again: redo) */
         undo_swap();
     else if (bdn & 1u << B_SAVE) {
-        app_say("SAVE", plat_store_save(OBJ_SETTINGS, &set, sizeof set) == 0 &&
-                        plat_store_save(OBJ_PAT, &pats, sizeof pats) == 0 &&
-                        plat_store_save(OBJ_STEP, &steps, sizeof steps) == 0 ? "DONE" : "FAILED");
+        app_say("SAVE", store_all() ? "DONE" : "FAILED");
         set_dirty = 0u;
     }
     /* OCT- / OCT+: pitch in semitones, repeating faster while held; both: back to 0. LOAF BREAKER: REC stopped (step by
@@ -1075,7 +1078,7 @@ static void draw_tabs(void)
     } else if (ui.page == PG_SEQ) {
         char pn[6] = "P";                /* LOAF BREAKER: the pattern, then the lane the keys edit (SEQ again, or
                                           * ALGORITHM: the next); the lanes themselves on the page */
-        int_text((int32_t)set.pattern + 1, pn + 1);
+        int_text((int32_t)pat_cur() + 1, pn + 1);
         if (pat_next >= 0)
             text_cat(pn, ">");
         x = tab(x, pn, 0);
@@ -1476,11 +1479,12 @@ void app_frame(void)
                                           * drums already playing: the render took them at the drop) */
         ui.drop_seen = drop_n;
         ui.drop_t = now | 1u;
-        if (ui.drop_pat < NPAT) {
-            set.pattern = ui.drop_pat;
-            pat_next = -1;
-            pat_apply();
-            set_dirty = 1u;
+        if (ui.drop_pat < NPAT_ALL) {    /* (LOAF BREAKER: from another group: in now, from its objects) */
+            if (pat_go(ui.drop_pat)) {
+                pat_next = -1;
+                pat_apply();
+                set_dirty = 1u;
+            }
             ui.drop_pat = 0xFFu;
         }
         if (drop_kick_back) {            /* (LOAF BREAKER: the kick from before the build back; the pattern dropped
@@ -1521,9 +1525,7 @@ void app_frame(void)
         else if (!dirty_t)
             dirty_t = now | 1u;
         else if (now - dirty_t >= 60000u && !st.playing && now - stop_t >= 3000u && !ui.lobo_t) {
-            int ok = plat_store_save(OBJ_SETTINGS, &set, sizeof set) == 0 &&
-                     plat_store_save(OBJ_PAT, &pats, sizeof pats) == 0 &&
-                     plat_store_save(OBJ_STEP, &steps, sizeof steps) == 0;
+            int ok = store_all();
             set_dirty = 0u;
             dirty_t = 0u;
             app_say("AUTO SAVE", ok ? "DONE" : "FAILED");
@@ -1576,14 +1578,18 @@ void app_frame(void)
         }
     }
     if (pat_next >= 0 && (!st.playing || (st.step >= 0 && (uint32_t)st.step + 1u >= pat_len()))) {
-        set.pattern = (uint8_t)pat_next;  /* the pattern picked: in for the loop's next round (its last step plays) */
+        int ok = pat_go((uint32_t)pat_next);   /* the pattern picked: in for the loop's next round (its last step
+                                          * plays; LOAF BREAKER: another group's, read in now; refused: this one's
+                                          * changes not saved, playing) */
         pat_next = -1;
-        if (st.playing)
-            brk_rewind();                /* LOAF BREAKER: from its step 1 and the drums' first bar, whatever the
+        if (ok) {
+            if (st.playing)
+                brk_rewind();            /* LOAF BREAKER: from its step 1 and the drums' first bar, whatever the
                                           * lengths were */
-        pat_apply();
-        set_dirty = 1u;
-        ui.redraw |= RG_BLOCKS | RG_FOOT;
+            pat_apply();
+            set_dirty = 1u;
+        }
+        ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
     }
     if (st.step != ui.last_step || st.slice != ui.last_slice) {   /* the playhead moved */
         ui.last_step = st.step;
@@ -1844,8 +1850,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage"};
-    int v[78];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty"};
+    int v[80];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1855,7 +1861,7 @@ int app_expect(const char *what, int *got)
     v[5] = fx_sl(fx_foc())->on;
     v[6] = pat_now()->lane[LANE_KICK];
     v[7] = pat_now()->lane[LANE_HAT];
-    v[8] = set.pattern;
+    v[8] = (int)pat_cur();            /* (LOAF BREAKER: 0..63, the group's 16 after the others) */
     v[9] = set.brk;
     v[10] = brk_next;
     v[11] = ui.help;
@@ -1935,7 +1941,9 @@ int app_expect(const char *what, int *got)
     v[75] = terror_off ? 1 : 0;
     v[76] = KICK_TERROR(&set.kick);
     v[77] = ui.mpage;
-    for (i = 0; i < 78u; i++)
+    v[78] = set.pgrp;
+    v[79] = grp_changed();
+    for (i = 0; i < 80u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

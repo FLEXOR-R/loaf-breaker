@@ -35,7 +35,8 @@ expect page 8
 turn PRESET 1 10
 key w0 down
 key w0 up
-turn K2 17 10
+turn K2 1 10
+turn K2 -1 10
 turn K1 5 10
 turn ALGO 1 10
 key w1 down

@@ -98,7 +98,7 @@ shot p_after.png
 expect peak_db_min -30
 tap SAVE
 wait 50
-expect store_writes 3
+expect store_writes 6
 # LOAF BREAKER: a roll pad's K3 is the kick's filter (HOME's K3): the rolls' pitch stays 0
 key b0 down
 wait 100

@@ -1,5 +1,5 @@
 # LOAF BREAKER: ENV's TRACK. TRACKS: track 1 as it starts (P1 x4, P2 x4, a DROP, P3 x8); track 2 (PRESETS) made:
-# P1 (white key 1), a DROP (K2 past P16), P2 (white key 2); DROP: no build (K1 to NONE); PLAY: track 2 played (PLAY:
+# P1 (white key 1), a DROP (K2 left of P1), P2 (white key 2); DROP: no build (K1 to NONE); PLAY: track 2 played (PLAY:
 # HOME, T2 in the header): P1's two bars, the drop at its end into P2, P2's two bars, P1 again (LOOP). Then on
 # track 1, SEL + ENV: the build from the next bar.
 #   app/build/host/loaf-breaker_host tests/scenarios/track.txt app/build/scenarios
@@ -11,7 +11,8 @@ shot t_tracks.png
 turn PRESET 1 10
 key w0 down
 key w0 up
-turn K2 17 10
+turn K2 1 10
+turn K2 -1 10
 turn ALGO 1 10
 key w1 down
 key w1 up

@@ -19,7 +19,7 @@ The FM-1 starts in **BEGINNER** mode (GLO › MORE, K1): the advanced pages stay
 ### 1. Press PLAY
 
 The break plays with its kick at once (NUSKOOL 140 to start). **ALGORITHM** picks the next break (it changes on the next
-bar), **SELECT** sets the tempo, **PRESETS** the pattern (P1–P16). PLAY again stops.
+bar), **SELECT** sets the tempo, **PRESETS** the pattern (P1–P64). PLAY again stops.
 
 ### 2. Play the white keys: the slices
 
@@ -95,7 +95,7 @@ seconds, or at once on any key, the **slicer view** opens. PLAY on the start scr
 
 The slicer view, top to bottom:
 
-- **Header:** play or stop, the break's name, the pattern (P1–P16; "P2>" while P2 waits for the loop's end), REC
+- **Header:** play or stop, the break's name, the pattern (P1–P64; "P2>" while P2 waits for the loop's end), REC
   while recording, a level meter (left and right, what leaves after MASTER: amber from
   −8 dB, white near full scale), the tempo: lit white on each beat. The line under the header flashes on each kick
   and a tick under it walks the bar's four beats. The PLAY light blinks off on each kick, and during a build the
@@ -134,7 +134,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 | SEL + ALGORITHM · SEL + PRESETS | The break · the pattern, from any page |
 | SEL + SAVE | **Undo** the last pattern wipe (SEL + ARP, SEL + REC, a drum lane's FILL, CLR / 4X4 or COPY); again: redo |
 | OCT− / OCT+ | Pitch in semitones (hold to go faster). Both: back to 0 |
-| PRESETS | The pattern, P1–P16 (§5); while playing the new one starts at the end of the loop |
+| PRESETS | The pattern, P1–P64 (§5); while playing the new one starts at the end of the loop |
 | SEQ · REC | The sequencer; recording the keys into the pattern (§5). SEL + REC: clear the pattern (SEL + SAVE takes it back) |
 | MIDI notes | Notes 48–63 (C3–D#4) play slices 1–16, held like the white keys; 36 the kick, 38 the snare, 42 / 44 / 46 the hat (§8); any channel |
 | ALGORITHM | (HOME, MIXER; SEL held: any page) The next or previous break: its name shows at once (amber in the header) and, while playing, it comes in at the next bar (the old one goes quiet for the bar's last 16th meanwhile); stopped, at once. THINK 114 (Lyn Collins), NUSKOOL 140, UPDOWN 165, APACHE 115 (Incredible Bongo Band), AMEN04 170, AMEN13 173, THEWORM 110 (Jimmy McGriff), AMEN19 172, AMEN15 174, BREAKIN 175 (the Amens: The Winstons, cut by Cyberworm): 2 bars each, played at the tempo you set |
@@ -213,11 +213,11 @@ instead, hold it again for the waveform; neither moves to HOME's next part.
 **ENV** opens TRACK; **ENV again** goes through its parts: TRACKS, PLAY, DROP. The tempo is SELECT's (the
 metronome and tap tempo are gone).
 
-- **TRACKS**: eight tracks (**PRESETS** picks one), each up to 32 items in four rows of eight: a pattern (P1–P16)
+- **TRACKS**: eight tracks (**PRESETS** picks one), each up to 32 items in four rows of eight: a pattern (P1–P64)
   played for its loops (×1–×16), a **DROP** (the build, then the drop into the pattern after it), and its END.
   **ALGORITHM** the item, **K1** its **kick**: SAME (the one playing goes on) or KICK 1–10, taken as the item's pattern
   comes in (playing from it: at once; a DROP into it: with the drop; its cell shows it, "K7"); on a DROP, the kick its
-  **build** plays (its kick roll, say), the one before back at the drop ("DRP K5"), **K2** what it is: END, EMPTY, P1–P16, DROP (EMPTY, left of P1, empties the case and keeps its place: ENV held on it,
+  **build** plays (its kick roll, say), the one before back at the drop ("DRP K5"), **K2** what it is: END, EMPTY, DROP, P1–P64 (DROP just left of P1; EMPTY, left of DROP, empties the case and keeps its place: ENV held on it,
 or K2 left once more, deletes it, the rest moving up),
   **K3** its loops, **K4** its **break**: SAME (the one playing goes on) or one of the bank's, in with the item
   (swapped at the bar's end, as ALGORITHM does; a cell with its own break shows it, "X4 B3"; a DROP into it brings
@@ -237,7 +237,7 @@ or K2 left once more, deletes it, the rest moving up),
   before; a DROP's build starts at the next bar. **SEL + ENV** while a track plays drops into its next pattern and the
   track goes on from there. PLAY again stops it.
 - **DROP**: **K1** the build: NONE (the bar playing ends in the drop), 1, 2, 4 or 8 bars; **K2** the pattern a SEL + ENV
-  drop brings in (NEXT, or P1–P16); **K3** the break it brings in (SAME, or one of the bank's); **K4** the crash's
+  drop brings in (NEXT, or P1–P64); **K3** the break it brings in (SAME, or one of the bank's); **K4** the crash's
   level; **PRESETS: BUILD KICK**, the kick the build plays (SAME, or KICK 1–10: for its kick roll, say), the one
   before back at the drop (a track's DROP item: its own, TRACKS K1).
 - **BUILD**: how the build before a drop sounds, so drops don't all sound alike. **K1 STYLE**: SNARE ROLL (the
@@ -372,10 +372,17 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 
 ## 5. Patterns and the sequencer
 
-LOAF BREAKER holds **16 patterns**. Each is the break's 32 steps (2 bars), each step playing the loop's own slice (LOOP,
-where the generator can move it), a slice of its own, or nothing; and three drum lanes of 16 steps (kick, snare, hat)
-that repeat every bar. **PRESETS** picks the pattern on most pages; while playing, the next one starts when the loop
-comes round (the header shows "P2>").
+LOAF BREAKER holds **64 patterns**, P1–P64. Each is the break's 32 steps (2 bars), each step playing the loop's own
+slice (LOOP, where the generator can move it), a slice of its own, or nothing; and three drum lanes of 16 steps (kick,
+snare, hat) that repeat every bar. **PRESETS** picks the pattern on most pages (left of P1: P64); while playing, the
+next one starts when the loop comes round (the header shows "P2>").
+
+**Four groups of 16.** The FM-1 keeps one group in memory at a time: P1–16, P17–32, P33–48 or P49–64; the others wait
+in its flash. Within a group nothing changes. Going to another group reads it in, so the sound plays on, with one
+exception: if the group you leave has changes not yet saved, they must be written first, and a write cuts the sound for
+a moment. So, stopped, they are saved on the way (no sound to cut); playing, the FM-1 stays where it is and says
+**SAVE OR STOP**: press SAVE (or stop), then pick the pattern again. The same goes for a track or a drop that leads into
+another group. A new group starts with 16 empty patterns; what you had before this version is P1–P16.
 
 **SEQ** opens the sequencer. **ALGORITHM** (or **SEQ again**) picks what the white keys edit:
 
@@ -606,7 +613,7 @@ MIDI in and out on each port. The FM-1 has no MIDI out jack: MIDI goes out over 
 | K1 PITCH | KEEP LENGTH (the default) · SPEED | KEEP LENGTH changes the pitch only: each slice keeps its length (a granular pitch shift), so a key pitched +7 still fills its loop. SPEED is the classic repitch: up plays faster and shorter, down slower and longer (K1 left) |
 | K2 GRAIN | 10 … 80 ms | KEEP LENGTH's grains: shorter keeps hits tight, longer sounds smoother on held sounds |
 | K3 SNAP | OFF · 1/8 · 1/4 · 1/2 · 1 (the default) · 2 · 4 slices | Where a white key pressed while playing lands: at once (OFF), or at the next point of a grid that many slices apart, counted from the top of the pattern. The panel says what it is in this break (on the 2-bar breaks 1 slice = 1/8, 1/2 slice = 1/16, 2 slices = 1/4). Stopped, keys always play at once |
-| K4 RESET ALL | Fifteen turns right (the header counts them: "RESET ALL? 2 / 15 TURNS") | Clears everything back to how it came: tempo, generator, FX chain, kick, snare and hat, mixer, keys, slices, GLOBAL, the tracks, and all 16 patterns; the first break is chosen and it is saved at once. The screen says so: LOBOTOMIZED, for 3 seconds (a key or button ends it sooner) |
+| K4 RESET ALL | Fifteen turns right (the header counts them: "RESET ALL? 2 / 15 TURNS") | Clears everything back to how it came: tempo, generator, FX chain, kick, snare and hat, mixer, keys, slices, GLOBAL, the tracks, and all 64 patterns; the first break is chosen and it is saved at once. The screen says so: LOBOTOMIZED, for 3 seconds (a key or button ends it sooner) |
 
 It covers every pitch in semitones: OCT, a key's pitch, the roll's pitch a repeat, the freeze's pitch, steps. The
 tempo's own repitch, HALF, REVERSE's speed and the tape stop stay speed effects.
@@ -786,7 +793,7 @@ owns K1–K4. Here, in short: §2 has the rules, §10 every page's knobs.
 ## 12. Saving
 
 SAVE keeps the tempo, pitch, swing, generator, the FX chain, the break chosen, each key's loop, the drums, the
-mixer, the GLOBAL settings and all 16 patterns; SAVE is lit when something changed. A new version keeps what an older
+mixer, the GLOBAL settings and the patterns (the group of 16 in memory: the others were saved when you left them); SAVE is lit when something changed. A new version keeps what an older
 one saved: new settings start at their defaults. (Version 0.32 changed the layout: what 0.31 and older saved starts
 over at the defaults once.) GLOBAL's RESET ALL clears it all on purpose (§7).
 

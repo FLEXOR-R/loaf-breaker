@@ -29,6 +29,11 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   genre (README's tagline) and a STYLE.
 - Breaks (10 Nov 2026, 0.193): FLEXOR chose the bank on a listening page of all 70 breaks as the FM-1 holds them
   (https://claude.ai/artifact/MCakoDjuGTXjMLFiobM1k3; the choice in its store, `tri/choix`): 10 breaks, NUSKOOL first, LO-FI one bar (FLEXOR's order, 0.196).
+- Patterns (10 Nov 2026, 0.197): 64, four groups of 16 (`NGRP`, `NPAT_ALL`); the group in RAM is pats.p/kn/hits and
+  steps.b (`set.pgrp`; `set.pattern` its slot; `pat_cur()` 0..63; `pat_go()` brings one in). Each group has its own
+  objects (OBJ_PG0/KG0/SG0 + g); SAVE (`store_all`) writes 6. Leaving a group with unsaved changes while playing is
+  refused ("SAVE OR STOP", FLEXOR's choice: never a cut in the sound). Track items, `drop_after`, `ui.drop_pat` and
+  `pat_next` are 0..63 (or 1..64); `drop_to` stays a slot (0xFF: another group's, read in at the drop).
 - No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository.
 - Fonts: `font_trim` is on (fm1.toml, 9 Nov 2026). LOAF BREAKER draws in FONT_T, FONT_XS and FONT_B only (cv_text2 for
   bigger: those doubled). fm1-base still generates S, M (~5 KB trimmed) and L (~9 KB trimmed, 31 px), left out of the

@@ -7,7 +7,7 @@ The FM-1 starts in **BEGINNER** mode (GLO › MORE, K1): the advanced pages stay
 ## 1. Press PLAY
 
 The break plays with its kick at once (NUSKOOL 140 to start). **ALGORITHM** picks the next break (it changes on the next
-bar), **SELECT** sets the tempo, **PRESETS** the pattern (P1–P16). PLAY again stops.
+bar), **SELECT** sets the tempo, **PRESETS** the pattern (P1–P64). PLAY again stops.
 
 ## 2. Play the white keys: the slices
 

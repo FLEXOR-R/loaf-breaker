@@ -131,15 +131,15 @@ static int8_t clip_from = -1;            /* the pattern copied, -1 none */
 static void pat_copy_paste(void)
 {
     char t[16] = "P";
-    uint32_t cur = set.pattern % NPAT, k;
-    if (clip_from < 0 || (uint32_t)clip_from == cur) {
+    uint32_t cur = set.pattern % NPAT, all = pat_cur(), k;   /* (its slot in the group; its number in all 64) */
+    if (clip_from < 0 || (uint32_t)clip_from == all) {
         clip_pat = pats.p[cur];
         for (k = 0; k < 13u; k++)
             clip_kn[k] = pats.kn[cur][k];
         for (k = 0; k < STEPB_N; k++)
             clip_steps[k] = steps.b[cur][k];
-        clip_from = (int8_t)cur;
-        int_text((int32_t)cur + 1, t + 1);
+        clip_from = (int8_t)all;
+        int_text((int32_t)all + 1, t + 1);
         app_say("COPIED", t);
         return;
     }
@@ -154,7 +154,7 @@ static void pat_copy_paste(void)
     {
         char u[4];
         int_text(clip_from + 1, t + 1);
-        int_text((int32_t)cur + 1, u);
+        int_text((int32_t)all + 1, u);
         text_cat(t, " > P");
         text_cat(t, u);
     }
@@ -576,14 +576,47 @@ static void seq_turn(int i, int32_t d)
     app_say(ui.msg[0], t);
     ui.redraw |= RG_BLOCKS | RG_FOOT;    /* (the knobs' values too: they show the step) */
 }
+static const char *grp_name(uint32_t g)  /* LOAF BREAKER: a group of 16 as the screen says it */
+{
+    static const char *const N[NGRP] = {"P1-16", "P17-32", "P33-48", "P49-64"};
+    return N[g % NGRP];
+}
+static int grp_blocked(uint32_t g)       /* LOAF BREAKER: pattern g (0..63) can't come in now: another group, this
+                                          * one's changes not saved, playing (said) */
+{
+    if (g / NPAT % NGRP == set.pgrp || !grp_changed() || !playing_now())
+        return 0;
+    app_say("SAVE OR STOP", grp_name(set.pgrp));
+    return 1;
+}
+static int pat_go(uint32_t g)            /* LOAF BREAKER: pattern g (0..63) the one playing (its group in first: this
+                                          * one's changes saved before, stopped); 0 refused */
+{
+    uint32_t grp = g / NPAT % NGRP;
+    if (grp != set.pgrp) {
+        if (grp_blocked(g))
+            return 0;
+        if (grp_changed() && !grp_save()) {
+            app_say("SAVE", "FAILED");
+            return 0;
+        }
+        grp_load(grp);
+        undo_idx = 0xFFu;                /* (an undo was the other group's) */
+    }
+    set.pattern = (uint8_t)(g % NPAT);
+    return 1;
+}
 static void pattern_pick(int32_t d)      /* PRESETS: the next or previous pattern (playing: at the loop's end) */
 {
-    int32_t cur = pat_next >= 0 ? pat_next : set.pattern;
-    int32_t want = (cur + (d > 0 ? 1 : (int32_t)NPAT - 1)) % (int32_t)NPAT;
+    int32_t cur = pat_next >= 0 ? pat_next : (int32_t)pat_cur();
+    int32_t want = (cur + (d > 0 ? 1 : (int32_t)NPAT_ALL - 1)) % (int32_t)NPAT_ALL;
+    if (grp_blocked((uint32_t)want))
+        return;
     if (playing_now())
         pat_next = (int8_t)want;
     else {
-        set.pattern = (uint8_t)want;
+        if (!pat_go((uint32_t)want))
+            return;
         pat_apply();
         set_dirty = 1u;
     }

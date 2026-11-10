@@ -299,10 +299,25 @@ static void drop_start_k(uint32_t to, int item)   /* item: a track's DROP item (
         const pat_t *p;
         uint32_t d, b;
         char t[8] = "> P";
-        ui.drop_pat = (uint8_t)(to % NPAT);
-        drop_to = ui.drop_pat;
+        ui.drop_pat = (uint8_t)(to % NPAT_ALL);   /* (LOAF BREAKER: 0..63; another group's: in at the drop) */
+        drop_to = to / NPAT % NGRP == set.pgrp ? (uint8_t)(to % NPAT) : 0xFFu;
+        if (drop_to == 0xFFu && grp_blocked(ui.drop_pat))
+            ui.drop_pat = 0xFFu;
         drop_kick_want = item >= 0 ? *trk_kick((uint32_t)item) : set.drop_kick;   /* (the build's kick) */
-        p = &pats.p[ui.drop_pat];
+        p = &pats.p[set.pattern % NPAT];
+        if (drop_to < NPAT)
+            p = &pats.p[drop_to];
+        else if (ui.drop_pat < NPAT_ALL) {   /* (LOAF BREAKER: another group's: its drums read from its objects, the
+                                          * canvas for room: it is drawn again before it is shown) */
+            uint32_t sl = ui.drop_pat % NPAT, n = (sl + 1u) * (uint32_t)sizeof(pat_t);
+            pat_t *tp = (pat_t *)(void *)cv_px;
+            if (plat_store_head(OBJ_PG0 + ui.drop_pat / NPAT % NGRP, tp, n) == (int)n)
+                p = &tp[sl];
+            else {
+                memset(&tp[0], 0, sizeof(pat_t));   /* (none saved: an empty pattern) */
+                p = &tp[0];
+            }
+        }
         for (d = 0; d < NDRUMS; d++)
             for (b = 0; b < 4u; b++)
                 drum_next[d][b] = (uint16_t)drum_bar(p, d, b % drum_bars(p, d));
@@ -336,7 +351,7 @@ static void build_click(void)
             return;
         }
     }
-    drop_start(set.drop_after ? set.drop_after - 1u : (set.pattern + 1u) % NPAT);
+    drop_start(set.drop_after ? set.drop_after - 1u : (pat_cur() + 1u) % NPAT_ALL);
 }
 
 /* PLAY: the track from its first item (TRK_FROM; a DROP there: the pattern after it), from bar 1; HOME (home: 0, from
@@ -350,7 +365,8 @@ static void track_play(int home)
         app_say("TRACK", "EMPTY");
         return;
     }
-    set.pattern = (uint8_t)(t->it[i] - 1u);
+    if (!pat_go(t->it[i] - 1u))          /* (LOAF BREAKER: another group's; refused: SAVE OR STOP) */
+        return;
     pat_next = -1;
     pat_apply();
     trk_brk_go((uint32_t)i);             /* (its break) */
@@ -417,7 +433,7 @@ static void track_next(void)
     }
     ui.trk_pos = (uint8_t)i;
     ui.trk_loops = 0u;
-    if (t->it[i] - 1u != set.pattern)
+    if (t->it[i] - 1u != pat_cur() && !grp_blocked(t->it[i] - 1u))
         pat_next = (int8_t)(t->it[i] - 1u);
     trk_brk_go(i);                       /* (its break, from the same bar: break_poll swaps at its last 16th) */
     trk_kick_go(i, 0);                   /* (LOAF BREAKER: its kick, as its pattern comes in) */
@@ -997,7 +1013,7 @@ static void track_turn(int i, int32_t d)
         if (i == 0)
             set.drop_bars = (uint8_t)clamp((int32_t)set.drop_bars + dir, 0, 4);
         else if (i == 1)
-            set.drop_after = (uint8_t)clamp((int32_t)set.drop_after + dir, 0, (int32_t)NPAT);
+            set.drop_after = (uint8_t)clamp((int32_t)set.drop_after + dir, 0, (int32_t)NPAT_ALL);
         else if (i == 2)
             set.drop_brk = (uint8_t)clamp((int32_t)set.drop_brk + dir, 0, (int32_t)n_breaks);
         else
@@ -1030,11 +1046,12 @@ static void track_turn(int i, int32_t d)
             if (!trk_is_pat(t, c) && t->it[c] != TI_DROP)
                 return;
             *trk_kick(c) = (uint8_t)clamp((int32_t)*trk_kick(c) + dir, 0, (int32_t)KICK_MEMS);
-        } else if (i == 1) {             /* END, EMPTY, P1..P16, DROP (LOAF BREAKER: EMPTY left of P1, a case
-                                          * emptied: gone with one more turn left, or ENV held) */
-            int32_t v = t->it[c] == TI_DROP ? (int32_t)NPAT + 2 : t->it[c] == TI_GAP ? 1 :
-                        t->it[c] == TI_END ? 0 : (int32_t)t->it[c] + 1;
-            v = clamp(v + (t->it[c] == TI_END && dir > 0 ? 2 : dir), 0, (int32_t)NPAT + 2);   /* (the END: P1 at once) */
+        } else if (i == 1) {             /* END, EMPTY, DROP, P1..P64 (LOAF BREAKER: DROP just left of P1, the 64
+                                          * past; EMPTY left of it, a case emptied: gone with one more turn left, or
+                                          * ENV held) */
+            int32_t v = t->it[c] == TI_DROP ? 2 : t->it[c] == TI_GAP ? 1 :
+                        t->it[c] == TI_END ? 0 : (int32_t)t->it[c] + 2;
+            v = clamp(v + (t->it[c] == TI_END && dir > 0 ? 3 : dir), 0, (int32_t)NPAT_ALL + 2);   /* (the END: P1 at once) */
             if (v == 0 && trk_len(t) > c + 1u) {   /* (an END inside: the items after it moved up, the item gone) */
                 uint32_t k;
                 for (k = c; k + 1u < TRK_ITEMS; k++) {
@@ -1054,7 +1071,7 @@ static void track_turn(int i, int32_t d)
             }
             if (t->it[c] == TI_END && v && c > trk_len(t))
                 return;
-            t->it[c] = v == (int32_t)NPAT + 2 ? TI_DROP : v == 1 ? TI_GAP : v == 0 ? TI_END : (uint8_t)(v - 1);
+            t->it[c] = v == 2 ? TI_DROP : v == 1 ? TI_GAP : v == 0 ? TI_END : (uint8_t)(v - 2);
             if (!t->rep[c])
                 t->rep[c] = 1u;
         } else if (i == 2) {
@@ -1192,7 +1209,7 @@ static uint32_t track_keys_lit(void)     /* TRACKS: the item's pattern; PLAY: th
     }
     if (ui.tpage == 0u) {
         uint32_t v = trk_now()->it[ui.trk_cur % TRK_ITEMS];
-        return v && v <= NPAT ? 1u << (v - 1u) : 0u;
+        return v && v <= NPAT_ALL && (v - 1u) / NPAT == set.pgrp ? 1u << (v - 1u) % NPAT : 0u;
     }
     return 0u;
 }
