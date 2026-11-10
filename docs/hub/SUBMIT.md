@@ -20,7 +20,7 @@ The hub's rules: <https://thefirmwarehub.com/fmhub.md> and <https://thefirmwareh
 
 | # | The hub asks | LOAF BREAKER |
 | --- | --- | --- |
-| 1 | Open source, the whole source public, a LICENSE | MPL-2.0, LICENSE in the root. **The repository is private**: to be made public (its history first cleaned of the GLOUPI BREAKS photo) |
+| 1 | Open source, the whole source public, a LICENSE | MPL-2.0, LICENSE in the root. **The repository is private**: to be made public (FLEXOR's call). Its history is clean: the GLOUPI BREAKS photo is in no branch and no tag since 10 Nov 2026 (branches rewritten, then the 219 tags with it by the PURGE START-UP PHOTO action, since removed; GitHub's cached views of the old commits: a Support request) |
 | 2 | A GitHub release with the .fwsc | Every push to `loaf`: release `loaf-vX.YYY` with `loaf-breaker-X.YYY.fwsc` |
 | 3 | Its own `FM-1_` identity | `FM-1_2623` (above) |
 | 4 | The update loader in the package | felucca-bsp's, shipped in every package |
