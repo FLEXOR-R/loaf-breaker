@@ -169,7 +169,8 @@ typedef struct {
     uint8_t drop_kick;                   /* (appended) ENV DROP's PRESETS: the kick a SEL + ENV drop's build plays, 0 the
                                           * one playing, n KICK n (a track's DROP item: its own, TRACKS K1); back at the drop */
     uint8_t selk_hi;                     /* (appended) each SEL + knob's function code's fifth bit (bit 0 K1 .. bit 3 K4:
-                                          * selk_asg2, selk_asg hold the four below; codes past 15) */
+                                          * selk_asg2, selk_asg hold the four below; codes past 15); bit 4 the kick's
+                                          * TERROR off (TER) */
 } settings_t;
 enum { DS_SNARE, DS_KICK, DS_BOTH, DS_STUTTER, DS_SWEEP, DS_RANDOM, DS_N };
 static const uint8_t DROP_GAP[5] = {0u, 1u, 2u, 4u, 8u};   /* its steps: none, a 16th, an 8th, a beat, half a bar */
@@ -204,8 +205,9 @@ static uint8_t foot_dirty;               /* a setting changed: the slicer's foot
  * far towards kick memory kmorph_to: every level, pitch, decay, tone, effect setting, TERROR and SYNTH setting in
  * between; the layers' effects and TERROR + 's TYPE the nearer one's. CLEAN SUB with it */
 static int32_t morph_i(int32_t a, int32_t b, uint32_t m) { return a + (b - a) * (int32_t)m / 100; }
-static uint8_t terror_off;               /* LOAF BREAKER: TER (the tenth black key): the kick's TERROR off, whatever its
-                                          * amount (kept as it is); a press again: on */
+/* LOAF BREAKER: TER (the tenth black key), as SUB's DRIVE: the kick's TERROR off, whatever its amount (kept as it is),
+ * or on again; the kick's own (selk_hi bit 4, with its memory: kx_put), saved */
+#define terror_off (set.selk_hi & 16u)
 static void kick_send(void)
 {
     uint32_t m = set.kmorph > 100u ? 100u : set.kmorph, i, j;

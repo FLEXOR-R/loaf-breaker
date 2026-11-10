@@ -380,11 +380,18 @@ static void input(void)
         if ((kup & PAD_BIT(i)) && !(i == PAD_HALF && half_lat))
             brk_pad((int)i, 0);
     }
-    if (kdn >> BK[TERR_KEY] & 1u) {      /* LOAF BREAKER: TER: the kick's TERROR off (its amount kept), again on */
-        terror_off ^= 1u;
-        app_say("TERROR", terror_off ? "OFF (TER)" : "ON");
+    if (kdn >> BK[TERR_KEY] & 1u) {      /* LOAF BREAKER: TER, as SUB's DRIVE: the kick's TERROR off if it sounds (its
+                                          * amount kept), else on (an amount at nothing: 50 %, a key that does something) */
+        if (KICK_TERROR(&set.kick) && !terror_off)
+            set.selk_hi |= 16u;
+        else {
+            set.selk_hi &= (uint8_t)~16u;
+            if (!KICK_TERROR(&set.kick))
+                KICK_TERROR(&set.kick) = 50u;
+        }
+        app_say("TERROR", terror_off ? "OFF" : "ON");
         changed_kick();
-        ui.redraw |= RG_FOOT;
+        ui.redraw |= RG_FOOT | RG_BLOCKS;
     }
     if (kdn >> BK[KILL_KEY] & 1u) {      /* LOAF BREAKER: KIL held: the sequencer's kicks quiet; let go: back. Its
                                           * LATCH (K1 while held): a press quiet, the next back */
@@ -1836,8 +1843,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off"};
-    int v[76];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror"};
+    int v[77];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -1924,8 +1931,9 @@ int app_expect(const char *what, int *got)
     v[72] = (int)selk_fn(0u);
     v[73] = (int)selk_fn(3u);
     v[74] = set.ksyn[KS_DROP];
-    v[75] = terror_off;
-    for (i = 0; i < 76u; i++)
+    v[75] = terror_off ? 1 : 0;
+    v[76] = KICK_TERROR(&set.kick);
+    for (i = 0; i < 77u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;
