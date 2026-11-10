@@ -1582,11 +1582,12 @@ static void test_fx_extras(void)
           "MOD ENV: loud %.2f (level in %.2f), silent %.2f; the drive back at %.2f", a, b, m.mod, m.p[0]);
 }
 
-/* the overload guard (PRD E-7): a render over 90 % bypasses the chain's last slot on; 2 s clear, it comes back */
+/* the overload guard (PRD E-7): a render over 90 % bypasses the chain's last slot on; 2 s clear, it comes back
+ * (LOAF BREAKER, 0.219: a lone block over sheds nothing, a second within 32 blocks does) */
 static void test_overload(void)
 {
     brk_fx_t p;
-    uint32_t i, b;
+    uint32_t i, b, lone;
     float during, after, before;
     tone_in(8000.0f, 0.25f, BLOCK);
     brk_fx_defaults(&p);
@@ -1598,7 +1599,17 @@ static void test_overload(void)
     for (b = 0; b < 40u; b++)
         brk_fx_process(buf, 0, 0, 0, 0, bl, br, BLOCK, 0u);
     before = peak_of(bl, 0u, BLOCK);
+    brk_fx_overload();                   /* (a lone one: nothing shed) */
+    brk_fx_process(buf, 0, 0, 0, 0, bl, br, BLOCK, 0u);
+    lone = brk_fx_shed();
+    for (b = 0; b < 40u; b++)            /* (past its 32 blocks: forgotten) */
+        brk_fx_process(buf, 0, 0, 0, 0, bl, br, BLOCK, 0u);
     brk_fx_overload();
+    brk_fx_process(buf, 0, 0, 0, 0, bl, br, BLOCK, 0u);
+    lone += brk_fx_shed();
+    for (b = 0; b < 5u; b++)
+        brk_fx_process(buf, 0, 0, 0, 0, bl, br, BLOCK, 0u);
+    brk_fx_overload();                   /* (a second within 32 blocks: the slot shed) */
     for (b = 0; b < 10u; b++)
         brk_fx_process(buf, 0, 0, 0, 0, bl, br, BLOCK, 0u);
     during = peak_of(bl, 0u, BLOCK);
@@ -1606,9 +1617,9 @@ static void test_overload(void)
     for (b = 0; b < 400u; b++)           /* 2.3 s */
         brk_fx_process(buf, 0, 0, 0, 0, bl, br, BLOCK, 0u);
     after = peak_of(bl, 0u, BLOCK);
-    CHECK(before < 0.01f && during > 0.2f && i == 1u && brk_fx_shed() == 0u && after < 0.01f,
-          "OVERLOAD: the slot shed (8 kHz %.3f -> %.3f, %u shed), back after 2 s (%.3f, %u)", before, during, i, after,
-          brk_fx_shed());
+    CHECK(lone == 0u && before < 0.01f && during > 0.2f && i == 1u && brk_fx_shed() == 0u && after < 0.01f,
+          "OVERLOAD: a lone block sheds nothing (%u), two do (8 kHz %.3f -> %.3f, %u shed), back after 2 s (%.3f, %u)",
+          lone, before, during, i, after, brk_fx_shed());
 }
 
 /* the snare and the hat (PRD K-10): each sounds on its own, in range, and dies away; the presets differ; a hit lands

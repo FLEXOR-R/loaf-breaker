@@ -49,8 +49,9 @@ typedef struct {
     uint32_t w;
     svf_t eq[3][2];                      /* EQ: low, mid, high, left and right; TAPE: eq[0] its head bump;
                                           * MULTIBAND: eq[0] the high band's split (f: the low's) */
-    float mb_env[3], mb_g[3];            /* MULTIBAND: each band's level followed, its gain */
-    uint32_t mb_n;                       /* (its gains are worked out every fourth sample) */
+    float mb_env[3], mb_g[3], mb_gd[3];  /* MULTIBAND: each band's level followed, its gain, the gain's step */
+    uint32_t mb_n;                       /* (LOAF BREAKER, 0.219: its gains worked out every 16th sample, each a ramp to
+                                          * the next: a quarter of the work, no step heard) */
     float hp[2];                         /* the extras' own: DRIVE's low cut (lp-subtracted), PUNCH's side-chain */
     uint32_t rng;                        /* CRUNCH's dither, TAPE's hiss */
 } slot_st_t;
@@ -60,6 +61,7 @@ static volatile brk_fxx_t p_fxx[BRK_FX_ALL];
 #define SHED_BLOCKS 344u                 /* 2 s of blocks: a shed slot comes back after that, clear */
 static volatile uint32_t shed_hit;       /* the platform: a render ran over 90 % */
 static uint32_t shed_lv, shed_n;         /* slots shed now (from the chain's end), blocks till one comes back */
+static uint32_t shed_age = 32u;          /* blocks since a lone overload (32: none lately) */
 void brk_fx_overload(void) { shed_hit = 1u; }
 uint32_t brk_fx_shed(void) { return shed_lv; }
 static volatile uint32_t watch = BRK_FX_ALL;   /* the slot the screen meters (BRK_FX_ALL: none) */
@@ -686,6 +688,7 @@ BRK_COLD static void slot_block(uint32_t k, const float *x)
         s->type = (uint8_t)t;
         s->hz_s = 30.0f * c_exp2(p0 * 9.06f);
         s->gr = 1.0f;
+        s->mb_g[0] = s->mb_g[1] = s->mb_g[2] = 1.0f;   /* (LOAF BREAKER: MULTIBAND's gains ramp from untouched) */
         if (t == FXT_REVERB)
             rv_clear();                  /* a reverb put in: its tail from silence */
     }
@@ -999,11 +1002,14 @@ BRK_INL void slot_run(uint32_t k, float *xl, float *xr)
         for (b = 0; b < 3u; b++) {
             float pk = brk_absf(bl[b]) > brk_absf(br[b]) ? brk_absf(bl[b]) : brk_absf(br[b]);
             s->mb_env[b] += (pk - s->mb_env[b]) * (pk > s->mb_env[b] ? c->mb_att[b] : c->mb_rel[b]);
-            if (!(s->mb_n & 3u)) {       /* the gain: the reduction over the threshold through the knee, in octaves */
-                float over = s->mb_env[b] > 1e-6f ? brk_log2f(s->mb_env[b]) - c->m[b][0] : -20.0f;
-                float red = c->m[b][1] > 0.0f ? brk_mb_reduce(over, c->m[b][1], c->mb_w) : 0.0f;
-                s->mb_g[b] = red > 0.0f ? brk_exp2f(-red) : 1.0f;
+            if (!(s->mb_n & 15u)) {      /* the gain: the reduction over the threshold through the knee, in octaves;
+                                          * reached over the next 16 samples (0.36 ms) */
+                float red = 0.0f;
+                if (c->m[b][1] > 0.0f && s->mb_env[b] > 1e-6f)   /* (a band at no amount: no logarithm) */
+                    red = brk_mb_reduce(brk_log2f(s->mb_env[b]) - c->m[b][0], c->m[b][1], c->mb_w);
+                s->mb_gd[b] = ((red > 0.0f ? brk_exp2f(-red) : 1.0f) - s->mb_g[b]) * (1.0f / 16.0f);
             }
+            s->mb_g[b] += s->mb_gd[b];
             if (c->mb_solo && c->mb_solo != b + 1u)
                 continue;                /* (soloed: that band alone) */
             yl += bl[b] * s->mb_g[b] * c->m[b][2];
@@ -1201,10 +1207,18 @@ void brk_fx_process(const float *in, const float *thru, const float *echo, const
         mod_block(k, n, xx.x);
         slot_block(k, xx.x);
     }
+    if (shed_hit && shed_age >= 32u) {   /* LOAF BREAKER (0.219): a block alone over 90 % (a cache miss, a kick's
+                                          * start) sheds nothing: remembered, the next within 32 blocks (0.19 s) does */
+        shed_age = 0u;
+        shed_hit = 0u;
+    }
+    if (shed_age < 32u)
+        shed_age++;
     if (shed_hit && (!shed_lv || shed_n < SHED_BLOCKS - 32u)) {   /* over: one more slot off (not twice in 0.2 s) */
         if (shed_lv < BRK_FX_SLOTS)
             shed_lv++;
         shed_n = SHED_BLOCKS;
+        shed_age = 32u;
     } else if (shed_lv && !--shed_n) {   /* 2 s clear: one back */
         shed_lv--;
         shed_n = SHED_BLOCKS;

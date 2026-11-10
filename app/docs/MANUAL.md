@@ -549,7 +549,7 @@ down while the quiet ones, the tails and the room, come up.
 **EQ**'s bands go −12 … +12 dB, flat in the middle; its K4 is not a mix but the **mid's frequency** (**MID FREQ**, in Hz: 1.5KHZ is 1,500 Hz); its MORE part has the mid's width (**MID Q**: low, wide; high, narrow). **TAPE** is a
 saturator after a tape machine: put it last in the chain to glue the break, or before CRUNCH for a dusty sampler.
 
-**MB COMP** is a 3-band (multiband) compressor, and the one effect with a page of its own (below). **CLIP** squares
+**MB COMP** is a 3-band (multiband) compressor, and the one effect with a page of its own (below). The heaviest effects on the FM-1's processor are **TAPE** and the **MB COMP**s (MB OTT, MB KICK too), then FLANGER and EQ: if the screen says **OVERLOAD · FX SLOT BYPASSED**, the sound got close to its limit twice in a row and the chain's last slot on was switched off for 2 s; fewer of those (or SYSTEM › MIDI K3 METER, in EXPERT, to watch the CPU) keeps it clear. **CLIP** squares
 the peaks off at its ceiling: soft rounds them, hard cuts them; below the ceiling it only adds its drive. MB COMP then
 CLIP last in the chain is a loud master; CLIP before a FILTER is a fizzy one.
 
