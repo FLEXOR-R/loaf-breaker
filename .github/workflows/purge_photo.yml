@@ -1,8 +1,9 @@
 # One-off (FLEXOR, 10 Nov 2026): every tag rewritten without the GLOUPI BREAKS start-up photo (art/gloupi_logo.png,
 # its pixels app/logo_data.h, its converter tools/make_logo.py). The branches were rewritten from a Claude Code session,
 # whose git proxy refuses to push tags; this does the tags on GitHub's side, by hand only:
-# Actions → PURGE START-UP PHOTO → Run workflow, typing PURGE. It stops, pushing nothing, if a branch on GitHub isn't
-# already the clean one, and checks every tag afterwards. Run once; it can be deleted after.
+# Actions → PURGE START-UP PHOTO → Run workflow, typing PURGE. It stops, pushing nothing, if a branch on GitHub still
+# has the photo; it rewrites only the tags that have it (the newer ones' signed commits left as they are), then checks
+# a fresh copy of the whole repository. Run once; it can be deleted after.
 name: PURGE START-UP PHOTO
 
 on:
@@ -29,29 +30,35 @@ jobs:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -eu
+          P="art/gloupi_logo.png app/logo_data.h tools/make_logo.py"
           pipx install git-filter-repo
           url="https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}"
           git clone --quiet --mirror "$url" repo.git
           cd repo.git
-          git filter-repo --force --invert-paths --path art/gloupi_logo.png --path app/logo_data.h --path tools/make_logo.py
-          left=$(git rev-list --all --objects | grep -cE 'art/gloupi_logo.png|app/logo_data.h|tools/make_logo.py' || true)
-          echo "photo objects left after the rewrite: $left"
-          [ "$left" = 0 ]
-          git remote add origin "$url"
-          for b in $(git for-each-ref --format='%(refname:short)' refs/heads); do   # (the branches: already clean)
-            r=$(git ls-remote origin "refs/heads/$b" | cut -f1)
-            l=$(git rev-parse "refs/heads/$b")
-            if [ "$r" != "$l" ]; then
-              echo "::error::branch $b on GitHub is not the clean one: nothing pushed"
+          # (full ref names: a tag and a branch share the name "audition")
+          for ref in $(git for-each-ref --format='%(refname)' refs/heads); do   # the branches: already clean
+            if [ -n "$(git log -1 --format=%H "$ref" -- $P)" ]; then
+              echo "::error::$ref still has the photo in its history: nothing pushed"
               exit 1
             fi
           done
-          git push --force --tags origin
-          bad=0
-          for t in $(git for-each-ref --format='%(refname)' refs/tags); do
-            r=$(git ls-remote origin "$t" | head -1 | cut -f1)
-            l=$(git rev-parse "$t")
-            [ "$r" = "$l" ] || { echo "::error::tag $t not updated"; bad=1; }
+          dirty=""
+          for t in $(git for-each-ref --format='%(refname)' refs/tags); do   # only the tags with the photo
+            [ -z "$(git log -1 --format=%H "$t" -- $P)" ] || dirty="$dirty $t"
           done
-          [ "$bad" = 0 ]
-          echo "Every tag rewritten: the start-up photo is in no branch and no tag."
+          echo "tags with the photo: $(echo $dirty | wc -w)"
+          [ -n "$dirty" ] || { echo "No tag has the photo: nothing to do."; exit 0; }
+          # (filter-repo drops commit signatures: the clean tags and branches are left as they are, never pushed)
+          git filter-repo --force --invert-paths --path art/gloupi_logo.png --path app/logo_data.h --path tools/make_logo.py
+          for t in $dirty; do
+            [ -z "$(git log -1 --format=%H "$t" -- $P)" ] || { echo "::error::$t not cleaned: nothing pushed"; exit 1; }
+          done
+          git remote add origin "$url"
+          git push --force origin $(for t in $dirty; do printf '%s:%s ' "$t" "$t"; done)
+          cd ..
+          git clone --quiet --mirror "$url" check.git         # what GitHub has now, from scratch
+          cd check.git
+          left=$(git rev-list --all --objects | grep -cE 'art/gloupi_logo.png|app/logo_data.h|tools/make_logo.py' || true)
+          echo "photo objects reachable on GitHub: $left"
+          [ "$left" = 0 ]
+          echo "Done: the start-up photo is in no branch and no tag."
