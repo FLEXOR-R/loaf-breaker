@@ -54,8 +54,14 @@ turn PRESET 1 10
 wait 200
 expect selk1_fn 5
 expect selk4_fn 3
+# NEW SCHOOL: K1 DRIVE, K2 CLEAN SUB, K3 T+ TYPE, K4 TERROR (DRIVE always on K1, TERROR on K4)
+turn PRESET 1 10
+wait 200
+expect selk1_fn 5
+expect selk3_fn 6
+expect selk4_fn 3
 # STYLE's cards: each knob's value by its name, its bar as SEL + it turns (SEL locked: SEL twice)
-turn PRESET -1 10
+turn PRESET -2 10
 wait 200
 tap SEL
 wait 120

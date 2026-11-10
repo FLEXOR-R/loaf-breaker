@@ -275,9 +275,9 @@ or K2 left once more, deletes it, the rest moving up),
     time (the cards show them); **PRESETS** turns through eight styles, each giving the four at once (the kick
     playing's): **TERROR** (DRIVE, TERROR 2, T+ SCREECH, TERROR, as they
     start), **EARLY NEXT GEN** (PITCH DROP, RUMBLE, PUNCH, DRUM FLT), **HARDCORE** (DRIVE, TUNE, DECAY, TERROR), **NEW
-    SCHOOL** (CLEAN SUB, TERROR, T+ TYPE, TUNE), **RAWSTYLE** (REV BASS, GLIDE, TUNE, T+ TAIL), **INDUSTRIAL** (T+
-    SCREECH, T+ TYPE, DECAY, KICK FX), **FRENCHCORE** (TUNE, DECAY, TERROR 2, DRIVE), **LIVE BUILD** (DRUM FLT, MORPH,
-    RUMBLE, HOLD). The kick's picture shows the style ("PRESETS: EARLY NEXT GEN", CUSTOM once a knob is changed on its
+    SCHOOL** (DRIVE, CLEAN SUB, T+ TYPE, TERROR), **RAWSTYLE** (REV BASS, GLIDE, TUNE, T+ TAIL), **INDUSTRIAL** (T+
+    SCREECH, T+ TYPE, DECAY, KICK FX), **FRENCHCORE** (DRIVE, DECAY, TERROR 2, TUNE), **LIVE BUILD** (DRUM FLT, MORPH,
+    RUMBLE, HOLD): DRIVE always on K1, TERROR always on K4. The kick's picture shows the style ("PRESETS: EARLY NEXT GEN", CUSTOM once a knob is changed on its
     own); their settings stay where they are. Each card also shows its function's value by the knob's name, and its bar
     moves as SEL + that knob turns it (SEL twice: locked, both hands free).
   Every one of them has its place on the KICK menu too, the kick's own with no knob given it: the TERRORs and TERROR +
