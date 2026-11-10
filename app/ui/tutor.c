@@ -1,9 +1,10 @@
 /* SPDX-License-Identifier: MPL-2.0 */
 /* LOAF BREAKER: the TUTORIAL (FLEXOR, 10 Nov 2026): the firmware's basics learnt on the FM-1 itself, a step at a time.
  * Each step says one thing to do in the header (when no other message is up) and blinks the button or keys that do
- * it; when it is done (tut_done), "OK!" and, 5 s later (TUT_WAIT: its result heard, seen), the next. Seven lessons
+ * it; when it is done (tut_done), "OK!" and the next: at once, or for a step with a result to hear (an effect, a
+ * kick: its `wait`, FLEXOR 0.213) 5 s later (TUT_WAIT). Seven lessons
  * (HOME first: the PERFORM menu): the break, the effects, the kick (its built-in kicks too), its DISTO, the pattern,
- * the drop, SAVE. Started from SYSTEM › SETUP K1 MODE (TUTORIAL, left of BEGINNER) and on a new FM-1; GLO
+ * the drop, SAVE. Started from SYSTEM › SETUP K3 MODE (TUTORIAL, left of BEGINNER) and on a new FM-1; GLO
  * quits it, SEL + GLO skips a step. set.tut: 0 off, 1..TUT_N the step running (kept with SAVE), TUT_DONE finished.
  * (Part of app.c's unity: included there in order, before screen.c, which draws the header.) */
 
@@ -14,33 +15,33 @@ enum { TC_HOME, TC_PLAY, TC_SLICES, TC_STOP, TC_PAD, TC_PAD2, TC_EDIT, TC_KNOBS,
 static const char *const TUT_LESSON[8] = {"THE BREAK", "EFFECTS", "THE KICK", "DISTO", "THE PATTERN", "THE DROP", "SAVE",
                                           "DONE"};
 static const struct {
-    uint8_t lesson, cond, keys;
+    uint8_t lesson, cond, keys, wait;    /* (wait: 1, its result to hear: 5 s before the next; 0: at once) */
     uint16_t btn;                        /* (the buttons it blinks: bit B_*) */
     const char *say;
 } TUT[] = {
-    {0u, TC_HOME, 0u, 1u << B_HOME, "PRESS HOME: THE PERFORM MENU"},
-    {0u, TC_PLAY, 0u, 1u << B_PLAY, "PRESS PLAY: THE BREAK PLAYS"},
-    {0u, TC_SLICES, TK_WHITE, 0u, "PLAY THE WHITE KEYS: ITS SLICES"},
-    {0u, TC_STOP, 0u, 1u << B_PLAY, "PRESS PLAY AGAIN: IT STOPS"},
-    {1u, TC_PLAY, 0u, 1u << B_PLAY, "PRESS PLAY AGAIN"},
-    {1u, TC_PAD, TK_BLACK, 0u, "HOLD A BLACK KEY: AN EFFECT"},
-    {1u, TC_PAD2, TK_BLACK, 0u, "NOW ANOTHER BLACK KEY"},
-    {2u, TC_EDIT, 0u, 1u << B_EDIT, "PRESS EDIT: THE KICK"},
-    {2u, TC_KNOBS, 0u, 0u, "TURN K1 TO K4: SHAPE IT"},
-    {2u, TC_OUT, 0u, 0u, "TURN ALGORITHM LEFT: OUT"},
-    {2u, TC_KPRE, 0u, 0u, "TURN K4: THE BUILT-IN KICKS"},
-    {2u, TC_PRESETS, 0u, 0u, "TURN PRESETS: KICK 2 OF 10"},
-    {3u, TC_DISTO, 0u, 1u << B_SEL, "HOLD SEL, TURN K4: ITS DISTO"},
-    {4u, TC_SEQ, 0u, 1u << B_SEQ, "PRESS SEQ: THE PATTERN"},
-    {4u, TC_KICKS, TK_WHITE, 0u, "WHITE KEYS: PUT 2 KICKS IN"},
-    {4u, TC_SNARE, TK_WHITE, 0u, "ALGORITHM TO SNARE, ADD ONE"},
-    {5u, TC_DROP, 0u, 1u << B_SEL | 1u << B_ENV, "PLAYING: HOLD SEL, PRESS ENV"},
-    {6u, TC_SAVE, 0u, 1u << B_SAVE, "PRESS SAVE: ALL KEPT"},
-    {7u, TC_END, 0u, 0u, "THE REST: THE MANUAL. ENJOY!"},
+    {0u, TC_HOME, 0u, 0u, 1u << B_HOME, "PRESS HOME: THE PERFORM MENU"},
+    {0u, TC_PLAY, 0u, 1u, 1u << B_PLAY, "PRESS PLAY: THE BREAK PLAYS"},
+    {0u, TC_SLICES, TK_WHITE, 1u, 0u, "PLAY THE WHITE KEYS: ITS SLICES"},
+    {0u, TC_STOP, 0u, 0u, 1u << B_PLAY, "PRESS PLAY AGAIN: IT STOPS"},
+    {1u, TC_PLAY, 0u, 0u, 1u << B_PLAY, "PRESS PLAY AGAIN"},
+    {1u, TC_PAD, TK_BLACK, 1u, 0u, "HOLD A BLACK KEY: AN EFFECT"},
+    {1u, TC_PAD2, TK_BLACK, 1u, 0u, "NOW ANOTHER BLACK KEY"},
+    {2u, TC_EDIT, 0u, 0u, 1u << B_EDIT, "PRESS EDIT: THE KICK"},
+    {2u, TC_KNOBS, 0u, 1u, 0u, "TURN K1 TO K4: SHAPE IT"},
+    {2u, TC_OUT, 0u, 0u, 0u, "TURN ALGORITHM LEFT: OUT"},
+    {2u, TC_KPRE, 0u, 1u, 0u, "TURN K4: THE BUILT-IN KICKS"},
+    {2u, TC_PRESETS, 0u, 1u, 0u, "TURN PRESETS: KICK 2 OF 10"},
+    {3u, TC_DISTO, 0u, 1u, 1u << B_SEL, "HOLD SEL, TURN K4: ITS DISTO"},
+    {4u, TC_SEQ, 0u, 0u, 1u << B_SEQ, "PRESS SEQ: THE PATTERN"},
+    {4u, TC_KICKS, TK_WHITE, 1u, 0u, "WHITE KEYS: PUT 2 KICKS IN"},
+    {4u, TC_SNARE, TK_WHITE, 1u, 0u, "ALGORITHM TO SNARE, ADD ONE"},
+    {5u, TC_DROP, 0u, 1u, 1u << B_SEL | 1u << B_ENV, "PLAYING: HOLD SEL, PRESS ENV"},
+    {6u, TC_SAVE, 0u, 0u, 1u << B_SAVE, "PRESS SAVE: ALL KEPT"},
+    {7u, TC_END, 0u, 0u, 0u, "THE REST: THE MANUAL. ENJOY!"},
 };
 #define TUT_N (sizeof TUT / sizeof TUT[0])
 #define TUT_DONE 0xFEu
-#define TUT_WAIT 5000u                   /* (FLEXOR: a step done, 5 s before the next) */
+#define TUT_WAIT 5000u                   /* (FLEXOR: a step done with a result to hear, 5 s before the next) */
 static uint32_t tut_ok;                  /* (a step done: when, |1; 0: none) */
 static int tut_on(void) { return set.tut >= 1u && set.tut <= TUT_N; }
 /* what the steps watch (common.c's counters, counted where it happens: main.c, seq.c), against the step's start */
@@ -71,7 +72,7 @@ static void tut_go(uint32_t step)        /* step 1..TUT_N (past the last: finish
     tut_mark();
     ui.redraw |= RG_HEAD;
 }
-static void tut_start(void)              /* SETUP K1 left of BEGINNER: from where it was left, or the first step */
+static void tut_start(void)              /* SETUP K3 left of BEGINNER: from where it was left, or the first step */
 {
     tut_go(set.tut >= 1u && set.tut <= TUT_N ? set.tut : 1u);
     app_say("TUTORIAL", "GLO: QUIT, SEL+GLO: SKIP");
@@ -80,7 +81,7 @@ static void tut_quit(void)
 {
     set.tut = TUT_DONE;
     set_dirty = 1u;
-    app_say("TUTORIAL", "QUIT (SETUP K1: AGAIN)");
+    app_say("TUTORIAL", "QUIT (SETUP K3: AGAIN)");
     ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
 }
 static int tut_done(uint32_t c, const brk_status_t *st)
@@ -144,7 +145,9 @@ static void tut_frame(const brk_status_t *st)   /* each frame: the step done, 5 
         return;
     }
     if (tut_done(TUT[set.tut - 1u].cond, st)) {
-        if (TUT[set.tut - 1u].cond == TC_END) {
+        if (!TUT[set.tut - 1u].wait) {   /* (nothing to hear: "OK!" and the next at once) */
+            if (TUT[set.tut - 1u].cond != TC_END)
+                app_say("TUTORIAL", "OK!");
             tut_go(set.tut + 1u);
             return;
         }

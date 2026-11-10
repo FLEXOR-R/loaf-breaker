@@ -69,16 +69,17 @@ static void global_value(int i, char *t)
             text_cat(t, set.kfocus ? "PART" : "WHOLE");
         return;
     }
-    if (ui.gpage == 2u) {                /* GLOUPI BREAKS: MORE (in place of Bluetooth audio): K1 the skin */
-        if (i == 3)                      /* (LOAF BREAKER: K4 the skin; SYNTHWAVE short, to fit its column) */
+    if (ui.gpage == 2u) {                /* SETUP (FLEXOR, 0.213: the knobs in the screen's order, top to bottom): K1 SKIN,
+                                          * K2 WAVE ZOOM, K3 MODE, K4 AUTO SAVE */
+        if (i == 0)                      /* (SYNTHWAVE short, to fit its column) */
             text_cat(t, set.skin % NSKINS == 10u ? "SYNTHWV" : SKIN_NAME[set.skin % NSKINS]);
-        else if (i == 1)                 /* LOAF BREAKER: K2 AUTO SAVE */
-            text_cat(t, set.auto_save ? "ON" : "OFF");
-        else if (i == 0)                 /* (TEST: K1 MODE; LOAF BREAKER: TUTORIAL, left of BEGINNER) */
+        else if (i == 1)
+            text_cat(t, CDJ_ZNAME[set.wzoom % CDJ_ZN]);
+        else if (i == 2)                 /* (TUTORIAL, left of BEGINNER) */
             text_cat(t, tut_on() ? "TUTORIAL" : set.novice ? "BEGINNER" : "EXPERT");
-        else if (i == 2)                 /* (TEST: K3 METER, not saved) */
-            text_cat(t, ui.meter_on ? "ON" : "OFF");
-        return;                          /* (K3: nothing; the effects: GLO EFFECTS) */
+        else
+            text_cat(t, set.auto_save ? "ON" : "OFF");
+        return;
     }
     if (ui.gpage) {                      /* the pitch: speed or keep length, the grains */
         if (i == 0)
@@ -96,7 +97,8 @@ static void global_value(int i, char *t)
         return;
     }
     text_cat(t, i == 0 ? (set.clk_in ? "FOLLOW" : "OFF") : i == 1 ? (set.clk_out ? "ON" : "OFF")
-                : "");                   /* (LOAF BREAKER: K3, K4 nothing: no Bluetooth, MIDI goes over USB) */
+                : i == 2 && !set.novice ? (ui.meter_on ? "ON" : "OFF")
+                : "");                   /* (LOAF BREAKER: K3 the METER, EXPERT only; K4 nothing: no Bluetooth) */
 }
 
 static void global_turn(int i, int32_t d)
@@ -159,18 +161,19 @@ static void global_turn(int i, int32_t d)
         ui.redraw = RG_ALL;
         return;
     }
-    if (ui.gpage == 2u) {                /* MORE: K4 the skin, the whole screen in its colours at once */
-        if (i == 3) {
+    if (ui.gpage == 2u) {                /* SETUP: K1 the skin, the whole screen in its colours at once */
+        if (i == 0) {
             set.skin = (uint8_t)((set.skin + (d > 0 ? 1u : NSKINS - 1u)) % NSKINS);
             changed();                   /* (settings_apply: skin_apply) */
             app_say("SKIN", SKIN_NAME[set.skin % NSKINS]);
             ui.redraw = RG_ALL;
-        } else if (i == 2) {             /* (TEST) K3 METER: right on, left off (not saved) */
-            ui.meter_on = d > 0 ? 1u : 0u;
-            app_say("METER", ui.meter_on ? "ON: CPU, IMG, FR" : "OFF");
+        } else if (i == 1) {             /* K2 WAVE ZOOM: HOME's wave, how much of the past it holds */
+            set.wzoom = (uint8_t)clamp((int32_t)(set.wzoom % CDJ_ZN) + (d > 0 ? 1 : -1), 0, CDJ_ZN - 1);
+            changed();
+            app_say("WAVE ZOOM", CDJ_ZNAME[set.wzoom % CDJ_ZN]);
             ui.redraw |= RG_BLOCKS | RG_FOOT;
-        } else if (i == 0) {             /* (TEST) K1 MODE: right EXPERT, left BEGINNER (LOAF BREAKER: left again, the
-                                          * TUTORIAL; right from it, BEGINNER) */
+        } else if (i == 2) {             /* K3 MODE: right EXPERT, left BEGINNER (left again, the TUTORIAL; right from
+                                          * it, BEGINNER) */
             if (d < 0 && set.novice && !tut_on())
                 tut_start();
             else if (d > 0 && tut_on()) {
@@ -178,16 +181,18 @@ static void global_turn(int i, int32_t d)
                 app_say("MODE", "BEGINNER");
             } else {
                 set.novice = d > 0 ? 0u : 1u;
+                if (set.novice)
+                    ui.meter_on = 0u;    /* (the METER: EXPERT's) */
                 changed();
                 app_say("MODE", set.novice ? "BEGINNER" : "EXPERT");
             }
             ui.redraw |= RG_BLOCKS | RG_FOOT;
-        } else if (i == 1) {             /* K2 AUTO SAVE: right on, left off */
+        } else {                         /* K4 AUTO SAVE: right on, left off */
             set.auto_save = d > 0 ? 1u : 0u;
             changed();
             app_say("AUTO SAVE", set.auto_save ? "ON" : "OFF");
             ui.redraw |= RG_BLOCKS | RG_FOOT;
-        }                                /* (K1, K3: nothing; the effects: GLO EFFECTS) */
+        }
         return;
     }
     if (ui.gpage) {
@@ -214,7 +219,13 @@ static void global_turn(int i, int32_t d)
         }
     } else if (i == 1)
         set.clk_out = d > 0;
-    else                                 /* (LOAF BREAKER: no Bluetooth: K3, K4 do nothing) */
+    else if (i == 2 && !set.novice) {    /* LOAF BREAKER: K3 the METER, EXPERT only (0.213; SETUP's before): right on,
+                                          * left off (not saved): CPU, IMG, FR in the header */
+        ui.meter_on = d > 0 ? 1u : 0u;
+        app_say("METER", ui.meter_on ? "ON: CPU, IMG, FR" : "OFF");
+        ui.redraw |= RG_HEAD | RG_FOOT;
+        return;
+    } else                               /* (LOAF BREAKER: no Bluetooth: K4 does nothing) */
         return;
     global_value(i, t);
     app_say(NAME[i], t);
@@ -316,7 +327,7 @@ static void draw_global(const brk_status_t *st)
     }
     if (ui.gpage == 2u) {                /* MORE: the skin, and every skin's colours to pick from (K4) */
         uint32_t s;
-        cv_text(6, 1, &FONT_T, "SKIN", C_GRAY);
+        cv_text(6, 1, &FONT_T, "K1 SKIN", C_GRAY);
         cv_text(96, 1, &FONT_T, SKIN_NAME[set.skin % NSKINS], C_HI);
         for (s = 0; s < NSKINS; s++) {   /* a swatch each: its value colour on its ground, the one on outlined */
             int32_t x = 6 + (int32_t)(s % 9u) * 26, y = 18 + (int32_t)(s / 9u) * 13;   /* (18, two rows of nine) */
@@ -329,15 +340,15 @@ static void draw_global(const brk_status_t *st)
         }
         cv_blit(0, 44);
         cv_begin(240, 52, C_BLACK);
-        cv_text(6, 2, &FONT_T, "WAVE ZOOM", C_GRAY);   /* PRESETS (cdj.c) */
+        cv_text(6, 2, &FONT_T, "K2 WAVE ZOOM", C_GRAY);   /* (cdj.c; PRESETS too) */
         cv_text(96, 2, &FONT_T, CDJ_ZNAME[set.wzoom % CDJ_ZN], C_HI);
-        cv_text(96, 16, &FONT_XS, "PRESETS: HOME'S WAVE", C_DIM);
+        cv_text(96, 16, &FONT_XS, "HOME'S WAVE, HOW WIDE", C_DIM);
         cv_text(96, 26, &FONT_XS, "SCREEN EFFECTS: GLO AGAIN", C_DIM);
-        cv_text(6, 38, &FONT_T, "MODE", C_GRAY);   /* (TEST) K1 */
+        cv_text(6, 38, &FONT_T, "K3 MODE", C_GRAY);
         cv_text(96, 38, &FONT_T, tut_on() ? "TUTORIAL" : set.novice ? "BEGINNER" : "EXPERT", C_HI);
         cv_blit(0, 88);
         cv_begin(240, 52, C_BLACK);
-        cv_text(6, 2, &FONT_T, "AUTO SAVE", C_GRAY);   /* K2 */
+        cv_text(6, 2, &FONT_T, "K4 AUTO SAVE", C_GRAY);
         cv_text(96, 2, &FONT_T, set.auto_save ? "ON" : "OFF", set.auto_save ? C_HI : C_DIM);
         cv_text(96, 16, &FONT_XS, "A MINUTE AFTER A CHANGE,", C_DIM);
         cv_text(96, 28, &FONT_XS, "AFTER 10 S OF SILENCE", C_DIM);

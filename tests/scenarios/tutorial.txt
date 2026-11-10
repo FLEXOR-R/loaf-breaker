@@ -1,5 +1,5 @@
-# LOAF BREAKER: the TUTORIAL. SYSTEM › SETUP (GLO twice), K1 left twice: BEGINNER, then TUTORIAL. Its 19 steps, each
-# done as it says, then 5 s before the next: HOME (PERFORM); PLAY, four slices, PLAY (stop); PLAY, a black key,
+# LOAF BREAKER: the TUTORIAL. SYSTEM › SETUP (GLO twice), K3 left twice: BEGINNER, then TUTORIAL. Its 19 steps, each
+# done as it says, then the next: at once (nothing to hear: HOME, stop, EDIT, OUT, SEQ, SAVE ..), or 5 s later: HOME (PERFORM); PLAY, four slices, PLAY (stop); PLAY, a black key,
 # another; EDIT, K1 K2 turned, ALGORITHM left (OUT), K4 twice (the built-in kicks), PRESETS; SEL + K4; SEQ, two kicks,
 # ALGORITHM to the snare and one; SEL + ENV (the drop); SAVE; the last read, then finished (254).
 #   app/build/host/loaf-breaker_host tests/scenarios/tutorial.txt app/build/scenarios
@@ -9,25 +9,23 @@ wait 150
 tap GLO
 wait 300
 expect gpage 2
-turn K1 -1 80
+turn K3 -1 80
 wait 200
-turn K1 -1 80
+turn K3 -1 80
 wait 300
 expect tut 1
 wait 1500
 shot tu_1.png
 tap HOME
-wait 600
+wait 300
 expect page 0
-expect tut 1
-wait 1900
-shot tu_ok.png
-wait 3100
 expect tut 2
 tap PLAY
 wait 600
 expect tut 2
-wait 5000
+wait 1900
+shot tu_ok.png
+wait 3100
 expect tut 3
 wait 1500
 shot tu_2.png
@@ -41,10 +39,10 @@ tapkey w8
 wait 5400
 expect tut 4
 tap PLAY
-wait 5400
+wait 300
 expect tut 5
 tap PLAY
-wait 5400
+wait 300
 expect tut 6
 key b1 down
 wait 400
@@ -57,7 +55,7 @@ key b4 up
 wait 5400
 expect tut 8
 tap EDIT
-wait 5400
+wait 300
 expect tut 9
 wait 1500
 shot tu_8.png
@@ -68,7 +66,6 @@ expect tut 10
 turn ALGO -1 80
 wait 300
 expect kpage 4
-wait 5200
 expect tut 11
 wait 1500
 shot tu_kpre.png
@@ -85,14 +82,14 @@ release SEL
 wait 5400
 expect tut 14
 tap SEQ
-wait 5400
+wait 300
 expect tut 15
 tapkey w0
 wait 100
 tapkey w8
 wait 5400
 expect tut 16
-turn ALGO 3 80
+turn ALGO 1 80
 expect seq_lane 6
 wait 200
 tapkey w4
@@ -106,7 +103,7 @@ release SEL
 wait 12000
 expect tut 18
 tap SAVE
-wait 5400
+wait 300
 expect tut 19
 wait 1500
 shot tu_16.png

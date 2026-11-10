@@ -1,4 +1,4 @@
-# LOAF BREAKER TEST: GLO MORE's MODE (K1). BEGINNER (left): the KICK menu's ALGORITHM passes over the advanced parts:
+# LOAF BREAKER TEST: SYSTEM › SETUP's MODE (K3). BEGINNER (left): the KICK menu's ALGORITHM passes over the advanced parts:
 # BODY MIX, SUB, SYNTH, OUT (no GRIT, SYNTH +, MACRO, no layer effects); TAIL TAIL alone (no TAIL +, BASS, MORPH); LFO LEVELS, GROOVE; KNOBS and STYLE (no K SET). EXPERT (right): all again.
 #   app/build/host/loaf-breaker_host tests/scenarios/novice.txt app/build/scenarios
 wait 4200
@@ -7,7 +7,7 @@ wait 150
 tap GLO
 wait 300
 expect gpage 2
-turn K1 -1 10
+turn K3 -1 10
 wait 200
 shot nv_more.png
 tap EDIT
@@ -72,7 +72,7 @@ tap GLO
 wait 150
 tap GLO
 wait 300
-turn K1 1 10
+turn K3 1 10
 wait 200
 tap EDIT
 wait 300

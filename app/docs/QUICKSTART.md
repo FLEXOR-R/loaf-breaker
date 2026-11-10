@@ -3,8 +3,8 @@
 LOAF BREAKER turns the M-VAVE FM-1 into a hardcore break machine: a breakbeat cut into 16 slices, a distorted kick
 built from scratch, drums, effects and drops. You don't need the whole manual to start: these five steps are enough.
 The FM-1 starts in **BEGINNER** mode (SYSTEM › SETUP: GLO twice, K1): the advanced pages stay hidden until you want them.
-A new FM-1 also starts the **TUTORIAL**: the header says what to do, the buttons to press blink, 19 steps, five seconds between them (SEL + GLO
-skips one, GLO quits; SETUP K1 left of BEGINNER starts it again).
+A new FM-1 also starts the **TUTORIAL**: the header says what to do, the buttons to press blink, 19 steps, five seconds after the ones with something to hear (SEL + GLO
+skips one, GLO quits; SETUP K3 left of BEGINNER starts it again).
 
 ## 1. Press PLAY
 

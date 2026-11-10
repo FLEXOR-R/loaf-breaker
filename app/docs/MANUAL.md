@@ -17,12 +17,13 @@ LOAF BREAKER turns the M-VAVE FM-1 into a hardcore break machine: a breakbeat cu
 built from scratch, drums, effects and drops. You don't need the whole manual to start: these five steps are enough.
 The FM-1 starts in **BEGINNER** mode (SYSTEM › SETUP: GLO, then GLO again; K1): the advanced pages stay hidden until you want them.
 
-**Or let the FM-1 show you: the TUTORIAL.** A new FM-1 starts with it (and SYSTEM › SETUP K1, turned left past
+**Or let the FM-1 show you: the TUTORIAL.** A new FM-1 starts with it (and SYSTEM › SETUP K3, turned left past
 BEGINNER, starts it again). The header says one thing to do at a time, the button or the keys that do it blink, and
-when it's done, "OK!" and, five seconds later (time to hear what you did), the next: 19 steps in seven lessons, THE
+when it's done, "OK!" and the next: at once for a button (HOME, EDIT, SEQ, SAVE ..), five seconds later where there is
+something to hear (an effect, a kick, the drop): 19 steps in seven lessons, THE
 BREAK (HOME: the PERFORM menu, PLAY, the slices, stop), EFFECTS (the black keys), THE KICK (EDIT, K1–K4, ALGORITHM to
 OUT and its K4 PRESET: the built-in kicks, 909 to DISTORTO; PRESETS: your ten kicks), DISTO (SEL + K4), THE PATTERN (SEQ: kicks, a snare), THE DROP (SEL + ENV) and
-SAVE. Everything is real: you play the firmware itself. **SEL + GLO** skips a step, **GLO** quits (SETUP K1 starts it
+SAVE. Everything is real: you play the firmware itself. **SEL + GLO** skips a step, **GLO** quits (SETUP K3 starts it
 again where you left it; SAVE keeps where you are). An FM-1 already in use when it updates doesn't start it.
 
 ![The TUTORIAL: step 1, PRESS HOME](img/screen-tutorial.png "TUTORIAL")
@@ -136,7 +137,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD |
 | LFO | MIX | LEVELS (BREAK, KICK, PERC), SENDS (FX, the drums' route), MASTER, DYNAMICS |
 | FX | EFFECTS | The four slots: MAIN, MORE, MOD |
-| GLO | SYSTEM | MIDI, SETUP (MODE, AUTO SAVE, METER, SKIN), EFFECTS (the screen's; the waves' colours; KICK VIEW), FX SET, RESET |
+| GLO | SYSTEM | MIDI (EXPERT: K3 METER), SETUP (K1 SKIN, K2 WAVE ZOOM, K3 MODE, K4 AUTO SAVE), EFFECTS (the screen's; the waves' colours; KICK VIEW), FX SET, RESET |
 
 The same gestures everywhere: **the button again** is the next part; **ALGORITHM** the element in the part (a slot, a
 lane, a drum's part; where there is nothing to pick, the break); **PRESETS** the pattern, but on SOUNDS the source's
@@ -240,7 +241,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 - **LFO** (MIX): LEVELS, SENDS, MASTER (K1 COMP, K2 its RATIO, K3 DUCK, K4 MAX OUT; COMP's reduction metered),
   DYNAMICS (COMP's ATTACK and RELEASE, DUCK's RELEASE, DUCKS: the break, or the break and the drums).
 - **ENV**: the song. TRACKS, PLAY, DROP, BUILD. (What SEL + each knob does: EDIT › KNOBS; RESET: GLO.)
-- **GLO** (SYSTEM): MIDI, SETUP (MODE, AUTO SAVE, METER, SKIN, WAVE ZOOM), EFFECTS (several at once, keys 1–7; K3 the waves' colours REKORDBOX or SERATO, K4 KICK VIEW: the whole kick or the part edited), FX SET, RESET.
+- **GLO** (SYSTEM): MIDI (EXPERT: the METER), SETUP (SKIN, WAVE ZOOM, MODE, AUTO SAVE: K1 to K4, top to bottom), EFFECTS (several at once, keys 1–7; K3 the waves' colours REKORDBOX or SERATO, K4 KICK VIEW: the whole kick or the part edited), FX SET, RESET.
   The break's PITCH, GRAIN and SNAP are SOUNDS › BREAK; SWING is PATTERN › GROOVE.
 
 ### The CDJ view (HOME)
@@ -654,8 +655,9 @@ whose part you are on.
 
 ## 7. SYSTEM (GLO): MIDI, setup, screen effects, reset
 
-**GLO** opens SYSTEM: the slice blocks give way to the state of MIDI, and K1–K4 set it (SAVE keeps it).
-**GLO again** (or ALGORITHM) turns to SETUP: the mode, the skins and AUTO SAVE; then EFFECTS, FX SET and RESET (below). LOAF BREAKER has no Bluetooth: MIDI goes over USB and the TRS jack. On a computer the FM-1 shows as **LOAF BREAKER FM-1** (a MIDI device and, for recording, an audio input).
+**GLO** opens SYSTEM: the slice blocks give way to the state of MIDI, and K1–K4 set it (SAVE keeps it); in EXPERT, K3 is
+the **METER** (below).
+**GLO again** (or ALGORITHM) turns to SETUP: the skins, WAVE ZOOM, the mode and AUTO SAVE; then EFFECTS, FX SET and RESET (below). LOAF BREAKER has no Bluetooth: MIDI goes over USB and the TRS jack. On a computer the FM-1 shows as **LOAF BREAKER FM-1** (a MIDI device and, for recording, an audio input).
 
 ![SYSTEM: MIDI in and out](img/screen-global.png "SYSTEM")
 
@@ -683,21 +685,23 @@ tempo's own repitch, HALF, REVERSE's speed and the tape stop stay speed effects.
 
 ![RESET ALL done: the lobotomy screen](img/screen-lobotomized.png "LOBOTOMIZED")
 
-**SETUP (GLO twice):** K4 **SKIN**, the screen's colours (RED to start; the whole screen changes at once): RED, AMBER, ICE BLUE, PIP-BOY,
-IRIS, PINK, MINT, WHITE, BLOOD, MAXENCE, then the two-colour ones: SYNTHWAVE (neon cyan and magenta on indigo), VAPOR,
-TOXIC, MIAMI, LAVA, GOLD, BLAZE (flashy orange and red), ACID (acid yellow and red-orange); K1 **MODE**: TUTORIAL (left of
-BEGINNER: the tutorial, above), BEGINNER or EXPERT (right). In BEGINNER, ALGORITHM on the KICK menu passes over its advanced parts: SOUND has MIX, SUB
-and OUT, SYNTH has SYNTH, BASS and MACRO, DIRT has DISTO, TONE has EQ BANDS and FX 1, KNOBS has KNOBS. Nothing is
-lost: EXPERT shows them all again, as they were left. A new FM-1, the web emulator and RESET ALL start in BEGINNER; an
-FM-1 updated with its settings saved stays in EXPERT. K3 **METER** (not saved: off at every start): once a second the
-header shows CPU (the share of its time the sound takes, average and peak: past ~85 % at its peak the sound is at its
-limit), IMG (the screen strips sent that second) and FR (how many times a second the interface went round: the higher,
-the quicker it answers). For telling what slows it down. K2
-**AUTO SAVE**, ON: what you change is saved by itself a minute after it changed, once the break has been stopped and **nothing
-has been heard for 10 s** (the flash is never written while it plays, nor while a long kick tail, a reverb, an echo or a
-drum played by hand still sounds: its stall would cut it). **PRESETS** there: **WAVE ZOOM**, how much of the past HOME's scrolling wave
-(the CDJ view) holds across the screen: 1/2, 2/3, 5/6 of a bar (zoomed in), 1 BAR (as it was), 1 1/4, 1 1/2, 2 BARS
-(zoomed out).
+**SETUP (GLO twice):** its four settings top to bottom, K1 to K4. K1 **SKIN**, the screen's colours (RED to start; the
+whole screen changes at once): RED, AMBER, ICE BLUE, PIP-BOY, IRIS, PINK, MINT, WHITE, BLOOD, MAXENCE, then the
+two-colour ones: SYNTHWAVE (neon cyan and magenta on indigo), VAPOR, TOXIC, MIAMI, LAVA, GOLD, BLAZE (flashy orange and
+red), ACID (acid yellow and red-orange). K2 **WAVE ZOOM** (PRESETS too), how much of the past HOME's scrolling wave (the
+CDJ view) holds across the screen: 1/2, 2/3, 5/6 of a bar (zoomed in), 1 BAR (as it was), 1 1/4, 1 1/2, 2 BARS (zoomed
+out). K3 **MODE**: TUTORIAL (left of BEGINNER: the tutorial, above), BEGINNER or EXPERT (right). In BEGINNER, ALGORITHM
+on the KICK menu passes over its advanced parts: SOUND has MIX, SUB and OUT, SYNTH has SYNTH, BASS and MACRO, DIRT has
+DISTO, TONE has EQ BANDS and FX 1, KNOBS has KNOBS. Nothing is lost: EXPERT shows them all again, as they were left. A
+new FM-1, the web emulator and RESET ALL start in BEGINNER; an FM-1 updated with its settings saved stays in EXPERT.
+K4 **AUTO SAVE**, ON: what you change is saved by itself a minute after it changed, once the break has been stopped and
+**nothing has been heard for 10 s** (the flash is never written while it plays, nor while a long kick tail, a reverb, an
+echo or a drum played by hand still sounds: its stall would cut it).
+
+**METER** (EXPERT only: SYSTEM › MIDI, K3; not saved: off at every start, and in BEGINNER): once a second the header
+shows CPU (the share of its time the sound takes, average and peak: past ~85 % at its peak the sound is at its limit),
+IMG (the screen strips sent that second) and FR (how many times a second the interface went round: the higher, the
+quicker it answers). For telling what slows it down.
 
 **EFFECTS (GLO four times):** the screen effects, **several at once**: white keys **1–7** turn each on or off (lit
 while on), K1 points at one and K2 turns it on (right) or off (left). **CRT** (every other line dimmed, as an old
@@ -809,7 +813,7 @@ nothing set there sounds exactly as it always did.
 - **STACK** is layering: **ATTACK** takes the hit from another kick (KICK 1–10, as it is in its memory, its own LAB
   too), this kick plays the tail. **CROSS** is where one hands over to the other (amber dashes on the picture),
   **FADE** how long the hand-over takes. **SOLO** lets you hear the attack alone or the tail alone (not saved).
-  Two kicks sound at once until the hand-over: watch SETUP's METER with STACK on.
+  Two kicks sound at once until the hand-over: watch the METER (SYSTEM › MIDI K3) with STACK on.
 - **MUTATE** (K1 right) moves the kick's layers and INTENSITY a little at random, each detent again; K1 left goes
   back to before the first. **A/B** (K2) swaps the kick you are editing (A) with itself as it came or was last saved
   (B); edit either, SAVE keeps the one playing.

@@ -336,7 +336,7 @@ static struct {
     uint8_t kil_focus;                   /* LOAF BREAKER: KIL held (its K1: LATCH) */
     uint8_t seq_manual;                  /* LOAF BREAKER: SEQ's lane picked by hand while playing: the bar playing not
                                           * followed until the next stop */
-    uint8_t meter_on;                    /* (TEST) GLO MORE K3 METER: the load, once a second in the header */
+    uint8_t meter_on;                    /* (TEST) SYSTEM › MIDI K3 METER (EXPERT): the load, once a second in the header */
     uint8_t ksect, kpos[6], kks;         /* (kks: KNOBS' K SET, the knob 0..3; LOAF BREAKER: six sections, LAB) */
     uint8_t kview;                       /* (LOAF BREAKER: the KICK menu's picture: 0 RGB, 1 WAVE; EDIT held, then CLASSIC) */
     uint8_t kclassic, edit_hold;         /* (EDIT held on the KICK menu: the view as it was, the drums' shapes; EDIT

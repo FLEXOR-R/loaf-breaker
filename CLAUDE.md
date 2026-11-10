@@ -16,13 +16,13 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   (`name`: loaf-breaker.fwsc, app/build/host/loaf-breaker_host), `fmhub.json` LOAF BREAKER's (author FLEXOR). CHOPPAH
   stays credited (README, site credits, the card's text, fm1.toml). The hub checklist: docs/hub/SUBMIT.md.
 - Menus (9 Nov 2026, 0.177): ENV is the song (TRACKS, PLAY, DROP, BUILD); RESET is GLO's sixth part (`RST_ON`, ENV's
-  reset code in track.c); the knobs' functions are EDIT KICK › KNOBS only. SYSTEM › SETUP K1 MODE (`set.novice`): BEGINNER hides
+  reset code in track.c); the knobs' functions are EDIT KICK › KNOBS only. SYSTEM › SETUP K3 MODE (`set.novice`): BEGINNER hides
   the KICK menu's advanced parts (`KP_ADV`); the host simulator starts EXPERT (scenarios, the manual's screens), the
   FM-1 and the web emulator BEGINNER. The manual opens with "Start in five minutes" (the hub card's `cheat` link).
 - Screen and knobs (0.178): the screen's rows are remembered as hashes (`rows_send` in common.c): a full-width strip
   sends only its changed rows. Anything drawing on the screen other than through `cv_blit` must forget its rows
   (`rows_forget`; `lcd_fill` is wrapped). `changed()` applies once a pass (`apply_flush`); a kick-only or FX-only change
-  uses `changed_kick()` / `changed_fx()`. SYSTEM › SETUP K3 METER shows CPU / IMG / FR on the device. CI runs a 30-minute
+  uses `changed_kick()` / `changed_fx()`. SYSTEM › MIDI K3 METER (EXPERT only, 0.213) shows CPU / IMG / FR on the device. CI runs a 30-minute
   random soak (`tools/soak.py`, seed = run number) at every release.
 - Names (10 Nov 2026, 0.191): what the code calls TERROR, TERROR 2, TERROR + the screen and the docs call DISTO,
   SCREAM, DISTO + (D+ TYPE, D+ SCREECH ..); the black key DST. Keep newcomers' names on the screen; TERROR stays the
@@ -60,10 +60,13 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   VIEW (`set.kfocus`: the whole kick / the part edited: kick.c kv_ms, kv_kick) (10 Nov 2026, 0.206).
 - TUTORIAL (0.211, FLEXOR: "a sober name"): ui/tutor.c (included before screen.c), TUT[] steps (lesson, condition TC_*,
   keys and buttons to blink, text), `set.tut` (appended: 0 off, 1..TUT_N the step, 0xFE done; a new FM-1 starts it,
-  an older save not), the counters tut_* in common.c; the header draws the step (screen.c); SETUP K1 left of
+  an older save not), the counters tut_* in common.c; the header draws the step (screen.c); SETUP K3 left of
   BEGINNER; GLO quits, SEL + GLO skips. 0.212 (FLEXOR): HOME first (on PERFORM already, HOME stays: tut_home_stay),
-  OUT's K4 the built-in kicks, a step done waits 5 s (`TUT_WAIT`, the header counting) before the next. Keep its steps
-  true when a control they teach moves.
+  OUT's K4 the built-in kicks. 0.213: a step done waits 5 s (`TUT_WAIT`, the header counting) only where there is
+  something to hear (TUT[].wait: slices, effects, kicks, DISTO, steps, the drop); a button step goes on at once. Keep
+  its steps true when a control they teach moves.
+- SETUP (0.213, FLEXOR): the knobs in the screen's order, K1 SKIN, K2 WAVE ZOOM (PRESETS too), K3 MODE, K4 AUTO SAVE;
+  the METER moved to MIDI's K3, EXPERT only (BEGINNER turns it off).
 - RESET (0.209): after a reset its page's knobs do nothing for 3 s (`RST_COOL`, `ui.rst_done`, rst_cool()), DONE shown.
 - No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository.
 - Fonts: `font_trim` is on (fm1.toml, 9 Nov 2026). LOAF BREAKER draws in FONT_T, FONT_XS and FONT_B only (cv_text2 for

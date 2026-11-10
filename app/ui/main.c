@@ -1347,7 +1347,7 @@ static void draw_foot(const brk_status_t *st)
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "LEVEL"};   /* (SOUNDS' BREAK) */
         static const char *const KN_GROOVE[3][4] = {{"FX", "DRUMS", "", ""}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
                                                     {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
-        static const char *const KN_MORE[3][4] = {{"MODE", "AUTO SAVE", "METER", "SKIN"},   /* GLOBAL's MORE */
+        static const char *const KN_MORE[3][4] = {{"SKIN", "WAVE ZOOM", "MODE", "AUTO SAVE"},   /* SETUP */
                                                   {"EFFECT", "ON / OFF", "WAVE", "KICK VIEW"},   /* (LOAF BREAKER: EFFECTS, */
                                                   {"AMOUNT", "KICK", "DROP", "LENGTH"}};   /* FX SET) */
         static const char *const KN_TRK[4][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
@@ -1397,6 +1397,8 @@ static void draw_foot(const brk_status_t *st)
             if (!ui.note_key && i == 1)
                 name = sl_kick(ui.seq_lane) ? "KICK" : "SOUND";
         }
+        if (ui.page == PG_GLOBAL && !ui.gpage && i == 2u && !set.novice)
+            name = "METER";              /* (LOAF BREAKER, 0.213: SYSTEM › MIDI K3, EXPERT only) */
         cv_text(4 + (int32_t)i * 60, 18, &FONT_T, name, ui.page == PG_FX
                 ? (fx_sl(fx_foc())->on ? C_HI : C_DIM) : C_GRAY);
         knob_value((int)i, t);

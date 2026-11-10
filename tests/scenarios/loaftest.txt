@@ -50,10 +50,8 @@ tap GLO
 wait 200
 tap GLO
 wait 300
-turn K3 1 10
 wait 400
 shot x_crt.png
-turn K3 -1 10
 wait 200
 tap PLAY
 wait 300
