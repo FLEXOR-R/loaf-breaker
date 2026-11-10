@@ -178,8 +178,9 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
   next section, the kick's anatomy from its hit to its end: **ATTACK** (CLICK, PUNCH, STACK), **BODY** (MIX, SUB, GRIT,
   SYNTH, SYNTH +, MACRO, OUT; the menu opens here), **TAIL** (TAIL, TAIL +, BASS, MORPH), **DIRT** (DISTO, DISTO +,
   SCREAM, the layers' effects), **TONE** (EQ BANDS, EQ SHAPE, FX 1, FX 2), **KNOBS** (KNOBS, K1–K4, STYLE, TOOLS);
-  **ALGORITHM**: the next part in it (each section remembers where you were). The section's parts are in a row at
-  the foot of the picture, the one open lit (BEGINNER: those it passes over dimmed). **KNOBS** puts the live knobs on the kick's picture: its first part, KNOBS, has K1–K4 turn what SEL + K1–K4
+  **ALGORITHM**: the next part in it (each section remembers where you were). The section's parts are a bar of tabs at
+  the foot of the picture, the whole width, the one open lit (BEGINNER: those it passes over dimmed; short names
+  there: SYN+ for SYNTH +, D+ for DISTO +, S FX .. C FX for the layers' effects). **KNOBS** puts the live knobs on the kick's picture: its first part, KNOBS, has K1–K4 turn what SEL + K1–K4
   turn (DRIVE, SCREAM, D+ SCREECH, DISTO to start: their first setting, their value large), so you hear and see the
   kick as you set them; then **K1 SET .. K4 SET**, each knob's function with all its settings (DISTO:
   AMOUNT, SUB, FIZZ, SUSTAIN; MORPH: AMOUNT, TO KICK…), the function's name by the kick's (KICK 4  K4 DISTO). They

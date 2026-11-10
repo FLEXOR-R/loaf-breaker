@@ -800,6 +800,23 @@ static void kick_chip(uint32_t p, char *t)   /* (LOAF BREAKER: a part's name at 
         text_cat(t, "MORPH");
         return;
     }
+    {                                    /* (the long ones short: "SYNTH +" SYN+, "DISTO +" D+, EQ's BANDS, SHAPE;
+                                          * a layer's effect S FX .. C FX, below) */
+        static const uint8_t P[6] = {KP_BASE + 8u, KP_BASE + 5u, KP_BASE + 0u, KP_BASE + 1u, KP_BASE + 18u, 0u};
+        static const char *const S[5] = {"SYN+", "D+", "BANDS", "SHAPE", "TAIL+"};
+        uint32_t j;
+        for (j = 0; j < 5u; j++)
+            if (p == P[j]) {
+                text_cat(t, S[j]);
+                return;
+            }
+    }
+    if (p >= 1u && p < KP_BASE - 2u && ((p - 1u) & 1u)) {   /* (a layer's effect: "S FX" .. "C FX") */
+        char l[2] = {KICK_LAYER_NAME[(p - 1u) / 2u][0], 0};
+        text_cat(t, l);
+        text_cat(t, " FX");
+        return;
+    }
     kick_part_name(p, t);
 }
 static void kick_picture(int32_t top)
@@ -813,7 +830,7 @@ static void kick_picture(int32_t top)
     float tms = 120.0f * brk_exp2f_c((float)set.ksyn[KS_TIME] * 0.04f);
     char t[32], u[8];                    /* (t: the part's words, "PRESETS: EARLY NEXT GEN": room to spare) */
     cv_oy = -top;
-    cv_rect(4, 50, KV_W, 1, C_LINE);     /* (the middle) */
+    cv_rect(4, 45, KV_W, 1, C_LINE);     /* (the middle; LOAF BREAKER: up, the parts' bar under it) */
     if (ui.kview == 0u) {                /* LOAF BREAKER: the RGB view, as rekordbox (the CDJ view's colours): each
                                           * column as tall as its peak, its lows red, mids green, highs blue */
         uint32_t pk = 1u;
@@ -821,7 +838,7 @@ static void kick_picture(int32_t top)
             pk = kv_rgb[i][3] > pk ? kv_rgb[i][3] : pk;
         for (i = 0; i < KV_W; i++) {
             const uint8_t *v = kv_rgb[i];
-            uint32_t m = v[0] > v[1] ? v[0] : v[1], h = (uint32_t)v[3] * 34u / pk, br;
+            uint32_t m = v[0] > v[1] ? v[0] : v[1], h = (uint32_t)v[3] * 29u / pk, br;
             m = v[2] > m ? v[2] : m;
             if (!m || !h)
                 continue;
@@ -832,7 +849,7 @@ static void kick_picture(int32_t top)
                 r = r * r / 255u;
                 g = g * g / 255u;
                 b = b * b / 255u;
-                cv_rect(4 + (int32_t)i, 50 - (int32_t)h, 1, 2 * (int32_t)h + 1,
+                cv_rect(4 + (int32_t)i, 45 - (int32_t)h, 1, 2 * (int32_t)h + 1,
                         set.wstyle ? serato_col(v[0], v[1], v[2], br) : RGB(r * br / 255u, g * br / 255u, b * br / 255u));
             }
         }
@@ -840,11 +857,11 @@ static void kick_picture(int32_t top)
     for (i = 0; i < KV_W; i++) {         /* the hit: its level (dim, mirrored), its wave over it */
         int32_t h = kv_px[i], w = kv_wave[i];
         if (h)
-            cv_rect(4 + (int32_t)i, 50 - h, 1, 2 * h + 1, C_BLOCK);
+            cv_rect(4 + (int32_t)i, 45 - h, 1, 2 * h + 1, C_BLOCK);
         if (w > 0)
-            cv_rect(4 + (int32_t)i, 50 - w, 1, w, C_HI);
+            cv_rect(4 + (int32_t)i, 45 - w, 1, w, C_HI);
         else if (w < 0)
-            cv_rect(4 + (int32_t)i, 51, 1, -w, C_HI);
+            cv_rect(4 + (int32_t)i, 46, 1, -w, C_HI);
     }
     if (kscope_hit && !(set.kfocus && (ui.kpage == KP_LAYER || ui.kpage == KP_FX || ui.kpage == KP_STACK))) {
                                           /* LOAF BREAKER TEST: the kick as it really sounds, its last hit: white over it
@@ -855,11 +872,11 @@ static void kick_picture(int32_t top)
             pk = (v < 0 ? -v : v) > pk ? (v < 0 ? -v : v) : pk;
         }
         for (i = 0; i < KV_W && i < KSC_W; i++) {
-            v = kscope[i] * 34 / pk;
+            v = kscope[i] * 29 / pk;
             if (v) {
                 uint32_t sx = i * 250u / KV_MS;   /* (its 250 ms, on the picture's time) */
                 if (sx < KV_W)
-                    cv_rect(4 + (int32_t)sx, 50 - v, 1, 1, C_WHITE);
+                    cv_rect(4 + (int32_t)sx, 45 - v, 1, 1, C_WHITE);
             }
         }
     }
@@ -871,7 +888,7 @@ static void kick_picture(int32_t top)
         else if (klab.cur.curve == 2u)
             pe = 1.0f - (1.0f - pl) * (1.0f - pl) * (1.0f - pl);
         f = hz * (1.0f + drop * pe);
-        int32_t y = 84 - (int32_t)(brk_clampf(brk_log2f(f / 30.0f) / 5.06f, 0.0f, 1.0f) * 68.0f);
+        int32_t y = 74 - (int32_t)(brk_clampf(brk_log2f(f / 30.0f) / 5.06f, 0.0f, 1.0f) * 58.0f);
         if (x)
             cv_line(2 + x, py, 4 + x, y, ui.kview == 0u ? C_WHITE : C_AMB);   /* (white over the RGB) */
         py = y;
@@ -884,7 +901,7 @@ static void kick_picture(int32_t top)
                          : (klab.cur.end ? kick_lab_ms(KLM_END, klab.cur.end) : -1.0f);
             int32_t mx = 4 + (int32_t)(ms * ((float)KV_W / (float)KV_MS));
             if (ms >= 0.0f && mx < 4 + (int32_t)KV_W)
-                for (x = 18; x < 84; x += 4)
+                for (x = 16; x < 74; x += 4)
                     cv_rect(mx, x, 1, 2, m ? C_AMB : C_WHITE);
         }
     }
@@ -923,33 +940,39 @@ static void kick_picture(int32_t top)
     int_text((int32_t)(hz + 0.5f), t + text_n(t));
     text_cat(t, " HZ");
     cv_text(234 - text_w(&FONT_XS, t), 4, &FONT_XS, t, C_AMB);
-    {                                    /* LOAF BREAKER (0.205): the section's parts at the foot, the one open lit
-                                          * (BEGINNER: those it passes over dim) */
-        uint32_t s = ui.ksect % KSECTS, n = KSECT_N[s], j, w = 0u, open = kick_part(), gap;
-        int32_t cx;
+    {                                    /* LOAF BREAKER (0.205; 0.207 a bar): the section's parts at the foot, as the
+                                          * tabs: the whole width, the one open lit (BEGINNER: those it passes over
+                                          * dim); the tabs' letters if they fit, else smaller */
+        uint32_t s = ui.ksect % KSECTS, n = KSECT_N[s], j, w = 0u, open = kick_part(), extra;
+        const felucca_font_t *f = &FONT_T;
+        int32_t cx = 4, y = 80;
         char c[16];
         for (j = 0; j < n; j++) {
             c[0] = 0;
             kick_chip(KSECT[s][j], c);
-            w += (uint32_t)text_w(&FONT_XS, c) + 6u;
+            w += (uint32_t)text_w(&FONT_T, c) + 8u;
         }
-        gap = n > 1u && w < 232u ? (232u - w) / (n - 1u) : 0u;
-        gap = gap > 10u ? 10u : gap;
-        cx = 4;
+        w += 2u * (n - 1u);
+        if (w > KV_W) {                  /* (too wide: the small letters) */
+            f = &FONT_XS;
+            for (w = 2u * (n - 1u), j = 0; j < n; j++) {
+                c[0] = 0;
+                kick_chip(KSECT[s][j], c);
+                w += (uint32_t)text_w(&FONT_XS, c) + 6u;
+            }
+        }
+        extra = w < KV_W ? KV_W - w : 0u;
         for (j = 0; j < n; j++) {
             uint32_t p = KSECT[s][j];
-            int32_t tw;
+            int32_t tw, sw;
             c[0] = 0;
             kick_chip(p, c);
-            tw = text_w(&FONT_XS, c) + 6;
-            if (p == open) {
-                cv_rect(cx, 86, tw, 11, C_HI);
-                cv_text(cx + 3, 87, &FONT_XS, c, C_BLACK);
-            } else {
-                cv_rect(cx, 86, tw, 11, C_BLOCK);
-                cv_text(cx + 3, 87, &FONT_XS, c, kp_hidden(p) ? C_DIM : C_GRAY);
-            }
-            cx += tw + (int32_t)gap;
+            tw = text_w(f, c);
+            sw = tw + (f == &FONT_T ? 8 : 6) + (int32_t)(extra / n) + (j < extra % n ? 1 : 0);   /* (the room shared) */
+            cv_rect(cx, y, sw, 15, p == open ? C_HI : C_BLOCK);
+            cv_text(cx + (sw - tw) / 2, f == &FONT_T ? y + 2 : y + 4, f, c,
+                    p == open ? C_BLACK : kp_hidden(p) ? C_DIM : C_GRAY);
+            cx += sw + 2;
         }
     }
     cv_oy = 0;
@@ -1032,14 +1055,14 @@ static void draw_kick(const brk_status_t *st)
         if (ui.kview == 0u)              /* (LOAF BREAKER: the RGB view, its peaks its own; or the wave over its level) */
             kick_rgb(&kk, kv_rgb, KV_W, KV_MS);
         else {
-            kick_shape(&kk, kv_px, KV_W, KV_MS, 34u);
-            kick_wave(&kk, kv_wave, KV_W, KV_MS, 34u);
+            kick_shape(&kk, kv_px, KV_W, KV_MS, 29u);
+            kick_wave(&kk, kv_wave, KV_W, KV_MS, 29u);
         }
         for (top = 0; top < KV_W; top++)
             pk = kv_px[top] > pk ? kv_px[top] : pk;
         for (top = 0; pk && top < KV_W; top++) {   /* (as tall as it goes) */
-            kv_px[top] = (uint8_t)((uint32_t)kv_px[top] * 34u / pk);
-            kv_wave[top] = (int8_t)((int32_t)kv_wave[top] * 34 / (int32_t)pk);
+            kv_px[top] = (uint8_t)((uint32_t)kv_px[top] * 29u / pk);
+            kv_wave[top] = (int8_t)((int32_t)kv_wave[top] * 29 / (int32_t)pk);
         }
     }
     for (top = 0; top < 100u; top += 60u) {   /* (y 44..143, strips of 60 rows) */
