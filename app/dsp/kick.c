@@ -29,6 +29,9 @@ typedef struct {
     float s1[KICK_LAYERS], s2[KICK_LAYERS], fph[KICK_LAYERS], fhold[KICK_LAYERS];   /* the layers' effects */
     uint32_t rng;
     float last, declick;
+    uint32_t t;                          /* LOAF BREAKER LAB: samples since the hit */
+    float pl, gend, fenv, f1, f2;        /* the drop's ramp (LINEAR, SNAP), END's gain, the TAIL FILTER's fall, its
+                                          * two poles */
 } kv_t;
 
 /* the block's settings, mapped */
@@ -56,6 +59,10 @@ typedef struct {
     uint32_t hold_n, rlen;               /* the SUB's hold (samples), the rumble's line (samples) */
     float rb_lvl, rb_k;                  /* (TEST) REVERSE BASS: its level, its curve's power (1..4) */
     uint32_t rb_s, rb_e;                 /* where it starts and ends, samples from the hit */
+    uint8_t clean, curve, filt;          /* LOAF BREAKER LAB: CLEAN, the drop's shape, the TAIL FILTER on */
+    float grat, pl_step, fa_end, f_dec, tdrive;   /* GRIT's FM ratio, the ramp's step, the filter's coefficient at its
+                                          * end, its fall a sample, TAIL DRIVE */
+    uint32_t end_n, x0, x1;              /* END (0 off), STACK's hand-over from .. to (samples from the hit) */
 } kc_t;
 static volatile float p_glide, p_rbl, p_rbs, p_rbk, p_spb = 15562.0f;   /* (TEST) kick_set_bass, kick_set_beat */
 void kick_set_bass(float glide_ms, float rb_level, float rb_start, float rb_curve)
@@ -71,6 +78,46 @@ void kick_set_clean_sub(float amount) { p_csub = amount; }
 
 static volatile kick_t p_k;
 static volatile int8_t p_syn[KS_N];      /* (SYNTH) the main loop's */
+static volatile kick_lab_t p_lab;        /* LOAF BREAKER LAB: the kick playing's */
+static volatile kick_t p_ak;             /* STACK's attack: its kick, SYNTH, LAB; on */
+static volatile int8_t p_asyn[KS_N];
+static volatile kick_lab_t p_alab;
+static volatile uint8_t p_aon, p_solo;
+static kv_t kv2;                         /* the attack's voice */
+BRK_COLD void kick_set_lab(const kick_lab_t *l) { *(kick_lab_t *)&p_lab = *l; }
+BRK_COLD void kick_set_stack(const kick_t *k, const int8_t *syn, const kick_lab_t *l)
+{
+    uint32_t i;
+    if (!k) {
+        p_aon = 0u;
+        return;
+    }
+    p_aon = 0u;                          /* (not read half-written) */
+    *(kick_t *)&p_ak = *k;
+    for (i = 0; i < KS_N; i++)
+        p_asyn[i] = syn[i];
+    *(kick_lab_t *)&p_alab = *l;
+    p_aon = 1u;
+}
+void kick_set_solo(uint32_t s) { p_solo = (uint8_t)(s > 2u ? 0u : s); }
+BRK_COLD float kick_lab_ms(uint32_t what, uint32_t v)
+{
+    float f = (float)(v > 100u ? 100u : v);
+    switch (what) {
+    case KLM_END:
+        return 20.0f + 20.0f * f;
+    case KLM_CROSS:
+        return 10.0f * brk_exp2f_c(f * 0.049f);
+    case KLM_FADE:
+        return 2.0f * brk_exp2f_c(f * 0.0623f);
+    case KLM_FTIME:
+        return 20.0f * brk_exp2f_c(f * 0.049f);
+    case KLM_FILT:
+        return 12000.0f * brk_exp2f_c(-f * 0.06f);
+    default:                             /* (KLM_NOTE: MIDI 22 + n, A#0 ..) */
+        return 440.0f * brk_exp2f_c((f + 22.0f - 69.0f) * (1.0f / 12.0f));
+    }
+}
 static int16_t *rum_buf;                 /* the rumble's line (the app's), its length, where it is */
 static uint32_t rum_cap, rum_pos;
 void kick_set_synth(const int8_t *s)
@@ -122,7 +169,7 @@ BRK_COLD float kick_fx_hz(uint32_t fx, float a)
 }
 uint32_t kick_fx_bits(float a) { return 15u - (uint32_t)(brk_clampf(a, 0.0f, 1.0f) * 12.0f + 0.5f); }   /* 15..3 */
 
-BRK_COLD static void kc_make(const kick_t *k, kc_t *c)
+BRK_COLD static void kc_make(const kick_t *k, kc_t *c, const volatile int8_t *syn, const kick_lab_t *lab)
 {
     uint32_t i;
     for (i = 0; i < KICK_LAYERS; i++) {
@@ -165,9 +212,9 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c)
     c->click_noise = brk_clampf(k->l[KL_CLICK].tone, 0.0f, 1.0f);
     c->click_k = brk_clampf(brk_tan_pi_c(c->f[KL_CLICK]) * 2.0f, 0.02f, 0.98f);
     {                                    /* (SYNTH: 0, as it always was) */
-        float dr = (float)p_syn[KS_DROP], tm = (float)p_syn[KS_TIME], sh = (float)p_syn[KS_SHAPE];
-        float hd = (float)p_syn[KS_HOLD], rm = (float)p_syn[KS_RUMBLE], rt = (float)p_syn[KS_RTIME];
-        float tune = brk_exp2f_c(brk_clampf((float)p_syn[KS_TUNE], -12.0f, 12.0f) * (1.0f / 12.0f));
+        float dr = (float)syn[KS_DROP], tm = (float)syn[KS_TIME], sh = (float)syn[KS_SHAPE];
+        float hd = (float)syn[KS_HOLD], rm = (float)syn[KS_RUMBLE], rt = (float)syn[KS_RTIME];
+        float tune = brk_exp2f_c(brk_clampf((float)syn[KS_TUNE], -12.0f, 12.0f) * (1.0f / 12.0f));
         uint32_t j;
         c->sdrop = 2.0f * brk_exp2f_c(brk_clampf(dr, -50.0f, 50.0f) * 0.04f);
         c->pe_dec = decay_factor(120.0f * brk_exp2f_c(brk_clampf(tm, -50.0f, 50.0f) * 0.04f));
@@ -181,7 +228,7 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c)
         if (c->rlen > rum_cap)
             c->rlen = rum_cap;
         c->rfb = 0.75f + brk_clampf(rt, -50.0f, 50.0f) * 0.003f;
-        c->asym = p_syn[KS_ASYM] > 0 ? (float)p_syn[KS_ASYM] * 0.005f : 0.0f;
+        c->asym = syn[KS_ASYM] > 0 ? (float)syn[KS_ASYM] * 0.005f : 0.0f;
         for (j = 0; j < KICK_LAYERS; j++)
             c->f[j] *= tune;
     }
@@ -239,6 +286,43 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c)
     }
     c->vol = brk_clampf(k->volume, 0.0f, 1.0f);
     c->csub = brk_clampf(p_csub, 0.0f, 1.0f);
+    {                                    /* LOAF BREAKER: the KICK LAB */
+        float tune = brk_exp2f_c(brk_clampf((float)syn[KS_TUNE], -12.0f, 12.0f) * (1.0f / 12.0f));
+        float tms = 120.0f * brk_exp2f_c(brk_clampf((float)syn[KS_TIME], -50.0f, 50.0f) * 0.04f);
+        c->clean = lab->mode == 1u;
+        c->curve = (uint8_t)(lab->curve <= 2u ? lab->curve : 0u);
+        c->pl_step = 1.0f / (tms * 0.5f * 0.001f * (float)BRK_SR);   /* (LINEAR, SNAP: on the note at half TIME) */
+        if (lab->note)
+            c->f[KL_SUB] = kick_lab_ms(KLM_NOTE, lab->note > 24u ? 24u : lab->note) * tune / (float)BRK_SR;
+        c->grat = 1.41f;
+        if (c->clean) {                  /* (CLEAN: one note, PUNCH and GRIT on the SUB's octave, GRIT's FM harmonic) */
+            c->f[KL_PUNCH] = c->f[KL_GRIT] = c->f[KL_SUB] * 2.0f;
+            c->grat = 1.0f;
+            if (c->rlen) {               /* (the RUMBLE's loop: a whole number of the note's periods) */
+                float per = 1.0f / c->f[KL_SUB];
+                uint32_t m = (uint32_t)((float)c->rlen / per + 0.5f);
+                m = m ? m : 1u;
+                while (m > 1u && (float)m * per > (float)rum_cap)
+                    m--;
+                c->rlen = (uint32_t)((float)m * per + 0.5f);
+                if (c->rlen > rum_cap)
+                    c->rlen = rum_cap;
+            }
+        }
+        c->end_n = lab->end ? (uint32_t)(kick_lab_ms(KLM_END, lab->end > 49u ? 49u : lab->end) * (float)(BRK_SR / 1000u)) : 0u;
+        c->filt = lab->filt ? 1u : 0u;
+        if (c->filt) {
+            c->fa_end = 1.0f - brk_exp2f_c(-6.2832f * 1.4427f * kick_lab_ms(KLM_FILT, lab->filt) / (float)BRK_SR);
+            c->f_dec = decay_factor(kick_lab_ms(KLM_FTIME, lab->ftime));
+        }
+        c->tdrive = (float)(lab->drive > 100u ? 100u : lab->drive) * 0.08f;
+        {
+            float cr = kick_lab_ms(KLM_CROSS, lab->cross) * (float)(BRK_SR / 1000u);
+            float fd = kick_lab_ms(KLM_FADE, lab->fade) * (float)(BRK_SR / 1000u);
+            c->x0 = cr > fd * 0.5f ? (uint32_t)(cr - fd * 0.5f) : 0u;
+            c->x1 = c->x0 + (uint32_t)fd + 1u;
+        }
+    }
 }
 
 static void kv_hit(kv_t *v)
@@ -256,6 +340,9 @@ static void kv_hit(kv_t *v)
     v->hold = 0xFFFFFFFFu;               /* (SYNTH: its HOLD, set at the first sample) */
     v->rb_t = 0u;                        /* (TEST: the REVERSE BASS, from this hit) */
     v->rb_ph = 0.0f;
+    v->t = 0u;                           /* (LOAF BREAKER LAB) */
+    v->pl = v->gend = v->fenv = 1.0f;
+    v->f1 = v->f2 = 0.0f;                /* (the filter open at the hit: it passes it all) */
 }
 
 static inline float noise(kv_t *v)
@@ -307,9 +394,15 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
     float clean = c->csub > 0.0f ? brk_sin_turns(v->ph[KL_SUB]) * v->env[KL_SUB] : 0.0f;   /* (CLEAN SUB: the SUB's
                                           * sine, this sample, before anything drives it) */
     uint32_t i;
+    /* LOAF BREAKER LAB: the drop's shape: EXP as always, LINEAR or SNAP a ramp landing on the note */
+    float pv = v->pe;
+    if (c->curve) {
+        float q = 1.0f - v->pl;
+        pv = c->curve == 1u ? v->pl : 1.0f - q * q * q;
+    }
     /* SUB: a sine dropping an octave and a half to its pitch, saturated by its tone */
     x[KL_SUB] = soft(brk_sin_turns(v->ph[KL_SUB]) * c->sub_sat) * (1.0f + c->sub_sat) / c->sub_sat;
-    v->ph[KL_SUB] += c->f[KL_SUB] * v->pm * (1.0f + c->sdrop * v->pe);   /* (SYNTH: its DROP) */
+    v->ph[KL_SUB] += c->f[KL_SUB] * v->pm * (1.0f + c->sdrop * pv);   /* (SYNTH: its DROP) */
     if (v->hold == 0xFFFFFFFFu)
         v->hold = c->hold_n;
     /* PUNCH: a sine swept down fast from far above */
@@ -318,8 +411,11 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
     /* GRIT: FM (the modulator at 1.41x), driven, noise by its tone */
     x[KL_GRIT] = soft(4.0f * (brk_sin_turns(v->ph[KL_GRIT] + c->grit_index * 0.159f * brk_sin_turns(v->ph2)) +
                               c->grit_noise * noise(v)));
-    v->ph[KL_GRIT] += c->f[KL_GRIT] * v->pm * (1.0f + v->pe);
-    v->ph2 += c->f[KL_GRIT] * v->pm * 1.41f * (1.0f + v->pe);
+    {                                    /* (LAB CLEAN: GRIT falls as the SUB does, its FM harmonic) */
+        float ge = c->clean ? 1.0f + c->sdrop * pv : 1.0f + pv;
+        v->ph[KL_GRIT] += c->f[KL_GRIT] * v->pm * ge;
+        v->ph2 += c->f[KL_GRIT] * v->pm * c->grat * ge;
+    }
     /* CLICK: noise high-passed at its pitch, and a click ringing there; tone between them */
     {
         float n = noise(v), ring = brk_sin_turns(v->ph[KL_CLICK]);
@@ -327,17 +423,28 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
         x[KL_CLICK] = (n - v->lp) * c->click_noise + ring * (1.0f - c->click_noise);
         v->ph[KL_CLICK] += c->f[KL_CLICK];
     }
+    {                                    /* (LAB CLEAN: the layers against the SUB's level: the distortion works on a
+                                          * steady sound, the SUB's fall put on after it) */
+    float ie = c->clean ? 1.0f / (v->env[KL_SUB] > 1e-4f ? v->env[KL_SUB] : 1e-4f) : 0.0f;
     for (i = 0; i < KICK_LAYERS; i++) {
+        float e = v->env[i];
+        if (c->clean) {
+            e *= ie;
+            e = e < 4.0f ? e : 4.0f;
+        }
         if (v->ph[i] >= 1.0f)
             v->ph[i] -= (float)(uint32_t)v->ph[i];
-        y += layer_fx(v, c, i, x[i] * v->env[i]) * c->lvl[i];
+        y += layer_fx(v, c, i, x[i] * e) * c->lvl[i];
         if (i == KL_SUB && v->hold)      /* (SYNTH: the SUB held at full) */
             v->hold--;
         else
             v->env[i] *= c->dec[i];
     }
+    }
     if (v->ph2 >= 1.0f)
         v->ph2 -= (float)(uint32_t)v->ph2;
+    if (c->curve)
+        v->pl = v->pl > c->pl_step ? v->pl - c->pl_step : 0.0f;
     v->pe *= c->pe_dec;
     v->pe2 *= c->pe2_dec;
     if (c->rb_lvl > 0.0f && v->rb_t < c->rb_e) {   /* (TEST) the REVERSE BASS: the sub's note swelling up to the
@@ -361,6 +468,8 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
     }
     /* the sum: a drive into a clip, soft and then (INTENSITY over half) hard: the distorted kick */
     d = y * c->g;
+    if (c->tdrive > 0.0f)                /* (LAB: TAIL DRIVE, after the attack) */
+        d *= 1.0f + c->tdrive * (1.0f - v->pe2);
     if (c->asym > 0.0f)                  /* (SYNTH: ASYM, uneven: one side pushed harder) */
         d += c->asym * d * brk_absf(d);
     out = (soft(d) * (1.0f - c->hard) + brk_clampf(d, -1.0f, 1.0f) * c->hard) * c->make;
@@ -416,6 +525,17 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
         z = brk_clampf(v->t2lo * 1.3f + z * 0.8f * (m < 1.0f ? m : 1.0f), -1.0f, 1.0f);
         out += (z - out) * c->t2mix;
     }
+    if (c->clean) {                      /* LOAF BREAKER LAB CLEAN: the SUB's fall, as loud as the clip made it */
+        float et = v->env[KL_SUB] > 1e-4f ? v->env[KL_SUB] : 1e-4f, ge = et * c->g, eg = soft(ge) / soft(c->g);
+        out *= eg * (1.0f - c->hard) + (ge < 1.0f ? ge : 1.0f) * c->hard;
+    }
+    if (c->filt) {                       /* LAB: the TAIL FILTER, closing as the kick goes */
+        float a = c->fa_end + (1.0f - c->fa_end) * v->fenv;
+        v->f1 += (out - v->f1) * a;
+        v->f2 += (v->f1 - v->f2) * a;
+        out = v->f2;
+        v->fenv *= c->f_dec;
+    }
     if (c->rum > 0.0f && rum_buf && c->rlen) {   /* (SYNTH: RUMBLE, the kick under ~150 Hz into a feedback line, its
                                           * echoes low-passed again: the long low roll after each hit) */
         float tap = (float)rum_buf[rum_pos] * (1.0f / 32767.0f), w;
@@ -433,6 +553,16 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
         v->clp += (out - v->clp) * 0.013f;
         out = brk_clampf(out - v->clp * c->csub + clean * 0.9f * c->csub, -1.2f, 1.2f);
     }
+    if (c->end_n && v->t >= c->end_n) {  /* LAB: END, the kick cut (in ~5 ms) */
+        v->gend *= 0.979f;
+        if (v->gend < 1e-4f) {
+            v->gend = 0.0f;
+            for (i = 0; i < KICK_LAYERS; i++)
+                v->env[i] = 0.0f;
+        }
+        out *= v->gend;
+    }
+    v->t++;
     out *= c->vol;
     v->last = out;
     out += v->declick;
@@ -454,6 +584,10 @@ BRK_COLD void kick_init(void)
     kv.hold = 0u;
     kv.pm = kv.pm_t = 1.0f;
     kv.rb_t = 0xFFFFFFFFu;
+    kv.t = 0u;
+    kv.pl = kv.gend = kv.fenv = 1.0f;
+    kv.f1 = kv.f2 = 0.0f;
+    kv2 = kv;                            /* (STACK's attack: the same, silent) */
     ks_last = 0.0f;
     ks_on = 0u;
     hits_seen = p_hits;
@@ -465,15 +599,35 @@ void kick_speed(const float *sp) { ks_sp = sp; }
 static const float *ks_pm;               /* (crossbreed) the next render's hits' pitches (kick_pitches), 0 none */
 void kick_pitches(const float *pm) { ks_pm = pm; }
 
+/* LOAF BREAKER LAB: STACK, the attack's voice over the kick's own until the hand-over, then the kick alone (SOLO:
+ * either alone) */
+static uint8_t st_on;
+static inline float kk_tick(const kc_t *c, const kc_t *c2)
+{
+    uint32_t t = kv.t;
+    float b = kv_tick(&kv, c), a, x;
+    if (!st_on || t > c->x1 || kv2.t != t)   /* (past the hand-over, or not hit with the kick: STACK came on since) */
+        return p_solo == 1u ? 0.0f : b;
+    kv2.pm = kv.pm;
+    a = kv_tick(&kv2, c2);
+    x = t <= c->x0 ? 0.0f : (float)(t - c->x0) / (float)(c->x1 - c->x0);
+    if (t == c->x1)                      /* (handed over: its voice left, nothing to fade in at the next hit) */
+        kv2.last = kv2.declick = 0.0f;
+    return (p_solo == 2u ? 0.0f : a * (1.0f - x)) + (p_solo == 1u ? 0.0f : b * x);
+}
 void kick_render(float *out, uint32_t n, const uint16_t *at, uint32_t nat)
 {
     kick_t k = *(const kick_t *)&p_k;
-    kc_t c;
+    kick_lab_t lab = *(const kick_lab_t *)&p_lab;
+    kc_t c, c2;
     uint32_t i, j = 0;
+    st_on = p_aon && lab.src;
     if (p_hits != hits_seen) {           /* a MIDI note: now */
         hits_seen = p_hits;
         kv_hit(&kv);
         kv.pm = kv.pm_t = 1.0f;
+        if (st_on)
+            kv_hit(&kv2);
     } else if (!nat && kv.env[KL_SUB] < 3e-5f && kv.env[KL_PUNCH] < 3e-5f && kv.env[KL_GRIT] < 3e-5f &&
                kv.env[KL_CLICK] < 3e-5f && brk_absf(kv.declick) < 1e-5f && kv.rlvl < 1e-4f &&
                (p_rbl <= 0.0f || kv.rb_t >= (uint32_t)p_spb)) {   /* (TEST: and no REVERSE BASS to come) */   /* (and the rumble
@@ -484,7 +638,15 @@ void kick_render(float *out, uint32_t n, const uint16_t *at, uint32_t nat)
         ks_on = 0u;
         return;
     }
-    kc_make(&k, &c);
+    kc_make(&k, &c, p_syn, &lab);
+    if (st_on) {                         /* (the attack's settings: no rumble, reverse bass or clean sub of its own) */
+        kick_t ak = *(const kick_t *)&p_ak;
+        kick_lab_t al = *(const kick_lab_t *)&p_alab;
+        kc_make(&ak, &c2, p_asyn, &al);
+        c2.rum = c2.rb_lvl = c2.csub = 0.0f;
+        c2.vol = c.vol;                  /* (at the kick's volume) */
+    } else
+        c2 = c;
     if (ks_sp && !ks_on) {               /* the vinyl begins: from the kick as it is */
         ks_a = ks_b = ks_last;
         ks_ph = 0.0f;
@@ -496,6 +658,8 @@ void kick_render(float *out, uint32_t n, const uint16_t *at, uint32_t nat)
         while (j < nat && at[j] <= i) {  /* the steps' kicks, on their samples */
             float np = ks_pm ? ks_pm[j] : 1.0f;
             kv_hit(&kv);
+            if (st_on)
+                kv_hit(&kv2);
             kv.pm_t = np;                /* (crossbreed: this step's note; TEST: GLIDE, slid to from the last) */
             if (gk >= 1.0f)
                 kv.pm = np;
@@ -504,14 +668,14 @@ void kick_render(float *out, uint32_t n, const uint16_t *at, uint32_t nat)
         if (gk < 1.0f)
             kv.pm += (kv.pm_t - kv.pm) * gk;
         if (!ks_sp)
-            out[i] = kv_tick(&kv, &c);
+            out[i] = kk_tick(&c, &c2);
         else {                           /* the vinyl: the kick's own time runs at the speed, read between */
             float s = ks_sp[i];
             ks_ph += s;
             if (ks_ph >= 1.0f) {
                 ks_ph -= 1.0f;
                 ks_a = ks_b;
-                ks_b = kv_tick(&kv, &c);
+                ks_b = kk_tick(&c, &c2);
             }
             out[i] = (ks_a + (ks_b - ks_a) * ks_ph) * (s < 0.02f ? s * 50.0f : 1.0f);
         }
@@ -525,7 +689,10 @@ BRK_COLD void kick_shape(const kick_t *k, uint8_t *px, uint32_t n, uint32_t ms, 
     kc_t c;
     kv_t v;
     uint32_t i, total = ms * (BRK_SR / 1000u), per = total / (n ? n : 1u);
-    kc_make(k, &c);
+    {
+        kick_lab_t lab = *(const kick_lab_t *)&p_lab;
+        kc_make(k, &c, p_syn, &lab);
+    }
     c.rum = 0.0f;                        /* (the picture: no rumble, its line is the kick's playing) */
     c.rb_lvl = 0.0f;                     /* (nor the REVERSE BASS) */
     v.rng = 0x5eed1u;
@@ -554,7 +721,10 @@ BRK_COLD void kick_wave(const kick_t *k, int8_t *px, uint32_t n, uint32_t ms, ui
     kc_t c;
     kv_t v;
     uint32_t i, total = ms * (BRK_SR / 1000u), per = total / (n ? n : 1u);
-    kc_make(k, &c);
+    {
+        kick_lab_t lab = *(const kick_lab_t *)&p_lab;
+        kc_make(k, &c, p_syn, &lab);
+    }
     c.rum = 0.0f;
     c.rb_lvl = 0.0f;
     v.rng = 0x5eed1u;

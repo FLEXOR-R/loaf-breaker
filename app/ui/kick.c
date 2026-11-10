@@ -5,7 +5,15 @@
 /* ---- the KICK page (PRD K-*): EDIT opens it, EDIT again the next sub-page. The white keys are the kick's 16
  * steps, ALGORITHM the layer, PRESETS the built-in kicks, SEL + EDIT through the FX chain or around it */
 enum { KP_MIX, KP_LAYER, KP_FX, KP_MACRO, KP_OUT, KP_TERROR, KP_TMORE, KP_TERROR2, KP_SYN1, KP_SYN2, KP_BASS, KP_KNOBS,
-       KP_KSET, KP_CMORPH, KP_STYLE, KPAGES };
+       KP_KSET, KP_CMORPH, KP_STYLE, KP_TAIL, KP_TAIL2, KP_STACK, KP_TOOLS, KPAGES };
+/* LOAF BREAKER: the KICK LAB, the menu's LAB section (klab in app.c, kick.h kick_lab_t): TAIL (K1 MODE, K2 NOTE, K3
+ * CURVE, K4 END), TAIL + (K1 FILTER, K2 F TIME, K3 DRIVE), STACK (K1 ATTACK, K2 CROSS, K3 FADE, K4 SOLO), TOOLS (K1
+ * MUTATE, K2 A/B) */
+static int klab_page(void) { return ui.kpage >= KP_TAIL && ui.kpage <= KP_TOOLS; }
+static void klab_value(int i, char *t);
+static float klab_norm(int i);
+static void klab_turn(int i, int32_t d);
+static void ab_take(void);
 /* (LOAF BREAKER TEST: TERROR, TERROR +, TERROR 2 the kick's own settings of them, ENV's KNOB functions 3, 4, 1) */
 static void selk_turn(uint32_t f, int i, int32_t d);
 static void selk_value(uint32_t f, int i, char *t);
@@ -123,12 +131,15 @@ static void kick_mem_go(uint32_t n)      /* (LOAF BREAKER: KICK n, 0..9, as abov
     for (j = 0; j < KS_N; j++)           /* (LOAF BREAKER: its SYNTH with it) */
         set.ksmem[set.kslot % KICK_MEMS][j] = set.ksyn[j];
     kx_put(set.kslot);
+    klab.mem[set.kslot % KICK_MEMS] = klab.cur;   /* (LOAF BREAKER: its KICK LAB with it) */
     set.kslot = (uint8_t)(n % KICK_MEMS);
+    klab.cur = klab.mem[set.kslot];
     set.kick = set.kmem[set.kslot];
     for (j = 0; j < KS_N; j++)
         set.ksyn[j] = set.ksmem[set.kslot][j];
     kx_get(set.kslot);
     set.kick.volume = vol;
+    ab_take();                           /* (LOAF BREAKER: TOOLS' A/B: this kick as it comes) */
     int_text((int32_t)set.kslot + 1, t);
     app_say("KICK", t);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
@@ -153,12 +164,12 @@ static void kick_mem_turn(int32_t d)
 }
 static const char *const KPAGE_NAME[KPAGES] = {"MIX", "LAYER", "LAYER FX", "MACRO", "OUT", "DISTO", "DISTO +",
                                                 "SCREAM", "SYNTH", "SYNTH +", "BASS", "KNOBS", "K SET",
-                                                "CLEAN MORPH", "STYLE"};
+                                                "CLEAN MORPH", "STYLE", "TAIL", "TAIL +", "STACK", "TOOLS"};
 /* the kick's parts in a row, as ALGORITHM turns through them: MIX, SUB, SUB FX, PUNCH, PUNCH FX, GRIT, GRIT FX,
  * CLICK, CLICK FX, MACRO, OUT (each a sub-page, and for a layer its layer); LOAF BREAKER TEST: then EQ BANDS, EQ
  * SHAPE (the KICK EQ page), FX 1, FX 2 (the FX page on the kick's slots), TERROR, TERROR +, TERROR 2 */
 #define KP_BASE (3u + 2u * KICK_LAYERS)
-#define KPARTS (KP_BASE + 17u)
+#define KPARTS (KP_BASE + 21u)       /* (LOAF BREAKER: then the LAB's TAIL, TAIL +, STACK, TOOLS) */
 static const char *const KP_MORE_NAME[11] = {"EQ BANDS", "EQ SHAPE", "FX 1", "FX 2", "DISTO", "DISTO +", "SCREAM",
                                             "SYNTH", "SYNTH +", "BASS", "KNOBS"};   /* (then K1 SET .. K4 SET: "K1 C SUB") */   /* (SYNTH, SYNTH +: ALGORITHM left from MIX) */
 static uint32_t kick_part(void)
@@ -171,6 +182,8 @@ static uint32_t kick_part(void)
         return KP_BASE + 15u;
     if (ui.kpage == KP_STYLE)
         return KP_BASE + 16u;
+    if (klab_page())
+        return KP_BASE + 17u + (uint32_t)(ui.kpage - KP_TAIL);
     if (kp_knobs())
         return KP_BASE + 10u + (ui.kpage == KP_KSET ? 1u + (ui.kks & 3u) : 0u);
     if (ui.kpage >= KP_TERROR)
@@ -186,6 +199,10 @@ static void kick_part_name(uint32_t p, char *t)
     }
     if (p == KP_BASE + 16u) {
         text_cat(t, "STYLE");
+        return;
+    }
+    if (p >= KP_BASE + 17u) {            /* (LOAF BREAKER: the LAB) */
+        text_cat(t, KPAGE_NAME[KP_TAIL + (p - KP_BASE - 17u) % 4u]);
         return;
     }
     if (p >= KP_BASE + 11u) {            /* (K1 SET ..: the knob, its function) */
@@ -211,11 +228,11 @@ static void kick_part_name(uint32_t p, char *t)
 /* LOAF BREAKER: the KICK menu: its parts in four sections, EDIT the next section, ALGORITHM the next part in it.
  * SOUND: MIX, SUB, PUNCH, GRIT, CLICK, OUT. SYNTH: SYNTH, SYNTH +, MACRO. DIRT: TERROR, TERROR +, TERROR 2, the layers'
  * effects. TONE: EQ BANDS, EQ SHAPE, FX 1, FX 2 */
-#define KSECTS 5u
-static const char *const KSECT_NAME[KSECTS] = {"SOUND", "SYNTH", "DIRT", "TONE", "KNOBS"};
-static const uint8_t KSECT_N[KSECTS] = {6u, 5u, 7u, 4u, 6u};
+#define KSECTS 6u
+static const char *const KSECT_NAME[KSECTS] = {"SOUND", "SYNTH", "DIRT", "TONE", "KNOBS", "LAB"};
+static const uint8_t KSECT_N[KSECTS] = {6u, 5u, 7u, 4u, 6u, 4u};
 static const uint8_t KSECT[KSECTS][7] = {{0u, 1u, 3u, 5u, 7u, 10u}, {18u, 19u, 20u, 26u, 9u}, {15u, 16u, 17u, 2u, 4u, 6u, 8u},
-                                        {11u, 12u, 13u, 14u}, {21u, 22u, 23u, 24u, 25u, 27u}};   /* (KNOBS: KP_BASE + 10 ..; 26 CLEAN MORPH) */
+                                        {11u, 12u, 13u, 14u}, {21u, 22u, 23u, 24u, 25u, 27u}, {28u, 29u, 30u, 31u}};   /* (KNOBS: KP_BASE + 10 ..; 26 CLEAN MORPH) */
 static void ksect_find(uint32_t p)       /* the part's section and place in it, kept */
 {
     uint32_t s, j;
@@ -233,7 +250,7 @@ static void kick_part_set(uint32_t p);
  * MACRO and BASS for EXPERT too) */
 #define KP_ADV ((1u << 2) | (1u << 3) | (1u << 4) | (1u << 5) | (1u << 6) | (1u << 7) | (1u << 8) | (1u << 9) | \
                 (1u << 12) | (1u << 14) | (1u << 16) | (1u << 17) | (1u << 19) | (1u << 20) | (1u << 22) | (1u << 23) | \
-                (1u << 24) | (1u << 25) | (1u << 26))
+                (1u << 24) | (1u << 25) | (1u << 26) | (1u << 29) | (1u << 31))   /* (LAB: TAIL +, TOOLS) */
 static int kp_hidden(uint32_t p) { return set.novice && p < 32u && (KP_ADV >> p & 1u); }
 static void kick_open(void)              /* the KICK menu, at its section's part */
 {
@@ -262,8 +279,10 @@ static void kick_part_set(uint32_t p)
     ksect_find(p);
     ui.page = PG_KICK;
     if (p >= KP_BASE) {                  /* (TEST) the KICK EQ, the kick's FX slots, its TERRORs */
-        uint32_t q = (p - KP_BASE) % 17u;
-        if (q < 2u) {
+        uint32_t q = (p - KP_BASE) % 21u;
+        if (q >= 17u)                    /* (LOAF BREAKER: the LAB) */
+            ui.kpage = (uint8_t)(KP_TAIL + q - 17u);
+        else if (q < 2u) {
             ui.page = PG_KEQ;
             ui.keq_part = (uint8_t)q;
         } else if (q < 4u) {
@@ -305,7 +324,9 @@ static const char *const KN_KICK[KPAGES][4] = {{"SUB", "PUNCH", "GRIT", "CLICK"}
                                                {"RUMBLE", "LENGTH", "ASYM", "TUNE"},
                                                {"GLIDE", "REV BASS", "START", "CURVE"},
                                                {"", "", "", ""}, {"", "", "", ""},
-                                               {"CLEAN SUB", "MORPH", "TO KICK", ""}, {"K1", "K2", "K3", "K4"}};   /* (KNOBS, K SET: kick_knob_name) */
+                                               {"CLEAN SUB", "MORPH", "TO KICK", ""}, {"K1", "K2", "K3", "K4"},
+                                               {"MODE", "NOTE", "CURVE", "END"}, {"FILTER", "F TIME", "DRIVE", ""},
+                                               {"ATTACK", "CROSS", "FADE", "SOLO"}, {"MUTATE", "A/B", "", ""}};   /* (KNOBS, K SET: kick_knob_name) */
 /* LOAF BREAKER: OUT's K2 TERROR, K3 TERROR 2 (kick.h), 0..100 each; SEL + K4 and SEL + K3 on any page (main.c) */
 static uint8_t *kick_hc(kick_t *k, int i) { return i == 2 ? &KICK_TERROR2(k) : &KICK_TERROR(k); }
 static void kick_hc_text(const kick_t *k, int i, char *t)
@@ -367,6 +388,10 @@ static void kick_value(int i, char *t)
     const kick_t *k = &set.kick;
     const kick_layer_t *l = &k->l[ui.klayer % KICK_LAYERS];
     t[0] = 0;
+    if (klab_page()) {                   /* LOAF BREAKER: the LAB */
+        klab_value(i, t);
+        return;
+    }
     if (kp_terror()) {                   /* the TERRORs */
         selk_value(kp_fn(), i, t);
         return;
@@ -491,6 +516,10 @@ static void kick_knob_turn(int i, int32_t d)
     kick_t *k = &set.kick;
     kick_layer_t *l = &k->l[ui.klayer % KICK_LAYERS];
     char t[16];
+    if (klab_page()) {                   /* LOAF BREAKER: the LAB */
+        klab_turn(i, d);
+        return;
+    }
     if (kp_terror()) {                   /* the TERRORs */
         selk_turn(kp_fn(), i, d);
         return;
@@ -529,6 +558,7 @@ static void kick_knob_turn(int i, int32_t d)
             kick_preset(k, ui.kpreset);
             for (j = 0; j < KS_N; j++)   /* (LOAF BREAKER: its SYNTH back to as it always was too) */
                 set.ksyn[j] = 0;
+            memset(&klab.cur, 0, sizeof klab.cur);   /* (and its KICK LAB off) */
         } else {                         /* (COPY KICK n: that memory's, if it is another) */
             uint32_t n = ui.kpreset - KICK_PRESETS, j;
             float vol = k->volume;
@@ -543,6 +573,7 @@ static void kick_knob_turn(int i, int32_t d)
             for (j = 0; j < KS_N; j++)
                 set.ksyn[j] = set.ksmem[n][j];
             kx_get(n);
+            klab.cur = klab.mem[n];      /* (LOAF BREAKER: its KICK LAB too) */
             app_say(t, "ON THIS KICK");
             ui.redraw |= RG_BLOCKS | RG_FOOT;
             changed_kick();
@@ -700,6 +731,11 @@ static float kick_knob_f(int i)          /* the part's knob i, 0..1 (as its bar)
         return i < 3 ? sk_norm(cm_fn(i), cm_i(i)) : 0.0f;
     case KP_STYLE:                       /* (STYLE: how far each knob's function is turned, SEL + it live) */
         return sk_norm(selk_fn((uint32_t)i), 0);
+    case KP_TAIL:
+    case KP_TAIL2:
+    case KP_STACK:
+    case KP_TOOLS:
+        return klab_norm(i);
     default:
         return i == 0 ? k->volume : i <= 2 ? (float)*kick_hc((kick_t *)k, i) * 0.01f :
                (float)(ui.kpreset % KPRE_N) / (float)(KPRE_N - 1u);   /* (OUT K4: the preset, the copies) */
@@ -721,7 +757,8 @@ static void kick_picture(int32_t top)
     const kick_t *k = &set.kick;
     uint32_t i;
     int32_t x, py = 0;
-    float hz = kick_pitch_hz(KL_SUB, k->l[KL_SUB].pitch) * brk_exp2f_c((float)set.ksyn[KS_TUNE] * (1.0f / 12.0f));
+    float hz = (klab.cur.note ? kick_lab_ms(KLM_NOTE, klab.cur.note) : kick_pitch_hz(KL_SUB, k->l[KL_SUB].pitch)) *
+               brk_exp2f_c((float)set.ksyn[KS_TUNE] * (1.0f / 12.0f));   /* (LOAF BREAKER: LAB's NOTE) */
     float drop = 2.0f * brk_exp2f_c((float)set.ksyn[KS_DROP] * 0.04f);
     float tms = 120.0f * brk_exp2f_c((float)set.ksyn[KS_TIME] * 0.04f);
     char t[32], u[8];                    /* (t: the part's words, "PRESETS: EARLY NEXT GEN": room to spare) */
@@ -750,11 +787,28 @@ static void kick_picture(int32_t top)
     }
     for (x = 0; x < (int32_t)KV_W; x += 2) {   /* the SUB's pitch: 30 Hz at the bottom .. 1 kHz at the top, as it falls */
         float ms = (float)x * ((float)KV_MS / (float)KV_W), pe = brk_exp2f_c(-6.644f * ms / tms);
-        float f = hz * (1.0f + drop * pe);
+        float pl = brk_clampf(1.0f - ms / (tms * 0.5f), 0.0f, 1.0f), f;
+        if (klab.cur.curve == 1u)        /* (LOAF BREAKER: LAB's CURVE: LINEAR, SNAP) */
+            pe = pl;
+        else if (klab.cur.curve == 2u)
+            pe = 1.0f - (1.0f - pl) * (1.0f - pl) * (1.0f - pl);
+        f = hz * (1.0f + drop * pe);
         int32_t y = 84 - (int32_t)(brk_clampf(brk_log2f(f / 30.0f) / 5.06f, 0.0f, 1.0f) * 68.0f);
         if (x)
             cv_line(2 + x, py, 4 + x, y, C_AMB);
         py = y;
+    }
+    if (klab.cur.end || klab.cur.src) {  /* LOAF BREAKER: LAB's END (white) and STACK's hand-over (amber), where they
+                                          * fall in the picture's 250 ms */
+        uint32_t m;
+        for (m = 0; m < 2u; m++) {
+            float ms = m ? (klab.cur.src ? kick_lab_ms(KLM_CROSS, klab.cur.cross) : -1.0f)
+                         : (klab.cur.end ? kick_lab_ms(KLM_END, klab.cur.end) : -1.0f);
+            int32_t mx = 4 + (int32_t)(ms * ((float)KV_W / (float)KV_MS));
+            if (ms >= 0.0f && mx < 4 + (int32_t)KV_W)
+                for (x = 18; x < 84; x += 4)
+                    cv_rect(mx, x, 1, 2, m ? C_AMB : C_WHITE);
+        }
     }
     t[0] = 0;                            /* KICK 4, its note */
     text_cat(t, "KICK ");
@@ -763,13 +817,14 @@ static void kick_picture(int32_t top)
     cv_text(6, 2, &FONT_B, t, C_WHITE);
     {                                    /* LOAF BREAKER TEST: what the part is for, in a few words (K SET: the knob and
                                           * its function, "K4 TERROR": the tabs leave it no room) */
-        static const char *const D[27] = {"THE 4 LAYERS' LEVELS", "THE LOW BOOM", "THE SUB'S EFFECT", "THE THUMP",
+        static const char *const D[32] = {"THE 4 LAYERS' LEVELS", "THE LOW BOOM", "THE SUB'S EFFECT", "THE THUMP",
                                           "THE PUNCH'S EFFECT", "THE DIRTY LAYER", "THE GRIT'S EFFECT", "THE ATTACK",
                                           "THE CLICK'S EFFECT", "ALL LAYERS AT ONCE", "VOLUME, BUILT-IN KICKS", "",
                                           "", "", "", "FOLD DISTORTION", "THE DISTORTION'S DETAIL",
                                           "MIDS PUSHED, SUB KEPT", "PITCH DROP AND BODY", "RUMBLE, TUNE",
                                           "GLIDE, REVERSE BASS", "WHAT SEL + K1-K4 DO", "", "", "", "",
-                                          "ROUND SUB, BLEND KICKS"};
+                                          "ROUND SUB, BLEND KICKS", "", "THE TAIL", "TAIL DARKER, HARDER",
+                                          "ATTACK + TAIL", "MUTATE, A/B"};
         uint32_t p = kick_part();
         t[0] = 0;
         if (p >= KP_BASE + 11u && p <= KP_BASE + 14u)
@@ -778,7 +833,7 @@ static void kick_picture(int32_t top)
             text_cat(t, "PRESETS: ");
             text_cat(t, kstyle_name());
         }
-        else if (p < 27u)
+        else if (p < 32u)
             text_cat(t, D[p]);
         cv_text(12 + text_w(&FONT_B, "KICK 10"), 4, &FONT_XS, t, kp_knobs() || ui.kpage == KP_STYLE ? C_HI : C_GRAY);
     }
@@ -852,7 +907,8 @@ static void draw_kick_classic(const brk_status_t *st)   /* LOAF BREAKER: the men
 }
 static void draw_kick(const brk_status_t *st)
 {
-    uint32_t sig = sig_of(&set.kick, sizeof set.kick) ^ sig_of(set.ksyn, sizeof set.ksyn), top;
+    uint32_t sig = sig_of(&set.kick, sizeof set.kick) ^ sig_of(set.ksyn, sizeof set.ksyn) ^
+                   sig_of(&klab.cur, sizeof klab.cur) * 3u, top;   /* (LOAF BREAKER: its LAB too) */
     if (ui.kclassic) {
         draw_kick_classic(st);
         return;
@@ -950,4 +1006,238 @@ static void draw_keq(void)
         cv_text(px, pyy + 10, &FONT_T, t, lit ? C_WHITE : C_DIM);
     }
     cv_blit(0, 140);
+}
+
+/* LOAF BREAKER: the KICK LAB's pages (klab.cur, the kick playing's; kick.h kick_lab_t says what each does) */
+static const char *const KL_CURVE[3] = {"EXP", "LINEAR", "SNAP"};
+static const char *const KL_SOLO[3] = {"BOTH", "ATTACK", "TAIL"};
+/* TOOLS: MUTATE (right: the kick's layers and INTENSITY moved a little at random, again and again; left: back to
+ * before the first), A/B (this kick against itself as it came or was last saved: ab_take) */
+static kick_t mut_from;
+static uint8_t mut_n;
+static uint32_t mut_rng = 0x2545F491u;
+static kick_t ab_k;
+static int8_t ab_syn[KS_N];
+static kick_lab_t ab_lab;
+static uint8_t ab_b;                     /* 1: B, the kick as it came, playing (A, the edited one, kept in ab_*) */
+static void ab_take(void)
+{
+    uint32_t j;
+    ab_k = set.kick;
+    for (j = 0; j < KS_N; j++)
+        ab_syn[j] = set.ksyn[j];
+    ab_lab = klab.cur;
+    ab_b = 0u;
+    mut_n = 0u;
+}
+static void klab_value(int i, char *t)
+{
+    const kick_lab_t *l = &klab.cur;
+    t[0] = 0;
+    switch (ui.kpage * 4 + i) {
+    case KP_TAIL * 4:
+        text_cat(t, l->mode == 1u ? "CLEAN" : "CLASSIC");
+        break;
+    case KP_TAIL * 4 + 1:
+        if (l->note)
+            note_name((int32_t)l->note + 22 - 48, t);   /* (seq.c's: 0 is C3, MIDI 48) */
+        else
+            text_cat(t, "FREE");
+        break;
+    case KP_TAIL * 4 + 2:
+        text_cat(t, KL_CURVE[l->curve % 3u]);
+        break;
+    case KP_TAIL * 4 + 3:
+        if (l->end)
+            ms_text(kick_lab_ms(KLM_END, l->end), t);
+        else
+            text_cat(t, "OFF");
+        break;
+    case KP_TAIL2 * 4:
+        if (l->filt)
+            hz_text(kick_lab_ms(KLM_FILT, l->filt), t);
+        else
+            text_cat(t, "OFF");
+        break;
+    case KP_TAIL2 * 4 + 1:
+        ms_text(kick_lab_ms(KLM_FTIME, l->ftime), t);
+        break;
+    case KP_TAIL2 * 4 + 2:
+        if (l->drive) {
+            int_text(l->drive, t);
+            text_cat(t, "%");
+        } else
+            text_cat(t, "OFF");
+        break;
+    case KP_STACK * 4:
+        if (l->src) {
+            char u[4];
+            text_cat(t, "KICK ");
+            int_text(l->src, u);
+            text_cat(t, u);
+        } else
+            text_cat(t, "OFF");
+        break;
+    case KP_STACK * 4 + 1:
+        ms_text(kick_lab_ms(KLM_CROSS, l->cross), t);
+        break;
+    case KP_STACK * 4 + 2:
+        ms_text(kick_lab_ms(KLM_FADE, l->fade), t);
+        break;
+    case KP_STACK * 4 + 3:
+        text_cat(t, KL_SOLO[klab_solo % 3u]);
+        break;
+    case KP_TOOLS * 4:
+        if (mut_n) {
+            text_cat(t, "X");
+            int_text(mut_n, t + 1);
+        } else
+            text_cat(t, "TURN");
+        break;
+    case KP_TOOLS * 4 + 1:
+        text_cat(t, ab_b ? "B SAVED" : "A EDIT");
+        break;
+    default:
+        break;
+    }
+}
+static float klab_norm(int i)
+{
+    const kick_lab_t *l = &klab.cur;
+    switch (ui.kpage * 4 + i) {
+    case KP_TAIL * 4: return (float)(l->mode == 1u);
+    case KP_TAIL * 4 + 1: return (float)l->note * (1.0f / 24.0f);
+    case KP_TAIL * 4 + 2: return (float)(l->curve % 3u) * 0.5f;
+    case KP_TAIL * 4 + 3: return (float)l->end * (1.0f / 49.0f);
+    case KP_TAIL2 * 4: return (float)l->filt * 0.01f;
+    case KP_TAIL2 * 4 + 1: return (float)l->ftime * 0.01f;
+    case KP_TAIL2 * 4 + 2: return (float)l->drive * 0.01f;
+    case KP_STACK * 4: return (float)l->src * 0.1f;
+    case KP_STACK * 4 + 1: return (float)l->cross * 0.01f;
+    case KP_STACK * 4 + 2: return (float)l->fade * 0.01f;
+    case KP_STACK * 4 + 3: return (float)(klab_solo % 3u) * 0.5f;
+    case KP_TOOLS * 4: return (float)(mut_n > 20u ? 20u : mut_n) * 0.05f;
+    case KP_TOOLS * 4 + 1: return (float)ab_b;
+    default: return 0.0f;
+    }
+}
+static void mutate(int32_t d)
+{
+    kick_t *k = &set.kick;
+    uint32_t i, j;
+    if (d < 0) {                         /* (back to before the first) */
+        float vol = k->volume;
+        if (!mut_n) {
+            app_say("MUTATE", "NOTHING TO UNDO");
+            return;
+        }
+        *k = mut_from;
+        k->volume = vol;
+        mut_n = 0u;
+        app_say("MUTATE", "UNDONE");
+        return;
+    }
+    if (!mut_n)
+        mut_from = *k;
+    for (i = 0; i < KICK_LAYERS; i++)
+        for (j = 0; j < 4u; j++) {       /* (level, pitch, decay, tone: +-0.04 each) */
+            float *p = j == 0u ? &k->l[i].level : j == 1u ? &k->l[i].pitch : j == 2u ? &k->l[i].decay : &k->l[i].tone;
+            mut_rng = mut_rng * 1664525u + 1013904223u;
+            *p = brk_clampf(*p + ((float)(mut_rng >> 9) * (1.0f / 8388608.0f) - 0.5f) * 0.08f, 0.0f, 1.0f);
+        }
+    mut_rng = mut_rng * 1664525u + 1013904223u;
+    k->intensity = brk_clampf(k->intensity + ((float)(mut_rng >> 9) * (1.0f / 8388608.0f) - 0.5f) * 0.06f, 0.0f, 1.0f);
+    if (mut_n < 99u)
+        mut_n++;
+    {
+        char t[16] = "X";
+        int_text(mut_n, t + 1);
+        text_cat(t, " (LEFT: UNDO)");
+        app_say("MUTATE", t);
+    }
+}
+static void ab_swap(void)
+{
+    kick_t k = set.kick;
+    kick_lab_t l = klab.cur;
+    float vol = set.kick.volume;
+    uint32_t j;
+    set.kick = ab_k;
+    set.kick.volume = vol;
+    ab_k = k;
+    for (j = 0; j < KS_N; j++) {
+        int8_t s = set.ksyn[j];
+        set.ksyn[j] = ab_syn[j];
+        ab_syn[j] = s;
+    }
+    klab.cur = ab_lab;
+    ab_lab = l;
+    ab_b ^= 1u;
+    app_say("A/B", ab_b ? "B: AS SAVED" : "A: AS EDITED");
+}
+static void klab_turn(int i, int32_t d)
+{
+    kick_lab_t *l = &klab.cur;
+    char t[16];
+    int32_t s = d > 0 ? 1 : -1;
+    switch (ui.kpage * 4 + i) {
+    case KP_TAIL * 4:
+        l->mode = d > 0 ? 1u : 0u;
+        break;
+    case KP_TAIL * 4 + 1:
+        l->note = (uint8_t)clamp((int32_t)l->note + s, 0, 24);
+        break;
+    case KP_TAIL * 4 + 2:
+        l->curve = (uint8_t)clamp((int32_t)(l->curve % 3u) + s, 0, 2);
+        break;
+    case KP_TAIL * 4 + 3:
+        l->end = (uint8_t)clamp((int32_t)l->end + d, 0, 49);
+        break;
+    case KP_TAIL2 * 4:
+        if (!l->filt && d > 0 && !l->ftime)
+            l->ftime = 50u;              /* (the first time: closing over ~110 ms) */
+        l->filt = (uint8_t)clamp((int32_t)l->filt + d * 2, 0, 100);
+        break;
+    case KP_TAIL2 * 4 + 1:
+        l->ftime = (uint8_t)clamp((int32_t)l->ftime + d * 2, 0, 100);
+        break;
+    case KP_TAIL2 * 4 + 2:
+        l->drive = (uint8_t)clamp((int32_t)l->drive + d * 2, 0, 100);
+        break;
+    case KP_STACK * 4:
+        if (!l->src && d > 0 && !l->cross && !l->fade) {
+            l->cross = 50u;              /* (the first time: handed over at ~55 ms, in ~11 ms) */
+            l->fade = 40u;
+        }
+        l->src = (uint8_t)clamp((int32_t)l->src + s, 0, (int32_t)KICK_MEMS);
+        break;
+    case KP_STACK * 4 + 1:
+        l->cross = (uint8_t)clamp((int32_t)l->cross + d * 2, 0, 100);
+        break;
+    case KP_STACK * 4 + 2:
+        l->fade = (uint8_t)clamp((int32_t)l->fade + d * 2, 0, 100);
+        break;
+    case KP_STACK * 4 + 3:
+        klab_solo = (uint8_t)clamp((int32_t)(klab_solo % 3u) + s, 0, 2);
+        break;
+    case KP_TOOLS * 4:
+        mutate(d);
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        changed_kick();
+        return;
+    case KP_TOOLS * 4 + 1:
+        if ((d > 0) != (ab_b != 0u))     /* (right: B, left: A) */
+            ab_swap();
+        else
+            app_say("A/B", ab_b ? "B: AS SAVED" : "A: AS EDITED");
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        changed_kick();
+        return;
+    default:
+        return;
+    }
+    klab_value(i, t);
+    app_say(kick_knob_name(i), t);
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+    changed_kick();
 }

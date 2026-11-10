@@ -43,4 +43,4 @@ expect csub 50
 expect selk3_fn 10
 tap SAVE
 wait 50
-expect store_writes 7
+expect store_writes 8

@@ -92,6 +92,7 @@ static void reset_do(uint32_t w)
         set.kbass[0] = set.kbass[1] = 0u;
         set.kbass[2] = set.kbass[3] = 50u;
         kx_all();
+        klab_defaults();                 /* (LOAF BREAKER: their KICK LAB off) */
     } else if (w == RST_DRUMS) {         /* DRUMS: each drum's memory playing as it came (its preset) */
         uint32_t v;
         for (v = 0; v < PERC_VOICES; v++) {
@@ -178,6 +179,8 @@ static void reset_do(uint32_t w)
         set.kmem[set.kslot % KICK_MEMS] = set.kick;
         for (j = 0; j < KS_N; j++)
             set.ksmem[set.kslot % KICK_MEMS][j] = 0;
+        memset(&klab.cur, 0, sizeof klab.cur);   /* (LOAF BREAKER: its KICK LAB off) */
+        klab.mem[set.kslot % KICK_MEMS] = klab.cur;
     }
     changed();
 }

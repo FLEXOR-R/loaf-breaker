@@ -36,7 +36,7 @@ on again. While one is held, K1–K4 tune it.
 ### 4. EDIT: shape the kick
 
 **EDIT** opens the kick, drawn large: what you hear, its pitch falling in amber. K1–K4 change the part shown;
-**ALGORITHM** goes to the next part, **EDIT** again to the next section (SOUND, SYNTH, DIRT, TONE, KNOBS). Each part
+**ALGORITHM** goes to the next part, **EDIT** again to the next section (SOUND, SYNTH, DIRT, TONE, KNOBS, LAB). Each part
 says in a few words what it is for. Try **DIRT › DISTO** (K1: the distortion) and **SYNTH › BASS** (K2: the
 rawstyle reverse bass). **PRESETS** there picks one of the 10 kick memories: each keeps its own sound.
 
@@ -120,7 +120,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 | Button | Domain | Its parts |
 | --- | --- | --- |
 | HOME | LIVE | PERFORM, GENERATOR |
-| EDIT | SOUNDS | Four sources, **SEL + EDIT** the next: **KICK** (its menu: SOUND, SYNTH, DIRT, TONE, KNOBS), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **MELODY** (the pattern's instrument; EDIT again SOUND / SHAPE), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
+| EDIT | SOUNDS | Four sources, **SEL + EDIT** the next: **KICK** (its menu: SOUND, SYNTH, DIRT, TONE, KNOBS, LAB), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **MELODY** (the pattern's instrument; EDIT again SOUND / SHAPE), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
 | SEQ | PATTERN | The lanes, KEYS, **GROOVE** (SWING and FILL's settings; also SEL + ARP) |
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD |
 | LFO | MIX | LEVELS (BREAK, KICK, PERC, MELO), SENDS (FX, the drums' route), MASTER, DYNAMICS |
@@ -175,7 +175,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 - **EDIT**: the **KICK menu**. Its picture: the kick's hit over a quarter of a second, its wave large (the cycles
   stretching as its pitch falls, squared off where it is driven), its level behind, the SUB's pitch falling in amber,
   its memory (KICK 1–10), what the part is for in a few words ("FOLD DISTORTION") and its note; under it the part's four knobs as cards, their values large. **EDIT again**: the
-  next section (SOUND, SYNTH, DIRT, TONE, **KNOBS**), **ALGORITHM**: the next part in it (each section remembers where
+  next section (SOUND, SYNTH, DIRT, TONE, **KNOBS**, **LAB**), **ALGORITHM**: the next part in it (each section remembers where
   you were). **KNOBS** puts the live knobs on the kick's picture: its first part, KNOBS, has K1–K4 turn what SEL + K1–K4
   turn (DRIVE, SCREAM, D+ SCREECH, DISTO to start: their first setting, their value large), so you hear and see the
   kick as you set them; then **K1 SET .. K4 SET**, each knob's function with all its settings (DISTO:
@@ -774,7 +774,45 @@ The kick is four layers summed and pushed into a clipper:
 | OUT | Volume | DISTO | SCREAM | PRESET (a built-in kick) |
 
 **INTENSITY** is the drive into the clipper: low is a clean, round kick; past half the clip turns hard, the tail
-flattens into the long, distorted gabber kick. The page is laid out as the snare's and the hat's: the part's four
+flattens into the long, distorted gabber kick.
+
+#### The KICK LAB (EDIT › LAB)
+
+The LAB section is where a hardcore kick is built the way it is in a studio: its tail tuned and shaped, its attack
+taken from another kick. Everything in it is the kick's own (each KICK 1–10 its LAB), saved with SAVE; a kick with
+nothing set there sounds exactly as it always did.
+
+![The LAB's TAIL: CLEAN, on D#1, the drop LINEAR, cut at 200 ms](img/screen-klab-tail.png "TAIL") ![STACK: KICK 1's attack, this kick's tail](img/screen-klab-stack.png "STACK")
+
+| Part | K1 | K2 | K3 | K4 |
+| --- | --- | --- | --- | --- |
+| TAIL | MODE: CLASSIC · CLEAN | NOTE: FREE · A#0 … A2 | CURVE: EXP · LINEAR · SNAP | END: OFF · 40 – 1000 ms |
+| TAIL + | FILTER: OFF · 11 kHz – 190 Hz | F TIME: 20 – 600 ms | DRIVE: OFF · 1 – 100 % | |
+| STACK | ATTACK: OFF · KICK 1–10 | CROSS: 10 – 300 ms | FADE: 2 – 150 ms | SOLO: BOTH · ATTACK · TAIL |
+| TOOLS | MUTATE | A/B | | |
+
+- **MODE CLEAN** fixes the "goofy" tail. In CLASSIC the kick fades *before* its distortion, so DISTO's fold and SCREAM
+  change colour as it falls (the tail "talks": wah, yoy), and PUNCH and GRIT sit on notes of their own that rub
+  against the SUB's. In CLEAN the distortion works on a steady sound and the fade comes after it, at the same
+  loudness; PUNCH and GRIT land on the SUB's octave, GRIT's FM is harmonic, and the RUMBLE's echo is tuned to the
+  note. The kick stays one note from the hit to the end.
+- **NOTE** puts the tail on a note (the SUB's PITCH otherwise, FREE), shown in Hz at the top right: tune it to the
+  track's key. **CURVE** shapes the pitch drop: EXP as always (fast, then a long slide), LINEAR and SNAP (high, then
+  down fast) land exactly on the note at half the drop's TIME and stay there: no slide left in the tail.
+- **END** cuts the kick (in 5 ms) at that length, white dashes on the picture: a tight tail at 200 BPM.
+- **FILTER** closes a low-pass on the kick as it goes, from open at the hit down to its value in **F TIME**: the
+  attack bright, the tail darker, the fizz gone. **DRIVE** pushes the tail (after the attack) harder into the clip:
+  a denser, flatter tail.
+- **STACK** is layering: **ATTACK** takes the hit from another kick (KICK 1–10, as it is in its memory, its own LAB
+  too), this kick plays the tail. **CROSS** is where one hands over to the other (amber dashes on the picture),
+  **FADE** how long the hand-over takes. **SOLO** lets you hear the attack alone or the tail alone (not saved).
+  Two kicks sound at once until the hand-over: watch SETUP's METER with STACK on.
+- **MUTATE** (K1 right) moves the kick's layers and INTENSITY a little at random, each detent again; K1 left goes
+  back to before the first. **A/B** (K2) swaps the kick you are editing (A) with itself as it came or was last saved
+  (B); edit either, SAVE keeps the one playing.
+
+OUT K4 PRESET (a built-in kick) turns the LAB off on that kick; COPY K n copies its LAB too; RESET KICK and ALL KICKS
+turn it off. BEGINNER shows TAIL and STACK. The page is laid out as the snare's and the hat's: the part's four
 settings as bars, under them the four layers' levels (the layer edited lit, amber with an effect on); the kick's
 shape is its box in the strip below. Its steps: SEQ's KICK lane (empty to start).
 

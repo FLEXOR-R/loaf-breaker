@@ -53,6 +53,11 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - Knob presets (10 Nov 2026, 0.203): STYLE's PRESETS goes on past the eight styles to PRESET 1-4 (track.c, `KPRESETS`):
   `steps.kpre[4][9]` (appended to steps_t: four codes, four values 0..200, stored), the same for every kick; an empty
   one gives back `kcust` (the knobs before PRESETS turned); SAVE on STYLE with one picked stores them (`kpre_store`).
+- KICK LAB (10 Nov 2026, 0.204): the KICK menu's sixth section LAB (TAIL, TAIL +, STACK, TOOLS; kick.c klab_*),
+  `kick_lab_t` (kick.h) per kick in its own object `klab` (OBJ_KLAB 0xB6000: cur + mem[10], swapped with the kick in
+  kick_mem_go, copied with COPY K n, off with a built-in PRESET / RESET); engine `kick_set_lab`, `kick_set_stack`
+  (a second kick voice, kv2, until STACK's hand-over), `kick_set_solo`. All 0 renders bit for bit as 0.203: keep it so.
+  The tabs drop the "KICK" label on the KICK menu (six sections). SAVE writes 8 objects.
 - No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository.
 - Fonts: `font_trim` is on (fm1.toml, 9 Nov 2026). LOAF BREAKER draws in FONT_T, FONT_XS and FONT_B only (cv_text2 for
   bigger: those doubled). fm1-base still generates S, M (~5 KB trimmed) and L (~9 KB trimmed, 31 px), left out of the

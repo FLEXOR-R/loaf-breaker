@@ -33,6 +33,8 @@ wait 150
 tap EDIT
 wait 150
 tap EDIT
+wait 150
+tap EDIT
 wait 300
 expect page 4
 expect kpage 5

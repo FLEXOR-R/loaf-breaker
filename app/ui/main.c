@@ -145,6 +145,7 @@ static void reset_all(void)
 {
     uint8_t ble_was_off = set.ble_off;
     settings_defaults();
+    klab_defaults();                     /* (LOAF BREAKER: the KICK LAB off on every kick) */
     kx_all();                            /* (every kick's knobs as they start) */
     if (n_breaks > n_synth)
         set.brk = (uint8_t)n_synth;      /* the bank's first break */
@@ -748,6 +749,8 @@ static void input(void)
     else if (bdn & 1u << B_SAVE) {
         int pre = kpre_store();          /* (LOAF BREAKER: on STYLE, PRESET n picked: the knobs into it first) */
         int ok = store_all();
+        if (ok)
+            ab_take();                   /* (TOOLS' A/B: B is the kick as now saved) */
         app_say(pre ? KPRE_NAME[kstyle_at - KSTYLES] : "SAVE", ok ? (pre ? "STORED, SAVED" : "DONE") : "FAILED");
         set_dirty = 0u;
         ui.redraw |= RG_BLOCKS;
@@ -1114,7 +1117,9 @@ static void draw_tabs(void)
         const char *lab = ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX() ? "KICK" : ui.page == PG_PERC
                           ? (ui.einst == DR_STAB ? "MELODY" : "DRUMS") : ui.page == PG_GLOBAL && ui.gpage == GP_BREAK
                           ? "BREAK" : dom_name();
-        x = ui.page == PG_TRACK ? 2 : cv_text(4, 1, &FONT_T, lab, C_WHITE) + 6;
+        x = ui.page == PG_TRACK || ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX() ? 2   /* (LOAF BREAKER: the
+                                          * KICK menu's six sections want the room; its picture says KICK n) */
+            : cv_text(4, 1, &FONT_T, lab, C_WHITE) + 6;
     }
     if (ui.page == PG_HOME || ui.page == PG_GEN) {   /* HOME: PERFORM, GENERATOR (TEST: the kick's EQ and FX on EDIT) */
         x = tab(x, "PERFORM", ui.page == PG_HOME);
@@ -1420,6 +1425,7 @@ static void draw_foot(const brk_status_t *st)
 
 void app_ui_init(void)
 {
+    ab_take();                           /* (LOAF BREAKER: TOOLS' A/B: the kick as it was saved) */
 #if CH_LOGO
     if (splash_t <= 1u)                  /* LOAF BREAKER: the splash stays (no clock when it was drawn: from now) */
         splash_t = plat_ms() | 1u;
@@ -1947,8 +1953,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre"};
-    int v[89];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab"};
+    int v[94];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -2048,7 +2054,12 @@ int app_expect(const char *what, int *got)
     v[86] = set.mel_vol;
     v[87] = ui.einst;
     v[88] = steps.kpre[0][8] + steps.kpre[1][8] + steps.kpre[2][8] + steps.kpre[3][8];
-    for (i = 0; i < 89u; i++)
+    v[89] = klab.cur.mode;
+    v[90] = klab.cur.note;
+    v[91] = klab.cur.src;
+    v[92] = klab.cur.end;
+    v[93] = ab_b;
+    for (i = 0; i < 94u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

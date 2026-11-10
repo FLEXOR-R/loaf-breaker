@@ -308,7 +308,7 @@ static struct {
     uint8_t seq_manual;                  /* LOAF BREAKER: SEQ's lane picked by hand while playing: the bar playing not
                                           * followed until the next stop */
     uint8_t meter_on;                    /* (TEST) GLO MORE K3 METER: the load, once a second in the header */
-    uint8_t ksect, kpos[5], kks;         /* (kks: KNOBS' K SET, the knob 0..3) */
+    uint8_t ksect, kpos[6], kks;         /* (kks: KNOBS' K SET, the knob 0..3; LOAF BREAKER: six sections, LAB) */
     uint8_t kclassic, edit_hold;         /* (EDIT held on the KICK menu: the view as it was, the drums' shapes; EDIT
                                           * down: when, and whether it has done its hold) */
     uint32_t edit_t;              /* LOAF BREAKER: the KICK menu's section (SOUND SYNTH DIRT TONE), each one's part */

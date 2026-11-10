@@ -69,6 +69,33 @@ float kick_decay_ms(uint32_t layer, float decay);   /* its decay knob in ms (to 
 float kick_fx_hz(uint32_t fx, float a);
 uint32_t kick_fx_bits(float a);
 
+/* LOAF BREAKER: the KICK LAB, each kick's own (all 0: as it always sounded) */
+typedef struct {
+    uint8_t mode;                        /* TAIL MODE: 0 CLASSIC (as it always was), 1 CLEAN: the distortion before the
+                                          * tail's fall (its timbre kept as it fades, the loudness as the clip made it),
+                                          * PUNCH and GRIT on the SUB's octave, GRIT's FM harmonic, the RUMBLE's loop a
+                                          * whole number of the note's periods */
+    uint8_t note;                        /* NOTE: 0 FREE (the SUB's PITCH), 1..24 the SUB on A#0 .. A2 (MIDI 22 + n) */
+    uint8_t curve;                       /* the pitch drop's shape: 0 EXP (as always), 1 LINEAR, 2 SNAP (up, then down
+                                          * fast); the last two land on the note at half the drop's TIME, and stay */
+    uint8_t end;                         /* END: 0 off, 1..49: the kick cut at 20 + 20 n ms (40 .. 1000 ms; 5 ms fade) */
+    uint8_t filt;                        /* TAIL FILTER: 0 off, 1..100: the kick low-passed, from open down to ~11 kHz ..
+                                          * 190 Hz as it goes (two poles) */
+    uint8_t ftime;                       /* how fast it closes, 0..100: 20 .. 600 ms */
+    uint8_t drive;                       /* TAIL DRIVE 0..100: after the attack, the kick pushed up to 9x harder into
+                                          * the clip */
+    uint8_t src;                         /* STACK: 0 off, 1..10: the attack from KICK n, this kick the tail */
+    uint8_t cross;                       /* where the attack hands over, 0..100: 10 .. 300 ms */
+    uint8_t fade;                        /* the hand-over's length, 0..100: 2 .. 150 ms */
+    uint8_t rsv[2];
+} kick_lab_t;                            /* 12 bytes */
+float kick_lab_ms(uint32_t what, uint32_t v);   /* KL_END, KL_CROSS, KL_FADE, KL_FTIME as ms; KL_FILT, KL_NOTE as Hz */
+enum { KLM_END, KLM_CROSS, KLM_FADE, KLM_FTIME, KLM_FILT, KLM_NOTE };
+void kick_set_lab(const kick_lab_t *l);  /* main loop: the kick playing's */
+/* main loop: STACK's attack, its kick, SYNTH and LAB (its own STACK not heard); k 0: off */
+void kick_set_stack(const kick_t *k, const int8_t *syn, const kick_lab_t *l);
+void kick_set_solo(uint32_t s);          /* STACK's SOLO: 0 both, 1 the attack alone, 2 the tail alone */
+
 void kick_init(void);
 void kick_set(const kick_t *k);          /* main loop: read at the next render */
 /* LOAF BREAKER: the kick's SYNTH settings (EDIT KICK's SYNTH and SYNTH +), -50 .. +50 each (0: as it always sounded):

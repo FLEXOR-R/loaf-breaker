@@ -1727,6 +1727,72 @@ static float span_peak(uint32_t a, uint32_t b)
     return p;
 }
 
+/* LOAF BREAKER: the KICK LAB: all 0 sounds as before; END cuts it; the TAIL FILTER darkens it; CLEAN keeps the tail
+ * as loud; STACK plays another kick's attack, then this one */
+static void test_kick_lab(void)
+{
+    kick_t k, a;
+    kick_lab_t lab;
+    static float ref[BRK_SR / 2];
+    float pk, t0, t1;
+    uint32_t i, zc0 = 0u, zc1 = 0u;
+    int8_t syn[KS_N];
+    memset(syn, 0, sizeof syn);
+    memset(&lab, 0, sizeof lab);
+    kick_set_synth(syn);
+    kick_defaults(&k);
+    KICK_TERROR(&k) = 60u;
+    kick_set_lab(&lab);
+    kick_set_stack(0, 0, 0);
+    kick_run(&k, BRK_SR / 2, 0u);
+    memcpy(ref, kick_buf, sizeof ref);
+    lab.end = 9u;                        /* (200 ms) */
+    kick_set_lab(&lab);
+    pk = kick_run(&k, BRK_SR / 2, 0u);
+    CHECK(span_peak(BRK_SR / 4, BRK_SR / 2) < 1e-3f && pk > 0.3f, "END cuts the kick at 200 ms (after: %.4f)",
+          span_peak(BRK_SR / 4, BRK_SR / 2));
+    lab.end = 0u;
+    lab.filt = 80u;
+    lab.ftime = 30u;
+    kick_set_lab(&lab);
+    kick_run(&k, BRK_SR / 2, 0u);
+    for (i = BRK_SR / 5; i < BRK_SR / 3; i++) {   /* (zero crossings: the brightness, 200 .. 333 ms) */
+        zc0 += (ref[i - 1] < 0.0f) != (ref[i] < 0.0f);
+        zc1 += (kick_buf[i - 1] < 0.0f) != (kick_buf[i] < 0.0f);
+    }
+    CHECK(zc1 * 2u < zc0, "the TAIL FILTER darkens the tail (%u crossings, %u without)", zc1, zc0);
+    memset(&lab, 0, sizeof lab);
+    lab.mode = 1u;
+    kick_set_lab(&lab);
+    kick_run(&k, BRK_SR / 2, 0u);
+    t0 = span_peak(BRK_SR / 10, BRK_SR / 5);
+    t1 = 0.0f;
+    for (i = BRK_SR / 10; i < BRK_SR / 5; i++)
+        t1 = fabsf(ref[i]) > t1 ? fabsf(ref[i]) : t1;
+    CHECK(t0 > t1 * 0.7f && t0 < t1 * 1.4f, "CLEAN keeps the tail about as loud (%.2f, %.2f)", t0, t1);
+    memset(&lab, 0, sizeof lab);
+    lab.src = 1u;
+    lab.cross = 50u;
+    lab.fade = 40u;
+    kick_preset(&a, 0u);                 /* (909's attack) */
+    a.volume = k.volume;
+    kick_set_stack(&a, syn, &lab);
+    kick_set_lab(&lab);
+    kick_set_solo(2u);                   /* (the tail alone: nothing before the hand-over) */
+    kick_run(&k, BRK_SR / 2, 0u);
+    CHECK(span_peak(0u, BRK_SR / 50) < 1e-6f && span_peak(BRK_SR / 10, BRK_SR / 5) > 0.1f,
+          "STACK's SOLO TAIL: silent through the attack, then the tail");
+    kick_set_solo(0u);
+    pk = kick_run(&k, BRK_SR / 2, 0u);
+    CHECK(pk > 0.1f && pk < 1.5f, "STACK sounds (%.2f)", pk);
+    for (i = BRK_SR / 5; i < BRK_SR / 2 && fabsf(kick_buf[i] - ref[i]) < 1e-6f; i++)
+        ;
+    CHECK(i == BRK_SR / 2, "after the hand-over the kick is its own (from %u)", i);
+    kick_set_stack(0, 0, 0);
+    memset(&lab, 0, sizeof lab);
+    kick_set_lab(&lab);
+}
+
 static void test_kick(void)
 {
     kick_t k, solo;
@@ -2263,6 +2329,7 @@ int main(int argc, char **argv)
     test_overload();
     test_dj_break();
     test_kick();
+    test_kick_lab();
     test_perc();
     test_generator();
     test_pads();
