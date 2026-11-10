@@ -125,7 +125,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD |
 | LFO | MIX | LEVELS (BREAK, KICK, PERC, MELO), SENDS (FX, the drums' route), MASTER, DYNAMICS |
 | FX | EFFECTS | The four slots: MAIN, MORE, MOD |
-| GLO | SYSTEM | MIDI, SETUP (MODE, AUTO SAVE, METER, SKIN), EFFECTS (the screen's), FX SET, RESET |
+| GLO | SYSTEM | MIDI, SETUP (MODE, AUTO SAVE, METER, SKIN), EFFECTS (the screen's; the waves' colours; KICK VIEW), FX SET, RESET |
 
 The same gestures everywhere: **the button again** is the next part; **ALGORITHM** the element in the part (a slot, a
 lane, a drum's part; where there is nothing to pick, the break); **PRESETS** the pattern, but on SOUNDS the source's
@@ -188,7 +188,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
   the kick playing. **The picture has three views, EDIT held (half a second) the next:** **RGB** (to start: the
   kick's hit over half a second as rekordbox draws a track, each instant as tall as it is loud, its lows red, its mids
   green, its highs blue: a distorted kick white at the hit, orange in its body, red as its tail darkens, a SCREAM
-  blue-green; the pitch falling in white), **WAVE** (its wave over its level, a quarter of a second, the pitch in
+  blue-green; the pitch falling in white; GLO EFFECTS K3: SERATO's colours instead), **WAVE** (its wave over its level, a quarter of a second, the pitch in
   amber) and **CLASSIC** (the part's knobs as bars, the layers' levels, the five drums' shapes, the break's wave
   above); the part stays where it is. **Stopped**, anywhere in the KICK menu (the big view, the
   classic view, its EQ and FX) and on the other drums' pages (big or classic), **white keys 1–5 play the KICK, SNARE,
@@ -236,7 +236,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 - **LFO** (MIX): LEVELS, SENDS, MASTER (K1 COMP, K2 its RATIO, K3 DUCK, K4 MAX OUT; COMP's reduction metered),
   DYNAMICS (COMP's ATTACK and RELEASE, DUCK's RELEASE, DUCKS: the break, or the break and the drums).
 - **ENV**: the song. TRACKS, PLAY, DROP, BUILD. (What SEL + each knob does: EDIT › KNOBS; RESET: GLO.)
-- **GLO** (SYSTEM): MIDI, SETUP (MODE, AUTO SAVE, METER, SKIN, WAVE ZOOM), EFFECTS (several at once, keys 1–7), FX SET, RESET.
+- **GLO** (SYSTEM): MIDI, SETUP (MODE, AUTO SAVE, METER, SKIN, WAVE ZOOM), EFFECTS (several at once, keys 1–7; K3 the waves' colours REKORDBOX or SERATO, K4 KICK VIEW: the whole kick or the part edited), FX SET, RESET.
   The break's PITCH, GRAIN and SNAP are SOUNDS › BREAK; SWING is PATTERN › GROOVE.
 
 ### The CDJ view (HOME)
@@ -714,6 +714,12 @@ drum played by hand still sounds: its stall would cut it). **PRESETS** there: **
 while on), K1 points at one and K2 turns it on (right) or off (left). **CRT** (every other line dimmed, as an old
 tube), **VHS** (bands that slip sideways), **GRAIN** (specks that move), **RGB** (the red a few pixels off the rest), **SHAKE** (the screen jolts on the kicks and at the drop), **STROBE** (the colours turn over
 at the drop, and on the kicks when ON A KICK is past 50 %), **8-BIT** (fewer colours). VHS and RGB together, for one.
+On the same page, **K3 WAVE**: the colours of the waves (the KICK menu's picture and HOME's CDJ view), **REKORDBOX**
+(left: the three bands mixed, white where they all are) or **SERATO** (right: the bands as one hue from red through
+yellow and green to blue, never white: a kick orange, its tail red, a snare green, a hat blue). **K4 KICK VIEW**:
+what the KICK menu's picture shows, **THE WHOLE KICK** (left) or **THE PART EDITED** (right): on a layer's page (SUB,
+PUNCH, GRIT, CLICK, their effects) that layer alone, CLICK over 50 ms and PUNCH over 150 (the time at the top right),
+STACK its attack's kick, the TAIL section the whole tail over a second; the other parts the whole kick.
 
 **FX SET (GLO five times):** the effects' settings, for all those on: K1 **AMOUNT**, K2 **ON A KICK** (how hard each kick
 shows; 0: nothing), K3 **AT THE DROP** (how hard the drop shows; 0: nothing), K4 **LENGTH** (how long those moments last:

@@ -510,12 +510,8 @@ static void input(void)
     if (ui.edit_hold && btn & 1u << B_EDIT && now - ui.edit_t >= 450u && ui.edit_hold == 1u) {   /* LOAF BREAKER: EDIT
                                           * held on the KICK menu: the view as it was (the drums' shapes), or back */
         ui.edit_hold = 2u;
-        if (ui.page == PG_KICK && !ui.kclassic && ui.kview == 0u && !set.wstyle) {   /* (LOAF BREAKER: the KICK menu's
-                                          * views in turn: REKORDBOX, SERATO (the colours of HOME's wave too, saved),
-                                          * WAVE, CLASSIC) */
-            set.wstyle = 1u;
-            changed();
-        } else if (ui.page == PG_KICK && !ui.kclassic && ui.kview == 0u) {
+        if (ui.page == PG_KICK && !ui.kclassic && ui.kview == 0u) {   /* (LOAF BREAKER: the KICK menu's views in
+                                          * turn: RGB (REKORDBOX's or SERATO's colours: GLO EFFECTS K3), WAVE, CLASSIC) */
             ui.kview = 1u;
             kv_sig = 0u;
         } else {
@@ -526,13 +522,11 @@ static void input(void)
             if (!ui.kclassic && ui.page == PG_KICK) {
                 ui.kview = 0u;
                 kv_sig = 0u;
-                set.wstyle = 0u;         /* (round again: REKORDBOX) */
-                changed();
             }
         }
         app_say(ui.page == PG_PERC ? PERC_VOICE_NAME[ui.pvoice % PERC_VOICES] : "KICK",
                 ui.kclassic ? "CLASSIC VIEW" : ui.page != PG_KICK ? "BIG VIEW" : ui.kview ? "WAVE VIEW" :
-                set.wstyle ? "SERATO VIEW" : "REKORDBOX VIEW");
+                set.wstyle ? "RGB VIEW (SERATO)" : "RGB VIEW (REKORDBOX)");
         ui.redraw |= RG_BLOCKS | RG_WAVE | RG_FOOT;
         if (!ui.kclassic)
             lcd_fill(0, 44, 240, 44, C_BLACK);
@@ -1375,7 +1369,7 @@ static void draw_foot(const brk_status_t *st)
         static const char *const KN_GROOVE[3][4] = {{"FX", "DRUMS", "", ""}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
                                                     {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
         static const char *const KN_MORE[3][4] = {{"MODE", "AUTO SAVE", "METER", "SKIN"},   /* GLOBAL's MORE */
-                                                  {"EFFECT", "ON / OFF", "", ""},   /* (LOAF BREAKER: EFFECTS, */
+                                                  {"EFFECT", "ON / OFF", "WAVE", "KICK VIEW"},   /* (LOAF BREAKER: EFFECTS, */
                                                   {"AMOUNT", "KICK", "DROP", "LENGTH"}};   /* FX SET) */
         static const char *const KN_TRK[4][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
                                                  {"STYLE", "SWEEP", "RISER", "GAP"}, {"WHAT", "RESET", "RESET", "RESET"}};
@@ -1971,8 +1965,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle"};
-    int v[97];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus"};
+    int v[98];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -2080,7 +2074,8 @@ int app_expect(const char *what, int *got)
     v[94] = ui.kclassic ? 2 : ui.kview;
     v[95] = ui.ksect;
     v[96] = set.wstyle;
-    for (i = 0; i < 97u; i++)
+    v[97] = set.kfocus;
+    for (i = 0; i < 98u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

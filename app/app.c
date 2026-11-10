@@ -181,7 +181,9 @@ typedef struct {
                                           * save: the HOOVER's memories, put back to the instruments' own) */
     uint8_t wstyle;                      /* (appended) LOAF BREAKER: the waves' colours (the KICK menu's picture, HOME's
                                           * CDJ view): 0 REKORDBOX (the bands mixed: RGB, white where all are), 1 SERATO
-                                          * (the bands as one hue, red to blue, never white) */
+                                          * (the bands as one hue, red to blue, never white); GLO EFFECTS K3 */
+    uint8_t kfocus;                      /* (appended) LOAF BREAKER: the KICK menu's picture: 0 the WHOLE kick, 1 the PART
+                                          * edited (a layer alone, the attack close, the tail whole); GLO EFFECTS K4 */
 } settings_t;
 #define FILL_LATCH (set.fill_cfg & 1u)
 #define FILL_DRUM (set.fill_cfg >> 1 & 3u)

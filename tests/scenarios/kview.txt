@@ -1,6 +1,6 @@
 # LOAF BREAKER (0.205): the KICK menu by the kick's anatomy: EDIT opens BODY (MIX), its parts in a row at the foot;
 # ALGORITHM: SUB; EDIT: TAIL, DIRT, TONE, KNOBS, ATTACK, BODY again. The picture in RGB (rekordbox's colours); EDIT
-# held: SERATO's colours, again: WAVE, again: CLASSIC, again: REKORDBOX.
+# held: WAVE, held again: CLASSIC, again: RGB.
 #   app/build/host/loaf-breaker_host tests/scenarios/kview.txt app/build/scenarios
 wait 4200
 tap EDIT
@@ -41,13 +41,6 @@ press EDIT
 wait 600
 release EDIT
 wait 300
-expect kview 0
-expect wstyle 1
-shot kv_serato.png
-press EDIT
-wait 600
-release EDIT
-wait 300
 expect kview 1
 shot kv_wave.png
 press EDIT
@@ -60,4 +53,3 @@ wait 600
 release EDIT
 wait 300
 expect kview 0
-expect wstyle 0

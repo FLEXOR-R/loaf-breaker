@@ -60,6 +60,10 @@ static void global_value(int i, char *t)
             text_cat(t, SFX_NAME[e]);
         else if (i == 1)
             text_cat(t, SFX_ON(e) ? "ON" : "OFF");
+        else if (i == 2)                 /* (LOAF BREAKER: K3 the waves' colours, K4 the KICK menu's picture) */
+            text_cat(t, set.wstyle ? "SERATO" : "REKORDBOX");
+        else
+            text_cat(t, set.kfocus ? "PART" : "WHOLE");
         return;
     }
     if (ui.gpage == 2u) {                /* GLOUPI BREAKS: MORE (in place of Bluetooth audio): K1 the skin */
@@ -127,6 +131,19 @@ static void global_turn(int i, int32_t d)
             ui.redraw |= RG_BLOCKS | RG_FOOT;
         } else if (i == 1)
             sfx_toggle(e, d > 0);
+        else if (i == 2) {               /* LOAF BREAKER: K3 WAVE, the waves' colours (the KICK menu, HOME's CDJ view):
+                                          * left REKORDBOX, right SERATO */
+            set.wstyle = d > 0 ? 1u : 0u;
+            changed();
+            app_say("WAVE COLOURS", set.wstyle ? "SERATO" : "REKORDBOX");
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
+        } else {                         /* K4 KICK VIEW: the KICK menu's picture, left the WHOLE kick, right the PART
+                                          * edited */
+            set.kfocus = d > 0 ? 1u : 0u;
+            changed();
+            app_say("KICK VIEW", set.kfocus ? "THE PART EDITED" : "THE WHOLE KICK");
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
+        }
         return;
     }
     if (ui.gpage == 4u) {                /* LOAF BREAKER: FX SET: K1 AMOUNT, K2 KICK, K3 DROP, K4 LENGTH, 5 % a detent */
@@ -234,8 +251,10 @@ static void draw_global(const brk_status_t *st)
     if (ui.gpage == 3u) {                /* LOAF BREAKER: EFFECTS: the seven, lit when on (keys 1-7), K1's outlined */
         uint32_t e, cur = ui.sfx_cur < SFX_CRT || ui.sfx_cur >= SFX_N ? SFX_CRT : ui.sfx_cur;
         cv_text(6, 1, &FONT_T, "SCREEN EFFECTS", C_GRAY);
-        cv_text(6, 16, &FONT_XS, "KEYS 1-7: ON / OFF, SEVERAL AT ONCE", C_DIM);
-        cv_text(6, 28, &FONT_XS, "THEIR SETTINGS: GLO AGAIN (FX SET)", C_DIM);
+        cv_text(6, 16, &FONT_XS, "K3 WAVE", C_GRAY);   /* (LOAF BREAKER: the waves' colours, the kick's picture) */
+        cv_text(84, 15, &FONT_T, set.wstyle ? "SERATO" : "REKORDBOX", C_HI);
+        cv_text(6, 30, &FONT_XS, "K4 KICK VIEW", C_GRAY);
+        cv_text(84, 29, &FONT_T, set.kfocus ? "THE PART EDITED" : "THE WHOLE KICK", C_HI);
         cv_blit(0, 44);
         for (e = 0; e < 2u; e++) {
             uint32_t j;
@@ -244,8 +263,12 @@ static void draw_global(const brk_status_t *st)
                 uint32_t f = SFX_CRT + e * 4u + j;
                 int32_t x = 4 + (int32_t)j * 59;
                 char n[2] = {(char)('0' + f), 0};
-                if (f >= SFX_N)
+                if (f >= SFX_N) {        /* (the last place: what the keys do here) */
+                    cv_text(x + 2, 8, &FONT_XS, "KEYS 1-7:", C_DIM);
+                    cv_text(x + 2, 20, &FONT_XS, "ON / OFF", C_DIM);
+                    cv_text(x + 2, 32, &FONT_XS, "SET: GLO", C_DIM);
                     break;
+                }
                 if (f == cur)
                     cv_rect(x - 2, 2, 57, 46, C_WHITE);
                 cv_rect(x, 4, 53, 42, SFX_ON(f) ? C_HI : C_BLOCK);

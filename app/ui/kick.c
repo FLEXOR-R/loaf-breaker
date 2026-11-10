@@ -748,8 +748,40 @@ static float kick_knob_f(int i)          /* the part's knob i, 0..1 (as its bar)
  * note), its memory, its note and the layers' levels; under it (y 144..191) the part's four knobs as cards, their
  * values large */
 #define KV_W 232u
-#define KV_MS (ui.kview == 0u ? 500u : 250u)   /* (the picture's time: a quarter of a second; LOAF BREAKER: the RGB
-                                          * view half a second, the tail's fall in it) */
+/* (the picture's time: a quarter of a second; LOAF BREAKER: the RGB view half a second, the tail's fall in it; GLO
+ * EFFECTS K4 KICK VIEW on PART: CLICK's 50 ms, PUNCH's and STACK's 150, the TAIL section's whole second) */
+static uint32_t kv_ms(void)
+{
+    if (set.kfocus) {
+        if ((ui.kpage == KP_LAYER || ui.kpage == KP_FX) && ui.klayer == KL_CLICK)
+            return 50u;
+        if (((ui.kpage == KP_LAYER || ui.kpage == KP_FX) && ui.klayer == KL_PUNCH) || ui.kpage == KP_STACK)
+            return 150u;
+        if (ui.kpage == KP_TAIL || ui.kpage == KP_TAIL2 || ui.kpage == KP_BASS || ui.kpage == KP_CMORPH)
+            return 1000u;
+    }
+    return ui.kview == 0u ? 500u : 250u;
+}
+#define KV_MS kv_ms()
+/* the kick the picture draws: the one playing, or (KICK VIEW PART) on a layer's page that layer alone, on STACK its
+ * attack's kick */
+static void kv_kick(kick_t *k)
+{
+    uint32_t i;
+    *k = set.kick;
+    if (!set.kfocus)
+        return;
+    if (ui.kpage == KP_LAYER || ui.kpage == KP_FX) {
+        for (i = 0; i < KICK_LAYERS; i++)
+            if (i != ui.klayer % KICK_LAYERS)
+                k->l[i].level = 0.0f;
+    } else if (ui.kpage == KP_STACK && klab.cur.src)
+        *k = set.kmem[(klab.cur.src - 1u) % KICK_MEMS];
+}
+static uint32_t kv_part_sig(void)        /* (what the picture shows, for its redraw) */
+{
+    return set.kfocus ? (uint32_t)ui.kpage * 8u + ui.klayer + 1u + kv_ms() * 64u + (uint32_t)klab.cur.src * 99991u : 0u;
+}
 static uint8_t kv_px[KV_W];              /* the hit's level, column by column */
 static int8_t kv_wave[KV_W];             /* and its wave (the pitch falling: the cycles stretching) */
 static uint8_t kv_rgb[KV_W][4];          /* LOAF BREAKER: or its lows, mids, highs and peak (the RGB view) */
@@ -814,7 +846,9 @@ static void kick_picture(int32_t top)
         else if (w < 0)
             cv_rect(4 + (int32_t)i, 51, 1, -w, C_HI);
     }
-    if (kscope_hit) {                    /* LOAF BREAKER TEST: the kick as it really sounds, its last hit: white over it */
+    if (kscope_hit && !(set.kfocus && (ui.kpage == KP_LAYER || ui.kpage == KP_FX || ui.kpage == KP_STACK))) {
+                                          /* LOAF BREAKER TEST: the kick as it really sounds, its last hit: white over it
+                                           * (not over a layer alone, KICK VIEW PART) */
         int32_t pk = 1, v;
         for (i = 0; i < KV_W && i < KSC_W; i++) {
             v = kscope[i];
@@ -822,9 +856,11 @@ static void kick_picture(int32_t top)
         }
         for (i = 0; i < KV_W && i < KSC_W; i++) {
             v = kscope[i] * 34 / pk;
-            if (v)
-                cv_rect(4 + (int32_t)(ui.kview == 0u ? i / 2u : i), 50 - v, 1, 1, C_WHITE);   /* (its 250 ms: half the RGB
-                                          * view's) */
+            if (v) {
+                uint32_t sx = i * 250u / KV_MS;   /* (its 250 ms, on the picture's time) */
+                if (sx < KV_W)
+                    cv_rect(4 + (int32_t)sx, 50 - v, 1, 1, C_WHITE);
+            }
         }
     }
     for (x = 0; x < (int32_t)KV_W; x += 2) {   /* the SUB's pitch: 30 Hz at the bottom .. 1 kHz at the top, as it falls */
@@ -880,7 +916,11 @@ static void kick_picture(int32_t top)
         cv_text(12 + text_w(&FONT_B, "KICK 10"), 4, &FONT_XS, t, kp_knobs() || ui.kpage == KP_STYLE ? C_HI : C_GRAY);
     }
     t[0] = 0;
-    int_text((int32_t)(hz + 0.5f), t);
+    if (set.kfocus && kv_ms() != (ui.kview == 0u ? 500u : 250u)) {   /* (LOAF BREAKER: KICK VIEW PART, its time) */
+        int_text((int32_t)kv_ms(), t);
+        text_cat(t, " MS  ");
+    }
+    int_text((int32_t)(hz + 0.5f), t + text_n(t));
     text_cat(t, " HZ");
     cv_text(234 - text_w(&FONT_XS, t), 4, &FONT_XS, t, C_AMB);
     {                                    /* LOAF BREAKER (0.205): the section's parts at the foot, the one open lit
@@ -973,7 +1013,9 @@ static void draw_kick_classic(const brk_status_t *st)   /* LOAF BREAKER: the men
 static void draw_kick(const brk_status_t *st)
 {
     uint32_t sig = sig_of(&set.kick, sizeof set.kick) ^ sig_of(set.ksyn, sizeof set.ksyn) ^
-                   sig_of(&klab.cur, sizeof klab.cur) * 3u, top;   /* (LOAF BREAKER: its LAB too) */
+                   sig_of(&klab.cur, sizeof klab.cur) * 3u ^ kv_part_sig() * 7u, top;   /* (LOAF BREAKER: its LAB too, the
+                                          * part shown) */
+    kick_t kk;
     if (ui.kclassic) {
         draw_kick_classic(st);
         return;
@@ -986,11 +1028,13 @@ static void draw_kick(const brk_status_t *st)
         kv_sig = sig;
         kv_t = plat_ms();
         kv_pend = 0u;
-        kick_shape(&set.kick, kv_px, KV_W, KV_MS, 34u);
-        if (ui.kview == 0u)              /* (LOAF BREAKER: the RGB view, or the wave) */
-            kick_rgb(&set.kick, kv_rgb, KV_W, KV_MS);
-        else
-            kick_wave(&set.kick, kv_wave, KV_W, KV_MS, 34u);
+        kv_kick(&kk);
+        if (ui.kview == 0u)              /* (LOAF BREAKER: the RGB view, its peaks its own; or the wave over its level) */
+            kick_rgb(&kk, kv_rgb, KV_W, KV_MS);
+        else {
+            kick_shape(&kk, kv_px, KV_W, KV_MS, 34u);
+            kick_wave(&kk, kv_wave, KV_W, KV_MS, 34u);
+        }
         for (top = 0; top < KV_W; top++)
             pk = kv_px[top] > pk ? kv_px[top] : pk;
         for (top = 0; pk && top < KV_W; top++) {   /* (as tall as it goes) */
