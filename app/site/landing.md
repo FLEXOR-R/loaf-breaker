@@ -12,7 +12,7 @@ HOOVER; a compressor, a ducker and MAX OUT; and the mix scrolling by as on a CDJ
 ![LOAF BREAKER playing: the mix scrolling in as on a CDJ, in rekordbox's colours](manual/img/screen-slicer.png "Playing")
 
 Version {{VERSION}}. Installing is at your own risk; the installer can put M-VAVE's own firmware back. 9 breaks, 2 bars
-each: THINK 114, NUSKOOL 140, UPDOWN 165, APACHE 115, THEWORM 110, AMEN19 172, AMEN10 135, AMEN20 164, IDM 169.
+each: AMEN10 135, NUSKOOL 140, AMEN20 164, AMEN19 172, UPDOWN 165, IDM 169, THINK 114, APACHE 115, THEWORM 110.
 
 - [Try it in the browser](emu/): the same code the FM-1 runs, with sound. No FM-1 needed.
 - [Install](install/): from Chrome or Edge, with the FM-1 connected by USB and the install code FLEXOR gives you.
