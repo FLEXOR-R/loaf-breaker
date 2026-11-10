@@ -19,12 +19,13 @@ The FM-1 starts in **BEGINNER** mode (SYSTEM › SETUP: GLO, then GLO again; K1)
 
 **Or let the FM-1 show you: the TUTORIAL.** A new FM-1 starts with it (and SYSTEM › SETUP K1, turned left past
 BEGINNER, starts it again). The header says one thing to do at a time, the button or the keys that do it blink, and
-when it's done, "OK!" and the next: 16 steps in seven lessons, THE BREAK (PLAY, the slices, stop), EFFECTS (the black
-keys), THE KICK (EDIT, K1–K4, PRESETS), DISTO (SEL + K4), THE PATTERN (SEQ: kicks, a snare), THE DROP (SEL + ENV) and
+when it's done, "OK!" and, five seconds later (time to hear what you did), the next: 19 steps in seven lessons, THE
+BREAK (HOME: the PERFORM menu, PLAY, the slices, stop), EFFECTS (the black keys), THE KICK (EDIT, K1–K4, ALGORITHM to
+OUT and its K4 PRESET: the built-in kicks, 909 to DISTORTO; PRESETS: your ten kicks), DISTO (SEL + K4), THE PATTERN (SEQ: kicks, a snare), THE DROP (SEL + ENV) and
 SAVE. Everything is real: you play the firmware itself. **SEL + GLO** skips a step, **GLO** quits (SETUP K1 starts it
 again where you left it; SAVE keeps where you are). An FM-1 already in use when it updates doesn't start it.
 
-![The TUTORIAL: step 1, PRESS PLAY](img/screen-tutorial.png "TUTORIAL")
+![The TUTORIAL: step 1, PRESS HOME](img/screen-tutorial.png "TUTORIAL")
 
 ### 1. Press PLAY
 

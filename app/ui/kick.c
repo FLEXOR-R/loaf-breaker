@@ -558,6 +558,7 @@ static void kick_knob_turn(int i, int32_t d)
         if (ui.kpreset < KICK_PRESETS) {
             uint32_t j;
             kick_preset(k, ui.kpreset);
+            tut_kpre++;                  /* (the TUTORIAL's count) */
             for (j = 0; j < KS_N; j++)   /* (LOAF BREAKER: its SYNTH back to as it always was too) */
                 set.ksyn[j] = 0;
             memset(&klab.cur, 0, sizeof klab.cur);   /* (and its KICK LAB off) */

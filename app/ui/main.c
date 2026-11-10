@@ -447,9 +447,10 @@ static void input(void)
     if (bdn & 1u << B_HOME)
         ui.home_t = now;                 /* (LOAF BREAKER: held 0.35 s on PERFORM / GENERATOR: the CDJ view) */
     if (bdn & 1u << B_HOME) {            /* HOME: PERFORM; again (let go alone), GENERATOR, and back */
+        tut_home++;                      /* (the TUTORIAL's count; its HOME step on PERFORM: it stays) */
         if (ui.page == PG_HOME || ui.page == PG_GEN) {   /* (TEST: HOME is PERFORM and GENERATOR) */
             ui.home_hold = 1u;
-            ui.home_combo = 0u;
+            ui.home_combo = (uint8_t)(ui.page == PG_HOME && tut_home_stay());
         } else {
             ui.page = PG_HOME;
             ui.redraw |= RG_FOOT | RG_BLOCKS;

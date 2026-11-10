@@ -379,7 +379,7 @@ static void draw_head(const brk_status_t *st, const brk_break_t *b, uint32_t now
         char a[40], w[40];
         tut_head(a, w);
         cv_text(8, 2, &FONT_T, a, C_AMB);
-        cv_text(8, 14, &FONT_T, w, C_WHITE);
+        cv_text(8, 14, &FONT_T, w, tut_ok ? C_HI : C_WHITE);   /* (done: "OK!  NEXT IN 4 S") */
     } else {
         if (st->playing) {               /* a play triangle, or a stop square */
             int32_t r;

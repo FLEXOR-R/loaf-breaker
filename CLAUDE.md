@@ -61,7 +61,9 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - TUTORIAL (0.211, FLEXOR: "a sober name"): ui/tutor.c (included before screen.c), TUT[] steps (lesson, condition TC_*,
   keys and buttons to blink, text), `set.tut` (appended: 0 off, 1..TUT_N the step, 0xFE done; a new FM-1 starts it,
   an older save not), the counters tut_* in common.c; the header draws the step (screen.c); SETUP K1 left of
-  BEGINNER; GLO quits, SEL + GLO skips. Keep its steps true when a control they teach moves.
+  BEGINNER; GLO quits, SEL + GLO skips. 0.212 (FLEXOR): HOME first (on PERFORM already, HOME stays: tut_home_stay),
+  OUT's K4 the built-in kicks, a step done waits 5 s (`TUT_WAIT`, the header counting) before the next. Keep its steps
+  true when a control they teach moves.
 - RESET (0.209): after a reset its page's knobs do nothing for 3 s (`RST_COOL`, `ui.rst_done`, rst_cool()), DONE shown.
 - No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository.
 - Fonts: `font_trim` is on (fm1.toml, 9 Nov 2026). LOAF BREAKER draws in FONT_T, FONT_XS and FONT_B only (cv_text2 for
