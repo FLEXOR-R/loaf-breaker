@@ -166,6 +166,8 @@ typedef struct {
     uint8_t novice;                      /* (appended, LOAF BREAKER TEST: GLO MORE K1 MODE: 1 BEGINNER, the KICK menu's
                                           * advanced parts passed over (kept as they are); 0 EXPERT. A new FM-1 or RESET
                                           * ALL: BEGINNER; an older save: EXPERT, as it was) */
+    uint8_t drop_kick;                   /* (appended) ENV DROP's PRESETS: the kick a SEL + ENV drop's build plays, 0 the
+                                          * one playing, n KICK n (a track's DROP item: its own, TRACKS K1); back at the drop */
 } settings_t;
 enum { DS_SNARE, DS_KICK, DS_BOTH, DS_STUTTER, DS_SWEEP, DS_RANDOM, DS_N };
 static const uint8_t DROP_GAP[5] = {0u, 1u, 2u, 4u, 8u};   /* its steps: none, a 16th, an 8th, a beat, half a bar */

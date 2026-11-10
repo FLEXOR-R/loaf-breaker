@@ -847,6 +847,14 @@ static void input(void)
                 selk_assign_k(ui.kks, d);
             else
                 kick_mem_turn(d);
+        } else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage == 2u) {   /* LOAF BREAKER: DROP's BUILD KICK */
+            char t[12];
+            set.drop_kick = (uint8_t)clamp((int32_t)set.drop_kick + (d > 0 ? 1 : -1), 0, (int32_t)KICK_MEMS);
+            t[0] = 0;
+            drop_kick_text(t);
+            set_dirty = 1u;
+            app_say("BUILD KICK", t);
+            ui.redraw |= RG_BLOCKS;
         } else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage < 2u)
             track_pick(d);               /* LOAF BREAKER: ENV: the track */
         else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage == 4u) {   /* LOAF BREAKER TEST: BUILD's TEMPO RISE */
@@ -1425,6 +1433,21 @@ void app_frame(void)
         text_cat(t, "%");
         app_say("BUILD", t);
     }
+    {                                    /* LOAF BREAKER: a build begun: its own kick (DROP's PRESETS, a track's DROP
+                                          * item's K1), the one before back at the drop (or stopped) */
+        static int b_was;
+        int b = build_p >= 0.0f;
+        if (b && !b_was && drop_kick_want && drop_kick_want <= KICK_MEMS &&
+            drop_kick_want - 1u != set.kslot % KICK_MEMS) {
+            drop_kick_back = (uint8_t)(set.kslot % KICK_MEMS + 1u);
+            kick_mem_go(drop_kick_want - 1u);
+        }
+        b_was = b;
+        if (drop_kick_back && !st.playing) {
+            kick_mem_go(drop_kick_back - 1u);
+            drop_kick_back = drop_kick_want = 0u;
+        }
+    }
     if (drop_n != ui.drop_seen) {        /* LOAF BREAKER: a DROP: the screen's flash, 0.9 s; the next pattern (its
                                           * drums already playing: the render took them at the drop) */
         ui.drop_seen = drop_n;
@@ -1436,6 +1459,12 @@ void app_frame(void)
             set_dirty = 1u;
             ui.drop_pat = 0xFFu;
         }
+        if (drop_kick_back) {            /* (LOAF BREAKER: the kick from before the build back; the pattern dropped
+                                          * into's own, a track's, after it) */
+            kick_mem_go(drop_kick_back - 1u);
+            drop_kick_back = 0u;
+        }
+        drop_kick_want = 0u;
         track_dropped();                 /* (a track: on from there) */
     }
     if (ui.drop_t && now - ui.drop_t > 900u)   /* (LOAF BREAKER: the drop: the lights strobe 0.9 s, the screen as it

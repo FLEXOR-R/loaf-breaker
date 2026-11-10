@@ -214,7 +214,8 @@ metronome and tap tempo are gone).
 - **TRACKS**: eight tracks (**PRESETS** picks one), each up to 32 items in four rows of eight: a pattern (P1–P16)
   played for its loops (×1–×16), a **DROP** (the build, then the drop into the pattern after it), and its END.
   **ALGORITHM** the item, **K1** its **kick**: SAME (the one playing goes on) or KICK 1–10, taken as the item's pattern
-  comes in (playing from it: at once; a DROP into it: with the drop; its cell shows it, "K7"), **K2** what it is: END, EMPTY, P1–P16, DROP (EMPTY, left of P1, empties the case and keeps its place: ENV held on it,
+  comes in (playing from it: at once; a DROP into it: with the drop; its cell shows it, "K7"); on a DROP, the kick its
+  **build** plays (its kick roll, say), the one before back at the drop ("DRP K5"), **K2** what it is: END, EMPTY, P1–P16, DROP (EMPTY, left of P1, empties the case and keeps its place: ENV held on it,
 or K2 left once more, deletes it, the rest moving up),
   **K3** its loops, **K4** its **break**: SAME (the one playing goes on) or one of the bank's, in with the item
   (swapped at the bar's end, as ALGORITHM does; a cell with its own break shows it, "X4 B3"; a DROP into it brings
@@ -235,7 +236,8 @@ or K2 left once more, deletes it, the rest moving up),
   track goes on from there. PLAY again stops it.
 - **DROP**: **K1** the build: NONE (the bar playing ends in the drop), 1, 2, 4 or 8 bars; **K2** the pattern a SEL + ENV
   drop brings in (NEXT, or P1–P16); **K3** the break it brings in (SAME, or one of the bank's); **K4** the crash's
-  level.
+  level; **PRESETS: BUILD KICK**, the kick the build plays (SAME, or KICK 1–10: for its kick roll, say), the one
+  before back at the drop (a track's DROP item: its own, TRACKS K1).
 - **BUILD**: how the build before a drop sounds, so drops don't all sound alike. **K1 STYLE**: SNARE ROLL (the
   snare speeding up, as ever), KICK ROLL (the kick doing it), KICK+SNARE (the two in turn), STUTTER (the drums out, the
   break itself rolled in 8ths, 16ths then 32nds), SWEEP ONLY (the drums play on, only the filter and the noise build),

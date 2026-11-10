@@ -54,6 +54,7 @@ static void reset_do(uint32_t w)
         set.drop_after = 0u;
         set.drop_brk = 0u;
         set.drop_crash = 100u;
+        set.drop_kick = 0u;
     } else if (w == RST_BUILD) {
         set.drop_style = DS_SNARE;
         set.drop_sweep = 0u;
@@ -273,7 +274,20 @@ static int trk_pat_from(const track_t *t, uint32_t i, int wrap)   /* the first p
 
 /* the drop asked for: a build into pattern to (its drums ready for the render), or (building) the drop at the
  * next bar */
-static void drop_start(uint32_t to)
+static uint8_t drop_kick_want, drop_kick_back;   /* LOAF BREAKER: the build's kick (+ 1, 0: the one playing), and the
+                                          * one to come back at the drop (+ 1) */
+static void drop_start_k(uint32_t to, int item);
+static void drop_kick_text(char *t)      /* (DROP's PRESETS: SAME, KICK n) */
+{
+    if (!set.drop_kick || set.drop_kick > KICK_MEMS)
+        text_cat(t, "SAME");
+    else {
+        text_cat(t, "KICK ");
+        int_text((int32_t)set.drop_kick, t + 5);
+    }
+}
+static void drop_start(uint32_t to) { drop_start_k(to, -1); }
+static void drop_start_k(uint32_t to, int item)   /* item: a track's DROP item (its kick), -1 none (DROP's PRESETS) */
 {
     if (!playing_now()) {
         app_say("DROP", "PLAY FIRST");
@@ -285,6 +299,7 @@ static void drop_start(uint32_t to)
         char t[8] = "> P";
         ui.drop_pat = (uint8_t)(to % NPAT);
         drop_to = ui.drop_pat;
+        drop_kick_want = item >= 0 ? *trk_kick((uint32_t)item) : set.drop_kick;   /* (the build's kick) */
         p = &pats.p[ui.drop_pat];
         for (d = 0; d < NDRUMS; d++)
             for (b = 0; b < 4u; b++)
@@ -395,7 +410,7 @@ static void track_next(void)
         }
         ui.trk_drop = (uint8_t)j;
         ui.trk_pos = (uint8_t)i;
-        drop_start((uint32_t)t->it[j] - 1u);
+        drop_start_k((uint32_t)t->it[j] - 1u, (int)i);
         return;
     }
     ui.trk_pos = (uint8_t)i;
@@ -808,7 +823,7 @@ static void track_value(int i, char *t)
         return;
     }
     if (i == 0) {                        /* TRACKS: the item's kick (LOAF BREAKER; the item: ALGORITHM) */
-        if (!trk_is_pat(tr, ui.trk_cur))
+        if (!trk_is_pat(tr, ui.trk_cur) && tr->it[ui.trk_cur % TRK_ITEMS] != TI_DROP)
             text_cat(t, "-");
         else if (!*trk_kick(ui.trk_cur))
             text_cat(t, "SAME");
@@ -918,8 +933,9 @@ static void track_turn(int i, int32_t d)
             app_say("ITEM", s);
             ui.redraw |= RG_BLOCKS | RG_FOOT;
             return;
-        } else if (i == 0) {             /* LOAF BREAKER: K1 the item's kick: SAME (the one playing), KICK 1..10 */
-            if (!trk_is_pat(t, c))
+        } else if (i == 0) {             /* LOAF BREAKER: K1 the item's kick: SAME (the one playing), KICK 1..10; a
+                                          * DROP's: its build's (back at the drop) */
+            if (!trk_is_pat(t, c) && t->it[c] != TI_DROP)
                 return;
             *trk_kick(c) = (uint8_t)clamp((int32_t)*trk_kick(c) + dir, 0, (int32_t)KICK_MEMS);
         } else if (i == 1) {             /* END, EMPTY, P1..P16, DROP (LOAF BREAKER: EMPTY left of P1, a case
@@ -1267,6 +1283,10 @@ static void track_picture(int32_t top)
         cv_text(132, 58, &FONT_XS, "PLAYING ENDS IN IT", C_GRAY);
         cv_text(132, 78, &FONT_XS, "SEL + ENV BUILDING:", C_GRAY);
         cv_text(132, 90, &FONT_XS, "THE DROP NEXT BAR", C_GRAY);
+        cv_text(132, 110, &FONT_XS, "PRESETS: BUILD KICK", C_GRAY);   /* (LOAF BREAKER) */
+        s[0] = 0;
+        drop_kick_text(s);
+        cv_text(132, 122, &FONT_XS, s, set.drop_kick ? C_HI : C_DIM);
         cv_oy = 0;
         return;
     }
@@ -1325,7 +1345,13 @@ static void track_picture(int32_t top)
         trk_item_text(t, i, s, r);
         {
             uint16_t c = now || t->it[i] == TI_DROP ? C_BLACK : i == n ? C_DIM : C_WHITE;
-            if (t->it[i] == TI_DROP)
+            if (t->it[i] == TI_DROP && *trk_kick(i) && *trk_kick(i) <= KICK_MEMS) {   /* (LOAF BREAKER: its build's
+                                          * kick under it) */
+                char kk[4] = "K";
+                int_text((int32_t)*trk_kick(i), kk + 1);
+                cv_text(x + (28 - text_w(&FONT_XS, "DRP")) / 2, y + 3, &FONT_XS, "DRP", c);
+                cv_text(x + (28 - text_w(&FONT_XS, kk)) / 2, y + 16, &FONT_XS, kk, c);
+            } else if (t->it[i] == TI_DROP)
                 cv_text(x + (28 - text_w(&FONT_XS, "DRP")) / 2, y + 9, &FONT_XS, "DRP", c);
             else {
                 cv_text(x + (28 - text_w(&FONT_T, s)) / 2, y + 3, &FONT_T, s, c);
