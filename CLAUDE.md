@@ -58,6 +58,9 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   kick_mem_go, copied with COPY K n, off with a built-in PRESET / RESET); engine `kick_set_lab`, `kick_set_stack`
   (a second kick voice, kv2, until STACK's hand-over), `kick_set_solo`. All 0 renders bit for bit as 0.203: keep it so.
   The tabs drop the "KICK" label on the KICK menu (six sections). SAVE writes 8 objects.
+- KICK menu by anatomy (10 Nov 2026, 0.205, FLEXOR's choice): KSECT ATTACK, BODY, TAIL, DIRT, TONE, KNOBS (kick.c);
+  app_ui_init opens it on BODY (ui.ksect 1, its MIX: the first EDIT still kpage 0); the parts in a row at the
+  picture's foot (kick_chip). Views (ui.kview, EDIT held): RGB (kick_rgb, 500 ms), WAVE, then CLASSIC (ui.kclassic).
 - No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository.
 - Fonts: `font_trim` is on (fm1.toml, 9 Nov 2026). LOAF BREAKER draws in FONT_T, FONT_XS and FONT_B only (cv_text2 for
   bigger: those doubled). fm1-base still generates S, M (~5 KB trimmed) and L (~9 KB trimmed, 31 px), left out of the

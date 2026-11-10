@@ -510,12 +510,22 @@ static void input(void)
     if (ui.edit_hold && btn & 1u << B_EDIT && now - ui.edit_t >= 450u && ui.edit_hold == 1u) {   /* LOAF BREAKER: EDIT
                                           * held on the KICK menu: the view as it was (the drums' shapes), or back */
         ui.edit_hold = 2u;
-        ui.kclassic ^= 1u;               /* (LOAF BREAKER: on the drums' pages too: one view for them all) */
-        if (ui.page == PG_PERC)
-            ui.kclassic = ui.pbig;
-        ui.pbig = (uint8_t)!ui.kclassic;
+        if (ui.page == PG_KICK && !ui.kclassic && ui.kview == 0u) {   /* (LOAF BREAKER, 0.205: the KICK menu's views,
+                                          * RGB, WAVE, CLASSIC, in turn) */
+            ui.kview = 1u;
+            kv_sig = 0u;
+        } else {
+            ui.kclassic ^= 1u;           /* (LOAF BREAKER: on the drums' pages too: one view for them all) */
+            if (ui.page == PG_PERC)
+                ui.kclassic = ui.pbig;
+            ui.pbig = (uint8_t)!ui.kclassic;
+            if (!ui.kclassic && ui.page == PG_KICK) {
+                ui.kview = 0u;
+                kv_sig = 0u;
+            }
+        }
         app_say(ui.page == PG_PERC ? PERC_VOICE_NAME[ui.pvoice % PERC_VOICES] : "KICK",
-                ui.kclassic ? "CLASSIC VIEW" : "BIG VIEW");
+                ui.kclassic ? "CLASSIC VIEW" : ui.page != PG_KICK ? "BIG VIEW" : ui.kview ? "WAVE VIEW" : "RGB VIEW");
         ui.redraw |= RG_BLOCKS | RG_WAVE | RG_FOOT;
         if (!ui.kclassic)
             lcd_fill(0, 44, 240, 44, C_BLACK);
@@ -1426,6 +1436,7 @@ static void draw_foot(const brk_status_t *st)
 void app_ui_init(void)
 {
     ab_take();                           /* (LOAF BREAKER: TOOLS' A/B: the kick as it was saved) */
+    ui.ksect = 1u;                       /* (LOAF BREAKER, 0.205: the KICK menu opens on BODY, its MIX) */
 #if CH_LOGO
     if (splash_t <= 1u)                  /* LOAF BREAKER: the splash stays (no clock when it was drawn: from now) */
         splash_t = plat_ms() | 1u;
@@ -1953,8 +1964,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab"};
-    int v[94];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect"};
+    int v[96];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -2059,7 +2070,9 @@ int app_expect(const char *what, int *got)
     v[91] = klab.cur.src;
     v[92] = klab.cur.end;
     v[93] = ab_b;
-    for (i = 0; i < 94u; i++)
+    v[94] = ui.kclassic ? 2 : ui.kview;
+    v[95] = ui.ksect;
+    for (i = 0; i < 96u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

@@ -1,17 +1,10 @@
-# LOAF BREAKER: the KICK LAB (EDIT six times: the KICK menu's LAB section). TAIL: K1 CLEAN, K2 the note (D#1), K3 the
-# drop LINEAR, K4 END at 200 ms; ALGORITHM: TAIL +, K1 the TAIL FILTER, K3 DRIVE; STACK: K1 the attack from KICK 1,
-# K4 SOLO ATTACK and back; TOOLS: K1 MUTATE three times, left: undone; K2 A/B: B (as saved) and back to A. PRESETS:
+# LOAF BREAKER: the KICK LAB (0.205: in the anatomy's sections). EDIT twice: TAIL: K1 CLEAN, K2 the note (D#1), K3 the
+# drop LINEAR, K4 END at 200 ms; ALGORITHM: TAIL +, K1 the TAIL FILTER, K3 DRIVE; EDIT four times, ATTACK, ALGORITHM
+# twice: STACK: K1 the attack from KICK 1, K4 SOLO ATTACK and back; EDIT five times, KNOBS, ALGORITHM back: TOOLS: K1
+# MUTATE three times, left: undone; K2 A/B: B (as saved) and back to A. PRESETS:
 # KICK 5, its own LAB (off); back to KICK 4: CLEAN again. SAVE.
 #   app/build/host/loaf-breaker_host tests/scenarios/klab.txt app/build/scenarios
 wait 4200
-tap EDIT
-wait 150
-tap EDIT
-wait 150
-tap EDIT
-wait 150
-tap EDIT
-wait 150
 tap EDIT
 wait 150
 tap EDIT
@@ -34,7 +27,16 @@ turn K1 20 40
 turn K3 10 40
 wait 200
 shot kl_tail2.png
-turn ALGO 1 60
+tap EDIT
+wait 150
+tap EDIT
+wait 150
+tap EDIT
+wait 150
+tap EDIT
+wait 300
+expect ksect 0
+turn ALGO 2 60
 wait 200
 expect kpage 17
 turn K1 1 60
@@ -45,7 +47,18 @@ wait 100
 turn K4 -1 60
 wait 200
 shot kl_stack.png
-turn ALGO 1 60
+tap EDIT
+wait 150
+tap EDIT
+wait 150
+tap EDIT
+wait 150
+tap EDIT
+wait 150
+tap EDIT
+wait 300
+expect kpage 11
+turn ALGO -1 60
 wait 200
 expect kpage 18
 turn K1 3 80

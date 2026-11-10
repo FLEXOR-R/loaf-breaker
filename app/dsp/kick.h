@@ -128,5 +128,8 @@ void kick_speed(const float *sp);
 /* LOAF BREAKER (crossbreed): the next render's hits' pitches, a factor each (pm[k] for at[k]; 0: as set). Set from the
  * render, before kick_render */
 void kick_pitches(const float *pm);
+/* LOAF BREAKER: a hit of k in rekordbox's RGB (the screen's KICK menu, RGB view): n columns over ms, each its lows
+ * (under ~200 Hz), mids and highs (over ~2.5 kHz) and its peak, 0..255 each (the CDJ view's bands and weights) */
+void kick_rgb(const kick_t *k, uint8_t (*col)[4], uint32_t n, uint32_t ms);
 /* the kick's shape, for the screen: n peaks (0..1) of the first ms milliseconds, rendered offline (main loop) */
 void kick_shape(const kick_t *k, uint8_t *px, uint32_t n, uint32_t ms, uint32_t height);

@@ -24,7 +24,7 @@ on again. While one is held, K1–K4 tune it.
 ## 4. EDIT: shape the kick
 
 **EDIT** opens the kick, drawn large: what you hear, its pitch falling in amber. K1–K4 change the part shown;
-**ALGORITHM** goes to the next part, **EDIT** again to the next section (SOUND, SYNTH, DIRT, TONE, KNOBS, LAB). Each part
+**ALGORITHM** goes to the next part, **EDIT** again to the next section (ATTACK, BODY, TAIL, DIRT, TONE, KNOBS; it opens on BODY). Each part
 says in a few words what it is for. Try **DIRT › DISTO** (K1: the distortion) and **SYNTH › BASS** (K2: the
 rawstyle reverse bass). **PRESETS** there picks one of the 10 kick memories: each keeps its own sound.
 

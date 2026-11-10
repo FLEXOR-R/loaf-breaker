@@ -225,14 +225,16 @@ static void kick_part_name(uint32_t p, char *t)
         return;
     text_cat(t, " FX");
 }
-/* LOAF BREAKER: the KICK menu: its parts in four sections, EDIT the next section, ALGORITHM the next part in it.
- * SOUND: MIX, SUB, PUNCH, GRIT, CLICK, OUT. SYNTH: SYNTH, SYNTH +, MACRO. DIRT: TERROR, TERROR +, TERROR 2, the layers'
- * effects. TONE: EQ BANDS, EQ SHAPE, FX 1, FX 2 */
+/* LOAF BREAKER (0.205): the KICK menu by the kick's anatomy, EDIT the next section, ALGORITHM the next part in it (a row
+ * of them at the picture's foot, the one open lit). ATTACK: CLICK, PUNCH, STACK. BODY: MIX, SUB, GRIT, SYNTH, SYNTH +,
+ * MACRO, OUT. TAIL: TAIL, TAIL +, BASS, CLEAN MORPH. DIRT: DISTO, DISTO +, SCREAM, the layers' effects. TONE: EQ
+ * BANDS, EQ SHAPE, FX 1, FX 2. KNOBS: KNOBS, K1-K4 SET, STYLE, TOOLS. The menu opens on BODY (app_ui_init) */
 #define KSECTS 6u
-static const char *const KSECT_NAME[KSECTS] = {"SOUND", "SYNTH", "DIRT", "TONE", "KNOBS", "LAB"};
-static const uint8_t KSECT_N[KSECTS] = {6u, 5u, 7u, 4u, 6u, 4u};
-static const uint8_t KSECT[KSECTS][7] = {{0u, 1u, 3u, 5u, 7u, 10u}, {18u, 19u, 20u, 26u, 9u}, {15u, 16u, 17u, 2u, 4u, 6u, 8u},
-                                        {11u, 12u, 13u, 14u}, {21u, 22u, 23u, 24u, 25u, 27u}, {28u, 29u, 30u, 31u}};   /* (KNOBS: KP_BASE + 10 ..; 26 CLEAN MORPH) */
+static const char *const KSECT_NAME[KSECTS] = {"ATTACK", "BODY", "TAIL", "DIRT", "TONE", "KNOBS"};
+static const uint8_t KSECT_N[KSECTS] = {3u, 7u, 4u, 7u, 4u, 7u};
+static const uint8_t KSECT[KSECTS][7] = {{7u, 3u, 30u}, {0u, 1u, 5u, 18u, 19u, 9u, 10u}, {28u, 29u, 20u, 26u},
+                                        {15u, 16u, 17u, 2u, 4u, 6u, 8u}, {11u, 12u, 13u, 14u},
+                                        {21u, 22u, 23u, 24u, 25u, 27u, 31u}};   /* (KNOBS: KP_BASE + 10 ..; 26 CLEAN MORPH) */
 static void ksect_find(uint32_t p)       /* the part's section and place in it, kept */
 {
     uint32_t s, j;
@@ -248,7 +250,7 @@ static void kick_part_set(uint32_t p);
 /* LOAF BREAKER TEST: GLO MORE's MODE BEGINNER: ALGORITHM passes over the advanced parts (each as it is, EXPERT shows
  * it again): SOUND MIX, SUB, OUT; SYNTH SYNTH; DIRT DISTO; TONE EQ BANDS, FX 1; KNOBS KNOBS, STYLE (10 Nov 2026:
  * MACRO and BASS for EXPERT too) */
-#define KP_ADV ((1u << 2) | (1u << 3) | (1u << 4) | (1u << 5) | (1u << 6) | (1u << 7) | (1u << 8) | (1u << 9) | \
+#define KP_ADV ((1u << 2) | (1u << 4) | (1u << 5) | (1u << 6) | (1u << 8) | (1u << 9) | \
                 (1u << 12) | (1u << 14) | (1u << 16) | (1u << 17) | (1u << 19) | (1u << 20) | (1u << 22) | (1u << 23) | \
                 (1u << 24) | (1u << 25) | (1u << 26) | (1u << 29) | (1u << 31))   /* (LAB: TAIL +, TOOLS) */
 static int kp_hidden(uint32_t p) { return set.novice && p < 32u && (KP_ADV >> p & 1u); }
@@ -746,12 +748,28 @@ static float kick_knob_f(int i)          /* the part's knob i, 0..1 (as its bar)
  * note), its memory, its note and the layers' levels; under it (y 144..191) the part's four knobs as cards, their
  * values large */
 #define KV_W 232u
-#define KV_MS 250u                       /* (the picture's time: a quarter of a second) */
+#define KV_MS (ui.kview == 0u ? 500u : 250u)   /* (the picture's time: a quarter of a second; LOAF BREAKER: the RGB
+                                          * view half a second, the tail's fall in it) */
 static uint8_t kv_px[KV_W];              /* the hit's level, column by column */
 static int8_t kv_wave[KV_W];             /* and its wave (the pitch falling: the cycles stretching) */
+static uint8_t kv_rgb[KV_W][4];          /* LOAF BREAKER: or its lows, mids, highs and peak (the RGB view) */
 static uint32_t kv_sig;
 static uint32_t kv_t;                    /* (TEST: when the hit was last worked out) */
 static uint8_t kv_pend;                  /* (TEST: a change not drawn yet) */
+static void kick_chip(uint32_t p, char *t)   /* (LOAF BREAKER: a part's name at the picture's foot, short) */
+{
+    if (p >= KP_BASE + 11u && p <= KP_BASE + 14u) {   /* (K1 SET ..: "K1") */
+        t[0] = 'K';
+        t[1] = (char)('1' + (p - KP_BASE - 11u) % 4u);
+        t[2] = 0;
+        return;
+    }
+    if (p == KP_BASE + 15u) {
+        text_cat(t, "MORPH");
+        return;
+    }
+    kick_part_name(p, t);
+}
 static void kick_picture(int32_t top)
 {
     const kick_t *k = &set.kick;
@@ -764,6 +782,29 @@ static void kick_picture(int32_t top)
     char t[32], u[8];                    /* (t: the part's words, "PRESETS: EARLY NEXT GEN": room to spare) */
     cv_oy = -top;
     cv_rect(4, 50, KV_W, 1, C_LINE);     /* (the middle) */
+    if (ui.kview == 0u) {                /* LOAF BREAKER: the RGB view, as rekordbox (the CDJ view's colours): each
+                                          * column as tall as its peak, its lows red, mids green, highs blue */
+        uint32_t pk = 1u;
+        for (i = 0; i < KV_W; i++)
+            pk = kv_rgb[i][3] > pk ? kv_rgb[i][3] : pk;
+        for (i = 0; i < KV_W; i++) {
+            const uint8_t *v = kv_rgb[i];
+            uint32_t m = v[0] > v[1] ? v[0] : v[1], h = (uint32_t)v[3] * 34u / pk, br;
+            m = v[2] > m ? v[2] : m;
+            if (!m || !h)
+                continue;
+            br = 120u + (uint32_t)v[3] * 135u / pk;
+            {                            /* (each band against the strongest, squared: the colour saturated, a
+                                          * distorted kick orange, a clean one red, a screech green-white) */
+                uint32_t r = (uint32_t)v[0] * 255u / m, g = (uint32_t)v[1] * 255u / m, b = (uint32_t)v[2] * 255u / m;
+                r = r * r / 255u;
+                g = g * g / 255u;
+                b = b * b / 255u;
+                cv_rect(4 + (int32_t)i, 50 - (int32_t)h, 1, 2 * (int32_t)h + 1,
+                        RGB(r * br / 255u, g * br / 255u, b * br / 255u));
+            }
+        }
+    } else
     for (i = 0; i < KV_W; i++) {         /* the hit: its level (dim, mirrored), its wave over it */
         int32_t h = kv_px[i], w = kv_wave[i];
         if (h)
@@ -782,7 +823,8 @@ static void kick_picture(int32_t top)
         for (i = 0; i < KV_W && i < KSC_W; i++) {
             v = kscope[i] * 34 / pk;
             if (v)
-                cv_rect(4 + (int32_t)i, v > 0 ? 50 - v : 50 - v, 1, 1, C_WHITE);
+                cv_rect(4 + (int32_t)(ui.kview == 0u ? i / 2u : i), 50 - v, 1, 1, C_WHITE);   /* (its 250 ms: half the RGB
+                                          * view's) */
         }
     }
     for (x = 0; x < (int32_t)KV_W; x += 2) {   /* the SUB's pitch: 30 Hz at the bottom .. 1 kHz at the top, as it falls */
@@ -795,7 +837,7 @@ static void kick_picture(int32_t top)
         f = hz * (1.0f + drop * pe);
         int32_t y = 84 - (int32_t)(brk_clampf(brk_log2f(f / 30.0f) / 5.06f, 0.0f, 1.0f) * 68.0f);
         if (x)
-            cv_line(2 + x, py, 4 + x, y, C_AMB);
+            cv_line(2 + x, py, 4 + x, y, ui.kview == 0u ? C_WHITE : C_AMB);   /* (white over the RGB) */
         py = y;
     }
     if (klab.cur.end || klab.cur.src) {  /* LOAF BREAKER: LAB's END (white) and STACK's hand-over (amber), where they
@@ -841,11 +883,34 @@ static void kick_picture(int32_t top)
     int_text((int32_t)(hz + 0.5f), t);
     text_cat(t, " HZ");
     cv_text(234 - text_w(&FONT_XS, t), 4, &FONT_XS, t, C_AMB);
-    for (i = 0; i < KICK_LAYERS; i++) {  /* the layers' levels, small, at the foot */
-        int32_t lx = 6 + (int32_t)i * 58;
-        cv_text(lx, 88, &FONT_XS, KICK_LAYER_NAME[i], C_DIM);
-        cv_rect(lx + 30, 92, 24, 3, C_BLOCK);
-        cv_rect(lx + 30, 92, (int32_t)(24.0f * k->l[i].level + 0.5f), 3, k->l[i].fx ? C_AMB : C_GRAY);
+    {                                    /* LOAF BREAKER (0.205): the section's parts at the foot, the one open lit
+                                          * (BEGINNER: those it passes over dim) */
+        uint32_t s = ui.ksect % KSECTS, n = KSECT_N[s], j, w = 0u, open = kick_part(), gap;
+        int32_t cx;
+        char c[16];
+        for (j = 0; j < n; j++) {
+            c[0] = 0;
+            kick_chip(KSECT[s][j], c);
+            w += (uint32_t)text_w(&FONT_XS, c) + 6u;
+        }
+        gap = n > 1u && w < 232u ? (232u - w) / (n - 1u) : 0u;
+        gap = gap > 10u ? 10u : gap;
+        cx = 4;
+        for (j = 0; j < n; j++) {
+            uint32_t p = KSECT[s][j];
+            int32_t tw;
+            c[0] = 0;
+            kick_chip(p, c);
+            tw = text_w(&FONT_XS, c) + 6;
+            if (p == open) {
+                cv_rect(cx, 86, tw, 11, C_HI);
+                cv_text(cx + 3, 87, &FONT_XS, c, C_BLACK);
+            } else {
+                cv_rect(cx, 86, tw, 11, C_BLOCK);
+                cv_text(cx + 3, 87, &FONT_XS, c, kp_hidden(p) ? C_DIM : C_GRAY);
+            }
+            cx += tw + (int32_t)gap;
+        }
     }
     cv_oy = 0;
 }
@@ -922,7 +987,10 @@ static void draw_kick(const brk_status_t *st)
         kv_t = plat_ms();
         kv_pend = 0u;
         kick_shape(&set.kick, kv_px, KV_W, KV_MS, 34u);
-        kick_wave(&set.kick, kv_wave, KV_W, KV_MS, 34u);
+        if (ui.kview == 0u)              /* (LOAF BREAKER: the RGB view, or the wave) */
+            kick_rgb(&set.kick, kv_rgb, KV_W, KV_MS);
+        else
+            kick_wave(&set.kick, kv_wave, KV_W, KV_MS, 34u);
         for (top = 0; top < KV_W; top++)
             pk = kv_px[top] > pk ? kv_px[top] : pk;
         for (top = 0; pk && top < KV_W; top++) {   /* (as tall as it goes) */

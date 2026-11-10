@@ -1,4 +1,4 @@
-# LOAF BREAKER: the kick's SYNTH. EDIT twice (the KICK menu's SYNTH section): SYNTH (DROP, TIME, SHAPE, HOLD); ALGORITHM:
+# LOAF BREAKER: the kick's SYNTH. EDIT (the KICK menu's BODY section), ALGORITHM three times: SYNTH (DROP, TIME, SHAPE, HOLD); ALGORITHM:
 # SYNTH + (RUMBLE, LENGTH, ASYM, TUNE). A 4X4 kick playing with its rumble, a longer drop, a squarer SUB held 100 ms. Its sound:
 # k_synth.wav
 #   app/build/host/loaf-breaker_host tests/scenarios/synth.txt app/build/scenarios
@@ -10,7 +10,7 @@ turn K3 1 10
 wait 200
 tap EDIT
 wait 200
-tap EDIT
+turn ALGO 3 10
 wait 300
 expect kpage 8
 turn K1 10 10

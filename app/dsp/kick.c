@@ -716,6 +716,50 @@ BRK_COLD void kick_shape(const kick_t *k, uint8_t *px, uint32_t n, uint32_t ms, 
     }
 }
 
+BRK_COLD void kick_rgb(const kick_t *k, uint8_t (*col)[4], uint32_t n, uint32_t ms)
+{
+    static const float G[4] = {300.0f, 380.0f, 520.0f, 255.0f};   /* (app.c's scope: the highs up, they are quieter) */
+    kc_t c;
+    kv_t v;
+    uint32_t i, j, total = ms * (BRK_SR / 1000u), per = total / (n ? n : 1u);
+    float l1 = 0.0f, l2 = 0.0f, e[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    {
+        kick_lab_t lab = *(const kick_lab_t *)&p_lab;
+        kc_make(k, &c, p_syn, &lab);
+    }
+    c.rum = 0.0f;
+    c.rb_lvl = 0.0f;
+    v.rng = 0x5eed1u;
+    v.tlo = v.tlp = v.tenv = 0.0f;
+    v.t2lo = v.t2lp = v.t2env = 0.0f;
+    v.sc1 = v.sc2 = 0.0f;
+    v.rlp = v.rout = v.rlvl = v.dc = 0.0f;
+    v.pm = 1.0f;
+    v.last = v.declick = 0.0f;
+    kv_hit(&v);
+    v.declick = 0.0f;
+    for (i = 0; i < n; i++) {
+        uint32_t s;
+        float pk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+        for (s = 0; s < per; s++) {
+            float x = kv_tick(&v, &c), b[4];
+            l1 += (x - l1) * 0.0285f;    /* (~200 Hz) */
+            l2 += (x - l2) * 0.356f;     /* (~2.5 kHz) */
+            b[0] = brk_absf(l1);
+            b[1] = brk_absf(l2 - l1);
+            b[2] = brk_absf(x - l2);
+            b[3] = brk_absf(x);
+            for (j = 0; j < 4u; j++) {   /* (each band followed, ~15 ms down: smooth as rekordbox, not a cycle's
+                                          * peaks column by column) */
+                e[j] = b[j] > e[j] ? b[j] : e[j] * 0.9985f;
+                pk[j] = e[j] > pk[j] ? e[j] : pk[j];
+            }
+        }
+        for (j = 0; j < 4u; j++)
+            col[i][j] = (uint8_t)brk_clampf(pk[j] * G[j], 0.0f, 255.0f);
+    }
+}
+
 BRK_COLD void kick_wave(const kick_t *k, int8_t *px, uint32_t n, uint32_t ms, uint32_t height)
 {
     kc_t c;

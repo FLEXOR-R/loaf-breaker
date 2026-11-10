@@ -36,7 +36,7 @@ on again. While one is held, K1–K4 tune it.
 ### 4. EDIT: shape the kick
 
 **EDIT** opens the kick, drawn large: what you hear, its pitch falling in amber. K1–K4 change the part shown;
-**ALGORITHM** goes to the next part, **EDIT** again to the next section (SOUND, SYNTH, DIRT, TONE, KNOBS, LAB). Each part
+**ALGORITHM** goes to the next part, **EDIT** again to the next section (ATTACK, BODY, TAIL, DIRT, TONE, KNOBS; it opens on BODY). Each part
 says in a few words what it is for. Try **DIRT › DISTO** (K1: the distortion) and **SYNTH › BASS** (K2: the
 rawstyle reverse bass). **PRESETS** there picks one of the 10 kick memories: each keeps its own sound.
 
@@ -120,7 +120,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 | Button | Domain | Its parts |
 | --- | --- | --- |
 | HOME | LIVE | PERFORM, GENERATOR |
-| EDIT | SOUNDS | Four sources, **SEL + EDIT** the next: **KICK** (its menu: SOUND, SYNTH, DIRT, TONE, KNOBS, LAB), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **MELODY** (the pattern's instrument; EDIT again SOUND / SHAPE), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
+| EDIT | SOUNDS | Four sources, **SEL + EDIT** the next: **KICK** (its menu, by the kick's anatomy: ATTACK, BODY, TAIL, DIRT, TONE, KNOBS), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **MELODY** (the pattern's instrument; EDIT again SOUND / SHAPE), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
 | SEQ | PATTERN | The lanes, KEYS, **GROOVE** (SWING and FILL's settings; also SEL + ARP) |
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD |
 | LFO | MIX | LEVELS (BREAK, KICK, PERC, MELO), SENDS (FX, the drums' route), MASTER, DYNAMICS |
@@ -175,20 +175,26 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 - **EDIT**: the **KICK menu**. Its picture: the kick's hit over a quarter of a second, its wave large (the cycles
   stretching as its pitch falls, squared off where it is driven), its level behind, the SUB's pitch falling in amber,
   its memory (KICK 1–10), what the part is for in a few words ("FOLD DISTORTION") and its note; under it the part's four knobs as cards, their values large. **EDIT again**: the
-  next section (SOUND, SYNTH, DIRT, TONE, **KNOBS**, **LAB**), **ALGORITHM**: the next part in it (each section remembers where
-  you were). **KNOBS** puts the live knobs on the kick's picture: its first part, KNOBS, has K1–K4 turn what SEL + K1–K4
+  next section, the kick's anatomy from its hit to its end: **ATTACK** (CLICK, PUNCH, STACK), **BODY** (MIX, SUB, GRIT,
+  SYNTH, SYNTH +, MACRO, OUT; the menu opens here), **TAIL** (TAIL, TAIL +, BASS, MORPH), **DIRT** (DISTO, DISTO +,
+  SCREAM, the layers' effects), **TONE** (EQ BANDS, EQ SHAPE, FX 1, FX 2), **KNOBS** (KNOBS, K1–K4, STYLE, TOOLS);
+  **ALGORITHM**: the next part in it (each section remembers where you were). The section's parts are in a row at
+  the foot of the picture, the one open lit (BEGINNER: those it passes over dimmed). **KNOBS** puts the live knobs on the kick's picture: its first part, KNOBS, has K1–K4 turn what SEL + K1–K4
   turn (DRIVE, SCREAM, D+ SCREECH, DISTO to start: their first setting, their value large), so you hear and see the
   kick as you set them; then **K1 SET .. K4 SET**, each knob's function with all its settings (DISTO:
   AMOUNT, SUB, FIZZ, SUSTAIN; MORPH: AMOUNT, TO KICK…), the function's name by the kick's (KICK 4  K4 DISTO). They
   are the kick playing's (PRESETS on KNOBS: KICK 1–10, each its own). **On K1 SET .. K4 SET, PRESETS gives that knob
   another function** (the DISTO and SCREAM, DRIVE, DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH and the rest), for
-  the kick playing. **EDIT held** (half a
-  second): the classic view (the part's knobs as bars, the layers' levels, the five drums' shapes, the break's wave
-  above), held again: the big view; the part stays where it is. **Stopped**, anywhere in the KICK menu (the big view, the
+  the kick playing. **The picture has three views, EDIT held (half a second) the next:** **RGB** (to start: the
+  kick's hit over half a second as rekordbox draws a track, each instant as tall as it is loud, its lows red, its mids
+  green, its highs blue: a distorted kick white at the hit, orange in its body, red as its tail darkens, a SCREAM
+  blue-green; the pitch falling in white), **WAVE** (its wave over its level, a quarter of a second, the pitch in
+  amber) and **CLASSIC** (the part's knobs as bars, the layers' levels, the five drums' shapes, the break's wave
+  above); the part stays where it is. **Stopped**, anywhere in the KICK menu (the big view, the
   classic view, its EQ and FX) and on the other drums' pages (big or classic), **white keys 1–5 play the KICK, SNARE,
   HAT, CLAP, MELODY** once each, to hear them (the number on each drum's card; on the big views the strip names the
-  drum played); playing, the keys play slices as ever. **A built-in kick on the kick selected:** SOUND's last part,
-  **OUT** (ALGORITHM to it), **K4 PRESET**: 909, TECHNO, EARLY HC, ROTTERDAM, INDUSTRIAL, DISTORTO, on the kick
+  drum played); playing, the keys play slices as ever. **A built-in kick on the kick selected:**
+  **OUT** (BODY's last part), **K4 PRESET**: 909, TECHNO, EARLY HC, ROTTERDAM, INDUSTRIAL, DISTORTO, on the kick
   selected (PRESETS: KICK 1–10), its volume, steps and DISTO and SCREAM kept. **A kick copied onto another:** K4 PRESET past
   them, **COPY K1 … COPY K10**: that memory's kick, its SYNTH and its knobs (KNOBS, CLEAN SUB, BASS, MORPH) onto the
   kick selected, its volume kept (pick the kick to fill with PRESETS, then the one to copy with K4). On the big view, **SELECT** goes from drum to drum (the KICK,
@@ -747,7 +753,7 @@ A synthesised kick for gabber, hardcore and techno. ALGORITHM turns through its 
 PUNCH FX → GRIT → GRIT FX → CLICK → CLICK FX → MACRO → OUT (each layer's part is its LAYER knobs, its FX part its
 LAYER FX knobs).
 
-![The KICK menu: the kick's wave large, its settings as cards](img/screen-kick.png "The KICK menu") ![EDIT held: the classic view, every drum's shape](img/screen-kick-classic.png "Classic view") ![The kick's SYNTH section](img/screen-kick-synth.png "SYNTH")
+![The KICK menu: the kick in RGB, its parts in a row, its settings as cards](img/screen-kick.png "The KICK menu") ![EDIT held: the WAVE view](img/screen-kick-wave.png "WAVE view") ![EDIT held: the classic view, every drum's shape](img/screen-kick-classic.png "Classic view") ![The kick's SYNTH section](img/screen-kick-synth.png "SYNTH")
 
 The kick is four layers summed and pushed into a clipper:
 
@@ -776,10 +782,11 @@ The kick is four layers summed and pushed into a clipper:
 **INTENSITY** is the drive into the clipper: low is a clean, round kick; past half the clip turns hard, the tail
 flattens into the long, distorted gabber kick.
 
-#### The KICK LAB (EDIT › LAB)
+#### The KICK LAB (TAIL, TAIL +, STACK, TOOLS)
 
-The LAB section is where a hardcore kick is built the way it is in a studio: its tail tuned and shaped, its attack
-taken from another kick. Everything in it is the kick's own (each KICK 1–10 its LAB), saved with SAVE; a kick with
+The KICK LAB is where a hardcore kick is built the way it is in a studio: its tail tuned and shaped, its attack
+taken from another kick. Its pages sit where they act: **TAIL** and **TAIL +** in the TAIL section, **STACK** in
+ATTACK, **TOOLS** in KNOBS. Everything in it is the kick's own (each KICK 1–10 its LAB), saved with SAVE; a kick with
 nothing set there sounds exactly as it always did.
 
 ![The LAB's TAIL: CLEAN, on D#1, the drop LINEAR, cut at 200 ms](img/screen-klab-tail.png "TAIL") ![STACK: KICK 1's attack, this kick's tail](img/screen-klab-stack.png "STACK")
