@@ -1325,7 +1325,7 @@ static void draw_foot(const brk_status_t *st)
                                               {"", "", "", ""},
                                               {"KICK", "PUT", "LOOPS", "BREAK"},
                                               {"AMOUNT", "RATE", "SWEEP", "LATCH"},
-                                              {"LOW", "MID", "HIGH", "FREQ"}};
+                                              {"LOW", "MID", "HIGH", "MID FREQ"}};
     uint32_t i;
     char t[16];
     draw_tabs();

@@ -323,7 +323,7 @@ static const char *base_param_name(uint32_t slot, int i)   /* its MAIN part's */
 {
     const brk_fxslot_t *sl = fx_sl(slot);
     if (i == 3)
-        return sl->type == FXT_EMPTY ? "" : sl->type == FXT_DELAY ? "SEND" : sl->type == FXT_EQ ? "FREQ" : "MIX";
+        return sl->type == FXT_EMPTY ? "" : sl->type == FXT_DELAY ? "SEND" : sl->type == FXT_EQ ? "MID FREQ" : "MIX";
     return FXP_NAME[sl->type < BRK_NFXT ? sl->type : 0][i & 3];
 }
 

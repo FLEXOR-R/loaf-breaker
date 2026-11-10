@@ -1090,7 +1090,7 @@ static void draw_kick(const brk_status_t *st)
 
 /* LOAF BREAKER: HOME's third part, the KICK EQ: the FX chain's EQ on the kick alone (its curve drawn as the FX page
  * draws it). K1-K4: LOW, MID, HIGH, FREQ; ALGORITHM, their shape: LO FREQ, MID Q, HI FREQ, LEVEL */
-static const char *const KEQ_NAME[2][4] = {{"LOW", "MID", "HIGH", "FREQ"}, {"LO FREQ", "MID Q", "HI FREQ", "LEVEL"}};
+static const char *const KEQ_NAME[2][4] = {{"LOW", "MID", "HIGH", "MID FREQ"}, {"LO FREQ", "MID Q", "HI FREQ", "LEVEL"}};
 static void keq_value(int i, char *t)
 {
     uint32_t j = (ui.keq_part & 1u) * 4u + (uint32_t)(i & 3);

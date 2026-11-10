@@ -445,12 +445,12 @@ static float knob_f(float v, int32_t d, float step, float lo, float hi)
 
 /* ------------------------------------------------------------- the FX chain --- */
 
-static void hz_text(float hz, char *t)   /* 340 -> "340HZ", 1234 -> "1.2K" */
+static void hz_text(float hz, char *t)   /* 340 -> "340HZ", 1234 -> "1.2KHZ" (LOAF BREAKER, 0.217: the unit always) */
 {
     t[0] = 0;
     if (hz >= 1000.0f) {
         tenths_text((int32_t)(hz / 100.0f + 0.5f), t);
-        text_cat(t, "K");
+        text_cat(t, "KHZ");
     } else {
         int_text((int32_t)(hz + 0.5f), t);
         text_cat(t, "HZ");

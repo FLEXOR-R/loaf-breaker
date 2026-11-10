@@ -546,7 +546,7 @@ down while the quiet ones, the tails and the room, come up.
 | MB COMP | Low amount | Mid amount | High amount (five more parts of its own: below) |
 | CLIP | Drive (0 – +24 dB into it) | Knee (soft … hard) | Ceiling (0 – −12 dB) |
 
-**EQ**'s bands go −12 … +12 dB, flat in the middle; its K4 is not a mix but the **mid's frequency**. **TAPE** is a
+**EQ**'s bands go −12 … +12 dB, flat in the middle; its K4 is not a mix but the **mid's frequency** (**MID FREQ**, in Hz: 1.5KHZ is 1,500 Hz); its MORE part has the mid's width (**MID Q**: low, wide; high, narrow). **TAPE** is a
 saturator after a tape machine: put it last in the chain to glue the break, or before CRUNCH for a dusty sampler.
 
 **MB COMP** is a 3-band (multiband) compressor, and the one effect with a page of its own (below). **CLIP** squares
