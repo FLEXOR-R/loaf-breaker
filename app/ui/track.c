@@ -180,7 +180,7 @@ static void reset_do(uint32_t w)
             steps.tb[set.trk % NTRACKS][k] = steps.tk[set.trk % NTRACKS][k] = 0u;
     } else if (w == RST_SCREEN) {        /* SCREEN: the skin, the screen effects and their settings, WAVE ZOOM as they
                                           * start (GLO MORE, EFFECTS, FX SET) */
-        set.skin = SKIN_NEW | SKIN_DEFAULT;   /* (LOAF BREAKER, 0.237: CHOPPAH) */
+        set.skin = SKIN_NEW | SKIN_DEFAULT;   /* (LOAF BREAKER, 0.240: RED) */
         set.sfx_on = 0u;
         set.scrfx = set.sfx_kick = set.sfx_drop = set.sfx_len = 50u;
         set.wzoom = 3u;

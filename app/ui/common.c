@@ -177,9 +177,9 @@ static void scr_fill(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint16_t c)
  * checklists from 48 rendered on the simulator; two rows of twelve swatches on SETUP). Saved as SKIN_NEW | its place:
  * an older save's place in the 18 before is mapped (SKIN_OLD) to the nearest kept */
 #define SKIN_NEW 0x80u
-#define SKIN_DEFAULT 2u                  /* (CHOPPAH) */
-static const char *const SKIN_NAME[NSKINS] = {"CHROME", "FIRE&ICE", "CHOPPAH", "GLOUPI", "TESS", "OUTRUN", "THUNDER", "CYBERPUNK", "MC SALO", "ACID", "GARRY", "TOXIC", "PIP-BOY", "NEON", "BLACKLIGHT", "PATINA", "SYNTHWAVE", "MIAMI", "ELECTRIC", "ARCTIC", "BREADCRUMBZ", "IRIS", "GLUCKSMAN", "MAXENCE"};
-static const uint8_t SKIN_OLD[18] = {2u, 2u, 19u, 12u, 21u, 23u, 15u, 20u, 0u, 23u, 16u, 17u, 11u, 17u, 3u, 6u, 3u, 9u};   /* (RED AMBER ICE-BLUE PIP-BOY IRIS
+#define SKIN_DEFAULT 10u                 /* (RED, LOAF BREAKER's own, 0.240; CHOPPAH 0.237-0.239) */
+static const char *const SKIN_NAME[NSKINS] = {"CHROME", "FIRE&ICE", "CHOPPAH", "GLOUPI", "TESS", "OUTRUN", "THUNDER", "CYBERPUNK", "MC SALO", "ACID", "RED", "GARRY", "PIP-BOY", "NEON", "BLACKLIGHT", "PATINA", "SYNTHWAVE", "MIAMI", "ELECTRIC", "ARCTIC", "BREADCRUMBZ", "IRIS", "GLUCKSMAN", "MAXENCE"};
+static const uint8_t SKIN_OLD[18] = {10u, 2u, 19u, 12u, 21u, 23u, 15u, 20u, 0u, 23u, 16u, 17u, 11u, 17u, 3u, 6u, 3u, 9u};   /* (RED AMBER ICE-BLUE PIP-BOY IRIS
                                           * PINK MINT WHITE BLOOD MAXENCE SYNTHWAVE VAPOR TOXIC MIAMI LAVA GOLD BLAZE ACID) */
 /* each: line, dim, gray, mid (secondary), hi (values), block, white */
 static const uint8_t SKIN_RGB[NSKINS][7][3] = {
@@ -193,8 +193,8 @@ static const uint8_t SKIN_RGB[NSKINS][7][3] = {
     {{10, 43, 48}, {30, 105, 116}, {154, 201, 208}, {0, 240, 255}, {255, 236, 40}, {5, 22, 24}, {255, 253, 234}}   /* CYBERPUNK: neon yellow and cyan on a teal night */,
     {{36, 48, 18}, {89, 116, 48}, {191, 208, 165}, {40, 255, 120}, {255, 225, 0}, {18, 24, 9}, {255, 252, 230}}   /* MC SALO: hazard yellow and radioactive green */,
     {{46, 42, 14}, {98, 92, 40}, {196, 190, 140}, {255, 64, 28}, {255, 234, 0}, {22, 20, 6}, {255, 255, 228}}   /* ACID: acid yellow, a red-orange beside it */,
-    {{17, 48, 22}, {47, 116, 57}, {165, 208, 171}, {255, 130, 30}, {170, 255, 80}, {9, 24, 11}, {246, 255, 238}}   /* GARRY: lime and orange on dark green */,
-    {{24, 40, 20}, {60, 90, 50}, {160, 190, 150}, {170, 60, 255}, {190, 255, 40}, {10, 18, 8}, {235, 255, 220}}   /* TOXIC: acid green, poison purple */,
+    {{34, 34, 40}, {74, 74, 82}, {150, 150, 158}, {232, 76, 60}, {255, 132, 112}, {24, 24, 30}, {255, 255, 255}}   /* RED: the red from the start, LOAF BREAKER's default (0.240, FLEXOR: in JUNGLE's place) */,
+    {{24, 40, 20}, {60, 90, 50}, {160, 190, 150}, {170, 60, 255}, {190, 255, 40}, {10, 18, 8}, {235, 255, 220}}   /* GARRY: TOXIC until 0.239: acid green, poison purple */,
     {{14, 44, 22}, {30, 100, 54}, {80, 180, 110}, {40, 220, 100}, {140, 255, 170}, {8, 28, 14}, {200, 255, 210}}   /* PIP-BOY: an old terminal's green */,
     {{48, 48, 48}, {116, 116, 116}, {208, 208, 208}, {255, 30, 150}, {60, 255, 40}, {24, 24, 24}, {236, 255, 234}}   /* NEON: neon green and neon pink on pure black */,
     {{28, 12, 48}, {71, 35, 116}, {179, 157, 208}, {60, 255, 100}, {200, 100, 255}, {14, 6, 24}, {250, 240, 255}}   /* BLACKLIGHT: UV violet and fluorescent green */,

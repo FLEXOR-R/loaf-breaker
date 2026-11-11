@@ -85,8 +85,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   EZ_MS[] in common.c (250 ms .. 2 s): kick.c kv_ms() and perc.c draw_perc_big's pw_ms; the time drawn under the HZ.
   The picture's cost grows with its time (kick_rgb ticks the kick: 2 s = 88,200 samples a redraw, main loop only).
 - Skins (0.237, FLEXOR's for 1.0): 24 in common.c (SKIN_NAME, SKIN_RGB; picked and named on the artifacts
-  https://claude.ai/artifact/QpXSifxqofMdzMw1AM23yr, .../KuYXSJbwFsLJJUTTZRCUU6, .../PZo1tMVjmi2HcoLLJtY3tV), CHOPPAH
-  (SKIN_DEFAULT 2) to start; names in full (0.239: a foot value wider than 54 px is drawn in FONT_T, 2 px left;
+  https://claude.ai/artifact/QpXSifxqofMdzMw1AM23yr, .../KuYXSJbwFsLJJUTTZRCUU6, .../PZo1tMVjmi2HcoLLJtY3tV), RED
+  (SKIN_DEFAULT 10; CHOPPAH 0.237-0.239) to start; names in full (0.239: a foot value wider than 54 px is drawn in FONT_T, 2 px left;
   BREADCRUMBZ, 11 letters, is the widest that fits); set.skin
   carries SKIN_NEW (bit 7), an older save's 0..17 mapped by SKIN_OLD; read it with `skin_idx()`. SETUP shows two rows
   of twelve swatches.

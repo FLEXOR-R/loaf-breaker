@@ -686,9 +686,9 @@ tempo's own repitch, HALF, REVERSE's speed and the tape stop stay speed effects.
 
 ![RESET ALL done: the lobotomy screen](img/screen-lobotomized.png "LOBOTOMIZED")
 
-**SETUP (GLO twice):** its four settings top to bottom, K1 to K4. K1 **SKIN**, the screen's colours (CHOPPAH to start; the
+**SETUP (GLO twice):** its four settings top to bottom, K1 to K4. K1 **SKIN**, the screen's colours (RED to start; the
 whole screen changes at once), 24 chosen by FLEXOR, two rows of twelve swatches: CHROME, FIRE&ICE, CHOPPAH, GLOUPI,
-TESS, OUTRUN, THUNDER, CYBERPUNK, MC SALO, ACID, GARRY, TOXIC, PIP-BOY, NEON, BLACKLIGHT, PATINA, SYNTHWAVE, MIAMI, ELECTRIC,
+TESS, OUTRUN, THUNDER, CYBERPUNK, MC SALO, ACID, RED, GARRY, PIP-BOY, NEON, BLACKLIGHT, PATINA, SYNTHWAVE, MIAMI, ELECTRIC,
 ARCTIC, BREADCRUMBZ, IRIS, GLUCKSMAN, MAXENCE (an FM-1 updated from before keeps its colour, or the nearest left). K2 **WAVE ZOOM** (PRESETS too), how much of the past HOME's scrolling wave (the
 CDJ view) holds across the screen: 1/2, 2/3, 5/6 of a bar (zoomed in), 1 BAR (as it was), 1 1/4, 1 1/2, 2 BARS (zoomed
 out). K3 **MODE**: TUTORIAL (left of BEGINNER: the tutorial, above), BEGINNER or EXPERT (right). **BEGINNER** keeps
@@ -752,7 +752,7 @@ came); **MIX** (the MIXER: levels, swing, the drums' route, COMP and DUCK off wi
 **FX CHAIN** (the four slots as they came, each effect's memory forgotten, the FX level kept); **STEPS** (this
 pattern's drum steps: 1 hit, ALWAYS, on time; the steps themselves kept); **PADS** (the black keys' settings:
 rolls, THRU, filter, gate, HALF's and KIL's LATCH, the ARP key's effect); **KEYS** (the white keys' loops and slice effects);
-**TRACK** (this track: from its first item, every item's break SAME; its items kept); **SCREEN** (the skin CHOPPAH, the
+**TRACK** (this track: from its first item, every item's break SAME; its items kept); **SCREEN** (the skin RED, the
 screen effects off, their settings at 50 %, WAVE ZOOM one bar); and last **EVERYTHING**: RESET ALL, everything back
 to how it came (tempo, generator, FX chain, the drums, mixer, keys, slices, SYSTEM, the tracks and all 64 patterns; the
 first break, saved at once; the screen says so: LOBOTOMIZED, for 3 seconds). To reset it, **turn K2 five clicks**, each

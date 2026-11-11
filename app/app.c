@@ -338,7 +338,7 @@ static void settings_defaults(void)
     set.sfx_on = 0u;                     /* (the screen effects: none at the start and after RESET ALL; the site's
                                           * screenshots clean) */
     set.wzoom = 3u;                      /* (the scrolling wave: a bar across, as it was) */
-    set.skin = 0x82u;                    /* (LOAF BREAKER, 0.237: CHOPPAH, common.c's SKIN_NEW | SKIN_DEFAULT) */
+    set.skin = 0x8Au;                    /* (LOAF BREAKER, 0.240: RED, common.c's SKIN_NEW | SKIN_DEFAULT) */
 #if defined(PLAT_HOST) && !defined(PLAT_WEB)
     set.novice = 0u;                     /* (TEST: the simulator's scenarios and the manual's screens see it all: EXPERT;
                                           * a scenario turns GLO MORE's K1 for BEGINNER) */
