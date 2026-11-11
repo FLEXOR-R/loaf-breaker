@@ -338,6 +338,8 @@ static struct {
     uint8_t tpage;                       /* LOAF BREAKER: ENV's part: 0 TRACKS, 1 PLAY, 2 DROP, 3 KNOB */
     float radio;                         /* LOAF BREAKER: ENV PLAY's dial: where its needle is (eased to the track) */
     uint8_t kil_focus;                   /* LOAF BREAKER: KIL held (its K1: LATCH) */
+    uint8_t seq_brk;                     /* LOAF BREAKER (0.234): EXPERT's SEQ on its BREAK entry (above the lanes): K4
+                                          * the break's rows shown (set.brkv); SEQ_BRK */
     uint8_t seq_manual;                  /* LOAF BREAKER: SEQ's lane picked by hand while playing: the bar playing not
                                           * followed until the next stop */
     uint8_t meter_on;                    /* (TEST) SYSTEM › MIDI K3 METER (EXPERT): the load, once a second in the header */
@@ -378,7 +380,8 @@ static struct {
 } ui;
 /* the white keys play slices (or, on the SEQ, KICK and SNARE / HAT pages, steps) */
 static void page_say(void);              /* the header: the page's button and part, as its tabs (main.c) */
-static int slices_page(void) { return ui.page != PG_SEQ && ui.page != PG_TRACK && ui.page != PG_OVL &&
+#define SEQ_BRK (ui.seq_brk && !set.novice)
+static int slices_page(void) { return (ui.page != PG_SEQ || SEQ_BRK) && ui.page != PG_TRACK && ui.page != PG_OVL &&
                                          !(ui.page == PG_GLOBAL && ui.gpage == 3u); }   /* (GLO EFFECTS: keys 1-7) */   /* (ARP: overlays) */
 enum { RG_HEAD = 1, RG_WAVE = 2, RG_BLOCKS = 4, RG_FOOT = 8, RG_ALL = 15, RG_FX = 16 };
 

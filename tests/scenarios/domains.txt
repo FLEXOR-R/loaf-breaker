@@ -1,6 +1,6 @@
 # LOAF BREAKER 0.201: the pages by domain. SEL + EDIT walks SOUNDS' sources (from the kick: DRUMS, BREAK, the KICK
 # again; the MELODY out in 0.209); EDIT on the DRUMS: SNARE, HAT, CLAP round. The BREAK: K1-K3 PITCH, GRAIN, SNAP, K4
-# its LEVEL, ALGORITHM the break. SEQ's ALGORITHM before its first lane: PATTERN's GROOVE (K1 SWING); SEL + ARP too.
+# its LEVEL, ALGORITHM the break. SEQ's ALGORITHM before its first lane: BREAK (0.234), then PATTERN's GROOVE (K1 SWING); SEL + ARP too.
 # MIX: LEVELS, SENDS (K1 FX). SYSTEM (GLO): MIDI, SETUP, EFFECTS, FX SET, RESET (EVERYTHING: RESET ALL, 15 turns).
 #   app/build/host/loaf-breaker_host tests/scenarios/domains.txt app/build/scenarios
 wait 4200
@@ -41,7 +41,7 @@ expect page 4
 tap SEQ
 wait 300
 expect seq_lane 2
-turn ALGO -3 10
+turn ALGO -4 10
 wait 200
 expect page 3
 expect gpage 6
@@ -51,6 +51,7 @@ turn ALGO 1 10
 wait 200
 expect page 6
 expect seq_lane 0
+expect seq_brk 1
 tap LFO
 wait 200
 tap LFO

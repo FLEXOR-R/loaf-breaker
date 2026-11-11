@@ -445,6 +445,7 @@ another group. A new group starts with 16 empty patterns; what you had before th
 
 | Lane | White keys | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- | --- |
+| **BREAK** (EXPERT: above the first lane; the tab says BREAK) | Play slices | | | | STEPS: the break's rows the grid shows, HIDDEN, 16 (BRK1) or 32 (BRK1 and BRK2, as to start); the pattern plays 32 steps whatever (hidden rows: ALGORITHM passes them by) |
 | STEPS 1-16, STEPS 17-32 | Pick a step to edit (outlined) | SLICE: OFF · LOOP · 1–16 | PITCH: −12 … +12 | HITS: ×1–×4 (a ratchet in the step) | REVERSE |
 | KICK, SNARE, HAT, CLAP | That lane's 16 steps, on and off (as the key comes up) | FILL: 0–16 hits spread evenly from the downbeat (Euclidean) | DRUM FLT (HOME's drums' filter) | Left CLEAR, right 4X4 (the lane's bar shown) | LENGTH: 16 or 32 steps (the kick: 16, 32, 64) |
 | **A step held** (a drum lane) | its own, the foot naming them | NOTE: −8 … +7 semitones (the kick's) | **HITS**: 1–4, the step taps that many times in its 16th | **COND**: ALWAYS, 75 %, 50 %, 25 % (it plays that often), 1:2 (the first loop of two), 2:2 (the second), FILL (only while ARP is held), NOT FILL (never then) | **NUDGE**: on time .. 7/16 of a step late |
@@ -477,7 +478,7 @@ all 16.
 the last beat of each bar. Let go and the pattern is as it was. (The OVERLAY page that ARP used to open is gone; the
 ARP black key keeps its effect, chosen on its own knobs.)
 
-**PATTERN › GROOVE** (SEQ's ALGORITHM past KEYS, or **SEL + ARP**) holds the swing and FILL's settings (saved with
+**PATTERN › GROOVE** (SEQ's ALGORITHM past the last lane or above BREAK, or **SEL + ARP**) holds the swing and FILL's settings (saved with
 the rest):
 
 | K1 SWING | K2 LATCH | K3 DRUM | K4 LENGTH |

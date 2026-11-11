@@ -60,24 +60,47 @@ static uint32_t seq_last_lane(void)      /* the pattern's last lane (its clap's,
         sl--;
     return sl;
 }
-static void seq_lane_step(int32_t d)     /* ALGORITHM / SEQ again: the next lane the pattern has (LOAF BREAKER: either
-                                          * end, PATTERN's GROOVE; then the other end) */
+static int brk_shown(uint32_t sl)         /* (LOAF BREAKER, 0.234: a break row on the grid: BEGINNER both, EXPERT as BREAK's
+                                          * K4 sets it) */
 {
-    uint32_t n, was = ui.seq_lane;
-    if (d < 0 && was == SL_BREAK1 && !set.novice) {   /* (LOAF BREAKER, 0.231, FLEXOR: BEGINNER, the lanes round,
-                                          * no GROOVE between: SEL + ARP still opens it) */
-        global_part(GP_FILL);
+    return set.novice || brk_view() > sl;
+}
+static int lane_ok(uint32_t sl)          /* (a lane ALGORITHM stops on: the pattern's drums, the break's rows shown) */
+{
+    return sl >= SL_KICK ? sl_active(&pats.p[set.pattern % NPAT], sl) : brk_shown(sl);
+}
+static void seq_lane_step(int32_t d)     /* ALGORITHM / SEQ again: the next lane the pattern has (LOAF BREAKER: EXPERT,
+                                          * above the first BREAK (its rows shown or not: K4), past the last PATTERN's
+                                          * GROOVE; BEGINNER, the lanes round, 0.231) */
+{
+    int32_t sl = (int32_t)ui.seq_lane, step = d > 0 ? 1 : -1;
+    if (SEQ_BRK) {                       /* (on BREAK: up GROOVE, down the first lane) */
+        if (d < 0) {
+            global_part(GP_FILL);
+            return;
+        }
+        ui.seq_brk = 0u;
+        for (sl = 0; sl < (int32_t)NSEQL && !lane_ok((uint32_t)sl); sl++)
+            ;
+        ui.seq_lane = (uint8_t)(sl < (int32_t)NSEQL ? sl : SL_KICK);
         return;
     }
-    for (n = 0; n < NSEQL; n++) {
-        ui.seq_lane = (uint8_t)((ui.seq_lane + (d > 0 ? 1u : NSEQL - 1u)) % NSEQL);
-        if (sl_active(&pats.p[set.pattern % NPAT], ui.seq_lane))
-            break;
+    ui.seq_brk = 0u;
+    do
+        sl += step;
+    while (sl >= 0 && sl < (int32_t)NSEQL && !lane_ok((uint32_t)sl));
+    if (sl >= 0 && sl < (int32_t)NSEQL) {
+        ui.seq_lane = (uint8_t)sl;
+        return;
     }
-    if (d > 0 && ui.seq_lane < was && !set.novice) {   /* (wrapped: GROOVE first) */
-        ui.seq_lane = (uint8_t)was;
-        global_part(GP_FILL);
-    }
+    if (set.novice) {                    /* (BEGINNER: round, from the other end) */
+        for (sl = d > 0 ? 0 : (int32_t)NSEQL - 1; !lane_ok((uint32_t)sl); sl -= step)
+            ;
+        ui.seq_lane = (uint8_t)sl;
+    } else if (d < 0)
+        ui.seq_brk = 1u;                 /* (above the first lane: BREAK) */
+    else
+        global_part(GP_FILL);            /* (past the last: GROOVE) */
 }
 static void seq_value(int i, char *t);
 enum { UNDO_RANDOM = 1, UNDO_CLEAR, UNDO_LANE };   /* (UNDO_LANE + the knob) */
@@ -545,6 +568,11 @@ static void seq_value(int i, char *t)    /* the step edited: SLICE, PITCH, HITS,
 {
     const uint8_t *b = pat_now()->st[ui.seq_step % PAT_STEPS];
     t[0] = 0;
+    if (SEQ_BRK) {                       /* (LOAF BREAKER, 0.234: BREAK, K4 its rows shown) */
+        if (i == 3)
+            text_cat(t, brk_view() == 0u ? "HIDDEN" : brk_view() == 1u ? "16 STEPS" : "32 STEPS");
+        return;
+    }
     if (ui.seq_lane >= SL_KICK && ui.note_key) {   /* LOAF BREAKER: a step held: its NOTE, HITS, CHANCE, NUDGE */
         uint32_t ks = SL_BAR[ui.seq_lane % NSEQL] * 16u + ui.note_key - 1u, dr = sl_drum(ui.seq_lane);
         uint32_t sb = *stepb(set.pattern, dr, ks);
@@ -611,6 +639,17 @@ static void seq_turn(int i, int32_t d)
     uint8_t *b = pat_now()->st[ui.seq_step % PAT_STEPS];
     char t[12];
     seq_lane_fix();
+    if (SEQ_BRK) {                       /* (LOAF BREAKER, 0.234: BREAK: K4 the break's rows shown, HIDDEN, 16, 32) */
+        if (i == 3) {
+            set.brkv = (uint8_t)(BRKV_TAG | (uint32_t)clamp((int32_t)brk_view() + (d > 0 ? 1 : -1), 0, 2));
+            set_dirty = 1u;
+            seq_value(i, t);
+            app_say("BREAK STEPS", t);
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
+        } else
+            app_say("BREAK", "K4: ITS STEPS SHOWN");
+        return;
+    }
     if (ui.seq_lane >= SL_KICK) {
         lane_knob(i, d);
         return;
@@ -710,7 +749,7 @@ static uint32_t seq_rows(uint8_t *row)   /* the rows, top to bottom (SL_*); thei
     uint32_t sl, n = 0u;
     for (sl = 0; sl < NSEQL; sl++)       /* (the break's half: only while the keys edit it; LOAF BREAKER, 0.232, FLEXOR:
                                           * BEGINNER, its two halves always on top, the function in sight) */
-        if (sl >= SL_KICK ? sl_active(pat_now(), sl) : set.novice || sl == ui.seq_lane)
+        if (sl >= SL_KICK ? sl_active(pat_now(), sl) : brk_shown(sl) || (sl == ui.seq_lane && !SEQ_BRK))
             row[n++] = (uint8_t)sl;
     return n;
 }
@@ -731,7 +770,7 @@ static void seq_picture(const brk_status_t *st, int32_t top)
         uint32_t sl = row[r], brk = sl < SL_KICK, m = brk ? 0u : sl_get(p, sl);
         int32_t y = brk ? 24 * (int32_t)r : y0 + (int32_t)(r - nb) * pitch, at = brk ? -1 : sl_now(st, sl);
         int32_t ch = brk ? 21 : pitch > 4 ? pitch - 2 : pitch;   /* (the break's half: tall enough for its numbers) */
-        int picked = sl == ui.seq_lane;
+        int picked = SEQ_BRK ? brk : sl == ui.seq_lane;   /* (on BREAK: the break's rows named lit) */
         t[0] = 0;                        /* the row's name: the drum and its length on its first bar, else the bar */
         if (brk)
             text_cat(t, sl ? "BRK2" : "BRK1");
@@ -747,7 +786,7 @@ static void seq_picture(const brk_status_t *st, int32_t top)
             uint16_t c;
             if (brk) {                   /* a step of the break: its slice */
                 uint32_t k = sl * 16u + i, v = p->st[k][0];
-                int now = st->playing && st->step == (int32_t)k, sel = ui.seq_lane < SL_KICK && k == ui.seq_step;
+                int now = st->playing && st->step == (int32_t)k, sel = ui.seq_lane < SL_KICK && !SEQ_BRK && k == ui.seq_step;
                 cv_rect(x, y, w, ch, sel ? C_WHITE : now ? C_BLOCK_HI : (i & 3u) ? C_BLOCK : C_LINE);
                 if (sel && ch > 4)
                     cv_rect(x + 1, y + 1, w - 2, ch - 2, now ? C_BLOCK_HI : C_BLOCK);

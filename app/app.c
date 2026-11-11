@@ -180,8 +180,10 @@ typedef struct {
                                           * 1-2 the drum it rolls, 3-4 how long, 5 in 8ths; 0: the snare, 16ths, the
                                           * bar's last beat, while held (as before) */
     uint8_t mel_vol;                     /* (appended) LOAF BREAKER: the MELODY's fader, 0.200-0.208 (unused since) */
-    uint8_t mel_ver;                     /* (appended) 1: smem[0..3] are the MELODY's instruments' sounds (an older
-                                          * save: the HOOVER's memories, put back to the instruments' own) */
+    uint8_t brkv;                        /* (appended) the MELODY's mel_ver until 0.208; LOAF BREAKER (0.234, FLEXOR):
+                                          * EXPERT's SEQ grid, the break's rows shown, BRKV_TAG | 0 HIDDEN, 1 the first 16
+                                          * steps, 2 all 32 (it always plays 32): brk_view(); else (an older save) 32.
+                                          * SEQ's BREAK, K4 (the settings at their 3840 bytes: no byte appended) */
     uint8_t wstyle;                      /* (appended) LOAF BREAKER: the waves' colours (the KICK menu's picture, HOME's
                                           * CDJ view): 0 REKORDBOX (the bands mixed: RGB, white where all are), 1 SERATO
                                           * (the bands as one hue, red to blue, never white); GLO EFFECTS K3 */
@@ -195,6 +197,8 @@ typedef struct {
                                           * 0.209) holds the drums' extras, perc_x(); else cleared at the load */
 } settings_t;
 #define PX_OK 0xA5u
+#define BRKV_TAG 0xB0u
+static uint32_t brk_view(void);          /* (below: set is declared after) */
 #define FILL_LATCH (set.fill_cfg & 1u)
 #define FILL_DRUM (set.fill_cfg >> 1 & 3u)
 #define FILL_LEN (set.fill_cfg >> 3 & 3u)
@@ -208,6 +212,7 @@ static float rel_ms(uint32_t v) { return 20.0f * brk_exp2f_c((float)(v > 100u ? 
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");
 static settings_t set;
+static uint32_t brk_view(void) { return (set.brkv & 0xF0u) == BRKV_TAG && (set.brkv & 15u) <= 2u ? set.brkv & 15u : 2u; }
 static uint32_t max_out_db(void) { return set.max_out ? (set.max_out - 1u > 12u ? 12u : set.max_out - 1u) : 3u; }
 static perc_voice_t *perc_voice(uint32_t v)   /* LOAF BREAKER: a drum's sound, PV_* (the snare and the hat in perc,
                                           * the rest in pmore) */
@@ -384,6 +389,7 @@ static void settings_defaults(void)
     }
     memset(set.smem, 0, sizeof set.smem);   /* (LOAF BREAKER: the drums' extras: none, as they always sounded) */
     set.pxv = PX_OK;
+    set.brkv = BRKV_TAG | 2u;            /* (LOAF BREAKER: the break's 32 steps on SEQ's grid) */
     for (k = 0; k < 16u; k++)            /* the overlays: full, the sweeps and the dirt a little less */
         set.ovl_amt[k] = k == OV_DIVE || k == OV_RISE || k == OV_CRUSH || k == OV_DIST || k == OV_BOOM ? 70u : 100u;
     set.ovl_rate = 2u;                   /* 1/16 */

@@ -293,7 +293,8 @@ static void input(void)
                 track_key(i);
             continue;
         }
-        if (ui.page == PG_SEQ) {         /* the SEQ page: a break step to edit, or a drum lane's steps */
+        if (ui.page == PG_SEQ && !SEQ_BRK) {   /* the SEQ page: a break step to edit, or a drum lane's steps (LOAF
+                                          * BREAKER, 0.234: on its BREAK entry, the slices) */
             if (btn & 1u << B_SEQ) {     /* LOAF BREAKER: SEQ held + white key 1..4: the bar shown copied there */
                 if (kdn >> WK[i] & 1u) {
                     if (i < 4u)
@@ -611,6 +612,7 @@ static void input(void)
         if (ui.page != PG_SEQ) {
             slices_let_go(keys);
             ui.seq_lane = SL_KICK;       /* LOAF BREAKER: back on SEQ from another page, always K1 */
+            ui.seq_brk = 0u;
             ui.page = PG_SEQ;
             ui.redraw |= RG_FOOT | RG_BLOCKS;
             page_say();
@@ -899,6 +901,9 @@ static void input(void)
                 ui.page = PG_SEQ;
                 ui.seq_manual = 1u;
                 ui.seq_lane = (uint8_t)(d > 0 ? SL_BREAK1 : seq_last_lane());
+                ui.seq_brk = (uint8_t)(d > 0 && !set.novice);   /* (0.234: EXPERT, on to BREAK first) */
+                if (d > 0 && set.novice)
+                    ui.seq_lane = (uint8_t)(brk_shown(SL_BREAK1) ? SL_BREAK1 : SL_KICK);
                 page_say();
                 ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
             } else if (ui.page == PG_GLOBAL)   /* GLOBAL: its part (LOAF BREAKER: SYSTEM's) */
@@ -1197,7 +1202,7 @@ static void draw_tabs(void)
         if (pat_next >= 0)
             text_cat(pn, ">");
         x = tab(x, pn, 0);
-        tab(x, SEQ_LANE_NAME[ui.seq_lane % NSEQL], 1);
+        tab(x, SEQ_BRK ? "BREAK" : SEQ_LANE_NAME[ui.seq_lane % NSEQL], 1);   /* (0.234: its BREAK entry) */
     } else if (ui.page == PG_FX && !IS_KFX()) {
         for (i = 0; i < fx_nslots(); i++)   /* (LOAF BREAKER: BEGINNER's two) */
             x = tab(x, SLOT_NUM[i], i == fx_foc());
@@ -1251,7 +1256,7 @@ static void page_say(void)
     case PG_KEQ: text_cat(t, ui.keq_part ? "KICK EQ SHAPE" : "KICK EQ BANDS"); break;
     case PG_GLOBAL: text_cat(t, ui.gpage == GP_FILL ? "GROOVE" : ui.gpage == GP_BREAK ? "BREAK" : GPART[ui.gpage % NGPART]); break;
     case PG_MIX: text_cat(t, ui.mpage == 3u ? "DYNAMICS" : ui.mpage == 2u ? "MASTER" : ui.mpage ? "SENDS" : "LEVELS"); break;
-    case PG_SEQ: text_cat(t, SEQL[ui.seq_lane % NSEQL]); break;
+    case PG_SEQ: text_cat(t, SEQ_BRK ? "BREAK" : SEQL[ui.seq_lane % NSEQL]); break;
     case PG_TRACK: text_cat(t, TPART[ui.tpage % NTPART]); break;
     case PG_OVL: text_cat(t, "OVERLAY"); break;
     case PG_FX:
@@ -1443,6 +1448,8 @@ static void draw_foot(const brk_status_t *st)
             name = perc_kname(ui.pvoice, perc_pg(), (int)i);
         else if (ui.page == PG_KEQ)
             name = KEQ_NAME[ui.keq_part & 1u][i];
+        else if (ui.page == PG_SEQ && SEQ_BRK)
+            name = i == 3 ? "STEPS" : "";   /* (LOAF BREAKER, 0.234: BREAK, K4 its rows shown) */
         else if (ui.page == PG_SEQ && ui.seq_lane >= SL_KICK) {
             static const char *const KN_LANE[2][4] = {{"FILL", "SOUND", "CLR / 4X4", "LENGTH"},
                                                       {"NOTE", "HITS", "COND", "NUDGE"}};   /* (LOAF BREAKER: a
@@ -1831,14 +1838,15 @@ void app_frame(void)
     /* the header's own state: playing, the tempo, the break */
     if (!st.playing)
         ui.seq_manual = 0u;
-    if (ui.page == PG_SEQ && st.playing && !ui.seq_manual && !ui.note_key) {   /* LOAF BREAKER: a lane of 32 or 64
+    if (ui.page == PG_SEQ && st.playing && !ui.seq_manual && !ui.note_key && !SEQ_BRK) {   /* LOAF BREAKER: a lane of 32 or 64
                                           * steps: the keys show the bar playing (ALGORITHM, SEQ again: not, until
                                           * stopped) */
         const pat_t *p = &pats.p[set.pattern % NPAT];
         uint32_t sl = ui.seq_lane % NSEQL, n = lane_len(p, sl) / 16u, bar, want;
         bar = sl < SL_KICK ? (st.step >= 16 ? 1u : 0u) : st.bar64 >= 0 ? (uint32_t)(st.bar64 >> 4) % n : 0u;
         want = sl - SL_BAR[sl] + bar;
-        if (n > 1u && want != sl && want < NSEQL) {
+        if (n > 1u && want != sl && want < NSEQL && (want >= SL_KICK || brk_shown(want))) {   /* (0.234: not onto a
+                                          * break row hidden) */
             ui.seq_lane = (uint8_t)want;
             ui.redraw |= RG_BLOCKS | RG_FOOT;
         }
@@ -2020,8 +2028,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv"};
-    int v[114];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview"};
+    int v[116];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -2141,7 +2149,9 @@ int app_expect(const char *what, int *got)
     v[111] = 0;                          /* ("fx_scene": the scenes, gone in 0.229) */
     v[112] = keasy_pg;
     v[113] = set.kick.l[KL_SUB].fx == KFX_DRIVE ? (int)(set.kick.l[KL_SUB].fa * 100.0f + 0.5f) : -1;
-    for (i = 0; i < 114u; i++)
+    v[114] = SEQ_BRK ? 1 : 0;
+    v[115] = (int)brk_view();
+    for (i = 0; i < 116u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;
