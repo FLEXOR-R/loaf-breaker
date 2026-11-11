@@ -4,6 +4,9 @@
 wait 4200
 tap EDIT
 wait 300
+# (0.253: the KICK menu opens on ATTACK's PRESET: EDIT again, BODY)
+tap EDIT
+wait 300
 expect page 4
 tap EDIT
 wait 200

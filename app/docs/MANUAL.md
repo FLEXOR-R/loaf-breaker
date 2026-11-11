@@ -52,7 +52,7 @@ DST, SUB) or your own.
 ### 4. EDIT: shape the kick
 
 **EDIT** opens the kick, drawn large: what you hear, its pitch falling in amber. K1–K4 change the part shown;
-**ALGORITHM** goes to the next part, **EDIT** again to the next section (ATTACK, BODY, TAIL, DIRT, TONE, KNOBS; it opens on BODY). Each part
+**ALGORITHM** goes to the next part, **EDIT** again to the next section (ATTACK, BODY, TAIL, DIRT, TONE, KNOBS; in EXPERT it opens on ATTACK's **PRESET**: KNOB 1 picks a built-in kick, 909 to DISTORTO). Each part
 says in a few words what it is for. Try **DIRT › DISTO** (K1: the distortion) and **SYNTH › BASS** (K2: the
 rawstyle reverse bass). **PRESETS** there picks one of the 10 kick memories: each keeps its own sound.
 
@@ -191,7 +191,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 - **EDIT**: the **KICK menu**. Its picture: the kick's hit over a quarter of a second, its wave large (the cycles
   stretching as its pitch falls, squared off where it is driven), its level behind, the SUB's pitch falling in amber,
   its memory (KICK 1–10), what the part is for in a few words ("FOLD DISTORTION") and its note; under it the part's four knobs as cards, their values large. **EDIT again**: the
-  next section, the kick's anatomy from its hit to its end: **ATTACK** (CLICK, PUNCH, STACK), **BODY** (MIX, SUB, GRIT,
+  next section, the kick's anatomy from its hit to its end: **ATTACK** (PRESET: K1 the built-in kicks, the part the menu opens on; CLICK, PUNCH, STACK), **BODY** (MIX, SUB, GRIT,
   SYNTH, SYNTH +, MACRO, OUT; the menu opens here), **TAIL** (TAIL, TAIL +, BASS, MORPH), **DIRT** (DISTO, DISTO +,
   SCREAM, the layers' effects), **TONE** (EQ BANDS, EQ SHAPE, FX 1, FX 2), **KNOBS** (KNOBS, K1–K4, STYLE, TOOLS);
   **ALGORITHM**: the next part in it (each section remembers where you were). The section's parts are a bar of tabs at

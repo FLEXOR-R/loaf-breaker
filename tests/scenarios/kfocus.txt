@@ -17,6 +17,9 @@ expect wstyle 1
 expect kfocus 1
 shot kf_glo.png
 tap EDIT
+wait 300
+# (0.253: the KICK menu opens on ATTACK's PRESET: EDIT again, BODY)
+tap EDIT
 wait 400
 expect kpage 0
 shot kf_mix.png

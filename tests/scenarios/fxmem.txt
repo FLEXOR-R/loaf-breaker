@@ -28,6 +28,9 @@ release SEL
 wait 600
 expect fx_p1 37
 tap EDIT
+wait 300
+# (0.253: the KICK menu opens on ATTACK's PRESET: EDIT again, BODY)
+tap EDIT
 wait 150
 tap EDIT
 wait 150

@@ -6,6 +6,9 @@
 #   app/build/host/loaf-breaker_host tests/scenarios/klab.txt app/build/scenarios
 wait 4200
 tap EDIT
+wait 300
+# (0.253: the KICK menu opens on ATTACK's PRESET: EDIT again, BODY)
+tap EDIT
 wait 150
 tap EDIT
 wait 300
@@ -36,7 +39,8 @@ wait 150
 tap EDIT
 wait 300
 expect ksect 0
-turn ALGO 2 60
+# (0.253: ATTACK's PRESET first: three parts to STACK)
+turn ALGO 3 60
 wait 200
 expect kpage 17
 turn K1 1 60

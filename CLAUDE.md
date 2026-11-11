@@ -66,7 +66,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   (a second kick voice, kv2, until STACK's hand-over), `kick_set_solo`. All 0 renders bit for bit as 0.203: keep it so.
   The tabs drop the "KICK" label on the KICK menu (six sections).
 - KICK menu by anatomy (10 Nov 2026, 0.205, FLEXOR's choice): KSECT ATTACK, BODY, TAIL, DIRT, TONE, KNOBS (kick.c);
-  app_ui_init opens it on BODY (ui.ksect 1, its MIX: the first EDIT still kpage 0); the parts in a row at the
+  app_ui_init opens it on ATTACK's PRESET (0.253, FLEXOR: KP_PRESET, part KP_PART_PRESET, K1 the built-in kicks alone; ui.ksect 0; 0.205-0.252 on BODY's MIX); the parts in a row at the
   picture's foot (kick_chip; 0.207: a full-width bar of tabs, FONT_T if it fits, the wave up: its middle y 45, 29
   px each way). Views (ui.kview, EDIT held): RGB (kick_rgb, 500 ms), WAVE, then CLASSIC (ui.kclassic); 0.231 the drums'
   big view too (perc_rgb into kv_rgb, shared: kv_sig / pw_sig say whose), one state for all.

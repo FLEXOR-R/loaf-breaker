@@ -1500,7 +1500,8 @@ static void draw_foot(const brk_status_t *st)
 void app_ui_init(void)
 {
     ab_take();                           /* (LOAF BREAKER: TOOLS' A/B: the kick as it was saved) */
-    ui.ksect = 1u;                       /* (LOAF BREAKER, 0.205: the KICK menu opens on BODY, its MIX) */
+    ui.ksect = 0u;                       /* (LOAF BREAKER, 0.253, FLEXOR: the KICK menu opens on ATTACK's PRESET, the
+                                          * built-in kicks first; 0.205-0.252 on BODY, its MIX) */
 #if CH_LOGO
     if (splash_t <= 1u)                  /* LOAF BREAKER: the splash stays (no clock when it was drawn: from now) */
         splash_t = plat_ms() | 1u;
