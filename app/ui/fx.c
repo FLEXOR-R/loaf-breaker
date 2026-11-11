@@ -684,7 +684,7 @@ static void fx_type_turn(int32_t d)
 /* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's FX page: PRESETS picks a SCENE, the four slots of the chain set at
  * once (the effects and their settings, MAGIC EQ and MAGIC MBC among them; 0.226: no MB OTT, too heavy beside dense
  * drums); K1-K3 still the slot's settings,
- * K4 its mix. Each slot: its type (or one of the presets after the list: FXT_MAGEQ, FXT_MAGMB, FXT_MBOTT), p0..p2 and
+ * K4 its mix; past the scenes (0.227) MAGIC EQ and MAGIC MBC on the slot shown. Each slot: its type (or one of the presets after the list: FXT_MAGEQ, FXT_MAGMB, FXT_MBOTT), p0..p2 and
  * the mix (a negative: the effect's own) */
 #define NSCENES 7u
 static const char *const SCENE_NAME[NSCENES] = {"CLEAN", "PUNCH", "DUB", "LO-FI", "CRUSHED", "INDUSTRIAL", "SPACE"};
@@ -697,41 +697,56 @@ static const struct { int16_t t; float p[4]; } SCENE[NSCENES][BRK_FX_SLOTS] = {
     {{FXT_DRIVE, {0.6f, -1, -1, -1}}, {FXT_RING, {-1, -1, -1, 0.25f}}, {FXT_REVERB, {0.35f, -1, -1, 0.25f}}, {FXT_EMPTY, {-1, -1, -1, -1}}},
     {{FXT_FLANGER, {-1, -1, -1, -1}}, {FXT_DELAY, {-1, -1, -1, -1}}, {FXT_REVERB, {-1, -1, -1, 0.4f}}, {FXT_EMPTY, {-1, -1, -1, -1}}}};
 static uint8_t fx_scene;                 /* (the last picked: BEGINNER's PRESETS goes on from it) */
-static void fx_scene_turn(int32_t d)
+static void scene_slot(uint32_t k, int t, const float *p)   /* slot k: effect t (a preset past the list too), p0..p2 and
+                                          * the mix (a negative or none: the effect's own) */
 {
-    uint32_t k, j, s = (uint32_t)clamp((int32_t)fx_scene + (d > 0 ? 1 : -1), 0, NSCENES - 1);
-    fx_scene = (uint8_t)s;
-    for (k = 0; k < BRK_FX_SLOTS; k++) {
-        brk_fxslot_t *sl = fx_sl(k);
-        brk_mbc_t *mc = mbc_at(k);
-        int t = SCENE[s][k].t;
-        mc->rsv[0] = 0u;
-        if (t == FXT_MAGEQ)
-            eq_magic_preset(sl, fxx_at(k));
-        else {
-            int bt = t == FXT_MAGMB || t == FXT_MBOTT ? FXT_MBCOMP : t;
-            brk_fx_slot_defaults(sl, bt);
-            brk_fxx_defaults(fxx_at(k), bt);
-            if (bt == FXT_MBCOMP) {
-                brk_mbc_defaults(mc);
-                if (t == FXT_MAGMB)
-                    mb_magic_preset(sl, mc);
-                else if (t == FXT_MBOTT)
-                    mb_ott_preset(sl, mc);
-            }
+    brk_fxslot_t *sl = fx_sl(k);
+    brk_mbc_t *mc = mbc_at(k);
+    uint32_t j;
+    mc->rsv[0] = 0u;
+    if (t == FXT_MAGEQ)
+        eq_magic_preset(sl, fxx_at(k));
+    else {
+        int bt = t == FXT_MAGMB || t == FXT_MBOTT ? FXT_MBCOMP : t;
+        brk_fx_slot_defaults(sl, bt);
+        brk_fxx_defaults(fxx_at(k), bt);
+        if (bt == FXT_MBCOMP) {
+            brk_mbc_defaults(mc);
+            if (t == FXT_MAGMB)
+                mb_magic_preset(sl, mc);
+            else if (t == FXT_MBOTT)
+                mb_ott_preset(sl, mc);
         }
-        for (j = 0; j < 4u; j++)
-            if (SCENE[s][k].p[j] >= 0.0f) {
-                if (j < 3u)
-                    sl->p[j] = SCENE[s][k].p[j];
-                else
-                    sl->mix = SCENE[s][k].p[j];
-            }
-        sl->on = (uint8_t)(sl->type != FXT_EMPTY);
     }
+    for (j = 0; p && j < 4u; j++)
+        if (p[j] >= 0.0f) {
+            if (j < 3u)
+                sl->p[j] = p[j];
+            else
+                sl->mix = p[j];
+        }
+    sl->on = (uint8_t)(sl->type != FXT_EMPTY);
+}
+static void fx_scene_turn(int32_t d)     /* (0.227, FLEXOR: past the scenes, MAGIC EQ and MAGIC MBC, on the slot shown
+                                          * alone, the others kept) */
+{
+    uint32_t k, s = (uint32_t)clamp((int32_t)fx_scene + (d > 0 ? 1 : -1), 0, NSCENES + 1);
+    char nm[12];
+    fx_scene = (uint8_t)s;
     ui.fx_page = 0u;
-    app_say("FX SCENE", SCENE_NAME[s]);
     ui.redraw |= RG_BLOCKS | RG_FOOT | RG_HEAD;
+    if (s >= NSCENES) {
+        scene_slot(fx_foc() % BRK_FX_SLOTS, s == NSCENES ? FXT_MAGEQ : FXT_MAGMB, 0);
+        nm[0] = 0;
+        text_cat(nm, "SLOT ");
+        int_text((int32_t)(fx_foc() % BRK_FX_SLOTS) + 1, nm + 5);
+        app_say(nm, s == NSCENES ? "MAGIC EQ" : "MAGIC MBC");
+        changed();
+        return;
+    }
+    for (k = 0; k < BRK_FX_SLOTS; k++)
+        scene_slot(k, SCENE[s][k].t, SCENE[s][k].p);
+    app_say("FX SCENE", SCENE_NAME[s]);
     changed();
 }
 

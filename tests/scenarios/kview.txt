@@ -32,12 +32,6 @@ expect kpage 11
 shot kv_knobs.png
 tap EDIT
 wait 300
-tap EDIT
-wait 200
-tap EDIT
-wait 200
-tap EDIT
-wait 300
 expect ksect 0
 shot kv_attack.png
 tap EDIT

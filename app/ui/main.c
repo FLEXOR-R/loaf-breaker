@@ -529,20 +529,9 @@ static void input(void)
             lcd_fill(0, 44, 240, 44, C_BLACK);
     }
     if (ui.edit_hold && !(btn & 1u << B_EDIT)) {
-        if (ui.edit_hold == 1u && ui.page == PG_PERC) {   /* (on a drum: the next one, SNARE HAT CLAP; LOAF BREAKER,
-                                          * 0.226, FLEXOR: past the CLAP, the KICK, its first section) */
-            if (ui.einst >= DR_CLAP) {
-                ui.einst = 0u;
-                ui.ksect = 0u;
-                kick_open();
-            } else {
-                ui.einst = (uint8_t)(ui.einst + 1u);
-                edit_open();
-            }
-        } else if (ui.edit_hold == 1u && (set.novice || ui.ksect % KSECTS == KSECTS - 1u)) {   /* (BEGINNER's one KICK
-                                          * page, or EXPERT's last section: on to the SNARE; SEL + EDIT no longer
-                                          * needed for it) */
-            ui.einst = DR_SNARE;
+        if (ui.edit_hold == 1u && ui.page == PG_PERC) {   /* (on a drum: the next one, SNARE HAT CLAP round; the
+                                          * KICK stays on its sections: SEL + EDIT the other sources, FLEXOR 0.227) */
+            ui.einst = (uint8_t)(ui.einst >= DR_CLAP ? DR_SNARE : ui.einst + 1u);
             edit_open();
         } else if (ui.edit_hold == 1u)
             kick_sect_next();            /* (let go before the hold: the next section) */
@@ -1429,8 +1418,8 @@ static void draw_foot(const brk_status_t *st)
             name = KN_LANE[ui.note_key != 0u][i];
             if (!ui.note_key && i == 1)
                 name = sl_kick(ui.seq_lane) ? "KICK" : "SOUND";
-            if (set.novice)              /* (LOAF BREAKER: BEGINNER, K1 the BEAT, no LENGTH, no step menu) */
-                name = i == 0 ? "BEAT" : i == 3 ? "" : KN_LANE[0][i];
+            if (set.novice)              /* (LOAF BREAKER: BEGINNER, K1 the BEAT, no step menu; 0.227: LENGTH) */
+                name = i == 0 ? "BEAT" : KN_LANE[0][i];
             if (set.novice && i == 1)
                 name = sl_kick(ui.seq_lane) ? "KICK" : "SOUND";
         }
@@ -1995,8 +1984,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom"};
-    int v[110];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene"};
+    int v[112];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -2112,7 +2101,9 @@ int app_expect(const char *what, int *got)
     v[107] = perc_x(ui.pvoice)[PX_FX];
     v[108] = perc_x(ui.pvoice)[PX_DIRT];
     v[109] = perc_x(ui.pvoice)[PX_ROOM];
-    for (i = 0; i < 110u; i++)
+    v[110] = (int)(16u * sl_bars(&pats.p[set.pattern % NPAT], ui.seq_lane));
+    v[111] = fx_scene;
+    for (i = 0; i < 112u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

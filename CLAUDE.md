@@ -18,7 +18,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - Menus (9 Nov 2026, 0.177): ENV is the song (TRACKS, PLAY, DROP, BUILD); RESET is GLO's sixth part (`RST_ON`, ENV's
   reset code in track.c); the knobs' functions are EDIT KICK › KNOBS only. SYSTEM › SETUP K3 MODE (`set.novice`): BEGINNER keeps
   the essentials (0.223: the KICK one page, `kick_easy`; the FX page's PRESETS a SCENE, `fx_scene_turn`; 0.224: SEQ's BEAT, SONG's
-  `trk_knob_ok`, `glo_knob_ok`, the held keys and pads (ARP's `OVL_EASY`); `KP_ADV` no longer reached in BEGINNER); the host simulator starts EXPERT (scenarios, the manual's screens), the
+  `trk_knob_ok`, `glo_knob_ok`, the held keys and pads (ARP's `OVL_EASY`); `KP_ADV` no longer reached in BEGINNER; 0.227: SEQ K4 LENGTH the kick's alone, 16/32/64, a drum lane 16 ("EXPERT MODE"),
+  BEGINNER turned on sets the kicks 32 (`novice_lengths`); the FX scenes then MAGIC EQ, MAGIC MBC on the slot shown); the host simulator starts EXPERT (scenarios, the manual's screens), the
   FM-1 and the web emulator BEGINNER. The manual opens with "Start in five minutes" (the hub card's `cheat` link).
 - Screen and knobs (0.178): the screen's rows are remembered as hashes (`rows_send` in common.c): a full-width strip
   sends only its changed rows. Anything drawing on the screen other than through `cv_blit` must forget its rows
@@ -42,7 +43,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - Domains (10 Nov 2026, 0.201; 0.200 is the layout before, FLEXOR may want it back): the header and the tabs name the
   domain (`DOM[]`, `dom_name()` in main.c): LIVE, SOUNDS, PATTERN, SONG, MIX, EFFECTS, SYSTEM. SOUNDS' sources: KICK,
   DRUMS (einst 1-3), BREAK (PG_GLOBAL `GP_BREAK`, GLO's old PITCH code, K4 LEVEL); SEL + EDIT the
-  next; EDIT again (0.226, FLEXOR) goes round every sound: the KICK's sections (BEGINNER: its page), SNARE, HAT, CLAP, back. PATTERN's GROOVE is PG_GLOBAL `GP_FILL` (SWING, LATCH, DRUM, LENGTH), reached from SEQ's ALGORITHM and SEL + ARP;
+  next; EDIT again: the KICK's sections only (0.227, FLEXOR: the 0.226 round to the drums taken back), a drum's the next drum. PATTERN's GROOVE is PG_GLOBAL `GP_FILL` (SWING, LATCH, DRUM, LENGTH), reached from SEQ's ALGORITHM and SEL + ARP;
   LEDs light EDIT / SEQ for those two. SYSTEM's parts `GLO_ORD` (MIDI, SETUP, EFFECTS, FX SET, RESET); RESET ALL is
   RESET's last item, EVERYTHING (15 turns). MIX's second part is SENDS (FX, DRUMS).
 - Knob presets (10 Nov 2026, 0.203): STYLE's PRESETS goes on past the eight styles to PRESET 1-4 (track.c, `KPRESETS`):

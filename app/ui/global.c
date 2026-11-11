@@ -191,6 +191,7 @@ static void global_turn(int i, int32_t d)
                 if (set.novice) {
                     ui.meter_on = 0u;    /* (the METER: EXPERT's) */
                     ui.fx_page = 0u;     /* (the FX page: MAIN only) */
+                    novice_lengths();    /* (0.227, FLEXOR: the kick 32 steps, the drums 16) */
                 }
                 changed();
                 app_say("MODE", set.novice ? "BEGINNER" : "EXPERT");

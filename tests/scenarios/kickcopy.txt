@@ -25,12 +25,6 @@ tap EDIT
 wait 200
 tap EDIT
 wait 200
-tap EDIT
-wait 200
-tap EDIT
-wait 200
-tap EDIT
-wait 200
 turn PRESET 1 10
 wait 200
 expect kslot 4

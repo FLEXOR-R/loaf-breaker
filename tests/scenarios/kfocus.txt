@@ -34,12 +34,6 @@ tap EDIT
 wait 150
 tap EDIT
 wait 400
-tap EDIT
-wait 200
-tap EDIT
-wait 200
-tap EDIT
-wait 300
 expect ksect 0
 shot kf_click.png
 turn ALGO 1 60

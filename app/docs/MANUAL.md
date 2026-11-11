@@ -132,7 +132,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 | Button | Domain | Its parts |
 | --- | --- | --- |
 | HOME | LIVE | PERFORM, GENERATOR |
-| EDIT | SOUNDS | Three sources; **EDIT again** goes round the KICK's sections, then the SNARE, HAT and CLAP, and back; **SEL + EDIT** the next source: **KICK** (its menu, by the kick's anatomy: ATTACK, BODY, TAIL, DIRT, TONE, KNOBS), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
+| EDIT | SOUNDS | Three sources, **SEL + EDIT** the next: **KICK** (its menu, by the kick's anatomy: ATTACK, BODY, TAIL, DIRT, TONE, KNOBS; EDIT again its next section), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
 | SEQ | PATTERN | The lanes, **GROOVE** (SWING and FILL's settings; also SEL + ARP) |
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD |
 | LFO | MIX | LEVELS (BREAK, KICK, PERC), SENDS (FX, the drums' route), MASTER, DYNAMICS |
@@ -526,7 +526,8 @@ down while the quiet ones, the tails and the room, come up.
 **Scenes (BEGINNER).** In BEGINNER mode PRESETS on the FX page picks a whole scene instead of the slot's effect: CLEAN
 (nothing), PUNCH (MAGIC EQ, MAGIC MBC, CLIP), DUB (a low-pass, a 3/16 delay, a reverb), LO-FI (TAPE, CRUNCH, a
 low-pass), CRUSHED (CRUNCH, DRIVE, CLIP), INDUSTRIAL (DRIVE, RING MOD, a short reverb), SPACE (FLANGER,
-DELAY, REVERB). Each slot can still be tuned (K1–K3, K4 its mix); EXPERT picks the effects one by one.
+DELAY, REVERB); then **MAGIC EQ** and **MAGIC MBC**, on the slot shown alone (the other three kept). Each slot can
+still be tuned (K1–K3, K4 its mix); EXPERT picks the effects one by one.
 
 **MAGIC EQ** and **MAGIC MBC** are FLEXOR's own, at the very end of PRESETS (past CLIP), in the FX chain and in KICK
 FX. MAGIC EQ is an EQ: LOW −5.8 dB (shelf at 182 Hz), MID −2.9 dB at 999 Hz (Q 1.59), HIGH +1.9 dB (shelf at 8 kHz),
@@ -704,11 +705,13 @@ red), ACID (acid yellow and red-orange). K2 **WAVE ZOOM** (PRESETS too), how muc
 CDJ view) holds across the screen: 1/2, 2/3, 5/6 of a bar (zoomed in), 1 BAR (as it was), 1 1/4, 1 1/2, 2 BARS (zoomed
 out). K3 **MODE**: TUTORIAL (left of BEGINNER: the tutorial, above), BEGINNER or EXPERT (right). **BEGINNER** keeps
 each thing to its essentials, to play the machine before learning it: the **KICK** is one page (K1 **PRESET**, the
-built-in kicks; K2 **DISTO**; K3 **TUNE**; K4 **TAIL**, the SUB's length; ALGORITHM stays on it, EDIT again goes on to the SNARE); the
+built-in kicks; K2 **DISTO**; K3 **TUNE**; K4 **TAIL**, the SUB's length; EDIT again and ALGORITHM stay on it); the
 **FX** chain is a choice of **scenes** on PRESETS (CLEAN, PUNCH, DUB, LO-FI, CRUSHED, INDUSTRIAL, SPACE: the four slots
-set at once; K1–K4 still the slot's settings and mix; FX again stays on MAIN); the MIXER has LEVELS and SENDS; on SEQ's
+set at once; past SPACE, **MAGIC EQ** and **MAGIC MBC** go on the slot shown alone; K1–K4 still the slot's settings
+and mix; FX again stays on MAIN); the MIXER has LEVELS and SENDS; on SEQ's
 drum lanes K1 is **BEAT**, a whole beat written at once on the four drum lanes (EMPTY, GABBER, HARDCORE, UPTEMPO,
-CROSSBREED, BREAKBEAT, HALFTIME, JUNGLE), K2 the lane's sound, K3 CLR / 4X4, and a step held has no menu (the key just
+CROSSBREED, BREAKBEAT, HALFTIME, JUNGLE), K2 the lane's sound, K3 CLR / 4X4, K4 **LENGTH** the kick's alone (16, 32 or 64 steps; turning BEGINNER on
+sets every kick of the group to 32 and the drums to 16; a drum lane stays 16, "LONGER: EXPERT MODE"), and a step held has no menu (the key just
 turns the step on or off); SONG keeps each part's essentials (TRACKS: the item's pattern and its loops; PLAY: the track;
 DROP: the build's bars; BUILD: its style); a white key held plays its loop with no knobs, a black key plays with none
 either, but ARP: K1 its effect among six (DIVE, RISE, CRUSH, GATE, WOBBLE, BOOM), K2 its amount; SOUNDS › BREAK keeps
@@ -768,9 +771,7 @@ Three synthesised drums play under the break, in time with it (swing included), 
 their steps are SEQ's KICK, SNARE and HAT lanes; their sounds are made on **EDIT**. They go through the FX chain or
 around it together (MIX › SENDS K2).
 
-**EDIT** opens SOUNDS' KICK; **EDIT again** goes round every sound: the KICK's sections (BEGINNER: its one page), then
-the SNARE, the HAT, the CLAP and back to the KICK. **SEL + EDIT** jumps to the next source instead: DRUMS, BREAK, the
-KICK again (the tabs show which).
+**EDIT** opens SOUNDS' KICK (EDIT again: its next section; the KICK stays the KICK); **SEL + EDIT** the next source: DRUMS (SNARE, HAT, CLAP: **EDIT again** the next), BREAK, the KICK again (the tabs show which).
 **ALGORITHM** turns through the drum's parts, **PRESETS** loads a built-in sound. The lower strip shows the three
 drums side by side, each with its waveform (one hit, drawn again as you change the sound), the one edited outlined,
 lit on its hits. The white keys keep playing slices.

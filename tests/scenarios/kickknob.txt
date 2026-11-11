@@ -30,12 +30,6 @@ wait 100
 expect selk3_fn 10
 shot kk_kick4.png
 tap EDIT
-wait 200
-tap EDIT
-wait 200
-tap EDIT
-wait 200
-tap EDIT
 wait 300
 turn PRESET 1 10
 wait 200

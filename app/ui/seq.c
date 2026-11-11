@@ -292,7 +292,8 @@ static void lane_sound_text(char *t)
     int_text((int32_t)(dr == DR_KICK ? set.kslot % KICK_MEMS : *perc_slot(dr - 1u)) + 1, t + text_n(t));
 }
 /* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's drum lanes: K1 BEAT, a whole beat at once (the four drum lanes'
- * every bar), K2 the lane's sound, K3 CLR / 4X4; no step menu (a step held: nothing), no LENGTH */
+ * every bar), K2 the lane's sound, K3 CLR / 4X4; no step menu (a step held: nothing); K4 LENGTH the kick's alone
+ * (0.227: 16, 32, 64; a drum lane says EXPERT) */
 #define NBEATS 8u
 static const char *const BEAT_NAME[NBEATS] = {"EMPTY", "GABBER", "HARDCORE", "UPTEMPO", "CROSSBREED", "BREAKBEAT",
                                               "HALFTIME", "JUNGLE"};
@@ -325,8 +326,13 @@ static void lane_knob(int i, int32_t d)
     static const char *const NAME[4] = {"FILL", "SOUND", "LANE", "LENGTH"};
     uint32_t m = sl_get(pat_now(), ui.seq_lane), n = 0u, k;
     char t[16];
-    if (set.novice && (ui.note_key || i == 3))
-        return;                          /* (BEGINNER: no step menu, no LENGTH) */
+    if (set.novice && ui.note_key)
+        return;                          /* (BEGINNER: no step menu) */
+    if (set.novice && i == 3 && !sl_kick(ui.seq_lane)) {   /* (0.227, FLEXOR: BEGINNER's LENGTH the kick's alone, 16,
+                                          * 32 or 64; the drums 16) */
+        app_say("16 STEPS", "LONGER: EXPERT MODE");
+        return;
+    }
     if (set.novice && i == 0) {
         beat_turn(d);
         return;
@@ -567,9 +573,8 @@ static void seq_value(int i, char *t)    /* the step edited: SLICE, PITCH, HITS,
 {
     const uint8_t *b = pat_now()->st[ui.seq_step % PAT_STEPS];
     t[0] = 0;
-    if (set.novice && ui.seq_lane >= SL_KICK && (i == 0 || i == 3)) {   /* (BEGINNER: K1 the BEAT, K4 nothing) */
-        if (i == 0)
-            text_cat(t, BEAT_NAME[beat_cur % NBEATS]);
+    if (set.novice && ui.seq_lane >= SL_KICK && i == 0) {   /* (BEGINNER: K1 the BEAT) */
+        text_cat(t, BEAT_NAME[beat_cur % NBEATS]);
         return;
     }
     if (ui.seq_lane >= SL_KICK && ui.note_key) {   /* LOAF BREAKER: a step held: its NOTE, HITS, CHANCE, NUDGE */
