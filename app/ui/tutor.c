@@ -8,11 +8,10 @@
  * quits it, SEL + GLO skips a step. set.tut: 0 off, 1..TUT_N the step running (kept with SAVE), TUT_DONE finished.
  * (Part of app.c's unity: included there in order, before screen.c, which draws the header.) */
 
-enum { TC_HOME, TC_PLAY, TC_SLICES, TC_BRK, TC_PAD, TC_ARP, TC_OVLPG, TC_OVLKEY, TC_EDIT, TC_KPRE, TC_DISTO, TC_SHAPE, TC_TAIL, TC_PRESETS,
+enum { TC_HOME, TC_PLAY, TC_SLICES, TC_BRK, TC_PAD, TC_OVLPG, TC_OVLKEY, TC_EDIT, TC_KPRE, TC_DISTO, TC_SHAPE, TC_TAIL, TC_PRESETS,
        TC_SNPG, TC_PPRE, TC_PFX, TC_SEQ, TC_KICKS, TC_SNARE, TC_FXPG, TC_FXT, TC_DROP, TC_SAVE, TC_END };
-#define TK_WHITE 1u                      /* (the keys a step blinks: the white ones, the black ones, the ARP key) */
+#define TK_WHITE 1u                      /* (the keys a step blinks: the white ones, the black ones) */
 #define TK_BLACK 2u
-#define TK_ARP 4u
 #define TUT_LESSONS 9u
 static const char *const TUT_LESSON[TUT_LESSONS] = {"THE BREAK", "EFFECTS", "THE KICK", "THE DRUMS", "THE PATTERN", "THE FX",
                                                     "THE DROP", "SAVE", "DONE"};
@@ -20,14 +19,13 @@ static const struct {
     uint8_t lesson, cond, keys, wait;    /* (wait: 1, its result to hear: 5 s before the next; 0: at once) */
     uint16_t btn;                        /* (the buttons it blinks: bit B_*) */
     const char *say;
-} TUT[] = {                              /* (LOAF BREAKER, 0.235, FLEXOR: 23 steps (0.244: 25, the OVERLAY page), BEGINNER as he chose it: its KICK's
+} TUT[] = {                              /* (LOAF BREAKER, 0.235, FLEXOR: 23 steps (0.244: 25, the OVERLAY page; 0.246, FLEXOR: 24, the ARP key's step gone), BEGINNER as he chose it: its KICK's
                                           * pages, the drums' PRESET and FX by SELECT, the FX page) */
     {0u, TC_HOME, 0u, 0u, 1u << B_HOME, "PRESS HOME: THE PERFORM MENU"},
     {0u, TC_PLAY, 0u, 1u, 1u << B_PLAY, "PRESS PLAY: THE BREAK PLAYS"},
     {0u, TC_SLICES, TK_WHITE, 1u, 0u, "PLAY THE WHITE KEYS: ITS SLICES"},
     {0u, TC_BRK, 0u, 1u, 0u, "TURN ALGORITHM: ANOTHER BREAK"},
     {1u, TC_PAD, TK_BLACK, 1u, 0u, "HOLD A BLACK KEY: AN EFFECT"},
-    {1u, TC_ARP, TK_ARP, 1u, 0u, "HOLD BLACK KEY ARP, TURN K1"},
     {1u, TC_OVLPG, 0u, 0u, 1u << B_ARP, "PRESS ARP: ALL THE EFFECTS"},   /* (0.244: the OVERLAY page back) */
     {1u, TC_OVLKEY, TK_WHITE, 1u, 0u, "HOLD WHITE KEYS: AN EFFECT EACH"},
     {2u, TC_EDIT, 0u, 0u, 1u << B_EDIT, "PRESS EDIT: THE KICK"},
@@ -56,7 +54,7 @@ static int tut_on(void) { return set.tut >= 1u && set.tut <= TUT_N; }
 /* what the steps watch (common.c's counters, counted where it happens: main.c, seq.c), against the step's start */
 static struct {
     uint32_t wk, padm, padn, kturn, sk4, lane, saves, home, kpre, t, fx, ovlk;
-    uint8_t kslot, drop, brk, ovl, disto, ppre, pfx, padk;
+    uint8_t kslot, drop, brk, disto, ppre, pfx;
     float tail;
 } tut_at;
 static uint32_t tut_fx_sig(void)        /* (the FX chain's first two slots: their effects, presets included) */
@@ -80,14 +78,12 @@ static void tut_mark(void)
     tut_at.kslot = set.kslot;
     tut_at.drop = drop_n;
     tut_at.brk = set.brk;
-    tut_at.ovl = (uint8_t)(set.ovl_pad & 15u);
     tut_at.disto = KICK_TERROR(&set.kick);
     tut_at.tail = set.kick.l[KL_SUB].decay;
     tut_at.ppre = perc_x(PV_SNARE)[PX_PRE];
     tut_at.pfx = perc_x(PV_SNARE)[PX_FX];
     tut_at.fx = tut_fx_sig();
     tut_at.ovlk = tut_ovl;
-    tut_at.padk = tut_padk;
     tut_at.t = plat_ms();
 }
 static void tut_go(uint32_t step)        /* step 1..TUT_N (past the last: finished) */
@@ -109,7 +105,7 @@ static void tut_start(void)              /* SETUP K3 left of BEGINNER: from wher
 #define TUT_ASK 0xFDu
 static uint8_t ask_sel = 1u, ask_drawn = 0xFFu;
 static const char *const ASK_NAME[3] = {"TUTORIAL", "BEGINNER", "EXPERT"};
-static const char *const ASK_TEXT[3][2] = {{"25 GUIDED STEPS", "THE BUTTONS TO PRESS BLINK"},
+static const char *const ASK_TEXT[3][2] = {{"24 GUIDED STEPS", "THE BUTTONS TO PRESS BLINK"},
                                            {"THE ESSENTIALS", "PLAY RIGHT AWAY"},
                                            {"EVERYTHING", "EVERY SETTING, EVERY PAGE"}};
 static void tut_quit(void);
@@ -190,9 +186,6 @@ static int tut_done(uint32_t c, const brk_status_t *st)
         return set.brk != tut_at.brk;
     case TC_PAD:
         return tut_padn != tut_at.padn;
-    case TC_ARP:                         /* (the ARP key's effect changed: K1 while it is held; LOAF BREAKER: no ARP
-                                          * key on the layout, CHOPPAH's: a knob turned on FRZ, or any key held) */
-        return PAD_BIT(BKF_ARP) ? (set.ovl_pad & 15u) != tut_at.ovl : tut_padk != tut_at.padk;
     case TC_OVLPG:
         return ui.page == PG_OVL;
     case TC_OVLKEY:                      /* (two of its effects played) */
@@ -291,10 +284,7 @@ static void tut_head(char *a, char *b)   /* the header's two lines: "TUTORIAL 3/
         text_cat(b, " S");
         return;
     }
-    if (TUT[s].cond == TC_ARP && !PAD_BIT(BKF_ARP))   /* (CHOPPAH's keys: no ARP key, FREEZE's) */
-        text_cat(b, PAD_BIT(PAD_FREEZE) ? "HOLD BLACK KEY FRZ, TURN K1" : "HOLD A BLACK KEY, TURN K1");
-    else
-        text_cat(b, TUT[s].say);
+    text_cat(b, TUT[s].say);
 }
 static void tut_leds(uint32_t *b, uint32_t *k, int playing)   /* the step's buttons and keys blinking */
 {
@@ -309,6 +299,4 @@ static void tut_leds(uint32_t *b, uint32_t *k, int playing)   /* the step's butt
         *k |= 1u << WK[i];
     for (i = 0; i < 11u && TUT[s].keys & TK_BLACK; i++)
         *k |= 1u << BK[i];
-    if (TUT[s].keys & TK_ARP)
-        *k |= PAD_BIT(BKF_ARP) ? PAD_BIT(BKF_ARP) : PAD_BIT(PAD_FREEZE);
 }

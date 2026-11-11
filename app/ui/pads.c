@@ -358,7 +358,6 @@ static void pad_knob_turn(int pad, int k, int32_t d)
         break;
     default: break;
     }
-    tut_padk++;                          /* (LOAF BREAKER: the TUTORIAL's count) */
     pad_knob_value(pad, k, t);
     app_say(pad_knob_name(pad, k), t);
     changed();
