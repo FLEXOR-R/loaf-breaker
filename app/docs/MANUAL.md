@@ -697,7 +697,8 @@ hit; K2 **DROP TIME**, how long it falls; K3 **TAIL**, the SUB's length; K4 **TA
 **MIX** (the four layers' levels: SUB, PUNCH, GRIT, CLICK), its pages as tabs at the picture's foot, the header's tabs
 the sounds, KICK, SN, HH, CP, **SELECT** going round them (on the drums' page too); the drums' page is PRESET, FX, LEVEL and DECAY; the **FX**
 chain has two slots and a short list on PRESETS, MAGIC EQ and MAGIC MBC at its end (above); FX again stays on MAIN;
-the MIXER has LEVELS and SENDS; on SEQ, ALGORITHM goes round the lanes (no GROOVE between them: SEL + ARP opens it); on the drum lanes K1 is **FILL**, K2 the lane's sound, K3 CLR / 4X4, K4 **LENGTH**
+the MIXER has LEVELS and SENDS; on SEQ, the break's two halves (BRK1, BRK2) always on top of the grid, and ALGORITHM goes round the lanes (no GROOVE
+between them: SEL + ARP opens it); on the drum lanes K1 is **FILL**, K2 the lane's sound, K3 CLR / 4X4, K4 **LENGTH**
 the kick's alone (16, 32 or 64 steps; turning BEGINNER on
 sets every kick of the group to 32 and the drums to 16; a drum lane stays 16, "LONGER: EXPERT MODE"), and a step held has no menu (the key just
 turns the step on or off); SONG keeps each part's essentials (TRACKS: the item's pattern and its loops; PLAY: the track;

@@ -708,8 +708,9 @@ static uint32_t keys_lit(const brk_status_t *st)   /* the white keys' lights on 
 static uint32_t seq_rows(uint8_t *row)   /* the rows, top to bottom (SL_*); their count */
 {
     uint32_t sl, n = 0u;
-    for (sl = 0; sl < NSEQL; sl++)       /* (the break's half: only while the keys edit it) */
-        if (sl >= SL_KICK ? sl_active(pat_now(), sl) : sl == ui.seq_lane)
+    for (sl = 0; sl < NSEQL; sl++)       /* (the break's half: only while the keys edit it; LOAF BREAKER, 0.232, FLEXOR:
+                                          * BEGINNER, its two halves always on top, the function in sight) */
+        if (sl >= SL_KICK ? sl_active(pat_now(), sl) : set.novice || sl == ui.seq_lane)
             row[n++] = (uint8_t)sl;
     return n;
 }
@@ -718,13 +719,17 @@ static void seq_picture(const brk_status_t *st, int32_t top)
     static const char *const TAG[NDRUMS] = {"K", "SN", "HH", "CP"};
     const pat_t *p = pat_now();
     uint8_t row[NSEQL];
-    uint32_t i, r, n = seq_rows(row), nb = n && row[0] < SL_KICK ? 1u : 0u;
-    int32_t y0 = nb ? 24 : 0, pitch = (SQ_H - y0) / (int32_t)(n - nb ? n - nb : 1u);
+    uint32_t i, r, n = seq_rows(row), nb = 0u;
+    int32_t y0, pitch;
     char t[8];
+    while (nb < n && row[nb] < SL_KICK)  /* (the break's rows on top: one, or BEGINNER's two) */
+        nb++;
+    y0 = 24 * (int32_t)nb;
+    pitch = (SQ_H - y0) / (int32_t)(n - nb ? n - nb : 1u);
     cv_oy = -top;
     for (r = 0; r < n; r++) {
         uint32_t sl = row[r], brk = sl < SL_KICK, m = brk ? 0u : sl_get(p, sl);
-        int32_t y = brk ? 0 : y0 + (int32_t)(r - nb) * pitch, at = brk ? -1 : sl_now(st, sl);
+        int32_t y = brk ? 24 * (int32_t)r : y0 + (int32_t)(r - nb) * pitch, at = brk ? -1 : sl_now(st, sl);
         int32_t ch = brk ? 21 : pitch > 4 ? pitch - 2 : pitch;   /* (the break's half: tall enough for its numbers) */
         int picked = sl == ui.seq_lane;
         t[0] = 0;                        /* the row's name: the drum and its length on its first bar, else the bar */

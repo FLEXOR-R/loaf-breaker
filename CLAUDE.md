@@ -20,7 +20,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   the essentials, as FLEXOR chose them on a checklist (0.229; https://claude.ai/artifact/75VV4U2fH5iouT8789feZN, its
   store `choix/beginner`): the KICK three pages on OUT's part (`kick_easy`, `KEASY[]`, `keasy_pg`: KICK, SHAPE, MIX; the foot's tabs, the
   header's KICK SN HH CP with SELECT round them, 0.230), the
-  drums PRESET / FX / LEVEL / DECAY, SEQ as EXPERT's but no step menu, no GROOVE in its lanes' round (0.231) and K4 LENGTH the kick's alone (16/32/64, a drum
+  drums PRESET / FX / LEVEL / DECAY, SEQ as EXPERT's but the break's two halves always on top (0.233), no step menu, no GROOVE in its lanes' round (0.231) and K4 LENGTH the kick's alone (16/32/64, a drum
   lane 16; BEGINNER turned on sets the kicks 32, `novice_lengths`), the FX chain two slots (`fx_nslots`, the others
   muted in `fx_apply`) and a short list (`FX_EASY`) then MAGIC EQ, MAGIC MBC; SONG's `trk_knob_ok`, `glo_knob_ok`, the
   held white keys (no knobs), the black keys' knobs as EXPERT's (0.232); DST and SUB keys (never lit) and blank
