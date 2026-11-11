@@ -340,6 +340,8 @@ static struct {
     uint8_t rec;                         /* REC: white keys and MIDI notes write into the pattern as it plays */
     uint8_t help;                        /* SEL pressed alone: the SEL combinations on the strip, until the next press */
     uint32_t help_t;                     /* when the card opened */
+    uint32_t sel_t;                      /* LOAF BREAKER (0.258): when SEL went down (held a moment: the foot its knobs) */
+    uint8_t sel_foot;                    /* (the foot showing SEL + K1-K4's, drawn so) */
     uint8_t drawn_page;                  /* the page last drawn (TAP takes the whole screen: leaving it redraws all) */
     uint32_t idle_t;                     /* the last key, button or knob touched (the demo: demo.c) */
     uint32_t lobo_t;                     /* RESET ALL done: the lobotomy screen, since then (0: not showing) */

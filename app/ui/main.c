@@ -229,10 +229,14 @@ static void input(void)
                                           * pressed again (that press no click) */
         if (sel_now && !ui.sel_raw) {
             ui.sel_lock = 0u;
+            ui.tap_pend = 0u;            /* (LOAF BREAKER, 0.258: locking looked like a press: freed, no click, no
+                                          * card) */
             app_say("SEL", "FREE");
         } else
             btn |= 1u << B_SEL;
     }
+    if (sel_now && !ui.sel_raw)
+        ui.sel_t = now;                  /* (LOAF BREAKER: SEL down: held a moment, the foot shows its knobs) */
     ui.sel_raw = (uint8_t)sel_now;
     kdn = keys & ~ui.keys;
     kup = ui.keys & ~keys;
@@ -876,6 +880,7 @@ static void input(void)
         if (k >= EN_K1 && k <= EN_K4 && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K1 DUCK, K2 TERROR 2, K3 COMP
                                           * (was LIMIT), K4 TERROR, on any page: its amount (its settings: ENV's KNOB) */
             selk_turn(selk_fn((uint32_t)(k - EN_K1)), 0, d);
+            ui.redraw |= RG_FOOT;        /* (the foot shows them: SEL held or locked) */
             continue;
         }
         if (k == EN_SELECT && (ui.page == PG_KICK || ui.page == PG_PERC) &&
@@ -1429,6 +1434,16 @@ static void draw_foot(const brk_status_t *st)
                            ui.gpage >= 2u ? KN_MORE[(ui.gpage - 2u) % 3u][i] : ui.page == PG_GLOBAL && ui.gpage
                            ? KN_PITCH[i] : ui.page == PG_MIX && ui.mpage
                            ? KN_GROOVE[ui.mpage >= 3u ? 2u : ui.mpage == 2u][i] : KN[ui.page][i];
+        if (ui.sel_foot) {               /* LOAF BREAKER (0.258, FLEXOR): SEL held or locked (SEL x2): the knobs are
+                                          * SEL + K1-K4's, their functions (EDIT KICK › KNOBS) and their values */
+            selk_value(selk_fn(i), 0, t);
+            cv_text(4 + (int32_t)i * 60, 18, &FONT_T, SK_NAME[selk_fn(i)], C_AMB);
+            if (text_w(&FONT_XS, t) > 54)
+                cv_text(2 + (int32_t)i * 60, 31, &FONT_T, t, C_WHITE);
+            else
+                cv_text(4 + (int32_t)i * 60, 30, &FONT_XS, t, C_WHITE);
+            continue;
+        }
         if (ui.shown >= 100 && set.novice)
             continue;                    /* (LOAF BREAKER: BEGINNER, a key held: no knob) */
         if (ui.shown >= 100) {           /* a white key held: its loop, or its slice's effect */
@@ -1856,6 +1871,14 @@ void app_frame(void)
         if (ui.shown >= 0 && now - ui.fx_drawn >= 33u)
             ui.redraw |= RG_FX;
         ui.redraw &= ~(uint8_t)RG_BLOCKS;
+    }
+    {                                    /* LOAF BREAKER (0.258): SEL held a moment (not a click) or locked: the foot
+                                          * shows SEL + K1-K4; let go, the page's again */
+        uint8_t sf = (uint8_t)(ui.sel_lock || (ui.sel_raw && now - ui.sel_t >= 300u));
+        if (sf != ui.sel_foot) {
+            ui.sel_foot = sf;
+            ui.redraw |= RG_FOOT;
+        }
     }
     if (st.pads != ui.last_pads) {
         ui.last_pads = st.pads;
