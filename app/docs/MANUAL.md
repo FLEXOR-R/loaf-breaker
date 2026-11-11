@@ -492,13 +492,13 @@ together. **K1** the amount of the one touched last, **K2** the rate of the ones
 stays on on the other pages). The ARP black key keeps its own effect, chosen on its own knobs. (The FILL that ARP held
 played from 0.1xx to 0.243 is gone, LOAF BREAKER 0.244.)
 
-In EXPERT the page has three tabs (**ARP** again, or **ALGORITHM**, goes to the next): **ARP EFFECTS** (the above),
-**BLACK KEYS** and **MORE**. **BLACK KEYS** lays out the black keys: **K1 PRESET**, CHOPPAH (CHOPPAH's eleven, the ARP
+In EXPERT the page has two tabs (**ARP** again, or **ALGORITHM**, goes to the other): **ARP EFFECTS** (the above)
+and **BLACK KEYS**. **BLACK KEYS** lays out the black keys: **K1 PRESET**, CHOPPAH (CHOPPAH's eleven, the ARP
 key not among them), FLEXOR LAYOUT (LOAF BREAKER's until 0.244) or CUSTOM; **K2 KEY**, the key you edit (or press it:
 here a black key picks itself and plays nothing); **K3 EFFECT**, what it does: any of R8, R16, R32, REV, FRZ, HLF, VNL,
 GAT, RND, FLT, DUB, ARP, KIL, DST, SUB. Turned on a preset, K3 makes a CUSTOM of it first, that key changed (keys
 outlined amber differ from CHOPPAH's). SAVE keeps the layout. BEGINNER always plays CHOPPAH's (turning BEGINNER on
-sets it back to CHOPPAH, and EXPERT keeps it until you change it). **MORE** will hold new black-key settings: to come.
+sets it back to CHOPPAH, and EXPERT keeps it until you change it).
 
 ![ARP › BLACK KEYS: the FLEXOR LAYOUT, key 1 edited](img/screen-blackkeys.png "BLACK KEYS")
 

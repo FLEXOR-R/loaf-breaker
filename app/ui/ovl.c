@@ -51,7 +51,8 @@ static void ovl_keys(uint32_t keys, uint32_t kdn)   /* every input: the white ke
 /* ------------------------------------------------ BLACK KEYS (LOAF BREAKER) --- */
 /* LOAF BREAKER (11 Nov 2026, FLEXOR): ARP's second tab, EXPERT's: the black keys' layout. K1 the PRESET (CHOPPAH,
  * FLEXOR LAYOUT, CUSTOM), K2 the KEY (or a black key pressed: it picks itself, nothing played), K3 its EFFECT (any of
- * CHOPPAH's and FLEXOR LAYOUT's, BKF_*; on a preset, K3 makes a CUSTOM of it first). The third, MORE: to come */
+ * CHOPPAH's and FLEXOR LAYOUT's, BKF_*; on a preset, K3 makes a CUSTOM of it first). (MORE, a third: gone for
+ * now, 0.259, FLEXOR) */
 static void bk_release_all(void)         /* (the layout changes: whatever a key had on lets go) */
 {
     uint32_t i;
@@ -156,18 +157,6 @@ static void draw_bk(void)
         cv_blit(0, 88u + band * 52u);
     }
 }
-static void draw_ovl_more(void)          /* MORE: to come (FLEXOR: new black-key settings) */
-{
-    uint32_t band;
-    for (band = 0; band < 2u; band++) {
-        cv_begin(240, 52, C_BLACK);
-        cv_oy = -(int32_t)band * 52;
-        cv_text(6, 30, &FONT_B, "MORE", C_HI);
-        cv_text(6, 52, &FONT_XS, "NEW BLACK-KEY SETTINGS: TO COME", C_GRAY);
-        cv_oy = 0;
-        cv_blit(0, 88u + band * 52u);
-    }
-}
 
 static void ovl_value(int i, char *t)
 {
@@ -226,10 +215,6 @@ static void draw_ovl(void)
     char t[4];
     if (ui.opage == 1u) {
         draw_bk();
-        return;
-    }
-    if (ui.opage) {
-        draw_ovl_more();
         return;
     }
     for (band = 0; band < 2u; band++) {

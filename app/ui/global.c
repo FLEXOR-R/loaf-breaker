@@ -4,7 +4,6 @@
 
 static void reset_all(void);             /* (below, with the break's change) */
 /* the GLOBAL page's knobs: clock in, clock out, Bluetooth, where MIDI goes */
-static const char *const MIDI_TO_NAME[3] = {"USB+BT", "USB", "BT"};
 static uint8_t *sfx_knob(int i)          /* LOAF BREAKER: GLO EFFECTS' K1-K4: AMOUNT, on a KICK, at the DROP, LENGTH */
 {
     return i == 0 ? &set.scrfx : i == 1 ? &set.sfx_kick : i == 2 ? &set.sfx_drop : &set.sfx_len;
@@ -421,14 +420,15 @@ static void draw_global(const brk_status_t *st)
     if (!set.clk_out)
         text_cat(t, "OFF");
     else {
-        text_cat(t, "TO ");
-        text_cat(t, MIDI_TO_NAME[set.midi_to % 3u]);
+        text_cat(t, "TO USB");           /* (LOAF BREAKER, 0.259: no Bluetooth: USB, whatever MIDI TO says) */
         text_cat(t, st->playing ? "  SENDING" : "  (WHILE PLAYING)");
     }
     cv_text(96, 2, &FONT_T, t, set.clk_out && st->playing ? C_HI : set.clk_out ? C_WHITE : C_DIM);
     cv_text(6, 30, &FONT_T, "MIDI", C_GRAY);
-    for (p = 0; p < NPORTS; p++) {
-        int32_t x = 96 + (int32_t)p * 48;
+    for (p = 0; p < NPORTS; p++) {       /* (LOAF BREAKER, 0.259: USB and TRS; no Bluetooth, no BT box) */
+        int32_t x = 96 + (p == PORT_TRS ? 1 : 0) * 48;
+        if (p != PORT_TRS && p != 0u)
+            continue;
         int in = plat_midi_ago((int)p, 0) < 300u, out = p != PORT_TRS && plat_midi_ago((int)p, 1) < 300u;
         cv_rect(x, 28, 44, 18, C_BLOCK);
         cv_text(x + 4, 30, &FONT_T, PORT_NAME[p], in || out ? C_WHITE : C_DIM);

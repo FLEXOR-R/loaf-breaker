@@ -35,7 +35,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   random soak (`tools/soak.py`, seed = run number) at every release.
 - Names (10 Nov 2026, 0.191): what the code calls TERROR, TERROR 2, TERROR + the screen and the docs call DISTO,
   SCREAM, DISTO + (D+ TYPE: FOLD CLIP CRUSH RECT TUBE, 0.255 HALF SINE WRAP FUZZ, `KICK_T_TYPES`; D+ SCREECH ..); the black key DST. Keep newcomers' names on the screen; TERROR stays the
-  genre (README's tagline: HARDCORE - BREAKCORE - TERROR - SPEEDCORE - GABBER, FLEXOR 11 Nov 2026) and a STYLE.
+  genre (README's tagline: HARDCORE - GABBER - BREAKCORE - TERROR - SPEEDCORE, FLEXOR 11 Nov 2026) and a STYLE.
 - Breaks (10 Nov 2026, 0.193): FLEXOR chose the bank on a listening page of all 70 breaks as the FM-1 holds them
   (https://claude.ai/artifact/MCakoDjuGTXjMLFiobM1k3; the choice in its store, `tri/choix`): 9 breaks, NUSKOOL first (FLEXOR's order; LO-FI out in 0.200 for room).
 - Patterns (10 Nov 2026, 0.197): 64, four groups of 16 (`NGRP`, `NPAT_ALL`); the group in RAM is pats.p/kn/hits and
@@ -102,8 +102,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   back from CHOPPAH, then BKF_ARP, KIL, DST, SUB); `bk_fn(j)`, `bkf_mask(f)` (= `PAD_BIT`) follow the layout in use:
   presets CHOPPAH (BEGINNER's only; a new FM-1's and RESET ALL's; `novice_lengths` sets it), FLEXOR LAYOUT (0.244's:
   keep it exactly), CUSTOM; stored in `set.bkeys.bk` (the STAB's old 24 bytes: BK_TAG, preset, eleven functions). ARP's
-  tabs in EXPERT (`ui.opage`, ovl.c): ARP EFFECTS, BLACK KEYS (bk_turn, draw_bk), MORE (FLEXOR: new black-key settings,
-  to decide together, e.g. the ARP effects one a key). The simulator starts on FLEXOR LAYOUT (its scenarios).
+  tabs in EXPERT (`ui.opage`, ovl.c): ARP EFFECTS, BLACK KEYS (bk_turn, draw_bk); MORE gone for now (0.259, FLEXOR; its idea: new black-key
+  settings, e.g. the ARP effects one a key). SYSTEM › MIDI shows USB and TRS only (no BT box, 0.259). The simulator starts on FLEXOR LAYOUT (its scenarios).
 - BREAK TIME (11 Nov 2026, 0.256, FLEXOR): SYSTEM › MIDI K4 NORMAL / HALF, `set.bkeys.bk[BK_BHALF]` (the STAB's old
   bytes again: bk[14..23] still free); brk.c `p_bhalf` (`brk_half_time`): the break a step every other 16th at half
   ratio, the drums' step events, the swing and the clock at the tempo (they count `steps_total - pat_org`, not `step`).

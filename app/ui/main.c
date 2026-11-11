@@ -694,7 +694,7 @@ static void input(void)
             slices_let_go(keys);
             ui.opage = 0u;
         } else
-            ui.opage = set.novice ? 0u : (uint8_t)((ui.opage + 1u) % 3u);
+            ui.opage = set.novice ? 0u : (uint8_t)((ui.opage + 1u) % 2u);   /* (0.259: MORE gone for now) */
         ui.page = PG_OVL;
         ui.redraw |= RG_HEAD;
         ui.redraw |= RG_FOOT | RG_BLOCKS;
@@ -913,7 +913,7 @@ static void input(void)
             else if (btn & 1u << B_SEL)
                 break_ask((set.brk + (d > 0 ? 1u : n_breaks - 1u)) % n_breaks);
             else if (ui.page == PG_OVL && !set.novice) {   /* LOAF BREAKER: ARP's tabs (as SYSTEM's parts) */
-                ui.opage = (uint8_t)((ui.opage + (d > 0 ? 1u : 2u)) % 3u);
+                ui.opage = (uint8_t)((ui.opage + 1u) % 2u);   /* (0.259: two tabs, MORE gone for now) */
                 page_say();
                 ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
             } else if (ui.page == PG_TRACK && ui.tpage == 0u)
@@ -1203,7 +1203,7 @@ static void draw_tabs(void)
     }
     else if (ui.page == PG_OVL) {        /* (LOAF BREAKER: EXPERT, its three tabs; BEGINNER, ARP EFFECTS alone: no tab) */
         if (!set.novice)
-            for (i = 0; i < 3u; i++)
+            for (i = 0; i < 2u; i++)     /* (0.259, FLEXOR: MORE gone for now) */
                 x = tab(x, OPAGE_NAME[i], i == ui.opage);
     }
     else if (ui.page == PG_TRACK)        /* LOAF BREAKER: ENV: TRACKS, PLAY, DROP */

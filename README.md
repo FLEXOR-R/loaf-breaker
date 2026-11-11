@@ -6,7 +6,7 @@
 </p>
 
 <h1 align="center">LOAF BREAKER</h1>
-<p align="center"><b>A hardcore and breakcore break chopper for the M-VAVE FM-1.</b><br>HARDCORE - BREAKCORE - TERROR - SPEEDCORE - GABBER</p>
+<p align="center"><b>A hardcore and breakcore break chopper for the M-VAVE FM-1.</b><br>HARDCORE - GABBER - BREAKCORE - TERROR - SPEEDCORE</p>
 
 <p align="center">
 <a href="https://flexor-r.github.io/loaf-breaker/"><b>Site</b></a> ·
