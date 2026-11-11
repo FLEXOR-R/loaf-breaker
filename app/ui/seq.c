@@ -8,6 +8,8 @@ enum { SL_BREAK1, SL_BREAK2, SL_KICK, SL_KICK2, SL_KICK3, SL_KICK4, SL_SNARE, SL
 static const char *const SEQ_LANE_NAME[NSEQL] = {"STEPS 1-16", "STEPS 17-32", "KICK 1-16", "KICK 17-32", "KICK 33-48",
                                                  "KICK 49-64", "SNARE 1-16", "SNARE 17-32", "HAT 1-16", "HAT 17-32",
                                                  "CLAP 1-16", "CLAP 17-32"};
+#define SQ_BRK_H 13                      /* LOAF BREAKER (0.241, FLEXOR): a break row's pitch, its slices' numbers
+                                          * just fitting (21 + 3 before) */
 #define SQ_H 148                         /* the picture's rows (screen 44..191) */
 #define SQ_X 30                          /* the steps begin (the names before) */
 static uint32_t text_n(const char *t) { uint32_t n = 0u; while (t[n]) n++; return n; }   /* (no libc's strlen on the FM-1) */
@@ -763,13 +765,14 @@ static void seq_picture(const brk_status_t *st, int32_t top)
     char t[8];
     while (nb < n && row[nb] < SL_KICK)  /* (the break's rows on top: one, or BEGINNER's two) */
         nb++;
-    y0 = 24 * (int32_t)nb;
+    y0 = SQ_BRK_H * (int32_t)nb;
     pitch = (SQ_H - y0) / (int32_t)(n - nb ? n - nb : 1u);
     cv_oy = -top;
     for (r = 0; r < n; r++) {
         uint32_t sl = row[r], brk = sl < SL_KICK, m = brk ? 0u : sl_get(p, sl);
-        int32_t y = brk ? 24 * (int32_t)r : y0 + (int32_t)(r - nb) * pitch, at = brk ? -1 : sl_now(st, sl);
-        int32_t ch = brk ? 21 : pitch > 4 ? pitch - 2 : pitch;   /* (the break's half: tall enough for its numbers) */
+        int32_t y = brk ? SQ_BRK_H * (int32_t)r : y0 + (int32_t)(r - nb) * pitch, at = brk ? -1 : sl_now(st, sl);
+        int32_t ch = brk ? SQ_BRK_H - 2 : pitch > 4 ? pitch - 2 : pitch;   /* (the break's half: tall enough for its
+                                          * numbers) */
         int picked = SEQ_BRK ? brk : sl == ui.seq_lane;   /* (on BREAK: the break's rows named lit) */
         t[0] = 0;                        /* the row's name: the drum and its length on its first bar, else the bar */
         if (brk)
