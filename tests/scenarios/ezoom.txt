@@ -1,5 +1,5 @@
 # LOAF BREAKER (0.216): SYSTEM › EFFECTS, PRESETS: EDIT ZOOM, the time EDIT's pictures show. AUTO (each part its
-# own: the kick 500 ms in RGB); 2 S: the kick's tail whole; the drums too; back to AUTO.
+# own: the kick 500 ms in RGB); 250 MS, 500 MS, 750 MS (0.257), 1 S, 1.5 S, 2 S: the kick's tail whole; the drums too; back to AUTO.
 #   app/build/host/loaf-breaker_host tests/scenarios/ezoom.txt app/build/scenarios
 wait 4200
 tap EDIT
@@ -21,7 +21,7 @@ wait 1800
 shot ez_glo.png
 turn PRESET 9 60
 wait 200
-expect ezoom 5
+expect ezoom 6
 tap EDIT
 wait 400
 expect page 4
@@ -39,6 +39,10 @@ wait 150
 tap GLO
 wait 300
 turn PRESET -2 60
+wait 200
+expect ezoom 4
+# (0.257: 750 MS between 500 MS and 1 S)
+turn PRESET -1 60
 wait 200
 expect ezoom 3
 turn PRESET -9 60

@@ -268,7 +268,7 @@ static void draw_global(const brk_status_t *st)
         uint32_t e, cur = ui.sfx_cur < SFX_CRT || ui.sfx_cur >= SFX_N ? SFX_CRT : ui.sfx_cur;
         cv_text(6, 2, &FONT_XS, "EDIT ZOOM", C_GRAY);   /* (LOAF BREAKER, 0.216: EDIT's pictures' time, PRESETS) */
         {
-            int32_t x = cv_text(84, 1, &FONT_T, EZ_NAME[set.ezoom % EZ_N], C_HI);
+            int32_t x = cv_text(84, 1, &FONT_T, EZ_NAME[ez_idx()], C_HI);
             cv_text(x + 8, 2, &FONT_XS, "PRESETS", C_DIM);
         }
         cv_text(6, 16, &FONT_XS, "K3 WAVE", C_GRAY);   /* (LOAF BREAKER: the waves' colours, the kick's picture) */

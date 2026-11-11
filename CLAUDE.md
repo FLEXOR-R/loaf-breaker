@@ -82,7 +82,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   something to hear (TUT[].wait: slices, effects, kicks, DISTO, steps, the drop); a button step goes on at once. Off a step's page the header says the way back (0.248, `tut_away`); the page buttons a step doesn't ask for are held back (0.249, `tut_btn_ok`); the steps say KNOB 1, not K1. AUTO SAVE (0.250, FLEXOR): off while the tutorial runs, on at its end or quit; the first start's BEGINNER turns it on. Keep
   its steps true when a control they teach moves.
 - EDIT ZOOM (0.216, FLEXOR: "a wider view"): `set.ezoom` (appended after `tut`; 0 AUTO), SYSTEM › EFFECTS PRESETS,
-  EZ_MS[] in common.c (250 ms .. 2 s): kick.c kv_ms() and perc.c draw_perc_big's pw_ms; the time drawn under the HZ.
+  EZ_MS[] in common.c (250, 500, 750 (0.257), 1000, 1500, 2000 ms; read with `ez_idx()`: EZ_TAG | index, an older save's 3.. one on): kick.c kv_ms() and perc.c draw_perc_big's pw_ms; the time drawn under the HZ.
   The picture's cost grows with its time (kick_rgb ticks the kick: 2 s = 88,200 samples a redraw, main loop only).
 - Skins (0.237, FLEXOR's for 1.0): 24 in common.c (SKIN_NAME, SKIN_RGB; picked and named on the artifacts
   https://claude.ai/artifact/QpXSifxqofMdzMw1AM23yr, .../KuYXSJbwFsLJJUTTZRCUU6, .../PZo1tMVjmi2HcoLLJtY3tV), RED

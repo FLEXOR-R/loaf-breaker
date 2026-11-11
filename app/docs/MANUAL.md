@@ -748,7 +748,7 @@ PUNCH, GRIT, CLICK, their effects) that layer alone, CLICK over 50 ms and PUNCH 
 STACK its attack's kick, the TAIL section the whole tail over a second; the other parts the whole kick.
 **PRESETS EDIT ZOOM** (top line): how much time EDIT's pictures show, the kick's and the drums': **AUTO** (as above: the
 kick 500 ms in RGB, 250 in WAVE, each part its own with KICK VIEW PART; a drum its decay and a bit), or **250 MS**,
-**500 MS**, **1 S**, **1.5 S**, **2 S** for every picture (zoomed out: a long hardcore tail seen whole). The time shows
+**500 MS**, **750 MS**, **1 S**, **1.5 S**, **2 S** for every picture (zoomed out: a long hardcore tail seen whole). The time shows
 under the pitch, top right of the kick's picture. On the FM-1 a longer picture takes longer to work out: at 2 S it follows a
 knob less smoothly (the sound is never touched). RESET's SCREEN puts it back on AUTO.
 

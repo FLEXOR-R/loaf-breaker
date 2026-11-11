@@ -993,9 +993,9 @@ static void input(void)
         }
         else if (k == EN_PRESET && ui.page == PG_GLOBAL && ui.gpage == 3u) {   /* LOAF BREAKER: SYSTEM › EFFECTS:
                                           * EDIT ZOOM, the time EDIT's pictures show (the kick, the drums) */
-            set.ezoom = (uint8_t)clamp((int32_t)(set.ezoom % EZ_N) + (d > 0 ? 1 : -1), 0, EZ_N - 1);
+            set.ezoom = (uint8_t)(EZ_TAG | (uint32_t)clamp((int32_t)ez_idx() + (d > 0 ? 1 : -1), 0, EZ_N - 1));
             changed();
-            app_say("EDIT ZOOM", set.ezoom ? EZ_NAME[set.ezoom] : "AUTO (EACH PART ITS OWN)");
+            app_say("EDIT ZOOM", ez_idx() ? EZ_NAME[ez_idx()] : "AUTO (EACH PART ITS OWN)");
             ui.redraw |= RG_BLOCKS;
         } else if (k == EN_PRESET && ui.page == PG_GLOBAL && ui.gpage == 2u) {   /* LOAF BREAKER: GLO MORE: WAVE ZOOM,
                                           * how much of the past the scrolling wave holds */
@@ -2173,7 +2173,7 @@ int app_expect(const char *what, int *got)
     v[97] = set.kfocus;
     v[98] = rst_cool();
     v[99] = set.tut;
-    v[100] = set.ezoom;
+    v[100] = (int)ez_idx();
     v[101] = (int)kv_ms();
     v[102] = 0;                          /* ("beat": BEGINNER's BEAT, gone in 0.229) */
     v[103] = (int)sl_get(pat_now(), ui.seq_lane % NSEQL);

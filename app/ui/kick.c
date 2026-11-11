@@ -914,8 +914,8 @@ static float kick_knob_f(int i)          /* the part's knob i, 0..1 (as its bar)
  * EFFECTS K4 KICK VIEW on PART: CLICK's 50 ms, PUNCH's and STACK's 150, the TAIL section's whole second) */
 static uint32_t kv_ms(void)
 {
-    if (set.ezoom % EZ_N)                /* (LOAF BREAKER: EDIT ZOOM, SYSTEM › EFFECTS: the time chosen, every part) */
-        return EZ_MS[set.ezoom % EZ_N];
+    if (ez_idx())                        /* (LOAF BREAKER: EDIT ZOOM, SYSTEM › EFFECTS: the time chosen, every part) */
+        return EZ_MS[ez_idx()];
     if (set.kfocus) {
         if ((ui.kpage == KP_LAYER || ui.kpage == KP_FX) && ui.klayer == KL_CLICK)
             return 50u;
