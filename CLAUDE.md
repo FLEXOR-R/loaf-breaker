@@ -55,7 +55,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   LEDs light EDIT / SEQ for those two. EXPERT's SEQ (0.234): BREAK above the first lane (`ui.seq_brk`, `SEQ_BRK`), K4
   the break's rows shown (`brk_view()`, settings' `brkv`: the old mel_ver byte, tagged 0xB0, since settings_t is at
   3840 bytes: no field can be appended any more without a new magic or freeing one). SYSTEM's parts `GLO_ORD` (MIDI, SETUP, EFFECTS, FX SET, RESET); RESET ALL is
-  RESET's last item, EVERYTHING (15 turns). MIX's second part is SENDS (FX, DRUMS).
+  RESET's last item, EVERYTHING. RESET (0.239, FLEXOR): K4 picks, K2 five clicks, then GLO within 5 s (`ui.rst_ask`,
+  `rst_confirm`); ALGORITHM there goes to SYSTEM's parts. MIX's second part is SENDS (FX, DRUMS).
 - Knob presets (10 Nov 2026, 0.203): STYLE's PRESETS goes on past the eight styles to PRESET 1-4 (track.c, `KPRESETS`):
   `steps.kpre[4][9]` (appended to steps_t: four codes, four values 0..200, stored), the same for every kick; an empty
   one gives back `kcust` (the knobs before PRESETS turned); SAVE on STYLE with one picked stores them (`kpre_store`).
@@ -85,7 +86,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   The picture's cost grows with its time (kick_rgb ticks the kick: 2 s = 88,200 samples a redraw, main loop only).
 - Skins (0.237, FLEXOR's for 1.0): 24 in common.c (SKIN_NAME, SKIN_RGB; picked and named on the artifacts
   https://claude.ai/artifact/QpXSifxqofMdzMw1AM23yr, .../KuYXSJbwFsLJJUTTZRCUU6, .../PZo1tMVjmi2HcoLLJtY3tV), CHOPPAH
-  (SKIN_DEFAULT 2) to start; names 8-9 letters at most (the knob's column; 0.238: a foot value wider than its column is drawn in FONT_T, GLUCKSMAN); set.skin
+  (SKIN_DEFAULT 2) to start; names in full (0.239: a foot value wider than 54 px is drawn in FONT_T, 2 px left;
+  BREADCRUMBZ, 11 letters, is the widest that fits); set.skin
   carries SKIN_NEW (bit 7), an older save's 0..17 mapped by SKIN_OLD; read it with `skin_idx()`. SETUP shows two rows
   of twelve swatches.
 - SETUP (0.213, FLEXOR): the knobs in the screen's order, K1 SKIN, K2 WAVE ZOOM (PRESETS too), K3 MODE, K4 AUTO SAVE;

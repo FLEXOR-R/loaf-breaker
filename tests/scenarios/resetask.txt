@@ -1,5 +1,5 @@
 # LOAF BREAKER (FLEXOR, 11 Nov 2026, 0.236): RESET ALL as a first start. Run with LOAF_ASK=1 (the FM-1's start): the
-# mode asked, EXPERT taken (K1 right, PLAY); SYSTEM's RESET (GLO five times), K1 to EVERYTHING, K4 15 turns: the
+# mode asked, EXPERT taken (K1 right, PLAY); SYSTEM's RESET (GLO five times), K4 to EVERYTHING, K2 five turns, GLO: the
 # lobotomy screen, then the start screen, then the mode asked again (BEGINNER chosen to start).
 #   LOAF_ASK=1 app/build/host/loaf-breaker_host tests/scenarios/resetask.txt app/build/scenarios
 wait 3000
@@ -21,8 +21,10 @@ tap GLO
 wait 100
 tap GLO
 wait 200
-turn K1 20 10
-turn K4 16 10
+turn K4 20 10
+turn K2 5 10
+wait 200
+tap GLO
 wait 400
 expect lobo 1
 expect tut 253

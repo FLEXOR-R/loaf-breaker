@@ -1,6 +1,9 @@
-# LOAF BREAKER: RESET (LOAF BREAKER TEST: GLO's sixth part, ENV's no more). BUILD changed (KICK ROLL, a beat's gap); RESET (GLO six times): K1 to BUILD; K3 four
-# clicks, a pause of 2.5 s, one more: nothing (counted from 0 again); K4 two clicks, then three: BUILD back to SNARE
-# ROLL, no gap; then 3 s where RESET's knobs do nothing (a turn there: lost), DONE shown. ALGORITHM picks as K1. KNOB: K1 given T+ TAIL (EDIT KICK KNOBS, K1 SET, PRESETS), then RESET KNOB (ALGORITHM, K2 five clicks): K1 DUCK again.
+# LOAF BREAKER: RESET (GLO's sixth part). 0.239 (FLEXOR): K4 picks what, K2 alone counts the five clicks, then GLO
+# resets (not pressed within 5 s: cancelled). BUILD changed (KICK ROLL, a beat's gap); RESET: K4 to BUILD; K2 four
+# clicks, a pause of 2.5 s, one more: nothing (counted from 0 again); K2 two clicks, then three: asked; GLO: BUILD back
+# to SNARE ROLL, no gap; then 3 s where RESET's knobs do nothing (a turn there: lost), DONE shown. KNOB: K1 given T+
+# TAIL (EDIT KICK KNOBS, K1 SET, PRESETS), then RESET KNOB (K4, K2 five clicks, GLO): K1 DUCK again. Five clicks left
+# without GLO: nothing reset.
 #   app/build/host/loaf-breaker_host tests/scenarios/reset.txt app/build/scenarios
 wait 4200
 tap ENV
@@ -43,29 +46,39 @@ wait 300
 expect page 3
 expect gpage 5
 shot rs_reset.png
-turn K1 1 10
-turn K3 4 10
+turn K4 1 10
+turn K2 4 10
 wait 2500
-turn K3 1 10
+turn K2 1 10
 wait 200
 expect drop_style 1
-turn K4 2 10
+turn K2 2 10
 wait 200
 shot rs_armed.png
-turn K4 3 10
+turn K2 3 10
 wait 200
+expect drop_style 1
+shot rs_ask.png
+tap GLO
+wait 200
+expect gpage 5
 expect drop_style 0
 expect rst_cool 1
 shot rs_done_build.png
-turn K4 2 10
-turn ALGO 1 10
+turn K2 2 10
+turn K4 1 10
 wait 200
 expect rst_cool 1
 wait 2800
 expect rst_cool 0
-turn ALGO 1 10
+turn K4 1 10
 wait 100
 turn K2 5 10
+wait 6000
+expect selk1 8
+turn K2 5 10
+wait 200
+tap GLO
 wait 200
 expect selk1 0
 shot rs_done.png
@@ -88,9 +101,11 @@ wait 150
 tap GLO
 wait 300
 expect gpage 5
-turn ALGO 11 10
+turn K4 11 10
 wait 200
 shot rs_screen.png
-turn K4 5 10
+turn K2 5 10
+wait 200
+tap GLO
 wait 300
 expect sfx_on 0

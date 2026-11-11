@@ -34,7 +34,9 @@ tap GLO
 wait 100
 tap GLO
 wait 200
-turn K1 20 10
-turn K4 16 10
+turn K4 20 10
+turn K2 5 10
+wait 200
+tap GLO
 wait 400
 shot site_lobo.png

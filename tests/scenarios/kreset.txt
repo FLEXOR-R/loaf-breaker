@@ -22,10 +22,12 @@ tap GLO
 wait 150
 tap GLO
 wait 300
-turn K1 3 10
+turn K4 3 10
 wait 200
 shot a_reset_kick.png
-turn K4 5 10
+turn K2 5 10
+wait 200
+tap GLO
 wait 3100
 expect kbass1 0
 # MIX: COMP on (LFO MASTER K1), then RESET MIX: off again
@@ -48,15 +50,20 @@ tap GLO
 wait 150
 tap GLO
 wait 300
-turn K1 4 10
+turn K4 4 10
 wait 200
 shot a_reset_mix.png
-turn K4 5 10
+turn K2 5 10
+wait 200
+tap GLO
 wait 300
 expect comp 0
 # TRACK: its first item back to 1
-turn K1 5 10
-wait 200
+wait 2800
 turn K4 5 10
+wait 200
+turn K2 5 10
+wait 200
+tap GLO
 wait 300
 expect trk_from 0

@@ -43,15 +43,34 @@ static int rst_live(void)
 {
     return ui.rst_n && ui.rst_arm && plat_ms() - ui.rst_arm < 2000u;
 }
-static void reset_pick(int32_t d)        /* RESET: the part (K1 or ALGORITHM); the clicks counted start again */
+#define RST_ASK_MS 5000u                 /* (LOAF BREAKER, 0.239: the clicks done, GLO pressed within this: the reset) */
+static int rst_asking(void) { return ui.rst_ask && plat_ms() - ui.rst_ask < RST_ASK_MS; }
+static void reset_pick(int32_t d)        /* RESET: the part (K4, 0.239; K1 or ALGORITHM before); the clicks start again */
 {
     if (rst_cool())                      /* (LOAF BREAKER: just reset: nothing for 3 s) */
         return;
     ui.rst_sel = (uint8_t)clamp((int32_t)ui.rst_sel + (d > 0 ? 1 : -1), 0, NRST - 1);
     ui.rst_arm = 0u;
     ui.rst_n = 0u;
+    ui.rst_ask = 0u;
     app_say("RESET", RST_NAME[ui.rst_sel % NRST]);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
+static void reset_do(uint32_t w);
+static int rst_confirm(void)             /* (LOAF BREAKER, 0.239: GLO on RESET after the five clicks: the reset; 1 done) */
+{
+    if (!RST_ON || !rst_asking())
+        return 0;
+    ui.rst_ask = 0u;
+    ui.rst_done = plat_ms() | 1u;
+    if (ui.rst_sel % NRST == RST_ALL) {  /* (RESET ALL: its own screen says so) */
+        reset_all();
+        return 1;
+    }
+    reset_do(ui.rst_sel % NRST);
+    app_say(RST_NAME[ui.rst_sel % NRST], "RESET: DONE");
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+    return 1;
 }
 static void reset_do(uint32_t w)
 {
@@ -962,11 +981,10 @@ static void track_value(int i, char *t)
     char r[6];
     t[0] = 0;
     if (RST_ON) {                        /* RESET (GLO): what, and K2-K4: the clicks */
-        if (i == 0)
+        if (i == 3)                      /* (LOAF BREAKER, 0.239, FLEXOR: K4 what, K2 the clicks, then GLO) */
             text_cat(t, RST_NAME[ui.rst_sel % NRST]);
-        else
-            text_cat(t, rst_cool() ? "DONE" : rst_live() ? "MORE!" : ui.rst_sel % NRST == RST_ALL ? "TURN x" CH_RESET_TEXT
-                        : "TURN x5");
+        else if (i == 1)
+            text_cat(t, rst_cool() ? "DONE" : rst_asking() ? "PRESS GLO" : rst_live() ? "MORE!" : "TURN x5");
         return;
     }
     if (ui.tpage == 4u) {                /* BUILD: its style, its filter, its noise, the gap before the drop */
@@ -1078,28 +1096,25 @@ static void track_turn(int i, int32_t d)
                                           * done (then 3 s of nothing: the clicks past the last don't count) */
         if (rst_cool())
             return;
-        if (i == 0)
+        if (i == 3)                      /* (LOAF BREAKER, 0.239, FLEXOR: K4 what; K2 alone the clicks, then GLO asked) */
             reset_pick(d);
-        else {
-            uint32_t n = (uint32_t)(d < 0 ? -d : d), need = ui.rst_sel % NRST == RST_ALL ? CH_RESET_TURNS : RST_TURNS;
+        else if (i == 1) {
+            uint32_t n = (uint32_t)(d < 0 ? -d : d);
+            if (rst_asking())            /* (asked already: another turn, no harm) */
+                return;
             if (!rst_live())
                 ui.rst_n = 0u;
-            ui.rst_n = (uint8_t)(ui.rst_n + n < need ? ui.rst_n + n : need);
+            ui.rst_n = (uint8_t)(ui.rst_n + n < RST_TURNS ? ui.rst_n + n : RST_TURNS);
             ui.rst_arm = plat_ms() | 1u;
-            if (ui.rst_n >= need) {
+            if (ui.rst_n >= RST_TURNS) {
                 ui.rst_n = 0u;
                 ui.rst_arm = 0u;
-                ui.rst_done = plat_ms() | 1u;
-                if (ui.rst_sel % NRST == RST_ALL) {   /* (LOAF BREAKER: RESET ALL: its own screen says so) */
-                    reset_all();
-                    return;
-                }
-                reset_do(ui.rst_sel % NRST);
-                app_say(RST_NAME[ui.rst_sel % NRST], "RESET: DONE");
+                ui.rst_ask = plat_ms() | 1u;
+                app_say(RST_NAME[ui.rst_sel % NRST], "PRESS GLO TO RESET");
             } else {
                 char t[16] = "TURN: ";
                 int_text((int32_t)ui.rst_n, t + 6);
-                text_cat(t, need == RST_TURNS ? " / 5" : " / " CH_RESET_TEXT);
+                text_cat(t, " / 5");
                 app_say(RST_NAME[ui.rst_sel % NRST], t);
             }
         }
@@ -1419,7 +1434,7 @@ static void track_picture(int32_t top)
     uint32_t i, n = trk_len(t);
     char s[20], r[8];
     cv_oy = -top;
-    if (RST_ON) {                        /* RESET (GLO): the list (K1, ALGORITHM), what it puts back, the clicks */
+    if (RST_ON) {                        /* RESET (GLO): the list (K4), what it puts back, the clicks */
         uint32_t w = ui.rst_sel % NRST;
         uint32_t on = rst_live() ? ui.rst_n : 0u;
         {                                /* (five at a time, the one picked kept in view) */
@@ -1457,14 +1472,14 @@ static void track_picture(int32_t top)
                 y += 12;
             }
         }
-        {                                /* (LOAF BREAKER: EVERYTHING: 15 clicks, three to a box; just reset: DONE, the
-                                          * five lit, the knobs at rest 3 s) */
-            uint32_t all = ui.rst_sel % NRST == RST_ALL, per = all ? CH_RESET_TURNS / RST_TURNS : 1u, done = rst_cool();
-            cv_rect(6, 104, 148, 24, on || done ? C_HI : C_BLOCK);
-            cv_text(12, 110, &FONT_T, done ? "DONE  (WAIT 3 S)" : on ? "KEEP TURNING" : all ? "TURN A KNOB x" CH_RESET_TEXT
-                    : "TURN A KNOB x5", on || done ? C_BLACK : C_GRAY);
+        {                                /* (LOAF BREAKER, 0.239: K2 five clicks, then GLO; just reset: DONE, the five
+                                          * lit, the knobs at rest 3 s) */
+            uint32_t done = rst_cool(), ask = rst_asking();
+            cv_rect(6, 104, 148, 24, on || done || ask ? C_HI : C_BLOCK);
+            cv_text(12, 110, &FONT_T, done ? "DONE  (WAIT 3 S)" : ask ? "PRESS GLO TO RESET" : on ? "KEEP TURNING K2"
+                    : "TURN K2 x5, THEN GLO", on || done || ask ? C_BLACK : C_GRAY);
             for (i = 0; i < RST_TURNS; i++)  /* (the clicks so far: five boxes) */
-                cv_rect(160 + (int32_t)i * 15, 106, 12, 20, done || i * per < on ? C_HI : C_BLOCK);
+                cv_rect(160 + (int32_t)i * 15, 106, 12, 20, done || ask || i < on ? C_HI : C_BLOCK);
         }
         cv_oy = 0;
         return;

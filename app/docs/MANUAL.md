@@ -688,8 +688,8 @@ tempo's own repitch, HALF, REVERSE's speed and the tape stop stay speed effects.
 
 **SETUP (GLO twice):** its four settings top to bottom, K1 to K4. K1 **SKIN**, the screen's colours (CHOPPAH to start; the
 whole screen changes at once), 24 chosen by FLEXOR, two rows of twelve swatches: CHROME, FIRE&ICE, CHOPPAH, GLOUPI,
-TESS, OUTRUN, THUNDER, CYBRPUNK, MC SALO, ACID, GARRY, TOXIC, PIP-BOY, NEON, BLKLIGHT, PATINA, SYNTHWV, MIAMI, ELECTRIC,
-ARCTIC, BRDCRMBZ, IRIS, GLUCKSMAN, MAXENCE (an FM-1 updated from before keeps its colour, or the nearest left). K2 **WAVE ZOOM** (PRESETS too), how much of the past HOME's scrolling wave (the
+TESS, OUTRUN, THUNDER, CYBERPUNK, MC SALO, ACID, GARRY, TOXIC, PIP-BOY, NEON, BLACKLIGHT, PATINA, SYNTHWAVE, MIAMI, ELECTRIC,
+ARCTIC, BREADCRUMBZ, IRIS, GLUCKSMAN, MAXENCE (an FM-1 updated from before keeps its colour, or the nearest left). K2 **WAVE ZOOM** (PRESETS too), how much of the past HOME's scrolling wave (the
 CDJ view) holds across the screen: 1/2, 2/3, 5/6 of a bar (zoomed in), 1 BAR (as it was), 1 1/4, 1 1/2, 2 BARS (zoomed
 out). K3 **MODE**: TUTORIAL (left of BEGINNER: the tutorial, above), BEGINNER or EXPERT (right). **BEGINNER** keeps
 each thing to its essentials, to play the machine before learning it: the **KICK** is three pages, EDIT again (or
@@ -744,7 +744,7 @@ shows; 0: nothing), K3 **AT THE DROP** (how hard the drop shows; 0: nothing), K4
 
 ![SYSTEM's SETUP: the skins](img/screen-glomore.png "SETUP")
 
-**RESET** (SYSTEM's last part): puts one part back as it starts, the rest kept. **K1** or **ALGORITHM** picks what, in a list that scrolls (each says
+**RESET** (SYSTEM's last part): puts one part back as it starts, the rest kept. **K4** picks what, in a list that scrolls (ALGORITHM goes to SYSTEM's other parts, as on its other pages; each says
 on the right what it puts back): DROP, BUILD, KNOB; **KICK** (the kick selected, KICK 1–10: ROTTERDAM again, its
 SYNTH, BASS, CLEAN SUB and MORPH at 0, its volume kept, its memory with it); **KICK TONE** (its EQ flat, its two FX slots empty);
 **ALL KICKS** (KICK 1–10 as they came, their knobs as they start); **DRUMS** (the snare's, hat's and clap's memory playing as it
@@ -752,12 +752,12 @@ came); **MIX** (the MIXER: levels, swing, the drums' route, COMP and DUCK off wi
 **FX CHAIN** (the four slots as they came, each effect's memory forgotten, the FX level kept); **STEPS** (this
 pattern's drum steps: 1 hit, ALWAYS, on time; the steps themselves kept); **PADS** (the black keys' settings:
 rolls, THRU, filter, gate, HALF's and KIL's LATCH, the ARP key's effect); **KEYS** (the white keys' loops and slice effects);
-**TRACK** (this track: from its first item, every item's break SAME; its items kept); **SCREEN** (the skin RED, the
+**TRACK** (this track: from its first item, every item's break SAME; its items kept); **SCREEN** (the skin CHOPPAH, the
 screen effects off, their settings at 50 %, WAVE ZOOM one bar); and last **EVERYTHING**: RESET ALL, everything back
 to how it came (tempo, generator, FX chain, the drums, mixer, keys, slices, SYSTEM, the tracks and all 64 patterns; the
-first break, saved at once; the screen says so: LOBOTOMIZED, for 3 seconds). To reset it, **turn K2, K3 or K4 five
-clicks** (EVERYTHING: fifteen), each within 2 s of the last (five boxes fill as you turn; a pause starts them again
-from 0). Once done, the page shows **DONE (WAIT 3 S)** and **every knob there does nothing for 3 seconds**: the clicks
+first break, saved at once; the screen says so: LOBOTOMIZED, for 3 seconds). To reset it, **turn K2 five clicks**, each
+within 2 s of the last (five boxes fill as you turn; a pause starts them again from 0), then **press GLO** within 5
+seconds to confirm (the page says PRESS GLO TO RESET; not pressed, or the page left: nothing is reset). Once done, the page shows **DONE (WAIT 3 S)** and **every knob there does nothing for 3 seconds**: the clicks
 you turn past the last one are lost instead of starting a new count, and DONE stays to read.
 
 ## 8. The drums: kick, snare, hat

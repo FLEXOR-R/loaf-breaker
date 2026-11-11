@@ -485,7 +485,9 @@ static void input(void)
             tut_skip();
         else
             tut_quit();
-    } else if (bdn & 1u << B_GLO)        /* GLOBAL: MIDI clock and Bluetooth; again, the pitch; again, BT audio */
+    } else if (bdn & 1u << B_GLO && rst_confirm())
+        ;                                /* (LOAF BREAKER, 0.239: RESET's five clicks done: GLO resets) */
+    else if (bdn & 1u << B_GLO)          /* GLOBAL: MIDI clock and Bluetooth; again, the pitch; again, BT audio */
         global_part(glo_next(1));        /* (LOAF BREAKER: SYSTEM's parts: MIDI, SETUP, EFFECTS, FX SET, RESET) */
     if (bdn & 1u << B_EDIT) {            /* LOAF BREAKER: EDIT: SOUNDS, the KICK menu; again, its next section (SOUND
                                           * ...). SEL + EDIT: the next source: KICK, DRUMS, BREAK (0.201; the MELODY
@@ -889,8 +891,6 @@ static void input(void)
                 fx_algo(d, 1u);          /* FX held: the slot moves along the chain */
             else if (btn & 1u << B_SEL)
                 break_ask((set.brk + (d > 0 ? 1u : n_breaks - 1u)) % n_breaks);
-            else if (RST_ON)
-                reset_pick(d);           /* LOAF BREAKER: GLO's RESET: the part, as K1 */
             else if (ui.page == PG_TRACK && ui.tpage == 0u)
                 track_turn(-1, d);       /* LOAF BREAKER: ENV's TRACKS: the item (the break: SEL + ALGORITHM; K1 the
                                           * item's kick) */
@@ -1408,7 +1408,7 @@ static void draw_foot(const brk_status_t *st)
                                                   {"EFFECT", "ON / OFF", "WAVE", "KICK VIEW"},   /* (LOAF BREAKER: EFFECTS, */
                                                   {"AMOUNT", "KICK", "DROP", "LENGTH"}};   /* FX SET) */
         static const char *const KN_TRK[4][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
-                                                 {"STYLE", "SWEEP", "RISER", "GAP"}, {"WHAT", "RESET", "RESET", "RESET"}};
+                                                 {"STYLE", "SWEEP", "RISER", "GAP"}, {"", "RESET", "", "WHAT"}};
         static const char *const KN_FILL[4] = {"SWING", "LATCH", "DRUM", "LENGTH"};   /* (LOAF BREAKER: GROOVE) */
         const char *name = ui.page == PG_GLOBAL && ui.gpage == GP_FILL ? KN_FILL[i] : RST_ON ? KN_TRK[3][i] : ui.page == PG_TRACK &&
                            ui.tpage ? KN_TRK[ui.tpage == 4u ? 2u : (ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
@@ -1469,9 +1469,9 @@ static void draw_foot(const brk_status_t *st)
         cv_text(4 + (int32_t)i * 60, 18, &FONT_T, name, ui.page == PG_FX
                 ? (fx_sl(fx_foc())->on ? C_HI : C_DIM) : C_GRAY);
         knob_value((int)i, t);
-        if (text_w(&FONT_XS, t) > 57)    /* (LOAF BREAKER, 0.238: a value wider than its column, GLUCKSMAN: the
-                                          * smaller letters, not into the next) */
-            cv_text(4 + (int32_t)i * 60, 31, &FONT_T, t, C_WHITE);
+        if (text_w(&FONT_XS, t) > 54)    /* (LOAF BREAKER, 0.238: a value wider than its column, GLUCKSMAN: the
+                                          * smaller letters, from 2 px to the left, not into the next; 0.239: 54) */
+            cv_text(2 + (int32_t)i * 60, 31, &FONT_T, t, C_WHITE);
         else
             cv_text(4 + (int32_t)i * 60, 30, &FONT_XS, t, C_WHITE);
         {                                /* (TEST: its arc, where there is room beside the value) */
@@ -1879,6 +1879,12 @@ void app_frame(void)
     }
     if (ui.rst_n && now - ui.rst_arm >= 2000u) {   /* (LOAF BREAKER: RESET's clicks let go: counted from 0 again) */
         ui.rst_n = 0u;
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+    }
+    if (ui.rst_ask && (now - ui.rst_ask >= RST_ASK_MS || !RST_ON)) {   /* (0.239: GLO not pressed in time, or the page
+                                          * left: nothing reset) */
+        ui.rst_ask = 0u;
+        app_say("RESET", "CANCELLED");
         ui.redraw |= RG_BLOCKS | RG_FOOT;
     }
     {                                    /* (LOAF BREAKER: a screen effect's moment on a kick or the drop: the whole
