@@ -21,10 +21,11 @@ The FM-1 starts in **BEGINNER** mode (SYSTEM › SETUP: GLO, then GLO again; K1)
 or **EXPERT** (a knob moves the choice, PLAY takes it; white keys 1–3 too). SYSTEM › SETUP K3, turned left past
 BEGINNER, starts the tutorial again. The header says one thing to do at a time, the button or the keys that do it blink, and
 when it's done, "OK!" and the next: at once for a button (HOME, EDIT, SEQ, SAVE ..), five seconds later where there is
-something to hear (an effect, a kick, the drop): 18 steps in seven lessons, THE
-BREAK (HOME: the PERFORM menu, PLAY, the slices, stop), EFFECTS (the black keys), THE KICK (EDIT, its K1 PRESET: the
-built-in kicks, 909 to DISTORTO; K2–K4: DISTO, SUB DRIVE, TAIL; EDIT again: TUNE, PUNCH, CLICK, PITCH DROP; PRESETS: your ten kicks), DISTO (SEL + K4), THE PATTERN (SEQ: kicks, a snare), THE DROP (SEL + ENV) and
-SAVE. Everything is real: you play the firmware itself. **SEL + GLO** skips a step, **GLO** quits (SETUP K3 starts it
+something to hear (an effect, a kick, the drop): 23 steps in eight lessons, THE
+BREAK (HOME: the PERFORM menu, PLAY, the slices, ALGORITHM: another break), EFFECTS (a black key; ARP held, K1 its
+effect), THE KICK (EDIT, K1 PRESET: the built-in kicks, 909 to DISTORTO; K2 DISTO; EDIT again: SHAPE, K3 a longer tail;
+PRESETS: your ten kicks), THE DRUMS (SELECT: the SNARE, K1 its presets, K2 its FX), THE PATTERN (SEQ: kicks, a snare),
+THE FX (FX, PRESETS: an effect), THE DROP (SEL + ENV) and SAVE. Everything is real: you play the firmware itself. **SEL + GLO** skips a step, **GLO** quits (SETUP K3 starts it
 again where you left it; SAVE keeps where you are). An FM-1 already in use when it updates doesn't start it.
 
 ![The TUTORIAL: step 1, PRESS HOME](img/screen-tutorial.png "TUTORIAL")

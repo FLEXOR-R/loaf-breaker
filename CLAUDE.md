@@ -74,7 +74,9 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   keys and buttons to blink, text), `set.tut` (appended: 0 off, 1..TUT_N the step, 0xFE done, 0xFD the mode asked (0.229); a new FM-1 asks,
   an older save not), the counters tut_* in common.c; the header draws the step (screen.c); SETUP K3 left of
   BEGINNER; GLO quits, SEL + GLO skips. 0.212 (FLEXOR): HOME first (on PERFORM already, HOME stays: tut_home_stay),
-  OUT's K4 the built-in kicks (0.223: BEGINNER's KICK page, K1; 18 steps). 0.213: a step done waits 5 s (`TUT_WAIT`, the header counting) only where there is
+  OUT's K4 the built-in kicks (0.223: BEGINNER's KICK page, K1). 0.235: 23 steps in eight lessons, BEGINNER as FLEXOR
+  chose it (ALGORITHM a break, ARP + K1, K2 DISTO, EDIT to SHAPE and K3 TAIL, SELECT to the SNARE and its PRESET / FX,
+  the FX page's PRESETS). 0.213: a step done waits 5 s (`TUT_WAIT`, the header counting) only where there is
   something to hear (TUT[].wait: slices, effects, kicks, DISTO, steps, the drop); a button step goes on at once. Keep
   its steps true when a control they teach moves.
 - EDIT ZOOM (0.216, FLEXOR: "a wider view"): `set.ezoom` (appended after `tut`; 0 AUTO), SYSTEM › EFFECTS PRESETS,

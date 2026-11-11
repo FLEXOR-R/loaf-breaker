@@ -1,7 +1,9 @@
-# LOAF BREAKER: the TUTORIAL. SYSTEM › SETUP (GLO twice), K3 left twice: BEGINNER, then TUTORIAL. Its 18 steps, each
-# done as it says, then the next: at once (nothing to hear: HOME, stop, EDIT, OUT, SEQ, SAVE ..), or 5 s later: HOME (PERFORM); PLAY, four slices, PLAY (stop); PLAY, a black key,
-# another; EDIT (BEGINNER's one KICK page), K1 twice (the built-in kicks), K2 K3 turned, PRESETS; SEL + K4; SEQ, two kicks,
-# ALGORITHM to the snare and one; SEL + ENV (the drop); SAVE; the last read, then finished (254).
+# LOAF BREAKER: the TUTORIAL. SYSTEM › SETUP (GLO twice), K3 left twice: BEGINNER, then TUTORIAL. Its 23 steps (0.235,
+# FLEXOR), each done as it says, then the next: at once (nothing to hear: HOME, EDIT, SHAPE, SELECT, SEQ, FX, SAVE), or
+# 5 s later. HOME (PERFORM); PLAY, four slices, ALGORITHM (another break); a black key, ARP held + K1; EDIT, K1 twice
+# (the built-in kicks), K2 (DISTO), EDIT (SHAPE), K3 (a longer tail), PRESETS (KICK 2); SELECT (the SNARE), K1 (its
+# preset), K2 (its FX); SEQ, two kicks, ALGORITHM to the snare and one; FX, PRESETS (an effect); SEL + ENV (the drop);
+# SAVE; the last read, then finished (254).
 #   app/build/host/loaf-breaker_host tests/scenarios/tutorial.txt app/build/scenarios
 wait 4200
 tap GLO
@@ -38,69 +40,85 @@ wait 100
 tapkey w8
 wait 5400
 expect tut 4
-tap PLAY
-wait 300
+turn ALGO 1 80
+wait 5400
 expect tut 5
-tap PLAY
-wait 300
-expect tut 6
 key b1 down
 wait 400
 key b1 up
 wait 5400
-expect tut 7
-key b4 down
-wait 400
-key b4 up
+expect tut 6
+key b7 down
+wait 300
+turn K1 1 80
+wait 300
+key b7 up
 wait 5400
-expect tut 8
+expect tut 7
 tap EDIT
 wait 300
-expect tut 9
+expect tut 8
 expect kpage 4
 wait 1500
 shot tu_8.png
 turn K1 2 80
 wait 5400
-expect tut 10
+expect tut 9
 wait 1500
 shot tu_kpre.png
-turn K2 3 60
+turn K2 5 60
+wait 5400
+expect tut 10
+tap EDIT
+wait 300
+expect keasy 1
+expect tut 11
 turn K3 3 60
 wait 5400
-expect tut 11
+expect tut 12
 turn PRESET 1 80
 wait 5400
-expect tut 12
-press SEL
-turn K4 3 60
-release SEL
-wait 5400
 expect tut 13
+turn SELECT 1 80
+wait 400
+expect page 7
+expect tut 14
+turn K1 1 80
+wait 5400
+expect tut 15
+turn K2 1 80
+wait 5400
+expect tut 16
 tap SEQ
 wait 300
-expect tut 14
+expect tut 17
 tapkey w0
 wait 100
 tapkey w8
 wait 5400
-expect tut 15
-turn ALGO 1 80
+expect tut 18
+turn ALGO 2 80
 expect seq_lane 6
 wait 200
 tapkey w4
 wait 5400
-expect tut 16
+expect tut 19
 wait 1500
 shot tu_14.png
+tap FX
+wait 300
+expect tut 20
+turn PRESET 1 80
+wait 5400
+expect tut 21
 press SEL
 tap ENV
 release SEL
 wait 12000
-expect tut 17
+expect tut 22
 tap SAVE
 wait 300
-expect tut 18
+expect tut 23
 wait 1500
 shot tu_16.png
 wait 6000
