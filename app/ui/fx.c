@@ -682,7 +682,8 @@ static void fx_type_turn(int32_t d)
 }
 
 /* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's FX page: PRESETS picks a SCENE, the four slots of the chain set at
- * once (the effects and their settings, MAGIC EQ, MAGIC MBC and MB OTT among them); K1-K3 still the slot's settings,
+ * once (the effects and their settings, MAGIC EQ and MAGIC MBC among them; 0.226: no MB OTT, too heavy beside dense
+ * drums); K1-K3 still the slot's settings,
  * K4 its mix. Each slot: its type (or one of the presets after the list: FXT_MAGEQ, FXT_MAGMB, FXT_MBOTT), p0..p2 and
  * the mix (a negative: the effect's own) */
 #define NSCENES 7u
@@ -692,8 +693,8 @@ static const struct { int16_t t; float p[4]; } SCENE[NSCENES][BRK_FX_SLOTS] = {
     {{FXT_MAGEQ, {-1, -1, -1, -1}}, {FXT_MAGMB, {-1, -1, -1, -1}}, {FXT_CLIP, {0.3f, 0.5f, 0.06f, 1.0f}}, {FXT_EMPTY, {-1, -1, -1, -1}}},
     {{FXT_FILTER, {0.62f, 0.3f, 0.0f, 1.0f}}, {FXT_DELAY, {-1, -1, -1, 0.3f}}, {FXT_REVERB, {-1, -1, -1, 0.25f}}, {FXT_EMPTY, {-1, -1, -1, -1}}},
     {{FXT_TAPE, {-1, -1, -1, -1}}, {FXT_CRUNCH, {-1, -1, -1, 0.7f}}, {FXT_FILTER, {0.6f, 0.2f, 0.0f, 1.0f}}, {FXT_EMPTY, {-1, -1, -1, -1}}},
-    {{FXT_CRUNCH, {-1, -1, -1, -1}}, {FXT_DRIVE, {-1, -1, -1, -1}}, {FXT_MBOTT, {-1, -1, -1, -1}}, {FXT_CLIP, {-1, -1, -1, -1}}},
-    {{FXT_DRIVE, {0.6f, -1, -1, -1}}, {FXT_RING, {-1, -1, -1, 0.25f}}, {FXT_REVERB, {0.35f, -1, -1, 0.25f}}, {FXT_MBOTT, {-1, -1, -1, -1}}},
+    {{FXT_CRUNCH, {-1, -1, -1, -1}}, {FXT_DRIVE, {-1, -1, -1, -1}}, {FXT_CLIP, {-1, -1, -1, -1}}, {FXT_EMPTY, {-1, -1, -1, -1}}},
+    {{FXT_DRIVE, {0.6f, -1, -1, -1}}, {FXT_RING, {-1, -1, -1, 0.25f}}, {FXT_REVERB, {0.35f, -1, -1, 0.25f}}, {FXT_EMPTY, {-1, -1, -1, -1}}},
     {{FXT_FLANGER, {-1, -1, -1, -1}}, {FXT_DELAY, {-1, -1, -1, -1}}, {FXT_REVERB, {-1, -1, -1, 0.4f}}, {FXT_EMPTY, {-1, -1, -1, -1}}}};
 static uint8_t fx_scene;                 /* (the last picked: BEGINNER's PRESETS goes on from it) */
 static void fx_scene_turn(int32_t d)

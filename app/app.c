@@ -805,6 +805,8 @@ static volatile float comp_gr;           /* LOAF BREAKER: COMP's reduction now, 
  * written so far */
 #define SCOPE_N 480u                     /* (LOAF BREAKER: two bars, for WAVE ZOOM's widest; in RAM, the pool is full) */
 static uint8_t scope[SCOPE_N][4];
+static volatile uint8_t scope_on = 1u;   /* (LOAF BREAKER, 0.226: the main loop's: the CDJ view on screen; else the
+                                          * render spares the scope's work) */
 static volatile uint32_t scope_w;
 static volatile float build_p = -1.0f;   /* the build's progress 0..1, -1 none (the screen's and the lights') */
 static volatile uint16_t drum_now[NDRUMS][4];   /* the pattern playing's drums, bar by bar of four (their lengths
@@ -1840,7 +1842,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                 r[i] = lim_soft(dr * lg);
             }
         }
-        {                                /* LOAF BREAKER: the CDJ view's columns (scope), from what leaves */
+        if (scope_on) {                  /* LOAF BREAKER: the CDJ view's columns (scope), from what leaves */
             static float l1, l2, pk[4];
             static uint32_t sn;
             uint32_t len = 441000u / (set.tempo_x10 >= 400u ? set.tempo_x10 : 1700u), k;

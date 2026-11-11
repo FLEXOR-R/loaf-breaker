@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: MPL-2.0 */
 /* CHOPPAH's snare and hi-hat (perc.h). */
+#define BRK_ENGINE 1                     /* (LOAF BREAKER, 0.226: the maths inlined into the per-sample code) */
 #include "perc.h"
 #include "brk.h"
 #include "brk_math.h"
@@ -324,7 +325,11 @@ void perc_render(float *out, uint32_t n, const uint16_t *at, const uint8_t *who,
             float rs = 0.0f;             /* (LOAF BREAKER: what goes to the room) */
             for (k = 0; k < PV_STAB; k++) {
                 pv_t *v = &pv[k];
-                float x = voice_out(v, &c[k], voice_tick(k, v, &c[k]));
+                float x = 0.0f;
+                if (v->env > 1e-5f || (k == PV_SNARE && (v->env2 > 1e-5f)) ||
+                    (k == PV_CLAP && (v->pe > 1e-5f || v->ph[1] < 3.0f)))   /* (LOAF BREAKER, 0.226: a voice gone
+                                          * quiet costs nothing) */
+                    x = voice_out(v, &c[k], voice_tick(k, v, &c[k]));
                 v->last = x;
                 y += x + v->declick;
                 v->declick *= 0.985f;

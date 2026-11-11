@@ -1,5 +1,5 @@
 # LOAF BREAKER: SYSTEM › SETUP's MODE (K3). BEGINNER (left): the KICK menu is one page, OUT's (0.223, FLEXOR): K1 PRESET,
-# K2 DISTO, K3 TUNE, K4 TAIL; EDIT again and ALGORITHM stay on it; LFO: LEVELS and SENDS only. EXPERT (right): the whole
+# K2 DISTO, K3 TUNE, K4 TAIL; ALGORITHM stays on it, EDIT again goes on to the SNARE, HAT, CLAP and back (0.226); LFO: LEVELS and SENDS only. EXPERT (right): the whole
 # menu again, from OUT.
 #   app/build/host/loaf-breaker_host tests/scenarios/novice.txt app/build/scenarios
 wait 4200
@@ -20,6 +20,14 @@ wait 150
 expect kpage 4
 tap EDIT
 wait 300
+expect page 7
+tap EDIT
+wait 200
+tap EDIT
+wait 200
+tap EDIT
+wait 300
+expect page 4
 expect kpage 4
 turn K1 2 60
 wait 200

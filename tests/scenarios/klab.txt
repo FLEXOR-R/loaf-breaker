@@ -35,6 +35,12 @@ tap EDIT
 wait 150
 tap EDIT
 wait 300
+tap EDIT
+wait 200
+tap EDIT
+wait 200
+tap EDIT
+wait 300
 expect ksect 0
 turn ALGO 2 60
 wait 200

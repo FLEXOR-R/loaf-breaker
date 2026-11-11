@@ -36,6 +36,12 @@ tap EDIT
 wait 150
 tap EDIT
 wait 300
+tap EDIT
+wait 200
+tap EDIT
+wait 200
+tap EDIT
+wait 300
 expect page 4
 expect kpage 5
 turn K1 20 10

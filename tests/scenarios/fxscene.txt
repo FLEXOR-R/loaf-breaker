@@ -1,6 +1,6 @@
 # LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's FX page: PRESETS picks a whole SCENE (the four slots at once); FX
 # again stays on MAIN. SYSTEM › SETUP K3 left: BEGINNER; FX; PRESETS: PUNCH (MAGIC EQ, MAGIC MBC, CLIP), CRUSHED
-# (CRUNCH, DRIVE, MB OTT, CLIP), back to CLEAN; FX again: MAIN still. EXPERT again: PRESETS the slot's effect, as ever.
+# (CRUNCH, DRIVE, CLIP; 0.226: no MB OTT), back to CLEAN; FX again: MAIN still. EXPERT again: PRESETS the slot's effect, as ever.
 #   app/build/host/loaf-breaker_host tests/scenarios/fxscene.txt app/build/scenarios
 wait 4200
 tap GLO
@@ -28,7 +28,7 @@ expect fx_on 1
 turn ALGO 2 80
 wait 200
 expect fx_focus 2
-expect mb_pre 2
+expect fx_type 13
 shot fxs_crushed.png
 tap FX
 wait 300

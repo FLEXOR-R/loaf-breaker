@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: MPL-2.0 */
 /* CHOPPAH's kick (kick.h). */
+#define BRK_ENGINE 1                     /* (LOAF BREAKER, 0.226: the maths inlined into the per-sample code, as
+                                          * brk_fx.c's: kv_tick called brk_sin_turns up to eight times a sample) */
 #include "kick.h"
 #include "brk.h"
 #include "brk_math.h"

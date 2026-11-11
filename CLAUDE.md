@@ -42,7 +42,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - Domains (10 Nov 2026, 0.201; 0.200 is the layout before, FLEXOR may want it back): the header and the tabs name the
   domain (`DOM[]`, `dom_name()` in main.c): LIVE, SOUNDS, PATTERN, SONG, MIX, EFFECTS, SYSTEM. SOUNDS' sources: KICK,
   DRUMS (einst 1-3), BREAK (PG_GLOBAL `GP_BREAK`, GLO's old PITCH code, K4 LEVEL); SEL + EDIT the
-  next. PATTERN's GROOVE is PG_GLOBAL `GP_FILL` (SWING, LATCH, DRUM, LENGTH), reached from SEQ's ALGORITHM and SEL + ARP;
+  next; EDIT again (0.226, FLEXOR) goes round every sound: the KICK's sections (BEGINNER: its page), SNARE, HAT, CLAP, back. PATTERN's GROOVE is PG_GLOBAL `GP_FILL` (SWING, LATCH, DRUM, LENGTH), reached from SEQ's ALGORITHM and SEL + ARP;
   LEDs light EDIT / SEQ for those two. SYSTEM's parts `GLO_ORD` (MIDI, SETUP, EFFECTS, FX SET, RESET); RESET ALL is
   RESET's last item, EVERYTHING (15 turns). MIX's second part is SENDS (FX, DRUMS).
 - Knob presets (10 Nov 2026, 0.203): STYLE's PRESETS goes on past the eight styles to PRESET 1-4 (track.c, `KPRESETS`):

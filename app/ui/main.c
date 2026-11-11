@@ -529,8 +529,20 @@ static void input(void)
             lcd_fill(0, 44, 240, 44, C_BLACK);
     }
     if (ui.edit_hold && !(btn & 1u << B_EDIT)) {
-        if (ui.edit_hold == 1u && ui.page == PG_PERC) {   /* (on a drum: the next one, SNARE HAT CLAP round) */
-            ui.einst = (uint8_t)(ui.einst >= DR_CLAP ? DR_SNARE : ui.einst + 1u);
+        if (ui.edit_hold == 1u && ui.page == PG_PERC) {   /* (on a drum: the next one, SNARE HAT CLAP; LOAF BREAKER,
+                                          * 0.226, FLEXOR: past the CLAP, the KICK, its first section) */
+            if (ui.einst >= DR_CLAP) {
+                ui.einst = 0u;
+                ui.ksect = 0u;
+                kick_open();
+            } else {
+                ui.einst = (uint8_t)(ui.einst + 1u);
+                edit_open();
+            }
+        } else if (ui.edit_hold == 1u && (set.novice || ui.ksect % KSECTS == KSECTS - 1u)) {   /* (BEGINNER's one KICK
+                                          * page, or EXPERT's last section: on to the SNARE; SEL + EDIT no longer
+                                          * needed for it) */
+            ui.einst = DR_SNARE;
             edit_open();
         } else if (ui.edit_hold == 1u)
             kick_sect_next();            /* (let go before the hold: the next section) */
@@ -1721,6 +1733,8 @@ void app_frame(void)
         ui.last_keys = ui.keys;
         ui.redraw |= RG_BLOCKS;
     }
+    scope_on = (uint8_t)(ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_KICK);   /* (LOAF BREAKER: the
+                                          * scrolling wave's work in the render, only where it shows) */
     if (ui.page == PG_GLOBAL && now - ui.panel_drawn >= 200u)   /* the GLOBAL page's panel: five times a second */
         ui.redraw |= RG_BLOCKS;
     if (ui.page == PG_TRACK && ui.tpage == 1u) {   /* LOAF BREAKER: PLAY's radio: the needle glides, PRESS PLAY blinks */
@@ -1744,8 +1758,12 @@ void app_frame(void)
     {                                    /* the overload guard shed a slot: say so */
         static uint32_t shed_seen;
         uint32_t sh = brk_fx_shed();
-        if (sh > shed_seen)
-            app_say("OVERLOAD", "FX SLOT BYPASSED");
+        if (sh > shed_seen) {            /* (LOAF BREAKER, 0.226: said as it is: a slot bypassed, or none to) */
+            uint32_t k, on = 0u;
+            for (k = 0; k < BRK_FX_SLOTS; k++)
+                on |= set.fx.slot[k].on;
+            app_say("OVERLOAD", on ? "FX SLOT BYPASSED" : "CPU FULL: FEWER SOUNDS");
+        }
         shed_seen = sh;
     }
     if (ui.page == PG_FX && fx_sl(fx_foc())->type != FXT_EMPTY && now - ui.panel_drawn >= 66u)

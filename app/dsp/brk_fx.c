@@ -257,6 +257,7 @@ const char *const BRK_DUB_DIV_NAME[BRK_DUB_DIVS] = {"1/8", "3/16", "1/4", "3/8"}
 static const uint8_t DUB_DIV_DLY[BRK_DUB_DIVS] = {1u, 2u, 3u, 4u};   /* the DUB pad's times among the delay's */
 static int16_t *dub_buf;
 static uint32_t dub_n, dub_w;            /* (dub_n: frames of two) */
+static uint32_t dub_idle;                /* (LOAF BREAKER: samples with nothing in or out of it) */
 static float dub_send;                   /* the DUB pad's throw, eased */
 static struct {
     float lp_l, lp_r, y_l, y_r, yo_l, yo_r, in_prev, time_s, lcz, duck;
@@ -1129,6 +1130,8 @@ BRK_RAM static void fx_samples(const fx_q_t *q, const float *in, const float *th
         xl = xr = x;
         if (!q->kick) {
             dub_send += ((q->dub_on ? 1.0f : 0.0f) - dub_send) * 0.002f;
+            if (!q->dub_on && dub_send < 1e-4f)
+                dub_send = 0.0f;         /* (LOAF BREAKER: let go: nothing sent, the delay may rest) */
             cur_throw = x * dub_send + ec;
             cur_verb = vb;
         }
@@ -1160,9 +1163,12 @@ BRK_RAM static void fx_samples(const fx_q_t *q, const float *in, const float *th
             xl += post[i];
             xr += post[i];
         }
-        if (dub_n && !dl_taken) {        /* the delay after the chain: the throws in, the echoes at the pad's mix */
+        if (dub_n && !dl_taken && (cur_throw != 0.0f || dub_idle < 4u * dub_n)) {   /* the delay after the chain: the
+                                          * throws in, the echoes at the pad's mix (LOAF BREAKER, 0.226: at rest once
+                                          * nothing has gone in or come out for twice its line) */
             float el, er;
             dl_run(&q->dub_c, cur_throw, &el, &er);
+            dub_idle = cur_throw != 0.0f || brk_absf(el) + brk_absf(er) > 1e-5f ? 0u : dub_idle + 1u;
             xl += el * q->dub_c.ret;
             xr += er * q->dub_c.ret;
         }

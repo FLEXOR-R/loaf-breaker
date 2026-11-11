@@ -282,8 +282,9 @@ static void kick_sect_next(void)         /* EDIT on the KICK menu */
 static void kick_sect_step(int32_t d)    /* ALGORITHM on it */
 {
     uint32_t s = ui.ksect % KSECTS, n = KSECT_N[s], k;
-    if (set.novice) {
-        kick_sect_next();
+    if (set.novice) {                    /* (BEGINNER: one page; ALGORITHM stays) */
+        kick_open();
+        app_say("KICK", "MORE: EXPERT (SETUP K3)");
         return;
     }
     for (k = 0; k < n; k++) {            /* (BEGINNER: the advanced parts passed over) */
