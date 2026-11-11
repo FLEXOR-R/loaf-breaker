@@ -693,7 +693,8 @@ each thing to its essentials, to play the machine before learning it: the **KICK
 ALGORITHM) going round them: **KICK** (K1 **PRESET**, the built-in kicks; K2 **DISTO**; K3 **SUB DRIVE**, the SUB
 through its drive, OFF at the left; K4 **DRIVE**, the whole kick's), **SHAPE** (K1 **P DROP**, the pitch's fall at the
 hit; K2 **DROP TIME**, how long it falls; K3 **TAIL**, the SUB's length; K4 **TAIL MODE**, CLASSIC or CLEAN) and
-**MIX** (the four layers' levels: SUB, PUNCH, GRIT, CLICK); the drums' page is PRESET, FX, LEVEL and DECAY; the **FX**
+**MIX** (the four layers' levels: SUB, PUNCH, GRIT, CLICK), its pages as tabs at the picture's foot, the header's tabs
+the sounds, KICK, SN, HH, CP, **SELECT** going round them (on the drums' page too); the drums' page is PRESET, FX, LEVEL and DECAY; the **FX**
 chain has two slots and a short list on PRESETS, MAGIC EQ and MAGIC MBC at its end (above); FX again stays on MAIN;
 the MIXER has LEVELS and SENDS; on SEQ's drum lanes K1 is **FILL**, K2 the lane's sound, K3 CLR / 4X4, K4 **LENGTH**
 the kick's alone (16, 32 or 64 steps; turning BEGINNER on

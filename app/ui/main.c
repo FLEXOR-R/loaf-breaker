@@ -854,7 +854,9 @@ static void input(void)
             selk_turn(selk_fn((uint32_t)(k - EN_K1)), 0, d);
             continue;
         }
-        if (k == EN_SELECT && ((ui.page == PG_KICK && !ui.kclassic) || (ui.page == PG_PERC && ui.pbig))) {
+        if (k == EN_SELECT && (ui.page == PG_KICK || ui.page == PG_PERC) &&
+            (set.novice || (ui.page == PG_KICK && !ui.kclassic) || (ui.page == PG_PERC && ui.pbig))) {   /* (BEGINNER:
+                                          * either view, 0.230) */
             ui.einst = (uint8_t)((ui.einst + (d > 0 ? 1u : NDRUMS - 1u)) % NDRUMS);   /* LOAF BREAKER: the big view:
                                           * SELECT goes from drum to drum (the KICK, SNARE, HAT, CLAP), each in
                                           * it (not the tempo here) */
@@ -1152,6 +1154,7 @@ static void draw_tabs(void)
     uint32_t i;
     int32_t x;
     char part[20];
+    int sel_hint = 0;                    /* (LOAF BREAKER, 0.230: BEGINNER, "SELECT: ..." at the right) */
     part[0] = 0;
     cv_begin(240, 14, C_BLACK);
     {                                    /* (LOAF BREAKER: the domain; SOUNDS: the source, KICK, DRUMS, BREAK) */
@@ -1202,9 +1205,11 @@ static void draw_tabs(void)
         }
     } else if (ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX()) {   /* LOAF BREAKER: the KICK menu: its sections,
                                           * the part (if it fits) */
-        if (kick_easy()) {               /* (LOAF BREAKER: BEGINNER's KICK, its two pages: no sections, no parts) */
-            for (i = 0; i < KE_PAGES; i++)
-                x = tab(x, KE_PAGE[i], i == keasy_pg);
+        if (kick_easy()) {               /* (LOAF BREAKER: BEGINNER's KICK: the sounds, SELECT going round them; its
+                                          * pages are the foot's tabs, 0.230, FLEXOR) */
+            for (i = 0; i < NDRUMS; i++)
+                x = tab(x, DRUM_TAG[i], i == 0u);
+            sel_hint = 1;
         } else {
             for (i = 0; i < KSECTS; i++)
                 x = tab(x, KSECT_NAME[i], i == ui.ksect % KSECTS);
@@ -1213,10 +1218,15 @@ static void draw_tabs(void)
         if (x + text_w(&FONT_T, part) + 16 > 236)
             part[0] = 0;
     } else {                             /* SOUNDS: the drum, and its part */
-        for (i = 1; i < NDRUMS; i++)
-            x = tab(x, DRUM_TAG[i], i == ui.einst);   /* (SN HH CP) */
-        text_cat(part, PPAGE_NAME[perc_pg()]);
+        for (i = set.novice ? 0u : 1u; i < NDRUMS; i++)
+            x = tab(x, DRUM_TAG[i], i == ui.einst);   /* (SN HH CP; BEGINNER: KICK first, SELECT round them) */
+        if (set.novice)
+            sel_hint = 1;
+        else
+            text_cat(part, PPAGE_NAME[perc_pg()]);
     }
+    if (sel_hint)                        /* (LOAF BREAKER, 0.230: BEGINNER's sounds, SELECT goes round them) */
+        cv_text(236 - text_w(&FONT_T, "SELECT: KICK SN HH CP"), 1, &FONT_T, "SELECT: KICK SN HH CP", C_DIM);
     if (part[0]) {                       /* "< PART >": ALGORITHM turns it */
         char t[24] = "< ";
         text_cat(t, part);

@@ -18,7 +18,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - Menus (9 Nov 2026, 0.177): ENV is the song (TRACKS, PLAY, DROP, BUILD); RESET is GLO's sixth part (`RST_ON`, ENV's
   reset code in track.c); the knobs' functions are EDIT KICK › KNOBS only. SYSTEM › SETUP K3 MODE (`set.novice`): BEGINNER keeps
   the essentials, as FLEXOR chose them on a checklist (0.229; https://claude.ai/artifact/75VV4U2fH5iouT8789feZN, its
-  store `choix/beginner`): the KICK three pages on OUT's part (`kick_easy`, `KEASY[]`, `keasy_pg`: KICK, SHAPE, MIX), the
+  store `choix/beginner`): the KICK three pages on OUT's part (`kick_easy`, `KEASY[]`, `keasy_pg`: KICK, SHAPE, MIX; the foot's tabs, the
+  header's KICK SN HH CP with SELECT round them, 0.230), the
   drums PRESET / FX / LEVEL / DECAY, SEQ as EXPERT's but no step menu and K4 LENGTH the kick's alone (16/32/64, a drum
   lane 16; BEGINNER turned on sets the kicks 32, `novice_lengths`), the FX chain two slots (`fx_nslots`, the others
   muted in `fx_apply`) and a short list (`FX_EASY`) then MAGIC EQ, MAGIC MBC; SONG's `trk_knob_ok`, `glo_knob_ok`, the
