@@ -34,28 +34,14 @@ jobs:
 
       - name: Version
         run: |
-          # (LOAF BREAKER's loaf-vX.YY tags go on from GLOUPI BREAKS' gloupi-vX.YY: one count)
+          # (LOAF BREAKER's loaf-vX.YY tags go on from GLOUPI BREAKS' gloupi-vX.YY: one count; ./LOAF_MAJOR the
+          # floor of X: 1 for 1.00. The package's own number, always higher than the last: scripts/loaf_version.sh)
+          scripts/loaf_version.sh check
           TAGS="$(git ls-remote --tags origin 'refs/tags/loaf-v*' 'refs/tags/gloupi-v*' | sed 's|\^{}$||')"
           V="$(printf '%s\n' "$TAGS" | grep "^$GITHUB_SHA" | sed 's|.*refs/tags/[a-z]*-v||' | head -1)"
-          if [ -z "$V" ]; then
-            LAST="$(printf '%s\n' "$TAGS" | sed -n 's|.*refs/tags/[a-z]*-v||p' | grep -E '^[0-9]+\.[0-9]{2,}$' \
-                    | sort -t. -k1,1n -k2,2n | tail -1)"
-            if [ -z "$LAST" ]; then
-              V=0.02
-            else
-              # (LOAF BREAKER: no 1.00 after 0.99: on to 0.100, 0.101 ...)
-              MAJ="${LAST%%.*}"; MIN=$((10#${LAST#*.} + 1))
-              V="$(printf '%d.%02d' "$MAJ" "$MIN")"
-            fi
-          fi
+          [ -n "$V" ] || V="$(scripts/loaf_version.sh next $(printf '%s\n' "$TAGS" | sed -n 's|.*refs/tags/[a-z]*-v||p'))"
+          PKG="$(scripts/loaf_version.sh pkg "$V")"
           echo "VERSION=$V" >> "$GITHUB_ENV"
-          # (the package's own number: fm1-base's build takes X.Y[.Z], two digits each, its identity FM-1_XXYYZZ; past
-          # 0.99, 0.100 is packaged as 0.99.1, 0.101 as 0.99.2 ... 0.198 as 0.99.99; then 0.199 as 1.0.0, 0.200 as
-          # 1.0.1 ... (always higher), while the splash, the tag and the files say 0.199)
-          MIN="${V#*.}"; MAJ="${V%%.*}"
-          if [ "${#MIN}" -gt 2 ] && [ $((10#$MIN)) -ge 199 ]; then
-            M=$((10#$MIN - 199)); PKG="$((MAJ + 1)).$((M / 100)).$((M % 100))"
-          elif [ "${#MIN}" -gt 2 ]; then PKG="$MAJ.99.$((10#$MIN - 99))"; else PKG="$V"; fi
           echo "PKG=$PKG" >> "$GITHUB_ENV"
           printf '#define LOAF_VERSION "%s"\n' "$V" > app/loaf_version.h
           echo "LOAF BREAKER $V" >> "$GITHUB_STEP_SUMMARY"

@@ -96,18 +96,18 @@ files before it define. `app/dsp/*.c` are separate `o2` units (brk, brk_fx, kick
 - No 64-bit division on the device (no libgcc `__udivdi3`): keep sample maths in 32 bits.
 - The render (`app_render`, `brk_render`) runs in the audio interrupt: no flash writes, no blocking, no
   allocation. Main loop → render through `brk_*` setters (single words) and the key queue.
-- Pool RAM budget (PRD 8.2): canvas 240×60 (28 KB) + PCM buffers + the Bluetooth audio queue; the build wants 8 KB
-  of the 344 KB spare.
+- Pool RAM budget (PRD 8.2): canvas 240×60 (28 KB) + PCM buffers; the build wants 8 KB of the 344 KB spare.
 - Flash writes stall audio: only on SAVE or while stopped.
 - Settings (`settings_t`, magic CHP7) only grow at the end: append new fields after the last one (`fxx`, each FX slot's extras) and
   give them defaults in `settings_defaults()`; a shorter (older) save loads into the front (`SET_SIZE_MIN`: the
   offset of the first appended field, `rsv2`, the dropped fills' bytes; keep it there).
   Anything else needs a new magic (saves lost). Patterns are their own object (`OBJ_PAT`, 0xDA000, magic PAT1).
-- Bluetooth MIDI is on (`ble = true`, `ble_stack = "own"`: fm1-base's own stack, nothing of JieLi's); the GLOBAL
-  page switches it, `APP_BLE_AT_BOOT` follows the saved setting. It costs ~40 KB of flash. Bluetooth audio out
-  (`bt_audio = true`, A2DP) is on too: ~37 KB of flash, its packet queue in the pool (`BP_MQ_ATTR` in app.h).
+- No Bluetooth in LOAF BREAKER (FLEXOR's rule): app/fm1.toml has `ble = false` and `bt_audio = false` (CHOPPAH's
+  were true: ~40 KB and ~37 KB of flash). Their app hooks (`APP_BLE_AT_BOOT`, `BP_MQ_ATTR` in app.h) stay as
+  CHOPPAH's, inert; never turn either back on.
 - Flash: the app slot is 581,564 B (`APP_SLOT` 0x8DFBC in base/tools/fm1pkg_make.py: not 581 KiB); 577,288 B used at
-  0.192 with a 357 KB bank; the Break Sort (0.193-0.196) took the bank to 343.9 KB (10 breaks): **~17 KB left**. The break bank (`CH_BANK`) is most of it. Anything new needs something taken out first (ask Laurens what).
+  0.192 with a 357 KB bank; 561,424 B at 0.220 (9 breaks): **~20 KB left**. The break bank (`CH_BANK`) is most of it.
+  Until 1.0, fixes rather than new features; anything big needs something taken out first (ask FLEXOR what).
   Block-rate engine code is `BRK_COLD` (built for size) and calls the shared maths (`brk_exp2f_c` and the like,
   brk_math.c; the UI too) instead of an inline copy; the FX chain's per-sample loop (`fx_samples`) is `BRK_RAM`:
   .ram_text on the FM-1 (fast, packed in flash), so nothing it reaches may be a call (`BRK_INL` in brk_fx.c forces
@@ -120,8 +120,11 @@ files before it define. `app/dsp/*.c` are separate `o2` units (brk, brk_fx, kick
   `./build.sh` regenerates `app/bank_data.h` (never commit it, never edit it). The bank has 400 KB (`IMAGE_CAPACITY`
   in `tools/prep_breaks.py`) and 16 slots, a break at most `CH_PCM_MAX` 106,496 samples (pool ~326 of 344 KB). The breaks are the bank's only: brk_synth is the no-bank fallback (and
   the tests'). No loading of samples of your own (dropped from scope), and the breaks stay 2 bars (32 steps; a one-bar break plays twice, LO-FI 165 was one in 0.196-0.199).
-- Releases are automatic: every push to main is the last `vX.Y` tag + 1 minor (`scripts/next_version.sh`, floor
-  `VERSION`). Don't tag by hand or bump `VERSION` for a minor; raise `VERSION` only for a new major.
+- Releases are automatic: every push to `loaf` is the last `loaf-vX.YY` + 1 (`scripts/loaf_version.sh next`; past
+  0.99 on to 0.100 ...). `./LOAF_MAJOR` is the floor of X: set it to 1 and push for 1.00 (then 1.01 ...). The
+  package's own number (fm1-base's X.Y.Z, two digits each) is `scripts/loaf_version.sh pkg`: 0.220 is 1.0.21, 1.00
+  is 2.0.0, always above the one before (`check` in CI). Don't tag by hand. (`scripts/next_version.sh` and
+  `VERSION` are CHOPPAH's main branch's.)
 - **Always push to GitHub after changes** (Laurens' standing rule, 4 Nov 2026): commit and push as soon as a change is
   done, before moving on. Finished, tested work goes to main (a release); work in progress that doesn't build or fit
   yet goes to a branch of its own and is pushed there.

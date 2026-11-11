@@ -8,7 +8,8 @@ The hub's rules: <https://thefirmwarehub.com/fmhub.md> and <https://thefirmwareh
 ## Identity
 
 - **Package identity:** `FM-1_2623` (fm1.toml `id_prefix`): dev builds `FM-1_262300`, releases `FM-1_2623` + the
-  version as two digits each (package 0.99.63: `FM-1_2623009963`). Checked free on the hub's catalogue on
+  package number as two digits each (0.220 is package 1.0.21: `FM-1_2623010021`; 1.00 will be 2.0.0:
+  `FM-1_2623020000`, always above the last: `scripts/loaf_version.sh`). Checked free on the hub's catalogue on
   9 Nov 2026: no identity there starts with 2623, and 2623 starts none of theirs. CHOPPAH keeps its own, `FM-1_86`.
   Nothing is reserved on the hub: an identity is chosen, used in the releases, and given in the mail.
 - **Files:** `loaf-breaker-X.fwsc` (fm1.toml `name`), the site's installer and the releases.

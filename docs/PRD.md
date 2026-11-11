@@ -1,5 +1,11 @@
 # CHOPPAH — Amen Chopper firmware for the M-VAVE FM-1
 
+> **LOAF BREAKER** (FLEXOR's fork, 2026) builds on this PRD: CHOPPAH's sections below are where it started, and each
+> LOAF BREAKER change has its own row (marked "LOAF BREAKER", A-50 onwards). It has no Bluetooth, kicks and drums
+> only (no melody), 9 breaks. Its 1.0 (§13, M8) waits on launch points, not code: the repository made public, the
+> tests on an FM-1 (installs from M-VAVE's V15 and from another firmware, another firmware back over it, an hour's
+> play), the breaks' rights, and the site's install code (pointless once public).
+
 **Product requirements document** · v0.1 · 30 Oct 2026 · Owner: Laurens (Sylverline)
 Status: draft for review · Working name: CHOPPAH (repo `fm1-break-choppah`) · Repo docs: `docs/PRD.md`
 
@@ -572,7 +578,7 @@ user presets (the kick is saved with the settings), and the overload guard (E-7,
 | **M5 Breaks** | prep tool (built); loading your own breaks dropped 3 Nov 2026 | §4.7 |
 | **M6 Performance mode** | Black-key pads, hold-to-loop, scrub, tape stop, p-locks, chains | §5 P0 rows |
 | **M7 MIDI + sync** | Clock in/out, note/CC maps, USB audio recording flow | §4.8 |
-| **M8 Release 1.0** | Manual, help cards, emulator, web installer, soak test | All P0 + N-1..N-6 |
+| **M8 Release 1.0** | Manual, help cards, emulator, web installer, soak test | All P0 + N-1..N-6. *LOAF BREAKER (11 Nov 2026): the manual, the help cards, the emulator, the installer and a 30-minute simulator soak at every release are done; to go: the FM-1 tests (Firmware Hub point 5), the repository public, the breaks' rights; then `LOAF_MAJOR` 1 makes the release 1.00 (package 2.0.0, above 0.220's 1.0.21)* |
 
 ---
 

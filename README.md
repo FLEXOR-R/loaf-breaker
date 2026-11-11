@@ -57,7 +57,7 @@ Installing is at your own risk; the installer can put M-VAVE's own firmware back
 twice comes up in a safe mode the installer can still reach. If your FM-1 runs M-VAVE's FM1 Open firmware, restore
 M-VAVE's original firmware first ([docs/FLASHING.md](docs/FLASHING.md)).
 
-**Status: 0.1xx, moving fast.** Every push to the `loaf` branch is a release. LOAF BREAKER has no Bluetooth.
+**Status: 0.2xx beta, on its way to 1.0.** Every push to the `loaf` branch is a release (`loaf-vX.YY`). LOAF BREAKER has no Bluetooth.
 
 ## Panel
 
