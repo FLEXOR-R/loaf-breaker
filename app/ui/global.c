@@ -71,8 +71,8 @@ static void global_value(int i, char *t)
     }
     if (ui.gpage == 2u) {                /* SETUP (FLEXOR, 0.213: the knobs in the screen's order, top to bottom): K1 SKIN,
                                           * K2 WAVE ZOOM, K3 MODE, K4 AUTO SAVE */
-        if (i == 0)                      /* (SYNTHWAVE short, to fit its column) */
-            text_cat(t, set.skin % NSKINS == 10u ? "SYNTHWV" : SKIN_NAME[set.skin % NSKINS]);
+        if (i == 0)                      /* (LOAF BREAKER, 0.237: the names nine letters at most, to fit its column) */
+            text_cat(t, SKIN_NAME[skin_idx()]);
         else if (i == 1)
             text_cat(t, CDJ_ZNAME[set.wzoom % CDJ_ZN]);
         else if (i == 2)                 /* (TUTORIAL, left of BEGINNER) */
@@ -172,9 +172,9 @@ static void global_turn(int i, int32_t d)
     }
     if (ui.gpage == 2u) {                /* SETUP: K1 the skin, the whole screen in its colours at once */
         if (i == 0) {
-            set.skin = (uint8_t)((set.skin + (d > 0 ? 1u : NSKINS - 1u)) % NSKINS);
+            set.skin = (uint8_t)(SKIN_NEW | (skin_idx() + (d > 0 ? 1u : NSKINS - 1u)) % NSKINS);
             changed();                   /* (settings_apply: skin_apply) */
-            app_say("SKIN", SKIN_NAME[set.skin % NSKINS]);
+            app_say("SKIN", SKIN_NAME[skin_idx()]);
             ui.redraw = RG_ALL;
         } else if (i == 1) {             /* K2 WAVE ZOOM: HOME's wave, how much of the past it holds */
             set.wzoom = (uint8_t)clamp((int32_t)(set.wzoom % CDJ_ZN) + (d > 0 ? 1 : -1), 0, CDJ_ZN - 1);
@@ -348,15 +348,16 @@ static void draw_global(const brk_status_t *st)
     if (ui.gpage == 2u) {                /* MORE: the skin, and every skin's colours to pick from (K4) */
         uint32_t s;
         cv_text(6, 1, &FONT_T, "K1 SKIN", C_GRAY);
-        cv_text(96, 1, &FONT_T, SKIN_NAME[set.skin % NSKINS], C_HI);
+        cv_text(96, 1, &FONT_T, SKIN_NAME[skin_idx()], C_HI);
         for (s = 0; s < NSKINS; s++) {   /* a swatch each: its value colour on its ground, the one on outlined */
-            int32_t x = 6 + (int32_t)(s % 9u) * 26, y = 18 + (int32_t)(s / 9u) * 13;   /* (18, two rows of nine) */
+            int32_t x = 6 + (int32_t)(s % 12u) * 19, y = 18 + (int32_t)(s / 12u) * 13;   /* (LOAF BREAKER, 0.237:
+                                          * two rows of twelve, FLEXOR's) */
             const uint8_t (*c)[3] = SKIN_RGB[s];
-            if (s == set.skin % NSKINS)
-                cv_rect(x - 2, y - 2, 27, 15, C_WHITE);
-            cv_rect(x, y, 23, 11, skin_rgb(c[5], 100u));
-            cv_rect(x + 3, y + 2, 17, 4, skin_rgb(c[4], 100u));
-            cv_rect(x + 3, y + 7, 17, 2, skin_rgb(c[3], 100u));
+            if (s == skin_idx())
+                cv_rect(x - 2, y - 2, 21, 15, C_WHITE);
+            cv_rect(x, y, 17, 11, skin_rgb(c[5], 100u));
+            cv_rect(x + 2, y + 2, 13, 4, skin_rgb(c[4], 100u));
+            cv_rect(x + 2, y + 7, 13, 2, skin_rgb(c[3], 100u));
         }
         cv_blit(0, 44);
         cv_begin(240, 52, C_BLACK);

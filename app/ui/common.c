@@ -172,40 +172,43 @@ static void scr_fill(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint16_t c)
 /* GLOUPI BREAKS: the screen's colours, picked on GLOBAL's MORE page (K1) and saved (set.skin). fm1-base's palette
  * (gfx.c pal[]: rules, dim, labels, secondary, values) and the app's own (a block's ground, the block sounding, the
  * white, TAP TEMPO's unlit segments and metronome) from one table */
-#define NSKINS 18u
-static const char *const SKIN_NAME[NSKINS] = {"RED", "AMBER", "ICE BLUE", "PIP-BOY", "IRIS", "PINK", "MINT",
-                                              "WHITE", "BLOOD", "MAXENCE", "SYNTHWAVE", "VAPOR",
-                                              "TOXIC", "MIAMI", "LAVA", "GOLD", "BLAZE", "ACID"};
+#define NSKINS 24u
+/* LOAF BREAKER (FLEXOR, 11 Nov 2026, 0.237: the 1.0's skins, picked, ordered and named by him on listening-page style
+ * checklists from 48 rendered on the simulator; two rows of twelve swatches on SETUP). Saved as SKIN_NEW | its place:
+ * an older save's place in the 18 before is mapped (SKIN_OLD) to the nearest kept */
+#define SKIN_NEW 0x80u
+#define SKIN_DEFAULT 2u                  /* (CHOPPAH) */
+static const char *const SKIN_NAME[NSKINS] = {"CHROME", "FIRE&ICE", "CHOPPAH", "GLOUPI", "TESS", "OUTRUN", "THUNDER", "CYBRPUNK", "MC SALO", "ACID", "GARRY", "TOXIC", "PIP-BOY", "NEON", "BLKLIGHT", "PATINA", "SYNTHWV", "MIAMI", "ELECTRIC", "ARCTIC", "BRDCRMBZ", "IRIS", "ULTRAVIO", "MAXENCE"};
+static const uint8_t SKIN_OLD[18] = {2u, 2u, 19u, 12u, 21u, 23u, 15u, 20u, 0u, 23u, 16u, 17u, 11u, 17u, 3u, 6u, 3u, 9u};   /* (RED AMBER ICE-BLUE PIP-BOY IRIS
+                                          * PINK MINT WHITE BLOOD MAXENCE SYNTHWAVE VAPOR TOXIC MIAMI LAVA GOLD BLAZE ACID) */
 /* each: line, dim, gray, mid (secondary), hi (values), block, white */
 static const uint8_t SKIN_RGB[NSKINS][7][3] = {
-    {{34, 34, 40}, {74, 74, 82}, {150, 150, 158}, {232, 76, 60}, {255, 132, 112}, {24, 24, 30}, {255, 255, 255}},
-    {{34, 34, 40}, {74, 74, 82}, {150, 150, 158}, {232, 136, 30}, {255, 184, 70}, {24, 24, 30}, {255, 255, 255}},
-    {{34, 34, 40}, {74, 74, 82}, {150, 150, 158}, {60, 180, 235}, {150, 225, 255}, {24, 24, 30}, {255, 255, 255}},
-    {{14, 44, 22}, {30, 100, 54}, {80, 180, 110}, {40, 220, 100}, {140, 255, 170}, {8, 28, 14}, {200, 255, 210}},
-    {{34, 32, 44}, {76, 72, 90}, {152, 148, 166}, {150, 100, 240}, {196, 166, 255}, {24, 22, 34}, {255, 255, 255}},
-    {{40, 32, 38}, {84, 72, 80}, {160, 148, 156}, {236, 72, 150}, {255, 146, 200}, {30, 22, 28}, {255, 255, 255}},
-    {{30, 40, 38}, {68, 84, 80}, {146, 162, 158}, {40, 200, 160}, {130, 240, 205}, {20, 30, 28}, {255, 255, 255}},
-    {{34, 34, 40}, {74, 74, 82}, {150, 150, 158}, {196, 196, 202}, {236, 236, 240}, {24, 24, 30}, {255, 255, 255}},
-    /* LOAF BREAKER's BLOOD: dried blood for the grounds, fresh blood for the values, bone for the words */
-    {{46, 10, 12}, {100, 20, 24}, {168, 140, 128}, {160, 0, 12}, {230, 30, 36}, {26, 4, 6}, {232, 220, 196}},
-    /* LOAF BREAKER's MAXENCE: a very loud pink, neon on plum */
-    {{60, 12, 48}, {130, 36, 110}, {240, 170, 225}, {255, 0, 170}, {255, 70, 215}, {44, 0, 34}, {255, 232, 250}},
-    /* LOAF BREAKER's SYNTHWAVE: a night sky's indigo, the values neon cyan, the secondary hot magenta, the words a
-     * pale sunset pink */
-    {{44, 22, 82}, {96, 58, 150}, {186, 160, 226}, {255, 46, 170}, {40, 236, 255}, {20, 8, 44}, {255, 214, 236}},
-    /* LOAF BREAKER's two-colour skins: VAPOR (mint on lavender night, pink beside it), TOXIC (acid green, poison
-     * purple), MIAMI (hot coral on deep teal, turquoise), LAVA (molten orange over crimson, on charcoal), GOLD (gold on
-     * navy, royal blue) */
-    {{50, 36, 70}, {110, 90, 140}, {200, 180, 220}, {255, 120, 200}, {120, 255, 230}, {28, 18, 44}, {240, 230, 255}},
-    {{24, 40, 20}, {60, 90, 50}, {160, 190, 150}, {170, 60, 255}, {190, 255, 40}, {10, 18, 8}, {235, 255, 220}},
-    {{20, 40, 56}, {50, 90, 110}, {150, 190, 200}, {0, 210, 200}, {255, 110, 150}, {8, 22, 32}, {255, 240, 230}},
-    {{48, 24, 20}, {100, 56, 44}, {190, 160, 150}, {230, 30, 60}, {255, 140, 20}, {24, 10, 8}, {255, 240, 220}},
-    {{24, 30, 60}, {60, 72, 120}, {160, 170, 210}, {70, 110, 255}, {255, 210, 90}, {10, 14, 34}, {240, 240, 255}},
-    /* BLAZE: flashy orange values, pure red beside them, on a black with red in it */
-    {{56, 12, 4}, {120, 30, 10}, {236, 156, 112}, {255, 16, 16}, {255, 112, 0}, {30, 4, 0}, {255, 238, 210}},
-    /* ACID (the eighteenth, the swatches' two rows full): acid yellow values, a red-orange beside them, on a warm
-     * black */
-    {{46, 42, 14}, {98, 92, 40}, {196, 190, 140}, {255, 64, 28}, {255, 234, 0}, {22, 20, 6}, {255, 255, 228}}};
+    {{41, 41, 48}, {101, 101, 116}, {198, 198, 208}, {255, 40, 60}, {235, 240, 250}, {21, 21, 24}, {253, 254, 254}}   /* CHROME: chrome white and hot red on black */,
+    {{36, 36, 48}, {89, 89, 116}, {191, 191, 208}, {255, 60, 40}, {130, 230, 255}, {18, 18, 24}, {242, 252, 255}}   /* FIRE&ICE: icy cyan against fire red */,
+    {{34, 34, 40}, {74, 74, 82}, {150, 150, 158}, {232, 136, 30}, {255, 184, 70}, {24, 24, 30}, {255, 255, 255}}   /* CHOPPAH: AMBER until 0.236, CHOPPAH's own: orange */,
+    {{48, 24, 20}, {100, 56, 44}, {190, 160, 150}, {230, 30, 60}, {255, 140, 20}, {24, 10, 8}, {255, 240, 220}}   /* GLOUPI: LAVA until 0.236: molten orange over crimson */,
+    {{41, 14, 48}, {101, 39, 116}, {198, 159, 208}, {245, 60, 130}, {255, 196, 90}, {21, 7, 24}, {255, 249, 238}}   /* TESS: golden peach and magenta, a violet night */,
+    {{21, 10, 48}, {54, 31, 116}, {169, 155, 208}, {180, 60, 255}, {255, 140, 40}, {10, 5, 24}, {255, 244, 234}}   /* OUTRUN: retro orange and violet on a blue night */,
+    {{13, 17, 48}, {37, 47, 116}, {158, 165, 208}, {40, 120, 255}, {255, 240, 60}, {7, 9, 24}, {255, 254, 236}}   /* THUNDER: lightning yellow and electric blue */,
+    {{10, 43, 48}, {30, 105, 116}, {154, 201, 208}, {0, 240, 255}, {255, 236, 40}, {5, 22, 24}, {255, 253, 234}}   /* CYBRPUNK: neon yellow and cyan on a teal night */,
+    {{36, 48, 18}, {89, 116, 48}, {191, 208, 165}, {40, 255, 120}, {255, 225, 0}, {18, 24, 9}, {255, 252, 230}}   /* MC SALO: hazard yellow and radioactive green */,
+    {{46, 42, 14}, {98, 92, 40}, {196, 190, 140}, {255, 64, 28}, {255, 234, 0}, {22, 20, 6}, {255, 255, 228}}   /* ACID: acid yellow, a red-orange beside it */,
+    {{17, 48, 22}, {47, 116, 57}, {165, 208, 171}, {255, 130, 30}, {170, 255, 80}, {9, 24, 11}, {246, 255, 238}}   /* GARRY: lime and orange on dark green */,
+    {{24, 40, 20}, {60, 90, 50}, {160, 190, 150}, {170, 60, 255}, {190, 255, 40}, {10, 18, 8}, {235, 255, 220}}   /* TOXIC: acid green, poison purple */,
+    {{14, 44, 22}, {30, 100, 54}, {80, 180, 110}, {40, 220, 100}, {140, 255, 170}, {8, 28, 14}, {200, 255, 210}}   /* PIP-BOY: an old terminal's green */,
+    {{48, 48, 48}, {116, 116, 116}, {208, 208, 208}, {255, 30, 150}, {60, 255, 40}, {24, 24, 24}, {236, 255, 234}}   /* NEON: neon green and neon pink on pure black */,
+    {{28, 12, 48}, {71, 35, 116}, {179, 157, 208}, {60, 255, 100}, {200, 100, 255}, {14, 6, 24}, {250, 240, 255}}   /* BLKLIGHT: UV violet and fluorescent green */,
+    {{48, 41, 34}, {116, 101, 85}, {208, 198, 188}, {225, 115, 55}, {60, 225, 195}, {24, 21, 17}, {236, 252, 249}}   /* PATINA: verdigris and copper */,
+    {{44, 22, 82}, {96, 58, 150}, {186, 160, 226}, {255, 46, 170}, {40, 236, 255}, {20, 8, 44}, {255, 214, 236}}   /* SYNTHWV: neon cyan and hot magenta on indigo */,
+    {{20, 40, 56}, {50, 90, 110}, {150, 190, 200}, {0, 210, 200}, {255, 110, 150}, {8, 22, 32}, {255, 240, 230}}   /* MIAMI: hot coral on deep teal, turquoise */,
+    {{16, 16, 48}, {44, 44, 116}, {163, 163, 208}, {255, 40, 150}, {70, 170, 255}, {8, 8, 24}, {236, 246, 255}}   /* ELECTRIC: electric blue and hot pink */,
+    {{13, 22, 48}, {37, 58, 116}, {158, 172, 208}, {60, 130, 255}, {190, 245, 255}, {6, 11, 24}, {248, 254, 255}}   /* ARCTIC: ice white and steel blue, a polar night */,
+    {{34, 34, 40}, {74, 74, 82}, {150, 150, 158}, {196, 196, 202}, {236, 236, 240}, {24, 24, 30}, {255, 255, 255}}   /* BRDCRMBZ: WHITE until 0.236: white and greys */,
+    {{34, 32, 44}, {76, 72, 90}, {152, 148, 166}, {150, 100, 240}, {196, 166, 255}, {24, 22, 34}, {255, 255, 255}}   /* IRIS: iris violet */,
+    {{21, 11, 48}, {56, 32, 116}, {170, 155, 208}, {255, 90, 200}, {140, 90, 255}, {11, 5, 24}, {244, 238, 255}}   /* ULTRAVIO: deep violet and UV pink */,
+    {{60, 12, 48}, {130, 36, 110}, {240, 170, 225}, {255, 0, 170}, {255, 70, 215}, {44, 0, 34}, {255, 232, 250}}   /* MAXENCE: a very loud pink, neon on plum */};
+static uint32_t skin_idx(void) { return (set.skin & 0x7Fu) % NSKINS; }
+static uint32_t skin_old(uint32_t s) { return s < 18u ? SKIN_OLD[s] : SKIN_DEFAULT; }
 static uint16_t skin_block = RGB(24, 24, 30), skin_hi = RGB(255, 132, 112), skin_white = 0xFFFFu;
 /* LOAF BREAKER: SERATO's colours for a wave's column: its lows, mids and highs (0..255 each) as one hue, red (the lows)
  * through yellow, green (the mids), cyan to blue (the highs), at full saturation, br bright (0..255) */

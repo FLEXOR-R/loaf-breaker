@@ -338,6 +338,7 @@ static void settings_defaults(void)
     set.sfx_on = 0u;                     /* (the screen effects: none at the start and after RESET ALL; the site's
                                           * screenshots clean) */
     set.wzoom = 3u;                      /* (the scrolling wave: a bar across, as it was) */
+    set.skin = 0x82u;                    /* (LOAF BREAKER, 0.237: CHOPPAH, common.c's SKIN_NEW | SKIN_DEFAULT) */
 #if defined(PLAT_HOST) && !defined(PLAT_WEB)
     set.novice = 0u;                     /* (TEST: the simulator's scenarios and the manual's screens see it all: EXPERT;
                                           * a scenario turns GLO MORE's K1 for BEGINNER) */
@@ -425,6 +426,7 @@ static const char *const SNAP_SHORT[SNAPS] = {"OFF", "1/8 SL", "1/4 SL", "1/2 SL
 static uint32_t snap_index(void) { return set.snap && set.snap <= SNAPS ? set.snap - 1u : 4u; }
 
 static void skin_apply(uint32_t s);    /* (ui/common.c) */
+static uint32_t skin_old(uint32_t s); /* (ui/common.c: an older save's skin, 0..17, to the 1.0's) */
 /* LOAF BREAKER: the FX chain's part of settings_apply (its four slots and the kick's two, their extras), and the
  * kick's (its layers, SYNTH, MORPH, CLEAN SUB, BASS, EQ, the ARP's REESE in its key): a knob of theirs applies them
  * alone (changed_fx, changed_kick) */
@@ -484,7 +486,7 @@ static void settings_apply(void)
     brk_snap(SNAP_SL[snap_index()]);
     kick_apply();
     perc_apply();
-    skin_apply(set.skin);
+    skin_apply(set.skin & 0x7Fu);
     {
         uint32_t k;
         for (k = 0; k < BRK_KEYS; k++) {
@@ -1176,6 +1178,9 @@ void app_init(void)
             set.novice = 0u;             /* (TEST: a save from before the MODE: its owner knows the way, EXPERT) */
         if (set.magic == SET_MAGIC && sz <= (int)offsetof(settings_t, tut))
             set.tut = 0u;
+        if (set.magic == SET_MAGIC && !(set.skin & 0x80u))   /* (LOAF BREAKER, 0.237: a save from before the 1.0's
+                                          * skins: its place in the 18 before, the nearest kept) */
+            set.skin = (uint8_t)(0x80u | skin_old(set.skin));
         if (set.pxv != PX_OK) {          /* (LOAF BREAKER: a save from before the drums' extras: smem the MELODY's
                                           * leftovers, cleared) */
             memset(set.smem, 0, sizeof set.smem);
