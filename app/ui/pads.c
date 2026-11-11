@@ -59,12 +59,10 @@ static int ovl_time_kind(uint32_t e)     /* 1 RATE, 2 SWEEP, 0 none */
 {
     return e == OV_CHOP || e == OV_GATE || e == OV_WAH || e == OV_PAN ? 1 : e == OV_DIVE || e == OV_RISE ? 2 : 0;
 }
-/* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's pads play and nothing more, but the ARP key: K1 its effect (0.229: all
- * sixteen), K2 its amount */
+/* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's pads have their knobs as EXPERT's (0.232; 0.224-0.231 none but the
+ * ARP key's K1, K2); the DST and SUB keys do nothing there (main.c) */
 static const char *pad_knob_name(int pad, int k)
 {
-    if (set.novice && (pad != PAD_DUB || k >= 2))
-        return 0;                        /* (BEGINNER: no knob) */
     if (pad == PAD_DUB) {
         static const char *const MORE[4] = {"THRU", "ON / OFF", "RATE", "SWEEP"};
         if (ui.pad_more)
@@ -296,14 +294,7 @@ static void pad_knob_turn(int pad, int k, int32_t d)
         {
             uint32_t e = set.ovl_pad & 15u;
             int tk = ovl_time_kind(e), dir = d > 0 ? 1 : -1;
-            if (set.novice) {            /* (BEGINNER: K1 the effect, all sixteen (0.229, FLEXOR), K2 its amount) */
-                if (k == 0)
-                    set.ovl_pad = (uint8_t)((set.ovl_pad & ~15u) | ((e + (d > 0 ? 1u : OVL_N - 1u)) % OVL_N));
-                else if (k == 1)
-                    set.ovl_amt[e] = (uint8_t)clamp((int32_t)set.ovl_amt[e] + d * 2, 0, 100);
-                else
-                    break;
-            } else if (ui.pad_more) {    /* MORE: THRU, ON / OFF, RATE, SWEEP */
+            if (ui.pad_more) {    /* MORE: THRU, ON / OFF, RATE, SWEEP */
                 if (k == 0)              /* (THRU: app.c's render) */
                     set.ovl_pad = (uint8_t)((set.ovl_pad & 0x3Fu) | thru_turn(set.ovl_pad >> 6, d) << 6);
                 else if (k == 1)         /* (ON: the key sounds its effect; OFF: K1 browses them silent) */

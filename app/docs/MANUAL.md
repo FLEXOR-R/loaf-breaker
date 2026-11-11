@@ -701,9 +701,9 @@ the MIXER has LEVELS and SENDS; on SEQ, ALGORITHM goes round the lanes (no GROOV
 the kick's alone (16, 32 or 64 steps; turning BEGINNER on
 sets every kick of the group to 32 and the drums to 16; a drum lane stays 16, "LONGER: EXPERT MODE"), and a step held has no menu (the key just
 turns the step on or off); SONG keeps each part's essentials (TRACKS: the item's pattern and its loops; PLAY: the track;
-DROP: the build's bars; BUILD: its style); a white key held plays its loop with no knobs, a black key plays with none
-either, but ARP: K1 its effect (all sixteen), K2 its amount; the **DST** and **SUB** black keys do nothing but say
-where it is (the KICK page's DISTO and SUB DRIVE: the knobs always heard); a knob BEGINNER leaves out is drawn blank
+DROP: the build's bars; BUILD: its style); a white key held plays its loop with no knobs; a black key held has its knobs
+as in EXPERT, but the **DST** and **SUB** keys, which do nothing but say where it is (the KICK page's DISTO and SUB
+DRIVE, the knobs always heard) and are never lit; a knob BEGINNER leaves out is drawn blank
 and says "EXPERT MODE" when turned; SOUNDS › BREAK keeps
 its LEVEL (K4; the pitch is OCT's) and PATTERN › GROOVE its SWING.
 Nothing is lost: EXPERT shows everything again, as it was left, and what BEGINNER sets is there to refine. A

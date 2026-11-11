@@ -352,7 +352,7 @@ static void input(void)
     for (i = 0; i < 11u; i++) {          /* black keys: the pads, held; the last one pressed has the screen */
         if (i == PAD_FREEZE) {           /* GLOUPI BREAKS: FREEZE's key turns the kick's SUB DRIVE on and off */
             if ((kdn & PAD_BIT(i)) && set.novice)   /* (LOAF BREAKER, 0.229: BEGINNER, the KICK page's SUB DRIVE) */
-                app_say("SUB: EXPERT MODE", "BEGINNER: EDIT, SUB DRIVE");
+                app_say("SUB: EXPERT MODE", "EDIT: SUB DRIVE");
             else if ((kdn & PAD_BIT(i)))
                 sub_drive_toggle();
             continue;
@@ -404,7 +404,7 @@ static void input(void)
             brk_pad((int)i, 0);
     }
     if ((kdn >> BK[TERR_KEY] & 1u) && set.novice)   /* (LOAF BREAKER, 0.229: BEGINNER, the KICK page's DISTO) */
-        app_say("DST: EXPERT MODE", "BEGINNER: EDIT, DISTO");
+        app_say("DST: EXPERT MODE", "EDIT: DISTO");
     else if (kdn >> BK[TERR_KEY] & 1u) { /* LOAF BREAKER: TER, as SUB's DRIVE: the kick's TERROR off if it sounds (its
                                           * amount kept), else on (an amount at nothing: 50 %, a key that does something) */
         if (KICK_TERROR(&set.kick) && !terror_off)
@@ -993,12 +993,9 @@ static void input(void)
                 key_knob_turn(key_tuned(), k - EN_K1, d);
             else
                 easy_no();               /* (0.229: said) */
-        } else if (ui.pad_focus >= 0) {  /* a pad held: K1-K4 tune it (BEGINNER: the ARP key's K1, K2 alone) */
-            if (!set.novice || pad_knob_name(ui.pad_focus, k - EN_K1))
-                pad_knob_turn(ui.pad_focus, k - EN_K1, d);
-            else
-                easy_no();
-        } else
+        } else if (ui.pad_focus >= 0)    /* a pad held: K1-K4 tune it (LOAF BREAKER, 0.232: BEGINNER too) */
+            pad_knob_turn(ui.pad_focus, k - EN_K1, d);
+        else
             knob_turn(k, d);
     }
     ui.keys = keys;
@@ -1047,11 +1044,13 @@ static void leds(void)
     } else if (st.slice >= 0 && st.slice < 16)
         k |= 1u << WK[st.slice];
     for (i = 0; i < 11u; i++)
-        if (i == PAD_FREEZE ? sub_drive_on() : i == PAD_DUB ? ovl_pad_on() : (int)(st.pads >> i & 1u) || roll_lit(i))
+        if (i == PAD_FREEZE ? sub_drive_on() && !set.novice : i == PAD_DUB ? ovl_pad_on() : (int)(st.pads >> i & 1u) ||
+            roll_lit(i))                 /* (LOAF BREAKER, 0.232: BEGINNER, SUB and DST never lit: theirs the knobs) */
             k |= PAD_BIT(i);
     if (kick_hold)                       /* (LOAF BREAKER: KIL held: lit) */
         k |= 1u << BK[KILL_KEY];
-    if (KICK_TERROR(&set.kick) && !terror_off)   /* (LOAF BREAKER: TER lit while the kick's TERROR sounds) */
+    if (KICK_TERROR(&set.kick) && !terror_off && !set.novice)   /* (LOAF BREAKER: TER lit while the kick's TERROR
+                                          * sounds) */
         k |= 1u << BK[TERR_KEY];
     if (build_p >= 0.0f) {               /* LOAF BREAKER: the build: the white keys fill up left to right (TEST: the next
                                           * one blinking, faster as it builds) */
@@ -1377,7 +1376,8 @@ static void draw_foot(const brk_status_t *st)
     draw_tabs();
     cv_begin(240, 48, C_BLACK);
     for (i = 0; i < 11u; i++) {
-        int on = i == PAD_FREEZE ? sub_drive_on() : i == PAD_DUB ? ovl_pad_on() : (int)((st->pads >> i) & 1u) || roll_lit(i);
+        int on = i == PAD_FREEZE ? sub_drive_on() && !set.novice : i == PAD_DUB ? ovl_pad_on() : (int)((st->pads >> i) & 1u) ||
+                 roll_lit(i);
         int32_t x = 2 + (int32_t)PAD_KEY[i] * 21;   /* (at its key) */
         if (PAD_KEY[i] >= 11u)
             continue;                    /* (LOAF BREAKER: GATE, no key) */
@@ -1391,7 +1391,7 @@ static void draw_foot(const brk_status_t *st)
     }
     {                                    /* LOAF BREAKER: TER, lit while the kick's TERROR sounds */
         int32_t x = 2 + (int32_t)TERR_KEY * 21;
-        int on = KICK_TERROR(&set.kick) && !terror_off;
+        int on = KICK_TERROR(&set.kick) && !terror_off && !set.novice;
         cv_rect(x, 0, 20, 14, on ? C_HI : C_BLOCK);
         cv_text(x + (20 - text_w(&FONT_T, "DST")) / 2, 1, &FONT_T, "DST", on ? C_BLACK : C_GRAY);
     }

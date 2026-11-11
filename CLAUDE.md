@@ -23,7 +23,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   drums PRESET / FX / LEVEL / DECAY, SEQ as EXPERT's but no step menu, no GROOVE in its lanes' round (0.231) and K4 LENGTH the kick's alone (16/32/64, a drum
   lane 16; BEGINNER turned on sets the kicks 32, `novice_lengths`), the FX chain two slots (`fx_nslots`, the others
   muted in `fx_apply`) and a short list (`FX_EASY`) then MAGIC EQ, MAGIC MBC; SONG's `trk_knob_ok`, `glo_knob_ok`, the
-  held keys and pads (ARP all sixteen); DST and SUB keys and blank knobs say EXPERT MODE (`easy_no`); `KP_ADV` no
+  held white keys (no knobs), the black keys' knobs as EXPERT's (0.232); DST and SUB keys (never lit) and blank
+  knobs say EXPERT MODE (`easy_no`); `KP_ADV` no
   longer reached. Gone in 0.229: the FX scenes, SEQ's BEAT presets, MB KICK and MB OTT. A new FM-1 asks its mode
   (tutor.c `TUT_ASK`, set.tut 0xFD; the simulator with LOAF_ASK=1). The host simulator starts EXPERT (scenarios, the
   manual's screens), the FM-1 and the web emulator BEGINNER. The manual opens with "Start in five minutes" (the hub card's `cheat` link).

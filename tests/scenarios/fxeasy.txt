@@ -1,7 +1,8 @@
 # LOAF BREAKER (FLEXOR, 11 Nov 2026, 0.229): BEGINNER's FX page: two slots (the third and fourth muted and hidden),
 # PRESETS the short list (EMPTY, FILTER, CRUNCH, DRIVE, FLANGER, REVERB, DELAY, TAPE, CLIP), then MAGIC EQ, MAGIC MBC.
 # In EXPERT the third slot gets a FILTER, focused; BEGINNER on: the focus back on the first, ALGORITHM goes round the
-# two. The DST and SUB black keys say EXPERT MODE and do nothing (the DISTO stays as the knob set it).
+# two. The DST and SUB black keys say EXPERT MODE and do nothing (the DISTO stays as the knob set it); SUB DRIVE turned
+# on in EXPERT stays on, its key unlit in BEGINNER (0.232: the KICK page's knob has it).
 #   app/build/host/loaf-breaker_host tests/scenarios/fxeasy.txt app/build/scenarios
 wait 4200
 tap PLAY
@@ -14,6 +15,11 @@ expect fx_focus 2
 turn PRESET 1 80
 wait 300
 expect fx_type 6
+key b10 down
+wait 100
+key b10 up
+wait 300
+expect subdrv 50
 tap GLO
 wait 150
 tap GLO
@@ -41,14 +47,15 @@ expect fx_type 10
 wait 1200
 shot fe_chain.png
 expect terror 0
+key b9 down
+wait 100
+key b9 up
+wait 300
+expect terror 0
+shot fe_dst.png
 key b10 down
 wait 100
 key b10 up
 wait 300
-expect terror 0
-shot fe_dst.png
-key b11 down
-wait 100
-key b11 up
-wait 300
-expect subdrv -1
+expect subdrv 50
+shot fe_sub.png

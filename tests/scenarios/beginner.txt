@@ -2,7 +2,7 @@
 # BEAT presets gone; four hits: the kick four on the floor); a step held + a knob: nothing (no step menu), the key toggles the step as it
 # comes up; K4 LENGTH the kick's alone (0.227, FLEXOR: 16, 32, 64; BEGINNER turned on, the kick 32 steps; a drum lane
 # stays 16, EXPERT MODE said). ENV's DROP: K2 nothing, K1 the build's bars. The ARP key held: K1 its effect, all sixteen
-# (0.229: DIVE, RISE, RADIO ..), K3 nothing (EXPERT MODE said). GROOVE: SWING alone. A white key held: its knobs nothing.
+# (0.229: DIVE, RISE, RADIO ..); 0.232: the black keys' knobs as EXPERT's (K3 its TIME). GROOVE: SWING alone. A white key held: its knobs nothing.
 #   app/build/host/loaf-breaker_host tests/scenarios/beginner.txt app/build/scenarios
 wait 4200
 tap GLO
