@@ -259,8 +259,13 @@ static void skin_apply(uint32_t s)
 enum { PG_HOME, PG_GEN, PG_FX, PG_GLOBAL, PG_KICK, PG_MIX, PG_SEQ, PG_PERC, PG_TRACK, PG_OVL, PG_KEQ, NPAGES };
                                          /* (LOAF BREAKER: PG_KEQ, HOME's third part, the KICK EQ; PG_TRACK, ENV's
                                           * TRACKS, PLAY, DROP where TAP TEMPO was) */
-static const char *const PAD_NAME[BRK_NPADS] = {"R8", "R16", "R32", "REV", "SUB", "HLF", "VNL", "GAT", "RND",
-                                                "FLT", "ARP"};
+/* LOAF BREAKER (11 Nov 2026): the black keys' functions' names (app.c BKF_*), as the strip shows them */
+static const char *const BKF_NAME[BKF_N] = {"R8", "R16", "R32", "REV", "FRZ", "HLF", "VNL", "GAT", "RND", "FLT", "DUB",
+                                            "ARP", "KIL", "DST", "SUB"};
+static const char *const BKF_LONG[BKF_N] = {"ROLL 1/8", "ROLL 1/16", "ROLL 1/32", "REVERSE", "FREEZE", "HALF SPEED",
+                                            "VINYL BREAK", "GATE", "RANDOM", "FILTER", "DUB", "ARP (OVERLAY)",
+                                            "KICKS OFF", "DISTO", "SUB DRIVE"};
+static const char *const BKP_NAME[BKP_N] = {"CHOPPAH", "FLEXOR LAYOUT", "CUSTOM"};
 static const uint8_t WK[16] = PLAT_WHITE_KEYS, BK[11] = PLAT_BLACK_KEYS;
 /* LOAF BREAKER: what the TUTORIAL (tutor.c) watches, counted where it happens: white keys pressed, black keys pressed
  * (a bit each), K1-K4 turned on the KICK menu, SEL + K4 turned, drum steps set on SEQ, SAVEs */
@@ -268,16 +273,18 @@ static const uint8_t WK[16] = PLAT_WHITE_KEYS, BK[11] = PLAT_BLACK_KEYS;
 #define EZ_N 6u
 static const uint16_t EZ_MS[EZ_N] = {0u, 250u, 500u, 1000u, 1500u, 2000u};
 static const char *const EZ_NAME[EZ_N] = {"AUTO", "250 MS", "500 MS", "1 S", "1.5 S", "2 S"};
-static uint32_t tut_wk, tut_pads, tut_padn, tut_kturn, tut_sk4, tut_lane, tut_saves, tut_home, tut_kpre, tut_ovl;
-/* GLOUPI BREAKS: the black key (0..10, left to right) of each pad (PAD_*): DUB on the fifth key, FREEZE's in CHOPPAH,
- * and FREEZE on the last, DUB's. BK[PAD_KEY[pad]] is the pad's key; the strip of names follows the keys */
-static const uint8_t PAD_KEY[BRK_NPADS] = {0, 1, 2, 3, 10, 5, 6, 11, 4, 11, 7};   /* (LOAF BREAKER, 10 Nov 2026: GATE and
-                                          * FILTER no key (11: none; HOME's K1 the gate, K2 the filter), RANDOM on the fifth,
-                                          * the ARP key on the eighth; the ninth KIL, the sequencer's kicks held quiet:
-                                          * KILL_KEY; the tenth TER, the kick's TERROR on or off: TERR_KEY) */
-#define KILL_KEY 8u                      /* LOAF BREAKER: the black key (0..10) that keeps the sequencer's kicks quiet */
-#define TERR_KEY 9u                      /* LOAF BREAKER: the black key that turns the kick's TERROR off and on again */
-#define PAD_BIT(i) (PAD_KEY[i] < 11u ? 1u << BK[PAD_KEY[i]] : 0u)   /* a pad's key's bit (0: no key) */
+static uint32_t tut_wk, tut_pads, tut_padn, tut_kturn, tut_sk4, tut_lane, tut_saves, tut_home, tut_kpre, tut_ovl, tut_padk;
+/* LOAF BREAKER (11 Nov 2026): the keys of a function (BKF_*) in the layout in use (app.c bk_fn), a bit each (none:
+ * 0). The pads' code asks PAD_BIT(pad) */
+static uint32_t bkf_mask(uint32_t f)
+{
+    uint32_t j, m = 0u;
+    for (j = 0; j < 11u; j++)
+        if (bk_fn(j) == f)
+            m |= 1u << BK[j];
+    return m;
+}
+#define PAD_BIT(i) bkf_mask((uint32_t)(i))
 
 static struct {
     uint32_t keys, btn;
@@ -295,6 +302,8 @@ static struct {
     uint32_t aud_t;                      /* LOAF BREAKER: a drum played on its key (the classic view, the drums' pages):
                                           * when, which */
     uint8_t aud_d;
+    uint8_t opage, bk_sel;               /* LOAF BREAKER: the ARP page's tab (0 ARP EFFECTS, 1 BLACK KEYS, 2 MORE;
+                                          * BEGINNER: the first only), the key BLACK KEYS edits (0..10) */
     uint8_t pad_more;                    /* LOAF BREAKER: the ARP key's knobs: 0 MAIN, 1 MORE (FX while it is held) */
     uint8_t pbig;                        /* LOAF BREAKER: the drums' page in its big view (SELECT from the KICK menu's big
                                           * view); 0: the classic one (SEL + EDIT) */

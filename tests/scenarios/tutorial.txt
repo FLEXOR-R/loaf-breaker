@@ -1,6 +1,6 @@
 # LOAF BREAKER: the TUTORIAL. SYSTEM › SETUP (GLO twice), K3 left twice: BEGINNER, then TUTORIAL. Its 25 steps (0.235,
 # FLEXOR; 0.244 the OVERLAY page on ARP: two), each done as it says, then the next: at once (nothing to hear: HOME, EDIT, SHAPE, SELECT, SEQ, FX, SAVE), or
-# 5 s later. HOME (PERFORM); PLAY, four slices, ALGORITHM (another break); a black key, ARP held + K1, ARP (the OVERLAY page), two of its effects; EDIT, K1 twice
+# 5 s later. HOME (PERFORM); PLAY, four slices, ALGORITHM (another break); a black key, FRZ held + K1 (BEGINNER: CHOPPAH's keys, 11 Nov 2026), ARP (the OVERLAY page), two of its effects; EDIT, K1 twice
 # (the built-in kicks), K2 (DISTO), EDIT (SHAPE), K3 (a longer tail), PRESETS (KICK 2); SELECT (the SNARE), K1 (its
 # preset), K2 (its FX); SEQ, two kicks, ALGORITHM to the snare and one; FX, PRESETS (an effect); SEL + ENV (the drop);
 # SAVE; the last read, then finished (254).
@@ -48,11 +48,12 @@ wait 400
 key b1 up
 wait 5400
 expect tut 6
-key b7 down
+shot a_tut_frz.png
+key b4 down
 wait 300
 turn K1 1 80
 wait 300
-key b7 up
+key b4 up
 wait 5400
 expect tut 7
 tap ARP

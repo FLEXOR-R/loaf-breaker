@@ -60,19 +60,15 @@ wait 200
 turn K1 1 60
 wait 200
 expect drop_bars 4
-key b7 down
+# (11 Nov 2026: BEGINNER, CHOPPAH's black keys: the fifth FREEZE, K1 its LENGTH)
+expect bk_pre 0
+key b4 down
 wait 500
 turn K1 1 60
 wait 200
-expect arp_fx 1
-turn K1 1 60
-wait 200
-expect arp_fx 2
-turn K3 5 60
-wait 200
-key b7 up
+expect frz_len 1
+key b4 up
 wait 300
-expect arp_fx 2
 press SEL
 tap ARP
 release SEL

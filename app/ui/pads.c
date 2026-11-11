@@ -42,14 +42,18 @@ static void roll_key(uint32_t pad, int down, int sel)   /* a roll pad down or up
 static int roll_lit(uint32_t pad) { return roll_held == pad && kroll; }   /* (its light, rolling the kick alone) */
 static uint8_t half_lat;                 /* LOAF BREAKER: HALF SPEED latched on (its LATCH: K3) */
 /* what K1-K4 tune while a pad is held, by pad (brk.h PAD_*); 0: that knob does nothing for it */
-static const char *const PAD_KNOB[BRK_NPADS][4] = {
+static const char *const PAD_KNOB[BKF_N][4] = {   /* (LOAF BREAKER: by function, app.c BKF_*) */
     {"RATE", "THRU", "DRUM FLT", "DECAY"}, {"RATE", "THRU", "DRUM FLT", "DECAY"}, {"RATE", "THRU", "DRUM FLT", "DECAY"},
     {"SPEED", 0, 0, 0}, {"LENGTH", "PITCH", 0, 0}, {"SPEED", "M. TEMPO", "LATCH", 0}, {"STOP", "SPIN UP", "THRU", 0},
     {"RATE", "LENGTH", 0, 0}, {"AMOUNT", "PITCH", 0, 0}, {"TARGET", "RESO", "SPEED", 0},
-    {"EFFECT", "AMOUNT", "TIME", "LATCH"}};   /* (LOAF BREAKER: the ARP key's; FX while held: MORE, pad_knob_name) */   /* (LOAF BREAKER: held only; K2 what goes through the ARP
-                                          * effects: the kick, the break, or both) */   /* (GLOUPI BREAKS: PAD_DUB is the ARP key) */
-static const char *const PAD_TITLE[BRK_NPADS] = {"ROLL", "ROLL", "ROLL", "REVERSE", "SUB DRIVE", "HALF SPEED",
-                                                  "VINYL BREAK", "GATE", "RANDOM", "FILTER", "OVERLAY"};
+    {"TIME", "FEEDBACK", "TONE", "MIX"},   /* (DUB: CHOPPAH's; a DELAY in the chain: its own, fx_param_name) */
+    {"EFFECT", "AMOUNT", "TIME", "LATCH"},   /* (the ARP key's; FX while held: MORE, pad_knob_name; K2 what goes
+                                          * through the ARP effects: the kick, the break, or both) */
+    {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}};   /* (KIL: its LATCH, main.c; DST, SUB: a press each) */
+static const char *const PAD_TITLE[BKF_N] = {"ROLL", "ROLL", "ROLL", "REVERSE", "FREEZE", "HALF SPEED",
+                                              "VINYL BREAK", "GATE", "RANDOM", "FILTER", "DUB", "OVERLAY", "KICKS OFF",
+                                              "DISTO", "SUB DRIVE"};
+static const char *const FRZ_LEN_NAME[4] = {"SLICE", "1/2", "1/4", "1/8"};
 
 /* LOAF BREAKER: the ARP key's knobs (the OVERLAY page gone, its settings here). MAIN: K1 EFFECT, K2 its AMOUNT, K3
  * its TIME (RATE for CHOP, GATE, WAH, PAN; SWEEP for DIVE and RISE; none for the rest), K4 LATCH. MORE (FX pressed while
@@ -63,7 +67,11 @@ static int ovl_time_kind(uint32_t e)     /* 1 RATE, 2 SWEEP, 0 none */
  * ARP key's K1, K2); the DST and SUB keys do nothing there (main.c) */
 static const char *pad_knob_name(int pad, int k)
 {
-    if (pad == PAD_DUB) {
+    if (pad < 0 || pad >= (int)BKF_N)
+        return 0;
+    if (pad == PAD_DUB && delay_slot() >= 0)   /* (a DELAY in the chain: the pad throws into it, its settings) */
+        return fx_param_name((uint32_t)delay_slot(), k)[0] ? fx_param_name((uint32_t)delay_slot(), k) : 0;
+    if (pad == BKF_ARP) {
         static const char *const MORE[4] = {"THRU", "ON / OFF", "RATE", "SWEEP"};
         if (ui.pad_more)
             return MORE[k & 3];
@@ -210,7 +218,16 @@ static void pad_knob_value(int pad, int k, char *t)
         else if (k == 1) pct_text(f->flt_res, t);
         else pct_text(f->flt_speed, t);
         break;
-    case PAD_DUB: {                      /* the ARP key: MAIN or MORE (pad_knob_name) */
+    case PAD_FREEZE:                     /* (LOAF BREAKER, 11 Nov 2026: CHOPPAH's, back) */
+        if (k == 0) text_cat(t, FRZ_LEN_NAME[p->frz_len & 3u]);
+        else signed_tenths(p->frz_pitch, "ST", t);
+        break;
+    case PAD_DUB:                        /* with a DELAY in the chain, the pad throws into it: its settings */
+        if (delay_slot() >= 0) fx_value((uint32_t)delay_slot(), k, t);
+        else if (k == 0) text_cat(t, BRK_DUB_DIV_NAME[f->dub_div % BRK_DUB_DIVS]);
+        else pct_text(k == 1 ? f->dub_fb : k == 2 ? f->dub_tone : f->dub_mix, t);
+        break;
+    case BKF_ARP: {                      /* the ARP key: MAIN or MORE (pad_knob_name) */
         uint32_t e = set.ovl_pad & 15u;
         int tk = ovl_time_kind(e);
         if (ui.pad_more) {
@@ -245,7 +262,7 @@ static void pad_knob_turn(int pad, int k, int32_t d)
     brk_padset_t *p = &set.pads;
     brk_fx_t *f = &set.fx;
     char t[16];
-    if (pad < 0 || pad >= BRK_NPADS || k < 0 || k > 3 || !pad_knob_name(pad, k))
+    if (pad < 0 || pad >= (int)BKF_N || k < 0 || k > 3 || !pad_knob_name(pad, k))
         return;
     switch (pad <= PAD_ROLL32 ? 0 : pad) {
     case 0:
@@ -289,7 +306,21 @@ static void pad_knob_turn(int pad, int k, int32_t d)
         else if (k == 1) f->flt_res = knob_f(f->flt_res, d, 0.02f, 0.0f, 0.95f);
         else f->flt_speed = knob_f(f->flt_speed, d, 0.02f, 0.0f, 1.0f);
         break;
-    case PAD_DUB:                        /* GLOUPI BREAKS: the ARP key. K1 which OVERLAY effect (the ARP page's
+    case PAD_FREEZE:
+        if (k == 0) p->frz_len = (uint8_t)clamp((int32_t)p->frz_len + d, 0, 3);
+        else p->frz_pitch = knob_f(p->frz_pitch, d, 1.0f, -12.0f, 12.0f);
+        break;
+    case PAD_DUB:
+        if (delay_slot() >= 0) {         /* the DELAY slot's own settings */
+            fx_knob_turn((uint32_t)delay_slot(), k, d);
+            return;
+        }
+        if (k == 0) f->dub_div = (uint8_t)clamp((int32_t)f->dub_div + d, 0, BRK_DUB_DIVS - 1);
+        else if (k == 1) f->dub_fb = knob_f(f->dub_fb, d, 0.02f, 0.0f, 0.95f);
+        else if (k == 2) f->dub_tone = knob_f(f->dub_tone, d, 0.02f, 0.0f, 1.0f);
+        else f->dub_mix = knob_f(f->dub_mix, d, 0.02f, 0.0f, 1.0f);
+        break;
+    case BKF_ARP:                        /* GLOUPI BREAKS: the ARP key. K1 which OVERLAY effect (the ARP page's
                                           * settings: amount, rate, sweep), K2 THRU, K3 ON / OFF, K4 LATCH */
         {
             uint32_t e = set.ovl_pad & 15u;
@@ -327,6 +358,7 @@ static void pad_knob_turn(int pad, int k, int32_t d)
         break;
     default: break;
     }
+    tut_padk++;                          /* (LOAF BREAKER: the TUTORIAL's count) */
     pad_knob_value(pad, k, t);
     app_say(pad_knob_name(pad, k), t);
     changed();
@@ -516,7 +548,37 @@ static void draw_fx_band(int pad, const brk_status_t *st, uint32_t now, int32_t 
         cv_text(234 - text_w(&FONT_XS, t), 2, &FONT_XS, t, C_WHITE);
         break;
     }
-    case PAD_DUB: {                      /* GLOUPI BREAKS: the ARP key: its effect, big, lit while on */
+    case PAD_FREEZE: {                   /* FREEZE: the slice iced over, its loop bracketed, a cursor going round */
+        int32_t loop = 240 >> (p->frz_len & 3u), cx;
+        fx_slice(s, 0, 240, 1.0f, C_LINE);
+        fx_slice(s, 0, 240, 1.0f, C_ICE);
+        cv_rect(0, 22, loop, 2, C_WHITE);
+        cv_rect(0, 92, loop, 2, C_WHITE);
+        cv_rect(loop - 2, 22, 2, 72, C_WHITE);
+        cx = (int32_t)(held % 700u) * loop / 700;
+        cv_rect(cx, 22, 2, 72, C_HI);
+        for (i = 0; i < 24; i++) {       /* frost: dots that twinkle */
+            uint32_t r = fx_hash((uint32_t)i * 977u + held / 180u);
+            cv_rect((int32_t)(r % 236u), 24 + (int32_t)((r >> 8) % 66u), 2, 2, (r >> 20) & 1u ? C_WHITE : C_ICE);
+        }
+        break;
+    }
+    case PAD_DUB: {                      /* DUB: echoes marching out, each one fainter and darker */
+        static const uint8_t SP[BRK_DUB_DIVS] = {2, 3, 4, 6};
+        float tempo = (float)set.tempo_x10 * 0.1f, step_ms = 60000.0f / (tempo * 4.0f);
+        float per = step_ms * (float)SP[f->dub_div % BRK_DUB_DIVS], ph = (float)(held % (uint32_t)per) / per;
+        int32_t sp = 26 + 8 * (int32_t)SP[f->dub_div % BRK_DUB_DIVS] / 2;
+        float g = 1.0f;
+        for (i = 0; i < 10; i++) {
+            int32_t x = 6 + i * sp + (int32_t)(ph * (float)sp);
+            if (x > 236)
+                break;
+            fx_slice(s, x, 18, g, g > 0.6f ? C_DUB : g > 0.3f ? C_GRAY : C_LINE);
+            g *= f->dub_fb;
+        }
+        break;
+    }
+    case BKF_ARP: {                      /* GLOUPI BREAKS: the ARP key: its effect, big, lit while on */
         int on = ovl_pad_on();
         const char *n = OVL_NAME[set.ovl_pad & 15u];
         cv_rect(6, 30, 228, 40, on ? C_HI : C_BLOCK);
@@ -543,12 +605,12 @@ static void draw_fx(int pad, const brk_status_t *st, uint32_t now)
     draw_fx_band(pad, st, now, FX_BAND);
 }
 
-/* GLOUPI BREAKS: the ARP black key (PAD_DUB's, DUB itself gone): one OVERLAY effect (set.ovl_pad: bits 0-3 which,
+/* GLOUPI BREAKS: the ARP black key (BKF_ARP; LOAF BREAKER, 11 Nov 2026: DUB back beside it): one OVERLAY effect (set.ovl_pad: bits 0-3 which,
  * bit 4 LATCH), held or switched on, over what the ARP page has on, with the ARP page's settings (ovl.c) */
 static uint8_t ovlpad_held, ovlpad_lat;
 static int ovl_pad_on(void) { return (ovlpad_held || ovlpad_lat) && !(set.ovl_pad & 32u); }   /* (bit 5: K3 OFF) */
 
-/* GLOUPI BREAKS: the black key that was FREEZE (PAD_FREEZE, FREEZE itself gone): the kick's SUB through its DRIVE, on
+/* GLOUPI BREAKS: the SUB key (BKF_SUB; LOAF BREAKER, 11 Nov 2026: FREEZE back beside it): the kick's SUB through its DRIVE, on
  * and off at each press (the SUB layer's effect DRIVE or OFF; its settings, EDIT's, kept; saved with SAVE) */
 static int sub_drive_on(void) { return set.kick.l[KL_SUB].fx == KFX_DRIVE; }
 static void sub_drive_toggle(void)
@@ -564,4 +626,19 @@ static void sub_drive_toggle(void)
     changed();
     app_say("SUB DRIVE", sub_drive_on() ? "ON" : "OFF");
     ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
+
+/* LOAF BREAKER (11 Nov 2026): a black key's function lit: a pad on (or rolling the kick), the ARP key's effect on,
+ * the kicks held quiet, the kick's DISTO sounding, its SUB DRIVE on (0.244's BEGINNER restrictions gone: FLEXOR) */
+static int bkf_lit(uint32_t f, const brk_status_t *st)
+{
+    if (f < BRK_NPADS)
+        return (int)((st->pads >> f) & 1u) || roll_lit(f);
+    if (f == BKF_ARP)
+        return ovl_pad_on();
+    if (f == BKF_KIL)
+        return kick_hold != 0u;
+    if (f == BKF_DST)
+        return KICK_TERROR(&set.kick) && !terror_off;
+    return sub_drive_on();
 }

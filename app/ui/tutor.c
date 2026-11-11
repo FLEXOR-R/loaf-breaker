@@ -56,7 +56,7 @@ static int tut_on(void) { return set.tut >= 1u && set.tut <= TUT_N; }
 /* what the steps watch (common.c's counters, counted where it happens: main.c, seq.c), against the step's start */
 static struct {
     uint32_t wk, padm, padn, kturn, sk4, lane, saves, home, kpre, t, fx, ovlk;
-    uint8_t kslot, drop, brk, ovl, disto, ppre, pfx;
+    uint8_t kslot, drop, brk, ovl, disto, ppre, pfx, padk;
     float tail;
 } tut_at;
 static uint32_t tut_fx_sig(void)        /* (the FX chain's first two slots: their effects, presets included) */
@@ -87,6 +87,7 @@ static void tut_mark(void)
     tut_at.pfx = perc_x(PV_SNARE)[PX_FX];
     tut_at.fx = tut_fx_sig();
     tut_at.ovlk = tut_ovl;
+    tut_at.padk = tut_padk;
     tut_at.t = plat_ms();
 }
 static void tut_go(uint32_t step)        /* step 1..TUT_N (past the last: finished) */
@@ -189,8 +190,9 @@ static int tut_done(uint32_t c, const brk_status_t *st)
         return set.brk != tut_at.brk;
     case TC_PAD:
         return tut_padn != tut_at.padn;
-    case TC_ARP:                         /* (the ARP key's effect changed: K1 while it is held) */
-        return (set.ovl_pad & 15u) != tut_at.ovl;
+    case TC_ARP:                         /* (the ARP key's effect changed: K1 while it is held; LOAF BREAKER: no ARP
+                                          * key on the layout, CHOPPAH's: a knob turned on FRZ, or any key held) */
+        return PAD_BIT(BKF_ARP) ? (set.ovl_pad & 15u) != tut_at.ovl : tut_padk != tut_at.padk;
     case TC_OVLPG:
         return ui.page == PG_OVL;
     case TC_OVLKEY:                      /* (two of its effects played) */
@@ -289,7 +291,10 @@ static void tut_head(char *a, char *b)   /* the header's two lines: "TUTORIAL 3/
         text_cat(b, " S");
         return;
     }
-    text_cat(b, TUT[s].say);
+    if (TUT[s].cond == TC_ARP && !PAD_BIT(BKF_ARP))   /* (CHOPPAH's keys: no ARP key, FREEZE's) */
+        text_cat(b, PAD_BIT(PAD_FREEZE) ? "HOLD BLACK KEY FRZ, TURN K1" : "HOLD A BLACK KEY, TURN K1");
+    else
+        text_cat(b, TUT[s].say);
 }
 static void tut_leds(uint32_t *b, uint32_t *k, int playing)   /* the step's buttons and keys blinking */
 {
@@ -305,5 +310,5 @@ static void tut_leds(uint32_t *b, uint32_t *k, int playing)   /* the step's butt
     for (i = 0; i < 11u && TUT[s].keys & TK_BLACK; i++)
         *k |= 1u << BK[i];
     if (TUT[s].keys & TK_ARP)
-        *k |= PAD_BIT(PAD_DUB);
+        *k |= PAD_BIT(BKF_ARP) ? PAD_BIT(BKF_ARP) : PAD_BIT(PAD_FREEZE);
 }

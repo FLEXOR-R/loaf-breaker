@@ -150,7 +150,7 @@
     <p>First match wins.</p>
     <div class="stack">
       <div class="layer"><div class="rank">1</div><b>A white key held</b><ul><li>Anywhere but SEQ and ENV (tracks)</li><li>Its loop: LENGTH, PITCH, START, MODE</li><li>FX flips to its slice effect: EFFECT, AMOUNT, TONE, LEVEL</li><li>SEL resets the key</li></ul></div>
-      <div class="layer"><div class="rank">2</div><b>A pad held</b><ul><li>Any page; a pad pressed after the key wins</li><li>R8 · R16 · R32: RATE, THRU, DRUM FLT, DECAY (SEL + a roll: the kick alone)</li><li>REV: SPEED · RND: AMOUNT, PITCH</li><li>HLF: SPEED, M. TEMPO, LATCH · VNL: STOP, SPIN UP, THRU</li><li>KIL: the sequencer's kicks quiet while held (K1 LATCH) · TER: as SUB, the kick's DISTO on or off (its amount kept)</li><li>ARP: EFFECT, AMOUNT, TIME, LATCH; FX while held: THRU, ON / OFF, RATE, SWEEP</li><li>SUB: a press, the kick's SUB DRIVE on or off</li></ul></div>
+      <div class="layer"><div class="rank">2</div><b>A pad held</b><ul><li>Any page; a pad pressed after the key wins</li><li>R8 · R16 · R32: RATE, THRU, DRUM FLT, DECAY (SEL + a roll: the kick alone)</li><li>REV: SPEED · FRZ: LENGTH, PITCH · RND: AMOUNT, PITCH</li><li>GAT: RATE, LENGTH · FLT: TARGET, RESO, SPEED · DUB: TIME, FEEDBACK, TONE, MIX (a DELAY in the chain: its own)</li><li>HLF: SPEED, M. TEMPO, LATCH · VNL: STOP, SPIN UP, THRU</li><li>KIL: the sequencer's kicks quiet while held (K1 LATCH) · DST: as SUB, the kick's DISTO on or off (its amount kept)</li><li>ARP: EFFECT, AMOUNT, TIME, LATCH; FX while held: THRU, ON / OFF, RATE, SWEEP</li><li>SUB: a press, the kick's SUB DRIVE on or off</li></ul></div>
       <div class="layer"><div class="rank">3</div><b>The page</b><ul><li>What the explorer shows</li><li>SELECT is the tempo (SEL + SELECT: the drums' filter), but on the KICK menu's big view: the next drum</li><li>MASTER the volume</li><li>ALGORITHM and PRESETS follow the page</li></ul></div>
     </div>
   </div>
@@ -229,12 +229,14 @@
       { n: "FX SET", k: ["AMOUNT", "KICK", "DROP", "LENGTH"], strip: "THE EFFECTS' FOUR SETTINGS AS BARS", note: "0..100 %, 5 % a detent; KICK, DROP 0: none" },
       { n: "RESET", k: ["", "RESET", "", "WHAT"], strip: "15 PARTS: DROP BUILD KNOB KICK KICK TONE ALL KICKS DRUMS MIX FX CHAIN STEPS PADS KEYS TRACK SCREEN EVERYTHING · 5 BOXES FILL", note: "K4 the part; K2 five clicks (each within 2 s), then GLO: reset" } ],
       algo: "Part (RESET: what)", presets: "Pattern P1–P64", keys: "slices", sel: "Tempo (SEL: drum filter)", notes: [["RESET › EVERYTHING", "RESET ALL: K2 five turns, then GLO"]] },
-    { id: "arp", btn: "ARP", name: "OVERLAY", sub: "Sixteen effects over everything", again: "nothing", subs: [
-      { n: "OVERLAY", k: ["AMOUNT", "RATE", "SWEEP", "LATCH"], strip: "SIXTEEN EFFECTS, ONE A WHITE KEY: LIT WHILE THEY SOUND", note: "held, or LATCH on: a key switches its effect on and off" } ],
-      algo: "Break", presets: "Pattern P1–P64", keys: "16 effects", sel: "Tempo (SEL: drum filter)",
-      notes: [["SEL + ARP", "PATTERN › GROOVE: SWING"], ["The ARP black key", "Its overlay effect: EFFECT, AMOUNT, TIME, LATCH; FX while held: THRU, ON / OFF, RATE, SWEEP"]] }
+    { id: "arp", btn: "ARP", name: "OVERLAY", sub: "Sixteen effects over everything; the black keys' layout", again: "the next tab (EXPERT)", subs: [
+      { n: "ARP EFFECTS", k: ["AMOUNT", "RATE", "SWEEP", "LATCH"], strip: "SIXTEEN EFFECTS, ONE A WHITE KEY: LIT WHILE THEY SOUND", note: "held, or LATCH on: a key switches its effect on and off" },
+      { n: "BLACK KEYS", k: ["PRESET", "KEY", "EFFECT", ""], strip: "THE ELEVEN BLACK KEYS AND WHAT EACH DOES · THE KEY EDITED · THE PRESET", note: "EXPERT; K1 CHOPPAH, FLEXOR LAYOUT, CUSTOM; a black key pressed picks itself; K3 on a preset: a CUSTOM copy" },
+      { n: "MORE", k: ["", "", "", ""], strip: "NEW BLACK-KEY SETTINGS: TO COME", note: "EXPERT" } ],
+      algo: "Tab (BEGINNER: break)", presets: "Pattern P1–P64", keys: "16 effects", sel: "Tempo (SEL: drum filter)",
+      notes: [["SEL + ARP", "PATTERN › GROOVE: SWING"], ["The ARP black key (FLEXOR LAYOUT, CUSTOM)", "Its overlay effect: EFFECT, AMOUNT, TIME, LATCH; FX while held: THRU, ON / OFF, RATE, SWEEP"]] }
   ];
-  const PADS = ["R8", "R16", "R32", "REV", "RND", "HLF", "VNL", "ARP", "KIL", "TER", "SUB"];
+  const PADS = ["R8", "R16", "R32", "REV", "FRZ", "HLF", "VNL", "GAT", "RND", "FLT", "DUB"];   // (CHOPPAH's layout, a new FM-1's)
   let cur = 0, sub = 0;
 
   (function wave() {

@@ -22,8 +22,8 @@ or **EXPERT** (a knob moves the choice, PLAY takes it; white keys 1–3 too). SY
 BEGINNER, starts the tutorial again. The header says one thing to do at a time, the button or the keys that do it blink, and
 when it's done, "OK!" and the next: at once for a button (HOME, EDIT, SEQ, SAVE ..), five seconds later where there is
 something to hear (an effect, a kick, the drop): 25 steps in eight lessons, THE
-BREAK (HOME: the PERFORM menu, PLAY, the slices, ALGORITHM: another break), EFFECTS (a black key; the black key ARP held, not the
-ARP button, K1 its effect; ARP, the OVERLAY page, two of its effects), THE KICK (EDIT, K1 PRESET: the built-in kicks, 909 to DISTORTO; K2 DISTO; EDIT again: SHAPE, K3 a longer tail;
+BREAK (HOME: the PERFORM menu, PLAY, the slices, ALGORITHM: another break), EFFECTS (a black key; the black key FRZ held, K1 its length (on the FLEXOR LAYOUT keys, the ARP black key, K1 its
+effect); ARP, the OVERLAY page, two of its effects), THE KICK (EDIT, K1 PRESET: the built-in kicks, 909 to DISTORTO; K2 DISTO; EDIT again: SHAPE, K3 a longer tail;
 PRESETS: your ten kicks), THE DRUMS (SELECT: the SNARE, K1 its presets, K2 its FX), THE PATTERN (SEQ: kicks, a snare),
 THE FX (FX, PRESETS: an effect), THE DROP (SEL + ENV) and SAVE. Everything is real: you play the firmware itself. **SEL + GLO** skips a step, **GLO** quits (SETUP K3 starts it
 again where you left it; SAVE keeps where you are). An FM-1 already in use when it updates doesn't start it.
@@ -42,10 +42,11 @@ Play two or three in turn and you are already chopping.
 
 ### 3. Hold a black key: the effects
 
-The black keys act while held and can be combined: **R8 · R16 · R32** roll the break, **REV** plays it backwards,
-**RND** shuffles the slices, **HLF** halves the speed, **VNL** stops it like a record,
-**KIL** cuts the kick while held (let go: it drops back in, in time), **TER** turns the kick's DISTO off and
-on again. While one is held, K1–K4 tune it.
+The black keys act while held and can be combined. A new FM-1 has CHOPPAH's, left to right: **R8 · R16 · R32** roll
+the break, **REV** plays it backwards, **FRZ** freezes the slice playing, **HLF** halves the speed, **VNL** stops it like
+a record, **GAT** gates it, **RND** shuffles the slices, **FLT** sweeps a filter, **DUB** throws it into an echo. While
+one is held, K1–K4 tune it. In EXPERT, **ARP › BLACK KEYS** gives them another layout (FLEXOR LAYOUT: the ARP key, KIL,
+DST, SUB) or your own.
 
 ### 4. EDIT: shape the kick
 
@@ -406,21 +407,27 @@ slices you marked ring out, the classic dub throw. (Without a DELAY slot, ECHO g
 
 ## 4. The pads
 
-The black keys, left to right (R8 R16 R32 REV RND HLF VNL ARP KIL TER SUB), act while held and combine. The gate is
-HOME's K1 (GATE) and the DJ filter HOME's K2, no longer pads. While a pad is held, the slice blocks give way to an
+The black keys act while held and combine. Which key does what is a **layout** (ARP › BLACK KEYS, below): CHOPPAH's,
+left to right R8 R16 R32 REV FRZ HLF VNL GAT RND FLT DUB (a new FM-1's, after RESET ALL too, and BEGINNER's only),
+FLEXOR LAYOUT (R8 R16 R32 REV RND HLF VNL ARP KIL DST SUB) or CUSTOM, each key any of the fifteen below. (HOME's K1 is
+the gate and K2 the DJ filter as well.) While a pad is held, the slice blocks give way to an
 animation of what it does, and **K1–K4 tune that pad** (the foot shows its settings; SAVE keeps them):
 
 | Pad | Does | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- | --- |
 | R8 · R16 · R32 | Roll from the next 16th | RATE (1/4 … 1/64, triplets) | THRU: BREAK (the break rolled, as ever), KICK (the kick hit at the rate instead of its pattern: a kick roll; the break plays on), BOTH (the two); **SEL + the pad**: the kick alone, for that press, whatever THRU says | DRUM FLT (HOME's drums' filter) | DECAY: DOWN (each repeat quieter) or UP (a swell up to full) |
 | REV | Reverse | Speed | | | |
+| FRZ | FREEZE: the slice playing loops while held | LENGTH: the slice, 1/2, 1/4, 1/8 | PITCH (±12 semitones) | | |
 | HLF | Half speed | Speed | MASTER TEMPO: the pitch kept (ON) or dropped | LATCH: ON, a press turns it on and the next off | |
 | VNL | VINYL BREAK: the record slowing to a stop, spinning back up when let go | Stop (beats) | Spin-up | THRU: the break, the kick or both | |
+| GAT | Gate: the break chopped on the beat | RATE | LENGTH (how much of each gate sounds) | | |
 | RND | Random slices | Amount | Random pitch | | |
+| FLT | Filter throw: the DJ filter sweeps to its target while held, back when let go | TARGET (low-pass left, high-pass right) | RESO | SPEED | |
+| DUB | Dub throw: the break into an echo while held, its tail ringing out | TIME (1/8, 3/16, 1/4, 3/8) | FEEDBACK | TONE | MIX (with a DELAY in the FX chain: that slot's own four) |
 | ARP | Its OVERLAY effect over the mix, while held (or latched): DIVE, RISE, RADIO, WAH, CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, WOBBLE, JET, REESE | EFFECT | AMOUNT (that effect's) | TIME: RATE for CHOP, GATE, WAH, PAN; SWEEP for DIVE, RISE | LATCH |
 | ARP, FX while held (MORE) | | THRU: the kick, the break or both | ON / OFF (OFF: K1 browses silent) | RATE (1/4 … 1/32) | SWEEP (1/4 bar … 2 bars) |
 | KIL | While held, the sequencer's kicks are quiet; let go, they play again (a kick roll still plays) | LATCH: ON, a press quiets them and the next brings them back | | | |
-| TER | As SUB: a press, the kick's DISTO on (an amount at nothing: 50 %), the next off, whatever its amount (kept as it is). Lit while it sounds; the kick's own (KICK 1–10), saved with SAVE | | | | |
+| DST | As SUB: a press, the kick's DISTO on (an amount at nothing: 50 %), the next off, whatever its amount (kept as it is). Lit while it sounds; the kick's own (KICK 1–10), saved with SAVE | | | | |
 | SUB | A press: the kick's SUB DRIVE on, the next off (its drive is the SUB layer's DRIVE effect, EDIT) | | | | |
 
 ![ROLL held: the caught slice repeating, each copy quieter](img/pad-roll8.png "ROLL held")
@@ -481,6 +488,16 @@ together. **K1** the amount of the one touched last, **K2** the rate of the ones
 **K3** the sweeps' length (DIVE, RISE), **K4** LATCH: on, a key switches its effect on and off (and what is latched
 stays on on the other pages). The ARP black key keeps its own effect, chosen on its own knobs. (The FILL that ARP held
 played from 0.1xx to 0.243 is gone, LOAF BREAKER 0.244.)
+
+In EXPERT the page has three tabs (**ARP** again, or **ALGORITHM**, goes to the next): **ARP EFFECTS** (the above),
+**BLACK KEYS** and **MORE**. **BLACK KEYS** lays out the black keys: **K1 PRESET**, CHOPPAH (CHOPPAH's eleven, the ARP
+key not among them), FLEXOR LAYOUT (LOAF BREAKER's until 0.244) or CUSTOM; **K2 KEY**, the key you edit (or press it:
+here a black key picks itself and plays nothing); **K3 EFFECT**, what it does: any of R8, R16, R32, REV, FRZ, HLF, VNL,
+GAT, RND, FLT, DUB, ARP, KIL, DST, SUB. Turned on a preset, K3 makes a CUSTOM of it first, that key changed (keys
+outlined amber differ from CHOPPAH's). SAVE keeps the layout. BEGINNER always plays CHOPPAH's (turning BEGINNER on
+sets it back to CHOPPAH, and EXPERT keeps it until you change it). **MORE** will hold new black-key settings: to come.
+
+![ARP › BLACK KEYS: the FLEXOR LAYOUT, key 1 edited](img/screen-blackkeys.png "BLACK KEYS")
 
 **PATTERN › GROOVE** (SEQ's ALGORITHM past the last lane or above BREAK, or **SEL + ARP**) holds the swing (saved
 with the rest): **K1 SWING**, 50–75 % (was the MIXER's), every second 16th later; the page shows the bar's 16ths as it
@@ -699,9 +716,8 @@ between them: SEL + ARP opens it); on the drum lanes K1 is **FILL**, K2 the lane
 the kick's alone (16, 32 or 64 steps; turning BEGINNER on
 sets every kick of the group to 32 and the drums to 16; a drum lane stays 16, "LONGER: EXPERT MODE"), and a step held has no menu (the key just
 turns the step on or off); SONG keeps each part's essentials (TRACKS: the item's pattern and its loops; PLAY: the track;
-DROP: the build's bars; BUILD: its style); a white key held plays its loop with no knobs; a black key held has its knobs
-as in EXPERT, but the **DST** and **SUB** keys, which do nothing but say where it is (the KICK page's DISTO and SUB
-DRIVE, the knobs always heard) and are never lit; a knob BEGINNER leaves out is drawn blank
+DROP: the build's bars; BUILD: its style); a white key held plays its loop with no knobs; the black keys are CHOPPAH's (R8 R16 R32 REV FRZ HLF VNL
+GAT RND FLT DUB; ARP › BLACK KEYS is EXPERT's), each with its knobs as in EXPERT; a knob BEGINNER leaves out is drawn blank
 and says "EXPERT MODE" when turned; SOUNDS › BREAK keeps
 its LEVEL (K4; the pitch is OCT's) and PATTERN › GROOVE its SWING.
 Nothing is lost: EXPERT shows everything again, as it was left, and what BEGINNER sets is there to refine. A

@@ -33,6 +33,7 @@ MAP = {  # the manual's name: the scenario's shot
     "screen-mixer": "x_levels", "screen-master": "r_master", "c_cdj_gen": "c_cdj_gen", "t_tracks": "t_tracks",
     "t_play": "t_play", "t_build": "t_build", "screen-drum-big": "d_big_snare",
     "screen-klab-tail": "kl_tail", "screen-klab-stack": "kl_stack", "screen-kick-wave": "km_wave", "screen-tutorial": "tu_1",
+    "screen-blackkeys": "a_blackkeys",
 }
 miss = []
 for dst, src in MAP.items():

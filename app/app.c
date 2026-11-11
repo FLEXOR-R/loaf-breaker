@@ -121,7 +121,12 @@ typedef struct {
     /* (appended: LOAF BREAKER's KICK EQ; an older save's: flat) */
     float keq[8];                        /* HOME's third part: LOW, MID, HIGH, FREQ, LO FREQ, MID Q, HI FREQ, LEVEL */
     /* (appended: LOAF BREAKER's RAVE STAB; an older save's: its first preset) */
-    perc_voice_t pstab;                  /* its sound (PV_STAB) */
+    union {                              /* (LOAF BREAKER, 11 Nov 2026: the STAB's sound, unused since 0.209, holds the
+                                          * black keys' layout: bk[0] BK_TAG, bk[1] the preset BKP_*, bk[2..12] the
+                                          * CUSTOM layout, a function BKF_* each key; an older save's: CHOPPAH) */
+        perc_voice_t pstab_was;
+        uint8_t bk[24];
+    } bkeys;
     uint8_t sslot;                       /* its memory playing, 0..9 */
     uint8_t rsv8[3];
     perc_voice_t smem[PERC_MEMS];        /* its memories */
@@ -208,13 +213,52 @@ static float rel_ms(uint32_t v) { return 20.0f * brk_exp2f_c((float)(v > 100u ? 
 #define SET_SIZE_MIN offsetof(settings_t, rsv2)   /* the shortest save that loads: CHP7's first size */
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");
 static settings_t set;
+/* LOAF BREAKER (11 Nov 2026, FLEXOR): the black keys' functions, BKF_*: the eleven pads (brk.h PAD_*: FREEZE and DUB
+ * back), then ARP (an OVERLAY effect), KIL (the sequencer's kicks quiet), DST (the kick's DISTO), SUB (its SUB DRIVE).
+ * A layout: the function of each key, left to right. Presets: CHOPPAH (CHOPPAH's keys; BEGINNER's only), FLEXOR LAYOUT
+ * (LOAF BREAKER's until 0.244), CUSTOM (each key its own: ARP › BLACK KEYS) */
+enum { BKF_ARP = BRK_NPADS, BKF_KIL, BKF_DST, BKF_SUB, BKF_N };
+enum { BKP_CHOPPAH, BKP_FLEXOR, BKP_CUSTOM, BKP_N };
+#define BK_TAG 0xB4u
+static const uint8_t BK_LAY[2][11] = {{PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, PAD_REVERSE, PAD_FREEZE, PAD_HALF,
+                                       PAD_TAPESTOP, PAD_GATE, PAD_RANDOM, PAD_FILTER, PAD_DUB},
+                                      {PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, PAD_REVERSE, PAD_RANDOM, PAD_HALF,
+                                       PAD_TAPESTOP, BKF_ARP, BKF_KIL, BKF_DST, BKF_SUB}};
+static uint32_t bk_preset(void)          /* the preset in use (BEGINNER: CHOPPAH, always) */
+{
+    if (set.novice || set.bkeys.bk[0] != BK_TAG || set.bkeys.bk[1] >= BKP_N)
+        return BKP_CHOPPAH;
+    return set.bkeys.bk[1];
+}
+static uint32_t bk_fn(uint32_t j)        /* black key j's (0..10) function */
+{
+    uint32_t p = bk_preset(), f;
+    j %= 11u;
+    if (p != BKP_CUSTOM)
+        return BK_LAY[p][j];
+    f = set.bkeys.bk[2u + j];
+    return f < BKF_N ? f : BK_LAY[0][j];
+}
+static void bk_defaults(void)
+{
+    uint32_t j;
+    set.bkeys.bk[0] = BK_TAG;
+#if defined(PLAT_HOST) && !defined(PLAT_WEB)
+    set.bkeys.bk[1] = BKP_FLEXOR;        /* (TEST: the simulator's scenarios, EXPERT, as written for it) */
+#else
+    set.bkeys.bk[1] = BKP_CHOPPAH;       /* (a new FM-1, RESET ALL: CHOPPAH) */
+#endif
+    for (j = 0; j < 11u; j++)
+        set.bkeys.bk[2u + j] = BK_LAY[0][j];   /* (CUSTOM begins as CHOPPAH) */
+}
 static uint32_t brk_view(void) { return (set.brkv & 0xF0u) == BRKV_TAG && (set.brkv & 15u) <= 2u ? set.brkv & 15u : 2u; }
 static uint32_t max_out_db(void) { return set.max_out ? (set.max_out - 1u > 12u ? 12u : set.max_out - 1u) : 3u; }
 static perc_voice_t *perc_voice(uint32_t v)   /* LOAF BREAKER: a drum's sound, PV_* (the snare and the hat in perc,
                                           * the rest in pmore) */
 {
     v %= PERC_VOICES;
-    return v < 2u ? &set.perc.v[v] : v == PV_CLAP ? &set.pmore[0] : &set.pstab;
+    static perc_voice_t none;            /* (PV_STAB: an empty place, silent; its bytes the black keys') */
+    return v < 2u ? &set.perc.v[v] : v == PV_CLAP ? &set.pmore[0] : &none;
 }
 /* LOAF BREAKER (11 Nov 2026): a drum's extras (PX_*: its drop, its saturation, LIFT, ROOM, BEGINNER's FX, its preset),
  * the memory playing's, in the MELODY's old place: smem, 240 bytes, three drums of ten memories of PX_N */
@@ -334,6 +378,7 @@ static void settings_defaults(void)
     set.sfx_on = 0u;                     /* (the screen effects: none at the start and after RESET ALL; the site's
                                           * screenshots clean) */
     set.wzoom = 3u;                      /* (the scrolling wave: a bar across, as it was) */
+    bk_defaults();                       /* (LOAF BREAKER: the black keys: CHOPPAH) */
     set.skin = 0x8Au;                    /* (LOAF BREAKER, 0.240: RED, common.c's SKIN_NEW | SKIN_DEFAULT) */
 #if defined(PLAT_HOST) && !defined(PLAT_WEB)
     set.novice = 0u;                     /* (TEST: the simulator's scenarios and the manual's screens see it all: EXPERT;
@@ -380,7 +425,6 @@ static void settings_defaults(void)
         set.perc.v[1] = d.v[1];
         set.perc.volume = d.volume;
         set.pmore[0] = d.v[PV_CLAP];
-        set.pstab = d.v[PV_STAB];
         for (k = 0; k < PERC_VOICES * PERC_MEMS; k++)   /* (the memories begin as the presets, again and again) */
             perc_preset(perc_mem(k / PERC_MEMS, k % PERC_MEMS), k / PERC_MEMS, k % PERC_MEMS % PERC_PRESETS);
     }
@@ -1004,6 +1048,11 @@ static void novice_lengths(void)
         }
     }
     pat_lanes_out();
+    if (set.bkeys.bk[1] != BKP_CHOPPAH) {   /* (LOAF BREAKER, 11 Nov 2026, FLEXOR: BEGINNER, the black keys CHOPPAH's;
+                                          * back to EXPERT they stay so until ARP › BLACK KEYS changes them) */
+        set.bkeys.bk[1] = BKP_CHOPPAH;
+        set_dirty = 1u;
+    }
 }
 static void pat_apply(void)              /* the pattern playing, all of it to the engine */
 {
@@ -1180,7 +1229,10 @@ void app_init(void)
                                           * leftovers, cleared) */
             memset(set.smem, 0, sizeof set.smem);
             set.pxv = PX_OK;
-        }                /* (LOAF BREAKER: a save from before the TUTORIAL: an FM-1 in use, none started;
+        }
+        if (set.bkeys.bk[0] != BK_TAG || set.bkeys.bk[1] >= BKP_N)
+            bk_defaults();               /* (LOAF BREAKER: a save from before the BLACK KEYS: the STAB's leftovers) */
+                         /* (LOAF BREAKER: a save from before the TUTORIAL: an FM-1 in use, none started;
                                           * SETUP K1 starts it) */
     }
     if (set.magic != SET_MAGIC || set.tempo_x10 < 400u || set.tempo_x10 > 3000u || set.swing < 50u ||

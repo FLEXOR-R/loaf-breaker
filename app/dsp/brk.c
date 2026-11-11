@@ -531,7 +531,15 @@ static void pads_changed(const brk_break_t *b, uint32_t now, float sl)
         c->dir = 1.0f;
         c->hi = (float)b->len;
     }
-    /* (LOAF BREAKER: the FREEZE pad gone, its key the SUB DRIVE's: nothing here sends PAD_FREEZE) */
+    if (on & 1u << PAD_FREEZE && c->active) {   /* freeze: (part of) the slice playing loops until let go (LOAF
+                                          * BREAKER, 11 Nov 2026: back, CHOPPAH's, on the black keys' layouts) */
+        c->lo = (float)b->slice[c->slice];
+        c->hi = c->lo + (float)((b->slice[c->slice + 1] - b->slice[c->slice]) >> (p_ps.frz_len & 3u));
+        c->loop = 1;
+        c->gate_left = -1.0f;            /* (held: no gate) */
+    }
+    if (off & 1u << PAD_FREEZE)
+        v[0].loop = v[1].loop = 0;
     if (on & 1u << PAD_TAPESTOP && p_vinyl) {   /* LOAF BREAKER: the vinyl slows what plays down to nothing: no gate,
                                           * no ratchet, no slice's end (a gated, reversed or one-shot slice ended
                                           * there: the stop cut off) */
@@ -817,9 +825,11 @@ void brk_render(float *out, uint32_t n)
                 tape = 1.0f;
         }
         {
-            float fxp = 0.0f;            /* the pads' own pitch: the roll's ramp */
+            float fxp = 0.0f;            /* the pads' own pitch: the roll's ramp, the freeze's offset */
             if (roll_slice >= 0)
                 fxp += brk_clampf((float)roll_n * p_ps.roll_pitch, -36.0f, 36.0f);
+            if ((pads_now >> PAD_FREEZE) & 1u)
+                fxp += p_ps.frz_pitch;
             fxp += key_pitch;
             pf = brk_exp2f((p_pitch + step_pitch + fxp) * (1.0f / 12.0f));
             inc = ratio * half * (p_vinyl ? tape : 1.0f);
