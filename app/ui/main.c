@@ -1753,7 +1753,7 @@ void app_frame(void)
     }
     {                                    /* LOAF BREAKER: PERFORM and GENERATOR show the CDJ view (the default);
                                           * HOME held 0.35 s there: the slice blocks instead, held again: the CDJ
-                                          * view (HOME's next part not taken); ~20 times a second (TEST) */
+                                          * view (HOME's next part not taken); ~30 times a second (0.254) */
         int home = ui.page == PG_HOME || ui.page == PG_GEN;
         if (!(ui.btn & 1u << B_HOME))
             ui.cdj_skip = 0u;
@@ -1766,7 +1766,8 @@ void app_frame(void)
             app_say("HOME", ui.blocks ? "SLICES" : "WAVEFORM");
         }
         ui.cdj = (uint8_t)(home && !ui.blocks);
-        if (ui.cdj && now - ui.panel_drawn >= 50u) {   /* (TEST: 20 times a second, was 30) */
+        if (ui.cdj && now - ui.panel_drawn >= 33u) {   /* (about 30 times a second: 0.178-0.253 20, FLEXOR 0.254: 30
+                                          * again, smoother) */
             ui.redraw |= RG_BLOCKS;
             ui.panel_drawn = now;
         }
