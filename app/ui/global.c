@@ -101,10 +101,17 @@ static void global_value(int i, char *t)
                 : "");                   /* (LOAF BREAKER: K3 the METER, EXPERT only; K4 nothing: no Bluetooth) */
 }
 
+/* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's BREAK its LEVEL alone (K4; the pitch: OCT), GROOVE its SWING alone */
+static int glo_knob_ok(int i)
+{
+    return !set.novice || ui.page != PG_GLOBAL || (ui.gpage == GP_FILL ? i == 0 : ui.gpage == GP_BREAK ? i == 3 : 1);
+}
 static void global_turn(int i, int32_t d)
 {
     static const char *const NAME[4] = {"CLOCK IN", "CLOCK OUT", "BLUETOOTH", "MIDI TO"};
     char t[16];
+    if (!glo_knob_ok(i))
+        return;
     if (ui.gpage == GP_FILL) {           /* LOAF BREAKER: GROOVE: K1 SWING; FILL: K2 LATCH, K3 the drum, K4 how long (16ths
                                           * or 8ths) */
         static const char *const FN[4] = {"SWING", "FILL LATCH", "FILL DRUM", "FILL LENGTH"};

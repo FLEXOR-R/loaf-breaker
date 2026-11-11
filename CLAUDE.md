@@ -17,8 +17,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   stays credited (README, site credits, the card's text, fm1.toml). The hub checklist: docs/hub/SUBMIT.md.
 - Menus (9 Nov 2026, 0.177): ENV is the song (TRACKS, PLAY, DROP, BUILD); RESET is GLO's sixth part (`RST_ON`, ENV's
   reset code in track.c); the knobs' functions are EDIT KICK › KNOBS only. SYSTEM › SETUP K3 MODE (`set.novice`): BEGINNER keeps
-  the essentials (0.223: the KICK one page, `kick_easy`; the FX page's PRESETS a SCENE, `fx_scene_turn`; `KP_ADV` for EXPERT's
-  menu no longer reached in BEGINNER); the host simulator starts EXPERT (scenarios, the manual's screens), the
+  the essentials (0.223: the KICK one page, `kick_easy`; the FX page's PRESETS a SCENE, `fx_scene_turn`; 0.224: SEQ's BEAT, SONG's
+  `trk_knob_ok`, `glo_knob_ok`, the held keys and pads (ARP's `OVL_EASY`); `KP_ADV` no longer reached in BEGINNER); the host simulator starts EXPERT (scenarios, the manual's screens), the
   FM-1 and the web emulator BEGINNER. The manual opens with "Start in five minutes" (the hub card's `cheat` link).
 - Screen and knobs (0.178): the screen's rows are remembered as hashes (`rows_send` in common.c): a full-width strip
   sends only its changed rows. Anything drawing on the screen other than through `cv_blit` must forget its rows

@@ -1061,6 +1061,14 @@ static void track_say(int i)             /* the knob turned, on the strip */
     app_say(N[ui.tpage % NTPART][i & 3], t);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
+/* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's SONG keeps each part's essentials: TRACKS the item's pattern (K2)
+ * and its loops (K3); PLAY the track (K1); DROP the build's length (K1); BUILD its style (K1). The rest as it was set */
+static int trk_knob_ok(int i)
+{
+    if (!set.novice || RST_ON || ui.page != PG_TRACK)
+        return 1;
+    return ui.tpage == 0u ? i == 1 || i == 2 : i == 0;
+}
 static void track_turn(int i, int32_t d)
 {
     track_t *t = trk_now();
@@ -1098,6 +1106,8 @@ static void track_turn(int i, int32_t d)
         ui.redraw |= RG_BLOCKS | RG_FOOT;
         return;
     }
+    if (!trk_knob_ok(i))
+        return;                          /* (BEGINNER: not this one) */
     if (ui.tpage == 4u) {                /* BUILD */
         if (i == 0)
             set.drop_style = (uint8_t)clamp((int32_t)set.drop_style + dir, 0, DS_N - 1);

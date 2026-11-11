@@ -706,7 +706,13 @@ out). K3 **MODE**: TUTORIAL (left of BEGINNER: the tutorial, above), BEGINNER or
 each thing to its essentials, to play the machine before learning it: the **KICK** is one page (K1 **PRESET**, the
 built-in kicks; K2 **DISTO**; K3 **TUNE**; K4 **TAIL**, the SUB's length; EDIT again and ALGORITHM stay on it); the
 **FX** chain is a choice of **scenes** on PRESETS (CLEAN, PUNCH, DUB, LO-FI, CRUSHED, INDUSTRIAL, SPACE: the four slots
-set at once; K1–K4 still the slot's settings and mix; FX again stays on MAIN); the MIXER has LEVELS and SENDS.
+set at once; K1–K4 still the slot's settings and mix; FX again stays on MAIN); the MIXER has LEVELS and SENDS; on SEQ's
+drum lanes K1 is **BEAT**, a whole beat written at once on the four drum lanes (EMPTY, GABBER, HARDCORE, UPTEMPO,
+CROSSBREED, BREAKBEAT, HALFTIME, JUNGLE), K2 the lane's sound, K3 CLR / 4X4, and a step held has no menu (the key just
+turns the step on or off); SONG keeps each part's essentials (TRACKS: the item's pattern and its loops; PLAY: the track;
+DROP: the build's bars; BUILD: its style); a white key held plays its loop with no knobs, a black key plays with none
+either, but ARP: K1 its effect among six (DIVE, RISE, CRUSH, GATE, WOBBLE, BOOM), K2 its amount; SOUNDS › BREAK keeps
+its LEVEL (K4; the pitch is OCT's) and PATTERN › GROOVE its SWING.
 Nothing is lost: EXPERT shows everything again, as it was left, and what BEGINNER sets is there to refine. A
 new FM-1, the web emulator and RESET ALL start in BEGINNER; an FM-1 updated with its settings saved stays in EXPERT.
 K4 **AUTO SAVE**, ON: what you change is saved by itself a minute after it changed, once the break has been stopped and
