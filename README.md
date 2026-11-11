@@ -6,7 +6,7 @@
 </p>
 
 <h1 align="center">LOAF BREAKER</h1>
-<p align="center"><b>A hardcore break chopper for the M-VAVE FM-1.</b><br>HARDCORE - TERROR - GABBER</p>
+<p align="center"><b>A hardcore and breakcore break chopper for the M-VAVE FM-1.</b><br>HARDCORE - BREAKCORE - TERROR - SPEEDCORE - GABBER</p>
 
 <p align="center">
 <a href="https://flexor-r.github.io/loaf-breaker/"><b>Site</b></a> ·
@@ -20,7 +20,7 @@
 LOAF BREAKER is FLEXOR's firmware for the [M-VAVE FM-1](https://www.m-vave.com/), built on
 **[CHOPPAH](https://github.com/profikid/fm1-break-choppah)**, Laurens Profittlich's Amen chopper. It keeps CHOPPAH's
 heart (a break cut into sixteen slices on the white keys, effect pads on the black keys, a generator, a master effects
-chain, patterns: 64 of them here) and drives it into hardcore:
+chain, patterns: 64 of them here) and drives it into hardcore and breakcore:
 
 - **The kick first.** Its own menu, its own synth (pitch drop, hold, rumble, tune), **DISTO**, **SCREAM** and
   **DISTO +**, a **GLIDE** between notes and the rawstyle **REVERSE BASS**, its own EQ and FX (**MAGIC EQ**, **MAGIC MBC**),
@@ -37,13 +37,13 @@ chain, patterns: 64 of them here) and drives it into hardcore:
 
 Built on [fm1-base](https://github.com/charlesvestal/fm1-base) (MPL-2.0). No Bluetooth: MIDI over USB and the TRS jack.
 
-![LOAF BREAKER's screens: the splash, the start screen, playing (the CDJ view), the slices, a key held, the KICK menu](docs/img/screens.png)
+![LOAF BREAKER's screens: the splash, the start screen, playing (the CDJ view), the slices, a key held, the KICK menu's RGB view](docs/img/screens.png)
 
-![Holding a pad shows its effect and puts its settings on K1-K4: roll, reverse, filter, half speed, vinyl break, random, DJ filter](docs/img/pads.png)
+![Holding a pad shows its effect and puts its settings on K1-K4: roll, reverse, freeze, half speed, vinyl break, dub, the ARP key's overlay; ARP › BLACK KEYS, the keys' layout](docs/img/pads.png)
 
-![The kick: its SYNTH, DIRT (DISTO), DISTO + , the classic view, the drums, the kick EQ](docs/img/kick.png)
+![The kick: its TAIL, DIRT (DISTO), KICK LAB's clean tail, the classic view, the snare, the kick EQ](docs/img/kick.png)
 
-![Live: TRACKS, PLAY (the radio), a build before the drop, a step's HITS, the MASTER (COMP, DUCK, MAX OUT), SEL + knob assignments](docs/img/live.png)
+![Live: TRACKS, PLAY (the radio), a build before the drop, a step's HITS, the MASTER (COMP, DUCK, MAX OUT), the pattern](docs/img/live.png)
 
 - **The manual**: [online](https://flexor-r.github.io/loaf-breaker/manual/), or [app/docs/MANUAL.md](app/docs/MANUAL.md)
 - **Download the firmware**: [releases](../../releases) (`loaf-breaker-X.YY.fwsc`), each release also carries the

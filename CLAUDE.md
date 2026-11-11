@@ -35,7 +35,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   random soak (`tools/soak.py`, seed = run number) at every release.
 - Names (10 Nov 2026, 0.191): what the code calls TERROR, TERROR 2, TERROR + the screen and the docs call DISTO,
   SCREAM, DISTO + (D+ TYPE, D+ SCREECH ..); the black key DST. Keep newcomers' names on the screen; TERROR stays the
-  genre (README's tagline) and a STYLE.
+  genre (README's tagline: HARDCORE - BREAKCORE - TERROR - SPEEDCORE - GABBER, FLEXOR 11 Nov 2026) and a STYLE.
 - Breaks (10 Nov 2026, 0.193): FLEXOR chose the bank on a listening page of all 70 breaks as the FM-1 holds them
   (https://claude.ai/artifact/MCakoDjuGTXjMLFiobM1k3; the choice in its store, `tri/choix`): 9 breaks, NUSKOOL first (FLEXOR's order; LO-FI out in 0.200 for room).
 - Patterns (10 Nov 2026, 0.197): 64, four groups of 16 (`NGRP`, `NPAT_ALL`); the group in RAM is pats.p/kn/hits and
