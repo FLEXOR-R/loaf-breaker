@@ -23,7 +23,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   drums PRESET / FX / LEVEL / DECAY, SEQ as EXPERT's but the break's two halves always on top (0.233), no step menu, no GROOVE in its lanes' round (0.231) and K4 LENGTH the kick's alone (16/32/64, a drum
   lane 16; BEGINNER turned on sets the kicks 32, `novice_lengths`), the FX chain two slots (`fx_nslots`, the others
   muted in `fx_apply`) and a short list (`FX_EASY`) then MAGIC EQ, MAGIC MBC; SONG's `trk_knob_ok`, `glo_knob_ok`, the
-  held white keys (no knobs), the black keys' knobs as EXPERT's (0.232); blank knobs say EXPERT MODE (`easy_no`; the DST and SUB keys' restriction gone in 0.245); `KP_ADV` no
+  held white keys (no knobs), the black keys' knobs as EXPERT's (0.232); blank knobs say EXPERT MODE (`easy_no`; the DST and SUB keys' restriction gone in 0.244); `KP_ADV` no
   longer reached. Gone in 0.229: the FX scenes, SEQ's BEAT presets, MB KICK and MB OTT. A new FM-1 asks its mode
   (tutor.c `TUT_ASK`, set.tut 0xFD; the simulator with LOAF_ASK=1), and so does RESET ALL, as a first start (0.236:
   after its screen, `ui` cleared and `app_ui_init`: the start screen, then the question). The host simulator starts EXPERT (scenarios, the
@@ -98,7 +98,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   0.225: the engine's extras (perc.h PX_*: DROP, DTIME, DIRT, LIFT, ROOM; `perc_set_x`), per memory in `smem` (the
   MELODY's old place, `perc_x()`, `set.pxv` = PX_OK), FLEXOR's presets PP_SN / PP_CP in ui/perc.c with their FX,
   pages SOUND / SHAPE (K4 DIRT) / MORE, BEGINNER's PRESET / FX / LEVEL / TUNE.
-- BLACK KEYS (11 Nov 2026, 0.245, FLEXOR): each black key a function (app.c `BKF_*`: PAD_* 0-10, FREEZE and DUB
+- BLACK KEYS (11 Nov 2026, 0.244, FLEXOR): each black key a function (app.c `BKF_*`: PAD_* 0-10, FREEZE and DUB
   back from CHOPPAH, then BKF_ARP, KIL, DST, SUB); `bk_fn(j)`, `bkf_mask(f)` (= `PAD_BIT`) follow the layout in use:
   presets CHOPPAH (BEGINNER's only; a new FM-1's and RESET ALL's; `novice_lengths` sets it), FLEXOR LAYOUT (0.244's:
   keep it exactly), CUSTOM; stored in `set.bkeys.bk` (the STAB's old 24 bytes: BK_TAG, preset, eleven functions). ARP's
