@@ -42,6 +42,12 @@ The treatments: SMASH = gain x2, lift +0.35, room .45 for 280 ms; MORE SNARE = S
 x1.3, lift +0.15, room .30 for 150 ms; MORE CLAP = SMASH with body x0.45, noise x1.4 and three bursts 9 ms apart at the
 start; CRUSH = BITS before the room. Each snare is levelled to the same loudness (its first 150 ms at about -15 dB RMS).
 
+## In the firmware (0.225)
+
+The engine has the drop, DIRT, LIFT and a compact gated ROOM (perc.c); the picks are presets (ui/perc.c PP_SN, PP_CP)
+with the FX they were chosen with. They are approximations of the prototype (two sines, not three; the engine's own
+noise): to be heard again on the FM-1 and tuned by ear.
+
 ## Next
 
 1. The other voices' sounds (claps, hats) the same way, if FLEXOR wants.

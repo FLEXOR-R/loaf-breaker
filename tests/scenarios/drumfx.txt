@@ -1,0 +1,61 @@
+# LOAF BREAKER (FLEXOR, 11 Nov 2026): the drums' extras and presets. EXPERT: SOUNDS › DRUMS (SEL + EDIT), the snare;
+# SHAPE (ALGORITHM): K3 PRESET past the four built-in to FLEXOR's (SHRAPNEL: FOLD, its ROOM), K4 DIRT; MORE: DROP,
+# TIME, LIFT, ROOM. BEGINNER: the one page, K1 PRESET, K2 FX (DRY, ROOM, CRUSH, SMASH, SMASH+BITS), K3 LEVEL, K4 TUNE.
+#   app/build/host/loaf-breaker_host tests/scenarios/drumfx.txt app/build/scenarios
+wait 4200
+press SEL
+tap EDIT
+release SEL
+wait 400
+expect page 7
+expect ppre 0
+expect proom 0
+turn ALGO 1 60
+wait 200
+turn K3 4 60
+wait 300
+expect ppre 4
+expect pfx 1
+expect pdirt 2
+expect proom 30
+wait 1500
+shot df_shape.png
+turn K4 1 60
+wait 200
+expect pdirt 3
+turn ALGO 1 60
+wait 200
+turn K4 1 60
+wait 200
+expect proom 32
+wait 1500
+shot df_more.png
+wav drumfx.wav
+tapkey w1
+wait 800
+wavstop
+tap GLO
+wait 150
+tap GLO
+wait 300
+turn K3 -1 60
+wait 300
+press SEL
+tap EDIT
+release SEL
+wait 400
+expect page 7
+turn K1 1 60
+wait 300
+expect ppre 5
+expect pfx 1
+turn K2 2 60
+wait 300
+expect pfx 3
+expect proom 45
+wait 1500
+shot df_easy.png
+turn K2 -5 60
+wait 300
+expect pfx 0
+expect proom 0

@@ -12,6 +12,7 @@ const char *const PERC_PRESET_NAME[PERC_VOICES][PERC_PRESETS] = {{"909", "TIGHT"
                                                                  {"", "", "", ""}};
 
 static inline float soft(float x) { return x / (1.0f + brk_absf(x)); }
+const char *const DIRT_NAME[DIRT_N] = {"SOFT", "HARD", "FOLD", "BITS"};
 static float decay_factor(float ms) { return brk_exp2f_c(-6.644f / (ms * 0.001f * (float)BRK_SR)); }   /* -40 dB */
 
 static float onepole(float hz) { return 1.0f - brk_exp2f_c(-9.0647f * hz / (float)BRK_SR); }   /* 1 - e^(-2 pi f / fs) */
@@ -33,10 +34,21 @@ BRK_COLD float perc_decay_ms(uint32_t voice, float d)
 
 typedef struct {                         /* a voice sounding */
     float env, env2, pe, ph[6], hp1, hp2, lp, last, declick;
+    float lenv, lg, bits;                /* (LOAF BREAKER: LIFT's level followed and its gain; BITS' sample held) */
+    uint32_t ln;
 } pv_t;
 typedef struct {                         /* a voice's settings, mapped for the block */
     float f, dec, dec2, lvl, hpk, lpk, body, noise, crack, g, make;
+    float depth, kpe, lift, room;        /* (LOAF BREAKER: the drop, its fall a sample, LIFT, the room's send) */
+    uint32_t dirt, gate;                 /* (the saturation; the room's length in samples) */
 } pc_t;
+static volatile uint8_t p_x[PERC_VOICES][PX_N];   /* (LOAF BREAKER: the extras, perc_set_x) */
+void perc_set_x(uint32_t voice, const uint8_t *x)
+{
+    uint32_t j;
+    for (j = 0; j < PX_N; j++)
+        p_x[voice % PERC_VOICES][j] = x[j];
+}
 
 static volatile perc_t p_p;
 static volatile uint32_t p_hits[PERC_VOICES];
@@ -59,6 +71,17 @@ BRK_COLD static void pc_make(uint32_t voice, const perc_voice_t *s, float volume
     c->lvl = brk_clampf(s->level, 0.0f, 1.0f) * brk_clampf(volume, 0.0f, 1.0f);
     c->g = 1.0f + 15.0f * dr * dr;       /* the drive, made back up to a full-scale peak */
     c->make = (1.0f + c->g) / c->g;
+    {                                    /* LOAF BREAKER: the extras (all 0: as it always was) */
+        const volatile uint8_t *x = p_x[voice % PERC_VOICES];
+        float t = (float)x[PX_DTIME];
+        c->depth = x[PX_DROP] ? 0.7f + 0.043f * (float)x[PX_DROP] : 0.7f;
+        c->kpe = x[PX_DTIME] ? brk_exp2f_c(-1.4427f / (3.0f * brk_exp2f_c(t * (1.0f / 18.0f)) * 0.001f * (float)BRK_SR))
+                             : 0.9985f;
+        c->dirt = x[PX_DIRT] % DIRT_N;
+        c->lift = (float)x[PX_LIFT] * 0.01f;
+        c->room = (float)x[PX_ROOM] * 0.01f;
+        c->gate = (uint32_t)((40.0f + 5.0f * (float)x[PX_ROOM]) * 0.001f * (float)BRK_SR);
+    }
     if (voice == PV_SNARE) {
         c->dec = decay_factor(ms * 0.55f);           /* the body: shorter than the noise */
         c->dec2 = decay_factor(ms);
@@ -99,13 +122,13 @@ static inline float snare_tick(pv_t *v, const pc_t *c)
 {
     float b, n = noise(), x;
     b = 0.6f * brk_sin_turns(v->ph[0]) + 0.4f * brk_sin_turns(v->ph[1]);
-    v->ph[0] += c->f * (1.0f + 0.7f * v->pe);
-    v->ph[1] += c->f * 1.62f * (1.0f + 0.7f * v->pe);
+    v->ph[0] += c->f * (1.0f + c->depth * v->pe);
+    v->ph[1] += c->f * 1.62f * (1.0f + c->depth * v->pe);
     if (v->ph[0] >= 1.0f)
         v->ph[0] -= 1.0f;
     if (v->ph[1] >= 1.0f)
         v->ph[1] -= 1.0f;
-    v->pe *= 0.9985f;                    /* (the body's drop: ~15 ms) */
+    v->pe *= c->kpe;                     /* (the body's drop: ~15 ms; LOAF BREAKER: PX_DTIME's) */
     v->hp1 += (n - v->hp1) * c->hpk;     /* noise: a high-pass then a low-pass, a band */
     v->lp += ((n - v->hp1) - v->lp) * c->lpk;
     x = b * v->env * c->body + v->lp * v->env2 * (c->noise + c->crack * 2.0f * v->pe * v->pe);
@@ -160,6 +183,68 @@ static inline float voice_tick(uint32_t k, pv_t *v, const pc_t *c)
 {
     return k == PV_SNARE ? snare_tick(v, c) : k == PV_CLAP ? clap_tick(v, c) : hat_tick(v, c);
 }
+/* LOAF BREAKER: a voice's sample out: its saturation (SOFT as ever, HARD, FOLD, BITS: 5 bits held 3 samples), LIFT
+ * (quiet up, loud down: the gain worked out every 16th sample), its level */
+static inline float voice_out(pv_t *v, const pc_t *c, float x)
+{
+    float u = x * c->g, y;
+    if (c->dirt == DIRT_SOFT)
+        y = soft(u) * c->make;
+    else if (c->dirt == DIRT_HARD)
+        y = brk_clampf(u, -1.0f, 1.0f);
+    else if (c->dirt == DIRT_FOLD) {
+        float t = 0.25f * u + 0.25f;
+        t -= (float)(int32_t)(t + 1000.0f) - 1000.0f;
+        y = 1.0f - 4.0f * brk_absf(t - 0.5f);
+    } else {
+        if (!(v->ln % 3u)) {
+            float q = brk_clampf(u, -1.0f, 1.0f) * 16.0f;
+            v->bits = (float)(int32_t)(q + (q < 0.0f ? -0.5f : 0.5f)) * (1.0f / 16.0f);
+        }
+        y = v->bits;
+    }
+    if (c->lift > 0.0f) {
+        float a = brk_absf(y);
+        v->lenv += (a - v->lenv) * (a > v->lenv ? 0.05f : 0.0008f);
+        if (!(v->ln & 15u))
+            v->lg = brk_clampf(brk_exp2f(c->lift * (-2.0f - brk_log2f(v->lenv + 1e-3f))), 0.3f, 6.0f);
+        y *= v->lg;
+    }
+    v->ln++;
+    return y * c->lvl;
+}
+/* LOAF BREAKER: the drums' short room (Schroeder: four combs, two allpasses; 16-bit lines), gated: open for the longest
+ * hit's PX_ROOM length, then closed in ~6 ms */
+#define RM_C 4u
+static const uint16_t RM_CL[RM_C] = {557u, 617u, 691u, 751u}, RM_AL[2] = {225u, 76u};
+static int16_t rm_c[RM_C][751], rm_a[2][225];
+static uint16_t rm_cp[RM_C], rm_ap[2];
+static float rm_f[RM_C], rm_g;
+static uint32_t rm_open;
+static inline float room_tick(float in)
+{
+    float s = 0.0f;
+    uint32_t k;
+    for (k = 0; k < RM_C; k++) {
+        float o = (float)rm_c[k][rm_cp[k]] * (1.0f / 8192.0f);
+        rm_f[k] += (o - rm_f[k]) * 0.6f;
+        rm_c[k][rm_cp[k]] = (int16_t)brk_clampf((in + rm_f[k] * 0.82f) * 8192.0f, -32767.0f, 32767.0f);
+        if (++rm_cp[k] >= RM_CL[k])
+            rm_cp[k] = 0u;
+        s += o;
+    }
+    for (k = 0; k < 2u; k++) {
+        float o = (float)rm_a[k][rm_ap[k]] * (1.0f / 8192.0f), w = s + o * 0.5f;
+        rm_a[k][rm_ap[k]] = (int16_t)brk_clampf(w * 8192.0f, -32767.0f, 32767.0f);
+        if (++rm_ap[k] >= RM_AL[k])
+            rm_ap[k] = 0u;
+        s = o - w * 0.5f;
+    }
+    rm_g = rm_open ? 1.0f : rm_g * 0.9962f;
+    if (rm_open)
+        rm_open--;
+    return s * rm_g * 2.2f;
+}
 
 BRK_COLD void perc_init(void)
 {
@@ -168,6 +253,7 @@ BRK_COLD void perc_init(void)
         pv[k].env = pv[k].env2 = pv[k].pe = 0.0f;
         pv[k].last = pv[k].declick = 0.0f;
         pv[k].ph[1] = 3.0f;              /* (LOAF BREAKER: the clap's bursts done: none until a hit) */
+        pv[k].lg = 1.0f;                 /* (LIFT: untouched until it has followed something) */
         hits_seen[k] = p_hits[k];
     }
 }
@@ -188,13 +274,15 @@ void perc_render(float *out, uint32_t n, const uint16_t *at, const uint8_t *who,
     perc_t s = *(const perc_t *)&p_p;
     pc_t c[PERC_VOICES];
     uint32_t i, j, k, hit = nat ? 1u : 0u;
+    uint32_t mh = 0u;
     for (k = 0; k < PV_STAB; k++)
         if (p_hits[k] != hits_seen[k]) {     /* a MIDI note: now */
             hits_seen[k] = p_hits[k];
             pv_hit(&pv[k]);
             hit = 1u;
+            mh |= 1u << k;
         }
-    if (!hit && pv[0].env < 3e-5f && pv[0].env2 < 3e-5f && pv[1].env < 3e-5f && pv[2].env < 3e-5f &&
+    if (!hit && !rm_open && rm_g < 1e-4f && pv[0].env < 3e-5f && pv[0].env2 < 3e-5f && pv[1].env < 3e-5f && pv[2].env < 3e-5f &&
         pv[2].pe < 3e-5f && brk_absf(pv[0].declick) + brk_absf(pv[1].declick) + brk_absf(pv[2].declick) < 1e-5f) {
         for (i = 0; i < n; i++)          /* quiet, nothing coming: no work */
             out[i] = 0.0f;
@@ -202,8 +290,11 @@ void perc_render(float *out, uint32_t n, const uint16_t *at, const uint8_t *who,
         vs_on = 0u;
         return;
     }
-    for (k = 0; k < PV_STAB; k++)        /* (the drums: snare, hat, clap) */
+    for (k = 0; k < PV_STAB; k++) {      /* (the drums: snare, hat, clap) */
         pc_make(k, &s.v[k], s.volume, &c[k]);
+        if (mh >> k & 1u && c[k].room > 0.0f && c[k].gate > rm_open)
+            rm_open = c[k].gate;         /* (LOAF BREAKER: a MIDI hit opens the room) */
+    }
     if (vs_sp && !vs_on) {               /* the vinyl begins: from the drums as they are */
         vs_a = vs_b = vs_last;
         vs_ph = 0.0f;
@@ -213,8 +304,11 @@ void perc_render(float *out, uint32_t n, const uint16_t *at, const uint8_t *who,
         float y = 0.0f, f = 1.0f;
         while (j < nat && at[j] <= i) {
             for (k = 0; k < PV_STAB; k++)
-                if ((who[j] >> k) & 1u)
+                if ((who[j] >> k) & 1u) {
                     pv_hit(&pv[k]);
+                    if (c[k].room > 0.0f && c[k].gate > rm_open)
+                        rm_open = c[k].gate;   /* (LOAF BREAKER: its room open for its length) */
+                }
             j++;
         }
         if (vs_sp) {                     /* the vinyl: their own time at the speed, read between two samples */
@@ -226,13 +320,18 @@ void perc_render(float *out, uint32_t n, const uint16_t *at, const uint8_t *who,
             }
             vs_ph -= 1.0f;
         }
-        for (k = 0; k < PV_STAB; k++) {
-            pv_t *v = &pv[k];
-            float x = voice_tick(k, v, &c[k]);
-            x = soft(x * c[k].g) * c[k].make * c[k].lvl;
-            v->last = x;
-            y += x + v->declick;
-            v->declick *= 0.985f;
+        {
+            float rs = 0.0f;             /* (LOAF BREAKER: what goes to the room) */
+            for (k = 0; k < PV_STAB; k++) {
+                pv_t *v = &pv[k];
+                float x = voice_out(v, &c[k], voice_tick(k, v, &c[k]));
+                v->last = x;
+                y += x + v->declick;
+                v->declick *= 0.985f;
+                rs += x * c[k].room;
+            }
+            if (rs != 0.0f || rm_open || rm_g > 1e-4f)
+                y += room_tick(rs * 0.25f);
         }
         if (vs_sp) {
             vs_a = vs_b;

@@ -34,6 +34,14 @@ float perc_decay_ms(uint32_t voice, float decay); /* to -40 dB: SNARE 60..700 ms
 
 void perc_init(void);
 void perc_set(const perc_t *p);          /* main loop: read at the next render */
+/* LOAF BREAKER (11 Nov 2026, FLEXOR's industrial snares): each drum's extras, 0..100 each (0: as it always was):
+ * PX_DROP the body's pitch drop (the snare: x1.7 .. x6), PX_DTIME its time (3 .. 140 ms), PX_DIRT the saturation
+ * (DIRT_*), PX_LIFT the tail lifted (an upward compressor), PX_ROOM a short gated room (its level and its length,
+ * 40 .. 540 ms); PX_FX, PX_PRE the app's (BEGINNER's FX, the preset), PX_RSV spare */
+enum { PX_DROP, PX_DTIME, PX_DIRT, PX_LIFT, PX_ROOM, PX_FX, PX_PRE, PX_RSV, PX_N };
+enum { DIRT_SOFT, DIRT_HARD, DIRT_FOLD, DIRT_BITS, DIRT_N };
+extern const char *const DIRT_NAME[DIRT_N];
+void perc_set_x(uint32_t voice, const uint8_t *x);   /* main loop: read at the next render */
 void perc_hit(uint32_t voice);           /* main loop (a MIDI note): at the next render */
 /* render: n samples into out (overwritten); hits at the sample offsets at[0..nat-1] (rising), who[k] the voices
  * (bit PV_*) hit there */

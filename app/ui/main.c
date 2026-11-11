@@ -893,8 +893,9 @@ static void input(void)
             } else if (ui.page == PG_KEQ || IS_KFX()) {   /* (the KICK menu's EQ and FX parts: its section's next) */
                 kick_sect_step(d);
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
-            } else if (ui.page == PG_PERC) {   /* the snare or the hat: SOUND or SHAPE */
-                ui.ppage ^= 1u;
+            } else if (ui.page == PG_PERC) {   /* the snare or the hat: SOUND or SHAPE (LOAF BREAKER: MORE; BEGINNER:
+                                          * its one page) */
+                ui.ppage = (uint8_t)((ui.ppage + (d > 0 ? 1u : 2u)) % 3u);
                 page_say();
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
             } else if (ui.page == PG_FX)
@@ -1195,7 +1196,7 @@ static void draw_tabs(void)
     } else {                             /* SOUNDS: the drum, and its part */
         for (i = 1; i < NDRUMS; i++)
             x = tab(x, DRUM_TAG[i], i == ui.einst);   /* (SN HH CP) */
-        text_cat(part, ui.ppage ? "SHAPE" : "SOUND");
+        text_cat(part, PPAGE_NAME[perc_pg()]);
     }
     if (part[0]) {                       /* "< PART >": ALGORITHM turns it */
         char t[24] = "< ";
@@ -1239,7 +1240,8 @@ static void page_say(void)
         break;
     default:
         text_cat(t, PERC_VOICE_NAME[ui.pvoice % PERC_VOICES]);
-        text_cat(t, ui.ppage ? " SHAPE" : " SOUND");
+        text_cat(t, " ");
+        text_cat(t, PPAGE_NAME[perc_pg()]);
         break;
     }
     app_say(dom_name(), t);
@@ -1405,7 +1407,7 @@ static void draw_foot(const brk_status_t *st)
         else if (ui.page == PG_KICK)
             name = kick_knob_name((int)i);
         else if (ui.page == PG_PERC)
-            name = perc_kname(ui.pvoice, ui.ppage, (int)i);
+            name = perc_kname(ui.pvoice, perc_pg(), (int)i);
         else if (ui.page == PG_KEQ)
             name = KEQ_NAME[ui.keq_part & 1u][i];
         else if (ui.page == PG_SEQ && ui.seq_lane >= SL_KICK) {
@@ -1975,8 +1977,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars"};
-    int v[106];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom"};
+    int v[110];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -2088,7 +2090,11 @@ int app_expect(const char *what, int *got)
     v[103] = (int)sl_get(pat_now(), ui.seq_lane % NSEQL);
     v[104] = set.swing;
     v[105] = set.drop_bars;
-    for (i = 0; i < 106u; i++)
+    v[106] = perc_x(ui.pvoice)[PX_PRE];
+    v[107] = perc_x(ui.pvoice)[PX_FX];
+    v[108] = perc_x(ui.pvoice)[PX_DIRT];
+    v[109] = perc_x(ui.pvoice)[PX_ROOM];
+    for (i = 0; i < 110u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

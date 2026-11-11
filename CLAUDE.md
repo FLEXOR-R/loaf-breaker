@@ -74,6 +74,9 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - Drum presets (11 Nov 2026, in progress): FLEXOR picks styled presets by ear on listening pages (rendered on the
   host); his picks, the prototype engine and the plan in `docs/sounds/PERC_PRESETS.md`. His aim: BEGINNER's drum pages
   only a PRESET and an FX, EXPERT every setting (accessibility: surf the machine first, the depth after).
+  0.225: the engine's extras (perc.h PX_*: DROP, DTIME, DIRT, LIFT, ROOM; `perc_set_x`), per memory in `smem` (the
+  MELODY's old place, `perc_x()`, `set.pxv` = PX_OK), FLEXOR's presets PP_SN / PP_CP in ui/perc.c with their FX,
+  pages SOUND / SHAPE (K4 DIRT) / MORE, BEGINNER's PRESET / FX / LEVEL / TUNE.
 - RESET (0.209): after a reset its page's knobs do nothing for 3 s (`RST_COOL`, `ui.rst_done`, rst_cool()), DONE shown.
 - No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository.
 - Fonts: `font_trim` is on (fm1.toml, 9 Nov 2026). LOAF BREAKER draws in FONT_T, FONT_XS and FONT_B only (cv_text2 for

@@ -858,13 +858,20 @@ shape is its box in the strip below. Its steps: SEQ's KICK lane (empty to start)
 
 | Voice | Is | Presets |
 | --- | --- | --- |
-| SNARE | Two tuned sines with a pitch drop (the body) and band-passed noise (the snares), with a crack on the hit | 909 · TIGHT · FAT · GABBER |
+| SNARE | Two tuned sines with a pitch drop (the body) and band-passed noise (the snares), with a crack on the hit | 909 · TIGHT · FAT · GABBER, then FLEXOR's industrial ones: SHRAPNEL · GRINDER · PISTON · CONCRETE · BUNKER · SHRAP CRUSH · GRIND CRUSH · CONCR SMASH · GABBER BITS |
 | HAT | Six square waves at the 808's ratios and noise, through two high-passes | CLOSED · 808 · OPEN · TRASH |
+| CLAP | Noise bursts and a tail | 808 · 909 · TIGHT · BIG · BUNKER CLAP · FURNACE CLAP |
 
 | Knobs | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- |
 | SOUND | Level | Tune | Decay | Tone (the hat: METAL / NOISE) |
-| SHAPE | Snap (the hat: CUT, the high-pass) | Drive | | |
+| SHAPE | Snap (the hat: CUT, the high-pass; the clap: SPREAD) | Drive | PRESET | **DIRT**: SOFT (as ever), HARD (a hard clip), FOLD (folded back, as the kick's DISTO), BITS (5 bits) |
+| MORE | **DROP** (the snare: how far its body falls, x1.7 to x6) | **TIME** (how fast it falls, 3 to 140 ms) | **LIFT** (the tail brought up, the hit held down) | **ROOM** (a short room closed sharply after the hit: its level and its length) |
+| BEGINNER | **PRESET** | **FX**: DRY · ROOM · CRUSH · SMASH (twice the drive, the tail lifted, a longer room) · SMASH+BITS | Level | Tune |
+
+**ALGORITHM** goes through SOUND, SHAPE and MORE. FLEXOR's snares came out of three listening pages (gabber,
+crossbreed, industrial: the drop, the dirt, the lift and the room); each comes with the FX it was chosen with, and in
+BEGINNER the FX changes on the same preset (its LEVEL and TUNE kept). Each memory (SNARE 1-10 ..) keeps its own.
 
 MIDI notes 38 (D1) play the snare, 42, 44 and 46 the hat, also while stopped. SAVE keeps the drums with the rest.
 (ENV, which used to open SNARE / HAT, is TRACK now: §3.)

@@ -2,13 +2,101 @@
 /* CHOPPAH: the SNARE / HAT page (ENV). (Part of app.c's unity: included there in order.) */
 
 /* ---- the SNARE / HAT page (ENV): ALGORITHM the voice, ENV again SOUND or SHAPE, PRESETS its presets */
-static const char *const PERC_KNOB[PERC_VOICES][2][4] = {
-    {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SNAP", "DRIVE", "PRESET", ""}},
-    {{"LEVEL", "TUNE", "DECAY", "METAL/NZ"}, {"CUT", "DRIVE", "PRESET", ""}},
-    {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SPREAD", "DRIVE", "PRESET", ""}},
-    {{"", "", "", ""}, {"", "", "", ""}}};   /* (LOAF BREAKER: the clap's; SHAPE's K3 PRESET, the memory back to a
-                                          * built-in sound; the fourth, the MELODY's, gone in 0.209) */
-static const char *perc_kname(uint32_t v, uint32_t pg, int i) { return PERC_KNOB[v % PERC_VOICES][pg & 1u][i & 3]; }
+static const char *const PERC_KNOB[PERC_VOICES][4][4] = {
+    {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SNAP", "DRIVE", "PRESET", "DIRT"}, {"DROP", "TIME", "LIFT", "ROOM"},
+     {"PRESET", "FX", "LEVEL", "TUNE"}},
+    {{"LEVEL", "TUNE", "DECAY", "METAL/NZ"}, {"CUT", "DRIVE", "PRESET", "DIRT"}, {"", "", "LIFT", "ROOM"},
+     {"PRESET", "FX", "LEVEL", "TUNE"}},
+    {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SPREAD", "DRIVE", "PRESET", "DIRT"}, {"", "", "LIFT", "ROOM"},
+     {"PRESET", "FX", "LEVEL", "TUNE"}},
+    {{"", "", "", ""}, {"", "", "", ""}, {"", "", "", ""}, {"", "", "", ""}}};   /* (LOAF BREAKER: the clap's; SHAPE's
+                                          * K3 PRESET, the memory back to a built-in sound; the fourth, the MELODY's,
+                                          * gone in 0.209; 0.225: SHAPE's K4 DIRT, MORE (DROP, TIME, LIFT, ROOM), and
+                                          * BEGINNER's one page: PRESET, FX, LEVEL, TUNE) */
+static const char *const PPAGE_NAME[4] = {"SOUND", "SHAPE", "MORE", "PRESET"};
+static uint32_t perc_pg(void) { return set.novice ? 3u : ui.ppage % 3u; }
+static const char *perc_kname(uint32_t v, uint32_t pg, int i) { return PERC_KNOB[v % PERC_VOICES][pg & 3u][i & 3]; }
+
+/* LOAF BREAKER (11 Nov 2026): the drums' presets: the four built-in sounds of each, then FLEXOR's picks (the industrial
+ * snares, chosen by ear on the listening pages, docs/sounds/PERC_PRESETS.md), each with the FX it was chosen with.
+ * BEGINNER's FX (PX_FX) on top of the preset: DRY (no room), ROOM, CRUSH (5 bits), SMASH (twice the drive, the tail
+ * lifted, a longer room), SMASH+BITS */
+#define PFX_N 5u
+enum { PFX_DRY, PFX_ROOM, PFX_CRUSH, PFX_SMASH, PFX_SMASHB };
+static const char *const PFX_NAME[PFX_N] = {"DRY", "ROOM", "CRUSH", "SMASH", "SMASH+BITS"};
+typedef struct {
+    const char *name;
+    uint8_t p[6];                        /* level, tune, decay, tone, snap, drive (0..100) */
+    uint8_t x[5];                        /* PX_DROP .. PX_ROOM */
+    uint8_t fx;                          /* the FX it was chosen with */
+} ppre_t;
+static const ppre_t PP_SN[] = {
+    {"SHRAPNEL", {85, 64, 31, 80, 45, 86}, {74, 18, DIRT_FOLD, 35, 0}, PFX_ROOM},
+    {"GRINDER", {85, 38, 50, 45, 50, 86}, {44, 55, DIRT_HARD, 55, 0}, PFX_ROOM},
+    {"PISTON", {85, 34, 40, 35, 35, 68}, {77, 49, DIRT_HARD, 20, 0}, PFX_SMASHB},
+    {"CONCRETE", {85, 19, 56, 10, 30, 45}, {30, 60, DIRT_SOFT, 60, 0}, PFX_SMASHB},
+    {"BUNKER", {85, 29, 73, 10, 45, 45}, {30, 64, DIRT_HARD, 70, 0}, PFX_SMASHB},
+    {"SHRAP CRUSH", {85, 64, 31, 80, 75, 58}, {53, 18, DIRT_FOLD, 20, 0}, PFX_SMASHB},
+    {"GRIND CRUSH", {85, 38, 50, 45, 65, 58}, {30, 55, DIRT_HARD, 40, 0}, PFX_SMASHB},
+    {"CONCR SMASH", {85, 19, 56, 10, 30, 45}, {30, 60, DIRT_SOFT, 60, 0}, PFX_SMASH},
+    {"GABBER BITS", {85, 55, 45, 60, 75, 85}, {0, 0, DIRT_BITS, 0, 0}, PFX_DRY}};
+static const ppre_t PP_CP[] = {
+    {"BUNKER CLAP", {80, 20, 70, 30, 50, 60}, {0, 0, DIRT_HARD, 70, 0}, PFX_SMASH},
+    {"FURNACE CLAP", {80, 30, 60, 35, 60, 45}, {0, 0, DIRT_FOLD, 50, 0}, PFX_SMASH}};
+#define N_SN (sizeof PP_SN / sizeof PP_SN[0])
+#define N_CP (sizeof PP_CP / sizeof PP_CP[0])
+static uint32_t pp_n(uint32_t v) { return PERC_PRESETS + (v == PV_SNARE ? N_SN : v == PV_CLAP ? N_CP : 0u); }
+static const ppre_t *pp_ext(uint32_t v, uint32_t i)   /* (i past the built-in four) */
+{
+    i -= PERC_PRESETS;
+    return v == PV_SNARE ? &PP_SN[i % N_SN] : &PP_CP[i % N_CP];
+}
+static const char *pp_name(uint32_t v, uint32_t i)
+{
+    i %= pp_n(v);
+    return i < PERC_PRESETS ? PERC_PRESET_NAME[v % PERC_VOICES][i] : pp_ext(v, i)->name;
+}
+static void pp_apply(uint32_t v, uint32_t i, int fx)   /* the drum's memory playing: preset i, with fx (-1: its own) */
+{
+    perc_voice_t *pv = perc_voice(v);
+    uint8_t *x = perc_x(v);
+    uint32_t j, own = PFX_DRY;
+    i %= pp_n(v);
+    if (i < PERC_PRESETS) {
+        perc_preset(pv, v, i);
+        for (j = 0; j <= PX_ROOM; j++)
+            x[j] = 0u;
+    } else {
+        const ppre_t *e = pp_ext(v, i);
+        float *P[6] = {&pv->level, &pv->tune, &pv->decay, &pv->tone, &pv->snap, &pv->drive};
+        for (j = 0; j < 6u; j++)
+            *P[j] = (float)e->p[j] * 0.01f;
+        for (j = 0; j <= PX_ROOM; j++)
+            x[j] = e->x[j];
+        own = e->fx;
+    }
+    x[PX_PRE] = (uint8_t)i;
+    x[PX_FX] = (uint8_t)(fx < 0 ? own : (uint32_t)fx % PFX_N);
+    switch (x[PX_FX]) {
+    case PFX_ROOM:
+        x[PX_ROOM] = 30u;
+        break;
+    case PFX_CRUSH:
+        x[PX_DIRT] = DIRT_BITS;
+        x[PX_ROOM] = 30u;
+        break;
+    case PFX_SMASH:
+    case PFX_SMASHB:                     /* (twice the drive's gain: 1 + 15 d^2 doubled) */
+        pv->drive = brk_clampf(brk_exp2f_c(0.5f * brk_log2f_c((1.0f + 30.0f * pv->drive * pv->drive) * (1.0f / 15.0f))), 0.0f, 1.0f);
+        x[PX_LIFT] = (uint8_t)(x[PX_LIFT] + 35u > 100u ? 100u : x[PX_LIFT] + 35u);
+        x[PX_ROOM] = 45u;
+        if (x[PX_FX] == PFX_SMASHB)
+            x[PX_DIRT] = DIRT_BITS;
+        break;
+    default:
+        break;
+    }
+}
 
 /* LOAF BREAKER: the snare's, the hat's and the clap's memories, as the kick's (kick_mem_turn): SNARE 1..10, the one
  * playing kept as it is, the next as it was left (PRESETS on EDIT, SELECT on the drum's SEQ lane) */
@@ -29,23 +117,56 @@ static float *perc_param(int i)
 {
     perc_voice_t *v = perc_voice(ui.pvoice);
     float *P[6] = {&v->level, &v->tune, &v->decay, &v->tone, &v->snap, &v->drive};
-    int k = ui.ppage ? 4 + i : i;
-    return k < 6 ? P[k] : 0;
+    uint32_t pg = perc_pg();
+    if (pg == 3u)                        /* (BEGINNER: K3 LEVEL, K4 TUNE) */
+        return i == 2 ? P[0] : i == 3 ? P[1] : 0;
+    return pg == 0u ? P[i & 3] : pg == 1u && i < 2 ? P[4 + i] : 0;
+}
+static uint8_t *perc_xknob(int i)        /* (LOAF BREAKER: MORE's K1-K4: the drum's extras; the snare alone drops) */
+{
+    if (perc_pg() != 2u || (i < 2 && ui.pvoice != PV_SNARE))
+        return 0;
+    return &perc_x(ui.pvoice)[i == 0 ? PX_DROP : i == 1 ? PX_DTIME : i == 2 ? PX_LIFT : PX_ROOM];
 }
 static void perc_value(int i, char *t)
 {
     float *p = perc_param(i);
+    uint8_t *x = perc_x(ui.pvoice), *xk = perc_xknob(i);
+    uint32_t pg = perc_pg(), v = ui.pvoice % PERC_VOICES;
     t[0] = 0;
-    if (ui.ppage && i == 2) {            /* PRESET: the built-in sound it last put back */
-        text_cat(t, PERC_PRESET_NAME[ui.pvoice % PERC_VOICES][ui.ppreset[ui.pvoice % PERC_VOICES] % PERC_PRESETS]);
+    if ((pg == 1u && i == 2) || (pg == 3u && i == 0)) {   /* PRESET: the built-in sound it last put back */
+        text_cat(t, pp_name(v, x[PX_PRE]));
+        return;
+    }
+    if (pg == 3u && i == 1) {
+        text_cat(t, PFX_NAME[x[PX_FX] % PFX_N]);
+        return;
+    }
+    if (pg == 1u && i == 3) {
+        text_cat(t, DIRT_NAME[x[PX_DIRT] % DIRT_N]);
+        return;
+    }
+    if (xk) {                            /* (MORE: OFF, or its value) */
+        if (!*xk)
+            text_cat(t, "OFF");
+        else if (i == 0) {               /* (the drop: x1.7 .. x6, the body's start over its note) */
+            text_cat(t, "X");
+            tenths_text((int32_t)(17.0f + 0.43f * (float)*xk + 0.5f), t + 1);
+        } else if (i == 1) {
+            int_text((int32_t)(3.0f * brk_exp2f_c((float)*xk * (1.0f / 18.0f)) + 0.5f), t);
+            text_cat(t, " MS");
+        } else {
+            int_text(*xk, t);
+            text_cat(t, "%");
+        }
         return;
     }
     if (!p)
         return;
-    if (!ui.ppage && i == 1)
-        hz_text(perc_tune_hz(ui.pvoice, *p), t);
-    else if (!ui.ppage && i == 2) {
-        int_text((int32_t)(perc_decay_ms(ui.pvoice, *p) + 0.5f), t);
+    if ((pg == 0u && i == 1) || (pg == 3u && i == 3))
+        hz_text(perc_tune_hz(v, *p), t);
+    else if (pg == 0u && i == 2) {
+        int_text((int32_t)(perc_decay_ms(v, *p) + 0.5f), t);
         text_cat(t, " MS");
     } else
         pct_text(*p, t);
@@ -53,13 +174,39 @@ static void perc_value(int i, char *t)
 static void perc_turn(int i, int32_t d)
 {
     float *p = perc_param(i);
-    char t[12];
-    if (ui.ppage && i == 2) {            /* PRESET: the memory back to a built-in sound, by name (no undo) */
-        uint8_t *pr = &ui.ppreset[ui.pvoice % PERC_VOICES];
-        *pr = (uint8_t)((*pr + (d > 0 ? 1u : PERC_PRESETS - 1u)) % PERC_PRESETS);
-        perc_preset(perc_voice(ui.pvoice), ui.pvoice, *pr);
+    uint8_t *x = perc_x(ui.pvoice), *xk = perc_xknob(i);
+    uint32_t pg = perc_pg(), v = ui.pvoice % PERC_VOICES;
+    char t[16];
+    if ((pg == 1u && i == 2) || (pg == 3u && i < 2)) {   /* PRESET (no undo); BEGINNER's FX on it */
+        perc_voice_t *pv = perc_voice(v);
+        float lvl = pv->level, tune = pv->tune;
+        uint32_t n = pp_n(v);
+        if (i == 0 || pg == 1u)
+            pp_apply(v, (x[PX_PRE] % n + (d > 0 ? 1u : n - 1u)) % n, -1);
+        else {                           /* (FX: the preset again, with the next; its LEVEL and TUNE kept) */
+            pp_apply(v, x[PX_PRE], (int)clamp((int32_t)x[PX_FX] + (d > 0 ? 1 : -1), 0, PFX_N - 1));
+            pv->level = lvl;
+            pv->tune = tune;
+        }
+        ui.ppreset[v] = x[PX_PRE];
         perc_value(i, t);
-        app_say("PRESET", t);
+        app_say(i == 1 && pg == 3u ? "FX" : "PRESET", t);
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        changed();
+        return;
+    }
+    if (pg == 1u && i == 3) {            /* DIRT: SOFT, HARD, FOLD, BITS */
+        x[PX_DIRT] = (uint8_t)clamp((int32_t)x[PX_DIRT] + (d > 0 ? 1 : -1), 0, DIRT_N - 1);
+        perc_value(i, t);
+        app_say("DIRT", t);
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        changed();
+        return;
+    }
+    if (xk) {
+        *xk = (uint8_t)clamp((int32_t)*xk + d * 2, 0, 100);
+        perc_value(i, t);
+        app_say(perc_kname(v, pg, i), t);
         ui.redraw |= RG_BLOCKS | RG_FOOT;
         changed();
         return;
@@ -68,7 +215,7 @@ static void perc_turn(int i, int32_t d)
         return;
     *p = knob_f(*p, d, 0.02f, 0.0f, 1.0f);
     perc_value(i, t);
-    app_say(perc_kname(ui.pvoice, ui.ppage, i), t);
+    app_say(perc_kname(v, pg, i), t);
     ui.redraw |= RG_BLOCKS;
     changed();
 }
@@ -85,8 +232,16 @@ static uint32_t pw_sig = 1u, pw_ms = 300u;
 static float perc_knob_f(int i)          /* the part's knob i, 0..1 (its card's bar) */
 {
     float *p = perc_param(i);
-    if (ui.ppage && i == 2)
-        return (float)(ui.ppreset[ui.pvoice % PERC_VOICES] % PERC_PRESETS) / (float)(PERC_PRESETS - 1u);
+    uint8_t *x = perc_x(ui.pvoice), *xk = perc_xknob(i);
+    uint32_t pg = perc_pg(), n = pp_n(ui.pvoice % PERC_VOICES);
+    if ((pg == 1u && i == 2) || (pg == 3u && i == 0))
+        return (float)(x[PX_PRE] % n) / (float)(n - 1u);
+    if (pg == 3u && i == 1)
+        return (float)(x[PX_FX] % PFX_N) / (float)(PFX_N - 1u);
+    if (pg == 1u && i == 3)
+        return (float)(x[PX_DIRT] % DIRT_N) / (float)(DIRT_N - 1u);
+    if (xk)
+        return (float)*xk * 0.01f;
     return p ? *p : 0.0f;
 }
 static void perc_picture(const brk_status_t *st, int32_t top)
@@ -143,7 +298,7 @@ static void perc_cards(void)             /* the part's knobs: its name, its valu
     cv_begin(240, 48, C_BLACK);
     for (i = 0; i < 4u; i++) {
         int32_t x = 2 + (int32_t)i * 60;
-        const char *n = perc_kname(ui.pvoice, ui.ppage, i);
+        const char *n = perc_kname(ui.pvoice, perc_pg(), i);
         cv_rect(x, 0, 56, 46, C_BLOCK);
         if (!n[0])
             continue;
@@ -203,11 +358,12 @@ static void draw_perc(const brk_status_t *st)
         text_cat(t, " ");
         text_cat(t, u);
     }
-    text_cat(t, ui.ppage ? "  SHAPE" : "  SOUND");
+    text_cat(t, "  ");
+    text_cat(t, PPAGE_NAME[perc_pg()]);
     cv_text(6, 0, &FONT_XS, t, C_GRAY);
     for (i = 0; i < 6u; i++) {
         int32_t x = 6 + (int32_t)(i % 4u) * 58, y = 16 + (int32_t)(i / 4u) * 18;
-        int lit = (i >= 4u) == (ui.ppage != 0u);
+        int lit = (i >= 4u) == (perc_pg() == 1u);
         cv_text(x, y, &FONT_XS, perc_kname(ui.pvoice, i / 4u, (int)(i % 4u)), lit ? C_GRAY : C_DIM);
         cv_rect(x, y + 13, 52, 3, C_BLOCK);
         cv_rect(x, y + 13, (int32_t)(52.0f * P[i] + 0.5f), 3, lit ? C_HI : C_DIM);

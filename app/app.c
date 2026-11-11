@@ -188,7 +188,10 @@ typedef struct {
                                           * 0xFE finished; a new FM-1 starts it, the simulator not */
     uint8_t ezoom;                       /* (appended) LOAF BREAKER: EDIT's pictures (the kick, the drums), the time they
                                           * show: 0 AUTO (as each part wants), 1.. EZ_MS[]; SYSTEM › EFFECTS, PRESETS */
+    uint8_t pxv;                         /* (appended) LOAF BREAKER: PX_OK: smem (the MELODY's memories, unused since
+                                          * 0.209) holds the drums' extras, perc_x(); else cleared at the load */
 } settings_t;
+#define PX_OK 0xA5u
 #define FILL_LATCH (set.fill_cfg & 1u)
 #define FILL_DRUM (set.fill_cfg >> 1 & 3u)
 #define FILL_LEN (set.fill_cfg >> 3 & 3u)
@@ -209,6 +212,11 @@ static perc_voice_t *perc_voice(uint32_t v)   /* LOAF BREAKER: a drum's sound, P
     v %= PERC_VOICES;
     return v < 2u ? &set.perc.v[v] : v == PV_CLAP ? &set.pmore[0] : &set.pstab;
 }
+/* LOAF BREAKER (11 Nov 2026): a drum's extras (PX_*: its drop, its saturation, LIFT, ROOM, BEGINNER's FX, its preset),
+ * the memory playing's, in the MELODY's old place: smem, 240 bytes, three drums of ten memories of PX_N */
+_Static_assert(sizeof(((settings_t *)0)->smem) == 3u * PERC_MEMS * PX_N, "smem holds the drums' extras");
+static uint8_t *perc_xm(uint32_t v, uint32_t i) { return (uint8_t *)(void *)set.smem + ((v % 3u) * PERC_MEMS + i % PERC_MEMS) * PX_N; }
+static uint8_t *perc_x(uint32_t v) { return perc_xm(v, set.pslot[v % 3u]); }
 static uint8_t *perc_slot(uint32_t v)    /* its memory playing */
 {
     v %= PERC_VOICES;
@@ -367,6 +375,8 @@ static void settings_defaults(void)
         for (k = 0; k < PERC_VOICES * PERC_MEMS; k++)   /* (the memories begin as the presets, again and again) */
             perc_preset(perc_mem(k / PERC_MEMS, k % PERC_MEMS), k / PERC_MEMS, k % PERC_MEMS % PERC_PRESETS);
     }
+    memset(set.smem, 0, sizeof set.smem);   /* (LOAF BREAKER: the drums' extras: none, as they always sounded) */
+    set.pxv = PX_OK;
     for (k = 0; k < 16u; k++)            /* the overlays: full, the sweeps and the dirt a little less */
         set.ovl_amt[k] = k == OV_DIVE || k == OV_RISE || k == OV_CRUSH || k == OV_DIST || k == OV_BOOM ? 70u : 100u;
     set.ovl_rate = 2u;                   /* 1/16 */
@@ -436,6 +446,8 @@ static void perc_apply(void)             /* all the drums' voices for the engine
         pa.v[k] = *perc_voice(k);
     pa.volume = set.perc.volume;
     perc_set(&pa);
+    for (k = 0; k < 3u; k++)             /* (LOAF BREAKER: their extras) */
+        perc_set_x(k, perc_x(k));
 }
 static void settings_apply(void)
 {
@@ -1125,7 +1137,12 @@ void app_init(void)
         else if (sz <= (int)offsetof(settings_t, novice))
             set.novice = 0u;             /* (TEST: a save from before the MODE: its owner knows the way, EXPERT) */
         if (set.magic == SET_MAGIC && sz <= (int)offsetof(settings_t, tut))
-            set.tut = 0u;                /* (LOAF BREAKER: a save from before the TUTORIAL: an FM-1 in use, none started;
+            set.tut = 0u;
+        if (set.pxv != PX_OK) {          /* (LOAF BREAKER: a save from before the drums' extras: smem the MELODY's
+                                          * leftovers, cleared) */
+            memset(set.smem, 0, sizeof set.smem);
+            set.pxv = PX_OK;
+        }                /* (LOAF BREAKER: a save from before the TUTORIAL: an FM-1 in use, none started;
                                           * SETUP K1 starts it) */
     }
     if (set.magic != SET_MAGIC || set.tempo_x10 < 400u || set.tempo_x10 > 3000u || set.swing < 50u ||
