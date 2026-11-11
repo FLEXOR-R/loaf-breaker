@@ -2303,6 +2303,41 @@ static void test_kick_fx(void)
     brk_fx_set_kick_slot(0u, &s);
 }
 
+/* LOAF BREAKER (0.256): BREAK TIME HALF: at twice the break's tempo, its steps every other 16th; the drums' steps
+ * (brk_step_events) and the clock out at the tempo, 16 and 96 a bar */
+static void test_half_time(void)
+{
+    uint16_t off[64];
+    uint8_t idx[64];
+    uint32_t sl, t, ev = 0, clk = 0, bsteps = 0;
+    int32_t last = -2;
+    brk_status_t st;
+    fresh(2);
+    brk_tempo(BPM * 2.0f);
+    brk_half_time(1);
+    brk_play(1);
+    sl = brk_step_len_samples();
+    for (t = 0; t < sl * 16u; t += 64u) {   /* a bar of the tempo */
+        uint32_t k, n;
+        brk_render(buf, 64);
+        n = brk_step_events(off, idx, 64u);
+        for (k = 0; k < n; k++)
+            ev += t + off[k] < sl * 16u;     /* (this bar's, not the next one's first) */
+        n = brk_clock_ticks(off, 64u);
+        for (k = 0; k < n; k++)
+            clk += t + off[k] < sl * 16u;
+        brk_status(&st);
+        if (st.step != last) {
+            last = st.step;
+            bsteps++;
+        }
+    }
+    CHECK(ev == 16u, "half time: the drums' steps %u a bar (16)", ev);
+    CHECK(clk == 96u, "half time: the clock %u ticks a bar (96)", clk);
+    CHECK(bsteps >= 8u && bsteps <= 9u, "half time: the break's steps %u a bar of the tempo (8)", bsteps);
+    brk_half_time(0);
+}
+
 int main(int argc, char **argv)
 {
     if (argc > 1)
@@ -2316,6 +2351,7 @@ int main(int argc, char **argv)
     test_clock();
     test_keep_length();
     test_half_master();
+    test_half_time();
     test_vinyl();
     test_kick_hp();
     test_rewind();

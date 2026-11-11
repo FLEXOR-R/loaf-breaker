@@ -220,6 +220,7 @@ static settings_t set;
 enum { BKF_ARP = BRK_NPADS, BKF_KIL, BKF_DST, BKF_SUB, BKF_N };
 enum { BKP_CHOPPAH, BKP_FLEXOR, BKP_CUSTOM, BKP_N };
 #define BK_TAG 0xB4u
+#define BK_BHALF 13u                     /* (bk[13]: BREAK TIME, 0 NORMAL, 1 HALF: the break at half the tempo, 0.256) */
 static const uint8_t BK_LAY[2][11] = {{PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, PAD_REVERSE, PAD_FREEZE, PAD_HALF,
                                        PAD_TAPESTOP, PAD_GATE, PAD_RANDOM, PAD_FILTER, PAD_DUB},
                                       {PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, PAD_REVERSE, PAD_RANDOM, PAD_HALF,
@@ -250,6 +251,7 @@ static void bk_defaults(void)
 #endif
     for (j = 0; j < 11u; j++)
         set.bkeys.bk[2u + j] = BK_LAY[0][j];   /* (CUSTOM begins as CHOPPAH) */
+    set.bkeys.bk[BK_BHALF] = 0u;
 }
 static uint32_t brk_view(void) { return (set.brkv & 0xF0u) == BRKV_TAG && (set.brkv & 15u) <= 2u ? set.brkv & 15u : 2u; }
 static uint32_t max_out_db(void) { return set.max_out ? (set.max_out - 1u > 12u ? 12u : set.max_out - 1u) : 3u; }
@@ -513,6 +515,7 @@ static void perc_apply(void)             /* all the drums' voices for the engine
 static void settings_apply(void)
 {
     brk_tempo((float)set.tempo_x10 * 0.1f);
+    brk_half_time(set.bkeys.bk[BK_BHALF] & 1u);   /* (LOAF BREAKER, 0.256: SYSTEM › MIDI K4 BREAK TIME) */
     brk_pitch((float)set.pitch);
     brk_swing((float)set.swing * 0.01f);
     brk_gen(&set.gen);

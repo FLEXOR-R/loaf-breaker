@@ -20,6 +20,9 @@ static volatile uint32_t p_pads;         /* bit PAD_*: held */
 static volatile uint32_t p_reset;        /* a count: changed = reset at the next render */
 static volatile int p_keep;              /* pitch keeps the length (granular), not the speed */
 static volatile int p_half_mt = 1;       /* GLOUPI BREAKS: HALF SPEED keeps the pitch (master tempo) */
+static volatile int p_bhalf;             /* LOAF BREAKER (0.256, FLEXOR): the break at half the tempo (a step every two
+                                          * 16ths, at its own speed: a 115 break under a 230 terror kick), the drums
+                                          * and the clock at the tempo */
 static volatile int p_vinyl = 1;         /* LOAF BREAKER: the VINYL BREAK pad slows the break (0: the drums alone) */
 static volatile float p_gate = 1.0f;     /* how much of each of the loop's slices sounds */
 static volatile float p_snap = 0.5f;     /* where a key pressed while playing begins: slices (0 at once) */
@@ -399,7 +402,7 @@ static void key_snapped(const brk_break_t *b)
     pending_wait = -1.0f;
     key_n = 0u;
     key_begin(b, s);
-    key_left = key_steps * step_len();
+    key_left = key_steps * step_len() * (p_bhalf ? 2.0f : 1.0f);
     if ((held_mask >> s) & 1u)
         key_slice = s;
     else
@@ -410,7 +413,8 @@ static void key_snapped(const brk_break_t *b)
  * step counts samples, straight. now_len: the step playing's length */
 static void key_snap(const brk_break_t *b, int32_t s)
 {
-    float sps = (float)(b->bars * BRK_STEPS_PER_BAR) / (float)b->nslices, snap = p_snap * sps, pos, target;
+    float sps = (float)(b->bars * BRK_STEPS_PER_BAR) / (float)b->nslices, snap = p_snap * sps * (p_bhalf ? 2.0f : 1.0f),
+          pos, target;                   /* (the break at half the tempo: its grid twice as wide, in 16ths) */
     pending = s;
     pending_wait = -1.0f;
     if (!steps_total || !step_in_len) {  /* not begun yet: the first step */
@@ -648,6 +652,7 @@ void brk_render(float *out, uint32_t n)
     const brk_break_t *b = brk_now;
     uint32_t i, pads = p_pads;
     float sl = step_len(), inc, pf, half, hmt, ratio, sw = brk_clampf(p_swing, 0.5f, 0.75f);
+    float bsl = p_bhalf ? 2.0f * sl : sl;   /* (a 16th of the break: two of the tempo's at half time) */
     int playing = p_playing, keep = p_keep;
     n_renders++;
     if (p_swap && (!playing || !b))      /* stopped: a break waiting takes over at once */
@@ -699,7 +704,7 @@ void brk_render(float *out, uint32_t n)
             else {                       /* free play: now, looping while held */
                 key_n = 0u;
                 key_begin(b, e.slice);
-                key_left = key_steps * sl;
+                key_left = key_steps * bsl;
                 key_slice = e.slice;
             }
         } else {
@@ -715,7 +720,7 @@ void brk_render(float *out, uint32_t n)
                     else {
                         key_n = 0u;
                         key_begin(b, k);
-                        key_left = key_steps * sl;
+                        key_left = key_steps * bsl;
                         key_slice = k;
                     }
                 }
@@ -731,7 +736,7 @@ void brk_render(float *out, uint32_t n)
                                           * as before: the break slower, its pitch kept (off: an octave down) */
     if ((pads >> PAD_REVERSE) & 1u)
         half *= brk_clampf(p_ps.rev_speed, 0.5f, 2.0f);
-    ratio = (float)b->rate / (float)BRK_SR * (p_tempo * 100.0f / (float)b->bpm_x100);
+    ratio = (float)b->rate / (float)BRK_SR * (p_tempo * 100.0f / (float)b->bpm_x100) * (p_bhalf ? 0.5f : 1.0f);
     for (i = 0; i < n; i++) {
         float acc = 0.0f, ea = 0.0f, va = 0.0f, g;
         if (playing) {
@@ -744,20 +749,25 @@ void brk_render(float *out, uint32_t n)
                     pat_org = steps_total;
                 }
                 /* swing: the even 16th takes sw of the pair, the odd one the rest */
-                len = 2.0f * sl * ((((uint32_t)(step + 1)) & 1u) ? 1.0f - sw : sw);
-                step_in_len = (uint32_t)len;
-                if (p_swap) {            /* a break waiting: in on this step (the main loop asks at a bar's end) */
+                len = 2.0f * sl * (((steps_total - pat_org) & 1u) ? 1.0f - sw : sw);   /* (the tempo's 16ths, the break's
+                                          * at half time too) */
+                step_in_len = (uint32_t)(p_bhalf ? 2.0f * sl : len);
+                if (p_swap && (!p_bhalf || !((steps_total - pat_org) & 1u))) {   /* a break waiting: in on this step
+                                          * (the main loop asks at a bar's end) */
                     b = swap_now();
-                    ratio = (float)b->rate / (float)BRK_SR * (p_tempo * 100.0f / (float)b->bpm_x100);
+                    ratio = (float)b->rate / (float)BRK_SR * (p_tempo * 100.0f / (float)b->bpm_x100) *
+                            (p_bhalf ? 0.5f : 1.0f);
                 }
-                on_step(b);
+                if (!p_bhalf || !((steps_total - pat_org) & 1u))
+                    on_step(b);          /* (half time: the break's step every other 16th) */
                 if (ev_cnt < EV_MAX) {
                     ev_off[ev_cnt] = (uint16_t)i;
                     ev_idx[ev_cnt++] = (uint8_t)((steps_total - pat_org) & 63u);
                 }
                 steps_total++;
                 to_next += len;
-                if (!(step & 1)) {       /* MIDI clock: twelve straight ticks over each pair of 16ths */
+                if (!((steps_total - 1u - pat_org) & 1u)) {   /* MIDI clock: twelve straight ticks over each pair of
+                                          * 16ths (the tempo's, the break at half time or not) */
                     clk_left = 0.0f;
                     clk_k = 0u;
                 }
@@ -796,7 +806,7 @@ void brk_render(float *out, uint32_t n)
                     key_n++;
                     key_begin(b, key_slice);
                 }
-                key_left += key_steps * sl;
+                key_left += key_steps * bsl;
             }
         }
         if (roll_slice >= 0) {           /* the roll: the captured spot again, every roll_len */
@@ -877,7 +887,7 @@ void brk_render(float *out, uint32_t n)
     status.key_lo = key_lo;
     status.key_w = key_w;
     status.key_phase = key_slice >= 0 && key_steps > 0.0f
-                       ? brk_clampf(1.0f - key_left / (key_steps * sl), 0.0f, 1.0f) : 0.0f;
+                       ? brk_clampf(1.0f - key_left / (key_steps * bsl), 0.0f, 1.0f) : 0.0f;
     status.key_n = (uint16_t)key_n;
     status.key_rev = (uint8_t)(v[cur].dir < 0.0f);
     status.bar16 = steps_total ? (int8_t)((steps_total - pat_org - 1u) & 15u) : (int8_t)-1;
@@ -1035,6 +1045,7 @@ BRK_COLD void brk_play(int on)
 BRK_COLD void brk_reset(void) { p_reset++; }
 BRK_COLD void brk_rewind(void) { p_rewind++; }
 BRK_COLD void brk_tempo(float bpm) { p_tempo = brk_clampf(bpm, 40.0f, 300.0f); }
+BRK_COLD void brk_half_time(int on) { p_bhalf = on != 0; }
 float brk_get_tempo(void) { return p_tempo; }
 BRK_COLD void brk_pitch(float st) { p_pitch = brk_clampf(st, -24.0f, 24.0f); }
 BRK_COLD void brk_half_master(int on) { p_half_mt = on != 0; }

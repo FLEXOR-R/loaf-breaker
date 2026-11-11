@@ -139,6 +139,8 @@ void brk_reset(void);                    /* to the pattern's first step (the nex
  * pattern starts at its step 1, not where the old one was */
 void brk_rewind(void);
 void brk_tempo(float bpm);               /* 40..300 */
+void brk_half_time(int on);             /* LOAF BREAKER: 1, the break at half the tempo (its steps every other 16th,
+                                          * its own speed); the drums, the clock at the tempo */
 float brk_get_tempo(void);
 void brk_pitch(float semitones);         /* -24..+24, on top of the tempo's repitch */
 /* how pitch sounds (PRD E-9): SPEED, the classic repitch (up is shorter, down longer), or KEEP LENGTH: the voices

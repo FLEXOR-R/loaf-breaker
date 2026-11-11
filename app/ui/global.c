@@ -92,7 +92,8 @@ static void global_value(int i, char *t)
     }
     text_cat(t, i == 0 ? (set.clk_in ? "FOLLOW" : "OFF") : i == 1 ? (set.clk_out ? "ON" : "OFF")
                 : i == 2 && !set.novice ? (ui.meter_on ? "ON" : "OFF")
-                : "");                   /* (LOAF BREAKER: K3 the METER, EXPERT only; K4 nothing: no Bluetooth) */
+                : i == 3 ? (set.bkeys.bk[BK_BHALF] & 1u ? "HALF" : "NORMAL")
+                : "");                   /* (LOAF BREAKER: K3 the METER, EXPERT only; K4 BREAK TIME, 0.256) */
 }
 
 /* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's BREAK its LEVEL alone (K4; the pitch: OCT), GROOVE its SWING alone */
@@ -102,7 +103,7 @@ static int glo_knob_ok(int i)
 }
 static void global_turn(int i, int32_t d)
 {
-    static const char *const NAME[4] = {"CLOCK IN", "CLOCK OUT", "BLUETOOTH", "MIDI TO"};
+    static const char *const NAME[4] = {"CLOCK IN", "CLOCK OUT", "BLUETOOTH", "BREAK TIME"};
     char t[16];
     if (!glo_knob_ok(i)) {
         easy_no();
@@ -222,8 +223,11 @@ static void global_turn(int i, int32_t d)
         app_say("METER", ui.meter_on ? "ON: CPU, IMG, FR" : "OFF");
         ui.redraw |= RG_HEAD | RG_FOOT;
         return;
-    } else                               /* (LOAF BREAKER: no Bluetooth: K4 does nothing) */
-        return;
+    } else {                             /* LOAF BREAKER (0.256, FLEXOR): K4 BREAK TIME, right HALF (the break at half
+                                          * the tempo: a 115 break under a 230 kick, at its own speed), left NORMAL */
+        set.bkeys.bk[BK_BHALF] = d > 0 ? 1u : 0u;
+        ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
+    }
     global_value(i, t);
     app_say(NAME[i], t);
     changed();
@@ -386,6 +390,16 @@ static void draw_global(const brk_status_t *st)
     (void)bs;
     cv_text(6, 2, &FONT_T, "MIDI", C_GRAY);
     cv_text(96, 2, &FONT_T, "USB AND THE TRS JACK", C_WHITE);
+    cv_text(6, 16, &FONT_T, "BREAK TIME", C_GRAY);   /* (LOAF BREAKER, 0.256: the break's tempo, half or the tempo's) */
+    t[0] = 0;
+    {
+        int32_t bt = (int32_t)set.tempo_x10 / ((set.bkeys.bk[BK_BHALF] & 1u) ? 2 : 1);
+        text_cat(t, set.bkeys.bk[BK_BHALF] & 1u ? "HALF: " : "NORMAL: ");
+        tenths_text(bt, v);
+        text_cat(t, v);
+        text_cat(t, " BPM");
+    }
+    cv_text(96, 16, &FONT_T, t, set.bkeys.bk[BK_BHALF] & 1u ? C_HI : C_WHITE);
     cv_text(6, 30, &FONT_T, "CLOCK IN", C_GRAY);
     t[0] = 0;
     if (!set.clk_in)

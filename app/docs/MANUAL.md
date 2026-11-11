@@ -681,8 +681,8 @@ the **METER** (below).
 | --- | --- | --- |
 | K1 CLOCK IN | OFF · FOLLOW | Following, MIDI clock from USB or the TRS jack sets the tempo (the header says EXT; SELECT waits), START plays from bar 1, STOP stops, and the loop eases onto the clock's beat every beat. The clock is stamped where it lands, so the tempo it reads is steady |
 | K2 CLOCK OUT | OFF · ON | While playing, 24 clocks a beat (straight, whatever the swing); PLAY sends START, stopping sends STOP, HOME + PLAY sends START again |
-| K3 | (not used: no Bluetooth) | |
-| K4 MIDI TO | USB+BT · USB · BT | Where the clock goes: USB (the BT choices do nothing, no Bluetooth) |
+| K3 METER | OFF · ON | (EXPERT) CPU, IMG, FR in the header: the audio's load, the screen's |
+| K4 BREAK TIME | NORMAL · HALF | HALF: the break at half the tempo, at its own speed: its steps every other 16th, while the kick, the drums and the clock stay at the tempo. A 115 break under a 230 terror kick plays as it was recorded (the panel shows the break's tempo). NORMAL: the break at the tempo, as ever |
 
 The panel shows the clock coming in (its tempo, where from, running or stopped), the clock going out, and a light for
 MIDI in and out on each port. The FM-1 has no MIDI out jack: MIDI goes out over USB only.
