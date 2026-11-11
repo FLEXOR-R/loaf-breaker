@@ -272,6 +272,11 @@ static void input(void)
         ui.btn = btn;
         return;
     }
+    if (tut_on() && (bdn & TUT_NAV & ~tut_btn_ok())) {   /* LOAF BREAKER (0.249): the TUTORIAL, a page button the
+                                          * step doesn't ask for: held back (GLO quits) */
+        bdn &= ~(TUT_NAV & ~tut_btn_ok());
+        app_say("TUTORIAL", "FOLLOW THE STEP");
+    }
     ovl_keys(keys, kdn);                 /* the OVERLAY page's white keys (and the latched ones, any page) */
     for (i = 0; i < 16u; i++) {          /* white keys: slices, or a page's own */
         if (ui.page == PG_OVL)

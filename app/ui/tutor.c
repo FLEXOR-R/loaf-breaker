@@ -29,14 +29,14 @@ static const struct {
     {1u, TC_OVLPG, 0u, 0u, 1u << B_ARP, "PRESS ARP: ALL THE EFFECTS"},   /* (0.244: the OVERLAY page back) */
     {1u, TC_OVLKEY, TK_WHITE, 1u, 0u, "HOLD WHITE KEYS: AN EFFECT EACH"},
     {2u, TC_EDIT, 0u, 0u, 1u << B_EDIT, "PRESS EDIT: THE KICK"},
-    {2u, TC_KPRE, 0u, 1u, 0u, "TURN K1: THE BUILT-IN KICKS"},
-    {2u, TC_DISTO, 0u, 1u, 0u, "TURN K2: ITS DISTO"},
+    {2u, TC_KPRE, 0u, 1u, 0u, "TURN KNOB 1: THE BUILT-IN KICKS"},
+    {2u, TC_DISTO, 0u, 1u, 0u, "TURN KNOB 2: ITS DISTO"},
     {2u, TC_SHAPE, 0u, 0u, 1u << B_EDIT, "PRESS EDIT: SHAPE, ITS TAIL"},
-    {2u, TC_TAIL, 0u, 1u, 0u, "TURN K3: A LONGER TAIL"},
+    {2u, TC_TAIL, 0u, 1u, 0u, "TURN KNOB 3: A LONGER TAIL"},
     {2u, TC_PRESETS, 0u, 1u, 0u, "TURN PRESETS: KICK 2 OF 10"},
     {3u, TC_SNPG, 0u, 0u, 0u, "TURN SELECT: THE SNARE"},
-    {3u, TC_PPRE, 0u, 1u, 0u, "TURN K1: ITS PRESETS"},
-    {3u, TC_PFX, 0u, 1u, 0u, "TURN K2: ITS FX"},
+    {3u, TC_PPRE, 0u, 1u, 0u, "TURN KNOB 1: ITS PRESETS"},
+    {3u, TC_PFX, 0u, 1u, 0u, "TURN KNOB 2: ITS FX"},
     {4u, TC_SEQ, 0u, 0u, 1u << B_SEQ, "PRESS SEQ: THE PATTERN"},
     {4u, TC_KICKS, TK_WHITE, 1u, 0u, "WHITE KEYS: PUT 2 KICKS IN"},
     {4u, TC_SNARE, TK_WHITE, 1u, 0u, "ALGORITHM TO SNARE, ADD ONE"},
@@ -137,7 +137,7 @@ static void ask_draw(void)
     cv_begin(240, 60, C_BLACK);          /* the question */
     cv_text2((240 - text2_w(&FONT_B, "YOUR MODE")) / 2, 1, &FONT_B, "YOUR MODE", C_WHITE);
     cv_text((240 - text_w(&FONT_XS, "TURN A KNOB, PRESS PLAY")) / 2, 33, &FONT_XS, "TURN A KNOB, PRESS PLAY", C_AMB);
-    cv_text((240 - text_w(&FONT_XS, "LATER: GLO, SETUP, K3")) / 2, 44, &FONT_XS, "LATER: GLO, SETUP, K3", C_DIM);
+    cv_text((240 - text_w(&FONT_XS, "LATER: GLO, SETUP, KNOB 3")) / 2, 44, &FONT_XS, "LATER: GLO, SETUP, KNOB 3", C_DIM);
     cv_blit(0, 0);
     for (c = 0; c < 3u; c++) {           /* the three, one a strip */
         int on = c == ask_sel;
@@ -291,6 +291,19 @@ static const char *tut_away(uint32_t c, uint16_t *btn)
     default:
         return 0;
     }
+}
+/* LOAF BREAKER (0.249, FLEXOR: "the tutorial must flow"): the page buttons a step lets through: its own, the way back
+ * (tut_away), the next step's once this one is done; GLO (quit, SEL + GLO skip), PLAY, SAVE, REC are never held back */
+#define TUT_NAV (1u << B_HOME | 1u << B_FX | 1u << B_EDIT | 1u << B_LFO | 1u << B_SEQ | 1u << B_ENV | 1u << B_ARP)
+static uint32_t tut_btn_ok(void)
+{
+    uint32_t s = set.tut - 1u, m = TUT[s].btn;
+    uint16_t bt;
+    tut_away(TUT[s].cond, &bt);
+    m |= bt;
+    if (tut_ok && s + 1u < TUT_N)
+        m |= TUT[s + 1u].btn;
+    return m;
 }
 static uint32_t tut_left(void)           /* a step done: the seconds before the next (1..5) */
 {

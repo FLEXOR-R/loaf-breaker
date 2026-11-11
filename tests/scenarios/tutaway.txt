@@ -1,6 +1,7 @@
-# LOAF BREAKER (0.248, FLEXOR): the TUTORIAL off its step's page: the header says how to go back (and blinks that
-# button), then the step again once there. Step 3 (the slices, HOME): EDIT opens the kick: "PRESS HOME: BACK TO THE
-# BREAK"; HOME: the step again, done.
+# LOAF BREAKER: the TUTORIAL keeps to its steps (0.249, FLEXOR: "the tutorial must flow"): a page button the step
+# doesn't ask for does nothing ("FOLLOW THE STEP"); off the step's page all the same (0.248), the header says the way
+# back and only that button blinks and works. Step 3 (the slices, HOME): EDIT held back. SEL + GLO to step 9 (KNOB 1,
+# the built-in kicks), still on HOME: "PRESS EDIT: BACK TO THE KICK"; SEQ held back, EDIT: the kick, the step again.
 #   app/build/host/loaf-breaker_host tests/scenarios/tutaway.txt app/build/scenarios
 wait 4200
 tap GLO
@@ -19,20 +20,31 @@ wait 5600
 expect tut 3
 tap EDIT
 wait 400
-expect page 4
-wait 2600
-shot tu_away.png
-tap HOME
+expect page 0
+shot tu_blocked.png
+press SEL
+tap GLO
+wait 150
+tap GLO
+wait 150
+tap GLO
+wait 150
+tap GLO
+wait 150
+tap GLO
+wait 150
+tap GLO
+release SEL
+wait 300
+expect tut 9
+expect page 0
+tap SEQ
 wait 400
 expect page 0
 wait 2600
+shot tu_away.png
+tap EDIT
+wait 400
+expect page 4
+wait 2600
 shot tu_back.png
-tapkey w0
-wait 100
-tapkey w3
-wait 100
-tapkey w5
-wait 100
-tapkey w8
-wait 5400
-expect tut 4
