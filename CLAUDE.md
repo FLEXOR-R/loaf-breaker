@@ -113,7 +113,9 @@ files before it define. `app/dsp/*.c` are separate `o2` units (brk, brk_fx, kick
   were true: ~40 KB and ~37 KB of flash). Their app hooks (`APP_BLE_AT_BOOT`, `BP_MQ_ATTR` in app.h) stay as
   CHOPPAH's, inert; never turn either back on.
 - Flash: the app slot is 581,564 B (`APP_SLOT` 0x8DFBC in base/tools/fm1pkg_make.py: not 581 KiB); 577,288 B used at
-  0.192 with a 357 KB bank; 561,424 B at 0.220 (9 breaks): **~20 KB left**. The break bank (`CH_BANK`) is most of it.
+  0.192 with a 357 KB bank; 561,424 B at 0.220 (9 breaks); 568,492 B at 0.225 (the drums' extras): **~13 KB left**.
+  RAM .data+.bss 93,292 of 98,304 B at 0.225 (the drums' room, 5.8 KB of 16-bit lines, is in RAM): ~5 KB left; the
+  pool has ~10.8 KB (it could take the room's lines). The break bank (`CH_BANK`) is most of it.
   New features are welcome before 1.0 (FLEXOR, 11 Nov 2026: "not that close to 1.0, I want to perfect the firmware");
   anything big needs something taken out first (ask FLEXOR what).
   Block-rate engine code is `BRK_COLD` (built for size) and calls the shared maths (`brk_exp2f_c` and the like,
