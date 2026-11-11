@@ -291,50 +291,21 @@ static void lane_sound_text(char *t)
         text_cat(t, " ");
     int_text((int32_t)(dr == DR_KICK ? set.kslot % KICK_MEMS : *perc_slot(dr - 1u)) + 1, t + text_n(t));
 }
-/* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's drum lanes: K1 BEAT, a whole beat at once (the four drum lanes'
- * every bar), K2 the lane's sound, K3 CLR / 4X4; no step menu (a step held: nothing); K4 LENGTH the kick's alone
- * (0.227: 16, 32, 64; a drum lane says EXPERT) */
-#define NBEATS 8u
-static const char *const BEAT_NAME[NBEATS] = {"EMPTY", "GABBER", "HARDCORE", "UPTEMPO", "CROSSBREED", "BREAKBEAT",
-                                              "HALFTIME", "JUNGLE"};
-static const uint16_t BEAT[NBEATS][NDRUMS] = {   /* (kick, snare, hat, clap: bit k the 16th k) */
-    {0u, 0u, 0u, 0u},
-    {0x1111u, 0u, 0x4444u, 0u},              /* GABBER: four on the floor, the hat between */
-    {0x1111u, 0x1010u, 0x4444u, 0u},         /* HARDCORE: and the snare on 2 and 4 */
-    {0x1111u, 0u, 0x4444u, 0x1010u},         /* UPTEMPO: the clap on 2 and 4 */
-    {0x1111u, 0x1010u, 0x5555u, 0x1010u},    /* CROSSBREED: the snare and the clap together, 8th hats */
-    {0x0401u, 0x1010u, 0x5555u, 0u},         /* BREAKBEAT: the two-step */
-    {0x0041u, 0x0100u, 0x1111u, 0u},         /* HALFTIME: the snare on 3 */
-    {0x0481u, 0x9010u, 0x4444u, 0u}};        /* JUNGLE */
-static uint8_t beat_cur;
-static void beat_turn(int32_t d)
-{
-    pat_t *p = pat_now();
-    uint32_t dr, b;
-    beat_cur = (uint8_t)clamp((int32_t)beat_cur + (d > 0 ? 1 : -1), 0, NBEATS - 1);
-    undo_mark(UNDO_CLEAR);
-    for (dr = 0; dr < NDRUMS; dr++)
-        for (b = 0; b < drum_bars(p, dr); b++)
-            drum_bar_set(p, dr, b, BEAT[beat_cur][dr]);
-    pat_lanes_out();
-    set_dirty = 1u;
-    app_say("BEAT", BEAT_NAME[beat_cur]);
-    ui.redraw |= RG_BLOCKS | RG_FOOT;
-}
+/* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's drum lanes as EXPERT's (0.229: K1 FILL again, the BEAT presets of
+ * 0.224-0.228 gone, FLEXOR: "a sequencer without them"), but no step menu (a step held: nothing) and K4 LENGTH the
+ * kick's alone (0.227: 16, 32, 64; a drum lane says EXPERT) */
 static void lane_knob(int i, int32_t d)
 {
     static const char *const NAME[4] = {"FILL", "SOUND", "LANE", "LENGTH"};
     uint32_t m = sl_get(pat_now(), ui.seq_lane), n = 0u, k;
     char t[16];
-    if (set.novice && ui.note_key)
-        return;                          /* (BEGINNER: no step menu) */
+    if (set.novice && ui.note_key) {
+        easy_no();                       /* (BEGINNER: no step menu) */
+        return;
+    }
     if (set.novice && i == 3 && !sl_kick(ui.seq_lane)) {   /* (0.227, FLEXOR: BEGINNER's LENGTH the kick's alone, 16,
                                           * 32 or 64; the drums 16) */
         app_say("16 STEPS", "LONGER: EXPERT MODE");
-        return;
-    }
-    if (set.novice && i == 0) {
-        beat_turn(d);
         return;
     }
     if (ui.note_key && sl_notes(ui.seq_lane) && (i || !sl_tuned(ui.seq_lane))) {   /* LOAF BREAKER: a step held, K2
@@ -573,10 +544,6 @@ static void seq_value(int i, char *t)    /* the step edited: SLICE, PITCH, HITS,
 {
     const uint8_t *b = pat_now()->st[ui.seq_step % PAT_STEPS];
     t[0] = 0;
-    if (set.novice && ui.seq_lane >= SL_KICK && i == 0) {   /* (BEGINNER: K1 the BEAT) */
-        text_cat(t, BEAT_NAME[beat_cur % NBEATS]);
-        return;
-    }
     if (ui.seq_lane >= SL_KICK && ui.note_key) {   /* LOAF BREAKER: a step held: its NOTE, HITS, CHANCE, NUDGE */
         uint32_t ks = SL_BAR[ui.seq_lane % NSEQL] * 16u + ui.note_key - 1u, dr = sl_drum(ui.seq_lane);
         uint32_t sb = *stepb(set.pattern, dr, ks);

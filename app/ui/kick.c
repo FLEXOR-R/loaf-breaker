@@ -254,19 +254,23 @@ static void kick_part_set(uint32_t p);
                 (1u << 12) | (1u << 14) | (1u << 16) | (1u << 17) | (1u << 19) | (1u << 20) | (1u << 22) | (1u << 23) | \
                 (1u << 24) | (1u << 25) | (1u << 26) | (1u << 29) | (1u << 31))   /* (LAB: TAIL +, TOOLS) */
 static int kp_hidden(uint32_t p) { return set.novice && p < 32u && (KP_ADV >> p & 1u); }
-/* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's KICK, on OUT's part: 0.223 one page; 0.228 two (FLEXOR: "the most
- * relevant, SUB DRIVE on the first, TUNE on the second"): KICK K1 PRESET (the built-in kicks), K2 DISTO, K3 SUB DRIVE
- * (the SUB layer's DRIVE effect, its GAIN: OFF at the left, the black key SUB's), K4 TAIL (the SUB's decay); SHAPE K1
- * TUNE (SYNTH's), K2 PUNCH (MACRO's), K3 CLICK (its level), K4 PITCH DROP (SYNTH's DROP). EDIT again and ALGORITHM go
- * from one to the other (EXPERT: the menu) */
+/* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's KICK, on OUT's part: 0.223 one page; 0.228 two; 0.229 three, FLEXOR's
+ * eight picked on a checklist and MIX: KICK K1 PRESET (the built-in kicks), K2 DISTO, K3 SUB DRIVE (the SUB layer's DRIVE
+ * effect, its GAIN: OFF at the left), K4 DRIVE (the kick's INTENSITY); SHAPE K1 P DROP (SYNTH's DROP), K2 DROP TIME
+ * (SYNTH's TIME), K3 TAIL (the SUB's decay), K4 TAIL MODE (the LAB's: CLASSIC, CLEAN); MIX the four layers' levels, SUB,
+ * PUNCH, GRIT, CLICK. EDIT again and ALGORITHM go round them (EXPERT: the menu) */
 #define KP_PART_OUT 10u                  /* (OUT's part, BODY's last) */
 static int kick_easy(void) { return set.novice && ui.page == PG_KICK && ui.kpage == KP_OUT; }
-enum { KE_PRESET, KE_DISTO, KE_SUBDRV, KE_TAIL, KE_TUNE, KE_PUNCH, KE_CLICK, KE_DROP, KE_N };
-static const uint8_t KEASY[2][4] = {{KE_PRESET, KE_DISTO, KE_SUBDRV, KE_TAIL}, {KE_TUNE, KE_PUNCH, KE_CLICK, KE_DROP}};
-static const char *const KE_NAME[KE_N] = {"PRESET", "DISTO", "SUB DRIVE", "TAIL", "TUNE", "PUNCH", "CLICK", "P DROP"};
-static const char *const KE_PAGE[2] = {"KICK", "SHAPE"};
-static uint8_t keasy_pg;                 /* (the page: 0 KICK, 1 SHAPE) */
-static uint32_t ke(int i) { return KEASY[keasy_pg & 1u][i & 3]; }
+enum { KE_PRESET, KE_DISTO, KE_SUBDRV, KE_DRIVE, KE_DROP, KE_DTIME, KE_TAIL, KE_TMODE, KE_LSUB, KE_LPUNCH, KE_LGRIT,
+       KE_LCLICK, KE_N };                /* (KE_LSUB .. KE_LCLICK: the layers' levels, in KL_* order) */
+#define KE_PAGES 3u
+static const uint8_t KEASY[KE_PAGES][4] = {{KE_PRESET, KE_DISTO, KE_SUBDRV, KE_DRIVE}, {KE_DROP, KE_DTIME, KE_TAIL, KE_TMODE},
+                                           {KE_LSUB, KE_LPUNCH, KE_LGRIT, KE_LCLICK}};
+static const char *const KE_NAME[KE_N] = {"PRESET", "DISTO", "SUB DRIVE", "DRIVE", "P DROP", "DROP TIME", "TAIL",
+                                          "TAIL MODE", "SUB", "PUNCH", "GRIT", "CLICK"};
+static const char *const KE_PAGE[KE_PAGES] = {"KICK", "SHAPE", "MIX"};
+static uint8_t keasy_pg;                 /* (the page: 0 KICK, 1 SHAPE, 2 MIX) */
+static uint32_t ke(int i) { return KEASY[keasy_pg % KE_PAGES][i & 3]; }
 static void kick_open(void)              /* the KICK menu, at its section's part */
 {
     uint32_t s = ui.ksect % KSECTS;
@@ -282,10 +286,10 @@ static void kick_open(void)              /* the KICK menu, at its section's part
 }
 static void kick_sect_next(void)         /* EDIT on the KICK menu */
 {
-    if (set.novice) {                    /* (BEGINNER: KICK, SHAPE) */
-        keasy_pg ^= 1u;
+    if (set.novice) {                    /* (BEGINNER: KICK, SHAPE, MIX) */
+        keasy_pg = (uint8_t)((keasy_pg + 1u) % KE_PAGES);
         kick_part_set(KP_PART_OUT);
-        app_say("KICK", KE_PAGE[keasy_pg & 1u]);
+        app_say("KICK", KE_PAGE[keasy_pg % KE_PAGES]);
         return;
     }
     ui.ksect = (uint8_t)((ui.ksect + 1u) % KSECTS);
@@ -423,7 +427,8 @@ static void kick_value(int i, char *t)
     const kick_layer_t *l = &k->l[ui.klayer % KICK_LAYERS];
     t[0] = 0;
     if (kick_easy() && ke(i) != KE_PRESET) {   /* (BEGINNER's pages) */
-        switch (ke(i)) {
+        uint32_t e = ke(i);
+        switch (e) {
         case KE_DISTO:
             kick_hc_text(k, 1, t);
             break;
@@ -433,26 +438,24 @@ static void kick_value(int i, char *t)
             else
                 pct_text(k->l[KL_SUB].fa, t);
             break;
+        case KE_DRIVE:
+            pct_text(k->intensity, t);
+            break;
+        case KE_DROP:
+            ks_text(KS_DROP, t);
+            break;
+        case KE_DTIME:
+            ks_text(KS_TIME, t);
+            break;
         case KE_TAIL:
             int_text((int32_t)(kick_decay_ms(KL_SUB, k->l[KL_SUB].decay) + 0.5f), t);
             text_cat(t, " MS");
             break;
-        case KE_TUNE: {
-            int32_t v = set.ksyn[KS_TUNE];
-            if (v > 0)
-                text_cat(t, "+");
-            int_text(v, t + text_n(t));
-            text_cat(t, " ST");
-            break;
-        }
-        case KE_PUNCH:
-            pct_text(kick_macro_value(1), t);
-            break;
-        case KE_CLICK:
-            pct_text(k->l[KL_CLICK].level, t);
+        case KE_TMODE:
+            text_cat(t, klab.cur.mode == 1u ? "CLEAN" : "CLASSIC");
             break;
         default:
-            ks_text(KS_DROP, t);
+            pct_text(k->l[(e - KE_LSUB) % KICK_LAYERS].level, t);
             break;
         }
         return;
@@ -588,8 +591,8 @@ static void kick_knob_turn(int i, int32_t d)
     if (kick_easy() && ke(i) != KE_PRESET) {   /* (BEGINNER's pages) */
         char w[24];
         kick_layer_t *sub = &k->l[KL_SUB];
-        uint32_t j;
-        switch (ke(i)) {
+        uint32_t e = ke(i);
+        switch (e) {
         case KE_DISTO:                   /* (OUT's K2: 2 % a detent) */
             KICK_TERROR(k) = (uint8_t)clamp((int32_t)KICK_TERROR(k) + d * 2, 0, 100);
             break;
@@ -606,27 +609,31 @@ static void kick_knob_turn(int i, int32_t d)
             if (d < 0 && sub->fa <= 0.0f)
                 sub->fx = KFX_OFF;
             break;
+        case KE_DRIVE:
+            k->intensity = knob_f(k->intensity, d, 0.02f, 0.0f, 1.0f);
+            break;
+        case KE_DROP:
+            ks_add(KS_DROP, d);
+            break;
+        case KE_DTIME:
+            ks_add(KS_TIME, d);
+            break;
         case KE_TAIL:
             sub->decay = knob_f(sub->decay, d, 0.02f, 0.0f, 1.0f);
             break;
-        case KE_TUNE:
-            ks_add(KS_TUNE, d);
+        case KE_TMODE:                   /* (the LAB's TAIL MODE: right CLEAN, left CLASSIC) */
+            klab.cur.mode = d > 0 ? 1u : 0u;
             break;
-        case KE_PUNCH:
-            for (j = 0; j < KM_N; j++)
-                *kick_macro(1, j) = knob_f(*kick_macro(1, j), d, 0.02f, 0.0f, 1.0f);
+        default: {
+            kick_layer_t *l = &k->l[(e - KE_LSUB) % KICK_LAYERS];
+            l->level = knob_f(l->level, d, 0.02f, 0.0f, 1.0f);
             break;
-        case KE_CLICK:
-            k->l[KL_CLICK].level = knob_f(k->l[KL_CLICK].level, d, 0.02f, 0.0f, 1.0f);
-            break;
-        default:
-            ks_add(KS_DROP, d);
-            break;
+        }
         }
         kick_value(i, t);
         w[0] = 0;
         text_cat(w, "KICK ");
-        text_cat(w, ke(i) == KE_DROP ? "PITCH DROP" : KE_NAME[ke(i)]);
+        text_cat(w, e == KE_DROP ? "PITCH DROP" : KE_NAME[e]);
         app_say(w, t);
         ui.redraw |= RG_BLOCKS | RG_FOOT;
         changed_kick();
@@ -824,23 +831,27 @@ static float kick_knob_f(int i)          /* the part's knob i, 0..1 (as its bar)
 {
     const kick_t *k = &set.kick;
     const kick_layer_t *l = &k->l[ui.klayer % KICK_LAYERS];
-    if (kick_easy() && ke(i) != KE_PRESET)   /* (BEGINNER's pages) */
-        switch (ke(i)) {
+    if (kick_easy() && ke(i) != KE_PRESET) {   /* (BEGINNER's pages) */
+        uint32_t e = ke(i);
+        switch (e) {
         case KE_DISTO:
             return (float)KICK_TERROR(k) * 0.01f;
         case KE_SUBDRV:
             return k->l[KL_SUB].fx == KFX_DRIVE ? k->l[KL_SUB].fa : 0.0f;
+        case KE_DRIVE:
+            return k->intensity;
+        case KE_DROP:
+            return ks_normj(KS_DROP);
+        case KE_DTIME:
+            return ks_normj(KS_TIME);
         case KE_TAIL:
             return k->l[KL_SUB].decay;
-        case KE_TUNE:
-            return ks_normj(KS_TUNE);
-        case KE_PUNCH:
-            return kick_macro_value(1);
-        case KE_CLICK:
-            return k->l[KL_CLICK].level;
+        case KE_TMODE:
+            return (float)(klab.cur.mode == 1u);
         default:
-            return ks_normj(KS_DROP);
+            return k->l[(e - KE_LSUB) % KICK_LAYERS].level;
         }
+    }
     switch (ui.kpage) {
     case KP_MIX:
         return k->l[i].level;
@@ -1063,7 +1074,8 @@ static void kick_picture(int32_t top)
             text_cat(t, kstyle_name());
         }
         else if (kick_easy())            /* (BEGINNER's pages) */
-            text_cat(t, keasy_pg ? "TUNE, PUNCH, CLICK, DROP" : "PRESET, DISTO, SUB, TAIL");
+            text_cat(t, keasy_pg == 2u ? "THE FOUR LAYERS' LEVELS" : keasy_pg ? "THE PITCH DROP, THE TAIL"
+                                                                                : "PRESET, DISTO, DRIVE");
         else if (p < 32u)
             text_cat(t, D[p]);
         cv_text(12 + text_w(&FONT_B, "KICK 10"), 4, &FONT_XS, t, kp_knobs() || ui.kpage == KP_STYLE ? C_HI : C_GRAY);
@@ -1094,14 +1106,14 @@ static void kick_picture(int32_t top)
         const felucca_font_t *f = &FONT_T;
         int32_t cx = 4, y = 80;
         char c[16];
-        if (set.novice) {                /* (BEGINNER: its two pages, KICK and SHAPE, as tabs; EDIT the other) */
-            for (j = 0; j < 2u; j++) {
+        if (set.novice) {                /* (BEGINNER: its pages, KICK, SHAPE, MIX, as tabs; EDIT the next) */
+            for (j = 0; j < KE_PAGES; j++) {
                 int32_t x = cx + (int32_t)j * 64;
                 cv_rect(x, y, 60, 15, j == keasy_pg ? C_HI : C_DIM);
                 cv_text(x + 30 - text_w(&FONT_T, KE_PAGE[j]) / 2, y + 2, &FONT_T, KE_PAGE[j],
                         j == keasy_pg ? C_BLACK : C_GRAY);
             }
-            cv_text(cx + 134, y + 4, &FONT_XS, "EDIT: THE OTHER", C_DIM);
+            cv_text(cx + 198, y + 4, &FONT_XS, "EDIT", C_DIM);
             n = 0u;
         }
         for (j = 0; j < n; j++) {

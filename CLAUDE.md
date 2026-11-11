@@ -17,10 +17,15 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   stays credited (README, site credits, the card's text, fm1.toml). The hub checklist: docs/hub/SUBMIT.md.
 - Menus (9 Nov 2026, 0.177): ENV is the song (TRACKS, PLAY, DROP, BUILD); RESET is GLO's sixth part (`RST_ON`, ENV's
   reset code in track.c); the knobs' functions are EDIT KICK › KNOBS only. SYSTEM › SETUP K3 MODE (`set.novice`): BEGINNER keeps
-  the essentials (0.223: the KICK one page, `kick_easy`; 0.228: two, KICK and SHAPE, `KEASY[]`, `keasy_pg`, EDIT the other; the FX page's PRESETS a SCENE, `fx_scene_turn`; 0.224: SEQ's BEAT, SONG's
-  `trk_knob_ok`, `glo_knob_ok`, the held keys and pads (ARP's `OVL_EASY`); `KP_ADV` no longer reached in BEGINNER; 0.227: SEQ K4 LENGTH the kick's alone, 16/32/64, a drum lane 16 ("EXPERT MODE"),
-  BEGINNER turned on sets the kicks 32 (`novice_lengths`); the FX scenes then MAGIC EQ, MAGIC MBC on the slot shown); the host simulator starts EXPERT (scenarios, the manual's screens), the
-  FM-1 and the web emulator BEGINNER. The manual opens with "Start in five minutes" (the hub card's `cheat` link).
+  the essentials, as FLEXOR chose them on a checklist (0.229; https://claude.ai/artifact/75VV4U2fH5iouT8789feZN, its
+  store `choix/beginner`): the KICK three pages on OUT's part (`kick_easy`, `KEASY[]`, `keasy_pg`: KICK, SHAPE, MIX), the
+  drums PRESET / FX / LEVEL / DECAY, SEQ as EXPERT's but no step menu and K4 LENGTH the kick's alone (16/32/64, a drum
+  lane 16; BEGINNER turned on sets the kicks 32, `novice_lengths`), the FX chain two slots (`fx_nslots`, the others
+  muted in `fx_apply`) and a short list (`FX_EASY`) then MAGIC EQ, MAGIC MBC; SONG's `trk_knob_ok`, `glo_knob_ok`, the
+  held keys and pads (ARP all sixteen); DST and SUB keys and blank knobs say EXPERT MODE (`easy_no`); `KP_ADV` no
+  longer reached. Gone in 0.229: the FX scenes, SEQ's BEAT presets, MB KICK and MB OTT. A new FM-1 asks its mode
+  (tutor.c `TUT_ASK`, set.tut 0xFD; the simulator with LOAF_ASK=1). The host simulator starts EXPERT (scenarios, the
+  manual's screens), the FM-1 and the web emulator BEGINNER. The manual opens with "Start in five minutes" (the hub card's `cheat` link).
 - Screen and knobs (0.178): the screen's rows are remembered as hashes (`rows_send` in common.c): a full-width strip
   sends only its changed rows. Anything drawing on the screen other than through `cv_blit` must forget its rows
   (`rows_forget`; `lcd_fill` is wrapped). `changed()` applies once a pass (`apply_flush`); a kick-only or FX-only change
@@ -61,7 +66,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - GLO EFFECTS K3 WAVE (`set.wstyle`: REKORDBOX / SERATO, common.c serato_col; the kick's RGB and cdj.c) and K4 KICK
   VIEW (`set.kfocus`: the whole kick / the part edited: kick.c kv_ms, kv_kick) (10 Nov 2026, 0.206).
 - TUTORIAL (0.211, FLEXOR: "a sober name"): ui/tutor.c (included before screen.c), TUT[] steps (lesson, condition TC_*,
-  keys and buttons to blink, text), `set.tut` (appended: 0 off, 1..TUT_N the step, 0xFE done; a new FM-1 starts it,
+  keys and buttons to blink, text), `set.tut` (appended: 0 off, 1..TUT_N the step, 0xFE done, 0xFD the mode asked (0.229); a new FM-1 asks,
   an older save not), the counters tut_* in common.c; the header draws the step (screen.c); SETUP K3 left of
   BEGINNER; GLO quits, SEL + GLO skips. 0.212 (FLEXOR): HOME first (on PERFORM already, HOME stays: tut_home_stay),
   OUT's K4 the built-in kicks (0.223: BEGINNER's KICK page, K1; 18 steps). 0.213: a step done waits 5 s (`TUT_WAIT`, the header counting) only where there is

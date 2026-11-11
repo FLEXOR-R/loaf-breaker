@@ -17,8 +17,9 @@ LOAF BREAKER turns the M-VAVE FM-1 into a hardcore break machine: a breakbeat cu
 built from scratch, drums, effects and drops. You don't need the whole manual to start: these five steps are enough.
 The FM-1 starts in **BEGINNER** mode (SYSTEM › SETUP: GLO, then GLO again; K1): the advanced pages stay hidden until you want them.
 
-**Or let the FM-1 show you: the TUTORIAL.** A new FM-1 starts with it (and SYSTEM › SETUP K3, turned left past
-BEGINNER, starts it again). The header says one thing to do at a time, the button or the keys that do it blink, and
+**Or let the FM-1 show you: the TUTORIAL.** A new FM-1 asks first, after its start screen: **TUTORIAL**, **BEGINNER**
+or **EXPERT** (a knob moves the choice, PLAY takes it; white keys 1–3 too). SYSTEM › SETUP K3, turned left past
+BEGINNER, starts the tutorial again. The header says one thing to do at a time, the button or the keys that do it blink, and
 when it's done, "OK!" and the next: at once for a button (HOME, EDIT, SEQ, SAVE ..), five seconds later where there is
 something to hear (an effect, a kick, the drop): 18 steps in seven lessons, THE
 BREAK (HOME: the PERFORM menu, PLAY, the slices, stop), EFFECTS (the black keys), THE KICK (EDIT, its K1 PRESET: the
@@ -321,7 +322,7 @@ or K2 left once more, deletes it, the rest moving up),
     or a long dive. **RUMBLE**: AMOUNT, TIME (SYNTH +'s): the tail rolling between kicks. **PUNCH**: the MACRO's PUNCH
     (level, sweep, click): the attack. **DRUM FLT**: the drums' filter (SEL + SELECT's), on a knob. **HOLD**: SYNTH's
     HOLD, the kick square for longer before it falls. **KICK FX**: FX 1 MIX, FX 2 MIX, the kick's own two FX slots
-    (an MB OTT or MB KICK on them) more or less.
+    more or less.
   - **STYLE** (KNOBS' last part, ALGORITHM back from KNOBS): **K1–K4** each give their own knob its function, one at a
     time (the cards show them); **PRESETS** turns through eight styles, each giving the four at once (the kick
     playing's): **TERROR** (DRIVE, SCREAM, D+ SCREECH, DISTO, as they
@@ -511,23 +512,9 @@ and DELAY; PRESETS the effect (remembered as left, apart from the chain's), ALGO
 FX the next part of the effect (MAIN, MORE, MOD), FX held + ALGORITHM moves the slot, SEL + FX bypasses, SEL + REC resets.
 FX from another page: the chain.
 
-**MB KICK** comes right after MB COMP in KICK FX's PRESETS: an MB COMP set for a gabber kick (KICK GABBER). The sub is
-split from the body at 120 Hz and held even (−24 dB, 6:1, a 15 ms attack that lets the punch through, 120 ms back);
-the body, where DISTO's distortion sits, is tamed (−20 dB, 4:1, 5 / 80 ms); the click and the screech are held fast
-(−30 dB, 8:1, 1 / 50 ms) above 3 kHz; a 3 dB knee, every band at full amount, all wet. It is an MB COMP: its AMOUNT
-knobs ride each band (the foot shows the ratio each reaches) and FX turns through its detail to change anything. A
-CLIP in the other slot after it makes it loud without the mush. PRESETS on, or back: a plain MB COMP.
-
-**MB OTT** comes after MB COMP in PRESETS, in the FX chain and in KICK FX (after MB KICK): the dense "over the top"
-sound. Every band pressed hard and fast (−36 dB, 10:1, 1 ms in, 60 ms out) and pushed back up after it (+6 dB the
-low, +9 dB the mid and high), split at 88 Hz and 2.5 kHz, a 6 dB knee, −3 dB out and 60 % wet: the loud parts come
-down while the quiet ones, the tails and the room, come up.
-
-**Scenes (BEGINNER).** In BEGINNER mode PRESETS on the FX page picks a whole scene instead of the slot's effect: CLEAN
-(nothing), PUNCH (MAGIC EQ, MAGIC MBC, CLIP), DUB (a low-pass, a 3/16 delay, a reverb), LO-FI (TAPE, CRUNCH, a
-low-pass), CRUSHED (CRUNCH, DRIVE, CLIP), INDUSTRIAL (DRIVE, RING MOD, a short reverb), SPACE (FLANGER,
-DELAY, REVERB); then **MAGIC EQ** and **MAGIC MBC**, on the slot shown alone (the other three kept). Each slot can
-still be tuned (K1–K3, K4 its mix); EXPERT picks the effects one by one.
+**BEGINNER's chain.** In BEGINNER mode the FX page has two slots (the third and fourth are muted and hidden; EXPERT
+gives them back as they were) and PRESETS turns through a short list: EMPTY, FILTER, CRUNCH, DRIVE, FLANGER, REVERB,
+DELAY, TAPE, CLIP, then **MAGIC EQ** and **MAGIC MBC**. Each slot keeps its settings (K1–K3, K4 its mix).
 
 **MAGIC EQ** and **MAGIC MBC** are FLEXOR's own, at the very end of PRESETS (past CLIP), in the FX chain and in KICK
 FX. MAGIC EQ is an EQ: LOW −5.8 dB (shelf at 182 Hz), MID −2.9 dB at 999 Hz (Q 1.59), HIGH +1.9 dB (shelf at 8 kHz),
@@ -535,8 +522,6 @@ FX. MAGIC EQ is an EQ: LOW −5.8 dB (shelf at 182 Hz), MID −2.9 dB at 999 Hz 
 and 6 dB down, the MID at −34 dB, 3:1 (5 / 100 ms), the HIGH at −48 dB, 2:1 (2 / 60 ms) and 2 dB up; the AMOUNTs at
 4.5:1, 1.7:1 and 1.5:1, 60 % wet. Both stay what they are underneath: every knob and part works as on a plain EQ or
 MB COMP.
-
-![MB KICK: the sub, the body and the click held apart, split at 120 Hz and 3 kHz](img/screen-mbkick.png "MB KICK")
 
 | K1–K3 · K4 | Its settings · its mix |
 | SEL + FX | That slot on / bypassed |
@@ -562,7 +547,7 @@ MB COMP.
 **EQ**'s bands go −12 … +12 dB, flat in the middle; its K4 is not a mix but the **mid's frequency** (**MID FREQ**, in Hz: 1.5KHZ is 1,500 Hz); its MORE part has the mid's width (**MID Q**: low, wide; high, narrow). **TAPE** is a
 saturator after a tape machine: put it last in the chain to glue the break, or before CRUNCH for a dusty sampler.
 
-**MB COMP** is a 3-band (multiband) compressor, and the one effect with a page of its own (below). The heaviest effects on the FM-1's processor are **TAPE** and the **MB COMP**s (MB OTT, MB KICK too), then FLANGER and EQ: if the screen says **OVERLOAD · FX SLOT BYPASSED**, the sound got close to its limit twice in a row and the chain's last slot on was switched off for 2 s; fewer of those (or SYSTEM › MIDI K3 METER, in EXPERT, to watch the CPU) keeps it clear. **CLIP** squares
+**MB COMP** is a 3-band (multiband) compressor, and the one effect with a page of its own (below). The heaviest effects on the FM-1's processor are **TAPE** and the **MB COMP**s (MAGIC MBC too), then FLANGER and EQ: if the screen says **OVERLOAD · FX SLOT BYPASSED**, the sound got close to its limit twice in a row and the chain's last slot on was switched off for 2 s; fewer of those (or SYSTEM › MIDI K3 METER, in EXPERT, to watch the CPU) keeps it clear. **CLIP** squares
 the peaks off at its ceiling: soft rounds them, hard cuts them; below the ceiling it only adds its drive. MB COMP then
 CLIP last in the chain is a loud master; CLIP before a FILTER is a fizzy one.
 
@@ -704,22 +689,24 @@ two-colour ones: SYNTHWAVE (neon cyan and magenta on indigo), VAPOR, TOXIC, MIAM
 red), ACID (acid yellow and red-orange). K2 **WAVE ZOOM** (PRESETS too), how much of the past HOME's scrolling wave (the
 CDJ view) holds across the screen: 1/2, 2/3, 5/6 of a bar (zoomed in), 1 BAR (as it was), 1 1/4, 1 1/2, 2 BARS (zoomed
 out). K3 **MODE**: TUTORIAL (left of BEGINNER: the tutorial, above), BEGINNER or EXPERT (right). **BEGINNER** keeps
-each thing to its essentials, to play the machine before learning it: the **KICK** is two pages, EDIT again (or
-ALGORITHM) going from one to the other: **KICK** (K1 **PRESET**, the built-in kicks; K2 **DISTO**; K3 **SUB DRIVE**,
-the SUB through its drive, OFF at the left, as the black key SUB; K4 **TAIL**, the SUB's length) and **SHAPE** (K1
-**TUNE**; K2 **PUNCH**; K3 **CLICK**, the attack's click; K4 **P DROP**, the pitch's fall at the hit); the
-**FX** chain is a choice of **scenes** on PRESETS (CLEAN, PUNCH, DUB, LO-FI, CRUSHED, INDUSTRIAL, SPACE: the four slots
-set at once; past SPACE, **MAGIC EQ** and **MAGIC MBC** go on the slot shown alone; K1–K4 still the slot's settings
-and mix; FX again stays on MAIN); the MIXER has LEVELS and SENDS; on SEQ's
-drum lanes K1 is **BEAT**, a whole beat written at once on the four drum lanes (EMPTY, GABBER, HARDCORE, UPTEMPO,
-CROSSBREED, BREAKBEAT, HALFTIME, JUNGLE), K2 the lane's sound, K3 CLR / 4X4, K4 **LENGTH** the kick's alone (16, 32 or 64 steps; turning BEGINNER on
+each thing to its essentials, to play the machine before learning it: the **KICK** is three pages, EDIT again (or
+ALGORITHM) going round them: **KICK** (K1 **PRESET**, the built-in kicks; K2 **DISTO**; K3 **SUB DRIVE**, the SUB
+through its drive, OFF at the left; K4 **DRIVE**, the whole kick's), **SHAPE** (K1 **P DROP**, the pitch's fall at the
+hit; K2 **DROP TIME**, how long it falls; K3 **TAIL**, the SUB's length; K4 **TAIL MODE**, CLASSIC or CLEAN) and
+**MIX** (the four layers' levels: SUB, PUNCH, GRIT, CLICK); the drums' page is PRESET, FX, LEVEL and DECAY; the **FX**
+chain has two slots and a short list on PRESETS, MAGIC EQ and MAGIC MBC at its end (above); FX again stays on MAIN;
+the MIXER has LEVELS and SENDS; on SEQ's drum lanes K1 is **FILL**, K2 the lane's sound, K3 CLR / 4X4, K4 **LENGTH**
+the kick's alone (16, 32 or 64 steps; turning BEGINNER on
 sets every kick of the group to 32 and the drums to 16; a drum lane stays 16, "LONGER: EXPERT MODE"), and a step held has no menu (the key just
 turns the step on or off); SONG keeps each part's essentials (TRACKS: the item's pattern and its loops; PLAY: the track;
 DROP: the build's bars; BUILD: its style); a white key held plays its loop with no knobs, a black key plays with none
-either, but ARP: K1 its effect among six (DIVE, RISE, CRUSH, GATE, WOBBLE, BOOM), K2 its amount; SOUNDS › BREAK keeps
+either, but ARP: K1 its effect (all sixteen), K2 its amount; the **DST** and **SUB** black keys do nothing but say
+where it is (the KICK page's DISTO and SUB DRIVE: the knobs always heard); a knob BEGINNER leaves out is drawn blank
+and says "EXPERT MODE" when turned; SOUNDS › BREAK keeps
 its LEVEL (K4; the pitch is OCT's) and PATTERN › GROOVE its SWING.
 Nothing is lost: EXPERT shows everything again, as it was left, and what BEGINNER sets is there to refine. A
-new FM-1, the web emulator and RESET ALL start in BEGINNER; an FM-1 updated with its settings saved stays in EXPERT.
+new FM-1, the web emulator and RESET ALL ask for the mode first (BEGINNER chosen to start); an FM-1 updated with its
+settings saved stays as it was.
 K4 **AUTO SAVE**, ON: what you change is saved by itself a minute after it changed, once the break has been stopped and
 **nothing has been heard for 10 s** (the flash is never written while it plays, nor while a long kick tail, a reverb, an
 echo or a drum played by hand still sounds: its stall would cut it).

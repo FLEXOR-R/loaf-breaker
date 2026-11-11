@@ -258,6 +258,16 @@ static void input(void)
         ui.btn = btn;
         return;
     }
+    if (set.tut == TUT_ASK) {            /* LOAF BREAKER (0.229): the mode asked first (tutor.c): nothing else meanwhile */
+        int32_t d = 0;
+        for (k = 0; k < NE; k++)
+            d += plat_enc(k);
+        if (!ui.intro)
+            ask_input(kdn, bdn, d);
+        ui.keys = keys;
+        ui.btn = btn;
+        return;
+    }
     for (i = 0; i < 16u; i++) {          /* white keys: slices, or a page's own */
         if (i < NDRUMS && (ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX() || ui.page == PG_PERC) &&
             !playing_now()) {            /* LOAF BREAKER: the KICK menu (big or classic, its EQ and FX parts too) and the
@@ -341,7 +351,9 @@ static void input(void)
     }
     for (i = 0; i < 11u; i++) {          /* black keys: the pads, held; the last one pressed has the screen */
         if (i == PAD_FREEZE) {           /* GLOUPI BREAKS: FREEZE's key turns the kick's SUB DRIVE on and off */
-            if ((kdn & PAD_BIT(i)))
+            if ((kdn & PAD_BIT(i)) && set.novice)   /* (LOAF BREAKER, 0.229: BEGINNER, the KICK page's SUB DRIVE) */
+                app_say("SUB: EXPERT MODE", "BEGINNER: EDIT, SUB DRIVE");
+            else if ((kdn & PAD_BIT(i)))
                 sub_drive_toggle();
             continue;
         }
@@ -391,7 +403,9 @@ static void input(void)
         if ((kup & PAD_BIT(i)) && !(i == PAD_HALF && half_lat))
             brk_pad((int)i, 0);
     }
-    if (kdn >> BK[TERR_KEY] & 1u) {      /* LOAF BREAKER: TER, as SUB's DRIVE: the kick's TERROR off if it sounds (its
+    if ((kdn >> BK[TERR_KEY] & 1u) && set.novice)   /* (LOAF BREAKER, 0.229: BEGINNER, the KICK page's DISTO) */
+        app_say("DST: EXPERT MODE", "BEGINNER: EDIT, DISTO");
+    else if (kdn >> BK[TERR_KEY] & 1u) { /* LOAF BREAKER: TER, as SUB's DRIVE: the kick's TERROR off if it sounds (its
                                           * amount kept), else on (an amount at nothing: 50 %, a key that does something) */
         if (KICK_TERROR(&set.kick) && !terror_off)
             set.selk_hi |= 16u;
@@ -907,7 +921,7 @@ static void input(void)
         } else if (k == EN_PRESET && btn & 1u << B_SEL)
             pattern_pick(d);             /* SEL held: the pattern, on any page */
         else if (k == EN_PRESET && ui.page == PG_FX)
-            set.novice && !FX_KICK() ? fx_scene_turn(d) : fx_type_turn(d);   /* the focused slot's effect (LOAF
+            fx_type_turn(d);   /* the focused slot's effect (LOAF
                                           * BREAKER: BEGINNER, a whole scene) */
         else if (k == EN_PRESET && ui.page == PG_PERC)   /* LOAF BREAKER: the snare's, hat's or clap's memories */
             perc_mem_turn(ui.pvoice, d);
@@ -971,9 +985,13 @@ static void input(void)
         } else if (key_tuned() >= 0) {   /* a white key held: K1-K4 tune its loop (LOAF BREAKER: BEGINNER, not) */
             if (!set.novice)
                 key_knob_turn(key_tuned(), k - EN_K1, d);
+            else
+                easy_no();               /* (0.229: said) */
         } else if (ui.pad_focus >= 0) {  /* a pad held: K1-K4 tune it (BEGINNER: the ARP key's K1, K2 alone) */
             if (!set.novice || pad_knob_name(ui.pad_focus, k - EN_K1))
                 pad_knob_turn(ui.pad_focus, k - EN_K1, d);
+            else
+                easy_no();
         } else
             knob_turn(k, d);
     }
@@ -1175,7 +1193,7 @@ static void draw_tabs(void)
         x = tab(x, pn, 0);
         tab(x, SEQ_LANE_NAME[ui.seq_lane % NSEQL], 1);
     } else if (ui.page == PG_FX && !IS_KFX()) {
-        for (i = 0; i < BRK_FX_SLOTS; i++)
+        for (i = 0; i < fx_nslots(); i++)   /* (LOAF BREAKER: BEGINNER's two) */
             x = tab(x, SLOT_NUM[i], i == fx_foc());
         text_cat(part, fx_name(fx_foc()));
         if (ui.fx_page) {                /* "< MB COMP X-OVER >", "< FILTER MOD >" */
@@ -1185,8 +1203,8 @@ static void draw_tabs(void)
     } else if (ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX()) {   /* LOAF BREAKER: the KICK menu: its sections,
                                           * the part (if it fits) */
         if (kick_easy()) {               /* (LOAF BREAKER: BEGINNER's KICK, its two pages: no sections, no parts) */
-            x = tab(x, "KICK", !keasy_pg);
-            tab(x, "SHAPE", keasy_pg);
+            for (i = 0; i < KE_PAGES; i++)
+                x = tab(x, KE_PAGE[i], i == keasy_pg);
         } else {
             for (i = 0; i < KSECTS; i++)
                 x = tab(x, KSECT_NAME[i], i == ui.ksect % KSECTS);
@@ -1418,8 +1436,8 @@ static void draw_foot(const brk_status_t *st)
             name = KN_LANE[ui.note_key != 0u][i];
             if (!ui.note_key && i == 1)
                 name = sl_kick(ui.seq_lane) ? "KICK" : "SOUND";
-            if (set.novice)              /* (LOAF BREAKER: BEGINNER, K1 the BEAT, no step menu; 0.227: LENGTH) */
-                name = i == 0 ? "BEAT" : KN_LANE[0][i];
+            if (set.novice)              /* (LOAF BREAKER: BEGINNER, no step menu) */
+                name = KN_LANE[0][i];
             if (set.novice && i == 1)
                 name = sl_kick(ui.seq_lane) ? "KICK" : "SOUND";
         }
@@ -1545,6 +1563,10 @@ void app_frame(void)
             intro_draw(now);
             return;
         }
+    }
+    if (set.tut == TUT_ASK) {            /* LOAF BREAKER (0.229): the mode asked, after the start screen */
+        ask_draw();
+        return;
     }
     if ((ui.page == PG_TRACK) != (ui.drawn_page == PG_TRACK)) {   /* into or out of ENV: the whole screen again */
         lcd_fill(0, 44, 240, 148, C_BLACK);
@@ -2040,7 +2062,7 @@ int app_expect(const char *what, int *got)
     v[40] = ui.trk_cur;
     v[41] = trk_now()->it[ui.trk_cur % TRK_ITEMS];
     v[42] = (int)fx_sl(fx_foc())->type;
-    v[43] = mb_kick_is(fx_foc());
+    v[43] = 0;                           /* ("mb_kick": MB KICK, gone in 0.229) */
     v[44] = (int)mb_preset(fx_foc());
     v[45] = fill_on;
     v[46] = set.kbass[1];
@@ -2093,7 +2115,7 @@ int app_expect(const char *what, int *got)
     v[99] = set.tut;
     v[100] = set.ezoom;
     v[101] = (int)kv_ms();
-    v[102] = beat_cur;
+    v[102] = 0;                          /* ("beat": BEGINNER's BEAT, gone in 0.229) */
     v[103] = (int)sl_get(pat_now(), ui.seq_lane % NSEQL);
     v[104] = set.swing;
     v[105] = set.drop_bars;
@@ -2102,7 +2124,7 @@ int app_expect(const char *what, int *got)
     v[108] = perc_x(ui.pvoice)[PX_DIRT];
     v[109] = perc_x(ui.pvoice)[PX_ROOM];
     v[110] = (int)(16u * sl_bars(&pats.p[set.pattern % NPAT], ui.seq_lane));
-    v[111] = fx_scene;
+    v[111] = 0;                          /* ("fx_scene": the scenes, gone in 0.229) */
     v[112] = keasy_pg;
     v[113] = set.kick.l[KL_SUB].fx == KFX_DRIVE ? (int)(set.kick.l[KL_SUB].fa * 100.0f + 0.5f) : -1;
     for (i = 0; i < 114u; i++)

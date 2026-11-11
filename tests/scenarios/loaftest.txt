@@ -1,5 +1,5 @@
 # LOAF BREAKER TEST: the test firmware's new things. The start-up glitch; ARP held: FILL; the kick's BASS part (GLIDE,
-# REV BASS); MB OTT on the chain; BUILD's TEMPO RISE; GLO MORE's CRT; a track playing: its progress and DROP IN.
+# REV BASS); MAGIC MBC on the chain (MB OTT, gone in 0.229, was here); BUILD's TEMPO RISE; GLO MORE's CRT; a track playing: its progress and DROP IN.
 #   app/build/host/loaf-breaker_host tests/scenarios/loaftest.txt app/build/scenarios
 wait 250
 shot x_glitch.png
@@ -27,9 +27,8 @@ shot x_bass.png
 tap FX
 wait 300
 turn PRESET 20 10
-turn PRESET -3 10
 wait 300
-expect mb_pre 2
+expect mb_pre 3
 shot x_ott.png
 turn PRESET 1 10
 turn PRESET -20 10

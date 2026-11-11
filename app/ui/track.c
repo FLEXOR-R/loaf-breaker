@@ -1106,8 +1106,10 @@ static void track_turn(int i, int32_t d)
         ui.redraw |= RG_BLOCKS | RG_FOOT;
         return;
     }
-    if (!trk_knob_ok(i))
-        return;                          /* (BEGINNER: not this one) */
+    if (!trk_knob_ok(i)) {
+        easy_no();                       /* (BEGINNER: not this one) */
+        return;
+    }
     if (ui.tpage == 4u) {                /* BUILD */
         if (i == 0)
             set.drop_style = (uint8_t)clamp((int32_t)set.drop_style + dir, 0, DS_N - 1);

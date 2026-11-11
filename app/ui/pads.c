@@ -59,9 +59,8 @@ static int ovl_time_kind(uint32_t e)     /* 1 RATE, 2 SWEEP, 0 none */
 {
     return e == OV_CHOP || e == OV_GATE || e == OV_WAH || e == OV_PAN ? 1 : e == OV_DIVE || e == OV_RISE ? 2 : 0;
 }
-/* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's pads play and nothing more, but the ARP key: K1 its effect among six
- * (OVL_EASY), K2 its amount */
-static const uint8_t OVL_EASY[6] = {OV_DIVE, OV_RISE, OV_CRUSH, OV_GATE, OV_WOBBLE, OV_BOOM};
+/* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's pads play and nothing more, but the ARP key: K1 its effect (0.229: all
+ * sixteen), K2 its amount */
 static const char *pad_knob_name(int pad, int k)
 {
     if (set.novice && (pad != PAD_DUB || k >= 2))
@@ -297,13 +296,9 @@ static void pad_knob_turn(int pad, int k, int32_t d)
         {
             uint32_t e = set.ovl_pad & 15u;
             int tk = ovl_time_kind(e), dir = d > 0 ? 1 : -1;
-            if (set.novice) {            /* (BEGINNER: K1 the effect among six, K2 its amount) */
-                uint32_t j, at = 0u;
-                for (j = 0; j < 6u; j++)
-                    if (OVL_EASY[j] == e)
-                        at = j;
+            if (set.novice) {            /* (BEGINNER: K1 the effect, all sixteen (0.229, FLEXOR), K2 its amount) */
                 if (k == 0)
-                    set.ovl_pad = (uint8_t)((set.ovl_pad & ~15u) | OVL_EASY[(at + (d > 0 ? 1u : 5u)) % 6u]);
+                    set.ovl_pad = (uint8_t)((set.ovl_pad & ~15u) | ((e + (d > 0 ? 1u : OVL_N - 1u)) % OVL_N));
                 else if (k == 1)
                     set.ovl_amt[e] = (uint8_t)clamp((int32_t)set.ovl_amt[e] + d * 2, 0, 100);
                 else

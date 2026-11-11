@@ -4,15 +4,15 @@
 /* ---- the SNARE / HAT page (ENV): ALGORITHM the voice, ENV again SOUND or SHAPE, PRESETS its presets */
 static const char *const PERC_KNOB[PERC_VOICES][4][4] = {
     {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SNAP", "DRIVE", "PRESET", "DIRT"}, {"DROP", "TIME", "LIFT", "ROOM"},
-     {"PRESET", "FX", "LEVEL", "TUNE"}},
+     {"PRESET", "FX", "LEVEL", "DECAY"}},
     {{"LEVEL", "TUNE", "DECAY", "METAL/NZ"}, {"CUT", "DRIVE", "PRESET", "DIRT"}, {"", "", "LIFT", "ROOM"},
-     {"PRESET", "FX", "LEVEL", "TUNE"}},
+     {"PRESET", "FX", "LEVEL", "DECAY"}},
     {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SPREAD", "DRIVE", "PRESET", "DIRT"}, {"", "", "LIFT", "ROOM"},
-     {"PRESET", "FX", "LEVEL", "TUNE"}},
+     {"PRESET", "FX", "LEVEL", "DECAY"}},
     {{"", "", "", ""}, {"", "", "", ""}, {"", "", "", ""}, {"", "", "", ""}}};   /* (LOAF BREAKER: the clap's; SHAPE's
                                           * K3 PRESET, the memory back to a built-in sound; the fourth, the MELODY's,
                                           * gone in 0.209; 0.225: SHAPE's K4 DIRT, MORE (DROP, TIME, LIFT, ROOM), and
-                                          * BEGINNER's one page: PRESET, FX, LEVEL, TUNE) */
+                                          * BEGINNER's one page: PRESET, FX, LEVEL, TUNE; 0.229 DECAY for TUNE) */
 static const char *const PPAGE_NAME[4] = {"SOUND", "SHAPE", "MORE", "PRESET"};
 static uint32_t perc_pg(void) { return set.novice ? 3u : ui.ppage % 3u; }
 static const char *perc_kname(uint32_t v, uint32_t pg, int i) { return PERC_KNOB[v % PERC_VOICES][pg & 3u][i & 3]; }
@@ -118,8 +118,8 @@ static float *perc_param(int i)
     perc_voice_t *v = perc_voice(ui.pvoice);
     float *P[6] = {&v->level, &v->tune, &v->decay, &v->tone, &v->snap, &v->drive};
     uint32_t pg = perc_pg();
-    if (pg == 3u)                        /* (BEGINNER: K3 LEVEL, K4 TUNE) */
-        return i == 2 ? P[0] : i == 3 ? P[1] : 0;
+    if (pg == 3u)                        /* (BEGINNER: K3 LEVEL, K4 DECAY; 0.229, FLEXOR: TUNE out) */
+        return i == 2 ? P[0] : i == 3 ? P[2] : 0;
     return pg == 0u ? P[i & 3] : pg == 1u && i < 2 ? P[4 + i] : 0;
 }
 static uint8_t *perc_xknob(int i)        /* (LOAF BREAKER: MORE's K1-K4: the drum's extras; the snare alone drops) */
@@ -163,9 +163,9 @@ static void perc_value(int i, char *t)
     }
     if (!p)
         return;
-    if ((pg == 0u && i == 1) || (pg == 3u && i == 3))
+    if (pg == 0u && i == 1)
         hz_text(perc_tune_hz(v, *p), t);
-    else if (pg == 0u && i == 2) {
+    else if ((pg == 0u && i == 2) || (pg == 3u && i == 3)) {
         int_text((int32_t)(perc_decay_ms(v, *p) + 0.5f), t);
         text_cat(t, " MS");
     } else
@@ -179,14 +179,14 @@ static void perc_turn(int i, int32_t d)
     char t[16];
     if ((pg == 1u && i == 2) || (pg == 3u && i < 2)) {   /* PRESET (no undo); BEGINNER's FX on it */
         perc_voice_t *pv = perc_voice(v);
-        float lvl = pv->level, tune = pv->tune;
+        float lvl = pv->level, dec = pv->decay;
         uint32_t n = pp_n(v);
         if (i == 0 || pg == 1u)
             pp_apply(v, (x[PX_PRE] % n + (d > 0 ? 1u : n - 1u)) % n, -1);
-        else {                           /* (FX: the preset again, with the next; its LEVEL and TUNE kept) */
+        else {                           /* (FX: the preset again, with the next; its LEVEL and DECAY kept) */
             pp_apply(v, x[PX_PRE], (int)clamp((int32_t)x[PX_FX] + (d > 0 ? 1 : -1), 0, PFX_N - 1));
             pv->level = lvl;
-            pv->tune = tune;
+            pv->decay = dec;
         }
         ui.ppreset[v] = x[PX_PRE];
         perc_value(i, t);

@@ -8,6 +8,9 @@
  * Breaks: the bank built into the image (app/bank_data.h, which ./build.sh generates from breaks/breaks.txt), chosen
  * on ALGORITHM; a build with no bank falls back to one synthesised break. */
 #include <stddef.h>
+#if defined(PLAT_HOST) && !defined(PLAT_WEB)
+#include <stdlib.h>                  /* (getenv: LOAF_ASK, the first start's question) */
+#endif
 #include "adpcm.h"
 #include "brk_bank.h"
 #include "brk_math.h"
@@ -264,7 +267,8 @@ static void klab_send(void)              /* the LAB to the engine, STACK's attac
 static int32_t morph_i(int32_t a, int32_t b, uint32_t m) { return a + (b - a) * (int32_t)m / 100; }
 /* LOAF BREAKER: TER (the tenth black key), as SUB's DRIVE: the kick's TERROR off, whatever its amount (kept as it is),
  * or on again; the kick's own (selk_hi bit 4, with its memory: kx_put), saved */
-#define terror_off (set.selk_hi & 16u)
+#define terror_off (!set.novice && (set.selk_hi & 16u))   /* (LOAF BREAKER, 0.229: BEGINNER has no DST key: its
+                                          * DISTO knob always heard) */
 static void kick_send(void)
 {
     uint32_t m = set.kmorph > 100u ? 100u : set.kmorph, i, j;
@@ -332,9 +336,12 @@ static void settings_defaults(void)
 #if defined(PLAT_HOST) && !defined(PLAT_WEB)
     set.novice = 0u;                     /* (TEST: the simulator's scenarios and the manual's screens see it all: EXPERT;
                                           * a scenario turns GLO MORE's K1 for BEGINNER) */
+    if (getenv("LOAF_ASK"))              /* (LOAF BREAKER, 0.229: the first start's question, for its scenario) */
+        set.tut = 0xFDu;
 #else
     set.novice = 1u;                     /* (TEST: BEGINNER to start, on the FM-1 and the web emulator) */
-    set.tut = 1u;                        /* (LOAF BREAKER: and the TUTORIAL running, its first step) */
+    set.tut = 0xFDu;                     /* (LOAF BREAKER, 0.229: the mode asked first, tutor.c TUT_ASK; 0.211-0.228 the
+                                          * TUTORIAL straight away) */
 #endif
     set.sfx_kick = set.sfx_drop = set.sfx_len = 50u;   /* (TEST: REV BASS from 3/8 of the beat, a curve between) */
     set.tempo_x10 = 1700u;               /* jungle tempo */
@@ -418,7 +425,13 @@ static void skin_apply(uint32_t s);    /* (ui/common.c) */
 static void fx_apply(void)
 {
     uint32_t k;
-    brk_fx_set(&set.fx);
+    if (set.novice) {                    /* (LOAF BREAKER, 0.229: BEGINNER's chain two slots, the others muted) */
+        brk_fx_t f = set.fx;
+        for (k = 2u; k < BRK_FX_SLOTS; k++)
+            f.slot[k].on = 0u;
+        brk_fx_set(&f);
+    } else
+        brk_fx_set(&set.fx);
     for (k = 0; k < BRK_FX_SLOTS; k++) {
         brk_fx_set_mbc(k, &set.mbc[k]);
         brk_fx_set_fxx(k, &set.fxx[k]);

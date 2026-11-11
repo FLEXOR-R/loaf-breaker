@@ -96,7 +96,7 @@ static void mix_picture(int32_t top)
     }
     if (ui.mpage) {                      /* LOAF BREAKER: SENDS: FX, the chain's slots beside it; the drums' route */
         mix_fader(10, set.fx.wet, set.fx.wet > 0.005f);
-        for (c = 0; c < BRK_FX_SLOTS; c++) {
+        for (c = 0; c < fx_nslots(); c++) {   /* (LOAF BREAKER: BEGINNER's two) */
             const brk_fxslot_t *sl = &set.fx.slot[c];
             int on = sl->on && sl->type != FXT_EMPTY;
             cv_rect(30, MX_Y + (int32_t)c * 21, 6, 17, on ? C_BLOCK_HI : sl->type == FXT_EMPTY ? C_BLACK : C_BLOCK);

@@ -110,8 +110,10 @@ static void global_turn(int i, int32_t d)
 {
     static const char *const NAME[4] = {"CLOCK IN", "CLOCK OUT", "BLUETOOTH", "MIDI TO"};
     char t[16];
-    if (!glo_knob_ok(i))
+    if (!glo_knob_ok(i)) {
+        easy_no();
         return;
+    }
     if (ui.gpage == GP_FILL) {           /* LOAF BREAKER: GROOVE: K1 SWING; FILL: K2 LATCH, K3 the drum, K4 how long (16ths
                                           * or 8ths) */
         static const char *const FN[4] = {"SWING", "FILL LATCH", "FILL DRUM", "FILL LENGTH"};
@@ -191,6 +193,10 @@ static void global_turn(int i, int32_t d)
                 if (set.novice) {
                     ui.meter_on = 0u;    /* (the METER: EXPERT's) */
                     ui.fx_page = 0u;     /* (the FX page: MAIN only) */
+                    if (ui.fx_focus >= FX_EASY_SLOTS && ui.fx_focus < BRK_FX_SLOTS)
+                        ui.fx_focus = 0u;   /* (0.229: the chain's two slots) */
+                    if (ui.fx_main >= FX_EASY_SLOTS)
+                        ui.fx_main = 0u;
                     novice_lengths();    /* (0.227, FLEXOR: the kick 32 steps, the drums 16) */
                 }
                 changed();

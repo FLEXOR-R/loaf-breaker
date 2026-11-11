@@ -550,3 +550,6 @@ static int32_t cv_textn(int32_t x, int32_t y, const felucca_font_t *f, const cha
     }
     return x;
 }
+
+/* LOAF BREAKER (FLEXOR, 11 Nov 2026, 0.229): a knob BEGINNER leaves out (drawn blank), turned: said where it is */
+static void easy_no(void) { app_say("EXPERT MODE", "SETUP K3: EXPERT"); }

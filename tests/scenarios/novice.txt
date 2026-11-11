@@ -1,6 +1,7 @@
-# LOAF BREAKER: SYSTEM › SETUP's MODE (K3). BEGINNER (left): the KICK menu is two pages on OUT's part (0.228, FLEXOR):
-# KICK (K1 PRESET, K2 DISTO, K3 SUB DRIVE, K4 TAIL) and SHAPE (K1 TUNE, K2 PUNCH, K3 CLICK, K4 PITCH DROP); EDIT again
-# and ALGORITHM go from one to the other; SUB DRIVE OFF at the left; LFO: LEVELS and SENDS only. EXPERT (right): the whole
+# LOAF BREAKER: SYSTEM › SETUP's MODE (K3). BEGINNER (left): the KICK menu is three pages on OUT's part (0.229, FLEXOR's
+# checklist): KICK (K1 PRESET, K2 DISTO, K3 SUB DRIVE, K4 DRIVE), SHAPE (K1 P DROP, K2 DROP TIME, K3 TAIL, K4 TAIL MODE)
+# and MIX (the layers' levels: SUB, PUNCH, GRIT, CLICK); EDIT again and ALGORITHM go round them; SUB DRIVE OFF at the
+# left; LFO: LEVELS and SENDS only. EXPERT (right): the whole
 # menu again, from OUT.
 #   app/build/host/loaf-breaker_host tests/scenarios/novice.txt app/build/scenarios
 wait 4200
@@ -23,6 +24,9 @@ expect kpage 4
 expect keasy 1
 tap EDIT
 wait 300
+expect keasy 2
+tap EDIT
+wait 300
 expect kpage 4
 expect keasy 0
 turn K1 2 60
@@ -34,6 +38,12 @@ expect subdrv -1
 turn K3 3 60
 wait 200
 expect subdrv 6
+turn K4 -60 60
+wait 200
+expect intensity 0
+turn K4 5 60
+wait 200
+expect intensity 10
 wait 1500
 shot nv_kick.png
 turn K3 -3 60
@@ -42,11 +52,22 @@ expect subdrv -1
 tap EDIT
 wait 300
 expect keasy 1
+turn K4 1 60
+wait 200
+expect kl_mode 1
+turn K4 -1 60
+wait 200
+expect kl_mode 0
 turn K1 3 60
 wait 200
-expect ktune 3
+expect kdrop 6
 wait 1500
 shot nv_shape.png
+tap EDIT
+wait 300
+expect keasy 2
+wait 1500
+shot nv_mix.png
 tap LFO
 wait 150
 tap LFO

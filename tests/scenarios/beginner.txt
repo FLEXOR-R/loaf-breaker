@@ -1,8 +1,8 @@
-# LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER, the essentials. SEQ's drum lanes: K1 BEAT writes the four drum lanes
-# (GABBER: the kick four on the floor); a step held + a knob: nothing (no step menu), the key toggles the step as it
+# LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER, the essentials. SEQ's drum lanes: K1 FILL as in EXPERT (0.229: the
+# BEAT presets gone; four hits: the kick four on the floor); a step held + a knob: nothing (no step menu), the key toggles the step as it
 # comes up; K4 LENGTH the kick's alone (0.227, FLEXOR: 16, 32, 64; BEGINNER turned on, the kick 32 steps; a drum lane
-# stays 16, EXPERT MODE said). ENV's DROP: K2 nothing, K1 the build's bars. The ARP key held: K1 its effect among six
-# (DIVE, RISE, CRUSH ..), K3 nothing. GROOVE: SWING alone. A white key held: its knobs nothing.
+# stays 16, EXPERT MODE said). ENV's DROP: K2 nothing, K1 the build's bars. The ARP key held: K1 its effect, all sixteen
+# (0.229: DIVE, RISE, RADIO ..), K3 nothing (EXPERT MODE said). GROOVE: SWING alone. A white key held: its knobs nothing.
 #   app/build/host/loaf-breaker_host tests/scenarios/beginner.txt app/build/scenarios
 wait 4200
 tap GLO
@@ -17,13 +17,9 @@ expect page 6
 turn ALGO 1 80
 wait 200
 expect lane_steps 32
-turn K1 1 80
+turn K1 4 80
 wait 300
-expect beat 1
 expect lane_mask 4369
-turn K1 1 80
-wait 300
-expect beat 2
 wait 1200
 shot bg_seq.png
 key w1 down
@@ -65,12 +61,12 @@ wait 200
 expect arp_fx 1
 turn K1 1 60
 wait 200
-expect arp_fx 4
+expect arp_fx 2
 turn K3 5 60
 wait 200
 key b7 up
 wait 300
-expect arp_fx 4
+expect arp_fx 2
 press SEL
 tap ARP
 release SEL
