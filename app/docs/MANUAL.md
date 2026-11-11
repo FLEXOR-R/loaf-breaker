@@ -689,7 +689,7 @@ tempo's own repitch, HALF, REVERSE's speed and the tape stop stay speed effects.
 **SETUP (GLO twice):** its four settings top to bottom, K1 to K4. K1 **SKIN**, the screen's colours (CHOPPAH to start; the
 whole screen changes at once), 24 chosen by FLEXOR, two rows of twelve swatches: CHROME, FIRE&ICE, CHOPPAH, GLOUPI,
 TESS, OUTRUN, THUNDER, CYBRPUNK, MC SALO, ACID, GARRY, TOXIC, PIP-BOY, NEON, BLKLIGHT, PATINA, SYNTHWV, MIAMI, ELECTRIC,
-ARCTIC, BRDCRMBZ, IRIS, ULTRAVIO, MAXENCE (an FM-1 updated from before keeps its colour, or the nearest left). K2 **WAVE ZOOM** (PRESETS too), how much of the past HOME's scrolling wave (the
+ARCTIC, BRDCRMBZ, IRIS, GLUCKSMAN, MAXENCE (an FM-1 updated from before keeps its colour, or the nearest left). K2 **WAVE ZOOM** (PRESETS too), how much of the past HOME's scrolling wave (the
 CDJ view) holds across the screen: 1/2, 2/3, 5/6 of a bar (zoomed in), 1 BAR (as it was), 1 1/4, 1 1/2, 2 BARS (zoomed
 out). K3 **MODE**: TUTORIAL (left of BEGINNER: the tutorial, above), BEGINNER or EXPERT (right). **BEGINNER** keeps
 each thing to its essentials, to play the machine before learning it: the **KICK** is three pages, EDIT again (or

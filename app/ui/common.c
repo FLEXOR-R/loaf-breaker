@@ -178,7 +178,7 @@ static void scr_fill(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint16_t c)
  * an older save's place in the 18 before is mapped (SKIN_OLD) to the nearest kept */
 #define SKIN_NEW 0x80u
 #define SKIN_DEFAULT 2u                  /* (CHOPPAH) */
-static const char *const SKIN_NAME[NSKINS] = {"CHROME", "FIRE&ICE", "CHOPPAH", "GLOUPI", "TESS", "OUTRUN", "THUNDER", "CYBRPUNK", "MC SALO", "ACID", "GARRY", "TOXIC", "PIP-BOY", "NEON", "BLKLIGHT", "PATINA", "SYNTHWV", "MIAMI", "ELECTRIC", "ARCTIC", "BRDCRMBZ", "IRIS", "ULTRAVIO", "MAXENCE"};
+static const char *const SKIN_NAME[NSKINS] = {"CHROME", "FIRE&ICE", "CHOPPAH", "GLOUPI", "TESS", "OUTRUN", "THUNDER", "CYBRPUNK", "MC SALO", "ACID", "GARRY", "TOXIC", "PIP-BOY", "NEON", "BLKLIGHT", "PATINA", "SYNTHWV", "MIAMI", "ELECTRIC", "ARCTIC", "BRDCRMBZ", "IRIS", "GLUCKSMAN", "MAXENCE"};
 static const uint8_t SKIN_OLD[18] = {2u, 2u, 19u, 12u, 21u, 23u, 15u, 20u, 0u, 23u, 16u, 17u, 11u, 17u, 3u, 6u, 3u, 9u};   /* (RED AMBER ICE-BLUE PIP-BOY IRIS
                                           * PINK MINT WHITE BLOOD MAXENCE SYNTHWAVE VAPOR TOXIC MIAMI LAVA GOLD BLAZE ACID) */
 /* each: line, dim, gray, mid (secondary), hi (values), block, white */
@@ -205,7 +205,7 @@ static const uint8_t SKIN_RGB[NSKINS][7][3] = {
     {{13, 22, 48}, {37, 58, 116}, {158, 172, 208}, {60, 130, 255}, {190, 245, 255}, {6, 11, 24}, {248, 254, 255}}   /* ARCTIC: ice white and steel blue, a polar night */,
     {{34, 34, 40}, {74, 74, 82}, {150, 150, 158}, {196, 196, 202}, {236, 236, 240}, {24, 24, 30}, {255, 255, 255}}   /* BRDCRMBZ: WHITE until 0.236: white and greys */,
     {{34, 32, 44}, {76, 72, 90}, {152, 148, 166}, {150, 100, 240}, {196, 166, 255}, {24, 22, 34}, {255, 255, 255}}   /* IRIS: iris violet */,
-    {{21, 11, 48}, {56, 32, 116}, {170, 155, 208}, {255, 90, 200}, {140, 90, 255}, {11, 5, 24}, {244, 238, 255}}   /* ULTRAVIO: deep violet and UV pink */,
+    {{21, 11, 48}, {56, 32, 116}, {170, 155, 208}, {255, 90, 200}, {140, 90, 255}, {11, 5, 24}, {244, 238, 255}}   /* GLUCKSMAN: deep violet and UV pink */,
     {{60, 12, 48}, {130, 36, 110}, {240, 170, 225}, {255, 0, 170}, {255, 70, 215}, {44, 0, 34}, {255, 232, 250}}   /* MAXENCE: a very loud pink, neon on plum */};
 static uint32_t skin_idx(void) { return (set.skin & 0x7Fu) % NSKINS; }
 static uint32_t skin_old(uint32_t s) { return s < 18u ? SKIN_OLD[s] : SKIN_DEFAULT; }

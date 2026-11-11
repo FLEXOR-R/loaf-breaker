@@ -1469,7 +1469,11 @@ static void draw_foot(const brk_status_t *st)
         cv_text(4 + (int32_t)i * 60, 18, &FONT_T, name, ui.page == PG_FX
                 ? (fx_sl(fx_foc())->on ? C_HI : C_DIM) : C_GRAY);
         knob_value((int)i, t);
-        cv_text(4 + (int32_t)i * 60, 30, &FONT_XS, t, C_WHITE);
+        if (text_w(&FONT_XS, t) > 57)    /* (LOAF BREAKER, 0.238: a value wider than its column, GLUCKSMAN: the
+                                          * smaller letters, not into the next) */
+            cv_text(4 + (int32_t)i * 60, 31, &FONT_T, t, C_WHITE);
+        else
+            cv_text(4 + (int32_t)i * 60, 30, &FONT_XS, t, C_WHITE);
         {                                /* (TEST: its arc, where there is room beside the value) */
             float nv = foot_norm((int)i);
             if (nv >= 0.0f && text_w(&FONT_XS, t) <= 38)
