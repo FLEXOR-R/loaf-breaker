@@ -8,8 +8,9 @@ enum { SL_BREAK1, SL_BREAK2, SL_KICK, SL_KICK2, SL_KICK3, SL_KICK4, SL_SNARE, SL
 static const char *const SEQ_LANE_NAME[NSEQL] = {"STEPS 1-16", "STEPS 17-32", "KICK 1-16", "KICK 17-32", "KICK 33-48",
                                                  "KICK 49-64", "SNARE 1-16", "SNARE 17-32", "HAT 1-16", "HAT 17-32",
                                                  "CLAP 1-16", "CLAP 17-32"};
-#define SQ_BRK_H 13                      /* LOAF BREAKER (0.241, FLEXOR): a break row's pitch, its slices' numbers
-                                          * just fitting (21 + 3 before) */
+#define SQ_BRK_MIN 18                    /* LOAF BREAKER (0.242, FLEXOR): a break row's pitch, the rows' average (the grid's
+                                          * height over its rows), between this (its number inside its box) and 24 */
+#define SQ_BRK_MAX 24
 #define SQ_H 148                         /* the picture's rows (screen 44..191) */
 #define SQ_X 30                          /* the steps begin (the names before) */
 static uint32_t text_n(const char *t) { uint32_t n = 0u; while (t[n]) n++; return n; }   /* (no libc's strlen on the FM-1) */
@@ -761,17 +762,19 @@ static void seq_picture(const brk_status_t *st, int32_t top)
     const pat_t *p = pat_now();
     uint8_t row[NSEQL];
     uint32_t i, r, n = seq_rows(row), nb = 0u;
-    int32_t y0, pitch;
+    int32_t y0, pitch, bh;
     char t[8];
     while (nb < n && row[nb] < SL_KICK)  /* (the break's rows on top: one, or BEGINNER's two) */
         nb++;
-    y0 = SQ_BRK_H * (int32_t)nb;
+    bh = SQ_H / (int32_t)(n ? n : 1u);   /* (0.242: the break's rows as tall as the grid's average, its numbers in) */
+    bh = bh < SQ_BRK_MIN ? SQ_BRK_MIN : bh > SQ_BRK_MAX ? SQ_BRK_MAX : bh;
+    y0 = bh * (int32_t)nb;
     pitch = (SQ_H - y0) / (int32_t)(n - nb ? n - nb : 1u);
     cv_oy = -top;
     for (r = 0; r < n; r++) {
         uint32_t sl = row[r], brk = sl < SL_KICK, m = brk ? 0u : sl_get(p, sl);
-        int32_t y = brk ? SQ_BRK_H * (int32_t)r : y0 + (int32_t)(r - nb) * pitch, at = brk ? -1 : sl_now(st, sl);
-        int32_t ch = brk ? SQ_BRK_H - 2 : pitch > 4 ? pitch - 2 : pitch;   /* (the break's half: tall enough for its
+        int32_t y = brk ? bh * (int32_t)r : y0 + (int32_t)(r - nb) * pitch, at = brk ? -1 : sl_now(st, sl);
+        int32_t ch = brk ? bh - 2 : pitch > 4 ? pitch - 2 : pitch;   /* (the break's half: tall enough for its
                                           * numbers) */
         int picked = SEQ_BRK ? brk : sl == ui.seq_lane;   /* (on BREAK: the break's rows named lit) */
         t[0] = 0;                        /* the row's name: the drum and its length on its first bar, else the bar */
@@ -798,8 +801,8 @@ static void seq_picture(const brk_status_t *st, int32_t top)
                     int_text((int32_t)v - 1, t);
                 else
                     text_cat(t, v ? "." : "-");
-                if (ch >= 9)
-                    cv_text(x + (w - text_w(&FONT_XS, t)) / 2, y + (ch - 8) / 2, &FONT_XS, t,
+                if (ch >= 9)             /* (0.242: centred, clear of the mark under it) */
+                    cv_text(x + (w - text_w(&FONT_XS, t)) / 2, y + (ch - 10) / 2, &FONT_XS, t,
                             now ? C_BLACK : v >= 2u ? C_HI : C_GRAY);
                 else if (v >= 2u)        /* (too small for its number: a mark) */
                     cv_rect(x + 1, y + ch / 2, w - 2, 1, now ? C_BLACK : C_HI);
