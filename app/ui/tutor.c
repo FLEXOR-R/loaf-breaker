@@ -226,6 +226,72 @@ static int tut_done(uint32_t c, const brk_status_t *st)
         return plat_ms() - tut_at.t > 6000u;
     }
 }
+/* LOAF BREAKER (0.248, FLEXOR): off the step's page, the header says how to go back there instead (and blinks that
+ * button); NULL: on the way */
+static const char *tut_away(uint32_t c, uint16_t *btn)
+{
+    int home = ui.page == PG_HOME || ui.page == PG_GEN, kick = ui.page == PG_KICK;
+    *btn = 0u;
+    switch (c) {
+    case TC_SLICES:
+    case TC_BRK:
+        if (!home) {
+            *btn = 1u << B_HOME;
+            return "PRESS HOME: BACK TO THE BREAK";
+        }
+        return 0;
+    case TC_OVLKEY:
+        if (ui.page != PG_OVL || ui.opage) {
+            *btn = 1u << B_ARP;
+            return "PRESS ARP: BACK TO THE EFFECTS";
+        }
+        return 0;
+    case TC_KPRE:
+    case TC_DISTO:
+    case TC_TAIL:
+    case TC_PRESETS:
+        if (!kick) {
+            *btn = 1u << B_EDIT;
+            return "PRESS EDIT: BACK TO THE KICK";
+        }
+        if (set.novice && c != TC_PRESETS && keasy_pg != (c == TC_TAIL ? 1u : 0u)) {
+            *btn = 1u << B_EDIT;
+            return c == TC_TAIL ? "PRESS EDIT: THE SHAPE TAB" : "PRESS EDIT: THE KICK TAB";
+        }
+        return 0;
+    case TC_SNPG:
+        if (!kick && ui.page != PG_PERC) {
+            *btn = 1u << B_EDIT;
+            return "PRESS EDIT: BACK TO THE KICK";
+        }
+        return 0;
+    case TC_PPRE:
+    case TC_PFX:
+        if (ui.page == PG_PERC && ui.einst == DR_SNARE)
+            return 0;
+        if (kick || ui.page == PG_PERC)
+            return "TURN SELECT: BACK TO THE SNARE";
+        *btn = 1u << B_EDIT;
+        return "EDIT, THEN SELECT: THE SNARE";
+    case TC_KICKS:
+    case TC_SNARE:
+        if (ui.page != PG_SEQ) {
+            *btn = 1u << B_SEQ;
+            return "PRESS SEQ: BACK TO THE PATTERN";
+        }
+        if (c == TC_KICKS && !sl_kick(ui.seq_lane))
+            return "TURN ALGORITHM: THE KICK LANE";
+        return 0;
+    case TC_FXT:
+        if (ui.page != PG_FX) {
+            *btn = 1u << B_FX;
+            return "PRESS FX: BACK TO THE EFFECTS";
+        }
+        return 0;
+    default:
+        return 0;
+    }
+}
 static uint32_t tut_left(void)           /* a step done: the seconds before the next (1..5) */
 {
     uint32_t e = plat_ms() - tut_ok;
@@ -244,6 +310,14 @@ static void tut_frame(const brk_status_t *st)   /* each frame: the step done, 5 
             ui.redraw |= RG_HEAD;        /* (the header's countdown) */
         left = l;
         return;
+    }
+    {                                    /* (off the step's page, or back: the header says so) */
+        static const char *was;
+        uint16_t bt;
+        const char *w = tut_away(TUT[set.tut - 1u].cond, &bt);
+        if (w != was)
+            ui.redraw |= RG_HEAD;
+        was = w;
     }
     if (tut_done(TUT[set.tut - 1u].cond, st)) {
         if (!TUT[set.tut - 1u].wait) {   /* (nothing to hear: "OK!" and the next at once) */
@@ -284,7 +358,11 @@ static void tut_head(char *a, char *b)   /* the header's two lines: "TUTORIAL 3/
         text_cat(b, " S");
         return;
     }
-    text_cat(b, TUT[s].say);
+    {
+        uint16_t bt;
+        const char *w = tut_away(TUT[s].cond, &bt);
+        text_cat(b, w ? w : TUT[s].say);   /* (off the step's page: the way back) */
+    }
 }
 static void tut_leds(uint32_t *b, uint32_t *k, int playing)   /* the step's buttons and keys blinking */
 {
@@ -292,6 +370,13 @@ static void tut_leds(uint32_t *b, uint32_t *k, int playing)   /* the step's butt
     if (!tut_on() || tut_ok || !((plat_ms() / 300u) & 1u))
         return;
     s = set.tut - 1u;
+    {
+        uint16_t bt;
+        if (tut_away(TUT[s].cond, &bt)) { /* (off the step's page: the button back, nothing else) */
+            *b |= bt;
+            return;
+        }
+    }
     *b |= TUT[s].btn;
     if (TUT[s].cond == TC_DROP && !playing)   /* (the drop: PLAY first) */
         *b |= 1u << B_PLAY;

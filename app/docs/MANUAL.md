@@ -24,7 +24,7 @@ when it's done, "OK!" and the next: at once for a button (HOME, EDIT, SEQ, SAVE 
 something to hear (an effect, a kick, the drop): 24 steps in eight lessons, THE
 BREAK (HOME: the PERFORM menu, PLAY, the slices, ALGORITHM: another break), EFFECTS (a black key; ARP, the OVERLAY page, two of its effects), THE KICK (EDIT, K1 PRESET: the built-in kicks, 909 to DISTORTO; K2 DISTO; EDIT again: SHAPE, K3 a longer tail;
 PRESETS: your ten kicks), THE DRUMS (SELECT: the SNARE, K1 its presets, K2 its FX), THE PATTERN (SEQ: kicks, a snare),
-THE FX (FX, PRESETS: an effect), THE DROP (SEL + ENV) and SAVE. Everything is real: you play the firmware itself. **SEL + GLO** skips a step, **GLO** quits (SETUP K3 starts it
+THE FX (FX, PRESETS: an effect), THE DROP (SEL + ENV) and SAVE. Everything is real: you play the firmware itself. Leave the step's page and the header says how to get back there ("PRESS HOME: BACK TO THE BREAK"), that button blinking. **SEL + GLO** skips a step, **GLO** quits (SETUP K3 starts it
 again where you left it; SAVE keeps where you are). An FM-1 already in use when it updates doesn't start it.
 
 ![The TUTORIAL: step 1, PRESS HOME](img/screen-tutorial.png "TUTORIAL")

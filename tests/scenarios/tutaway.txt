@@ -1,0 +1,38 @@
+# LOAF BREAKER (0.248, FLEXOR): the TUTORIAL off its step's page: the header says how to go back (and blinks that
+# button), then the step again once there. Step 3 (the slices, HOME): EDIT opens the kick: "PRESS HOME: BACK TO THE
+# BREAK"; HOME: the step again, done.
+#   app/build/host/loaf-breaker_host tests/scenarios/tutaway.txt app/build/scenarios
+wait 4200
+tap GLO
+wait 150
+tap GLO
+wait 300
+turn K3 -1 80
+wait 200
+turn K3 -1 80
+wait 300
+expect tut 1
+tap HOME
+wait 300
+tap PLAY
+wait 5600
+expect tut 3
+tap EDIT
+wait 400
+expect page 4
+wait 2600
+shot tu_away.png
+tap HOME
+wait 400
+expect page 0
+wait 2600
+shot tu_back.png
+tapkey w0
+wait 100
+tapkey w3
+wait 100
+tapkey w5
+wait 100
+tapkey w8
+wait 5400
+expect tut 4
