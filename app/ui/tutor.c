@@ -27,7 +27,7 @@ static const struct {
     {0u, TC_SLICES, TK_WHITE, 1u, 0u, "PLAY THE WHITE KEYS: ITS SLICES"},
     {0u, TC_BRK, 0u, 1u, 0u, "TURN ALGORITHM: ANOTHER BREAK"},
     {1u, TC_PAD, TK_BLACK, 1u, 0u, "HOLD A BLACK KEY: AN EFFECT"},
-    {1u, TC_ARP, TK_ARP, 1u, 0u, "HOLD ARP, TURN K1: ITS EFFECTS"},
+    {1u, TC_ARP, TK_ARP, 1u, 0u, "HOLD BLACK KEY ARP, TURN K1"},
     {2u, TC_EDIT, 0u, 0u, 1u << B_EDIT, "PRESS EDIT: THE KICK"},
     {2u, TC_KPRE, 0u, 1u, 0u, "TURN K1: THE BUILT-IN KICKS"},
     {2u, TC_DISTO, 0u, 1u, 0u, "TURN K2: ITS DISTO"},
