@@ -22,7 +22,7 @@ BEGINNER, starts it again). The header says one thing to do at a time, the butto
 when it's done, "OK!" and the next: at once for a button (HOME, EDIT, SEQ, SAVE ..), five seconds later where there is
 something to hear (an effect, a kick, the drop): 18 steps in seven lessons, THE
 BREAK (HOME: the PERFORM menu, PLAY, the slices, stop), EFFECTS (the black keys), THE KICK (EDIT, its K1 PRESET: the
-built-in kicks, 909 to DISTORTO; K2–K4: DISTO, TUNE, TAIL; PRESETS: your ten kicks), DISTO (SEL + K4), THE PATTERN (SEQ: kicks, a snare), THE DROP (SEL + ENV) and
+built-in kicks, 909 to DISTORTO; K2–K4: DISTO, SUB DRIVE, TAIL; EDIT again: TUNE, PUNCH, CLICK, PITCH DROP; PRESETS: your ten kicks), DISTO (SEL + K4), THE PATTERN (SEQ: kicks, a snare), THE DROP (SEL + ENV) and
 SAVE. Everything is real: you play the firmware itself. **SEL + GLO** skips a step, **GLO** quits (SETUP K3 starts it
 again where you left it; SAVE keeps where you are). An FM-1 already in use when it updates doesn't start it.
 
@@ -704,8 +704,10 @@ two-colour ones: SYNTHWAVE (neon cyan and magenta on indigo), VAPOR, TOXIC, MIAM
 red), ACID (acid yellow and red-orange). K2 **WAVE ZOOM** (PRESETS too), how much of the past HOME's scrolling wave (the
 CDJ view) holds across the screen: 1/2, 2/3, 5/6 of a bar (zoomed in), 1 BAR (as it was), 1 1/4, 1 1/2, 2 BARS (zoomed
 out). K3 **MODE**: TUTORIAL (left of BEGINNER: the tutorial, above), BEGINNER or EXPERT (right). **BEGINNER** keeps
-each thing to its essentials, to play the machine before learning it: the **KICK** is one page (K1 **PRESET**, the
-built-in kicks; K2 **DISTO**; K3 **TUNE**; K4 **TAIL**, the SUB's length; EDIT again and ALGORITHM stay on it); the
+each thing to its essentials, to play the machine before learning it: the **KICK** is two pages, EDIT again (or
+ALGORITHM) going from one to the other: **KICK** (K1 **PRESET**, the built-in kicks; K2 **DISTO**; K3 **SUB DRIVE**,
+the SUB through its drive, OFF at the left, as the black key SUB; K4 **TAIL**, the SUB's length) and **SHAPE** (K1
+**TUNE**; K2 **PUNCH**; K3 **CLICK**, the attack's click; K4 **P DROP**, the pitch's fall at the hit); the
 **FX** chain is a choice of **scenes** on PRESETS (CLEAN, PUNCH, DUB, LO-FI, CRUSHED, INDUSTRIAL, SPACE: the four slots
 set at once; past SPACE, **MAGIC EQ** and **MAGIC MBC** go on the slot shown alone; K1–K4 still the slot's settings
 and mix; FX again stays on MAIN); the MIXER has LEVELS and SENDS; on SEQ's

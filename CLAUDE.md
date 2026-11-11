@@ -17,7 +17,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   stays credited (README, site credits, the card's text, fm1.toml). The hub checklist: docs/hub/SUBMIT.md.
 - Menus (9 Nov 2026, 0.177): ENV is the song (TRACKS, PLAY, DROP, BUILD); RESET is GLO's sixth part (`RST_ON`, ENV's
   reset code in track.c); the knobs' functions are EDIT KICK › KNOBS only. SYSTEM › SETUP K3 MODE (`set.novice`): BEGINNER keeps
-  the essentials (0.223: the KICK one page, `kick_easy`; the FX page's PRESETS a SCENE, `fx_scene_turn`; 0.224: SEQ's BEAT, SONG's
+  the essentials (0.223: the KICK one page, `kick_easy`; 0.228: two, KICK and SHAPE, `KEASY[]`, `keasy_pg`, EDIT the other; the FX page's PRESETS a SCENE, `fx_scene_turn`; 0.224: SEQ's BEAT, SONG's
   `trk_knob_ok`, `glo_knob_ok`, the held keys and pads (ARP's `OVL_EASY`); `KP_ADV` no longer reached in BEGINNER; 0.227: SEQ K4 LENGTH the kick's alone, 16/32/64, a drum lane 16 ("EXPERT MODE"),
   BEGINNER turned on sets the kicks 32 (`novice_lengths`); the FX scenes then MAGIC EQ, MAGIC MBC on the slot shown); the host simulator starts EXPERT (scenarios, the manual's screens), the
   FM-1 and the web emulator BEGINNER. The manual opens with "Start in five minutes" (the hub card's `cheat` link).
