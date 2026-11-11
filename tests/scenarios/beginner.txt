@@ -1,4 +1,4 @@
-# LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER, the essentials. SEQ's drum lanes: K1 FILL as in EXPERT (0.229: the
+# LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER, the essentials. SEQ's lanes round, no GROOVE between (0.231). SEQ's drum lanes: K1 FILL as in EXPERT (0.229: the
 # BEAT presets gone; four hits: the kick four on the floor); a step held + a knob: nothing (no step menu), the key toggles the step as it
 # comes up; K4 LENGTH the kick's alone (0.227, FLEXOR: 16, 32, 64; BEGINNER turned on, the kick 32 steps; a drum lane
 # stays 16, EXPERT MODE said). ENV's DROP: K2 nothing, K1 the build's bars. The ARP key held: K1 its effect, all sixteen
@@ -13,6 +13,12 @@ turn K3 -1 80
 wait 300
 tap SEQ
 wait 300
+expect page 6
+turn ALGO -1 80
+wait 200
+expect page 6
+turn ALGO 1 80
+wait 200
 expect page 6
 turn ALGO 1 80
 wait 200

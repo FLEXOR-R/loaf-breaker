@@ -20,7 +20,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   the essentials, as FLEXOR chose them on a checklist (0.229; https://claude.ai/artifact/75VV4U2fH5iouT8789feZN, its
   store `choix/beginner`): the KICK three pages on OUT's part (`kick_easy`, `KEASY[]`, `keasy_pg`: KICK, SHAPE, MIX; the foot's tabs, the
   header's KICK SN HH CP with SELECT round them, 0.230), the
-  drums PRESET / FX / LEVEL / DECAY, SEQ as EXPERT's but no step menu and K4 LENGTH the kick's alone (16/32/64, a drum
+  drums PRESET / FX / LEVEL / DECAY, SEQ as EXPERT's but no step menu, no GROOVE in its lanes' round (0.231) and K4 LENGTH the kick's alone (16/32/64, a drum
   lane 16; BEGINNER turned on sets the kicks 32, `novice_lengths`), the FX chain two slots (`fx_nslots`, the others
   muted in `fx_apply`) and a short list (`FX_EASY`) then MAGIC EQ, MAGIC MBC; SONG's `trk_knob_ok`, `glo_knob_ok`, the
   held keys and pads (ARP all sixteen); DST and SUB keys and blank knobs say EXPERT MODE (`easy_no`); `KP_ADV` no
@@ -63,7 +63,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - KICK menu by anatomy (10 Nov 2026, 0.205, FLEXOR's choice): KSECT ATTACK, BODY, TAIL, DIRT, TONE, KNOBS (kick.c);
   app_ui_init opens it on BODY (ui.ksect 1, its MIX: the first EDIT still kpage 0); the parts in a row at the
   picture's foot (kick_chip; 0.207: a full-width bar of tabs, FONT_T if it fits, the wave up: its middle y 45, 29
-  px each way). Views (ui.kview, EDIT held): RGB (kick_rgb, 500 ms), WAVE, then CLASSIC (ui.kclassic).
+  px each way). Views (ui.kview, EDIT held): RGB (kick_rgb, 500 ms), WAVE, then CLASSIC (ui.kclassic); 0.231 the drums'
+  big view too (perc_rgb into kv_rgb, shared: kv_sig / pw_sig say whose), one state for all.
 - GLO EFFECTS K3 WAVE (`set.wstyle`: REKORDBOX / SERATO, common.c serato_col; the kick's RGB and cdj.c) and K4 KICK
   VIEW (`set.kfocus`: the whole kick / the part edited: kick.c kv_ms, kv_kick) (10 Nov 2026, 0.206).
 - TUTORIAL (0.211, FLEXOR: "a sober name"): ui/tutor.c (included before screen.c), TUT[] steps (lesson, condition TC_*,

@@ -1,0 +1,45 @@
+# LOAF BREAKER (FLEXOR, 11 Nov 2026, 0.231): the KICK's views are the drums' too: RGB (REKORDBOX's or SERATO's colours),
+# WAVE, CLASSIC, EDIT held going round them, the same for all. The KICK in RGB, SELECT to the SNARE: RGB too; EDIT held:
+# WAVE; SELECT back to the KICK: WAVE; EDIT held: CLASSIC; SEL + EDIT to the DRUMS (SELECT is the tempo in EXPERT's CLASSIC): CLASSIC; EDIT held: RGB again. SERATO's
+# colours (GLO EFFECTS K3) on the snare.
+#   app/build/host/loaf-breaker_host tests/scenarios/drumview.txt app/build/scenarios
+wait 4200
+tap EDIT
+wait 400
+expect page 4
+expect kview 0
+turn SELECT 1 80
+wait 400
+expect page 7
+expect pbig 1
+expect kview 0
+wait 800
+shot dv_snare_rgb.png
+press EDIT
+wait 700
+release EDIT
+wait 300
+expect kview 1
+wait 800
+shot dv_snare_wave.png
+turn SELECT -1 80
+wait 400
+expect page 4
+expect kview 1
+press EDIT
+wait 700
+release EDIT
+wait 300
+expect kview 2
+press SEL
+tap EDIT
+release SEL
+wait 400
+expect page 7
+expect pbig 0
+press EDIT
+wait 700
+release EDIT
+wait 300
+expect kview 0
+expect pbig 1

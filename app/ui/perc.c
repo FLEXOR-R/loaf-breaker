@@ -253,6 +253,28 @@ static void perc_picture(const brk_status_t *st, int32_t top)
     char t[24], u[8];
     cv_oy = -top;
     cv_rect(4, 50, PW_W, 1, C_LINE);     /* (the middle) */
+    if (ui.kview == 0u) {                /* LOAF BREAKER (0.231): the RGB view, as the KICK menu's (kv_rgb, the kick's
+                                          * buffer: the two never on the screen together) */
+        uint32_t pk = 1u;
+        for (i = 0; i < PW_W; i++)
+            pk = kv_rgb[i][3] > pk ? kv_rgb[i][3] : pk;
+        for (i = 0; i < PW_W; i++) {
+            const uint8_t *c = kv_rgb[i];
+            uint32_t m = c[0] > c[1] ? c[0] : c[1], h = (uint32_t)c[3] * 34u / pk, br, r, g, b;
+            m = c[2] > m ? c[2] : m;
+            if (!m || !h)
+                continue;
+            br = 120u + (uint32_t)c[3] * 135u / pk;
+            r = (uint32_t)c[0] * 255u / m;
+            g = (uint32_t)c[1] * 255u / m;
+            b = (uint32_t)c[2] * 255u / m;
+            r = r * r / 255u;
+            g = g * g / 255u;
+            b = b * b / 255u;
+            cv_rect(4 + (int32_t)i, 50 - (int32_t)h, 1, 2 * (int32_t)h + 1,
+                    set.wstyle ? serato_col(c[0], c[1], c[2], br) : RGB(r * br / 255u, g * br / 255u, b * br / 255u));
+        }
+    } else
     for (i = 0; i < PW_W; i++) {         /* the hit: its level (dim, mirrored), its wave over it */
         int32_t h = pw_px[i], w = pw_wave[i];
         if (h)
@@ -313,12 +335,19 @@ static void perc_cards(void)             /* the part's knobs: its name, its valu
 static void draw_perc_big(const brk_status_t *st)
 {
     const perc_voice_t *v = perc_voice(ui.pvoice);
-    uint32_t sig = sig_of(v, sizeof *v) ^ (ui.pvoice * 2654435761u) ^ set.ezoom * 40503u, top;
+    uint32_t sig = sig_of(v, sizeof *v) ^ (ui.pvoice * 2654435761u) ^ set.ezoom * 40503u ^ (ui.kview + 1u) * 97u, top;
+    if (ui.kview == 0u && kv_sig)        /* (the kick's picture in kv_rgb since: this one again) */
+        pw_sig = sig + 1u;
     if (sig != pw_sig) {                 /* (its hit again, only when it changed) */
         uint32_t pk = 0u;
         float d = perc_decay_ms(ui.pvoice, v->decay) * 1.4f;
         pw_sig = sig;
         pw_ms = set.ezoom % EZ_N ? EZ_MS[set.ezoom % EZ_N] : (uint32_t)brk_clampf(d, 60.0f, 900.0f);   /* (EDIT ZOOM) */
+        if (ui.kview == 0u) {            /* (LOAF BREAKER: the RGB view into the kick's buffer, the kick's picture
+                                          * worked out again when it is back) */
+            perc_rgb(ui.pvoice, v, kv_rgb, PW_W, pw_ms);
+            kv_sig = 0u;
+        }
         perc_shape(ui.pvoice, v, pw_px, PW_W, pw_ms, 34u);
         perc_wave(ui.pvoice, v, pw_wave, PW_W, pw_ms, 34u);
         for (top = 0; top < PW_W; top++)

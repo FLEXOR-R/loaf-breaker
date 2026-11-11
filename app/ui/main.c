@@ -521,22 +521,26 @@ static void input(void)
     if (ui.edit_hold && btn & 1u << B_EDIT && now - ui.edit_t >= 450u && ui.edit_hold == 1u) {   /* LOAF BREAKER: EDIT
                                           * held on the KICK menu: the view as it was (the drums' shapes), or back */
         ui.edit_hold = 2u;
-        if (ui.page == PG_KICK && !ui.kclassic && ui.kview == 0u) {   /* (LOAF BREAKER: the KICK menu's views in
-                                          * turn: RGB (REKORDBOX's or SERATO's colours: GLO EFFECTS K3), WAVE, CLASSIC) */
+        if (((ui.page == PG_KICK && !ui.kclassic) || (ui.page == PG_PERC && ui.pbig)) && ui.kview == 0u) {   /* (LOAF
+                                          * BREAKER: the views in turn, the KICK's and the drums' together (0.231,
+                                          * FLEXOR): RGB (REKORDBOX's or SERATO's colours: GLO EFFECTS K3), WAVE,
+                                          * CLASSIC) */
             ui.kview = 1u;
             kv_sig = 0u;
+            pw_sig = 1u;
         } else {
             ui.kclassic ^= 1u;           /* (LOAF BREAKER: on the drums' pages too: one view for them all) */
             if (ui.page == PG_PERC)
                 ui.kclassic = ui.pbig;
             ui.pbig = (uint8_t)!ui.kclassic;
-            if (!ui.kclassic && ui.page == PG_KICK) {
+            if (!ui.kclassic) {
                 ui.kview = 0u;
                 kv_sig = 0u;
+                pw_sig = 1u;
             }
         }
         app_say(ui.page == PG_PERC ? PERC_VOICE_NAME[ui.pvoice % PERC_VOICES] : "KICK",
-                ui.kclassic ? "CLASSIC VIEW" : ui.page != PG_KICK ? "BIG VIEW" : ui.kview ? "WAVE VIEW" :
+                ui.kclassic ? "CLASSIC VIEW" : ui.kview ? "WAVE VIEW" :
                 set.wstyle ? "RGB VIEW (SERATO)" : "RGB VIEW (REKORDBOX)");
         ui.redraw |= RG_BLOCKS | RG_WAVE | RG_FOOT;
         if (!ui.kclassic)
@@ -861,7 +865,7 @@ static void input(void)
                                           * SELECT goes from drum to drum (the KICK, SNARE, HAT, CLAP), each in
                                           * it (not the tempo here) */
             if (ui.einst) {
-                ui.pbig = 1u;
+                ui.pbig = (uint8_t)!ui.kclassic;   /* (0.231: the view the kick has) */
                 edit_open();
             } else
                 kick_open();

@@ -1,7 +1,7 @@
 # LOAF BREAKER: the KICK menu. EDIT: BODY (MIX), ALGORITHM: SUB; EDIT: TAIL, DIRT, TONE (its EQ), KNOBS; EDIT: ATTACK (CLICK), BODY again (SUB
 # kept). EDIT held: the WAVE view; again: the classic view (the part's bars, the five drums' shapes), the part kept; again: RGB.
-# SEL + EDIT: the other drums (SNARE) in the kick's view (big); EDIT held there: classic, held again: big (one view for
-# them all); EDIT: HAT, CLAP, SNARE again (0.201: the DRUMS' parts); SEL + EDIT twice: BREAK, KICK.
+# SEL + EDIT: the other drums (SNARE) in the kick's view (big, RGB); EDIT held there: WAVE, then classic, held again:
+# big in RGB (one view for them all, 0.231); EDIT: HAT, CLAP, SNARE again (0.201: the DRUMS' parts); SEL + EDIT twice: BREAK, KICK.
 #   app/build/host/loaf-breaker_host tests/scenarios/kickmenu.txt app/build/scenarios
 wait 4200
 tap EDIT
@@ -62,6 +62,13 @@ release SEL
 wait 300
 expect page 7
 expect pbig 1
+press EDIT
+wait 700
+release EDIT
+wait 300
+expect page 7
+expect pbig 1
+expect kview 1
 press EDIT
 wait 700
 release EDIT

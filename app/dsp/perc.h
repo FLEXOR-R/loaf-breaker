@@ -53,3 +53,5 @@ void perc_shape(uint32_t voice, const perc_voice_t *v, uint8_t *px, uint32_t n, 
 /* LOAF BREAKER: one hit drawn as its wave (the drums' big view): px[i] the ith column's sample furthest from 0, signed
  * (-height .. +height), over its first ms milliseconds */
 void perc_wave(uint32_t voice, const perc_voice_t *v, int8_t *px, uint32_t n, uint32_t ms, uint32_t height);
+void perc_rgb(uint32_t voice, const perc_voice_t *v, uint8_t (*col)[4], uint32_t n, uint32_t ms);   /* (LOAF
+                                          * BREAKER: lows, mids, highs, peak a column, as kick_rgb) */

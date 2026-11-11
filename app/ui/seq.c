@@ -64,7 +64,8 @@ static void seq_lane_step(int32_t d)     /* ALGORITHM / SEQ again: the next lane
                                           * end, PATTERN's GROOVE; then the other end) */
 {
     uint32_t n, was = ui.seq_lane;
-    if (d < 0 && was == SL_BREAK1) {
+    if (d < 0 && was == SL_BREAK1 && !set.novice) {   /* (LOAF BREAKER, 0.231, FLEXOR: BEGINNER, the lanes round,
+                                          * no GROOVE between: SEL + ARP still opens it) */
         global_part(GP_FILL);
         return;
     }
@@ -73,7 +74,7 @@ static void seq_lane_step(int32_t d)     /* ALGORITHM / SEQ again: the next lane
         if (sl_active(&pats.p[set.pattern % NPAT], ui.seq_lane))
             break;
     }
-    if (d > 0 && ui.seq_lane < was) {     /* (wrapped: GROOVE first) */
+    if (d > 0 && ui.seq_lane < was && !set.novice) {   /* (wrapped: GROOVE first) */
         ui.seq_lane = (uint8_t)was;
         global_part(GP_FILL);
     }

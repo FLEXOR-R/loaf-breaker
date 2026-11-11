@@ -215,8 +215,9 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
   SNARE, HAT, CLAP, and round), each in a big view of its own: its hit drawn large over its level, its decay
   marked in amber, its memory and tune, the four drums along the bottom (stopped: keys 1–4 play them), the part's
   knobs as cards (ALGORITHM: SOUND or SHAPE, PRESETS its memories). SELECT is not the tempo there. **SEL + EDIT** opens
-  the drums in the view the kick has (big or classic), and **EDIT held** switches them too, from either view: one view
-  for the kick and the drums alike.
+  the drums in the view the kick has, and **EDIT held** goes round the same three views from either page (RGB, its
+  colours rekordbox's or SERATO's as GLO EFFECTS K3 sets them, WAVE, CLASSIC): one view for the kick and the drums
+  alike.
 
   ![The SNARE in its big view: its hit large, its decay marked, the five drums along the bottom](img/screen-drum-big.png "A drum's big view")
   - **SOUND**: MIX, SUB, PUNCH, GRIT, CLICK, OUT.
@@ -696,7 +697,7 @@ hit; K2 **DROP TIME**, how long it falls; K3 **TAIL**, the SUB's length; K4 **TA
 **MIX** (the four layers' levels: SUB, PUNCH, GRIT, CLICK), its pages as tabs at the picture's foot, the header's tabs
 the sounds, KICK, SN, HH, CP, **SELECT** going round them (on the drums' page too); the drums' page is PRESET, FX, LEVEL and DECAY; the **FX**
 chain has two slots and a short list on PRESETS, MAGIC EQ and MAGIC MBC at its end (above); FX again stays on MAIN;
-the MIXER has LEVELS and SENDS; on SEQ's drum lanes K1 is **FILL**, K2 the lane's sound, K3 CLR / 4X4, K4 **LENGTH**
+the MIXER has LEVELS and SENDS; on SEQ, ALGORITHM goes round the lanes (no GROOVE between them: SEL + ARP opens it); on the drum lanes K1 is **FILL**, K2 the lane's sound, K3 CLR / 4X4, K4 **LENGTH**
 the kick's alone (16, 32 or 64 steps; turning BEGINNER on
 sets every kick of the group to 32 and the drums to 16; a drum lane stays 16, "LONGER: EXPERT MODE"), and a step held has no menu (the key just
 turns the step on or off); SONG keeps each part's essentials (TRACKS: the item's pattern and its loops; PLAY: the track;

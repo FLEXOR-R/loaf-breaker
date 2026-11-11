@@ -397,6 +397,43 @@ BRK_COLD void perc_wave(uint32_t voice, const perc_voice_t *s, int8_t *px, uint3
     }
 }
 
+/* LOAF BREAKER (0.231, FLEXOR: the KICK's RGB view for the drums too): one hit's lows, mids, highs and peak a column,
+ * each band followed (~15 ms down), as kick_rgb: the KICK menu's colours, rekordbox's or SERATO's */
+BRK_COLD void perc_rgb(uint32_t voice, const perc_voice_t *s, uint8_t (*col)[4], uint32_t n, uint32_t ms)
+{
+    static const float G[4] = {300.0f, 380.0f, 520.0f, 255.0f};
+    pc_t c;
+    pv_t v;
+    uint32_t i, j, k, per = ms * (BRK_SR / 1000u) / (n ? n : 1u);
+    float l1 = 0.0f, l2 = 0.0f, e[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    voice %= PERC_VOICES;
+    pc_make(voice, s, 1.0f, &c);
+    for (k = 0; k < 6u; k++)
+        v.ph[k] = 0.0f;
+    v.hp1 = v.hp2 = v.lp = v.last = v.declick = 0.0f;
+    pv_hit(&v);
+    v.declick = 0.0f;
+    for (i = 0; i < n; i++) {
+        uint32_t t;
+        float pk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+        for (t = 0; t < per; t++) {
+            float x = soft(voice_tick(voice, &v, &c) * c.g) * c.make * c.lvl, b[4];
+            l1 += (x - l1) * 0.0285f;    /* (~200 Hz) */
+            l2 += (x - l2) * 0.356f;     /* (~2.5 kHz) */
+            b[0] = brk_absf(l1);
+            b[1] = brk_absf(l2 - l1);
+            b[2] = brk_absf(x - l2);
+            b[3] = brk_absf(x);
+            for (j = 0; j < 4u; j++) {
+                e[j] = b[j] > e[j] ? b[j] : e[j] * 0.9985f;
+                pk[j] = e[j] > pk[j] ? e[j] : pk[j];
+            }
+        }
+        for (j = 0; j < 4u; j++)
+            col[i][j] = (uint8_t)brk_clampf(pk[j] * G[j], 0.0f, 255.0f);
+    }
+}
+
 /* the built-in sounds: level, tune, decay, tone, snap (the hat's cut), drive */
 static const float PRESET[PERC_VOICES][PERC_PRESETS][6] = {
     {{0.80f, 0.45f, 0.40f, 0.50f, 0.55f, 0.10f},    /* 909 */
