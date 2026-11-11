@@ -1,4 +1,4 @@
-# CHOPPAH: the OVERLAY page on ARP. Each white key an effect over everything, on while held (any together); K1 the
+# CHOPPAH: the OVERLAY page on ARP (LOAF BREAKER: back in 0.244, FILL gone; key 16 REESE, a bass, no more CUT). Each white key an effect over everything, on while held (any together); K1 the
 # amount of the one touched last, K2 the rate, K3 the sweep, K4 LATCH (a press then switches it on and off)
 #   app/build/host/loaf-breaker_host tests/scenarios/overlay.txt app/build/scenarios
 wait 4200
@@ -11,15 +11,10 @@ wait 600
 key w15 down
 wait 100
 expect ovl_on 32768
-peakreset
 wait 300
-expect peak_db_max -60
 key w15 up
 wait 100
 expect ovl_on 0
-peakreset
-wait 300
-expect peak_db_min -30
 key w0 down
 key w8 down
 wait 700

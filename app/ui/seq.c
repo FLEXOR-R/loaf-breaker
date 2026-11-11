@@ -345,7 +345,8 @@ static void lane_knob(int i, int32_t d)
         if (i == 1)
             *b = (uint8_t)((*b & ~3u) | (uint32_t)clamp((int32_t)(*b & 3u) + (d > 0 ? 1 : -1), 0, 3));
         else if (i == 2)                 /* (LOAF BREAKER TEST: ALWAYS, 75 %, 50 %, 25 %, 1:2, 2:2, FILL, NOT FILL) */
-            *b = (uint8_t)((*b & ~0x1Cu) | (uint32_t)clamp((int32_t)(*b >> 2 & 7u) + (d > 0 ? 1 : -1), 0, 7) << 2);
+            *b = (uint8_t)((*b & ~0x1Cu) | (uint32_t)clamp((int32_t)(*b >> 2 & 7u) + (d > 0 ? 1 : -1), 0, 5) << 2);   /* (0.244: FILL, NOT
+                                          * FILL gone with the FILL) */
         else
             *b = (uint8_t)((*b & 0x1Fu) | (uint32_t)clamp((int32_t)(*b >> 5) + (d > 0 ? 1 : -1), 0, 7) << 5);
         ui.note_turned = 1u;
@@ -594,7 +595,7 @@ static void seq_value(int i, char *t)    /* the step edited: SLICE, PITCH, HITS,
             text_cat(t, (sb & 3u) ? " HITS" : " HIT");
         } else if (i == 2) {             /* LOAF BREAKER TEST: CHANCE and the trig conditions */
             static const char *const C[8] = {"ALWAYS", "75%", "50%", "25%", "1:2", "2:2", "FILL", "NOT FILL"};
-            text_cat(t, C[sb >> 2 & 7u]);
+            text_cat(t, C[(sb >> 2 & 7u) >= 6u ? 0u : sb >> 2 & 7u]);   /* (0.244: FILL's two, ALWAYS now) */
         } else if (!(sb >> 5))
             text_cat(t, "ON TIME");
         else {

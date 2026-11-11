@@ -21,9 +21,9 @@ The FM-1 starts in **BEGINNER** mode (SYSTEM › SETUP: GLO, then GLO again; K1)
 or **EXPERT** (a knob moves the choice, PLAY takes it; white keys 1–3 too). SYSTEM › SETUP K3, turned left past
 BEGINNER, starts the tutorial again. The header says one thing to do at a time, the button or the keys that do it blink, and
 when it's done, "OK!" and the next: at once for a button (HOME, EDIT, SEQ, SAVE ..), five seconds later where there is
-something to hear (an effect, a kick, the drop): 23 steps in eight lessons, THE
+something to hear (an effect, a kick, the drop): 25 steps in eight lessons, THE
 BREAK (HOME: the PERFORM menu, PLAY, the slices, ALGORITHM: another break), EFFECTS (a black key; the black key ARP held, not the
-ARP button, K1 its effect), THE KICK (EDIT, K1 PRESET: the built-in kicks, 909 to DISTORTO; K2 DISTO; EDIT again: SHAPE, K3 a longer tail;
+ARP button, K1 its effect; ARP, the OVERLAY page, two of its effects), THE KICK (EDIT, K1 PRESET: the built-in kicks, 909 to DISTORTO; K2 DISTO; EDIT again: SHAPE, K3 a longer tail;
 PRESETS: your ten kicks), THE DRUMS (SELECT: the SNARE, K1 its presets, K2 its FX), THE PATTERN (SEQ: kicks, a snare),
 THE FX (FX, PRESETS: an effect), THE DROP (SEL + ENV) and SAVE. Everything is real: you play the firmware itself. **SEL + GLO** skips a step, **GLO** quits (SETUP K3 starts it
 again where you left it; SAVE keeps where you are). An FM-1 already in use when it updates doesn't start it.
@@ -135,7 +135,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 | --- | --- | --- |
 | HOME | LIVE | PERFORM, GENERATOR |
 | EDIT | SOUNDS | Three sources, **SEL + EDIT** the next: **KICK** (its menu, by the kick's anatomy: ATTACK, BODY, TAIL, DIRT, TONE, KNOBS; EDIT again its next section), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
-| SEQ | PATTERN | The lanes, **GROOVE** (SWING and FILL's settings; also SEL + ARP) |
+| SEQ | PATTERN | The lanes, **GROOVE** (SWING; also SEL + ARP) |
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD |
 | LFO | MIX | LEVELS (BREAK, KICK, PERC), SENDS (FX, the drums' route), MASTER, DYNAMICS |
 | FX | EFFECTS | The four slots: MAIN, MORE, MOD |
@@ -158,7 +158,7 @@ table (tap SEL alone to see it):
 **The rules.** ALGORITHM picks what you edit on the page (an FX slot, a drum's part, a SEQ lane, SYSTEM's part); on HOME (both its parts) and the MIXER, where there is nothing to pick, it is the break. PRESETS picks what goes
 in (an effect, a kick, a snare or hat sound); elsewhere it is the pattern. **SEQ is where everything is sequenced**
 (the break's steps and the kick, snare and hat lanes), **EDIT where the drums' sounds are made** (kick, snare, hat);
-the white keys play slices everywhere but SEQ and ENV (tracks). **ARP held is FILL** (§5). **SEL + ALGORITHM is the break and SEL +
+the white keys play slices everywhere but SEQ and ENV (tracks). **ARP opens the OVERLAY page** (§5). **SEL + ALGORITHM is the break and SEL +
 PRESETS the pattern on every page.** A page's button pressed again is its next part. **Press SEL** alone and the strip
 shows a card: above, the four SEL combinations that work on any page; below, this page's own shortcuts (on HOME and
 the pages without any: what SEL + K1–K4 turn). SEL again, or any other button, key or knob, closes it. The control map (§11) shows all of it at once.
@@ -449,7 +449,7 @@ another group. A new group starts with 16 empty patterns; what you had before th
 | **BREAK** (EXPERT: above the first lane; the tab says BREAK) | Play slices | | | | STEPS: the break's rows the grid shows, HIDDEN, 16 (BRK1) or 32 (BRK1 and BRK2, as to start); the pattern plays 32 steps whatever (hidden rows: ALGORITHM passes them by) |
 | STEPS 1-16, STEPS 17-32 | Pick a step to edit (outlined) | SLICE: OFF · LOOP · 1–16 | PITCH: −12 … +12 | HITS: ×1–×4 (a ratchet in the step) | REVERSE |
 | KICK, SNARE, HAT, CLAP | That lane's 16 steps, on and off (as the key comes up) | FILL: 0–16 hits spread evenly from the downbeat (Euclidean) | DRUM FLT (HOME's drums' filter) | Left CLEAR, right 4X4 (the lane's bar shown) | LENGTH: 16 or 32 steps (the kick: 16, 32, 64) |
-| **A step held** (a drum lane) | its own, the foot naming them | NOTE: −8 … +7 semitones (the kick's) | **HITS**: 1–4, the step taps that many times in its 16th | **COND**: ALWAYS, 75 %, 50 %, 25 % (it plays that often), 1:2 (the first loop of two), 2:2 (the second), FILL (only while ARP is held), NOT FILL (never then) | **NUDGE**: on time .. 7/16 of a step late |
+| **A step held** (a drum lane) | its own, the foot naming them | NOTE: −8 … +7 semitones (the kick's) | **HITS**: 1–4, the step taps that many times in its 16th | **COND**: ALWAYS, 75 %, 50 %, 25 % (it plays that often), 1:2 (the first loop of two), 2:2 (the second), (FILL and NOT FILL, from before 0.244: always) | **NUDGE**: on time .. 7/16 of a step late |
 
 The upper strip shows the half's 16 steps (a number: its own slice; a dot: LOOP; a dash: off; a mark under it: hits
 or reverse), the step playing lit; the lower strip all three drum lanes.
@@ -473,23 +473,18 @@ all 16.
 - **REC on, playing, a drum lane**: any white key plays that lane's drum and writes it at the nearest 16th, where it
   lands: tap the rhythm in rather than draw it.
 
-### FILL (ARP)
+### OVERLAY (ARP)
 
-**Hold ARP** for a fill: the steps whose COND is FILL play, the ones set NOT FILL rest, and the snare rolls through
-the last beat of each bar. Let go and the pattern is as it was. (The OVERLAY page that ARP used to open is gone; the
-ARP black key keeps its effect, chosen on its own knobs.)
+**ARP** opens the OVERLAY page: sixteen effects over everything that plays, one on each white key (DIVE, RISE, RADIO,
+WAH, CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, WOBBLE, JET, REESE), on while the key is held, any
+together. **K1** the amount of the one touched last, **K2** the rate of the ones on the beat (CHOP, GATE, WAH, PAN),
+**K3** the sweeps' length (DIVE, RISE), **K4** LATCH: on, a key switches its effect on and off (and what is latched
+stays on on the other pages). The ARP black key keeps its own effect, chosen on its own knobs. (The FILL that ARP held
+played from 0.1xx to 0.243 is gone, LOAF BREAKER 0.244.)
 
-**PATTERN › GROOVE** (SEQ's ALGORITHM past the last lane or above BREAK, or **SEL + ARP**) holds the swing and FILL's settings (saved with
-the rest):
-
-| K1 SWING | K2 LATCH | K3 DRUM | K4 LENGTH |
-| --- | --- | --- | --- |
-| 50–75 % (was the MIXER's) | OFF: FILL while ARP is held. ON: ARP once, FILL on; ARP again, off | What rolls: SNARE, CLAP, HAT or ALL 3 | How much of each bar, in 16ths or 8ths ("/8"): 1 BEAT (the last), 2 BEATS, 1 BAR, 2 STEPS |
-
-![GROOVE](img/screen-fill.png "GROOVE")
-
-The page shows the bar's 16ths, the ones the fill rolls lit (white while it plays). SEL + ARP no longer writes a random
-pattern: the generator (HOME's second part) does that job.
+**PATTERN › GROOVE** (SEQ's ALGORITHM past the last lane or above BREAK, or **SEL + ARP**) holds the swing (saved
+with the rest): **K1 SWING**, 50–75 % (was the MIXER's), every second 16th later; the page shows the bar's 16ths as it
+lays them out.
 
 ## 6. The FX chain
 
@@ -919,7 +914,7 @@ break alone: sweep it down and the drums stay full on top.
 | GLO a fourth time (EFFECTS; keys 1–7: each on or off) | The effect | On / off | | |
 | GLO a fifth time (FX SET) | Amount | On a kick | At the drop | Length |
 | GLO a sixth time (RESET; ALGORITHM: what too; after a reset, 3 s at rest) | What | Reset (five clicks) | Reset (five clicks) | Reset (five clicks) |
-| ARP held | FILL (the page's knobs stay the page's) | | | |
+| ARP (OVERLAY) | Amount (the effect touched last) | Rate | Sweep | Latch |
 
 **Gate** (HOME K1) cuts every slice the loop plays short: at 50 % each slice sounds for half its length, then
 quiet until the next; down to 5 % for clipped, staccato chops; 100 % is off. It follows the tempo and the pitch, and
@@ -928,7 +923,7 @@ the slice lit in the waveform shrinks with it. It covers the loop's slices, ratc
 
 The generator rearranges the break as it plays: **complexity** is how often it jumps, **anchor** keeps the kick and
 snare on the beats, **roll** repeats a slice or takes the one next to it, **fill** breaks the rules in the last bar
-of a phrase; it is HOME's second part (HOME again). (ARP, held, is FILL; SEL + ARP its settings.)
+of a phrase; it is HOME's second part (HOME again). (ARP is the OVERLAY page; SEL + ARP the GROOVE.)
 
 ## 11. The control map
 

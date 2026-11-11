@@ -1,4 +1,4 @@
-# LOAF BREAKER TEST: the test firmware's new things. The start-up glitch; ARP held: FILL; the kick's BASS part (GLIDE,
+# LOAF BREAKER TEST: the test firmware's new things. The start-up glitch; ARP: the OVERLAY page (0.244; FILL gone); the kick's BASS part (GLIDE,
 # REV BASS); MAGIC MBC on the chain (MB OTT, gone in 0.229, was here); BUILD's TEMPO RISE; GLO MORE's CRT; a track playing: its progress and DROP IN.
 #   app/build/host/loaf-breaker_host tests/scenarios/loaftest.txt app/build/scenarios
 wait 250
@@ -6,12 +6,9 @@ shot x_glitch.png
 wait 4000
 tap PLAY
 wait 400
-press ARP
+tap ARP
 wait 300
-expect fill 1
-release ARP
-wait 200
-expect fill 0
+expect page 9
 tap EDIT
 wait 150
 tap EDIT

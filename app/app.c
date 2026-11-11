@@ -199,11 +199,7 @@ typedef struct {
 #define PX_OK 0xA5u
 #define BRKV_TAG 0xB0u
 static uint32_t brk_view(void);          /* (below: set is declared after) */
-#define FILL_LATCH (set.fill_cfg & 1u)
-#define FILL_DRUM (set.fill_cfg >> 1 & 3u)
-#define FILL_LEN (set.fill_cfg >> 3 & 3u)
-#define FILL_RATE (set.fill_cfg >> 5 & 1u)
-static const uint8_t FILL_FROM[4] = {12u, 8u, 0u, 14u};   /* its first 16th of the bar: 1 BEAT, 2 BEATS, 1 BAR, 2 STEPS */
+/* (LOAF BREAKER, 0.244: FILL gone, set.fill_cfg unused) */
 enum { DS_SNARE, DS_KICK, DS_BOTH, DS_STUTTER, DS_SWEEP, DS_RANDOM, DS_N };
 static const uint8_t DROP_GAP[5] = {0u, 1u, 2u, 4u, 8u};   /* its steps: none, a 16th, an 8th, a beat, half a bar */
 static const float COMP_RATIO[8] = {1.5f, 2.0f, 3.0f, 4.0f, 6.0f, 8.0f, 12.0f, 20.0f};
@@ -766,7 +762,6 @@ static volatile uint8_t kroll;
 #define KSC_N 11025u
 static volatile int16_t kscope[KSC_W];
 static volatile uint32_t kscope_hit;
-static volatile uint8_t fill_on;
 static volatile uint8_t kick_hold;       /* LOAF BREAKER: KIL (the tenth black key) held: the sequencer's kicks quiet */
 #define LIM_LA 64u                       /* LOAF BREAKER: the output limiter's look-ahead, samples (1.5 ms) */
 static inline float lim_soft(float x)    /* over 0.95: rounded off, never reaching 1 */
@@ -796,8 +791,8 @@ static int step_hit(uint32_t pi, uint32_t d, uint32_t si, int32_t off, int32_t l
         step_rng = step_rng * 1664525u + 1013904223u;
         if ((step_rng >> 30) < ch)
             return 0;
-    } else if ((ch == 4u && (pat_cycle & 1u)) || (ch == 5u && !(pat_cycle & 1u)) || (ch == 6u && !fill_on) ||
-               (ch == 7u && fill_on))    /* (1:2 the first loop of two, 2:2 the second, FILL, NOT FILL) */
+    } else if ((ch == 4u && (pat_cycle & 1u)) || (ch == 5u && !(pat_cycle & 1u)))   /* (1:2 the first loop of two,
+                                          * 2:2 the second; FILL, NOT FILL: always, FILL gone in 0.244) */
         return 0;
     at = off + (int32_t)nd * len / 16;
     if (nd)
@@ -1605,13 +1600,6 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                         pa[np] = off[k];
                         who[np++] = (uint8_t)now;
                     }
-                }
-                if (fill_on && s >= FILL_FROM[FILL_LEN] && (!FILL_RATE || !(s & 1u)) && np < 8u && !b_on) {
-                                          /* LOAF BREAKER TEST: FILL: its drum on every 16th (or 8th) of the bar's
-                                          * last beat (FILL's LENGTH) */
-                    pa[np] = off[k];
-                    who[np++] = (uint8_t)(FILL_DRUM == 1u ? 1u << PV_CLAP : FILL_DRUM == 2u ? 1u << PV_HAT : FILL_DRUM == 3u
-                                          ? 1u << PV_SNARE | 1u << PV_CLAP | 1u << PV_HAT : 1u << PV_SNARE);
                 }
             }
             {                            /* LOAF BREAKER: the HITS due in this block, in with the steps' (in order) */

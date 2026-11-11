@@ -51,7 +51,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - Domains (10 Nov 2026, 0.201; 0.200 is the layout before, FLEXOR may want it back): the header and the tabs name the
   domain (`DOM[]`, `dom_name()` in main.c): LIVE, SOUNDS, PATTERN, SONG, MIX, EFFECTS, SYSTEM. SOUNDS' sources: KICK,
   DRUMS (einst 1-3), BREAK (PG_GLOBAL `GP_BREAK`, GLO's old PITCH code, K4 LEVEL); SEL + EDIT the
-  next; EDIT again: the KICK's sections only (0.227, FLEXOR: the 0.226 round to the drums taken back), a drum's the next drum. PATTERN's GROOVE is PG_GLOBAL `GP_FILL` (SWING, LATCH, DRUM, LENGTH), reached from SEQ's ALGORITHM and SEL + ARP;
+  next; EDIT again: the KICK's sections only (0.227, FLEXOR: the 0.226 round to the drums taken back), a drum's the next drum. PATTERN's GROOVE is PG_GLOBAL `GP_FILL` (SWING alone since 0.244: FILL gone), reached from SEQ's ALGORITHM and SEL + ARP;
+  ARP itself is the OVERLAY page again (0.244, FLEXOR: ovl.c, PG_OVL);
   LEDs light EDIT / SEQ for those two. EXPERT's SEQ (0.234): BREAK above the first lane (`ui.seq_brk`, `SEQ_BRK`), K4
   the break's rows shown (`brk_view()`, settings' `brkv`: the old mel_ver byte, tagged 0xB0, since settings_t is at
   3840 bytes: no field can be appended any more without a new magic or freeing one). SYSTEM's parts `GLO_ORD` (MIDI, SETUP, EFFECTS, FX SET, RESET); RESET ALL is
@@ -76,7 +77,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   keys and buttons to blink, text), `set.tut` (appended: 0 off, 1..TUT_N the step, 0xFE done, 0xFD the mode asked (0.229); a new FM-1 asks,
   an older save not), the counters tut_* in common.c; the header draws the step (screen.c); SETUP K3 left of
   BEGINNER; GLO quits, SEL + GLO skips. 0.212 (FLEXOR): HOME first (on PERFORM already, HOME stays: tut_home_stay),
-  OUT's K4 the built-in kicks (0.223: BEGINNER's KICK page, K1). 0.235: 23 steps in eight lessons, BEGINNER as FLEXOR
+  OUT's K4 the built-in kicks (0.223: BEGINNER's KICK page, K1). 0.235: 23 steps in eight lessons (0.244: 25, the OVERLAY page), BEGINNER as FLEXOR
   chose it (ALGORITHM a break, ARP + K1, K2 DISTO, EDIT to SHAPE and K3 TAIL, SELECT to the SNARE and its PRESET / FX,
   the FX page's PRESETS). 0.213: a step done waits 5 s (`TUT_WAIT`, the header counting) only where there is
   something to hear (TUT[].wait: slices, effects, kicks, DISTO, steps, the drop); a button step goes on at once. Keep

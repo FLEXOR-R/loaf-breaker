@@ -168,7 +168,7 @@
       algo: "Break (next bar)", brk: true, presets: "Pattern P1–P64", keys: "slices", sel: "Tempo (SEL: drum filter)",
       notes: [["SEL", "Tapped alone: the shortcuts, everywhere and this page's own"], ["SEL + ALGO · SEL + PRESETS", "Break · pattern, any page"],
               ["SEL + K1–K4", "The live functions (EDIT › KNOBS)"], ["SEL ×2 · SEL + ENV", "SEL locked down, lit (again: free) · the drop"],
-              ["HOME held", "The slices, or the CDJ view again"], ["HOME + PLAY", "Back to bar 1"], ["ARP held", "FILL"], ["LFO + K1–K3", "Break, kick, drums levels, any page: 5 % a detent"]] },
+              ["HOME held", "The slices, or the CDJ view again"], ["HOME + PLAY", "Back to bar 1"], ["ARP", "The OVERLAY page: an effect on each white key"], ["LFO + K1–K3", "Break, kick, drums levels, any page: 5 % a detent"]] },
     { id: "edit", btn: "EDIT", name: "SOUNDS", sub: "Kick, drums, break (SEL + EDIT: the next source)", again: "next part of the source", part: true, subs: [
       { n: "ATTACK", k: ["LEVEL · ATTACK", "PITCH · CROSS", "DECAY · FADE", "TONE · SOLO"], strip: "THE KICK IN RGB (OR WAVE, CLASSIC: EDIT HELD) · ITS PARTS IN A ROW · 4 KNOB CARDS", note: "ALGO: CLICK, PUNCH (each LEVEL PITCH DECAY TONE), STACK (another kick's attack on this one's tail: ATTACK, CROSS, FADE, SOLO)" },
       { n: "BODY", k: ["(MIX, SUB, GRIT,", "SYNTH, SYNTH +,", "MACRO, OUT: ALGO)", "(OUT: PRESET)"], strip: "THE KICK IN RGB, ITS PITCH FALLING, ITS REAL SOUND IN WHITE · ITS PARTS IN A ROW · 4 KNOB CARDS", note: "The menu opens here. MIX: SUB PUNCH GRIT CLICK; a layer: LEVEL PITCH DECAY TONE; SYNTH: DROP TIME SHAPE HOLD; SYNTH +: RUMBLE LENGTH ASYM TUNE; OUT: VOLUME DISTO SCREAM PRESET (a built-in kick on the kick selected)" },
@@ -190,8 +190,8 @@
       { n: "STEPS 17-32", k: ["SLICE", "PITCH", "HITS", "REVERSE"], strip: "THE BREAK'S STEPS · THE DRUM LANES", note: "" },
       { n: "KICK 1-64", k: ["FILL", "KICK", "CLR / 4X4", "LENGTH"], strip: "THE KEYS: THIS BAR'S 16 STEPS · ALL THE LANES", note: "four lanes: 1-16 … 49-64; LENGTH 16, 32 or 64 (BEGINNER: 32 to start, the only LENGTH it changes)" },
       { n: "SNARE · HAT · CLAP", k: ["FILL", "SOUND", "CLR / 4X4", "LENGTH"], strip: "THE KEYS: THIS BAR'S 16 STEPS · ALL THE LANES", note: "two lanes each: 1-16, 17-32 (BEGINNER: 16, LONGER in EXPERT)" },
-      { n: "A STEP HELD", k: ["NOTE", "HITS", "COND", "NUDGE"], strip: "THAT STEP'S OWN (THE FOOT NAMES THEM)", note: "COND: ALWAYS 75% 50% 25% 1:2 2:2 FILL NOT FILL" },
-      { n: "GROOVE", k: ["SWING", "LATCH", "DRUM", "LENGTH"], strip: "SWING · WHAT ARP'S FILL DOES · THE BAR'S 16THS", note: "also SEL + ARP; LENGTH: 1 BEAT … 2 STEPS, /8: in 8ths" } ],
+      { n: "A STEP HELD", k: ["NOTE", "HITS", "COND", "NUDGE"], strip: "THAT STEP'S OWN (THE FOOT NAMES THEM)", note: "COND: ALWAYS 75% 50% 25% 1:2 2:2" },
+      { n: "GROOVE", k: ["SWING", "", "", ""], strip: "SWING · THE BAR'S 16THS", note: "also SEL + ARP; LENGTH: 1 BEAT … 2 STEPS, /8: in 8ths" } ],
       algo: "Lane", presets: "Pattern P1–P64", keys: "steps", sel: "Tempo (SEL: drum filter)",
       notes: [["REC", "Record the keys and MIDI notes into the pattern"], ["SEL + REC", "Clear: the lane here, the pattern elsewhere"],
               ["SEQ held, then SEQ", "Clear the whole pattern (SEL + SAVE undoes)"], ["SEL + SEQ", "Copy the pattern; on another: paste"],
@@ -229,10 +229,10 @@
       { n: "FX SET", k: ["AMOUNT", "KICK", "DROP", "LENGTH"], strip: "THE EFFECTS' FOUR SETTINGS AS BARS", note: "0..100 %, 5 % a detent; KICK, DROP 0: none" },
       { n: "RESET", k: ["", "RESET", "", "WHAT"], strip: "15 PARTS: DROP BUILD KNOB KICK KICK TONE ALL KICKS DRUMS MIX FX CHAIN STEPS PADS KEYS TRACK SCREEN EVERYTHING · 5 BOXES FILL", note: "K4 the part; K2 five clicks (each within 2 s), then GLO: reset" } ],
       algo: "Part (RESET: what)", presets: "Pattern P1–P64", keys: "slices", sel: "Tempo (SEL: drum filter)", notes: [["RESET › EVERYTHING", "RESET ALL: K2 five turns, then GLO"]] },
-    { id: "arp", btn: "ARP", name: "FILL", sub: "Held: a fill", again: "nothing", subs: [
-      { n: "FILL", k: ["", "", "", ""], strip: "THE PAGE YOU ARE ON STAYS", note: "held: FILL steps play, NOT FILL rest, the snare rolls the last beat" } ],
-      algo: "Break", presets: "Pattern P1–P64", keys: "slices", sel: "Tempo (SEL: drum filter)",
-      notes: [["ARP held", "FILL, while held (LATCH: ARP on, ARP again off)"], ["SEL + ARP", "PATTERN › GROOVE: SWING, FILL's LATCH, DRUM, LENGTH"], ["The ARP black key", "Its overlay effect: EFFECT, AMOUNT, TIME, LATCH; FX while held: THRU, ON / OFF, RATE, SWEEP"]] }
+    { id: "arp", btn: "ARP", name: "OVERLAY", sub: "Sixteen effects over everything", again: "nothing", subs: [
+      { n: "OVERLAY", k: ["AMOUNT", "RATE", "SWEEP", "LATCH"], strip: "SIXTEEN EFFECTS, ONE A WHITE KEY: LIT WHILE THEY SOUND", note: "held, or LATCH on: a key switches its effect on and off" } ],
+      algo: "Break", presets: "Pattern P1–P64", keys: "16 effects", sel: "Tempo (SEL: drum filter)",
+      notes: [["SEL + ARP", "PATTERN › GROOVE: SWING"], ["The ARP black key", "Its overlay effect: EFFECT, AMOUNT, TIME, LATCH; FX while held: THRU, ON / OFF, RATE, SWEEP"]] }
   ];
   const PADS = ["R8", "R16", "R32", "REV", "RND", "HLF", "VNL", "ARP", "KIL", "TER", "SUB"];
   let cur = 0, sub = 0;

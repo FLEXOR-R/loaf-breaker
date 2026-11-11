@@ -27,8 +27,8 @@ chain, patterns: 64 of them here) and drives it into hardcore:
   ten memories, a note on every step, and its real sound drawn live on screen. The **KICK LAB**: a CLEAN tail (one
   note from the hit to the end, no "talking" distortion), its NOTE, the pitch drop's CURVE, END, a closing TAIL
   FILTER and DRIVE, **STACK** (another kick's attack on this one's tail), MUTATE and A/B.
-- **A sequencer for live.** Kick over 16, 32 or 64 steps; per step **NOTE, HITS, COND** (chance, 1:2, 2:2, FILL, NOT
-  FILL) and **NUDGE**; **ARP held = FILL**.
+- **A sequencer for live.** Kick over 16, 32 or 64 steps; per step **NOTE, HITS, COND** (chance, 1:2, 2:2) and
+  **NUDGE**; **ARP: sixteen effects over everything** on the white keys (the OVERLAY page).
 - **Tracks and drops.** Patterns in order with loops and per-item breaks, a radio-style PLAY, builds that don't sound
   alike (snare or kick rolls, stutter, sweeps, a gap, the **tempo rising** to the drop).
 - **A mix that holds.** COMP, DUCK, MAX OUT, rolls on the break or the kick. Kicks and drums only: no melody (gone in 0.209).
@@ -77,8 +77,8 @@ SYSTEM (GLO). The button again: the next part; SEL + a button: that domain's sec
 | ENV | **SONG**: TRACKS (patterns, loops, drops and each item's own break and kick; ENV held: a space after the item, or the space taken out), PLAY (a radio: tune a track, press PLAY), DROP, BUILD (the build before a drop: style, sweep, riser, a gap; PRESETS: the tempo rising to the drop) |
 | LFO | **MIX**: LEVELS (break, kick, drums), SENDS (the FX fader, the drums through the FX or around), MASTER (COMP, RATIO, DUCK, MAX OUT), DYN (the compressor's and the ducker's timing) · **LFO held + K1–K4**: the four levels on any page |
 | FX | **EFFECTS**: the master FX chain: four slots (FILTER, CRUNCH, DRIVE, PUNCH, FLANGER, RING MOD, TREMOLO, REVERB, DELAY, EQ, TAPE, MB COMP, CLIP); each effect remembers its settings when you change it and back; FLEXOR's presets MAGIC EQ and MAGIC MBC after CLIP (BEGINNER: two slots, a short list) |
-| ARP | **Held: FILL** (the steps set FILL play, NOT FILL rest, the snare rolls the bar's last beat; LATCH: a press on, the next off) · SEL + ARP: PATTERN › GROOVE (SWING, LATCH, DRUM, LENGTH) |
-| GLO | **SYSTEM**: MIDI clock in and out (USB, TRS), and in EXPERT the METER; SETUP, K1 to K4: 24 skins, WAVE ZOOM, MODE (TUTORIAL: 23 guided steps, the buttons to press blinking; BEGINNER: the essentials (the KICK three pages, KICK, SHAPE and MIX; two FX slots and a short list; a new FM-1 asks for its mode first); EXPERT: all of it), AUTO SAVE; EFFECTS: the screen effects, several at once (CRT, VHS, GRAIN, RGB, SHAKE, STROBE, 8-BIT), the waves' colours, KICK VIEW and EDIT ZOOM (the time EDIT's pictures show, up to 2 s); FX SET: their settings; RESET: one part at a time, or EVERYTHING (RESET ALL, 15 turns) |
+| ARP | **OVERLAY**: sixteen effects over everything, one a white key (held, or LATCH: on and off); K1 the amount, K2 the rate, K3 the sweep, K4 LATCH · SEL + ARP: PATTERN › GROOVE (SWING) |
+| GLO | **SYSTEM**: MIDI clock in and out (USB, TRS), and in EXPERT the METER; SETUP, K1 to K4: 24 skins, WAVE ZOOM, MODE (TUTORIAL: 25 guided steps, the buttons to press blinking; BEGINNER: the essentials (the KICK three pages, KICK, SHAPE and MIX; two FX slots and a short list; a new FM-1 asks for its mode first); EXPERT: all of it), AUTO SAVE; EFFECTS: the screen effects, several at once (CRT, VHS, GRAIN, RGB, SHAKE, STROBE, 8-BIT), the waves' colours, KICK VIEW and EDIT ZOOM (the time EDIT's pictures show, up to 2 s); FX SET: their settings; RESET: one part at a time, or EVERYTHING (RESET ALL, 15 turns) |
 | SAVE | Keep the settings, the patterns, the tracks and the steps |
 
 ## Breaks

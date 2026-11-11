@@ -34,23 +34,17 @@ static uint32_t glo_next(int32_t d)      /* SYSTEM's next or previous part (from
             return GLO_ORD[(i + (d > 0 ? 1u : NGLO - 1u)) % NGLO];
     return 0u;
 }
-static const char *const FILL_DRUM_NAME[4] = {"SNARE", "CLAP", "HAT", "ALL 3"};
-static const char *const FILL_LEN_NAME[7] = {"1 BEAT", "1 BEAT /8", "2 BEATS", "2 BEATS /8", "1 BAR", "1 BAR /8",
-                                             "2 STEPS"};
 static int tut_on(void);                 /* (LOAF BREAKER: the TUTORIAL, tutor.c: further on) */
 static void tut_start(void);
 static void tut_quit(void);
-static uint32_t fill_len_i(void) { return FILL_LEN < 3u ? FILL_LEN * 2u + FILL_RATE : 6u; }   /* (LENGTH and RATE, one) */
 static void global_value(int i, char *t)
 {
     t[0] = 0;
-    if (ui.gpage == GP_FILL) {           /* (GROOVE: SWING, FILL's LATCH, DRUM, LENGTH) */
+    if (ui.gpage == GP_FILL) {           /* (GROOVE: SWING; FILL's settings gone with it in 0.244) */
         if (i == 0) {
             int_text(set.swing, t);
             text_cat(t, "%");
-        } else
-            text_cat(t, i == 1 ? (FILL_LATCH ? "ON" : "OFF") : i == 2 ? FILL_DRUM_NAME[FILL_DRUM]
-                     : FILL_LEN_NAME[fill_len_i()]);
+        }
         return;
     }
     if (ui.gpage == 4u) {                /* (FX SET: each 0..100 %) */
@@ -114,26 +108,13 @@ static void global_turn(int i, int32_t d)
         easy_no();
         return;
     }
-    if (ui.gpage == GP_FILL) {           /* LOAF BREAKER: GROOVE: K1 SWING; FILL: K2 LATCH, K3 the drum, K4 how long (16ths
-                                          * or 8ths) */
-        static const char *const FN[4] = {"SWING", "FILL LATCH", "FILL DRUM", "FILL LENGTH"};
-        uint32_t c = set.fill_cfg;
-        if (i == 0)
-            set.swing = (uint8_t)clamp((int32_t)set.swing + d, 50, 75);
-        else if (i == 1)
-            c = (c & ~1u) | (d > 0 ? 1u : 0u);
-        else if (i == 2)
-            c = (c & ~6u) | (uint32_t)clamp((int32_t)FILL_DRUM + (d > 0 ? 1 : -1), 0, 3) << 1;
-        else {
-            uint32_t l = (uint32_t)clamp((int32_t)fill_len_i() + (d > 0 ? 1 : -1), 0, 6);
-            c = (c & ~56u) | (l < 6u ? (l / 2u) << 3 | (l & 1u) << 5 : 3u << 3);
-        }
-        set.fill_cfg = (uint8_t)c;
-        if (!FILL_LATCH && !(ui.btn & 1u << B_ARP))
-            fill_on = 0u;                /* (LATCH off: no FILL left on) */
+    if (ui.gpage == GP_FILL) {           /* LOAF BREAKER: GROOVE: K1 SWING (0.244: FILL gone, its K2-K4 with it) */
+        if (i != 0)
+            return;
+        set.swing = (uint8_t)clamp((int32_t)set.swing + d, 50, 75);
         set_dirty = 1u;
         global_value(i, t);
-        app_say(FN[i & 3], t);
+        app_say("SWING", t);
         ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
         return;
     }
@@ -257,31 +238,24 @@ static void draw_global(const brk_status_t *st)
     int bs = plat_ble_state();
     cv_begin(240, 44, C_BLACK);          /* LOAF BREAKER: no waveform on GLOBAL: its place the skins' on MORE, black
                                           * on the others */
-    if (ui.gpage == GP_FILL) {           /* LOAF BREAKER: GROOVE: the swing, what ARP's FILL does, as cards */
-        static const char *const L[4] = {"SWING", "FILL LATCH", "FILL DRUM", "FILL LEN"};
-        uint32_t j;
-        cv_text(6, 1, &FONT_T, fill_on ? "GROOVE  FILL ON" : "GROOVE", fill_on ? C_HI : C_GRAY);
-        cv_text(6, 16, &FONT_XS, FILL_LATCH ? "ARP: ON, ARP AGAIN: OFF" : "ARP HELD: THE FILL", C_DIM);
-        cv_text(6, 28, &FONT_XS, "STEPS SET FILL PLAY, NOT FILL REST", C_DIM);
+    if (ui.gpage == GP_FILL) {           /* LOAF BREAKER: GROOVE: the swing (0.244: FILL gone), and the bar's 16ths
+                                          * as it lays them out */
+        uint32_t s;
+        char v[12];
+        cv_text(6, 1, &FONT_T, "GROOVE", C_GRAY);
+        cv_text(6, 16, &FONT_XS, "K1 SWING: EVERY SECOND 16TH LATER", C_DIM);
         cv_blit(0, 44);
         cv_begin(240, 52, C_BLACK);
-        for (j = 0; j < 4u; j++) {
-            int32_t x = 4 + (int32_t)j * 59;
-            char v[12];
-            global_value((int)j, v);
-            cv_rect(x, 4, 53, 42, j == 1 && FILL_LATCH ? C_HI : C_BLOCK);
-            cv_text(x + 4, 6, &FONT_XS, L[j], j == 1 && FILL_LATCH ? C_BLACK : C_GRAY);
-            cv_text(x + 4, 26, text_w(&FONT_T, v) <= 47 ? &FONT_T : &FONT_XS, v, j == 1 && FILL_LATCH ? C_BLACK : C_WHITE);
-        }
+        global_value(0, v);
+        cv_rect(4, 4, 112, 42, C_BLOCK);
+        cv_text(8, 6, &FONT_XS, "SWING", C_GRAY);
+        cv_text(8, 24, &FONT_B, v, C_WHITE);
         cv_blit(0, 88);
         cv_begin(240, 52, C_BLACK);
-        {                                /* the bar: its 16ths, the ones the fill rolls lit */
-            uint32_t s;
-            cv_text(6, 2, &FONT_XS, "THE BAR: THE FILL'S 16THS", C_DIM);
-            for (s = 0; s < 16u; s++) {
-                int on = s >= FILL_FROM[FILL_LEN] && (!FILL_RATE || !(s & 1u));
-                cv_rect(6 + (int32_t)s * 14, 18, 12, 22, on ? (fill_on ? C_WHITE : C_HI) : (s & 3u) ? C_BLOCK : C_LINE);
-            }
+        cv_text(6, 2, &FONT_XS, "THE BAR'S 16THS, SWUNG", C_DIM);
+        for (s = 0; s < 16u; s++) {      /* (the odd 16ths pushed later as the swing grows) */
+            int32_t x = 6 + (int32_t)s * 14 + ((s & 1u) ? (int32_t)(set.swing - 50u) * 6 / 25 : 0);
+            cv_rect(x, 18, 10, 22, (s & 3u) ? C_BLOCK : C_HI);
         }
         cv_blit(0, 140);
         return;
