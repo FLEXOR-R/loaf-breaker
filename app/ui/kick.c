@@ -254,21 +254,38 @@ static void kick_part_set(uint32_t p);
                 (1u << 12) | (1u << 14) | (1u << 16) | (1u << 17) | (1u << 19) | (1u << 20) | (1u << 22) | (1u << 23) | \
                 (1u << 24) | (1u << 25) | (1u << 26) | (1u << 29) | (1u << 31))   /* (LAB: TAIL +, TOOLS) */
 static int kp_hidden(uint32_t p) { return set.novice && p < 32u && (KP_ADV >> p & 1u); }
+/* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's KICK is one page, OUT's: K1 PRESET (the built-in kicks), K2 DISTO,
+ * K3 TUNE (SYNTH's), K4 TAIL (the SUB's decay, HOME's K4); EDIT again and ALGORITHM stay on it (EXPERT: the menu) */
+#define KP_PART_OUT 10u                  /* (OUT's part, BODY's last) */
+static int kick_easy(void) { return set.novice && ui.page == PG_KICK && ui.kpage == KP_OUT; }
 static void kick_open(void)              /* the KICK menu, at its section's part */
 {
     uint32_t s = ui.ksect % KSECTS;
+    if (set.novice) {                    /* (BEGINNER: its one page) */
+        kick_part_set(KP_PART_OUT);
+        return;
+    }
     if (kp_hidden(KSECT[s][ui.kpos[s] % KSECT_N[s]]))
         ui.kpos[s] = 0u;                 /* (BEGINNER: an advanced part left open: the section's first) */
     kick_part_set(KSECT[s][ui.kpos[s] % KSECT_N[s]]);
 }
 static void kick_sect_next(void)         /* EDIT on the KICK menu */
 {
+    if (set.novice) {
+        kick_open();
+        app_say("KICK", "MORE: EXPERT (SETUP K3)");
+        return;
+    }
     ui.ksect = (uint8_t)((ui.ksect + 1u) % KSECTS);
     kick_open();
 }
 static void kick_sect_step(int32_t d)    /* ALGORITHM on it */
 {
     uint32_t s = ui.ksect % KSECTS, n = KSECT_N[s], k;
+    if (set.novice) {
+        kick_sect_next();
+        return;
+    }
     for (k = 0; k < n; k++) {            /* (BEGINNER: the advanced parts passed over) */
         ui.kpos[s] = (uint8_t)((ui.kpos[s] + (d > 0 ? 1u : n - 1u)) % n);
         if (!kp_hidden(KSECT[s][ui.kpos[s]]))
@@ -371,12 +388,14 @@ static float kick_macro_value(int m)
 static int kick_preset_knob(int i)
 {
     return (ui.kpage == KP_FX && i == 2 && !KFX_PARAM[set.kick.l[ui.klayer % KICK_LAYERS].fx % KICK_FX][1][0]) ||
-           (ui.kpage == KP_OUT && i == 3);   /* (LOAF BREAKER: OUT's K4, always) */
+           (ui.kpage == KP_OUT && i == (kick_easy() ? 0 : 3));   /* (LOAF BREAKER: OUT's K4; BEGINNER: K1) */
 }
 static const char *kick_knob_name(int i)
 {
     if (kick_preset_knob(i))
         return "PRESET";
+    if (kick_easy() && i >= 2)           /* (BEGINNER's page: TUNE, TAIL) */
+        return i == 2 ? "TUNE" : "TAIL";
     if (ui.kpage == KP_KNOBS)
         return sk_short(kn_fn(i));
     if (ui.kpage == KP_KSET)
@@ -390,6 +409,19 @@ static void kick_value(int i, char *t)
     const kick_t *k = &set.kick;
     const kick_layer_t *l = &k->l[ui.klayer % KICK_LAYERS];
     t[0] = 0;
+    if (kick_easy() && i == 2) {         /* (BEGINNER: TUNE, SYNTH's; TAIL, the SUB's decay) */
+        int32_t v = set.ksyn[KS_TUNE];
+        if (v > 0)
+            text_cat(t, "+");
+        int_text(v, t + text_n(t));
+        text_cat(t, " ST");
+        return;
+    }
+    if (kick_easy() && i == 3) {
+        int_text((int32_t)(kick_decay_ms(KL_SUB, k->l[KL_SUB].decay) + 0.5f), t);
+        text_cat(t, " MS");
+        return;
+    }
     if (klab_page()) {                   /* LOAF BREAKER: the LAB */
         klab_value(i, t);
         return;
@@ -518,6 +550,17 @@ static void kick_knob_turn(int i, int32_t d)
     kick_t *k = &set.kick;
     kick_layer_t *l = &k->l[ui.klayer % KICK_LAYERS];
     char t[16];
+    if (kick_easy() && i >= 2) {         /* (BEGINNER: K3 TUNE, K4 TAIL) */
+        if (i == 2)
+            ks_add(KS_TUNE, d);
+        else
+            k->l[KL_SUB].decay = knob_f(k->l[KL_SUB].decay, d, 0.02f, 0.0f, 1.0f);
+        kick_value(i, t);
+        app_say(i == 2 ? "KICK TUNE" : "KICK TAIL", t);
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        changed_kick();
+        return;
+    }
     if (klab_page()) {                   /* LOAF BREAKER: the LAB */
         klab_turn(i, d);
         return;
@@ -710,6 +753,8 @@ static float kick_knob_f(int i)          /* the part's knob i, 0..1 (as its bar)
 {
     const kick_t *k = &set.kick;
     const kick_layer_t *l = &k->l[ui.klayer % KICK_LAYERS];
+    if (kick_easy() && i >= 2)
+        return i == 2 ? ks_normj(KS_TUNE) : k->l[KL_SUB].decay;
     switch (ui.kpage) {
     case KP_MIX:
         return k->l[i].level;
@@ -931,6 +976,8 @@ static void kick_picture(int32_t top)
             text_cat(t, "PRESETS: ");
             text_cat(t, kstyle_name());
         }
+        else if (kick_easy())            /* (BEGINNER's one page) */
+            text_cat(t, "PRESET, DISTO, TUNE, TAIL");
         else if (p < 32u)
             text_cat(t, D[p]);
         cv_text(12 + text_w(&FONT_B, "KICK 10"), 4, &FONT_XS, t, kp_knobs() || ui.kpage == KP_STYLE ? C_HI : C_GRAY);
@@ -961,6 +1008,12 @@ static void kick_picture(int32_t top)
         const felucca_font_t *f = &FONT_T;
         int32_t cx = 4, y = 80;
         char c[16];
+        if (set.novice) {                /* (BEGINNER: one page, no parts to go through) */
+            cv_rect(cx, y, 60, 15, C_HI);
+            cv_text(cx + 30 - text_w(&FONT_T, "KICK") / 2, y + 2, &FONT_T, "KICK", C_BLACK);
+            cv_text(cx + 70, y + 4, &FONT_XS, "MORE: EXPERT, SETUP K3", C_DIM);
+            n = 0u;
+        }
         for (j = 0; j < n; j++) {
             c[0] = 0;
             kick_chip(KSECT[s][j], c);

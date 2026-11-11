@@ -1,5 +1,6 @@
-# LOAF BREAKER TEST: SYSTEM › SETUP's MODE (K3). BEGINNER (left): the KICK menu's ALGORITHM passes over the advanced parts:
-# BODY MIX, SUB, SYNTH, OUT (no GRIT, SYNTH +, MACRO, no layer effects); TAIL TAIL alone (no TAIL +, BASS, MORPH); LFO LEVELS, GROOVE; KNOBS and STYLE (no K SET). EXPERT (right): all again.
+# LOAF BREAKER: SYSTEM › SETUP's MODE (K3). BEGINNER (left): the KICK menu is one page, OUT's (0.223, FLEXOR): K1 PRESET,
+# K2 DISTO, K3 TUNE, K4 TAIL; EDIT again and ALGORITHM stay on it; LFO: LEVELS and SENDS only. EXPERT (right): the whole
+# menu again, from OUT.
 #   app/build/host/loaf-breaker_host tests/scenarios/novice.txt app/build/scenarios
 wait 4200
 tap GLO
@@ -12,26 +13,22 @@ wait 200
 shot nv_more.png
 tap EDIT
 wait 300
-expect kpage 0
-turn ALGO 1 10
-wait 150
-expect kpage 1
-turn ALGO 1 10
-wait 150
-expect kpage 8
-turn ALGO 1 10
-wait 200
+expect page 4
 expect kpage 4
 turn ALGO 1 10
 wait 150
-expect kpage 0
-shot nv_kick.png
+expect kpage 4
 tap EDIT
 wait 300
-expect kpage 15
-turn ALGO 1 10
-wait 150
-expect kpage 15
+expect kpage 4
+turn K1 2 60
+wait 200
+expect kpreset 2
+turn K3 3 60
+wait 200
+expect ktune 3
+wait 1500
+shot nv_kick.png
 tap LFO
 wait 150
 tap LFO
@@ -40,34 +37,6 @@ expect mpage 1
 tap LFO
 wait 150
 expect mpage 0
-tap EDIT
-wait 150
-tap EDIT
-wait 150
-tap EDIT
-wait 150
-tap EDIT
-wait 150
-tap EDIT
-wait 150
-tap EDIT
-wait 300
-expect kpage 0
-tap EDIT
-wait 150
-tap EDIT
-wait 150
-tap EDIT
-wait 150
-tap EDIT
-wait 300
-expect kpage 11
-turn ALGO 1 10
-wait 150
-expect kpage 14
-turn ALGO 1 10
-wait 150
-expect kpage 11
 tap GLO
 wait 150
 tap GLO
@@ -76,7 +45,7 @@ turn K3 1 10
 wait 200
 tap EDIT
 wait 300
-expect kpage 11
+expect kpage 4
 turn ALGO 1 10
 wait 150
-expect kpage 12
+expect kpage 0

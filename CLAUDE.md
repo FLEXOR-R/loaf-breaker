@@ -16,8 +16,9 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   (`name`: loaf-breaker.fwsc, app/build/host/loaf-breaker_host), `fmhub.json` LOAF BREAKER's (author FLEXOR). CHOPPAH
   stays credited (README, site credits, the card's text, fm1.toml). The hub checklist: docs/hub/SUBMIT.md.
 - Menus (9 Nov 2026, 0.177): ENV is the song (TRACKS, PLAY, DROP, BUILD); RESET is GLO's sixth part (`RST_ON`, ENV's
-  reset code in track.c); the knobs' functions are EDIT KICK › KNOBS only. SYSTEM › SETUP K3 MODE (`set.novice`): BEGINNER hides
-  the KICK menu's advanced parts (`KP_ADV`); the host simulator starts EXPERT (scenarios, the manual's screens), the
+  reset code in track.c); the knobs' functions are EDIT KICK › KNOBS only. SYSTEM › SETUP K3 MODE (`set.novice`): BEGINNER keeps
+  the essentials (0.223: the KICK one page, `kick_easy`; the FX page's PRESETS a SCENE, `fx_scene_turn`; `KP_ADV` for EXPERT's
+  menu no longer reached in BEGINNER); the host simulator starts EXPERT (scenarios, the manual's screens), the
   FM-1 and the web emulator BEGINNER. The manual opens with "Start in five minutes" (the hub card's `cheat` link).
 - Screen and knobs (0.178): the screen's rows are remembered as hashes (`rows_send` in common.c): a full-width strip
   sends only its changed rows. Anything drawing on the screen other than through `cv_blit` must forget its rows
@@ -62,7 +63,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   keys and buttons to blink, text), `set.tut` (appended: 0 off, 1..TUT_N the step, 0xFE done; a new FM-1 starts it,
   an older save not), the counters tut_* in common.c; the header draws the step (screen.c); SETUP K3 left of
   BEGINNER; GLO quits, SEL + GLO skips. 0.212 (FLEXOR): HOME first (on PERFORM already, HOME stays: tut_home_stay),
-  OUT's K4 the built-in kicks. 0.213: a step done waits 5 s (`TUT_WAIT`, the header counting) only where there is
+  OUT's K4 the built-in kicks (0.223: BEGINNER's KICK page, K1; 18 steps). 0.213: a step done waits 5 s (`TUT_WAIT`, the header counting) only where there is
   something to hear (TUT[].wait: slices, effects, kicks, DISTO, steps, the drop); a button step goes on at once. Keep
   its steps true when a control they teach moves.
 - EDIT ZOOM (0.216, FLEXOR: "a wider view"): `set.ezoom` (appended after `tut`; 0 AUTO), SYSTEM › EFFECTS PRESETS,

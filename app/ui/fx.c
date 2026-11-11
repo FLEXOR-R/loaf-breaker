@@ -304,6 +304,12 @@ static void fx_algo(int32_t d, uint32_t sel);
 static void fx_next_part(void)
 {
     uint32_t n = fx_npages(fx_sl(fx_foc())->type);
+    if (set.novice && !FX_KICK()) {      /* (LOAF BREAKER, BEGINNER: the slot's MAIN only; MORE, MOD: EXPERT) */
+        ui.fx_page = 0u;
+        app_say("FX", "MORE, MOD: EXPERT");
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        return;
+    }
     ui.fx_page = (uint8_t)(ui.fx_page + 1u < n ? ui.fx_page + 1u : 0u);
     page_say();
     ui.redraw |= RG_BLOCKS | RG_FOOT;
@@ -672,6 +678,59 @@ static void fx_type_turn(int32_t d)
         brk_mbc_defaults(mbc_at(fx_foc()));
     app_say(nm, BRK_FXT_NAME[t]);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
+    changed();
+}
+
+/* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's FX page: PRESETS picks a SCENE, the four slots of the chain set at
+ * once (the effects and their settings, MAGIC EQ, MAGIC MBC and MB OTT among them); K1-K3 still the slot's settings,
+ * K4 its mix. Each slot: its type (or one of the presets after the list: FXT_MAGEQ, FXT_MAGMB, FXT_MBOTT), p0..p2 and
+ * the mix (a negative: the effect's own) */
+#define NSCENES 7u
+static const char *const SCENE_NAME[NSCENES] = {"CLEAN", "PUNCH", "DUB", "LO-FI", "CRUSHED", "INDUSTRIAL", "SPACE"};
+static const struct { int16_t t; float p[4]; } SCENE[NSCENES][BRK_FX_SLOTS] = {
+    {{FXT_EMPTY, {-1, -1, -1, -1}}, {FXT_EMPTY, {-1, -1, -1, -1}}, {FXT_EMPTY, {-1, -1, -1, -1}}, {FXT_EMPTY, {-1, -1, -1, -1}}},
+    {{FXT_MAGEQ, {-1, -1, -1, -1}}, {FXT_MAGMB, {-1, -1, -1, -1}}, {FXT_CLIP, {0.3f, 0.5f, 0.06f, 1.0f}}, {FXT_EMPTY, {-1, -1, -1, -1}}},
+    {{FXT_FILTER, {0.62f, 0.3f, 0.0f, 1.0f}}, {FXT_DELAY, {-1, -1, -1, 0.3f}}, {FXT_REVERB, {-1, -1, -1, 0.25f}}, {FXT_EMPTY, {-1, -1, -1, -1}}},
+    {{FXT_TAPE, {-1, -1, -1, -1}}, {FXT_CRUNCH, {-1, -1, -1, 0.7f}}, {FXT_FILTER, {0.6f, 0.2f, 0.0f, 1.0f}}, {FXT_EMPTY, {-1, -1, -1, -1}}},
+    {{FXT_CRUNCH, {-1, -1, -1, -1}}, {FXT_DRIVE, {-1, -1, -1, -1}}, {FXT_MBOTT, {-1, -1, -1, -1}}, {FXT_CLIP, {-1, -1, -1, -1}}},
+    {{FXT_DRIVE, {0.6f, -1, -1, -1}}, {FXT_RING, {-1, -1, -1, 0.25f}}, {FXT_REVERB, {0.35f, -1, -1, 0.25f}}, {FXT_MBOTT, {-1, -1, -1, -1}}},
+    {{FXT_FLANGER, {-1, -1, -1, -1}}, {FXT_DELAY, {-1, -1, -1, -1}}, {FXT_REVERB, {-1, -1, -1, 0.4f}}, {FXT_EMPTY, {-1, -1, -1, -1}}}};
+static uint8_t fx_scene;                 /* (the last picked: BEGINNER's PRESETS goes on from it) */
+static void fx_scene_turn(int32_t d)
+{
+    uint32_t k, j, s = (uint32_t)clamp((int32_t)fx_scene + (d > 0 ? 1 : -1), 0, NSCENES - 1);
+    fx_scene = (uint8_t)s;
+    for (k = 0; k < BRK_FX_SLOTS; k++) {
+        brk_fxslot_t *sl = fx_sl(k);
+        brk_mbc_t *mc = mbc_at(k);
+        int t = SCENE[s][k].t;
+        mc->rsv[0] = 0u;
+        if (t == FXT_MAGEQ)
+            eq_magic_preset(sl, fxx_at(k));
+        else {
+            int bt = t == FXT_MAGMB || t == FXT_MBOTT ? FXT_MBCOMP : t;
+            brk_fx_slot_defaults(sl, bt);
+            brk_fxx_defaults(fxx_at(k), bt);
+            if (bt == FXT_MBCOMP) {
+                brk_mbc_defaults(mc);
+                if (t == FXT_MAGMB)
+                    mb_magic_preset(sl, mc);
+                else if (t == FXT_MBOTT)
+                    mb_ott_preset(sl, mc);
+            }
+        }
+        for (j = 0; j < 4u; j++)
+            if (SCENE[s][k].p[j] >= 0.0f) {
+                if (j < 3u)
+                    sl->p[j] = SCENE[s][k].p[j];
+                else
+                    sl->mix = SCENE[s][k].p[j];
+            }
+        sl->on = (uint8_t)(sl->type != FXT_EMPTY);
+    }
+    ui.fx_page = 0u;
+    app_say("FX SCENE", SCENE_NAME[s]);
+    ui.redraw |= RG_BLOCKS | RG_FOOT | RG_HEAD;
     changed();
 }
 

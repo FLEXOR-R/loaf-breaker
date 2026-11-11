@@ -904,7 +904,8 @@ static void input(void)
         } else if (k == EN_PRESET && btn & 1u << B_SEL)
             pattern_pick(d);             /* SEL held: the pattern, on any page */
         else if (k == EN_PRESET && ui.page == PG_FX)
-            fx_type_turn(d);             /* the focused slot's effect */
+            set.novice && !FX_KICK() ? fx_scene_turn(d) : fx_type_turn(d);   /* the focused slot's effect (LOAF
+                                          * BREAKER: BEGINNER, a whole scene) */
         else if (k == EN_PRESET && ui.page == PG_PERC)   /* LOAF BREAKER: the snare's, hat's or clap's memories */
             perc_mem_turn(ui.pvoice, d);
         else if (k == EN_PRESET && ui.page == PG_KICK) {   /* LOAF BREAKER: the kick memories; on KNOBS' K1 SET ..
@@ -1176,9 +1177,14 @@ static void draw_tabs(void)
         }
     } else if (ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX()) {   /* LOAF BREAKER: the KICK menu: its sections,
                                           * the part (if it fits) */
-        for (i = 0; i < KSECTS; i++)
-            x = tab(x, KSECT_NAME[i], i == ui.ksect % KSECTS);
-        kick_part_name(kick_part(), part);
+        if (kick_easy()) {               /* (LOAF BREAKER: BEGINNER's one KICK page: no sections, no parts) */
+            x = tab(x, "KICK", 1);
+            tab(x, "BEGINNER", 0);
+        } else {
+            for (i = 0; i < KSECTS; i++)
+                x = tab(x, KSECT_NAME[i], i == ui.ksect % KSECTS);
+            kick_part_name(kick_part(), part);
+        }
         if (x + text_w(&FONT_T, part) + 16 > 236)
             part[0] = 0;
     } else {                             /* SOUNDS: the drum, and its part */

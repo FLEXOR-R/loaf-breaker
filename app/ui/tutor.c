@@ -27,9 +27,8 @@ static const struct {
     {1u, TC_PAD, TK_BLACK, 1u, 0u, "HOLD A BLACK KEY: AN EFFECT"},
     {1u, TC_PAD2, TK_BLACK, 1u, 0u, "NOW ANOTHER BLACK KEY"},
     {2u, TC_EDIT, 0u, 0u, 1u << B_EDIT, "PRESS EDIT: THE KICK"},
-    {2u, TC_KNOBS, 0u, 1u, 0u, "TURN K1 TO K4: SHAPE IT"},
-    {2u, TC_OUT, 0u, 0u, 0u, "TURN ALGORITHM LEFT: OUT"},
-    {2u, TC_KPRE, 0u, 1u, 0u, "TURN K4: THE BUILT-IN KICKS"},
+    {2u, TC_KPRE, 0u, 1u, 0u, "TURN K1: THE BUILT-IN KICKS"},   /* (BEGINNER's KICK: one page, 0.223) */
+    {2u, TC_KNOBS, 0u, 1u, 0u, "TURN K2 TO K4: SHAPE IT"},
     {2u, TC_PRESETS, 0u, 1u, 0u, "TURN PRESETS: KICK 2 OF 10"},
     {3u, TC_DISTO, 0u, 1u, 1u << B_SEL, "HOLD SEL, TURN K4: ITS DISTO"},
     {4u, TC_SEQ, 0u, 0u, 1u << B_SEQ, "PRESS SEQ: THE PATTERN"},
@@ -163,7 +162,7 @@ static void tut_skip(void)               /* SEL + GLO */
     app_say("TUTORIAL", "STEP SKIPPED");
     tut_go(set.tut + 1u);
 }
-static void tut_head(char *a, char *b)   /* the header's two lines: "TUTORIAL 3/19  THE BREAK", what to do */
+static void tut_head(char *a, char *b)   /* the header's two lines: "TUTORIAL 3/18  THE BREAK", what to do */
 {
     char n[8];
     uint32_t s = set.tut - 1u;

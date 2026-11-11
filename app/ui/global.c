@@ -181,8 +181,10 @@ static void global_turn(int i, int32_t d)
                 app_say("MODE", "BEGINNER");
             } else {
                 set.novice = d > 0 ? 0u : 1u;
-                if (set.novice)
+                if (set.novice) {
                     ui.meter_on = 0u;    /* (the METER: EXPERT's) */
+                    ui.fx_page = 0u;     /* (the FX page: MAIN only) */
+                }
                 changed();
                 app_say("MODE", set.novice ? "BEGINNER" : "EXPERT");
             }

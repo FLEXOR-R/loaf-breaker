@@ -20,9 +20,9 @@ The FM-1 starts in **BEGINNER** mode (SYSTEM › SETUP: GLO, then GLO again; K1)
 **Or let the FM-1 show you: the TUTORIAL.** A new FM-1 starts with it (and SYSTEM › SETUP K3, turned left past
 BEGINNER, starts it again). The header says one thing to do at a time, the button or the keys that do it blink, and
 when it's done, "OK!" and the next: at once for a button (HOME, EDIT, SEQ, SAVE ..), five seconds later where there is
-something to hear (an effect, a kick, the drop): 19 steps in seven lessons, THE
-BREAK (HOME: the PERFORM menu, PLAY, the slices, stop), EFFECTS (the black keys), THE KICK (EDIT, K1–K4, ALGORITHM to
-OUT and its K4 PRESET: the built-in kicks, 909 to DISTORTO; PRESETS: your ten kicks), DISTO (SEL + K4), THE PATTERN (SEQ: kicks, a snare), THE DROP (SEL + ENV) and
+something to hear (an effect, a kick, the drop): 18 steps in seven lessons, THE
+BREAK (HOME: the PERFORM menu, PLAY, the slices, stop), EFFECTS (the black keys), THE KICK (EDIT, its K1 PRESET: the
+built-in kicks, 909 to DISTORTO; K2–K4: DISTO, TUNE, TAIL; PRESETS: your ten kicks), DISTO (SEL + K4), THE PATTERN (SEQ: kicks, a snare), THE DROP (SEL + ENV) and
 SAVE. Everything is real: you play the firmware itself. **SEL + GLO** skips a step, **GLO** quits (SETUP K3 starts it
 again where you left it; SAVE keeps where you are). An FM-1 already in use when it updates doesn't start it.
 
@@ -523,6 +523,11 @@ sound. Every band pressed hard and fast (−36 dB, 10:1, 1 ms in, 60 ms out) and
 low, +9 dB the mid and high), split at 88 Hz and 2.5 kHz, a 6 dB knee, −3 dB out and 60 % wet: the loud parts come
 down while the quiet ones, the tails and the room, come up.
 
+**Scenes (BEGINNER).** In BEGINNER mode PRESETS on the FX page picks a whole scene instead of the slot's effect: CLEAN
+(nothing), PUNCH (MAGIC EQ, MAGIC MBC, CLIP), DUB (a low-pass, a 3/16 delay, a reverb), LO-FI (TAPE, CRUNCH, a
+low-pass), CRUSHED (CRUNCH, DRIVE, MB OTT, CLIP), INDUSTRIAL (DRIVE, RING MOD, a short reverb, MB OTT), SPACE (FLANGER,
+DELAY, REVERB). Each slot can still be tuned (K1–K3, K4 its mix); EXPERT picks the effects one by one.
+
 **MAGIC EQ** and **MAGIC MBC** are FLEXOR's own, at the very end of PRESETS (past CLIP), in the FX chain and in KICK
 FX. MAGIC EQ is an EQ: LOW −5.8 dB (shelf at 182 Hz), MID −2.9 dB at 999 Hz (Q 1.59), HIGH +1.9 dB (shelf at 8 kHz),
 0 dB out. MAGIC MBC is an MB COMP split at 200 Hz and 2.5 kHz with a hard knee: the LOW at 0 dB, 8:1 (10 / 150 ms)
@@ -697,9 +702,12 @@ whole screen changes at once): RED, AMBER, ICE BLUE, PIP-BOY, IRIS, PINK, MINT, 
 two-colour ones: SYNTHWAVE (neon cyan and magenta on indigo), VAPOR, TOXIC, MIAMI, LAVA, GOLD, BLAZE (flashy orange and
 red), ACID (acid yellow and red-orange). K2 **WAVE ZOOM** (PRESETS too), how much of the past HOME's scrolling wave (the
 CDJ view) holds across the screen: 1/2, 2/3, 5/6 of a bar (zoomed in), 1 BAR (as it was), 1 1/4, 1 1/2, 2 BARS (zoomed
-out). K3 **MODE**: TUTORIAL (left of BEGINNER: the tutorial, above), BEGINNER or EXPERT (right). In BEGINNER, ALGORITHM
-on the KICK menu passes over its advanced parts: SOUND has MIX, SUB and OUT, SYNTH has SYNTH, BASS and MACRO, DIRT has
-DISTO, TONE has EQ BANDS and FX 1, KNOBS has KNOBS. Nothing is lost: EXPERT shows them all again, as they were left. A
+out). K3 **MODE**: TUTORIAL (left of BEGINNER: the tutorial, above), BEGINNER or EXPERT (right). **BEGINNER** keeps
+each thing to its essentials, to play the machine before learning it: the **KICK** is one page (K1 **PRESET**, the
+built-in kicks; K2 **DISTO**; K3 **TUNE**; K4 **TAIL**, the SUB's length; EDIT again and ALGORITHM stay on it); the
+**FX** chain is a choice of **scenes** on PRESETS (CLEAN, PUNCH, DUB, LO-FI, CRUSHED, INDUSTRIAL, SPACE: the four slots
+set at once; K1–K4 still the slot's settings and mix; FX again stays on MAIN); the MIXER has LEVELS and SENDS.
+Nothing is lost: EXPERT shows everything again, as it was left, and what BEGINNER sets is there to refine. A
 new FM-1, the web emulator and RESET ALL start in BEGINNER; an FM-1 updated with its settings saved stays in EXPERT.
 K4 **AUTO SAVE**, ON: what you change is saved by itself a minute after it changed, once the break has been stopped and
 **nothing has been heard for 10 s** (the flash is never written while it plays, nor while a long kick tail, a reverb, an
