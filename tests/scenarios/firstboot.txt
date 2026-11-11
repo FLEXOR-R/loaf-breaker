@@ -15,5 +15,6 @@ tap PLAY
 wait 400
 expect tut 1
 expect playing 0
+expect auto_save 0
 wait 600
 shot fb_step1.png

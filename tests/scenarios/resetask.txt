@@ -39,3 +39,4 @@ shot ra_ask.png
 tap PLAY
 wait 400
 expect tut 254
+expect auto_save 1

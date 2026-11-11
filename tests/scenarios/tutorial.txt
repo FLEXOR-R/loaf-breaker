@@ -16,6 +16,7 @@ wait 200
 turn K3 -1 80
 wait 300
 expect tut 1
+expect auto_save 0
 wait 1500
 shot tu_1.png
 tap HOME
@@ -132,3 +133,4 @@ wait 1500
 shot tu_16.png
 wait 6000
 expect tut 254
+expect auto_save 1

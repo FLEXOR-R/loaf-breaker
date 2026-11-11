@@ -89,6 +89,8 @@ static void tut_mark(void)
 static void tut_go(uint32_t step)        /* step 1..TUT_N (past the last: finished) */
 {
     set.tut = (uint8_t)(step > TUT_N ? TUT_DONE : step);
+    if (step > TUT_N)
+        set.auto_save = 1u;              /* (LOAF BREAKER, 0.250, FLEXOR: AUTO SAVE off for the tutorial, on after it) */
     set_dirty = 1u;
     tut_ok = 0u;
     tut_mark();
@@ -96,6 +98,7 @@ static void tut_go(uint32_t step)        /* step 1..TUT_N (past the last: finish
 }
 static void tut_start(void)              /* SETUP K3 left of BEGINNER: from where it was left, or the first step */
 {
+    set.auto_save = 0u;                  /* (0.250: off while it runs; on again at its end, or quit) */
     tut_go(set.tut >= 1u && set.tut <= TUT_N ? set.tut : 1u);
     app_say("TUTORIAL", "GLO: QUIT, SEL+GLO: SKIP");
 }
@@ -115,7 +118,11 @@ static void ask_pick(uint32_t c)
     set.tut = TUT_DONE;
     if (set.novice)
         novice_lengths();
+    if (c == 1u)                         /* (0.250, FLEXOR: a first start, BEGINNER: AUTO SAVE on; the TUTORIAL: off
+                                          * while it runs, on after it; EXPERT: as it was) */
+        set.auto_save = 1u;
     if (c == 0u) {
+        set.auto_save = 0u;
         set.tut = 0u;
         tut_go(1u);
         app_say("TUTORIAL", "GLO: QUIT, SEL+GLO: SKIP");
@@ -169,6 +176,7 @@ static void ask_input(uint32_t kdn, uint32_t bdn, int32_t d)
 static void tut_quit(void)
 {
     set.tut = TUT_DONE;
+    set.auto_save = 1u;                  /* (0.250: on after the tutorial) */
     set_dirty = 1u;
     app_say("TUTORIAL", "QUIT (SETUP K3: AGAIN)");
     ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
