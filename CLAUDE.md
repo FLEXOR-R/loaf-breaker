@@ -5,9 +5,9 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 
 ## LOAF BREAKER (FLEXOR's fork)
 
-- The repository is FLEXOR-R/loaf-breaker (private); every push to the `loaf` branch is a release `loaf-vX.YY`
-  (`.github/workflows/loaf.yml`) and updates the site, https://flexor-r.github.io/loaf-breaker/ (the firmware on it
-  locked behind the Actions secret `LOAF_INSTALL_CODE`, tools/site_lock.py). Never write the code itself anywhere.
+- The repository is FLEXOR-R/loaf-breaker (public from 11 Nov 2026, FLEXOR); every push to the `loaf` branch is a release `loaf-vX.YY`
+  (`.github/workflows/loaf.yml`) and updates the site, https://flexor-r.github.io/loaf-breaker/ (0.261: the firmware on it
+  open, no install code; tools/site_lock.py and the secret LOAF_INSTALL_CODE no longer used). Never write that old code anywhere.
 - The changelog, in French, is FLEXOR's Claude Doc (project 6f32699a-06f8-4eaa-a41a-6f03a8b20dc9, node 1fc2737b-3a82):
   after each release add a row (version, date, what changed) above the top one and put the version in the intro's
   "LOAF BREAKER 0.1xx". Keep its first part current whenever it is relevant: the summary paragraph, "Les grandes

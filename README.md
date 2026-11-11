@@ -11,7 +11,7 @@
 <p align="center">
 <a href="https://flexor-r.github.io/loaf-breaker/"><b>Site</b></a> ·
 <a href="https://flexor-r.github.io/loaf-breaker/emu/">Try it in the browser</a> ·
-<a href="https://flexor-r.github.io/loaf-breaker/install/">Install</a> (with your install code) ·
+<a href="https://flexor-r.github.io/loaf-breaker/install/">Install</a> ·
 <a href="https://flexor-r.github.io/loaf-breaker/manual/#start-in-five-minutes"><b>Start in five minutes</b></a> ·
 <a href="https://flexor-r.github.io/loaf-breaker/manual/">Manual</a> ·
 <a href="../../releases">Releases</a>
@@ -47,9 +47,7 @@ Built on [fm1-base](https://github.com/charlesvestal/fm1-base) (MPL-2.0). No Blu
 
 - **The manual**: [online](https://flexor-r.github.io/loaf-breaker/manual/), or [app/docs/MANUAL.md](app/docs/MANUAL.md)
 - **Download the firmware**: [releases](../../releases) (`loaf-breaker-X.YY.fwsc`), each release also carries the
-  site (emulator, installer, manual) as `loaf-breaker-site-X.YY.zip`. On the site the firmware is encrypted: the
-  installer asks for the **install code** (the repository's Actions secret `LOAF_INSTALL_CODE`; without it, installing
-  is closed; `tools/site_lock.py` does it).
+  site (emulator, installer, manual) as `loaf-breaker-site-X.YY.zip`.
 - **Install**: fm1-base's web installer (Chrome or Edge, the FM-1 plugged in), or
   `python3 base/tools/fm1_install.py loaf-breaker-X.YY.fwsc`
 

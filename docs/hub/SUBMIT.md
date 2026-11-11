@@ -28,7 +28,7 @@ The hub's rules: <https://thefirmwarehub.com/fmhub.md> and <https://thefirmwareh
 | 5 | Tested on a real FM-1: from V15, from another firmware, and another installed from it | **To do** before the mail |
 | 6 | `fmhub.json` in the root of the default branch | Done (`loaf`, the default branch) |
 
-The install code (the site's lock) does not apply on the hub: the hub mirrors the release's .fwsc itself.
+The site has no install code any more (0.261, public): the firmware installs from it, from the releases and from the hub.
 
 ## The mail, when 1 and 5 are done
 

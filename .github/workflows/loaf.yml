@@ -142,10 +142,7 @@ jobs:
           cp "app/build/loaf-breaker-$VERSION.fwsc" "app/build/loaf-breaker-$PKG.fwsc"   # (make_site's name for it)
           /usr/bin/python3 base/tools/make_site.py app "app/build/loaf-breaker-$PKG.fwsc" "$VERSION" site
           /usr/bin/python3 tools/site_style.py site
-          # (the firmware behind the install code: the repository's secret LOAF_INSTALL_CODE; none: installing closed)
-          /usr/bin/python3 -c 'import cryptography' 2>/dev/null \
-            || /usr/bin/python3 -m pip install -q --user --break-system-packages cryptography
-          LOAF_INSTALL_CODE="${{ secrets.LOAF_INSTALL_CODE }}" /usr/bin/python3 tools/site_lock.py site
+          # (public since 0.261, FLEXOR: the firmware on the site open, no install code)
           (cd site && zip -q -r "../app/build/loaf-breaker-site-$VERSION.zip" .)
 
       - uses: actions/upload-pages-artifact@v3

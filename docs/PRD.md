@@ -4,7 +4,7 @@
 > LOAF BREAKER change has its own row (marked "LOAF BREAKER", A-50 onwards). It has no Bluetooth, kicks and drums
 > only (no melody), 9 breaks. Its 1.0 (§13, M8) waits on launch points, not code: the repository made public, the
 > tests on an FM-1 (installs from M-VAVE's V15 and from another firmware, another firmware back over it, an hour's
-> play), the breaks' rights, and the site's install code (pointless once public).
+> play) and the breaks' rights. (The site's install code is gone: public since 0.261.)
 
 **Product requirements document** · v0.1 · 30 Oct 2026 · Owner: Laurens (Sylverline)
 Status: draft for review · Working name: CHOPPAH (repo `fm1-break-choppah`) · Repo docs: `docs/PRD.md`
