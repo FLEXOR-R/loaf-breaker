@@ -108,6 +108,9 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   bytes again: bk[14..23] still free); brk.c `p_bhalf` (`brk_half_time`): the break a step every other 16th at half
   ratio, the drums' step events, the swing and the clock at the tempo (they count `steps_total - pat_org`, not `step`).
 - RESET (0.209): after a reset its page's knobs do nothing for 3 s (`RST_COOL`, `ui.rst_done`, rst_cool()), DONE shown.
+  WIPE MEMORY (0.263, FLEXOR: V15 odd after LOAF BREAKER): RESET's item before EVERYTHING, erases every sector of the
+  store map but the panel's (track.c `wipe_step`, a sector a frame, plat_data_erase), settings unreadable, `wiped`
+  blocks saves until a restart; on the host the store is kept apart, so only the FM-1 really erases.
 - No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository.
 - Fonts: `font_trim` is on (fm1.toml, 9 Nov 2026). LOAF BREAKER draws in FONT_T, FONT_XS and FONT_B only (cv_text2 for
   bigger: those doubled). fm1-base still generates S, M (~5 KB trimmed) and L (~9 KB trimmed, 31 px), left out of the

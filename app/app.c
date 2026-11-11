@@ -688,10 +688,15 @@ static uint32_t grp_hash(void)
     return h;
 }
 static int grp_changed(void) { return grp_new || grp_hash() != grp_sum; }
+static uint8_t wiped;                    /* LOAF BREAKER (0.263): SYSTEM › RESET WIPE MEMORY done: nothing saved until a
+                                          * restart (track.c wipe_step) */
 static int grp_save(void)                /* the group in RAM to its objects: 1 done */
 {
     uint32_t g = set.pgrp % NGRP;
-    int ok = plat_store_save(OBJ_PG0 + g, pats.p, sizeof pats.p) == 0 &&
+    int ok;
+    if (wiped)
+        return 0;
+    ok = plat_store_save(OBJ_PG0 + g, pats.p, sizeof pats.p) == 0 &&
              plat_store_save(OBJ_KG0 + g, pats.kn, KH_SIZE) == 0 &&
              plat_store_save(OBJ_SG0 + g, steps.b, sizeof steps.b) == 0;   /* (LOAF BREAKER, 0.209: OBJ_NG0 + g, the
                                           * MELODY's notes, no more) */
@@ -734,6 +739,8 @@ static void grp_load(uint32_t g)         /* group g into RAM (none saved yet: em
 }
 static int store_all(void)               /* SAVE: the settings, the patterns (the group in RAM too), the steps: 1 done */
 {
+    if (wiped)                           /* (LOAF BREAKER, 0.263: WIPE MEMORY done: nothing saved until a restart) */
+        return 0;
     return plat_store_save(OBJ_SETTINGS, &set, sizeof set) == 0 && plat_store_save(OBJ_PAT, &pats, sizeof pats) == 0 &&
            plat_store_save(OBJ_STEP, &steps, sizeof steps) == 0 && grp_save() &&
            plat_store_save(OBJ_KLAB, &klab, sizeof klab) == 0;

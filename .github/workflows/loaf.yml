@@ -119,7 +119,7 @@ jobs:
           mkdir -p screens
           H="$(ls app/build/host/*_host | head -1)"
           bad=""
-          for sc in ui kick64 lanes seq pads subdrive skins arp clap terror cross track fxmem kfx knob halflatch cdj maxout reorg drops reset synth kickmenu kroll hits trkgap trkfrom loaftest audition kreset drumbig kpreset autosave effects trkempty lfomix wavezoom sfxset sellock trkflt kill kicktools kickknob kickknobs cleanmorph novice seqtools kickcopy dropkick knobstyle pat64 overlay domains knobpre klab kview kfocus tutorial ezoom fxround magic fxeasy drumview brkview beginner drumfx blackkeys tutaway breaktime selfoot; do "$H" tests/scenarios/$sc.txt screens || bad="$bad $sc"; done
+          for sc in ui kick64 lanes seq pads subdrive skins arp clap terror cross track fxmem kfx knob halflatch cdj maxout reorg drops reset synth kickmenu kroll hits trkgap trkfrom loaftest audition kreset drumbig kpreset autosave effects trkempty lfomix wavezoom sfxset sellock trkflt kill kicktools kickknob kickknobs cleanmorph novice seqtools kickcopy dropkick knobstyle pat64 overlay domains knobpre klab kview kfocus tutorial ezoom fxround magic fxeasy drumview brkview beginner drumfx blackkeys tutaway breaktime selfoot wipe; do "$H" tests/scenarios/$sc.txt screens || bad="$bad $sc"; done
           LOAF_ASK=1 "$H" tests/scenarios/firstboot.txt screens || bad="$bad firstboot"   # (the first start's question)
           LOAF_ASK=1 "$H" tests/scenarios/resetask.txt screens || bad="$bad resetask"   # (RESET ALL: as a first start)
           # (LOAF BREAKER: the update loader's screen, its drawing on a stand-in panel)

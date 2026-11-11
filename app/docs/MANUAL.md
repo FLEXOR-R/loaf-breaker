@@ -767,7 +767,7 @@ came); **MIX** (the MIXER: levels, swing, the drums' route, COMP and DUCK off wi
 pattern's drum steps: 1 hit, ALWAYS, on time; the steps themselves kept); **PADS** (the black keys' settings:
 rolls, THRU, filter, gate, HALF's and KIL's LATCH, the ARP key's effect); **KEYS** (the white keys' loops and slice effects);
 **TRACK** (this track: from its first item, every item's break SAME; its items kept); **SCREEN** (the skin RED, the
-screen effects off, their settings at 50 %, WAVE ZOOM one bar); and last **EVERYTHING**: RESET ALL, everything back
+screen effects off, their settings at 50 %, WAVE ZOOM one bar); **WIPE MEMORY** (before installing another firmware: every save LOAF BREAKER keeps in the FM-1's memory erased, a sector at a time while the screen counts to 40, playing stopped first; then MEMORY WIPED, and nothing is saved again until the FM-1 restarts: install the other firmware next, and it finds that memory blank); and last **EVERYTHING**: RESET ALL, everything back
 to how it came (tempo, generator, FX chain, the drums, mixer, keys, slices, SYSTEM, the tracks and all 64 patterns; the
 first break, saved at once; the screen says so: LOBOTOMIZED, for 3 seconds). To reset it, **turn K2 five clicks**, each
 within 2 s of the last (five boxes fill as you turn; a pause starts them again from 0), then **press GLO** within 5

@@ -18,9 +18,10 @@ static const uint8_t TORDER[NTORD] = {0u, 1u, 2u, 4u};   /* (ENV's parts in orde
 #define RST_ON (ui.page == PG_GLOBAL && ui.gpage == 5u)   /* (GLO RESET: drawn and turned by ENV's code here) */
 /* RESET (ENV's last part): K1 what (a list: more to come), K4 turned right twice within 3 s: back to the start */
 enum { RST_DROP, RST_BUILD, RST_KNOB, RST_KICK, RST_KTONE, RST_KICKS, RST_DRUMS, RST_MIX, RST_FX, RST_STEPS, RST_PADS,
-       RST_KEYS, RST_TRACK, RST_SCREEN, RST_ALL, NRST };   /* (LOAF BREAKER: ALL, RESET ALL, was the PITCH part's K4) */
+       RST_KEYS, RST_TRACK, RST_SCREEN, RST_WIPE, RST_ALL, NRST };   /* (RST_WIPE: 0.263, FLEXOR; EVERYTHING last) */   /* (LOAF BREAKER: ALL, RESET ALL, was the PITCH part's K4) */
 static const char *const RST_NAME[NRST] = {"DROP", "BUILD", "KNOB", "KICK", "KICK TONE", "ALL KICKS", "DRUMS", "MIX",
-                                           "FX CHAIN", "STEPS", "PADS", "KEYS", "TRACK", "SCREEN", "EVERYTHING"};
+                                           "FX CHAIN", "STEPS", "PADS", "KEYS", "TRACK", "SCREEN", "WIPE MEMORY",
+                                           "EVERYTHING"};
 static const char *const RST_WHAT[NRST] = {"BUILD 4 BARS, NEXT PATTERN, SAME BREAK, CRASH 100%",
                                           "SNARE ROLL, HIGH-PASS, RISER 100%, NO GAP",
                                           "THIS KICK'S: K1 DRIVE, K2 SCREAM, K3 D+ SCREECH, K4 DISTO",
@@ -35,7 +36,47 @@ static const char *const RST_WHAT[NRST] = {"BUILD 4 BARS, NEXT PATTERN, SAME BRE
                                           "THE WHITE KEYS' LOOPS AND SLICE EFFECTS",
                                           "THIS TRACK: FROM ITEM 1, EVERY ITEM'S BREAK SAME",
                                           "SKIN RED, SCREEN EFFECTS OFF, THEIR SETTINGS 50%, WAVE ZOOM 1 BAR, EDIT ZOOM AUTO",
+                                          "ALL LOAF BREAKER SAVES ERASED, FOR ANOTHER FIRMWARE: INSTALL IT NEXT",
                                           "EVERYTHING AS IT CAME, ALL 64 PATTERNS, SAVED AT ONCE: 15 TURNS"};
+/* LOAF BREAKER (0.263, FLEXOR): WIPE MEMORY, before installing another firmware: every sector LOAF BREAKER saves in
+ * (its objects: 0xB6000..0xDBFFF, 0xDE000..0xDFFFF; the panel's calibration, 0xDC000, every fm1-base firmware's, kept)
+ * erased, one a frame (wipe_step, main.c), the settings left unreadable (a first start's, if it comes back); then no
+ * more saving until the FM-1 restarts. The next firmware finds that memory blank */
+#define WIPE_LO 0xB6000u
+#define WIPE_HI 0xE0000u
+static uint32_t wipe_at;                 /* (the next sector; 0 idle) */
+static void wipe_start(void)
+{
+    if (playing_now())
+        transport(0, 0);                 /* (stopped first: an erase stops the sound) */
+    wipe_at = WIPE_LO;
+    set_dirty = 0u;
+}
+static void wipe_step(void)              /* (main.c, each frame: a sector) */
+{
+    if (!wipe_at)
+        return;
+    if (wipe_at == 0xDC000u)
+        wipe_at = 0xDE000u;              /* (the panel's pair kept) */
+    if (wipe_at < WIPE_HI) {
+        char t[20] = "", n[8];
+        plat_data_erase(wipe_at);
+        int_text((int32_t)((wipe_at - WIPE_LO) / 0x1000u + 1u), n);
+        text_cat(t, n);
+        text_cat(t, " / 40");
+        app_say("WIPING", t);
+        wipe_at += 0x1000u;
+        return;
+    }
+    {
+        uint32_t z = 0u;                 /* (the settings: too short to read, a first start's next time) */
+        plat_store_save(OBJ_SETTINGS, &z, sizeof z);
+    }
+    wipe_at = 0u;
+    wiped = 1u;
+    app_say("MEMORY WIPED", "INSTALL THE OTHER FIRMWARE");
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
 #define RST_TURNS 5u                     /* LOAF BREAKER: the clicks that reset (K2, K3 or K4), each within 2 s of the last */
 #define RST_COOL 3000u                   /* LOAF BREAKER: after a reset, the RESET page's knobs at rest this long */
 static int rst_cool(void) { return ui.rst_done && plat_ms() - ui.rst_done < RST_COOL; }
@@ -65,6 +106,10 @@ static int rst_confirm(void)             /* (LOAF BREAKER, 0.239: GLO on RESET a
     ui.rst_done = plat_ms() | 1u;
     if (ui.rst_sel % NRST == RST_ALL) {  /* (RESET ALL: its own screen says so) */
         reset_all();
+        return 1;
+    }
+    if (ui.rst_sel % NRST == RST_WIPE) { /* (0.263: WIPE MEMORY, a sector a frame) */
+        wipe_start();
         return 1;
     }
     reset_do(ui.rst_sel % NRST);
@@ -1451,7 +1496,8 @@ static void track_picture(int32_t top)
             if (first + 5u < NRST)
                 cv_rect(116, 92, 2, 6, C_DIM);
         }
-        cv_text(124, 8, &FONT_XS, "BACK TO THE START:", C_GRAY);
+        cv_text(124, 8, &FONT_XS, w == RST_WIPE ? (wiped ? "DONE: NOW INSTALL" : "ERASED FOR GOOD:")
+                                                : "BACK TO THE START:", wiped && w == RST_WIPE ? C_HI : C_GRAY);
         {                                /* (what it puts back, in lines of ~18) */
             const char *p = RST_WHAT[w];
             int32_t y = 22;
