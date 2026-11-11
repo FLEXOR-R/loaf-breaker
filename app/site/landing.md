@@ -1,14 +1,9 @@
 # LOAF BREAKER
 
-LOAF BREAKER turns the M-VAVE FM-1 into a hardcore and breakcore break chopper: hardcore, gabber, breakcore, terror,
-speedcore. It is FLEXOR's firmware, built on [CHOPPAH](https://github.com/profikid/fm1-break-choppah), Laurens
-Profittlich's Amen chopper: a break cut into sixteen slices on the white keys, effect pads on the black keys (rolls,
-reverse, freeze, half speed, vinyl break, gate, random, filter, dub echo; or your own layout), a master effects chain,
-and under it a kick made for terror and gabber: its own menu and synth, DISTO, SCREAM and DISTO + (nine types), the
-KICK LAB, its own EQ and effects, ten memories. A snare, a hat and a clap with their own presets. A sequencer of 16, 32
-or 64 steps with hits, chance and nudge per step; 64 patterns; tracks of patterns with built-up drops; BREAK TIME to
-play a break at half the tempo under a 230 BPM kick; a compressor, a ducker and MAX OUT; and the mix scrolling by as on
-a CDJ. BEGINNER keeps the essentials, EXPERT has everything, and a tutorial shows the way on the FM-1 itself.
+LOAF BREAKER turns the M-VAVE FM-1 into a hardcore and breakcore break chopper, by FLEXOR. Chop a break on the white
+keys, throw effects with the black keys, and shape a heavy kick with its own synth and distortion. Program the kick,
+snare, hat and clap step by step, then chain patterns into tracks with drops. BEGINNER keeps it simple, EXPERT opens
+everything, and a tutorial gets you started on the FM-1 itself.
 
 ![LOAF BREAKER's start-up screen](manual/img/screen-boot.png "Switched on")
 ![LOAF BREAKER playing: the mix scrolling in as on a CDJ, in rekordbox's colours](manual/img/screen-slicer.png "Playing")
