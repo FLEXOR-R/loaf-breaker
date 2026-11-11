@@ -554,7 +554,8 @@ static const char *const SK_KNOB[SK_N][4] = {{"AMOUNT", "ATTACK", "RELEASE", "DU
                                              {"AMOUNT", "TO KICK", "", ""}, {"AMOUNT", "TIME", "", ""},
                                              {"AMOUNT", "TIME", "", ""}, {"AMOUNT", "", "", ""}, {"FILTER", "", "", ""},
                                              {"HOLD", "", "", ""}, {"FX 1 MIX", "FX 2 MIX", "", ""}};
-static const char *const T_TYPE_NAME[5] = {"FOLD", "CLIP", "CRUSH", "RECT", "TUBE"};
+static const char *const T_TYPE_NAME[KICK_T_TYPES] = {"FOLD", "CLIP", "CRUSH", "RECT", "TUBE", "HALF", "SINE",
+                                                      "WRAP", "FUZZ"};   /* (0.255: four more, FLEXOR) */
 /* what a SEL + knob can be given (KNOB, PRESETS), in that order: its code 1..15 is its place + 1 (0: the knob's own) */
 #define SK_CODES 21u                     /* (codes past 15: selk_hi's fifth bit) */
 static const uint8_t SK_CODE[SK_CODES] = {0u, 1u, 2u, 3u, 4u, 6u, 7u, 8u, 5u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u,
@@ -674,7 +675,7 @@ static void selk_value(uint32_t f, int i, char *t)
     v = *sk_byte(f, i);
     sv = (int8_t)v;
     if (f == 4u && i == 1)
-        text_cat(t, T_TYPE_NAME[v <= 4u ? v : 0u]);
+        text_cat(t, T_TYPE_NAME[v < KICK_T_TYPES ? v : 0u]);
     else if (f == 4u && i == 2) {        /* SCREECH: its band */
         if (!v)
             text_cat(t, "OFF");
@@ -740,7 +741,7 @@ static float sk_norm(uint32_t f, int i)  /* a setting 0..1, as its bar */
     if (sk_signed(f, i))
         return ((float)(int8_t)v + 50.0f) * 0.01f;
     if (f == 4u && i == 1)
-        return (float)v * 0.25f;
+        return (float)v / (float)(KICK_T_TYPES - 1u);
     if ((f == 0u && i == 3))
         return (float)v;
     if (f == 2u && i == 1)
@@ -801,7 +802,8 @@ static void selk_turn(uint32_t f, int i, int32_t d)
         if (sk_signed(f, i))
             *b = (uint8_t)(int8_t)clamp((int32_t)(int8_t)*b + d * 2, -50, 50);
         else if (f == 4u && i == 1)
-            *b = (uint8_t)clamp((int32_t)*b + (d > 0 ? 1 : -1), 0, 4);   /* (LOAF BREAKER: RECT, TUBE too) */
+            *b = (uint8_t)clamp((int32_t)*b + (d > 0 ? 1 : -1), 0, (int32_t)KICK_T_TYPES - 1);   /* (LOAF BREAKER: RECT,
+                                          * TUBE too; 0.255 HALF, SINE, WRAP, FUZZ) */
         else if (f == 0u && i == 3)
             *b = (uint8_t)clamp((int32_t)*b + (d > 0 ? 1 : -1), 0, 1);
         else if (f == 2u && i == 1)

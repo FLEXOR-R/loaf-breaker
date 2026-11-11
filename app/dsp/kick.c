@@ -54,7 +54,8 @@ typedef struct {
     float tsub, tfz, tsus;               /* (ENV's KNOB) TERROR's split, its fizz's low-pass, its follow */
     float t2sub, t2scr, t2push;          /* TERROR 2's split, its mids' low-pass, their push */
     float trel;                          /* (TEST) TERROR's TAIL: its level's fall a sample */
-    uint8_t ttype;                       /* its TYPE (0 FOLD, 1 CLIP, 2 CRUSH, 3 RECT, 4 TUBE) */
+    uint8_t ttype;                       /* its TYPE (0 FOLD, 1 CLIP, 2 CRUSH, 3 RECT, 4 TUBE, 5 HALF, 6 SINE, 7 WRAP,
+                                          * 8 FUZZ: KICK_T_TYPES) */
     float csub;                          /* LOAF BREAKER: CLEAN SUB, 0..1 */
     float sa1, sa2, sa3, sgain;          /* its SCREECH: the band's coefficients and level (0: off) */
     float sdrop, asym, rum, rfb;         /* (SYNTH) the SUB's drop, the uneven drive, the rumble's level and feedback */
@@ -258,7 +259,7 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c, const volatile int8_t *sy
     }
     {                                    /* (TEST) TERROR's TYPE, TAIL, SCREECH */
         float tl = brk_clampf((float)(int8_t)KICK_T_TAIL(k), -50.0f, 50.0f), sw = (float)KICK_T_SCREECH(k);
-        c->ttype = (uint8_t)(KICK_T_TYPE(k) <= 4u ? KICK_T_TYPE(k) : 0u);
+        c->ttype = (uint8_t)(KICK_T_TYPE(k) < KICK_T_TYPES ? KICK_T_TYPE(k) : 0u);
         c->trel = 0.0012f * brk_exp2f_c(-tl * 0.07f);   /* (+50: ~11x slower, the fold hangs on; -50: faster) */
         c->sgain = 0.0f;
         if (sw > 0.0f) {                 /* a band at ~500 Hz .. 5 kHz, Q ~6 (Simper's state-variable) */
@@ -496,11 +497,24 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
             z = brk_clampf(h, -1.0f, 1.0f);
         else if (c->ttype == 2u)         /* CRUSH: folded, then in eight steps */
             z = (float)(int32_t)(z * 4.0f) * 0.25f;
+        else if (c->ttype == 6u)         /* LOAF BREAKER (0.255, FLEXOR: more types): SINE, folded round a sine (it
+                                          * sings as the drive goes up, metallic) */
+            z = brk_sin_turns(h * 0.25f);
+        else if (c->ttype == 7u) {       /* WRAP: past the edge, back in from the other side (digital, harsh) */
+            float w = h * 0.5f + 0.5f;
+            w -= (float)(int32_t)w;
+            if (w < 0.0f)
+                w += 1.0f;
+            z = 2.0f * w - 1.0f;
+        } else if (c->ttype == 8u)       /* FUZZ: clipped to all but a square (a thick buzz) */
+            z = soft(h * 6.0f) * 1.15f;
         else if (c->ttype >= 3u) {       /* LOAF BREAKER: RECT, rectified (an octave up, hollow and metallic); TUBE,
-                                          * one side pushed harder than the other (even harmonics, warm and fat); their
-                                          * offset taken off */
+                                          * one side pushed harder than the other (even harmonics, warm and fat); HALF,
+                                          * one side alone, pushed (dirty, hollow, the low end kept); their offset
+                                          * taken off */
             float s = soft(h);
-            z = c->ttype == 3u ? 2.0f * brk_absf(s) : (h > 0.0f ? soft(h * 1.8f) : 0.6f * soft(h * 0.7f));
+            z = c->ttype == 3u ? 2.0f * brk_absf(s) : c->ttype == 5u ? (h > 0.0f ? 2.0f * soft(h * 1.5f) : 0.0f)
+                : (h > 0.0f ? soft(h * 1.8f) : 0.6f * soft(h * 0.7f));
             v->rdc += (z - v->rdc) * 0.002f;
             z -= v->rdc;
         }

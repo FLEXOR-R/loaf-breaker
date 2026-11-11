@@ -50,6 +50,7 @@ typedef struct {
  * 5 kHz: the whistle), TAIL (-50 .. +50: the distortion dying with the kick faster .. hanging on) */
 #define KICK_T_DRIVE(k) ((k)->l[KL_GRIT].rsv[0])
 #define KICK_T_TYPE(k) ((k)->l[KL_GRIT].rsv[2])
+#define KICK_T_TYPES 9u                  /* (LOAF BREAKER: FOLD CLIP CRUSH RECT TUBE, 0.255 HALF SINE WRAP FUZZ) */
 #define KICK_T_SCREECH(k) ((k)->l[KL_CLICK].rsv[0])
 #define KICK_T_TAIL(k) ((k)->l[KL_CLICK].rsv[2])
 

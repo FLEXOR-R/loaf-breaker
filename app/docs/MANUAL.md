@@ -311,7 +311,9 @@ or K2 left once more, deletes it, the rest moving up),
   - **DISTO**: AMOUNT, SUB, FIZZ (its top, darker or brighter), SUSTAIN (the fold dying with the kick, or a wall).
   - **DISTO +** (its settings on EDIT KICK too): DRIVE (the fold's gain, apart from AMOUNT's mix), TYPE (FOLD the
     scream, CLIP squared off, CRUSH in steps, RECT rectified: an octave up, hollow and metallic, TUBE uneven: warm
-    and fat), SCREECH (a resonant band, ~500 Hz–5 kHz, the whistle; OFF to the left),
+    and fat; since 0.255 HALF one side alone, pushed: dirty and hollow, SINE folded round a sine: it sings as DRIVE
+    goes up, WRAP past the edge back in from the other side: digital and harsh, FUZZ all but a square: a thick buzz),
+    SCREECH (a resonant band, ~500 Hz–5 kHz, the whistle; OFF to the left),
     TAIL (the distortion dying fast, or hanging on between kicks).
   - **DECAY**: the SUB's tail (HOME's K4 the same). (TUNE is no knob's: SYNTH +'s K4 has it; a knob given it
     before has its own function again.)
