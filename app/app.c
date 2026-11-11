@@ -897,8 +897,8 @@ static void pat_defaults(void)
         }
         p->lane[LANE_KICK] = p->lane[LANE_SNARE] = p->lane[LANE_HAT] = 0u;   /* the drums start empty */
         p->kick2 = 0u;
-        p->st[6][3] = (uint8_t)(set.novice ? 1u : 0u);   /* (LOAF BREAKER, 0.227: BEGINNER, the kick 32 steps:
-                                          * PAT_KICK32, defined below) */
+        p->st[6][3] = (uint8_t)(set.novice ? 4u : 0u);   /* (LOAF BREAKER: BEGINNER, the kick 16 steps (0.227-0.245:
+                                          * 32; 0.246, FLEXOR: 16, as the drums): PAT_KICK16, defined below) */
     }
     trk_defaults();
     pats.mem.fx_ok = pats.mem.kfx_ok = pats.kfm_ok = 0u;
@@ -1041,7 +1041,7 @@ static void novice_lengths(void)
 {
     uint32_t i;
     for (i = 0; i < NPAT; i++) {
-        uint8_t *len = &PAT_LEN(&pats.p[i]), v = PAT_KICK32;
+        uint8_t *len = &PAT_LEN(&pats.p[i]), v = PAT_KICK16;   /* (0.246, FLEXOR: 16, was 32) */
         if (*len != v) {
             *len = v;
             set_dirty = 1u;

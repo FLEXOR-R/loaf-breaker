@@ -104,7 +104,7 @@ wait 100
 tapkey w8
 wait 5400
 expect tut 19
-turn ALGO 2 80
+turn ALGO 1 80
 expect seq_lane 6
 wait 200
 tapkey w4

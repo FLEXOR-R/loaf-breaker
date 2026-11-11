@@ -178,7 +178,7 @@ static void global_turn(int i, int32_t d)
                         ui.fx_focus = 0u;   /* (0.229: the chain's two slots) */
                     if (ui.fx_main >= FX_EASY_SLOTS)
                         ui.fx_main = 0u;
-                    novice_lengths();    /* (0.227, FLEXOR: the kick 32 steps, the drums 16) */
+                    novice_lengths();    /* (0.227, FLEXOR: the kick 32 steps, the drums 16; 0.246: all 16) */
                 }
                 changed();
                 app_say("MODE", set.novice ? "BEGINNER" : "EXPERT");
