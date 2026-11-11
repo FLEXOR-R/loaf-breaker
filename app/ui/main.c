@@ -1585,7 +1585,8 @@ void app_frame(void)
             return;
         }
     }
-    if (set.tut == TUT_ASK) {            /* LOAF BREAKER (0.229): the mode asked, after the start screen */
+    if (set.tut == TUT_ASK && !ui.lobo_t) {   /* LOAF BREAKER (0.229): the mode asked, after the start screen (0.236:
+                                          * and after RESET ALL's own screen) */
         ask_draw();
         return;
     }
@@ -1668,6 +1669,15 @@ void app_frame(void)
             ui.lobo_t = 0u;
             lcd_fill(0, 0, 240, 240, C_BLACK);
             ui.redraw = RG_ALL;
+            if (set.tut == TUT_ASK) {    /* (LOAF BREAKER, 0.236, FLEXOR: RESET ALL as a first start: the screen state as
+                                          * at power-on, the start screen, then the mode asked) */
+                memset(&ui, 0, sizeof ui);
+                keasy_pg = 0u;
+                ask_sel = 1u;
+                ask_drawn = 0xFFu;
+                app_ui_init();
+                return;
+            }
         } else {
             ui.touched = 0u;
             return;

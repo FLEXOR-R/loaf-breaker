@@ -26,7 +26,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   held white keys (no knobs), the black keys' knobs as EXPERT's (0.232); DST and SUB keys (never lit) and blank
   knobs say EXPERT MODE (`easy_no`); `KP_ADV` no
   longer reached. Gone in 0.229: the FX scenes, SEQ's BEAT presets, MB KICK and MB OTT. A new FM-1 asks its mode
-  (tutor.c `TUT_ASK`, set.tut 0xFD; the simulator with LOAF_ASK=1). The host simulator starts EXPERT (scenarios, the
+  (tutor.c `TUT_ASK`, set.tut 0xFD; the simulator with LOAF_ASK=1), and so does RESET ALL, as a first start (0.236:
+  after its screen, `ui` cleared and `app_ui_init`: the start screen, then the question). The host simulator starts EXPERT (scenarios, the
   manual's screens), the FM-1 and the web emulator BEGINNER. The manual opens with "Start in five minutes" (the hub card's `cheat` link).
 - Screen and knobs (0.178): the screen's rows are remembered as hashes (`rows_send` in common.c): a full-width strip
   sends only its changed rows. Anything drawing on the screen other than through `cv_blit` must forget its rows

@@ -710,7 +710,8 @@ DRIVE, the knobs always heard) and are never lit; a knob BEGINNER leaves out is 
 and says "EXPERT MODE" when turned; SOUNDS › BREAK keeps
 its LEVEL (K4; the pitch is OCT's) and PATTERN › GROOVE its SWING.
 Nothing is lost: EXPERT shows everything again, as it was left, and what BEGINNER sets is there to refine. A
-new FM-1, the web emulator and RESET ALL ask for the mode first (BEGINNER chosen to start); an FM-1 updated with its
+new FM-1, the web emulator and RESET ALL ask for the mode first (BEGINNER chosen to start; RESET ALL as a first start:
+its screen, the start screen, then the question); an FM-1 updated with its
 settings saved stays as it was.
 K4 **AUTO SAVE**, ON: what you change is saved by itself a minute after it changed, once the break has been stopped and
 **nothing has been heard for 10 s** (the flash is never written while it plays, nor while a long kick tail, a reverb, an
