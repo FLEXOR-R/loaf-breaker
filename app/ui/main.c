@@ -287,6 +287,8 @@ static void input(void)
                                           * CLAP once each (to hear them); playing, they play slices as ever */
             if (kdn >> WK[i] & 1u) {
                 midi_drum(i);
+                tut_heard |= (uint8_t)(1u << i);   /* (the TUTORIAL's: heard, stopped) */
+                tut_drs |= (uint8_t)(1u << i);
                 if (!(ui.page == PG_KICK && ui.kclassic))   /* (where no card lights: its name on the strip) */
                     app_say("PLAY", DRUM_NAME[i]);
                 ui.aud_t = now;
@@ -523,7 +525,9 @@ static void input(void)
         else if (kickp || ui.page == PG_PERC) {
             ui.edit_hold = 1u;           /* (at its release: the next section, the next drum; held: the other view) */
             ui.edit_t = now;
-        } else if (ui.page == PG_SEQ && ui.seq_lane >= SL_KICK && sl_drum(ui.seq_lane)) {
+        } else if (ui.page == PG_SEQ && ui.seq_lane >= SL_KICK && sl_drum(ui.seq_lane) &&
+                   !(tut_on() && TUT[set.tut - 1u].cond == TC_EDIT)) {   /* (LOAF BREAKER, 0.252: the TUTORIAL's
+                                          * "PRESS EDIT: THE KICK", from SEQ's snare lane: the kick) */
             ui.einst = (uint8_t)sl_drum(ui.seq_lane);   /* (from SEQ, the drum of the lane shown) */
             edit_open();
         } else {
@@ -829,6 +833,7 @@ static void input(void)
         if (!d)
             continue;
         ui.touched = 1u;
+        tut_heard = 0u;                  /* (LOAF BREAKER: a knob turned: heard again only after it) */
         if (k >= EN_K1 && k <= EN_K4) {  /* (LOAF BREAKER: the TUTORIAL's counts: the kick's knobs, SEL + K4) */
             if (btn & 1u << B_SEL)
                 tut_sk4 += k == EN_K4 ? (uint32_t)(d < 0 ? -d : d) : 0u;

@@ -21,10 +21,12 @@ The FM-1 starts in **BEGINNER** mode (SYSTEM › SETUP: GLO, then GLO again; K1)
 or **EXPERT** (a knob moves the choice, PLAY takes it; white keys 1–3 too). SYSTEM › SETUP K3, turned left past
 BEGINNER, starts the tutorial again. The header says one thing to do at a time, the button or the keys that do it blink, and
 when it's done, "OK!" and the next: at once for a button (HOME, EDIT, SEQ, SAVE ..), five seconds later where there is
-something to hear (an effect, a kick, the drop): 24 steps in eight lessons, THE
-BREAK (HOME: the PERFORM menu, PLAY, the slices, ALGORITHM: another break), EFFECTS (a black key; ARP, the OVERLAY page, two of its effects), THE KICK (EDIT, K1 PRESET: the built-in kicks, 909 to DISTORTO; K2 DISTO; EDIT again: SHAPE, K3 a longer tail;
-PRESETS: your ten kicks), THE DRUMS (SELECT: the SNARE, K1 its presets, K2 its FX), THE PATTERN (SEQ: kicks, a snare),
-THE FX (FX, PRESETS: an effect), THE DROP (SEL + ENV) and SAVE. Everything is real: you play the firmware itself. The page buttons a step doesn't ask for do nothing meanwhile ("FOLLOW THE STEP"; GLO still quits); off the step's page all the same, the header says how to get back there ("PRESS HOME: BACK TO THE BREAK"), that button blinking. **SEL + GLO** skips a step, **GLO** quits (SETUP K3 starts it
+something to hear (an effect, a kick, the drop): 26 steps in eight lessons, THE
+BREAK (HOME: the PERFORM menu, PLAY, the slices, ALGORITHM: another break), EFFECTS (a black key; ARP, the OVERLAY page, two of its effects), THE PATTERN (SEQ: two kicks, a snare),
+THE KICK (EDIT, PLAY to stop: stopped, white keys 1–4 play the kick, the snare, the hat and the clap; KNOB 1 a built-in
+kick, key 1 to hear it; KNOB 2 its DISTO; EDIT again: SHAPE, KNOB 3 a longer tail; PRESETS: your ten kicks, each heard
+on key 1), THE DRUMS (SELECT: the SNARE, KNOB 1 its presets, KNOB 2 its FX, heard on key 2), THE FX (PLAY again, FX,
+PRESETS: an effect), THE DROP (SEL + ENV) and SAVE. Everything is real: you play the firmware itself. The page buttons a step doesn't ask for do nothing meanwhile ("FOLLOW THE STEP"; GLO still quits); off the step's page all the same, the header says how to get back there ("PRESS HOME: BACK TO THE BREAK"), that button blinking. **SEL + GLO** skips a step, **GLO** quits (SETUP K3 starts it
 again where you left it; SAVE keeps where you are). An FM-1 already in use when it updates doesn't start it. AUTO SAVE (SYSTEM › SETUP K4) is off while the tutorial runs and comes on when it ends (or you quit it); choosing BEGINNER at the first start turns it on too.
 
 ![The TUTORIAL: step 1, PRESS HOME](img/screen-tutorial.png "TUTORIAL")

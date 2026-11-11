@@ -274,6 +274,8 @@ static const uint8_t WK[16] = PLAT_WHITE_KEYS, BK[11] = PLAT_BLACK_KEYS;
 static const uint16_t EZ_MS[EZ_N] = {0u, 250u, 500u, 1000u, 1500u, 2000u};
 static const char *const EZ_NAME[EZ_N] = {"AUTO", "250 MS", "500 MS", "1 S", "1.5 S", "2 S"};
 static uint32_t tut_wk, tut_pads, tut_padn, tut_kturn, tut_sk4, tut_lane, tut_saves, tut_home, tut_kpre, tut_ovl;
+static uint8_t tut_heard, tut_drs;   /* (LOAF BREAKER, 0.252: the drums played on keys 1-4 since the last knob turn; and
+                                          * since the step's start) */
 /* LOAF BREAKER (11 Nov 2026): the keys of a function (BKF_*) in the layout in use (app.c bk_fn), a bit each (none:
  * 0). The pads' code asks PAD_BIT(pad) */
 static uint32_t bkf_mask(uint32_t f)
