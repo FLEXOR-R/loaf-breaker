@@ -15,7 +15,7 @@ tap FX
 wait 120
 expect page 2
 shot n_fx.png
-tap FX
+turn ALGO 1 10
 wait 120
 expect fx_focus 0
 expect fx_page 1

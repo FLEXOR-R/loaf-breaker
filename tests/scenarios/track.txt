@@ -18,20 +18,20 @@ key w1 down
 key w1 up
 wait 200
 shot t_put.png
-tap ENV
+turn SELECT 1 10
 wait 300
 shot t_play.png
-tap ENV
+turn SELECT 1 10
 wait 300
 turn K1 -3 10
 turn K2 4 10
 wait 200
 shot t_drop.png
-tap ENV
+turn SELECT 1 10
 wait 200
-tap ENV
+turn SELECT 1 10
 wait 200
-tap ENV
+turn SELECT 1 10
 wait 300
 tap PLAY
 wait 300
@@ -50,17 +50,17 @@ wait 300
 expect trk_on 0
 tap ENV
 wait 200
-tap ENV
+turn SELECT 1 10
 wait 200
 turn K1 -1 10
-tap ENV
+turn SELECT 1 10
 wait 200
 turn K1 3 10
-tap ENV
+turn SELECT 1 10
 wait 200
-tap ENV
+turn SELECT 1 10
 wait 200
-tap ENV
+turn SELECT 1 10
 wait 200
 tap PLAY
 wait 300

@@ -5,7 +5,7 @@ tap PLAY
 wait 400
 tap FX
 wait 200
-turn ALGO 1 10
+turn SELECT 1 10
 turn PRESET 9 10
 wait 200
 turn K1 8 10
@@ -13,7 +13,7 @@ turn K3 -5 10
 turn K4 6 10
 wait 400
 shot e_eq.png
-turn ALGO 1 10
+turn SELECT 1 10
 turn PRESET 9 10
 wait 200
 turn K1 10 10

@@ -11,7 +11,7 @@ turn K1 20 10
 turn K2 10 10
 wait 800
 shot c_multiband.png
-turn ALGO 1 10
+turn SELECT 1 10
 turn PRESET 12 10
 wait 200
 turn K1 10 10

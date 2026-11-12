@@ -4,6 +4,14 @@
 
 /* LOAF BREAKER: KICK FX: the FX page on the kick's slots (4, 5); (TEST) EDIT KICK's FX 1, FX 2 parts */
 #define IS_KFX() (ui.page == PG_FX && ui.fx_focus >= BRK_FX_SLOTS)
+static void page_say(void);
+static void home_back(void)              /* (LOAF BREAKER, 0.9.2, FLEXOR: a page's button again, where SELECT and
+                                          * ALGORITHM move in it: back to HOME, the main page) */
+{
+    ui.page = PG_HOME;
+    ui.redraw |= RG_FOOT | RG_BLOCKS;
+    page_say();
+}
 static void kfx_open(int on)             /* to KICK FX (on), or the FX page back on the chain */
 {
     if (on && ui.fx_focus < BRK_FX_SLOTS) {
@@ -106,6 +114,9 @@ static void knob_turn(int k, int32_t d)
             l->decay = knob_f(l->decay, d, 0.02f, 0.0f, 1.0f);
             say_int("SUB DECAY", (int32_t)(kick_decay_ms(KL_SUB, l->decay) + 0.5f), " MS");
         }
+    } else if (ui.page == PG_HSET) {     /* (LOAF BREAKER, 0.9.2: HOME's SETTINGS) */
+        hset_turn(k - EN_K1, d);
+        return;
     } else if (ui.page == PG_GEN) {
         float *p = k == EN_K1 ? &set.gen.complexity : k == EN_K2 ? &set.gen.anchor : k == EN_K3 ? &set.gen.roll
                  : &set.gen.fill;
@@ -474,7 +485,8 @@ static void input(void)
         ui.home_t = now;                 /* (LOAF BREAKER: held 0.35 s on PERFORM / GENERATOR: the CDJ view) */
     if (bdn & 1u << B_HOME) {            /* HOME: PERFORM; again (let go alone), GENERATOR, and back */
         tut_home++;                      /* (the TUTORIAL's count; its HOME step on PERFORM: it stays) */
-        if (ui.page == PG_HOME || ui.page == PG_GEN) {   /* (TEST: HOME is PERFORM and GENERATOR) */
+        if (ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_HSET) {   /* (TEST: HOME is PERFORM and
+                                          * GENERATOR; 0.9.2 SETTINGS) */
             ui.home_hold = 1u;
             ui.home_combo = (uint8_t)(ui.page == PG_HOME && tut_home_stay());
         } else {
@@ -485,8 +497,8 @@ static void input(void)
     }
     if (ui.home_hold && !(btn & 1u << B_HOME)) {
         ui.home_hold = 0u;
-        if (!ui.home_combo && (ui.page == PG_HOME || ui.page == PG_GEN)) {
-            ui.page = ui.page == PG_HOME ? PG_GEN : PG_HOME;
+        if (!ui.home_combo && (ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_HSET)) {
+            ui.page = ui.page == PG_HOME ? PG_GEN : ui.page == PG_GEN ? PG_HSET : PG_HOME;   /* (0.9.2: SETTINGS third) */
             ui.redraw |= RG_FOOT | RG_BLOCKS;
             page_say();
         }
@@ -599,9 +611,10 @@ static void input(void)
         if (ui.page == PG_TRACK && ui.tpage == 0u) {
             ui.env_hold = 1u;
             ui.env_t = now;
-        } else {
-            if (ui.page != PG_TRACK)
-                slices_let_go(keys);
+        } else if (ui.page == PG_TRACK)
+            home_back();                 /* (0.9.2, FLEXOR: SONG, ENV again: HOME; SELECT its tabs) */
+        else {
+            slices_let_go(keys);
             track_open();
         }
     }
@@ -611,7 +624,7 @@ static void input(void)
     }
     if (ui.env_hold && !(btn & 1u << B_ENV)) {
         if (ui.env_hold == 1u)
-            track_open();
+            home_back();                 /* (0.9.2: TRACKS, ENV again (not held for a gap): HOME) */
         ui.env_hold = 0u;
     }
     if (clr_arm && (now - clr_t >= 3000u || bdn & ~(1u << B_SEQ) || kdn)) {   /* LOAF BREAKER: not confirmed */
@@ -744,8 +757,10 @@ static void input(void)
                 ui.page = PG_FX;
                 page_say();
                 ui.redraw |= RG_FOOT | RG_BLOCKS;
-            } else if (ui.page == PG_FX)
-                fx_next_part();          /* (the slot's next part, round: MAIN, MORE, MOD; an MB COMP its six) */
+            } else if (ui.page == PG_FX && IS_KFX())
+                fx_next_part();          /* (KICK FX: the slot's next part, round: MAIN, MORE, MOD) */
+            else if (ui.page == PG_FX)
+                home_back();             /* (0.9.2, FLEXOR: EFFECTS, FX again: HOME; SELECT and ALGORITHM move in it) */
         }
     }
     if (bdn & 1u << B_SEL && key_tuned() >= 0) {   /* SEL while a key is held: its loop back to the defaults */
@@ -907,6 +922,15 @@ static void input(void)
             ui.redraw |= RG_BLOCKS | RG_FOOT;
             continue;
         }
+        if (k == EN_SELECT && ui.page == PG_FX && !IS_KFX()) {   /* LOAF BREAKER (0.9.2, FLEXOR): EFFECTS, SELECT the
+                                          * slots (the tabs at the top), ALGORITHM their parts (MAIN, MORE, MOD) */
+            fx_algo(d, 0u);
+            continue;
+        }
+        if (k == EN_SELECT && ui.page == PG_TRACK) {   /* (0.9.2, FLEXOR: SONG, SELECT its tabs; the tempo: HOME) */
+            track_tab_turn(d);
+            continue;
+        }
         if (k == EN_SELECT && ext_active()) {
             app_say("TEMPO", "EXT CLOCK");   /* the outside clock has the tempo */
         } else if (k == EN_SELECT) {     /* tempo: 1 BPM a detent (SEL held: the kick, above) */
@@ -960,7 +984,7 @@ static void input(void)
                 page_say();
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
             } else if (ui.page == PG_FX)
-                fx_algo(d, 0u);
+                fx_part_turn(d);         /* (0.9.2: the slot's parts; SELECT the slots) */
             else {                     /* the next or previous break */
                 break_ask((set.brk + (d > 0 ? 1u : n_breaks - 1u)) % n_breaks);
             }
@@ -1069,7 +1093,7 @@ static void leds(void)
     if (st.playing && plat_ms() - ui.kick_t >= 70u)   /* (LOAF BREAKER TEST: PLAY blinks off on each kick) */
         b |= 1u << B_PLAY;
     static const uint8_t PAGE_BTN[NPAGES] = {B_HOME, B_HOME, B_FX, B_GLO, B_EDIT, B_LFO, B_SEQ, B_EDIT, B_ENV, B_ARP,
-                                             B_EDIT};   /* (TEST: KICK EQ under EDIT) */
+                                             B_EDIT, B_HOME};   /* (TEST: KICK EQ under EDIT) */
     b |= 1u << (IS_KFX() || (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK) ? B_EDIT : ui.page == PG_GLOBAL &&
                 ui.gpage == GP_FILL ? B_SEQ : PAGE_BTN[ui.page]);   /* (LOAF BREAKER: SOUNDS' BREAK, PATTERN's GROOVE) */
     if (ui.rec)
@@ -1155,6 +1179,8 @@ static void knob_value(int i, char *t)  /* the page's knob i (0..3), as shown un
         }
     } else if (ui.page == PG_KEQ)
         keq_value(i, t);
+    else if (ui.page == PG_HSET)
+        hset_value(i, t);
     else if (ui.page == PG_GEN) {
         float v = i == 0 ? set.gen.complexity : i == 1 ? set.gen.anchor : i == 2 ? set.gen.roll : set.gen.fill;
         int_text((int32_t)(v * 100.0f), t);
@@ -1175,12 +1201,12 @@ static int32_t tab(int32_t x, const char *s, int on)
 }
 /* the pages' buttons as printed, GLOBAL's parts, SEQ's lanes: for the tabs and the header (page_say) */
 static const char *const BTN[NPAGES] = {"HOME", "HOME", "FX", "GLO", "EDIT", "LFO", "SEQ", "EDIT", "ENV", "ARP",
-                                        "EDIT"};
+                                        "EDIT", "HOME"};
 static const char *const GPART[NGPART] = {"MIDI", "PITCH", "SETUP", "EFFECTS", "FX SET", "RESET"};
 /* LOAF BREAKER (0.201): each button a domain, its name on the screen (the button keeps its print): LIVE (HOME), SOUNDS
  * (EDIT: the kick, the drums, the melody, the break), PATTERN (SEQ), SONG (ENV), MIX (LFO), EFFECTS (FX), SYSTEM (GLO) */
 static const char *const DOM[NPAGES] = {"LIVE", "LIVE", "EFFECTS", "SYSTEM", "SOUNDS", "MIX", "PATTERN", "SOUNDS", "SONG",
-                                        "OVERLAY", "SOUNDS"};
+                                        "OVERLAY", "SOUNDS", "LIVE"};
 static const char *dom_name(void)
 {
     if (IS_KFX() || (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK))
@@ -1207,9 +1233,10 @@ static void draw_tabs(void)
                                           * KICK menu's six sections want the room; its picture says KICK n) */
             : cv_text(4, 1, &FONT_T, lab, C_WHITE) + 6;
     }
-    if (ui.page == PG_HOME || ui.page == PG_GEN) {   /* HOME: PERFORM, GENERATOR (TEST: the kick's EQ and FX on EDIT) */
+    if (ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_HSET) {   /* HOME: PERFORM, GENERATOR, SETTINGS */
         x = tab(x, "PERFORM", ui.page == PG_HOME);
-        tab(x, "GENERATOR", ui.page == PG_GEN);
+        x = tab(x, "GENERATOR", ui.page == PG_GEN);
+        tab(x, "SETTINGS", ui.page == PG_HSET);
     }
     else if (ui.page == PG_OVL) {        /* (LOAF BREAKER: EXPERT, its three tabs; BEGINNER, ARP EFFECTS alone: no tab) */
         if (!set.novice)
@@ -1292,6 +1319,7 @@ static void page_say(void)
     switch (ui.page) {
     case PG_HOME: text_cat(t, "PERFORM"); break;
     case PG_GEN: text_cat(t, "GENERATOR"); break;
+    case PG_HSET: text_cat(t, "SETTINGS"); break;
     case PG_KEQ: text_cat(t, ui.keq_part ? "KICK EQ SHAPE" : "KICK EQ BANDS"); break;
     case PG_GLOBAL: text_cat(t, ui.gpage == GP_FILL ? "GROOVE" : ui.gpage == GP_BREAK ? "BREAK" : GPART[ui.gpage % NGPART]); break;
     case PG_MIX: text_cat(t, ui.mpage == 3u ? "DYNAMICS" : ui.mpage == 2u ? "MASTER" : ui.mpage ? "SENDS" : "LEVELS"); break;
@@ -1407,14 +1435,15 @@ static void draw_foot(const brk_status_t *st)
     static const char *const KN[NPAGES][4] = {{"GATE", "FILTER", "DRUM FLT", "SUB DECAY"},
                                               {"CMPLX", "ANCHOR", "ROLL", "FILL"},
                                               {"P1", "P2", "P3", "MIX"},
-                                              {"CLOCK IN", "CLOCK OUT", "", "BREAK TIME"},
+                                              {"CLOCK IN", "CLOCK OUT", "", ""},
                                               {"", "", "", ""},
                                               {"BREAK", "KICK", "PERC", "MELO"},
                                               {"SLICE", "PITCH", "HITS", "REVERSE"},
                                               {"", "", "", ""},
                                               {"KICK", "PUT", "LOOPS", "BREAK"},
                                               {"AMOUNT", "RATE", "SWEEP", "LATCH"},
-                                              {"LOW", "MID", "HIGH", "MID FREQ"}};
+                                              {"LOW", "MID", "HIGH", "MID FREQ"},
+                                              {"VIEW", "WAVE TYPE", "WAVE ZOOM", "BREAK TIME"}};
     uint32_t i;
     char t[16];
     draw_tabs();
@@ -1430,7 +1459,8 @@ static void draw_foot(const brk_status_t *st)
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "LEVEL"};   /* (SOUNDS' BREAK) */
         static const char *const KN_GROOVE[3][4] = {{"FX", "DRUMS", "", ""}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
                                                     {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
-        static const char *const KN_MORE[3][4] = {{"SKIN", "WAVE ZOOM", "MODE", "AUTO SAVE"},   /* SETUP */
+        static const char *const KN_MORE[3][4] = {{"SKIN", "", "MODE", "AUTO SAVE"},   /* SETUP (K2 WAVE ZOOM: HOME's
+                                          * SETTINGS, 0.9.2) */
                                                   {"EFFECT", "ON / OFF", "WAVE", "KICK VIEW"},   /* (LOAF BREAKER: EFFECTS, */
                                                   {"AMOUNT", "KICK", "DROP", "LENGTH"}};   /* FX SET) */
         static const char *const KN_TRK[4][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
@@ -1526,6 +1556,7 @@ void app_ui_init(void)
 {
     ab_take();                           /* (LOAF BREAKER: TOOLS' A/B: the kick as it was saved) */
     ui.kpreset = (uint8_t)kpre_mem(set.kslot);   /* (0.9.2: the PRESET page names the kick's own) */
+    ui.blocks = (uint8_t)(set.bkeys.bk[BK_VIEW] & 1u);   /* (0.9.2: HOME's VIEW as it was left) */
     ui.ksect = 0u;                       /* (LOAF BREAKER, 0.253, FLEXOR: the KICK menu opens on ATTACK's PRESET, the
                                           * built-in kicks first; 0.205-0.252 on BODY, its MIX) */
 #if CH_LOGO
@@ -1781,18 +1812,20 @@ void app_frame(void)
     {                                    /* LOAF BREAKER: PERFORM and GENERATOR show the CDJ view (the default);
                                           * HOME held 0.35 s there: the slice blocks instead, held again: the CDJ
                                           * view (HOME's next part not taken); ~30 times a second (0.254) */
-        int home = ui.page == PG_HOME || ui.page == PG_GEN;
+        int home = ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_HSET;
         if (!(ui.btn & 1u << B_HOME))
             ui.cdj_skip = 0u;
         if (!ui.cdj_skip && home && ui.btn & 1u << B_HOME && now - ui.home_t >= 350u) {
             ui.blocks ^= 1u;
+            set.bkeys.bk[BK_VIEW] = ui.blocks;   /* (0.9.2: HOME's SETTINGS' VIEW, kept) */
+            set_dirty = 1u;
             ui.cdj_skip = 1u;
             ui.home_combo = 1u;
             ui.panel_drawn = 0u;
             ui.redraw |= RG_BLOCKS;
             app_say("HOME", ui.blocks ? "SLICES" : "WAVEFORM");
         }
-        ui.cdj = (uint8_t)(home && !ui.blocks);
+        ui.cdj = (uint8_t)(home && ui.page != PG_HSET && !ui.blocks);
         if (ui.cdj && now - ui.panel_drawn >= 33u) {   /* (about 30 times a second: 0.178-0.253 20, FLEXOR 0.254: 30
                                           * again, smoother) */
             ui.redraw |= RG_BLOCKS;
@@ -2021,7 +2054,9 @@ void app_frame(void)
         else if (ui.page == PG_MIX) {
             draw_mixer();
             ui.mix_drawn = now;
-        } else if (ui.cdj)
+        } else if (ui.page == PG_HSET)
+            draw_hset();                 /* (LOAF BREAKER, 0.9.2: HOME's SETTINGS) */
+        else if (ui.cdj)
             draw_cdj(&st);
         else
             draw_blocks(&st, ui.keys);

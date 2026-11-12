@@ -42,9 +42,9 @@ wait 200
 shot x_duck.png
 tap ENV
 wait 100
-tap ENV
+turn SELECT 1 10
 wait 100
-tap ENV
+turn SELECT 1 10
 wait 300
 turn K3 2 10
 wait 200

@@ -8,11 +8,11 @@
 wait 4200
 tap ENV
 wait 100
-tap ENV
+turn SELECT 1 10
 wait 100
-tap ENV
+turn SELECT 1 10
 wait 100
-tap ENV
+turn SELECT 1 10
 wait 300
 turn K1 1 10
 turn K4 3 10

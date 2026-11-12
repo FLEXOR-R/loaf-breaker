@@ -5,25 +5,25 @@ wait 4200
 tap FX
 wait 300
 expect page 2
-turn ALGO 1 60
+turn SELECT 1 60
 wait 200
 expect fx_focus 1
-tap FX
+turn ALGO 1 10
 wait 200
-tap FX
+turn ALGO 1 10
 wait 200
-tap FX
-wait 200
-expect fx_focus 1
-tap FX
-wait 200
-tap FX
-wait 200
-tap FX
-wait 200
-tap FX
+turn ALGO 1 10
 wait 200
 expect fx_focus 1
-turn ALGO 1 60
+turn ALGO 1 10
+wait 200
+turn ALGO 1 10
+wait 200
+turn ALGO 1 10
+wait 200
+turn ALGO 1 10
+wait 200
+expect fx_focus 1
+turn SELECT 1 60
 wait 200
 expect fx_focus 2

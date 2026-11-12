@@ -323,6 +323,19 @@ static void fx_next_part(void)
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
 
+static void fx_part_turn(int32_t d)      /* (LOAF BREAKER, 0.9.2, FLEXOR: ALGORITHM, the slot's parts, MAIN MORE MOD,
+                                          * both ways; SELECT the slots) */
+{
+    uint32_t n = fx_npages(fx_sl(fx_foc())->type);
+    if (d > 0 || set.novice) {
+        fx_next_part();
+        return;
+    }
+    ui.fx_page = (uint8_t)(ui.fx_page ? ui.fx_page - 1u : n - 1u);
+    page_say();
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
+
 static const char *fx_param_name(uint32_t slot, int i)
 {
     if (mb_detail(slot))
@@ -1086,7 +1099,7 @@ static void draw_xview(uint32_t now)
     cv_rect(0, 14, 176, 38, C_BLOCK);    /* the modulator: its cycle, where it is, what it moves */
     shape = brk_idx(xx[FXX_SHAPE], BRK_MOD_SHAPES);
     if (t == FXT_EMPTY || (depth > -0.01f && depth < 0.01f))
-        cv_text(6, 26, &FONT_T, "MOD OFF  (FX AGAIN: MOD)", C_DIM);
+        cv_text(6, 26, &FONT_T, FX_KICK() ? "MOD OFF  (FX AGAIN: MOD)" : "MOD OFF  (ALGORITHM: MOD)", C_DIM);
     else {
         for (x = 0; shape < MOD_SH && x < 176; x++) {
             y = 33 - (int32_t)(brk_mod_wave(shape, (float)x * (1.0f / 176.0f)) * 14.0f);

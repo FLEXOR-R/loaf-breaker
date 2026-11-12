@@ -6,7 +6,7 @@
 wait 4200
 tap FX
 wait 100
-turn ALGO 2 10
+turn SELECT 2 10
 turn PRESET 8 10
 wait 100
 tap PLAY

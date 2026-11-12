@@ -66,8 +66,8 @@ static void global_value(int i, char *t)
                                           * K2 WAVE ZOOM, K3 MODE, K4 AUTO SAVE */
         if (i == 0)                      /* (LOAF BREAKER, 0.237: the names nine letters at most, to fit its column) */
             text_cat(t, SKIN_NAME[skin_idx()]);
-        else if (i == 1)
-            text_cat(t, CDJ_ZNAME[set.wzoom % CDJ_ZN]);
+        else if (i == 1)                 /* (WAVE ZOOM: HOME's SETTINGS since 0.9.2) */
+            ;
         else if (i == 2)                 /* (TUTORIAL, left of BEGINNER) */
             text_cat(t, tut_on() ? "TUTORIAL" : set.novice ? "BEGINNER" : "EXPERT");
         else
@@ -91,8 +91,8 @@ static void global_value(int i, char *t)
     }
     text_cat(t, i == 0 ? (set.clk_in ? "FOLLOW" : "OFF") : i == 1 ? (set.clk_out ? "ON" : "OFF")
                 : i == 2 && !set.novice ? (ui.meter_on ? "ON" : "OFF")
-                : i == 3 ? (set.bkeys.bk[BK_BHALF] & 1u ? "HALF" : "NORMAL")
-                : "");                   /* (LOAF BREAKER: K3 the METER, EXPERT only; K4 BREAK TIME, 0.256) */
+                : "");                   /* (LOAF BREAKER: K3 the METER, EXPERT only; K4 BREAK TIME 0.256-0.9.1: HOME's
+                                          * SETTINGS now) */
 }
 
 /* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's BREAK its LEVEL alone (K4; the pitch: OCT), GROOVE its SWING alone */
@@ -157,11 +157,9 @@ static void global_turn(int i, int32_t d)
             changed();                   /* (settings_apply: skin_apply) */
             app_say("SKIN", SKIN_NAME[skin_idx()]);
             ui.redraw = RG_ALL;
-        } else if (i == 1) {             /* K2 WAVE ZOOM: HOME's wave, how much of the past it holds */
-            set.wzoom = (uint8_t)clamp((int32_t)(set.wzoom % CDJ_ZN) + (d > 0 ? 1 : -1), 0, CDJ_ZN - 1);
-            changed();
-            app_say("WAVE ZOOM", CDJ_ZNAME[set.wzoom % CDJ_ZN]);
-            ui.redraw |= RG_BLOCKS | RG_FOOT;
+        } else if (i == 1) {             /* (K2 WAVE ZOOM until 0.9.1: HOME's SETTINGS, FLEXOR) */
+            app_say("WAVE ZOOM", "HOME > SETTINGS");
+            return;
         } else if (i == 2) {             /* K3 MODE: right EXPERT, left BEGINNER (left again, the TUTORIAL; right from
                                           * it, BEGINNER) */
             if (d < 0 && set.novice && !tut_on())
@@ -222,10 +220,9 @@ static void global_turn(int i, int32_t d)
         app_say("METER", ui.meter_on ? "ON: CPU, IMG, FR" : "OFF");
         ui.redraw |= RG_HEAD | RG_FOOT;
         return;
-    } else {                             /* LOAF BREAKER (0.256, FLEXOR): K4 BREAK TIME, right HALF (the break at half
-                                          * the tempo: a 115 break under a 230 kick, at its own speed), left NORMAL */
-        set.bkeys.bk[BK_BHALF] = d > 0 ? 1u : 0u;
-        ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
+    } else {                             /* (K4 BREAK TIME, 0.256-0.9.1: HOME's SETTINGS now, FLEXOR) */
+        app_say("BREAK TIME", "HOME > SETTINGS");
+        return;
     }
     global_value(i, t);
     app_say(NAME[i], t);
@@ -338,9 +335,9 @@ static void draw_global(const brk_status_t *st)
         }
         cv_blit(0, 44);
         cv_begin(240, 52, C_BLACK);
-        cv_text(6, 2, &FONT_T, "K2 WAVE ZOOM", C_GRAY);   /* (cdj.c; PRESETS too) */
-        cv_text(96, 2, &FONT_T, CDJ_ZNAME[set.wzoom % CDJ_ZN], C_HI);
-        cv_text(96, 16, &FONT_XS, "HOME'S WAVE, HOW WIDE", C_DIM);
+        cv_text(6, 2, &FONT_T, "WAVE ZOOM", C_GRAY);   /* (cdj.c; 0.9.2: HOME's SETTINGS K3, PRESETS on HOME) */
+        cv_text(96, 2, &FONT_T, CDJ_ZNAME[set.wzoom % CDJ_ZN], C_WHITE);
+        cv_text(96, 16, &FONT_XS, "NOW IN HOME > SETTINGS", C_DIM);
         cv_text(96, 26, &FONT_XS, "SCREEN EFFECTS: GLO AGAIN", C_DIM);
         cv_text(6, 38, &FONT_T, "K3 MODE", C_GRAY);
         cv_text(96, 38, &FONT_T, tut_on() ? "TUTORIAL" : set.novice ? "BEGINNER" : "EXPERT", C_HI);
@@ -389,7 +386,8 @@ static void draw_global(const brk_status_t *st)
     (void)bs;
     cv_text(6, 2, &FONT_T, "MIDI", C_GRAY);
     cv_text(96, 2, &FONT_T, "USB AND THE TRS JACK", C_WHITE);
-    cv_text(6, 16, &FONT_T, "BREAK TIME", C_GRAY);   /* (LOAF BREAKER, 0.256: the break's tempo, half or the tempo's) */
+    cv_text(6, 16, &FONT_T, "BREAK TIME", C_GRAY);   /* (LOAF BREAKER, 0.256: the break's tempo, half or the tempo's;
+                                          * 0.9.2: HOME's SETTINGS K4, shown here too) */
     t[0] = 0;
     {
         int32_t bt = (int32_t)set.tempo_x10 / ((set.bkeys.bk[BK_BHALF] & 1u) ? 2 : 1);
@@ -445,4 +443,68 @@ static void global_part(uint32_t g)      /* GLO (again: the next part) and ALGOR
     ui.page = PG_GLOBAL;
     ui.redraw |= RG_FOOT | RG_BLOCKS;
     page_say();
+}
+
+/* LOAF BREAKER (0.9.2, FLEXOR): HOME's SETTINGS, the waveform's settings where it is played: K1 VIEW (the waveform or
+ * the slices; HOME held still flips it), K2 WAVE TYPE (REKORDBOX, SERATO; SYSTEM EFFECTS' K3 too), K3 WAVE ZOOM (SYSTEM
+ * SETUP's K2 until 0.9.1), K4 BREAK TIME (SYSTEM MIDI's K4 until 0.9.1). VIEW saved in bkeys.bk[BK_VIEW] */
+static const char *const HSET_NAME[4] = {"VIEW", "WAVE TYPE", "WAVE ZOOM", "BREAK TIME"};
+static void hset_value(int i, char *t)
+{
+    t[0] = 0;
+    text_cat(t, i == 0 ? (ui.blocks ? "SLICES" : "WAVEFORM") : i == 1 ? (set.wstyle ? "SERATO" : "REKORDBOX")
+                : i == 2 ? CDJ_ZNAME[set.wzoom % CDJ_ZN] : (set.bkeys.bk[BK_BHALF] & 1u ? "HALF" : "NORMAL"));
+}
+static void hset_turn(int i, int32_t d)
+{
+    char t[16];
+    if (i == 0) {
+        ui.blocks = d > 0 ? 1u : 0u;     /* (right the slices, left the waveform) */
+        set.bkeys.bk[BK_VIEW] = ui.blocks;
+    } else if (i == 1)
+        set.wstyle = d > 0 ? 1u : 0u;
+    else if (i == 2)
+        set.wzoom = (uint8_t)clamp((int32_t)(set.wzoom % CDJ_ZN) + (d > 0 ? 1 : -1), 0, CDJ_ZN - 1);
+    else
+        set.bkeys.bk[BK_BHALF] = d > 0 ? 1u : 0u;   /* (right HALF: a 115 break under a 230 kick at its own speed) */
+    changed();
+    hset_value(i, t);
+    app_say(HSET_NAME[i & 3], t);
+    ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
+}
+static void draw_hset(void)
+{
+    uint32_t i;
+    char t[48], v[16];
+    cv_begin(240, 52, C_BLACK);          /* the four, as cards: the name, the value large (K1-K4 left to right) */
+    for (i = 0; i < 4u; i++) {
+        int32_t x = 2 + (int32_t)i * 60;
+        cv_rect(x, 0, 56, 50, C_BLOCK);
+        {                                /* (the name a word a line: the card's width) */
+            const char *n = HSET_NAME[i];
+            uint32_t j = 0u;
+            while (n[j] && n[j] != ' ')
+                j++;
+            t[0] = 0;
+            text_cat(t, n);
+            t[j] = 0;
+            cv_text(x + 4, 3, &FONT_XS, t, C_GRAY);
+            if (n[j])
+                cv_text(x + 4, 13, &FONT_XS, n + j + 1, C_GRAY);
+        }
+        hset_value((int)i, t);
+        cv_text(x + 4, 32, text_w(&FONT_T, t) > 50 ? &FONT_XS : &FONT_T, t, C_HI);
+    }
+    cv_blit(0, 88);
+    cv_begin(240, 52, C_BLACK);          /* what they do */
+    t[0] = 0;
+    text_cat(t, set.bkeys.bk[BK_BHALF] & 1u ? "THE BREAK AT HALF: " : "THE BREAK AT THE TEMPO: ");
+    tenths_text((int32_t)set.tempo_x10 / ((set.bkeys.bk[BK_BHALF] & 1u) ? 2 : 1), v);
+    text_cat(t, v);
+    text_cat(t, " BPM");
+    cv_text(6, 2, &FONT_XS, "HOME HELD: WAVEFORM / SLICES", C_DIM);
+    cv_text(6, 14, &FONT_XS, set.wstyle ? "WAVE COLOURS AS SERATO'S" : "WAVE COLOURS AS REKORDBOX'S", C_DIM);
+    cv_text(6, 26, &FONT_XS, t, C_DIM);
+    cv_text(6, 38, &FONT_XS, "SELECT: TEMPO", C_DIM);
+    cv_blit(0, 140);
 }

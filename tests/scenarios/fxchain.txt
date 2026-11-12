@@ -16,14 +16,14 @@ expect fx_focus 0
 turn K2 -8 10
 wait 300
 shot c_crunch_on.png
-turn ALGO 1 10
+turn SELECT 1 10
 turn PRESET 2 10
 wait 200
 turn K1 -10 10
 turn K2 15 10
 wait 300
 shot c_drive.png
-turn ALGO 1 10
+turn SELECT 1 10
 turn PRESET 2 10
 wait 200
 expect fx_focus 2
@@ -34,16 +34,16 @@ wait 300
 expect fx_focus 1
 shot c_moved.png
 # FX again: the slot's parts (MAIN, MORE, MOD), then the next slot
-tap FX
+turn ALGO 1 10
 wait 100
 expect fx_focus 1
 expect fx_page 1
-tap FX
-tap FX
+turn ALGO 1 10
+turn ALGO 1 10
 wait 100
 expect fx_focus 2
 expect fx_page 0
-turn ALGO 3 10
+turn SELECT 3 10
 wait 100
 expect fx_focus 1
 peakreset

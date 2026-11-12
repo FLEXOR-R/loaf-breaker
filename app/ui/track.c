@@ -1695,6 +1695,15 @@ static void draw_track(void)
     }
 }
 /* ENV: TRACKS; again, PLAY, DROP, BUILD, and back */
+static void track_tab_turn(int32_t d)    /* (LOAF BREAKER, 0.9.2, FLEXOR: SELECT, ENV's tabs, both ways) */
+{
+    uint32_t k;
+    for (k = 0; k < NTORD && TORDER[k] != ui.tpage; k++)
+        ;
+    ui.tpage = TORDER[(k + (d > 0 ? 1u : NTORD - 1u)) % NTORD];
+    ui.redraw |= RG_FOOT | RG_BLOCKS;
+    page_say();
+}
 static void track_open(void)
 {
     if (ui.page == PG_TRACK) {

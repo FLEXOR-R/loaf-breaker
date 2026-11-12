@@ -16,7 +16,7 @@ turn K3 12 10
 wait 900
 shot c_mb_amount.png
 # FX again: the LOW band's part; threshold down, ratio up, a quick attack
-tap FX
+turn ALGO 1 10
 wait 100
 expect fx_page 1
 expect fx_focus 0
@@ -26,11 +26,11 @@ turn K2 3 10
 turn K3 -8 10
 wait 900
 shot c_mb_low.png
-tap FX
+turn ALGO 1 10
 wait 100
-tap FX
+turn ALGO 1 10
 wait 100
-tap FX
+turn ALGO 1 10
 wait 100
 expect fx_page 4
 # GAIN: the high up 3 dB; SOLO the low
@@ -41,7 +41,7 @@ wait 900
 shot c_mb_solo.png
 turn K4 -1 10
 expect mb_solo 0
-tap FX
+turn ALGO 1 10
 wait 100
 expect fx_page 5
 # X-OVER: the low split up, a soft knee
@@ -50,12 +50,12 @@ turn K3 12 10
 wait 900
 shot c_mb_xover.png
 # past the last part: the next slot, its AMOUNT
-tap FX
+turn ALGO 1 10
 wait 100
 expect fx_focus 1
 expect fx_page 0
 # back with ALGORITHM, then FX held + ALGORITHM moves it: its detail goes along
-turn ALGO -1 10
+turn SELECT -1 10
 wait 100
 expect fx_focus 0
 press FX

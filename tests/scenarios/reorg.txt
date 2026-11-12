@@ -9,6 +9,9 @@ wait 200
 expect page 1
 tap HOME
 wait 200
+expect page 11
+tap HOME
+wait 200
 expect page 0
 tap EDIT
 wait 300

@@ -14,7 +14,7 @@ turn K1 10 10
 wait 600
 shot v_crunch.png
 # FILTER (slot 2): on, resonant, then its MOD: depth up on the cutoff at 1/4
-turn ALGO 1 10
+turn SELECT 1 10
 wait 100
 expect fx_focus 1
 expect fx_page 0
@@ -22,18 +22,18 @@ press SEL
 tap FX
 release SEL
 turn K2 25 10
-tap FX
+turn ALGO 1 10
 wait 100
 expect fx_page 1
 turn K2 1 10
-tap FX
+turn ALGO 1 10
 wait 100
 expect fx_page 2
 turn K1 2 10
 turn K2 20 10
 wait 700
 shot v_filter_mod.png
-tap FX
+turn ALGO 1 10
 wait 100
 expect fx_focus 2
 expect fx_page 0
@@ -45,7 +45,7 @@ turn K3 6 10
 wait 600
 shot v_flanger.png
 # slot 4: through the library, a shot of each
-turn ALGO 1 10
+turn SELECT 1 10
 wait 100
 expect fx_focus 3
 press SEL
@@ -76,7 +76,7 @@ turn K1 8 10
 turn K2 -8 10
 wait 500
 shot v_eq.png
-tap FX
+turn ALGO 1 10
 wait 100
 expect fx_page 1
 turn K1 10 10

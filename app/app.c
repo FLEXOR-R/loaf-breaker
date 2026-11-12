@@ -223,6 +223,7 @@ static settings_t set;
 enum { BKF_ARP = BRK_NPADS, BKF_KIL, BKF_DST, BKF_SUB, BKF_N };
 enum { BKP_CHOPPAH, BKP_FLEXOR, BKP_CUSTOM, BKP_N };
 #define BK_TAG 0xB4u
+#define BK_VIEW 14u                      /* (bk[14]: HOME's VIEW, 0 the waveform, 1 the slices, 0.9.2) */
 #define BK_BHALF 13u                     /* (bk[13]: BREAK TIME, 0 NORMAL, 1 HALF: the break at half the tempo, 0.256) */
 static const uint8_t BK_LAY[2][11] = {{PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, PAD_REVERSE, PAD_FREEZE, PAD_HALF,
                                        PAD_TAPESTOP, PAD_GATE, PAD_RANDOM, PAD_FILTER, PAD_DUB},

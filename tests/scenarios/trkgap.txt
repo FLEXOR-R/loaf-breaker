@@ -50,7 +50,7 @@ release ENV
 wait 200
 expect trk_cur 1
 expect trk_it 253
-tap ENV
+turn SELECT 1 10
 wait 300
 tap PLAY
 wait 300
@@ -101,7 +101,7 @@ wait 200
 shot t_brk.png
 turn K4 -1 10
 turn K4 1 10
-tap ENV
+turn SELECT 1 10
 wait 300
 tap PLAY
 wait 300

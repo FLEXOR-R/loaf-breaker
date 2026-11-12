@@ -9,7 +9,7 @@ tap PLAY
 wait 300
 tap FX
 wait 300
-turn ALGO 2 80
+turn SELECT 2 80
 wait 200
 expect fx_focus 2
 turn PRESET 1 80
@@ -29,10 +29,10 @@ wait 300
 tap FX
 wait 300
 expect fx_focus 0
-turn ALGO 1 80
+turn SELECT 1 80
 wait 200
 expect fx_focus 1
-turn ALGO 1 80
+turn SELECT 1 80
 wait 200
 expect fx_focus 0
 turn PRESET 4 80

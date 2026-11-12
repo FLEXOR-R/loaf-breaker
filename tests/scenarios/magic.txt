@@ -16,7 +16,7 @@ expect fx_p1 50
 expect mb_thr_low 0
 expect fx_on 1
 shot magic_mbc.png
-tap FX
+turn ALGO 1 10
 wait 300
 expect fx_page 1
 shot magic_mbc_low.png

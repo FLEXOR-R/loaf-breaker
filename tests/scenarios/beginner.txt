@@ -49,9 +49,9 @@ expect lane_steps 16
 shot bg_len.png
 tap ENV
 wait 150
-tap ENV
+turn SELECT 1 10
 wait 150
-tap ENV
+turn SELECT 1 10
 wait 300
 expect drop_bars 3
 turn K2 3 60

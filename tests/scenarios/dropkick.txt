@@ -5,9 +5,9 @@
 wait 4200
 tap ENV
 wait 150
-tap ENV
+turn SELECT 1 10
 wait 150
-tap ENV
+turn SELECT 1 10
 wait 300
 turn K1 -2 10
 turn PRESET 7 10
@@ -27,9 +27,9 @@ expect kslot 3
 tap PLAY
 wait 300
 turn PRESET -7 10
-tap ENV
+turn SELECT 1 10
 wait 150
-tap ENV
+turn SELECT 1 10
 wait 300
 expect page 8
 turn PRESET 1 10
