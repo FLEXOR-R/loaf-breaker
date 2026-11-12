@@ -183,7 +183,7 @@ files before it define. `app/dsp/*.c` are separate `o2` units (brk, brk_fx, kick
   the tests'). No loading of samples of your own (dropped from scope), and the breaks stay 2 bars (32 steps; a one-bar break plays twice, LO-FI 165 was one in 0.196-0.199).
 - Releases are automatic: every push to `loaf` is a release. Numbers A.B.C since 12 Nov 2026 (FLEXOR: "on passe en
   0.9.1"): the last `loaf-vA.B.C` tag's patch + 1 (`scripts/loaf_version.sh next`), or `./LOAF_FROM` if higher
-  (0.9.1 now; write 0.10.0 or 1.0.0 there for a new minor or major). Before: X.YY, 0.02 to 0.267. The package's own
+  (0.9.21 now, FLEXOR: "on va dire 0.9.21"; then 0.9.22 ...; write 0.10.0 or 1.0.0 there for a new minor or major). Before: X.YY, 0.02 to 0.267. The package's own
   number (fm1-base's X.Y.Z, two digits each) is `scripts/loaf_version.sh pkg`: 0.267 is 1.0.68, A.B.C is A+2 . B . C
   (0.9.1 is 2.9.1, 1.0.0 is 3.0.0), always above the one before (`check` in CI). Don't tag by hand. (`scripts/next_version.sh` and
   `VERSION` are CHOPPAH's main branch's.)
