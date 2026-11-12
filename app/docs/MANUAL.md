@@ -305,7 +305,8 @@ on HOME and the other pages (the metronome and tap tempo are gone).
   **build** plays (its kick roll, say), the one before back at the drop ("DRP K5"), **K2** what it is: END, EMPTY, DROP, P1–P64 (DROP just left of P1; EMPTY, left of DROP, empties the case and keeps its place: ENV held on it,
 or K2 left once more, deletes it, the rest moving up; then K2 left does nothing until the knob has rested 0.7 s, so a
 hard turn deletes one item, not the ones moving into its place, 0.9.26),
-  **K3** its loops, **K4** its **break**: SAME (the one playing goes on) or one of the bank's, in with the item
+  **K3** its loops (on a DROP: **STUTTER**, OFF / ON: its build rolls the break, 8ths, 16ths, then 32nds, over BUILD's
+  style; the item shows "DRP S"; 0.9.26), **K4** its **break**: SAME (the one playing goes on) or one of the bank's, in with the item
   (swapped at the bar's end, as ALGORITHM does; a cell with its own break shows it, "X4 B3"; a DROP into it brings
   it in, in DROP BREAK's place). What the track does at its end (LOOP, STOP, HOLD) is on **PLAY**'s K3.
   ALGORITHM moves along the items (the break stays as it is: SEL + ALGORITHM changes it). A

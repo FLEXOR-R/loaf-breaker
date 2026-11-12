@@ -1578,6 +1578,8 @@ static void draw_foot(const brk_status_t *st)
                            ui.gpage >= 2u ? KN_MORE[(ui.gpage - 2u) % 3u][i] : ui.page == PG_GLOBAL && ui.gpage
                            ? KN_PITCH[i] : ui.page == PG_MIX && ui.mpage
                            ? KN_GROOVE[ui.mpage >= 3u ? 2u : ui.mpage == 2u][i] : KN[ui.page][i];
+        if (ui.page == PG_TRACK && !ui.tpage && !RST_ON && i == 2u && trk_now()->it[ui.trk_cur % TRK_ITEMS] == TI_DROP)
+            name = "STUTTER";            /* (0.9.26: a DROP item's K3) */
         if (ui.sel_foot) {               /* LOAF BREAKER (0.258, FLEXOR): SEL held or locked (SEL x2): the knobs are
                                           * SEL + K1-K4's, their functions (EDIT KICK › KNOBS) and their values */
             selk_value(selk_fn(i), 0, t);
@@ -1903,7 +1905,7 @@ void app_frame(void)
     {                                    /* LOAF BREAKER: a STUTTER build: the break rolled, 8ths, 16ths, then 32nds,
                                           * let go at the drop */
         static int8_t stut = -1;
-        int want = build_p >= 0.0f && build_len && b_style == DS_STUTTER
+        int want = build_p >= 0.0f && build_len && (b_style == DS_STUTTER || b_stut)
                    ? (build_p < 0.5f ? PAD_ROLL8 : build_p < 0.8f ? PAD_ROLL16 : PAD_ROLL32) : -1;
         if (want != stut) {
             if (stut >= 0)
@@ -2240,8 +2242,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin"};
-    int v[125];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut"};
+    int v[126];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -2372,7 +2374,8 @@ int app_expect(const char *what, int *got)
     v[122] = set.bkeys.bk[BK_BHALF] & 1u;
     v[123] = wiped ? 2 : wipe_at ? 1 : 0;   /* (the host keeps the store apart: the erase itself is the FM-1's) */
     v[124] = (int32_t)skin_idx();
-    for (i = 0; i < 125u; i++)
+    v[125] = build_p >= 0.0f && b_stut;
+    for (i = 0; i < 126u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;
