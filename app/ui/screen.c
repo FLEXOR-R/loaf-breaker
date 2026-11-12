@@ -215,7 +215,9 @@ static void intro_draw(uint32_t now)
         text_cat(t, b ? b->name : "");
         cv_text((240 - text_w(&FONT_XS, t)) / 2, 2, &FONT_XS, t, C_GRAY);
         cv_text((240 - text_w(&FONT_T, "PRESS PLAY")) / 2, 20, &FONT_T, "PRESS PLAY", C_AMB);
-        cv_text((240 - text_w(&FONT_T, "MODIFIED BY FLEXOR")) / 2, 36, &FONT_T, "MODIFIED BY FLEXOR", C_DIM);
+        cv_text((240 - text_w(&FONT_T, "BY FLEXOR - BASED ON CHOPPAH")) / 2, 36, &FONT_T,   /* (0.268, FLEXOR: his
+                                          * own firmware now, CHOPPAH credited) */
+                "BY FLEXOR - BASED ON CHOPPAH", C_DIM);
         cv_blit(0, 190);
         ui.redraw = 0u;
     }
