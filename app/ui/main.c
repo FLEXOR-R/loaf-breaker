@@ -1333,10 +1333,10 @@ static void draw_help(void)
                                         {"+SELECT", "DRUM FILTER"}};   /* (LOAF BREAKER 0.201: SEL + a button, one
                                           * table: its domain's second function) */
     static const char *const P[10][4][2] = {
-        {{"EDIT HELD", "BIG / CLASSIC VIEW"}, {"EDIT", "NEXT SECTION"}, {"PRESETS", "KICK 1-10"},
-         {"SELECT", "NEXT DRUM (BIG VIEW)"}},
-        {{"EDIT HELD", "BIG / CLASSIC VIEW"}, {"EDIT", "NEXT DRUM / PART"}, {"PRESETS", "MEMORY / INSTRUMENT"},
-         {"SELECT", "NEXT DRUM (BIG VIEW)"}},
+        {{"EDIT HELD", "BIG / CLASSIC VIEW"}, {"EDIT", "NEXT SOUND"}, {"PRESETS", "KICK 1-20"},
+         {"SELECT", "NEXT SECTION"}},   /* (0.9.2: EDIT round the sounds (0.266), SELECT the sections (0.264)) */
+        {{"EDIT HELD", "BIG / CLASSIC VIEW"}, {"EDIT", "NEXT SOUND"}, {"PRESETS", "MEMORY / INSTRUMENT"},
+         {"SELECT", "NEXT DRUM"}},
         {{"SEQ + KEY 1-4", "COPY THE BAR THERE"}, {"SEQ + K1", "SHIFT THE LANE"}, {"SEQ + REC", "CLEAR THE DRUMS"},
          {"+ SAVE", "UNDO"}},
         {{"+ FX", "BYPASS SLOT"}, {"FX + ALGO", "MOVE SLOT"}, {"+ REC", "RESET EFFECT"}, {"PRESETS", "EFFECT TYPE"}},
@@ -1525,6 +1525,7 @@ static void draw_foot(const brk_status_t *st)
 void app_ui_init(void)
 {
     ab_take();                           /* (LOAF BREAKER: TOOLS' A/B: the kick as it was saved) */
+    ui.kpreset = (uint8_t)kpre_mem(set.kslot);   /* (0.9.2: the PRESET page names the kick's own) */
     ui.ksect = 0u;                       /* (LOAF BREAKER, 0.253, FLEXOR: the KICK menu opens on ATTACK's PRESET, the
                                           * built-in kicks first; 0.205-0.252 on BODY, its MIX) */
 #if CH_LOGO

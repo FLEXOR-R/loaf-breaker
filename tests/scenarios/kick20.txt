@@ -1,0 +1,49 @@
+# LOAF BREAKER (0.9.2, FLEXOR): KICK 1..20, and the PRESET each one shows: the built-in it began as (KICK 4
+# ROTTERDAM, KICK 5 INDUSTRIAL, KICK 20 TECHNO), or the one picked on it, kept with it.
+#   app/build/host/loaf-breaker_host tests/scenarios/kick20.txt app/build/scenarios
+wait 4200
+tap EDIT
+wait 300
+expect kslot 3
+expect kpreset 3
+turn PRESET 1 10
+wait 300
+expect kslot 4
+expect kpreset 4
+shot p5.png
+turn PRESET 2 10
+wait 300
+expect kslot 6
+expect kpreset 0
+turn K1 1 10
+wait 300
+expect kpreset 1
+turn PRESET -1 10
+wait 300
+expect kpreset 5
+turn PRESET 1 10
+wait 300
+expect kpreset 1
+wait 300
+turn PRESET 13 10
+wait 300
+expect kslot 19
+expect kpreset 1
+shot k20.png
+turn PRESET 1 10
+wait 300
+expect kslot 0
+expect kpreset 0
+turn PRESET -1 10
+wait 300
+expect kslot 19
+turn K1 2 10
+wait 300
+expect kpreset 3
+turn PRESET -9 10
+wait 300
+expect kslot 10
+turn PRESET 9 10
+wait 300
+expect kslot 19
+expect kpreset 3

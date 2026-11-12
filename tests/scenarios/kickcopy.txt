@@ -35,7 +35,7 @@ expect csub 0
 turn ALGO 6 10
 wait 200
 expect kpage 4
-turn K4 9 10
+turn K4 5 10
 wait 200
 expect kpreset 9
 expect csub 40

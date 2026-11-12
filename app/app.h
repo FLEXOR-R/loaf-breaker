@@ -56,7 +56,9 @@ int app_ble_at_boot(void);
 /* the store (PRD 8.4): settings in Felucca's settings pair, the panel calibration where every fm1-base firmware
  * keeps it. The break bank will take 0x97000..0xD9FFF and PLAT_XDATA1 (M5), patterns 0xDA000 (M2). */
 enum { OBJ_SETTINGS, OBJ_PANEL, OBJ_BLE, OBJ_PAT, OBJ_STEP, OBJ_PG0, OBJ_KG0 = OBJ_PG0 + 4, OBJ_SG0 = OBJ_KG0 + 4,
-       OBJ_NG0 = OBJ_SG0 + 4, OBJ_KLAB = OBJ_NG0 + 4, OBJ_NOBJ };   /* (LOAF BREAKER: OBJ_STEP, each drum step's
+       OBJ_NG0 = OBJ_SG0 + 4, OBJ_KLAB = OBJ_NG0 + 4, OBJ_NOBJ };
+#define OBJ_KMEM2 OBJ_NG0                /* (LOAF BREAKER, 0.9.2: KICK 11..20, in the first of the hoover notes' old
+                                          * objects, unused since 0.209: 0xB8000) */   /* (LOAF BREAKER: OBJ_STEP, each drum step's
                                                                  * HITS, CHANCE, NUDGE: 0xD8000, the old bank's room) */   /* OBJ_BLE: Bluetooth's address and pairing;
                                                                  * OBJ_PAT: the 16 patterns */
 /* LOAF BREAKER: 64 patterns, four groups of 16, each group's own three objects (OBJ_PG0 + g its patterns, OBJ_KG0 + g

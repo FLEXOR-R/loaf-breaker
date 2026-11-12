@@ -39,7 +39,7 @@ wait 300
 expect kpage 19
 turn K1 1 10
 wait 300
-expect kpreset 1
+expect kpreset 4
 shot km_preset.png
 turn SELECT 1 10
 wait 300

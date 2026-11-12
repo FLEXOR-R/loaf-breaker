@@ -27,7 +27,7 @@ static const char *const RST_WHAT[NRST] = {"BUILD 4 BARS, NEXT PATTERN, SAME BRE
                                           "THIS KICK'S: K1 DRIVE, K2 SCREAM, K3 D+ SCREECH, K4 DISTO",
                                           "THE KICK SELECTED (ITS MEMORY): ROTTERDAM, SYNTH, BASS, C SUB, MORPH AT 0, VOLUME KEPT",
                                           "THE KICK'S EQ FLAT, ITS TWO FX SLOTS EMPTY",
-                                          "KICK 1-10 AS THEY CAME (909 .. DISTORTO), SYNTH AT 0, THEIR KNOBS AS THEY START",
+                                          "KICK 1-20 AS THEY CAME (909 .. DISTORTO), SYNTH AT 0, THEIR KNOBS AS THEY START",
                                           "SNARE, HAT, CLAP: THE MEMORY PLAYING AS IT CAME",
                                           "THE MIXER: LEVELS, SWING, COMP AND DUCK OFF, MAX OUT -3 DB",
                                           "THE FOUR SLOTS AS THEY CAME, EACH EFFECT'S MEMORY FORGOTTEN",
@@ -148,12 +148,12 @@ static void reset_do(uint32_t w)
         float vol = set.kick.volume;
         uint32_t k, j;
         for (k = 0; k < KICK_MEMS; k++) {
-            kick_preset(&set.kmem[k], k % KICK_PRESETS);
-            set.kmem[k].volume = vol;
+            kick_preset(kmem_at(k), k % KICK_PRESETS);
+            (*kmem_at(k)).volume = vol;
             for (j = 0; j < KS_N; j++)
-                set.ksmem[k][j] = 0;
+                ksmem_at(k)[j] = 0;
         }
-        set.kick = set.kmem[set.kslot % KICK_MEMS];
+        set.kick = (*kmem_at(set.kslot % KICK_MEMS));
         for (j = 0; j < KS_N; j++)
             set.ksyn[j] = 0;
         set.selk_asg = set.selk_asg2 = set.selk_hi = set.csub = set.kmorph = set.kmorph_to = 0u;   /* (their knobs as they start) */
@@ -178,7 +178,7 @@ static void reset_do(uint32_t w)
         set.perc.volume = d.volume;
         set.fx.wet = f.wet;
         set.swing = 50u;
-        set.drums_chain = 1u;
+        set.drums_chain = 0u;            /* (0.9.2: AROUND, FLEXOR) */
         set.comp = set.duck = set.duck_what = set.max_out = 0u;
         set.comp_ratio = 3u;
         set.comp_att = 59u;
@@ -245,11 +245,11 @@ static void reset_do(uint32_t w)
         set.kbass[2] = set.kbass[3] = 50u;
         set.csub = set.kmorph = set.kmorph_to = 0u;   /* (CLEAN SUB and MORPH off; ENV KNOB's choices: RESET KNOB) */
         set.selk_hi &= (uint8_t)~16u;    /* (its TERROR on again, TER) */
-        set.kmem[set.kslot % KICK_MEMS] = set.kick;
+        (*kmem_at(set.kslot % KICK_MEMS)) = set.kick;
         for (j = 0; j < KS_N; j++)
-            set.ksmem[set.kslot % KICK_MEMS][j] = 0;
+            ksmem_at(set.kslot % KICK_MEMS)[j] = 0;
         memset(&klab.cur, 0, sizeof klab.cur);   /* (LOAF BREAKER: its KICK LAB off) */
-        klab.mem[set.kslot % KICK_MEMS] = klab.cur;
+        (*klmem_at(set.kslot % KICK_MEMS)) = klab.cur;
     }
     changed();
 }
@@ -777,7 +777,7 @@ static float sk_norm(uint32_t f, int i)  /* a setting 0..1, as its bar */
                f == 11u ? (i < 3 ? (float)set.kbass[1 + i] * 0.01f : 0.0f) :
                f == 12u ? (i ? 0.0f : (float)set.kbass[0] * 0.01f) :
                f == 13u ? (i ? 0.0f : (float)set.csub * 0.01f) :
-               i == 0 ? (float)set.kmorph * 0.01f : i == 1 ? (float)(set.kmorph_to % KICK_MEMS) * (1.0f / 9.0f) : 0.0f;
+               i == 0 ? (float)set.kmorph * 0.01f : i == 1 ? (float)(set.kmorph_to % KICK_MEMS) * (1.0f / (float)(KICK_MEMS - 1u)) : 0.0f;
     if (f >= 6u)
         return i == 0 ? sk_norm(4u, (int)(f - 5u)) : 0.0f;
     if (f == 5u)

@@ -88,7 +88,9 @@ typedef struct {
     uint8_t src;                         /* STACK: 0 off, 1..10: the attack from KICK n, this kick the tail */
     uint8_t cross;                       /* where the attack hands over, 0..100: 10 .. 300 ms */
     uint8_t fade;                        /* the hand-over's length, 0..100: 2 .. 150 ms */
-    uint8_t rsv[2];
+    uint8_t pre;                         /* (the app's, not the engine's: the preset this kick came from, 1 + OUT's
+                                          * K4 PRESET's place; 0: the kick memory's own built-in, 0.9.2) */
+    uint8_t rsv;
 } kick_lab_t;                            /* 12 bytes */
 float kick_lab_ms(uint32_t what, uint32_t v);   /* KL_END, KL_CROSS, KL_FADE, KL_FTIME as ms; KL_FILT, KL_NOTE as Hz */
 enum { KLM_END, KLM_CROSS, KLM_FADE, KLM_FTIME, KLM_FILT, KLM_NOTE };

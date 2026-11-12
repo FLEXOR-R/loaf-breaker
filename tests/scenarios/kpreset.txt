@@ -16,11 +16,11 @@ wait 300
 expect kpage 4
 turn K4 1 10
 wait 200
-expect kpreset 1
+expect kpreset 5
 shot kp_out.png
 turn K4 2 10
 wait 200
-expect kpreset 3
+expect kpreset 7
 key w1 down
 wait 30
 expect aud_d 1

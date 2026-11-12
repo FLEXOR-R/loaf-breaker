@@ -123,23 +123,30 @@ static void ks_add(uint32_t j, int32_t d)   /* (a SYNTH setting turned, by its K
 
 /* LOAF BREAKER: the kick memories, KICK 1..10 (KICK's PRESETS, SEQ's SELECT): the one playing kept as it is, the next
  * as it was left (the volume kept), its knobs with it: ENV KNOB's choices, CLEAN SUB, BASS, MORPH (kx_put, kx_get) */
+static uint32_t kpre_mem(uint32_t slot)  /* (0.9.2, FLEXOR: the PRESET a kick memory shows: the one it came from; never
+                                          * picked, the built-in it began as: settings_defaults' order) */
+{
+    const kick_lab_t *l = slot % KICK_MEMS == set.kslot % KICK_MEMS ? &klab.cur : klmem_at(slot % KICK_MEMS);
+    return l->pre ? (uint32_t)(l->pre - 1u) : slot % KICK_PRESETS;
+}
 static void kick_mem_go(uint32_t n)      /* (LOAF BREAKER: KICK n, 0..9, as above; a track item's too) */
 {
     float vol = set.kick.volume;
     char t[4];
     uint32_t j;
-    set.kmem[set.kslot % KICK_MEMS] = set.kick;
+    (*kmem_at(set.kslot % KICK_MEMS)) = set.kick;
     for (j = 0; j < KS_N; j++)           /* (LOAF BREAKER: its SYNTH with it) */
-        set.ksmem[set.kslot % KICK_MEMS][j] = set.ksyn[j];
+        ksmem_at(set.kslot % KICK_MEMS)[j] = set.ksyn[j];
     kx_put(set.kslot);
-    klab.mem[set.kslot % KICK_MEMS] = klab.cur;   /* (LOAF BREAKER: its KICK LAB with it) */
+    (*klmem_at(set.kslot % KICK_MEMS)) = klab.cur;   /* (LOAF BREAKER: its KICK LAB with it) */
     set.kslot = (uint8_t)(n % KICK_MEMS);
-    klab.cur = klab.mem[set.kslot];
-    set.kick = set.kmem[set.kslot];
+    klab.cur = (*klmem_at(set.kslot));
+    set.kick = (*kmem_at(set.kslot));
     for (j = 0; j < KS_N; j++)
-        set.ksyn[j] = set.ksmem[set.kslot][j];
+        set.ksyn[j] = ksmem_at(set.kslot)[j];
     kx_get(set.kslot);
     set.kick.volume = vol;
+    ui.kpreset = (uint8_t)kpre_mem(set.kslot);   /* (its PRESET: its own, 0.9.2) */
     ab_take();                           /* (LOAF BREAKER: TOOLS' A/B: this kick as it comes) */
     int_text((int32_t)set.kslot + 1, t);
     app_say("KICK", t);
@@ -165,7 +172,7 @@ static void kick_mem_turn(int32_t d)
 }
 static const char *const KPAGE_NAME[KPAGES] = {"MIX", "LAYER", "LAYER FX", "MACRO", "OUT", "DISTO", "DISTO +",
                                                 "SCREAM", "SYNTH", "SYNTH +", "BASS", "KNOBS", "K SET",
-                                                "CLEAN MORPH", "STYLE", "TAIL", "TAIL +", "STACK", "TOOLS", "PRESET"};
+                                                "CLEAN MORPH", "ASSIGN", "TAIL", "TAIL +", "STACK", "TOOLS", "PRESET"};
 /* the kick's parts in a row, as ALGORITHM turns through them: MIX, SUB, SUB FX, PUNCH, PUNCH FX, GRIT, GRIT FX,
  * CLICK, CLICK FX, MACRO, OUT (each a sub-page, and for a layer its layer); LOAF BREAKER TEST: then EQ BANDS, EQ
  * SHAPE (the KICK EQ page), FX 1, FX 2 (the FX page on the kick's slots), TERROR, TERROR +, TERROR 2 */
@@ -205,8 +212,8 @@ static void kick_part_name(uint32_t p, char *t)
         text_cat(t, "CLEAN MORPH");
         return;
     }
-    if (p == KP_BASE + 16u) {
-        text_cat(t, "STYLE");
+    if (p == KP_BASE + 16u) {            /* (STYLE until 0.9.1: ASSIGN, FLEXOR) */
+        text_cat(t, "ASSIGN");
         return;
     }
     if (p >= KP_BASE + 17u) {            /* (LOAF BREAKER: the LAB) */
@@ -238,7 +245,8 @@ static void kick_part_name(uint32_t p, char *t)
  * MACRO, OUT. TAIL: TAIL, TAIL +, BASS, CLEAN MORPH. DIRT: DISTO, DISTO +, SCREAM, the layers' effects. TONE: EQ
  * BANDS, EQ SHAPE, FX 1, FX 2. KNOBS: KNOBS, K1-K4 SET, STYLE, TOOLS. The menu opens on BODY (app_ui_init) */
 #define KSECTS 6u
-static const char *const KSECT_NAME[KSECTS] = {"ATTACK", "BODY", "TAIL", "DIRT", "TONE", "KNOBS"};
+static const char *const KSECT_NAME[KSECTS] = {"ATTACK", "BODY", "TAIL", "DIRT", "FX", "KNOBS"};   /* (FX: TONE until
+                                          * 0.9.1, FLEXOR) */
 static const uint8_t KSECT_N[KSECTS] = {4u, 7u, 4u, 7u, 4u, 7u};
 static const uint8_t KSECT[KSECTS][7] = {{32u, 7u, 3u, 30u},   /* (ATTACK: PRESET first, 0.253) */
                                          {0u, 1u, 5u, 18u, 19u, 9u, 10u}, {28u, 29u, 20u, 26u},
@@ -710,6 +718,7 @@ static void kick_knob_turn(int i, int32_t d)
             for (j = 0; j < KS_N; j++)   /* (LOAF BREAKER: its SYNTH back to as it always was too) */
                 set.ksyn[j] = 0;
             memset(&klab.cur, 0, sizeof klab.cur);   /* (and its KICK LAB off) */
+            klab.cur.pre = (uint8_t)(ui.kpreset + 1u);   /* (the PRESET it shows, as its memory's, 0.9.2) */
         } else {                         /* (COPY KICK n: that memory's, if it is another) */
             uint32_t n = ui.kpreset - KICK_PRESETS, j;
             float vol = k->volume;
@@ -719,12 +728,12 @@ static void kick_knob_turn(int i, int32_t d)
                 ui.redraw |= RG_FOOT;
                 return;
             }
-            *k = set.kmem[n];
+            *k = (*kmem_at(n));
             k->volume = vol;
             for (j = 0; j < KS_N; j++)
-                set.ksyn[j] = set.ksmem[n][j];
+                set.ksyn[j] = ksmem_at(n)[j];
             kx_get(n);
-            klab.cur = klab.mem[n];      /* (LOAF BREAKER: its KICK LAB too) */
+            klab.cur = (*klmem_at(n));      /* (LOAF BREAKER: its KICK LAB too) */
             app_say(t, "ON THIS KICK");
             ui.redraw |= RG_BLOCKS | RG_FOOT;
             changed_kick();
@@ -948,7 +957,7 @@ static void kv_kick(kick_t *k)
             if (i != ui.klayer % KICK_LAYERS)
                 k->l[i].level = 0.0f;
     } else if (ui.kpage == KP_STACK && klab.cur.src)
-        *k = set.kmem[(klab.cur.src - 1u) % KICK_MEMS];
+        *k = (*kmem_at((klab.cur.src - 1u) % KICK_MEMS));
 }
 static uint32_t kv_part_sig(void)        /* (what the picture shows, for its redraw) */
 {
@@ -974,10 +983,11 @@ static void kick_chip(uint32_t p, char *t)   /* (LOAF BREAKER: a part's name at 
     }
     {                                    /* (the long ones short: "SYNTH +" SYN+, "DISTO +" D+, EQ's BANDS, SHAPE;
                                           * a layer's effect S FX .. C FX, below) */
-        static const uint8_t P[6] = {KP_BASE + 8u, KP_BASE + 5u, KP_BASE + 0u, KP_BASE + 1u, KP_BASE + 18u, 0u};
-        static const char *const S[5] = {"SYN+", "D+", "BANDS", "SHAPE", "TAIL+"};
+        static const uint8_t P[7] = {KP_BASE + 8u, KP_BASE + 5u, KP_BASE + 0u, KP_BASE + 1u, KP_BASE + 18u,
+                                     KP_BASE + 2u, KP_BASE + 3u};
+        static const char *const S[7] = {"SYN+", "D+", "EQ B", "EQ S", "TAIL+", "FX1", "FX2"};   /* (FX's: 0.9.2) */
         uint32_t j;
-        for (j = 0; j < 5u; j++)
+        for (j = 0; j < 7u; j++)
             if (p == P[j]) {
                 text_cat(t, S[j]);
                 return;
@@ -990,6 +1000,49 @@ static void kick_chip(uint32_t p, char *t)   /* (LOAF BREAKER: a part's name at 
         return;
     }
     kick_part_name(p, t);
+}
+/* LOAF BREAKER (0.205; 0.207 a bar; 0.9.2 its own, for the FX section's EQ and FX pages too): the section's parts in a
+ * row at y, as the tabs: the whole width, the one open lit (BEGINNER: those it passes over dim); the tabs' letters if
+ * they fit, else smaller. The section: the open part's */
+static void ksect_row(int32_t y)
+{
+    uint32_t open = kick_part(), s = ui.ksect % KSECTS, n, j, w = 0u, extra;
+    const felucca_font_t *f = &FONT_T;
+    int32_t cx = 4;
+    char c[16];
+    for (j = 0; j < KSECTS * 7u; j++)    /* (the section holding the open part: the EQ and FX pages' own, FX) */
+        if (j % 7u < KSECT_N[j / 7u] && KSECT[j / 7u][j % 7u] == open) {
+            s = j / 7u;
+            break;
+        }
+    n = KSECT_N[s];
+    for (j = 0; j < n; j++) {
+        c[0] = 0;
+        kick_chip(KSECT[s][j], c);
+        w += (uint32_t)text_w(&FONT_T, c) + 8u;
+    }
+    w += 2u * (n - 1u);
+    if (w > KV_W) {                  /* (too wide: the small letters) */
+        f = &FONT_XS;
+        for (w = 2u * (n - 1u), j = 0; j < n; j++) {
+            c[0] = 0;
+            kick_chip(KSECT[s][j], c);
+            w += (uint32_t)text_w(&FONT_XS, c) + 6u;
+        }
+    }
+    extra = w < KV_W ? KV_W - w : 0u;
+    for (j = 0; j < n; j++) {
+        uint32_t p = KSECT[s][j];
+        int32_t tw, sw;
+        c[0] = 0;
+        kick_chip(p, c);
+        tw = text_w(f, c);
+        sw = tw + (f == &FONT_T ? 8 : 6) + (int32_t)(extra / n) + (j < extra % n ? 1 : 0);   /* (the room shared) */
+        cv_rect(cx, y, sw, 15, p == open ? C_HI : C_BLOCK);
+        cv_text(cx + (sw - tw) / 2, f == &FONT_T ? y + 2 : y + 4, f, c,
+                p == open ? C_BLACK : kp_hidden(p) ? C_DIM : C_GRAY);
+        cx += sw + 2;
+    }
 }
 static void kick_picture(int32_t top)
 {
@@ -1131,10 +1184,8 @@ static void kick_picture(int32_t top)
     {                                    /* LOAF BREAKER (0.205; 0.207 a bar): the section's parts at the foot, as the
                                           * tabs: the whole width, the one open lit (BEGINNER: those it passes over
                                           * dim); the tabs' letters if they fit, else smaller */
-        uint32_t s = ui.ksect % KSECTS, n = KSECT_N[s], j, w = 0u, open = kick_part(), extra;
-        const felucca_font_t *f = &FONT_T;
+        uint32_t j;
         int32_t cx = 4, y = 80;
-        char c[16];
         if (set.novice) {                /* (BEGINNER: its pages, KICK, SHAPE, MIX, as tabs; EDIT the next) */
             for (j = 0; j < KE_PAGES; j++) {
                 int32_t x = cx + (int32_t)j * 64;
@@ -1143,35 +1194,8 @@ static void kick_picture(int32_t top)
                         j == keasy_pg ? C_BLACK : C_GRAY);
             }
             cv_text(cx + 198, y + 4, &FONT_XS, "EDIT", C_DIM);
-            n = 0u;
-        }
-        for (j = 0; j < n; j++) {
-            c[0] = 0;
-            kick_chip(KSECT[s][j], c);
-            w += (uint32_t)text_w(&FONT_T, c) + 8u;
-        }
-        w += 2u * (n - 1u);
-        if (w > KV_W) {                  /* (too wide: the small letters) */
-            f = &FONT_XS;
-            for (w = 2u * (n - 1u), j = 0; j < n; j++) {
-                c[0] = 0;
-                kick_chip(KSECT[s][j], c);
-                w += (uint32_t)text_w(&FONT_XS, c) + 6u;
-            }
-        }
-        extra = w < KV_W ? KV_W - w : 0u;
-        for (j = 0; j < n; j++) {
-            uint32_t p = KSECT[s][j];
-            int32_t tw, sw;
-            c[0] = 0;
-            kick_chip(p, c);
-            tw = text_w(f, c);
-            sw = tw + (f == &FONT_T ? 8 : 6) + (int32_t)(extra / n) + (j < extra % n ? 1 : 0);   /* (the room shared) */
-            cv_rect(cx, y, sw, 15, p == open ? C_HI : C_BLOCK);
-            cv_text(cx + (sw - tw) / 2, f == &FONT_T ? y + 2 : y + 4, f, c,
-                    p == open ? C_BLACK : kp_hidden(p) ? C_DIM : C_GRAY);
-            cx += sw + 2;
-        }
+        } else
+            ksect_row(y);
     }
     cv_oy = 0;
 }
@@ -1313,19 +1337,19 @@ static void draw_keq(void)
         p[j] = k[j];
         xx[j] = k[4u + j];
     }
-    cv_begin(240, 52, C_BLACK);
-    cv_text(6, 0, &FONT_XS, ui.keq_part ? "KICK EQ   SHAPE (ALGORITHM)" : "KICK EQ   BANDS (ALGORITHM)", C_GRAY);
+    cv_begin(240, 52, C_BLACK);          /* (0.9.2: the curve, then the FX section's parts as its other sections') */
     for (x = 0; x < 240; x += 4)         /* 0 dB */
-        cv_rect(x, 32, 2, 1, C_LINE);
+        cv_rect(x, 18, 2, 1, C_LINE);
     for (x = 0; x < 240; x++) {          /* the curve, as the FX page's EQ draws it */
         float in, base, v = x_plot(FXT_EQ, x, p, xx, 0u, &in, &base);
-        y = 32 - (int32_t)(brk_clampf(v, -1.0f, 1.0f) * 19.0f);
-        yb = 32 - (int32_t)(base * 19.0f);
+        y = 18 - (int32_t)(brk_clampf(v, -1.0f, 1.0f) * 15.0f);
+        yb = 18 - (int32_t)(base * 15.0f);
         cv_rect(x, y < yb ? y : yb, 1, y < yb ? yb - y : y - yb, MB_DIM[1]);
         if (x)
             cv_line(x - 1, py, x, y, MB_COL[1]);
         py = y;
     }
+    ksect_row(36);
     cv_blit(0, 88);
     cv_begin(240, 52, C_BLACK);
     for (j = 0; j < 8u; j++) {           /* the eight settings, the part K1-K4 turn lit */

@@ -31,7 +31,7 @@ expect kpage 4
 expect keasy 0
 turn K1 2 60
 wait 200
-expect kpreset 2
+expect kpreset 5
 turn K3 -40 60
 wait 200
 expect subdrv -1
