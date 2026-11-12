@@ -21,9 +21,9 @@ tap PLAY
 wait 300
 tap GLO
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 300
 expect gpage 3
 expect sfx_on 0
@@ -31,9 +31,9 @@ tap HOME
 wait 200
 tap GLO
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 300
 key w0 down
 wait 30
@@ -45,9 +45,9 @@ wait 600
 shot fx_crt.png
 tap GLO
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 300
 key w0 down
 wait 30
@@ -61,9 +61,9 @@ wait 600
 shot fx_vhs.png
 tap GLO
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 300
 key w1 down
 wait 30
@@ -77,9 +77,9 @@ wait 600
 shot fx_grain.png
 tap GLO
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 300
 key w2 down
 wait 30
@@ -93,9 +93,9 @@ wait 600
 shot fx_rgb.png
 tap GLO
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 300
 key w3 down
 wait 30
@@ -109,9 +109,9 @@ wait 600
 shot fx_shake.png
 tap GLO
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 300
 key w4 down
 wait 30
@@ -125,9 +125,9 @@ wait 600
 shot fx_strobe.png
 tap GLO
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 300
 key w5 down
 wait 30
@@ -141,9 +141,9 @@ wait 600
 shot fx_8bit.png
 tap GLO
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 300
 key w6 down
 wait 30
@@ -162,9 +162,9 @@ wait 600
 shot fx_vhs_rgb.png
 tap GLO
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 300
 turn K1 2 10
 turn K2 -1 10

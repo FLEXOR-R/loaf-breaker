@@ -8,7 +8,7 @@ tap ARP
 wait 300
 expect page 9
 expect opage 0
-tap ARP
+turn SELECT 1 10
 wait 300
 expect opage 1
 shot a_blackkeys.png
@@ -34,7 +34,7 @@ turn K2 6 10
 wait 200
 expect bk_key 10
 expect bk_fn 10
-turn ALGO 1 10
+turn SELECT 1 10
 wait 300
 expect opage 0
 # CUSTOM is CHOPPAH's again: FREEZE on the fifth key, its LENGTH on K1; DUB on the last
@@ -58,7 +58,7 @@ wait 300
 # back to FLEXOR LAYOUT: the ARP key the eighth again
 tap ARP
 wait 200
-tap ARP
+turn SELECT 1 10
 wait 200
 expect opage 1
 turn K1 -1 10

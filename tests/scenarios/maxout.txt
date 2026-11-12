@@ -8,9 +8,9 @@ wait 200
 turn K3 1 10
 tap LFO
 wait 100
-tap LFO
+turn SELECT 1 10
 wait 100
-tap LFO
+turn SELECT 1 10
 wait 300
 expect page 5
 turn K1 50 10

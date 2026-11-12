@@ -510,6 +510,8 @@ static void input(void)
             tut_quit();
     } else if (bdn & 1u << B_GLO && rst_confirm())
         ;                                /* (LOAF BREAKER, 0.239: RESET's five clicks done: GLO resets) */
+    else if (bdn & 1u << B_GLO && ui.page == PG_GLOBAL && ui.gpage != GP_FILL && ui.gpage != GP_BREAK)
+        home_back();                     /* (LOAF BREAKER, 0.9.2, FLEXOR: SYSTEM, GLO again: HOME; SELECT its parts) */
     else if (bdn & 1u << B_GLO)          /* GLOBAL: MIDI clock and Bluetooth; again, the pitch; again, BT audio */
         global_part(glo_next(1));        /* (LOAF BREAKER: SYSTEM's parts: MIDI, SETUP, EFFECTS, FX SET, RESET) */
     if (bdn & 1u << B_EDIT) {            /* LOAF BREAKER: EDIT: SOUNDS, the KICK menu; again, its next section (SOUND
@@ -593,9 +595,10 @@ static void input(void)
         ui.lfo_hold = 1u;
     if (ui.lfo_hold && !(btn & 1u << B_LFO)) {   /* LFO: the MIXER (the break, the kick, FX main, FX overlay); again,
                                           * groove */
-        if (ui.lfo_hold == 1u) {
-            ui.mpage = ui.page == PG_MIX ? (uint8_t)((ui.mpage + 1u) % (set.novice ? 2u : 4u)) : 0u;   /* (LEVELS,
-                                          * SENDS, MASTER, DYNAMICS; LOAF BREAKER: BEGINNER LEVELS and SENDS alone) */
+        if (ui.lfo_hold == 1u && ui.page == PG_MIX)
+            home_back();                 /* (0.9.2, FLEXOR: MIX, LFO again: HOME; SELECT its tabs) */
+        else if (ui.lfo_hold == 1u) {
+            ui.mpage = 0u;               /* (LEVELS, SENDS, MASTER, DYNAMICS; BEGINNER LEVELS and SENDS alone) */
             ui.page = PG_MIX;
             ui.redraw |= RG_FOOT | RG_BLOCKS;
             page_say();
@@ -701,15 +704,16 @@ static void input(void)
         global_part(GP_FILL);
     } else if (bdn & 1u << B_ARP) {      /* ARP: the OVERLAY page (LOAF BREAKER, 0.244, FLEXOR: back, FILL gone); on it
                                           * again, EXPERT: its next tab (ARP EFFECTS, BLACK KEYS, MORE) */
-        if (ui.page != PG_OVL) {
+        if (ui.page == PG_OVL)
+            home_back();                 /* (0.9.2, FLEXOR: OVERLAY, ARP again: HOME; SELECT its tabs) */
+        else {
             slices_let_go(keys);
             ui.opage = 0u;
-        } else
-            ui.opage = set.novice ? 0u : (uint8_t)((ui.opage + 1u) % 2u);   /* (0.259: MORE gone for now) */
-        ui.page = PG_OVL;
-        ui.redraw |= RG_HEAD;
-        ui.redraw |= RG_FOOT | RG_BLOCKS;
-        page_say();
+            ui.page = PG_OVL;
+            ui.redraw |= RG_HEAD;
+            ui.redraw |= RG_FOOT | RG_BLOCKS;
+            page_say();
+        }
     }
     if (bdn & 1u << B_FX && ui.pad_focus == BKF_ARP) {   /* LOAF BREAKER: FX with the ARP key held: its knobs, MAIN
                                           * <-> MORE */
@@ -931,6 +935,25 @@ static void input(void)
             track_tab_turn(d);
             continue;
         }
+        if (k == EN_SELECT && ui.page == PG_MIX) {   /* (0.9.2, FLEXOR: MIX, SELECT its tabs: LEVELS, SENDS, MASTER,
+                                          * DYNAMICS; BEGINNER the first two) */
+            uint32_t n = set.novice ? 2u : 4u;
+            ui.mpage = (uint8_t)((ui.mpage % n + (d > 0 ? 1u : n - 1u)) % n);
+            ui.redraw |= RG_HEAD | RG_FOOT | RG_BLOCKS;
+            page_say();
+            continue;
+        }
+        if (k == EN_SELECT && ui.page == PG_GLOBAL && ui.gpage != GP_FILL && ui.gpage != GP_BREAK) {   /* (0.9.2,
+                                          * FLEXOR: SYSTEM, SELECT its parts: MIDI, SETUP, EFFECTS, FX SET, RESET) */
+            global_part(glo_next(d));
+            continue;
+        }
+        if (k == EN_SELECT && ui.page == PG_OVL && !set.novice) {   /* (0.9.2, FLEXOR: OVERLAY, SELECT its tabs) */
+            ui.opage = (uint8_t)((ui.opage + 1u) % 2u);
+            page_say();
+            ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
+            continue;
+        }
         if (k == EN_SELECT && ext_active()) {
             app_say("TEMPO", "EXT CLOCK");   /* the outside clock has the tempo */
         } else if (k == EN_SELECT) {     /* tempo: 1 BPM a detent (SEL held: the kick, above) */
@@ -946,11 +969,7 @@ static void input(void)
                 fx_algo(d, 1u);          /* FX held: the slot moves along the chain */
             else if (btn & 1u << B_SEL)
                 break_ask((set.brk + (d > 0 ? 1u : n_breaks - 1u)) % n_breaks);
-            else if (ui.page == PG_OVL && !set.novice) {   /* LOAF BREAKER: ARP's tabs (as SYSTEM's parts) */
-                ui.opage = (uint8_t)((ui.opage + 1u) % 2u);   /* (0.259: two tabs, MORE gone for now) */
-                page_say();
-                ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
-            } else if (ui.page == PG_TRACK && ui.tpage == 0u)
+            else if (ui.page == PG_TRACK && ui.tpage == 0u)
                 track_turn(-1, d);       /* LOAF BREAKER: ENV's TRACKS: the item (the break: SEL + ALGORITHM; K1 the
                                           * item's kick) */
             else if (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK)   /* LOAF BREAKER: SOUNDS' BREAK: the break */

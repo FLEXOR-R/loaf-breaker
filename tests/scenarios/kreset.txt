@@ -17,13 +17,13 @@ wait 200
 expect kbass1 50
 tap GLO
 wait 150
-tap GLO
+turn SELECT 1 10
 wait 150
-tap GLO
+turn SELECT 1 10
 wait 150
-tap GLO
+turn SELECT 1 10
 wait 150
-tap GLO
+turn SELECT 1 10
 wait 300
 turn K4 3 10
 wait 200
@@ -36,22 +36,22 @@ expect kbass1 0
 # MIX: COMP on (LFO MASTER K1), then RESET MIX: off again
 tap LFO
 wait 150
-tap LFO
+turn SELECT 1 10
 wait 150
-tap LFO
+turn SELECT 1 10
 wait 200
 turn K1 10 10
 wait 200
 expect comp 20
 tap GLO
 wait 150
-tap GLO
+turn SELECT 1 10
 wait 150
-tap GLO
+turn SELECT 1 10
 wait 150
-tap GLO
+turn SELECT 1 10
 wait 150
-tap GLO
+turn SELECT 1 10
 wait 300
 turn K4 4 10
 wait 200

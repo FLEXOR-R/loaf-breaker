@@ -54,7 +54,7 @@ expect seq_lane 0
 expect seq_brk 1
 tap LFO
 wait 200
-tap LFO
+turn SELECT 1 10
 wait 200
 expect mpage 1
 turn K1 -10 10
@@ -62,14 +62,14 @@ shot dm_sends.png
 tap GLO
 wait 200
 expect gpage 0
-tap GLO
+turn SELECT 1 10
 wait 200
 expect gpage 2
-tap GLO
+turn SELECT 1 10
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 200
 expect gpage 5
 turn K1 20 10

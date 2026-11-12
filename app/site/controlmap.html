@@ -208,12 +208,12 @@
       notes: [["White key (TRACKS)", "Its pattern at the item"], ["ALGORITHM (TRACKS)", "Move along the items (SEL + ALGO: the break)"],
               ["ENV held (TRACKS)", "A space after the item; on a space: it goes"], ["SEL + PLAY (TRACKS)", "The track starts here"],
               ["PLAY (TRACKS)", "The track from its start item, on TRACKS"], ["White keys 1–8 (PLAY)", "That track played"]] },
-    { id: "lfo", btn: "LFO", name: "MIX", sub: "Levels, sends, master, dynamics", again: "next part (5)", subs: [
+    { id: "lfo", btn: "LFO", name: "MIX", sub: "Levels, sends, master, dynamics", again: "back to HOME (SELECT: the tabs)", subs: [
       { n: "LEVELS", k: ["BREAK", "KICK", "PERC", ""], strip: "3 FADERS, 3 METERS", note: "the snare, the hat and the clap together on PERC" },
-      { n: "SENDS", k: ["FX", "DRUMS", "", ""], strip: "THE FX FADER AND ITS 4 SLOTS · THE DRUMS AROUND THE FX OR THROUGH", note: "DRUMS: AROUND at every start, THRU when turned; SWING: PATTERN › GROOVE" },
+      { n: "SENDS", k: ["FX", "DRUMS", "", ""], strip: "THE FX FADER AND ITS 4 SLOTS · THE DRUMS AROUND THE FX OR THROUGH", note: "DRUMS: AROUND by default, THRU when turned (saved: kept); SWING: PATTERN › GROOVE" },
       { n: "MASTER", k: ["COMP", "RATIO", "DUCK", "MAX OUT"], strip: "COMP AND ITS REDUCTION · DUCK · MAX OUT", note: "the mix as it leaves" },
       { n: "DYNAMICS", k: ["C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"], strip: "THE FOUR VALUES", note: "COMP's and DUCK's timing" } ],
-      algo: "Break (next bar)", brk: true, presets: "Pattern P1–P64", keys: "slices", sel: "Tempo (SEL: drum filter)", notes: [] },
+      algo: "Break (next bar)", brk: true, presets: "Pattern P1–P64", keys: "slices", sel: "The tabs: LEVELS, SENDS, MASTER, DYNAMICS (SEL: drum filter)", notes: [] },
     { id: "fx", btn: "FX", name: "EFFECTS", sub: "The FX chain: four slots in series", again: "back to HOME (SELECT: the slot; ALGORITHM: MAIN, MORE, MOD)", part: true, subs: [
       { n: "MAIN", k: ["PARAM 1", "PARAM 2", "PARAM 3", "MIX"], strip: "THE EFFECT LIVE · THE CHAIN · ITS MODULATOR · IN / OUT", note: "SELECT: the slot (1–4); ALGORITHM: the part" },
       { n: "MORE", k: ["EXTRA 1", "EXTRA 2", "EXTRA 3", "EXTRA 4"], strip: "THE EFFECT LIVE · THE CHAIN · ITS MODULATOR · IN / OUT", note: "each effect its own: see §6" },
@@ -223,17 +223,17 @@
               ["Key held + FX", "That key's slice effect on K1–K4"], ["Each effect", "Remembers its settings when you change it and back"],
               ["MB COMP focused", "ALGORITHM steps AMOUNT · LOW · MID · HIGH · GAIN · X-OVER, then AMOUNT again"],
               ["MB COMP · band", "THRESH · RATIO · ATTACK · RELEASE"], ["MB COMP · GAIN / X-OVER", "LOW MID HIGH SOLO · LOW X HIGH X KNEE OUTPUT"]] },
-    { id: "glo", btn: "GLO", name: "SYSTEM", sub: "MIDI, setup, screen effects, reset", again: "next part (5)", subs: [
+    { id: "glo", btn: "GLO", name: "SYSTEM", sub: "MIDI, setup, screen effects, reset", again: "back to HOME (SELECT: the parts)", subs: [
       { n: "MIDI", k: ["CLOCK IN", "CLOCK OUT", "METER", ""], strip: "MIDI OVER USB AND THE TRS JACK · BREAK TIME · CLOCK IN · CLOCK OUT", note: "BREAK TIME shown here, set on HOME › SETTINGS; no Bluetooth; K3 METER (EXPERT only): CPU, IMG, FR in the header" },
       { n: "SETUP", k: ["SKIN", "", "MODE", "AUTO SAVE"], strip: "THE 24 SKINS' COLOURS, WAVE ZOOM, MODE, AUTO SAVE", note: "the knobs top to bottom; WAVE ZOOM: HOME › SETTINGS; K3 MODE: TUTORIAL (18 guided steps; SEL + GLO skips, GLO quits), BEGINNER (the essentials: the KICK one page, the FX as scenes, SEQ's BEAT, SONG trimmed) or EXPERT (all of it)" },
       { n: "EFFECTS", k: ["EFFECT", "ON / OFF", "WAVE", "KICK VIEW"], strip: "THE SEVEN SCREEN EFFECTS, LIT WHEN ON · THE WAVES' COLOURS · KICK VIEW", note: "keys 1–7: CRT VHS GRAIN RGB SHAKE STROBE 8-BIT, several at once; K3 the waves' colours (REKORDBOX, SERATO); K4 the KICK menu's picture: the whole kick or the part edited; PRESETS: EDIT ZOOM, the time EDIT's pictures show (AUTO, 250 MS, 500, 750, 1 S, 1.5, 2 S), the kick's and the drums'" },
       { n: "FX SET", k: ["AMOUNT", "KICK", "DROP", "LENGTH"], strip: "THE EFFECTS' FOUR SETTINGS AS BARS", note: "0..100 %, 5 % a detent; KICK, DROP 0: none" },
       { n: "RESET", k: ["", "RESET", "", "WHAT"], strip: "16 PARTS: DROP BUILD KNOB KICK KICK TONE ALL KICKS DRUMS MIX FX CHAIN STEPS PADS KEYS TRACK SCREEN WIPE MEMORY EVERYTHING · 5 BOXES FILL", note: "K4 the part; K2 five clicks (each within 2 s), then GLO: reset" } ],
-      algo: "Part (RESET: what)", presets: "Pattern P1–P64", keys: "slices", sel: "Tempo (SEL: drum filter)", notes: [["RESET › EVERYTHING", "RESET ALL: K2 five turns, then GLO"], ["RESET › WIPE MEMORY", "Every LOAF BREAKER save erased, before installing another firmware"]] },
-    { id: "arp", btn: "ARP", name: "OVERLAY", sub: "Sixteen effects over everything; the black keys' layout", again: "the other tab (EXPERT)", subs: [
+      algo: "Part (RESET: what)", presets: "Pattern P1–P64", keys: "slices", sel: "The parts: MIDI, SETUP, EFFECTS, FX SET, RESET (SEL: drum filter)", notes: [["RESET › EVERYTHING", "RESET ALL: K2 five turns, then GLO"], ["RESET › WIPE MEMORY", "Every LOAF BREAKER save erased, before installing another firmware"]] },
+    { id: "arp", btn: "ARP", name: "OVERLAY", sub: "Sixteen effects over everything; the black keys' layout", again: "back to HOME (SELECT: the other tab, EXPERT)", subs: [
       { n: "ARP EFFECTS", k: ["AMOUNT", "RATE", "SWEEP", "LATCH"], strip: "SIXTEEN EFFECTS, ONE A WHITE KEY: LIT WHILE THEY SOUND", note: "held, or LATCH on: a key switches its effect on and off" },
       { n: "BLACK KEYS", k: ["PRESET", "KEY", "EFFECT", ""], strip: "THE ELEVEN BLACK KEYS AND WHAT EACH DOES · THE KEY EDITED · THE PRESET", note: "EXPERT; K1 CHOPPAH, FLEXOR LAYOUT, CUSTOM; a black key pressed picks itself; K3 on a preset: a CUSTOM copy" } ],
-      algo: "Tab (BEGINNER: break)", presets: "Pattern P1–P64", keys: "16 effects", sel: "Tempo (SEL: drum filter)",
+      algo: "Break (next bar)", presets: "Pattern P1–P64", keys: "16 effects", sel: "EXPERT: the other tab (BEGINNER: tempo)",
       notes: [["SEL + ARP", "PATTERN › GROOVE: SWING"], ["The ARP black key (FLEXOR LAYOUT, CUSTOM)", "Its overlay effect: EFFECT, AMOUNT, TIME, LATCH; FX while held: THRU, ON / OFF, RATE, SWEEP"]] }
   ];
   const PADS = ["R8", "R16", "R32", "REV", "FRZ", "HLF", "VNL", "GAT", "RND", "FLT", "DUB"];   // (CHOPPAH's layout, a new FM-1's)

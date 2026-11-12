@@ -7,7 +7,7 @@
 wait 4200
 tap GLO
 wait 150
-tap GLO
+turn SELECT 1 10
 wait 300
 expect gpage 2
 turn K3 -1 10
@@ -79,15 +79,15 @@ wait 300
 expect page 4
 tap LFO
 wait 150
-tap LFO
+turn SELECT 1 10
 wait 150
 expect mpage 1
-tap LFO
+turn SELECT 1 10
 wait 150
 expect mpage 0
 tap GLO
 wait 150
-tap GLO
+turn SELECT 1 10
 wait 300
 turn K3 1 10
 wait 200

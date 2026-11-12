@@ -60,7 +60,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   the break's rows shown (`brk_view()`, settings' `brkv`: the old mel_ver byte, tagged 0xB0, since settings_t is at
   3840 bytes: no field can be appended any more without a new magic or freeing one). SYSTEM's parts `GLO_ORD` (MIDI, SETUP, EFFECTS, FX SET, RESET); RESET ALL is
   RESET's last item, EVERYTHING. RESET (0.239, FLEXOR): K4 picks, K2 five clicks, then GLO within 5 s (`ui.rst_ask`,
-  `rst_confirm`); ALGORITHM there goes to SYSTEM's parts. MIX's second part is SENDS (FX, DRUMS).
+  `rst_confirm`); ALGORITHM (and SELECT, 0.9.2) there goes to SYSTEM's parts. MIX's second part is SENDS (FX, DRUMS).
 - Knob presets (10 Nov 2026, 0.203): STYLE's PRESETS goes on past the eight styles to PRESET 1-4 (track.c, `KPRESETS`):
   `steps.kpre[4][9]` (appended to steps_t: four codes, four values 0..200, stored), the same for every kick; an empty
   one gives back `kcust` (the knobs before PRESETS turned); SAVE on STYLE with one picked stores them (`kpre_store`).
@@ -79,8 +79,11 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - HOME (0.9.2, FLEXOR: the main page): PERFORM, GENERATOR, SETTINGS (PG_HSET, global.c hset_*: K1 VIEW `ui.blocks` kept in
   `bkeys.bk[BK_VIEW]`, K2 WAVE TYPE `wstyle`, K3 WAVE ZOOM `wzoom` (SETUP's K2 before), K4 BREAK TIME (MIDI's K4 before)).
   Navigation (0.9.2): on pages with tabs SELECT the top ones, ALGORITHM those below (EFFECTS: the slot / MAIN MORE MOD;
-  SONG: its tabs); where those two move everywhere, the page's button again goes HOME (FX, ENV; not EDIT, not the
-  kick's FX). The drums go AROUND the FX at every power-on (`drums_chain` 0).
+  SONG, MIX, SYSTEM, OVERLAY: their tabs); where those two move everywhere, the page's button again goes HOME (FX, ENV,
+  LFO, GLO, ARP; not EDIT, not the kick's FX; GLO still confirms RESET and quits the TUTORIAL). The drums go AROUND the
+  FX by default (`drums_chain` 0 in the defaults; a saved THRU stays).
+- **A saved setting never changes at a restart** (FLEXOR, 12 Nov 2026): defaults are for a new FM-1 and resets only;
+  never force a value at power-on once it has been saved.
 - KICK 1-20 (0.9.2, FLEXOR): `KICK_MEMS` 20, `KMEM_A` 10 (the first ten's arrays as saved before); 11-20 in `km2`
   (OBJ_KMEM2 = OBJ_NG0, pool RAM); always reach a memory through `kmem_at`, `ksmem_at`, `kx_at`, `kxh_at`, `klmem_at`.
   Each kick's PRESET name: `kick_lab_t.pre` (1 + OUT K4's place; 0 the memory's own built-in, `kpre_mem`).

@@ -7,13 +7,13 @@ tap SAVE
 wait 300
 tap GLO
 wait 150
-tap GLO
+turn SELECT 1 10
 wait 150
-tap GLO
+turn SELECT 1 10
 wait 150
-tap GLO
+turn SELECT 1 10
 wait 150
-tap GLO
+turn SELECT 1 10
 wait 300
 turn K4 20 10
 wait 300

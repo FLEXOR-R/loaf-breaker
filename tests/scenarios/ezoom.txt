@@ -9,9 +9,9 @@ expect kv_ms 500
 shot ez_auto.png
 tap GLO
 wait 150
-tap GLO
+turn SELECT 1 10
 wait 150
-tap GLO
+turn SELECT 1 10
 wait 300
 expect gpage 3
 turn PRESET 5 60
@@ -34,9 +34,9 @@ wait 400
 shot ez_drum.png
 tap GLO
 wait 150
-tap GLO
+turn SELECT 1 10
 wait 150
-tap GLO
+turn SELECT 1 10
 wait 300
 turn PRESET -2 60
 wait 200

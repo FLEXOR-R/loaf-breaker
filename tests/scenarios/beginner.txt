@@ -7,7 +7,7 @@
 wait 4200
 tap GLO
 wait 150
-tap GLO
+turn SELECT 1 10
 wait 300
 turn K3 -1 80
 wait 300

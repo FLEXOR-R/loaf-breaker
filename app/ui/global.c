@@ -338,7 +338,7 @@ static void draw_global(const brk_status_t *st)
         cv_text(6, 2, &FONT_T, "WAVE ZOOM", C_GRAY);   /* (cdj.c; 0.9.2: HOME's SETTINGS K3, PRESETS on HOME) */
         cv_text(96, 2, &FONT_T, CDJ_ZNAME[set.wzoom % CDJ_ZN], C_WHITE);
         cv_text(96, 16, &FONT_XS, "NOW IN HOME > SETTINGS", C_DIM);
-        cv_text(96, 26, &FONT_XS, "SCREEN EFFECTS: GLO AGAIN", C_DIM);
+        cv_text(96, 26, &FONT_XS, "SCREEN EFFECTS: SELECT", C_DIM);
         cv_text(6, 38, &FONT_T, "K3 MODE", C_GRAY);
         cv_text(96, 38, &FONT_T, tut_on() ? "TUTORIAL" : set.novice ? "BEGINNER" : "EXPERT", C_HI);
         cv_blit(0, 88);

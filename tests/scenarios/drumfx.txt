@@ -36,7 +36,7 @@ wait 800
 wavstop
 tap GLO
 wait 150
-tap GLO
+turn SELECT 1 10
 wait 300
 turn K3 -1 60
 wait 300

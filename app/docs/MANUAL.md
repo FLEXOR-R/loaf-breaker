@@ -15,7 +15,7 @@ drums, nothing else: the melody (0.198–0.208) is gone since 0.209.
 
 LOAF BREAKER turns the M-VAVE FM-1 into a hardcore break machine: a breakbeat cut into 16 slices, a distorted kick
 built from scratch, drums, effects and drops. You don't need the whole manual to start: these five steps are enough.
-The FM-1 starts in **BEGINNER** mode (SYSTEM › SETUP: GLO, then GLO again; K1): the advanced pages stay hidden until you want them.
+The FM-1 starts in **BEGINNER** mode (SYSTEM › SETUP: GLO, then SELECT; K1): the advanced pages stay hidden until you want them.
 
 **Or let the FM-1 show you: the TUTORIAL.** A new FM-1 asks first, after its start screen: **TUTORIAL**, **BEGINNER**
 or **EXPERT** (a knob moves the choice, PLAY takes it; white keys 1–3 too). SYSTEM › SETUP K3, turned left past
@@ -67,6 +67,13 @@ steps of the lane shown; ALGORITHM: the lane) and chain them on **ENV** (TRACKS:
   Twice quickly: SEL stays held (lit) for one-handed shortcuts; once more frees it.
 - **SAVE**: keeps everything (or SYSTEM › SETUP: AUTO SAVE).
 
+### Moving around (0.9.2)
+
+On every page with tabs, **SELECT turns the tabs at the top** (EFFECTS' slots, SONG's TRACKS PLAY DROP BUILD, MIX's
+LEVELS SENDS MASTER DYNAMICS, SYSTEM's parts, OVERLAY's two, the KICK menu's sections) and **ALGORITHM those below**
+(an effect's MAIN MORE MOD, the kick's parts). **A page's button pressed again goes back to HOME**, the main page
+(FX, ENV, LFO, GLO, ARP; EDIT keeps going round the sounds). The tempo is SELECT's on HOME.
+
 ### Playing live: SEL + K1–K4
 
 **Hold SEL and turn K1–K4, on any page: the kick changes while it plays.** That is the FM-1's live shortcut, the one
@@ -78,7 +85,7 @@ four, chosen in **EDIT › KNOBS** (the four knobs one by one, or a whole style 
 every SEL combination works with one hand. **SEL once more frees it** (the light goes out). Lock it before a set: the
 four kick knobs are always under your fingers, whatever page is open.
 
-When you know your way around: **SYSTEM › SETUP (GLO twice), K1 → EXPERT** shows every page (the kick's layers and their effects,
+When you know your way around: **SYSTEM › SETUP (GLO, then SELECT), K1 → EXPERT** shows every page (the kick's layers and their effects,
 SCREAM and DISTO +, SYNTH +, CLEAN MORPH, each knob's settings…). The rest of this manual covers everything.
 
 ---
@@ -146,7 +153,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 
 | Button | Domain | Its parts |
 | --- | --- | --- |
-| HOME | LIVE | PERFORM, GENERATOR, SETTINGS (K1 VIEW, K2 WAVE TYPE, K3 WAVE ZOOM, K4 BREAK TIME); HOME again: the next tab. HOME is the main page: FX or ENV pressed again come back to it |
+| HOME | LIVE | PERFORM, GENERATOR, SETTINGS (K1 VIEW, K2 WAVE TYPE, K3 WAVE ZOOM, K4 BREAK TIME); HOME again: the next tab. HOME is the main page: FX, ENV, LFO, GLO or ARP pressed again come back to it, SELECT turning their tabs |
 | EDIT | SOUNDS | Three sources, **SEL + EDIT** the next: **KICK** (its menu, by the kick's anatomy: ATTACK, BODY, TAIL, DIRT, FX, KNOBS; SELECT its next section; EDIT again the next sound, EXPERT: SNARE, HAT, CLAP, then the KICK), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
 | SEQ | PATTERN | The lanes, **GROOVE** (SWING; also SEL + ARP) |
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD |
@@ -509,7 +516,7 @@ together. **K1** the amount of the one touched last, **K2** the rate of the ones
 stays on on the other pages). The ARP black key keeps its own effect, chosen on its own knobs. (The FILL that ARP held
 played from 0.1xx to 0.243 is gone, LOAF BREAKER 0.244.)
 
-In EXPERT the page has two tabs (**ARP** again, or **ALGORITHM**, goes to the other): **ARP EFFECTS** (the above)
+In EXPERT the page has two tabs (**SELECT** goes to the other, 0.9.2; **ARP** again goes back to HOME): **ARP EFFECTS** (the above)
 and **BLACK KEYS**. **BLACK KEYS** lays out the black keys: **K1 PRESET**, CHOPPAH (CHOPPAH's eleven, the ARP
 key not among them), FLEXOR LAYOUT (LOAF BREAKER's until 0.244) or CUSTOM; **K2 KEY**, the key you edit (or press it:
 here a black key picks itself and plays nothing); **K3 EFFECT**, what it does: any of R8, R16, R32, REV, FRZ, HLF, VNL,
@@ -691,7 +698,7 @@ whose part you are on.
 
 **GLO** opens SYSTEM: the slice blocks give way to the state of MIDI, and K1–K4 set it (SAVE keeps it); in EXPERT, K3 is
 the **METER** (below).
-**GLO again** (or ALGORITHM) turns to SETUP: the skins, the mode and AUTO SAVE; then EFFECTS, FX SET and RESET (below). LOAF BREAKER has no Bluetooth: MIDI goes over USB and the TRS jack. On a computer the FM-1 shows as **LOAF BREAKER FM-1** (a MIDI device and, for recording, an audio input).
+**SELECT** (or ALGORITHM) turns to SETUP (0.9.2; GLO again goes back to HOME): the skins, the mode and AUTO SAVE; then EFFECTS, FX SET and RESET (below). LOAF BREAKER has no Bluetooth: MIDI goes over USB and the TRS jack. On a computer the FM-1 shows as **LOAF BREAKER FM-1** (a MIDI device and, for recording, an audio input).
 
 ![SYSTEM: MIDI in and out](img/screen-global.png "SYSTEM")
 
@@ -719,7 +726,7 @@ tempo's own repitch, HALF, REVERSE's speed and the tape stop stay speed effects.
 
 ![RESET ALL done: the lobotomy screen](img/screen-lobotomized.png "LOBOTOMIZED")
 
-**SETUP (GLO twice):** its four settings top to bottom, K1 to K4. K1 **SKIN**, the screen's colours (RED to start; the
+**SETUP (GLO, then SELECT):** its four settings top to bottom, K1 to K4. K1 **SKIN**, the screen's colours (RED to start; the
 whole screen changes at once), 24 chosen by FLEXOR, two rows of twelve swatches: CHROME, FIRE&ICE, CHOPPAH, GLOUPI,
 TESS, OUTRUN, THUNDER, CYBERPUNK, MC SALO, ACID, RED, GARRY, PIP-BOY, NEON, BLACKLIGHT, PATINA, SYNTHWAVE, MIAMI, ELECTRIC,
 ARCTIC, BREADCRUMBZ, IRIS, GLUCKSMAN, MAXENCE (an FM-1 updated from before keeps its colour, or the nearest left). **WAVE ZOOM** (K2 here until 0.9.1: HOME › SETTINGS K3 now, PRESETS on HOME too), how much of the past HOME's scrolling wave (the
@@ -796,7 +803,8 @@ you turn past the last one are lost instead of starting a new count, and DONE st
 
 Three synthesised drums play under the break, in time with it (swing included), on the pattern's drum lanes (§5):
 their steps are SEQ's KICK, SNARE and HAT lanes; their sounds are made on **EDIT**. They go around the FX chain
-(AROUND, at every power-on, whatever the mode: 0.9.2), or through it together while MIX › SENDS K2 says THRU.
+(AROUND, the default on a new FM-1 and after a reset, whatever the mode: 0.9.2), or through it together when MIX ›
+SENDS K2 says THRU; saved, THRU stays THRU at the next start.
 
 **EDIT** opens SOUNDS' KICK (SELECT: its next section; EDIT again, EXPERT: the next sound, KICK SNARE HAT CLAP round, 0.266); **SEL + EDIT** the next source: DRUMS (SNARE, HAT, CLAP: **EDIT again** the next), BREAK, the KICK again (the tabs show which).
 **ALGORITHM** turns through the drum's parts, **PRESETS** loads a built-in sound. The lower strip shows the three
@@ -909,7 +917,7 @@ MIDI notes 38 (D1) play the snare, 42, 44 and 46 the hat, also while stopped. SA
 ## 9. The mixer
 
 **LFO** opens the MIXER: three channels side by side, each a fader (BREAK, KICK and PERC with a level meter).
-**LFO again** turns to SENDS (the FX fader, the chain's four slots beside it, lit: on; DRUMS, their route). **LFO held +
+**SELECT** turns to SENDS, MASTER and DYNAMICS (0.9.2; **LFO again** goes back to HOME): SENDS (the FX fader, the chain's four slots beside it, lit: on; DRUMS, their route). **LFO held +
 K1–K4**, on any page: the break's, the kick's and the drums' level, 5 % a detent (the MIXER's own page: 2 %), the page staying where it is (LFO let go after a turn opens nothing): the mix moved without
 going into the MIXER.
 
@@ -941,17 +949,17 @@ break alone: sweep it down and the drums stay full on top.
 | ENV BUILD (PRESETS: tempo rise) | Style | Sweep | Riser | Gap |
 | EDIT KICK › KNOBS, K1 SET .. K4 SET (ALGORITHM: the knob; PRESETS: its function) | its function's four settings | | | |
 | LFO (mixer: levels; LFO held, any page: the same) | Break level | Kick level | Drums level | FX (the chain, dry to wet) |
-| LFO again (groove) | Swing | Drums: through the chain or around it | | |
+| LFO, SENDS (SELECT) | Swing | Drums: through the chain or around it | | |
 | LFO, MASTER | Comp | Ratio | Duck | Max out |
 | LFO, DYNAMICS | Comp attack | Comp release | Duck release | Ducks: the break, or the break and the drums |
 | FX (the chain; SELECT the slot, ALGORITHM its part) | the focused slot's effect: its three settings (ALGORITHM: its MORE and MOD parts; an MB COMP its six, see §6) | | | Its mix |
 | GLO (MIDI) | Clock in | Clock out | | |
-| GLO again (pitch, snap) | Keep length / speed | Grain | Snap | Reset all (fifteen turns) |
-| GLO twice (SETUP) | Skin | | Mode: beginner / expert | Auto save |
+| SOUNDS › BREAK (pitch, snap) | Keep length / speed | Grain | Snap | Reset all (fifteen turns) |
+| GLO, SETUP (SELECT) | Skin | | Mode: beginner / expert | Auto save |
 | HOME three times (SETTINGS) | View: waveform / slices | Wave type | Wave zoom | Break time |
-| GLO a fourth time (EFFECTS; keys 1–7: each on or off) | The effect | On / off | | |
-| GLO a fifth time (FX SET) | Amount | On a kick | At the drop | Length |
-| GLO a sixth time (RESET; ALGORITHM: what too; after a reset, 3 s at rest) | What | Reset (five clicks) | Reset (five clicks) | Reset (five clicks) |
+| GLO, EFFECTS (SELECT twice; keys 1–7: each on or off) | The effect | On / off | | |
+| GLO, FX SET (SELECT three times) | Amount | On a kick | At the drop | Length |
+| GLO, RESET (SELECT four times; ALGORITHM: what too; after a reset, 3 s at rest) | What | Reset (five clicks) | Reset (five clicks) | Reset (five clicks) |
 | ARP (OVERLAY) | Amount (the effect touched last) | Rate | Sweep | Latch |
 
 **Gate** (HOME K1) cuts every slice the loop plays short: at 50 % each slice sounds for half its length, then

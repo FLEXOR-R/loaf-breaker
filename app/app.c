@@ -1319,8 +1319,6 @@ void app_init(void)
     }
     if (set.brk >= n_breaks)
         set.brk = 0u;
-    set.drums_chain = 0u;                /* (LOAF BREAKER, 0.9.2, FLEXOR: at every power-on the drums go AROUND the FX
-                                          * chain, never THRU: MIX › SENDS K2 for THRU, until the next start) */
     trk_defaults();
     pats.mem.fx_ok = pats.mem.kfx_ok = pats.kfm_ok = 0u;   /* (an older save: no effect remembered) */
     {

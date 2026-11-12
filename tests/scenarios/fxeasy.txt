@@ -22,7 +22,7 @@ wait 300
 expect subdrv 50
 tap GLO
 wait 150
-tap GLO
+turn SELECT 1 10
 wait 300
 turn K3 -1 80
 wait 300

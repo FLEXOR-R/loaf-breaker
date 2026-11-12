@@ -13,13 +13,13 @@ wait 400
 expect tut 254
 tap GLO
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 100
-tap GLO
+turn SELECT 1 10
 wait 200
 turn K4 20 10
 turn K2 5 10
