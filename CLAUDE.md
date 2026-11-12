@@ -5,11 +5,14 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 
 ## LOAF BREAKER (FLEXOR's fork)
 
-- The repository is FLEXOR-R/loaf-breaker (public from 11 Nov 2026, FLEXOR); every push to the `loaf` branch is a release `loaf-vX.YY`
-  (`.github/workflows/loaf.yml`) and updates the site, https://flexor-r.github.io/loaf-breaker/ (0.261: the firmware on it
+- The repository is FLEXOR-R/loaf-breaker (public from 11 Nov 2026, FLEXOR). **Work goes to `dev`** (12 Nov 2026, FLEXOR:
+  not twenty public versions a day): each push there replaces the one pre-release `loaf-test` (loaf-breaker-X.YY-testN.fwsc,
+  the splash "X.YY TEST N"; no site, no soak, no tag). **A release only when FLEXOR asks** ("release", "publie"): dev
+  pushed to `loaf` (`git push origin dev:loaf`, a fast-forward), whose every push is a release `loaf-vX.YY`
+  (`.github/workflows/loaf.yml`; CLAUDE.md alone releases nothing) and updates the site, https://flexor-r.github.io/loaf-breaker/ (0.261: the firmware on it
   open, no install code; tools/site_lock.py and the secret LOAF_INSTALL_CODE no longer used). Never write that old code anywhere.
 - The changelog, in French, is FLEXOR's Claude Doc (project 6f32699a-06f8-4eaa-a41a-6f03a8b20dc9, node 1fc2737b-3a82):
-  after each release add a row (version, date, what changed) above the top one and put the version in the intro's
+  after each release (not a TEST) add a row (everything since the last one) (version, date, what changed) above the top one and put the version in the intro's
   "LOAF BREAKER 0.1xx". Keep its first part current whenever it is relevant: the summary paragraph, "Les grandes
   étapes", and "Les modifs importantes" (where things are, what was removed or replaced, shortcuts, "À savoir").
 - Identity (9 Nov 2026): its own, `FM-1_2623` (fm1.toml `id_prefix`; CHOPPAH's is FM-1_86), files `loaf-breaker*`
@@ -170,8 +173,8 @@ files before it define. `app/dsp/*.c` are separate `o2` units (brk, brk_fx, kick
   is 2.0.0, always above the one before (`check` in CI). Don't tag by hand. (`scripts/next_version.sh` and
   `VERSION` are CHOPPAH's main branch's.)
 - **Always push to GitHub after changes** (Laurens' standing rule, 4 Nov 2026): commit and push as soon as a change is
-  done, before moving on. Finished, tested work goes to main (a release); work in progress that doesn't build or fit
-  yet goes to a branch of its own and is pushed there.
+  done, before moving on: to `dev` (a TEST build for FLEXOR), never straight to `loaf` (FLEXOR, 12 Nov 2026); `loaf`
+  takes dev when FLEXOR asks for a release. Work that doesn't build or fit yet goes to a branch of its own.
 
 ## The update screen
 
