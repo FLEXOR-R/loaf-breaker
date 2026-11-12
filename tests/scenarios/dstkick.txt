@@ -1,0 +1,35 @@
+# LOAF BREAKER (0.9.24, FLEXOR): DST (the DISTO switch) and SUB (SUB DRIVE) are each kick's own: on KICK 4, both
+# on; KICK 5 has them off; back on KICK 4, both on again. In BEGINNER too (its layout kept: FLEXOR LAYOUT here).
+#   app/build/host/loaf-breaker_host tests/scenarios/dstkick.txt app/build/scenarios
+wait 4200
+tap GLO
+wait 150
+turn SELECT 1 10
+wait 300
+turn K3 -1 80
+wait 300
+tap HOME
+wait 300
+expect ter_off 0
+key b9 down
+wait 100
+key b9 up
+wait 200
+expect ter_off 1
+key b10 down
+wait 100
+key b10 up
+wait 200
+expect subdrv 50
+tap EDIT
+wait 300
+turn PRESET 1 10
+wait 300
+expect kslot 4
+expect ter_off 0
+expect subdrv -1
+turn PRESET -1 10
+wait 300
+expect kslot 3
+expect ter_off 1
+expect subdrv 50

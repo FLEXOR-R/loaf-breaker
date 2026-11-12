@@ -324,8 +324,17 @@ static void klab_send(void)              /* the LAB to the engine, STACK's attac
 static int32_t morph_i(int32_t a, int32_t b, uint32_t m) { return a + (b - a) * (int32_t)m / 100; }
 /* LOAF BREAKER: TER (the tenth black key), as SUB's DRIVE: the kick's TERROR off, whatever its amount (kept as it is),
  * or on again; the kick's own (selk_hi bit 4, with its memory: kx_put), saved */
-#define terror_off (!set.novice && (set.selk_hi & 16u))   /* (LOAF BREAKER, 0.229: BEGINNER has no DST key: its
-                                          * DISTO knob always heard) */
+static int bk_has(uint32_t f)            /* (a black key of the layout in use does f) */
+{
+    uint32_t j;
+    for (j = 0; j < 11u; j++)
+        if (bk_fn(j) == f)
+            return 1;
+    return 0;
+}
+#define terror_off ((set.selk_hi & 16u) && bk_has(BKF_DST))   /* (the kick's own DST switch, each kick its own (kx_put);
+                                          * 0.9.24: in either mode, where the layout has a DST key (BEGINNER keeps
+                                          * EXPERT's layout since 0.9.23); with none, the DISTO always heard) */
 static void kick_send(void)
 {
     uint32_t m = set.kmorph > 100u ? 100u : set.kmorph, i, j;
