@@ -160,7 +160,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD |
 | LFO | MIX | LEVELS (BREAK, KICK, PERC), SENDS (FX, the drums' route), MASTER, DYNAMICS |
 | FX | EFFECTS | The four slots: MAIN, MORE, MOD |
-| GLO | SYSTEM | MIDI (EXPERT: K3 METER), SETUP (K1 SKIN, K3 MODE, K4 AUTO SAVE), EFFECTS (the screen's; the waves' colours; KICK VIEW; PRESETS: EDIT ZOOM), FX SET, RESET |
+| GLO | SYSTEM | MIDI (EXPERT: K3 METER), SETUP (K1 SKIN, K3 MODE, K4 AUTO SAVE), EFFECTS (the screen's; KICK VIEW; PRESETS: EDIT ZOOM), FX SET, RESET |
 
 The same gestures everywhere: **the button again** is the next part; **ALGORITHM** the element in the part (a slot, a
 lane, a drum's part; where there is nothing to pick, the break); **PRESETS** the pattern, but on SOUNDS the source's
@@ -209,7 +209,9 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 - **HOME**: playing, the main page. PERFORM, GENERATOR and SETTINGS (HOME again: the next tab), the CDJ waveform on the
   first two. **SETTINGS** (0.9.2): K1 **VIEW** (WAVEFORM or SLICES: what PERFORM and GENERATOR show; HOME held still flips
   it), K2 **WAVE TYPE** (REKORDBOX or SERATO colours), K3 **WAVE ZOOM** (how much of the past the wave holds), K4 **BREAK
-  TIME** (NORMAL, or HALF: the break at half the tempo); SELECT stays the tempo.
+  TIME** (NORMAL, or HALF: the break at half the tempo, at its own speed, its steps every other 16th, while the kick,
+  the drums and the clock stay at the tempo: a 115 break under a 230 kick); SELECT stays the tempo. (0.9.25: these four
+  are only here; SYSTEM no longer shows them.)
 - **EDIT**: the **KICK menu**. Its picture: the kick's hit over a quarter of a second, its wave large (the cycles
   stretching as its pitch falls, squared off where it is driven), its level behind, the SUB's pitch falling in amber,
   its memory (KICK 1–20), what the part is for in a few words ("FOLD DISTORTION") and its note; under it the part's four knobs as cards, their values large. **SELECT**: the
@@ -270,7 +272,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 - **LFO** (MIX): LEVELS, SENDS, MASTER (K1 COMP, K2 its RATIO, K3 DUCK, K4 MAX OUT; COMP's reduction metered),
   DYNAMICS (COMP's ATTACK and RELEASE, DUCK's RELEASE, DUCKS: the break, or the break and the drums).
 - **ENV**: the song. TRACKS, PLAY, DROP, BUILD. (What SEL + each knob does: EDIT › KNOBS; RESET: GLO.)
-- **GLO** (SYSTEM): MIDI (EXPERT: the METER), SETUP (SKIN, MODE, AUTO SAVE: K1, K3, K4, top to bottom; WAVE ZOOM is HOME › SETTINGS since 0.9.2), EFFECTS (several at once, keys 1–7; K3 the waves' colours REKORDBOX or SERATO, K4 KICK VIEW: the whole kick or the part edited; PRESETS EDIT ZOOM: how much time EDIT's pictures show), FX SET, RESET.
+- **GLO** (SYSTEM): MIDI (EXPERT: the METER), SETUP (SKIN, MODE, AUTO SAVE: K1, K3, K4, top to bottom; WAVE ZOOM is HOME › SETTINGS since 0.9.2), EFFECTS (several at once, keys 1–7; the waves' colours are HOME › SETTINGS' WAVE TYPE since 0.9.25; K4 KICK VIEW: the whole kick or the part edited; PRESETS EDIT ZOOM: how much time EDIT's pictures show), FX SET, RESET.
   The break's PITCH, GRAIN and SNAP are SOUNDS › BREAK; SWING is PATTERN › GROOVE.
 
 ### The CDJ view (HOME)
@@ -708,7 +710,6 @@ the **METER** (below).
 | K1 CLOCK IN | OFF · FOLLOW | Following, MIDI clock from USB or the TRS jack sets the tempo (the header says EXT; SELECT waits), START plays from bar 1, STOP stops, and the loop eases onto the clock's beat every beat. The clock is stamped where it lands, so the tempo it reads is steady |
 | K2 CLOCK OUT | OFF · ON | While playing, 24 clocks a beat (straight, whatever the swing); PLAY sends START, stopping sends STOP, HOME + PLAY sends START again |
 | K3 METER | OFF · ON | (EXPERT) CPU, IMG, FR in the header: the audio's load, the screen's |
-| (K4 BREAK TIME) | NORMAL · HALF | On HOME › SETTINGS K4 since 0.9.2 (the panel here still shows it). HALF: the break at half the tempo, at its own speed: its steps every other 16th, while the kick, the drums and the clock stay at the tempo. A 115 break under a 230 terror kick plays as it was recorded (the panel shows the break's tempo). NORMAL: the break at the tempo, as ever |
 
 The panel shows the clock coming in (its tempo, where from, running or stopped), the clock going out, and a light for
 MIDI in and out on each port. The FM-1 has no MIDI out jack: MIDI goes out over USB only.

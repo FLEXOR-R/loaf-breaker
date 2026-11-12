@@ -1,8 +1,16 @@
-# LOAF BREAKER: GLO EFFECTS (GLO three times): K3 WAVE, the waves' colours, SERATO (HOME's CDJ view too); K4 KICK
+# LOAF BREAKER: HOME › SETTINGS K2 WAVE TYPE, the waves' colours, SERATO (GLO EFFECTS' K3 until 0.9.24); GLO EFFECTS K4 KICK
 # VIEW, PART: the KICK menu's picture shows the part edited. BODY's MIX: the whole kick; SUB: the SUB alone; ATTACK's
 # CLICK: the CLICK alone over 50 ms, PUNCH alone over 150; TAIL: the whole tail over a second. K4 back: WHOLE.
 #   app/build/host/loaf-breaker_host tests/scenarios/kfocus.txt app/build/scenarios
 wait 4200
+tap HOME
+wait 200
+tap HOME
+wait 200
+expect page 11
+turn K2 1 60
+wait 200
+expect wstyle 1
 tap GLO
 wait 150
 turn SELECT 1 10
@@ -59,4 +67,14 @@ turn K4 -1 60
 turn K3 -1 60
 wait 200
 expect kfocus 0
+expect wstyle 1
+tap HOME
+wait 200
+tap HOME
+wait 200
+tap HOME
+wait 200
+expect page 11
+turn K2 -1 60
+wait 200
 expect wstyle 0
