@@ -117,7 +117,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   pages SOUND / SHAPE (K4 DIRT) / MORE, BEGINNER's PRESET / FX / LEVEL / TUNE.
 - BLACK KEYS (11 Nov 2026, 0.244, FLEXOR): each black key a function (app.c `BKF_*`: PAD_* 0-10, FREEZE and DUB
   back from CHOPPAH, then BKF_ARP, KIL, DST, SUB); `bk_fn(j)`, `bkf_mask(f)` (= `PAD_BIT`) follow the layout in use:
-  presets CHOPPAH (BEGINNER's only; a new FM-1's and RESET ALL's; `novice_lengths` sets it), FLEXOR LAYOUT (0.244's:
+  presets CHOPPAH (a new FM-1's and RESET ALL's; BEGINNER keeps the layout in use since 0.9.23, FLEXOR: `bk_preset` no longer forces it), FLEXOR LAYOUT (0.244's:
   keep it exactly), CUSTOM; stored in `set.bkeys.bk` (the STAB's old 24 bytes: BK_TAG, preset, eleven functions). ARP's
   tabs in EXPERT (`ui.opage`, ovl.c): ARP EFFECTS, BLACK KEYS (bk_turn, draw_bk); MORE gone for now (0.259, FLEXOR; its idea: new black-key
   settings, e.g. the ARP effects one a key). SYSTEM › MIDI shows USB and TRS only (no BT box, 0.259). The simulator starts on FLEXOR LAYOUT (its scenarios).

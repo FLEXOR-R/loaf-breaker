@@ -59,15 +59,8 @@ wait 200
 turn K1 1 60
 wait 200
 expect drop_bars 4
-# (11 Nov 2026: BEGINNER, CHOPPAH's black keys: the fifth FREEZE, K1 its LENGTH)
-expect bk_pre 0
-key b4 down
-wait 500
-turn K1 1 60
-wait 200
-expect frz_len 1
-key b4 up
-wait 300
+# (0.9.23, FLEXOR: BEGINNER keeps the black keys' layout EXPERT left: here FLEXOR LAYOUT, the simulator's)
+expect bk_pre 1
 press SEL
 tap ARP
 release SEL

@@ -436,7 +436,7 @@ slices you marked ring out, the classic dub throw. (Without a DELAY slot, ECHO g
 ## 4. The pads
 
 The black keys act while held and combine. Which key does what is a **layout** (ARP › BLACK KEYS, below): CHOPPAH's,
-left to right R8 R16 R32 REV FRZ HLF VNL GAT RND FLT DUB (a new FM-1's, after RESET ALL too, and BEGINNER's only),
+left to right R8 R16 R32 REV FRZ HLF VNL GAT RND FLT DUB (a new FM-1's, after RESET ALL too; BEGINNER keeps the layout EXPERT left, 0.9.23),
 FLEXOR LAYOUT (R8 R16 R32 REV RND HLF VNL ARP KIL DST SUB) or CUSTOM, each key any of the fifteen below. (HOME's K1 is
 the gate and K2 the DJ filter as well.) While a pad is held, the slice blocks give way to an
 animation of what it does, and **K1–K4 tune that pad** (the foot shows its settings; SAVE keeps them):
@@ -744,8 +744,8 @@ the MIXER has LEVELS and SENDS; on SEQ, the break's two halves (BRK1, BRK2) alwa
 between them: SEL + ARP opens it); on the drum lanes K1 is **FILL**, K2 the lane's sound, K3 CLR / 4X4, K4 **LENGTH**
 the kick's alone (16, 32 or 64 steps; turning BEGINNER on
 sets every kick and drum of the group to 16; a drum lane stays 16, "LONGER: EXPERT MODE"), and a step held has no menu (the key just
-turns the step on or off); SONG is whole, as in EXPERT (0.9.22: every knob, ALGORITHM the items, PRESETS' BUILD KICK and TEMPO RISE); a white key held plays its loop with no knobs; the black keys are CHOPPAH's (R8 R16 R32 REV FRZ HLF VNL
-GAT RND FLT DUB; ARP › BLACK KEYS is EXPERT's), each with its knobs as in EXPERT; a knob BEGINNER leaves out is drawn blank
+turns the step on or off); SONG is whole, as in EXPERT (0.9.22: every knob, ALGORITHM the items, PRESETS' BUILD KICK and TEMPO RISE); a white key held plays its loop with no knobs; the black keys keep the layout EXPERT left (0.9.23; a new FM-1
+starts on CHOPPAH's: R8 R16 R32 REV FRZ HLF VNL GAT RND FLT DUB; ARP › BLACK KEYS, to change it, is EXPERT's), each with its knobs as in EXPERT; a knob BEGINNER leaves out is drawn blank
 and says "EXPERT MODE" when turned; SOUNDS › BREAK keeps
 its LEVEL (K4; the pitch is OCT's) and PATTERN › GROOVE its SWING.
 Nothing is lost: EXPERT shows everything again, as it was left, and what BEGINNER sets is there to refine. A

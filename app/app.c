@@ -229,9 +229,10 @@ static const uint8_t BK_LAY[2][11] = {{PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, PAD_RE
                                        PAD_TAPESTOP, PAD_GATE, PAD_RANDOM, PAD_FILTER, PAD_DUB},
                                       {PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, PAD_REVERSE, PAD_RANDOM, PAD_HALF,
                                        PAD_TAPESTOP, BKF_ARP, BKF_KIL, BKF_DST, BKF_SUB}};
-static uint32_t bk_preset(void)          /* the preset in use (BEGINNER: CHOPPAH, always) */
+static uint32_t bk_preset(void)          /* the preset in use (0.9.23, FLEXOR: BEGINNER keeps the one EXPERT left; a new
+                                          * FM-1 and RESET ALL: CHOPPAH) */
 {
-    if (set.novice || set.bkeys.bk[0] != BK_TAG || set.bkeys.bk[1] >= BKP_N)
+    if (set.bkeys.bk[0] != BK_TAG || set.bkeys.bk[1] >= BKP_N)
         return BKP_CHOPPAH;
     return set.bkeys.bk[1];
 }
@@ -1123,12 +1124,7 @@ static void novice_lengths(void)
             set_dirty = 1u;
         }
     }
-    pat_lanes_out();
-    if (set.bkeys.bk[1] != BKP_CHOPPAH) {   /* (LOAF BREAKER, 11 Nov 2026, FLEXOR: BEGINNER, the black keys CHOPPAH's;
-                                          * back to EXPERT they stay so until ARP › BLACK KEYS changes them) */
-        set.bkeys.bk[1] = BKP_CHOPPAH;
-        set_dirty = 1u;
-    }
+    pat_lanes_out();                     /* (the black keys: their layout kept, 0.9.23, FLEXOR) */
 }
 static void pat_apply(void)              /* the pattern playing, all of it to the engine */
 {
