@@ -196,6 +196,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 | ENV | **TRACK**: tracks of patterns and drops, playing them, the drop's settings (below) |
 | SEL (pressed alone) | The combinations card: every SEL combination on the strip. SEL used with something else (SEL + a knob, SEL + ALGORITHM, SEL + REC…) does that instead |
 | SEL + ALGORITHM · SEL + PRESETS | The break · the pattern, from any page; **on HOME, SEL + PRESETS changes the kick** (KICK 1–20, 0.9.26) |
+| SEL + ARP | PATTERN › GROOVE; **in the KICK menu: copy the kick, then, on another kick (PRESETS), paste it** (its sound, LAB, KNOBS and FX; its volume kept); on a drum's page the same for that drum's memories (0.9.26) |
 | SEL + SAVE | **Undo** the last pattern wipe (SEL + REC, a drum lane's FILL, CLR / 4X4 or COPY); again: redo |
 | OCT− / OCT+ | Pitch in semitones (hold to go faster). Both: back to 0 |
 | PRESETS | The pattern, P1–P64 (§5); while playing the new one starts at the end of the loop |
@@ -238,7 +239,10 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
   **OUT** (BODY's last part), **K4 PRESET**: 909, TECHNO, EARLY HC, ROTTERDAM, INDUSTRIAL, DISTORTO, on the kick
   selected (PRESETS: KICK 1–20), its volume, steps and DISTO and SCREAM kept. **A kick copied onto another:** K4 PRESET past
   them, **COPY K1 … COPY K10**: that memory's kick, its SYNTH and its knobs (KNOBS, CLEAN SUB, BASS, MORPH) onto the
-  kick selected, its volume kept (pick the kick to fill with PRESETS, then the one to copy with K4). On the KICK menu, **SELECT** goes through the tabs at the top (its sections: ATTACK, BODY, TAIL, DIRT, TONE,
+  kick selected, its volume kept (pick the kick to fill with PRESETS, then the one to copy with K4). Quicker (0.9.26),
+  anywhere in the KICK menu: **SEL + ARP** copies the kick (COPIED KICK n), PRESETS to another, **SEL + ARP** again pastes
+  it there whole, its FX section too (PASTED KICK a > b); on a drum's page the same copies the drum's sound onto another
+  of its memories. On the KICK menu, **SELECT** goes through the tabs at the top (its sections: ATTACK, BODY, TAIL, DIRT, TONE,
   KNOBS) and **ALGORITHM** through those at the bottom (the section's parts) (0.264). **SEL + EDIT** opens the drums; there,
   SELECT goes from drum to drum (SNARE, HAT, CLAP, and round; BEGINNER: the KICK too), each in a big view of its own: its hit drawn large over its level, its decay
   marked in amber, its memory and tune, the four drums along the bottom (stopped: keys 1–4 play them), the part's
@@ -884,7 +888,7 @@ nothing set there sounds exactly as it always did.
   back to before the first. **A/B** (K2) swaps the kick you are editing (A) with itself as it came or was last saved
   (B); edit either, SAVE keeps the one playing.
 
-OUT K4 PRESET (a built-in kick) turns the LAB off on that kick; COPY K n copies its LAB too; RESET KICK and ALL KICKS
+OUT K4 PRESET (a built-in kick) turns the LAB off on that kick; COPY K n and SEL + ARP (copy, then paste on another kick) copy its LAB too; RESET KICK and ALL KICKS
 turn it off. BEGINNER shows TAIL and STACK. The page is laid out as the snare's and the hat's: the part's four
 settings as bars, under them the four layers' levels (the layer edited lit, amber with an effect on); the kick's
 shape is its box in the strip below. Its steps: SEQ's KICK lane (empty to start).

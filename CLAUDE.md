@@ -90,7 +90,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   Each kick's PRESET name: `kick_lab_t.pre` (1 + OUT K4's place; 0 the memory's own built-in, `kpre_mem`).
   Each kick's FX section (EQ B/S, FX1, FX2: set.keq, kfx, kfxx, kmbc) is its own since 0.9.26 (FLEXOR): `kfxm`, 16-bit
   packed, OBJ_KFXM = OBJ_NG0 + 1 (0xBA000), `kfx_put` / `kfx_get` in kick_mem_go and COPY; SAVE writes 9 objects. In the
-  KICK menu PRESETS is the kick on every page; SEL + PRESETS the KICK FX effect, K1-K4 SET's function, ASSIGN's style.
+  KICK menu PRESETS is the kick on every page; SEL + PRESETS the KICK FX effect, K1-K4 SET's function, ASSIGN's style. SEL + ARP there (and on a drum's page) copies, then on another kick pastes (`kick_clip`, `perc_clip` in main.c; `kick_copy_from`), GROOVE elsewhere.
 - WAVE TYPE (`set.wstyle`: REKORDBOX / SERATO; HOME › SETTINGS K2 alone since 0.9.25, GLO EFFECTS' K3 before; SYSTEM shows
   none of HOME's SETTINGS any more, FLEXOR; common.c serato_col; the kick's RGB and cdj.c) and K4 EDIT
   VIEW (`set.kfocus`: the whole kick / the part edited: kick.c kv_ms, kv_kick) (10 Nov 2026, 0.206).
@@ -170,7 +170,7 @@ files before it define. `app/dsp/*.c` are separate `o2` units (brk, brk_fx, kick
   were true: ~40 KB and ~37 KB of flash). Their app hooks (`APP_BLE_AT_BOOT`, `BP_MQ_ATTR` in app.h) stay as
   CHOPPAH's, inert; never turn either back on.
 - Flash: the app slot is 581,564 B (`APP_SLOT` 0x8DFBC in base/tools/fm1pkg_make.py: not 581 KiB); 577,288 B used at
-  0.192 with a 357 KB bank; 561,424 B at 0.220 (9 breaks); 568,492 B at 0.225 (the drums' extras): **~13 KB left**.
+  0.192 with a 357 KB bank; 561,424 B at 0.220 (9 breaks); 568,492 B at 0.225 (the drums' extras): **~13 KB left**. **581,004 B at 0.9.26 (per-kick FX, SEL + ARP copy): 560 B left; RAM 96,380 of 98,304.**
   RAM .data+.bss 93,292 of 98,304 B at 0.225 (the drums' room, 5.8 KB of 16-bit lines, is in RAM): ~5 KB left; the
   pool has ~10.8 KB (it could take the room's lines). The break bank (`CH_BANK`) is most of it.
   New features are welcome before 1.0 (FLEXOR, 11 Nov 2026: "not that close to 1.0, I want to perfect the firmware");

@@ -169,6 +169,21 @@ static void kpre_text(char *t)
     text_cat(t, "COPY K");
     int_text((int32_t)(p - KICK_PRESETS) + 1, t + 6);
 }
+static void kick_copy_from(uint32_t n)    /* (0.9.26: kick memory n's everything onto the kick playing, its volume kept: COPY
+                                          * K n, SEL + ARP's paste) */
+{
+    float vol = set.kick.volume;
+    uint32_t j;
+    set.kick = (*kmem_at(n));
+    set.kick.volume = vol;
+    for (j = 0; j < KS_N; j++)
+        set.ksyn[j] = ksmem_at(n)[j];
+    kx_get(n);
+    kfx_get(n);
+    klab.cur = (*klmem_at(n));
+    changed_kick();
+    changed_fx();
+}
 static void kick_mem_turn(int32_t d)
 {
     kick_mem_go((set.kslot % KICK_MEMS + (d > 0 ? 1u : KICK_MEMS - 1u)) % KICK_MEMS);

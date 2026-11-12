@@ -12,6 +12,57 @@ static void home_back(void)              /* (LOAF BREAKER, 0.9.2, FLEXOR: a page
     ui.redraw |= RG_FOOT | RG_BLOCKS;
     page_say();
 }
+/* LOAF BREAKER (0.9.26, FLEXOR): SEL + ARP in the KICK LAB and on the drums: copy, then on another one paste (as SEL +
+ * SEQ the pattern). The kick: all of it from its memory (sound, SYNTH, knobs, FX section, KICK LAB), the volume kept;
+ * a drum: its sound and extras, onto another memory of the same drum */
+static int8_t clip_kick = -1;
+static int8_t clip_pv = -1, clip_ps;
+static perc_voice_t clip_pvoice;
+static uint8_t clip_px[PX_N];
+static void kick_clip(void)
+{
+    char t[16] = "KICK ";
+    uint32_t cur = set.kslot % KICK_MEMS;
+    if (clip_kick < 0 || (uint32_t)clip_kick == cur) {
+        clip_kick = (int8_t)cur;
+        int_text((int32_t)cur + 1, t + 5);
+        app_say("COPIED", t);
+        return;
+    }
+    kick_copy_from((uint32_t)clip_kick);
+    int_text(clip_kick + 1, t + 5);
+    text_cat(t, " > ");
+    int_text((int32_t)cur + 1, t + text_n(t));
+    app_say("PASTED", t);
+    clip_kick = -1;
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
+static void perc_clip(void)
+{
+    uint32_t v = ui.pvoice % PERC_VOICES, s = *perc_slot(v) % PERC_MEMS;
+    char t[20];
+    t[0] = 0;
+    text_cat(t, PERC_VOICE_NAME[v]);
+    text_cat(t, " ");
+    if (clip_pv != (int8_t)v || (uint32_t)clip_ps == s) {   /* (nothing copied, the same, or another drum: copy) */
+        clip_pv = (int8_t)v;
+        clip_ps = (int8_t)s;
+        clip_pvoice = *perc_voice(v);
+        memcpy(clip_px, perc_x(v), PX_N);
+        int_text((int32_t)s + 1, t + text_n(t));
+        app_say("COPIED", t);
+        return;
+    }
+    *perc_voice(v) = clip_pvoice;
+    memcpy(perc_x(v), clip_px, PX_N);
+    int_text(clip_ps + 1, t + text_n(t));
+    text_cat(t, " > ");
+    int_text((int32_t)s + 1, t + text_n(t));
+    app_say("PASTED", t);
+    clip_pv = -1;
+    changed();
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
 static void kfx_open(int on)             /* to KICK FX (on), or the FX page back on the chain */
 {
     if (on && ui.fx_focus < BRK_FX_SLOTS) {
@@ -697,7 +748,12 @@ static void input(void)
             seq_clear(2);
         }
     }
-    if (bdn & 1u << B_ARP && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + ARP: PATTERN's GROOVE (its SWING) */
+    if (bdn & 1u << B_ARP && btn & 1u << B_SEL && (ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX()))
+        kick_clip();                     /* (LOAF BREAKER, 0.9.26, FLEXOR: in the KICK LAB, SEL + ARP copies the kick, on
+                                          * another kick pastes it) */
+    else if (bdn & 1u << B_ARP && btn & 1u << B_SEL && ui.page == PG_PERC)
+        perc_clip();                     /* (the drums: the drum's sound, onto another memory of it) */
+    else if (bdn & 1u << B_ARP && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + ARP: PATTERN's GROOVE (its SWING) */
         global_part(GP_FILL);
     } else if (bdn & 1u << B_ARP) {      /* ARP: the OVERLAY page (LOAF BREAKER, 0.244, FLEXOR: back, FILL gone); on it
                                           * again, EXPERT: its next tab (ARP EFFECTS, BLACK KEYS, MORE) */
@@ -1424,7 +1480,8 @@ static void draw_help(void)
     cv_begin(240, 52, C_BLACK);
     for (i = 0; i < 4u; i++) {           /* (SEL + a button: two columns) */
         cv_text(6, (int32_t)i * 13, &FONT_XS, G[i][0], C_HI);
-        cv_text(46, (int32_t)i * 13, &FONT_XS, G[i][1], C_WHITE);
+        cv_text(46, (int32_t)i * 13, &FONT_XS, i != 3u ? G[i][1] : ui.page == PG_PERC ? "COPY DRUM"
+                : ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX() ? "COPY KICK" : G[i][1], C_WHITE);
         cv_text(124, (int32_t)i * 13, &FONT_XS, G[i + 4u][0], C_HI);
         cv_text(170, (int32_t)i * 13, &FONT_XS, G[i + 4u][1], C_WHITE);
     }
