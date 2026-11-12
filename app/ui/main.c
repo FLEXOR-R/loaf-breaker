@@ -1056,7 +1056,7 @@ static void input(void)
                                           * EDIT ZOOM, the time EDIT's pictures show (the kick, the drums) */
             set.ezoom = (uint8_t)(EZ_TAG | (uint32_t)clamp((int32_t)ez_idx() + (d > 0 ? 1 : -1), 0, EZ_N - 1));
             changed();
-            app_say("EDIT ZOOM", ez_idx() ? EZ_NAME[ez_idx()] : "AUTO (EACH PART ITS OWN)");
+            app_say("DRUM VIEW ZOOM", ez_idx() ? EZ_NAME[ez_idx()] : "AUTO (EACH PART ITS OWN)");
             ui.redraw |= RG_BLOCKS;
         } else if (k == EN_PRESET && ui.page == PG_GLOBAL && ui.gpage == 2u) {   /* LOAF BREAKER: GLO MORE: WAVE ZOOM,
                                           * how much of the past the scrolling wave holds */

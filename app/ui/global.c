@@ -258,13 +258,13 @@ static void draw_global(const brk_status_t *st)
     }
     if (ui.gpage == 3u) {                /* LOAF BREAKER: EFFECTS: the seven, lit when on (keys 1-7), K1's outlined */
         uint32_t e, cur = ui.sfx_cur < SFX_CRT || ui.sfx_cur >= SFX_N ? SFX_CRT : ui.sfx_cur;
-        cv_text(6, 2, &FONT_XS, "EDIT ZOOM", C_GRAY);   /* (LOAF BREAKER, 0.216: EDIT's pictures' time, PRESETS) */
+        cv_text(6, 2, &FONT_XS, "DRUM VIEW ZOOM", C_GRAY);   /* (LOAF BREAKER, 0.216: EDIT's pictures' time, PRESETS) */
         {
-            int32_t x = cv_text(84, 1, &FONT_T, EZ_NAME[ez_idx()], C_HI);
+            int32_t x = cv_text(96, 1, &FONT_T, EZ_NAME[ez_idx()], C_HI);
             cv_text(x + 8, 2, &FONT_XS, "PRESETS", C_DIM);
         }
         cv_text(6, 16, &FONT_XS, "K4 EDIT VIEW", C_GRAY);   /* (K3 WAVE gone, 0.9.25: HOME's SETTINGS) */
-        cv_text(84, 15, &FONT_T, set.kfocus ? "THE PART EDITED" : "THE WHOLE KICK", C_HI);
+        cv_text(96, 15, &FONT_T, set.kfocus ? "THE PART EDITED" : "THE WHOLE KICK", C_HI);
         cv_blit(0, 44);
         for (e = 0; e < 2u; e++) {
             uint32_t j;
