@@ -170,7 +170,7 @@ files before it define. `app/dsp/*.c` are separate `o2` units (brk, brk_fx, kick
   were true: ~40 KB and ~37 KB of flash). Their app hooks (`APP_BLE_AT_BOOT`, `BP_MQ_ATTR` in app.h) stay as
   CHOPPAH's, inert; never turn either back on.
 - Flash: the app slot is 581,564 B (`APP_SLOT` 0x8DFBC in base/tools/fm1pkg_make.py: not 581 KiB); 577,288 B used at
-  0.192 with a 357 KB bank; 561,424 B at 0.220 (9 breaks); 568,492 B at 0.225 (the drums' extras): **~13 KB left**. **581,324 B at 0.9.26 (per-kick FX, SEL + ARP copy, the SEL combinations): 240 B left; RAM 96,380 of 98,304.**
+  0.192 with a 357 KB bank; 561,424 B at 0.220 (9 breaks); 568,492 B at 0.225 (the drums' extras): **~13 KB left**. **579,428 B at 0.9.26 (the FX chain's mono half freed 1.9 KB): ~2.1 KB left; RAM 96,380 of 98,304; .ram_text 16,924 of 32,768.**
   RAM .data+.bss 93,292 of 98,304 B at 0.225 (the drums' room, 5.8 KB of 16-bit lines, is in RAM): ~5 KB left; the
   pool has ~10.8 KB (it could take the room's lines). The break bank (`CH_BANK`) is most of it.
   New features are welcome before 1.0 (FLEXOR, 11 Nov 2026: "not that close to 1.0, I want to perfect the firmware");
@@ -179,7 +179,8 @@ files before it define. `app/dsp/*.c` are separate `o2` units (brk, brk_fx, kick
   brk_math.c; the UI too) instead of an inline copy; the FX chain's per-sample loop (`fx_samples`) is `BRK_RAM`:
   .ram_text on the FM-1 (fast, packed in flash), so nothing it reaches may be a call (`BRK_INL` in brk_fx.c forces
   inlining; the build fails on "ram_text contains calls"; flash code reaches it through a pointer). CPU: the render
-  must stay under its 5.8 ms block, or audio glitches and the watchdog resets the FM-1; `APP_OVERLOAD` sheds FX slots
+  must stay under its 5.8 ms block, or audio glitches and the watchdog resets the FM-1 (0.9.26: brk_fx.c's slot_run works out
+  one side while the two are the same, `mono`; an effect that makes them differ must be in `FX_STEREO`); `APP_OVERLOAD` sheds FX slots
   as a last resort (PRD E-7). Compare an engine change's cost on the host against the last release before shipping (`APP_SYS_TEXT` in app.h draws the platform's screens in CHOPPAH's faces,
   saving fm1-base's fonts): check `./build.sh`'s image line;
   the canvas is 240×60 (`APP_CANVAS_PX`), so draw in strips of ≤ 60 rows (draw_fx / draw_key draw two bands).

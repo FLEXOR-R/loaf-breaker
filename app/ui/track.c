@@ -1225,6 +1225,13 @@ static void track_turn(int i, int32_t d)
         } else if (i == 1) {             /* END, EMPTY, DROP, P1..P64 (LOAF BREAKER: DROP just left of P1, the 64
                                           * past; EMPTY left of it, a case emptied: gone with one more turn left, or
                                           * ENV held) */
+            static uint32_t del_t;       /* (0.9.26, FLEXOR: an item deleted, K2 left does nothing until the knob has
+                                          * rested 0.7 s, each turn meanwhile counted again: the next item,
+                                          * moved into its place, not deleted too by a hard turn) */
+            if (dir < 0 && del_t && plat_ms() - del_t < 700u) {
+                del_t = plat_ms() | 1u;
+                return;
+            }
             int32_t v = t->it[c] == TI_DROP ? 2 : t->it[c] == TI_GAP ? 1 :
                         t->it[c] == TI_END ? 0 : (int32_t)t->it[c] + 2;
             v = clamp(v + (t->it[c] == TI_END && dir > 0 ? 3 : dir), 0, (int32_t)NPAT_ALL + 2);   /* (the END: P1 at once) */
@@ -1241,6 +1248,7 @@ static void track_turn(int i, int32_t d)
                 if (TRK_FROM > c)        /* (the first item: where it was) */
                     TRK_FROM--;
                 app_say("ITEM", "DELETED");
+                del_t = plat_ms() | 1u;
                 set_dirty = 1u;
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
                 return;

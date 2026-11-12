@@ -844,7 +844,12 @@ BRK_COLD static void slot_block(uint32_t k, const float *x)
     }
 }
 
-BRK_INL void slot_run(uint32_t k, float *xl, float *xr)
+/* LOAF BREAKER (0.9.26): mono, the two sides still the same (the chain's input and the kick are mono, until an effect
+ * that makes them differ): EQ, MB COMP, DRIVE and CLIP work out the left alone, the right's state its copy (the same
+ * sums, the same sound, half the work) */
+#define FX_STEREO (1u << FXT_FILTER | 1u << FXT_FLANGER | 1u << FXT_RING | 1u << FXT_TREMOLO | 1u << FXT_REVERB | \
+                   1u << FXT_DELAY | 1u << FXT_TAPE)
+BRK_INL void slot_run(uint32_t k, float *xl, float *xr, uint32_t mono)
 {
     slot_st_t *s = &st[k];
     const slot_c_t *c = &sc[k];
@@ -900,7 +905,10 @@ BRK_INL void slot_run(uint32_t k, float *xl, float *xr)
             yr -= s->hp[1];
         }
         s->lp[0] += (brk_drive_curve(c->qi, yl * c->g, c->q[0]) - s->lp[0]) * c->b;
-        s->lp[1] += (brk_drive_curve(c->qi, yr * c->g, c->q[0]) - s->lp[1]) * c->b;
+        if (mono)
+            s->lp[1] = s->lp[0];
+        else
+            s->lp[1] += (brk_drive_curve(c->qi, yr * c->g, c->q[0]) - s->lp[1]) * c->b;
         yl = s->lp[0] * c->a;
         yr = s->lp[1] * c->a;
         break;
@@ -953,10 +961,13 @@ BRK_INL void slot_run(uint32_t k, float *xl, float *xr)
     case FXT_EQ:                         /* (no mix: the bands are the sound) */
         for (i = 0; i < 3u; i++) {
             yl = eq_run(&s->eq[i][0], &c->e[i], c->m[i], yl);
-            yr = eq_run(&s->eq[i][1], &c->e[i], c->m[i], yr);
+            if (mono)
+                s->eq[i][1] = s->eq[i][0];
+            else
+                yr = eq_run(&s->eq[i][1], &c->e[i], c->m[i], yr);
         }
         *xl = yl * c->q[0];
-        *xr = yr * c->q[0];
+        *xr = (mono ? yl : yr) * c->q[0];
         return;
     case FXT_TAPE: {                     /* the wow first (a short line read wandering), then the drive into a curve
                                           * leaning one way (even harmonics), the bump, the top rolled off */
@@ -992,11 +1003,18 @@ BRK_INL void slot_run(uint32_t k, float *xl, float *xr)
         float bl[3], br[3], hp, lpl, lpr;
         uint32_t b;
         svf_run(&s->f[0], &c->c, yl, &lpl);
-        svf_run(&s->f[1], &c->c, yr, &lpr);
         bl[0] = lpl;
-        br[0] = lpr;
         bl[2] = svf_run(&s->eq[0][0], &c->e[0], yl, &hp);
-        br[2] = svf_run(&s->eq[0][1], &c->e[0], yr, &hp);
+        if (mono) {
+            s->f[1] = s->f[0];
+            s->eq[0][1] = s->eq[0][0];
+            br[0] = lpl;
+            br[2] = bl[2];
+        } else {
+            svf_run(&s->f[1], &c->c, yr, &lpr);
+            br[0] = lpr;
+            br[2] = svf_run(&s->eq[0][1], &c->e[0], yr, &hp);
+        }
         bl[1] = yl - bl[0] - bl[2];
         br[1] = yr - br[0] - br[2];
         yl = yr = 0.0f;
@@ -1030,10 +1048,10 @@ BRK_INL void slot_run(uint32_t k, float *xl, float *xr)
         uint32_t j;
         u[0] = yl * c->g + c->q[0];
         u[1] = yr * c->g + c->q[0];
-        for (j = 0; j < 2u; j++)         /* (the bias taken back off: no offset left) */
+        for (j = 0; j < 2u - mono; j++)  /* (the bias taken back off: no offset left) */
             u[j] = (brk_clip_curve(u[j], c->b) - c->q[2]) * c->a * c->q[1];
         yl = u[0];
-        yr = u[1];
+        yr = u[mono ? 0u : 1u];
         break;
     }
     case FXT_DELAY: {                    /* in: what reaches it at the send, and the throws; out: the dry and the
@@ -1114,7 +1132,7 @@ typedef struct { svf_c djc; dl_c_t dub_c; float wet; int dj_hp, dub_on; uint32_t
 BRK_RAM static void fx_samples(const fx_q_t *q, const float *in, const float *thru, const float *echo, const float *verb,
                                const float *post, float *l, float *r, uint32_t n)
 {
-    uint32_t i, k;
+    uint32_t i, k, mono;
     for (i = 0; i < n; i++) {
         float x = in[i], xl, xr, lp, ec = echo ? echo[i] : 0.0f, vb = verb ? verb[i] : 0.0f;
         if (!q->kick && (dj_s < -0.01f || dj_s > 0.01f)) {   /* the DJ filter: the break's alone (and its throws) */
@@ -1128,6 +1146,7 @@ BRK_RAM static void fx_samples(const fx_q_t *q, const float *in, const float *th
         if (thru)
             x += thru[i];
         xl = xr = x;
+        mono = 1u;
         if (!q->kick) {
             dub_send += ((q->dub_on ? 1.0f : 0.0f) - dub_send) * 0.002f;
             if (!q->dub_on && dub_send < 1e-4f)
@@ -1144,7 +1163,8 @@ BRK_RAM static void fx_samples(const fx_q_t *q, const float *in, const float *th
                     if (a > md[k].pk_in)
                         md[k].pk_in = a;
                 }
-                slot_run(k, &xl, &xr);
+                slot_run(k, &xl, &xr, mono);
+                mono &= ~(FX_STEREO >> sc[k].type) & 1u;   /* (from a stereo effect on, both sides) */
                 if (tr) {
                     a = brk_absf(xl) > brk_absf(xr) ? brk_absf(xl) : brk_absf(xr);
                     if (a > md[k].pk_out)
