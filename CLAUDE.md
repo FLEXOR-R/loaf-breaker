@@ -116,7 +116,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   WIPE MEMORY (0.263, FLEXOR: V15 odd after LOAF BREAKER): RESET's item before EVERYTHING, erases every sector of the
   store map but the panel's (track.c `wipe_step`, a sector a frame, plat_data_erase), settings unreadable, `wiped`
   blocks saves until a restart; on the host the store is kept apart, so only the FM-1 really erases.
-- No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository.
+- No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository. FLEXOR's
+  sleeping photo (art/egg_sleep.png, commit afbbd5c, 6 Nov) stays in the history: FLEXOR, 12 Nov 2026, no purge.
 - Fonts: `font_trim` is on (fm1.toml, 9 Nov 2026). LOAF BREAKER draws in FONT_T, FONT_XS and FONT_B only (cv_text2 for
   bigger: those doubled). fm1-base still generates S, M (~5 KB trimmed) and L (~9 KB trimmed, 31 px), left out of the
   image as never read. FLEXOR asked to be reminded of them whenever bigger or other text would help (a big tempo, a
