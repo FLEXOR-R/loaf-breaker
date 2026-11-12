@@ -160,7 +160,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD |
 | LFO | MIX | LEVELS (BREAK, KICK, PERC), SENDS (FX, the drums' route), MASTER, DYNAMICS |
 | FX | EFFECTS | The four slots: MAIN, MORE, MOD |
-| GLO | SYSTEM | MIDI (EXPERT: K3 METER), SETUP (K1 SKIN, K3 MODE, K4 AUTO SAVE), EFFECTS (the screen's; KICK VIEW; PRESETS: EDIT ZOOM), FX SET, RESET |
+| GLO | SYSTEM | MIDI (EXPERT: K3 METER), SETUP (K1 SKIN, K3 MODE, K4 AUTO SAVE), EFFECTS (the screen's; EDIT VIEW; PRESETS: EDIT ZOOM), FX SET, RESET |
 
 The same gestures everywhere: **the button again** is the next part; **ALGORITHM** the element in the part (a slot, a
 lane, a drum's part; where there is nothing to pick, the break); **PRESETS** the pattern, but on SOUNDS the source's
@@ -272,7 +272,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 - **LFO** (MIX): LEVELS, SENDS, MASTER (K1 COMP, K2 its RATIO, K3 DUCK, K4 MAX OUT; COMP's reduction metered),
   DYNAMICS (COMP's ATTACK and RELEASE, DUCK's RELEASE, DUCKS: the break, or the break and the drums).
 - **ENV**: the song. TRACKS, PLAY, DROP, BUILD. (What SEL + each knob does: EDIT › KNOBS; RESET: GLO.)
-- **GLO** (SYSTEM): MIDI (EXPERT: the METER), SETUP (SKIN, MODE, AUTO SAVE: K1, K3, K4, top to bottom; WAVE ZOOM is HOME › SETTINGS since 0.9.2), EFFECTS (several at once, keys 1–7; the waves' colours are HOME › SETTINGS' WAVE TYPE since 0.9.25; K4 KICK VIEW: the whole kick or the part edited; PRESETS EDIT ZOOM: how much time EDIT's pictures show), FX SET, RESET.
+- **GLO** (SYSTEM): MIDI (EXPERT: the METER), SETUP (SKIN, MODE, AUTO SAVE: K1, K3, K4, top to bottom; WAVE ZOOM is HOME › SETTINGS since 0.9.2), EFFECTS (several at once, keys 1–7; the waves' colours are HOME › SETTINGS' WAVE TYPE since 0.9.25; K4 EDIT VIEW: the whole kick or the part edited; PRESETS EDIT ZOOM: how much time EDIT's pictures show), FX SET, RESET.
   The break's PITCH, GRAIN and SNAP are SOUNDS › BREAK; SWING is PATTERN › GROOVE.
 
 ### The CDJ view (HOME)
@@ -768,12 +768,12 @@ tube), **VHS** (bands that slip sideways), **GRAIN** (specks that move), **RGB**
 at the drop, and on the kicks when ON A KICK is past 50 %), **8-BIT** (fewer colours). VHS and RGB together, for one.
 On the same page, **K3 WAVE**: the colours of the waves (the KICK menu's picture and HOME's CDJ view), **REKORDBOX**
 (left: the three bands mixed, white where they all are) or **SERATO** (right: the bands as one hue from red through
-yellow and green to blue, never white: a kick orange, its tail red, a snare green, a hat blue). **K4 KICK VIEW**:
+yellow and green to blue, never white: a kick orange, its tail red, a snare green, a hat blue). **K4 EDIT VIEW**:
 what the KICK menu's picture shows, **THE WHOLE KICK** (left) or **THE PART EDITED** (right): on a layer's page (SUB,
 PUNCH, GRIT, CLICK, their effects) that layer alone, CLICK over 50 ms and PUNCH over 150 (the time at the top right),
 STACK its attack's kick, the TAIL section the whole tail over a second; the other parts the whole kick.
 **PRESETS EDIT ZOOM** (top line): how much time EDIT's pictures show, the kick's and the drums': **AUTO** (as above: the
-kick 500 ms in RGB, 250 in WAVE, each part its own with KICK VIEW PART; a drum its decay and a bit), or **250 MS**,
+kick 500 ms in RGB, 250 in WAVE, each part its own with EDIT VIEW PART; a drum its decay and a bit), or **250 MS**,
 **500 MS**, **750 MS**, **1 S**, **1.5 S**, **2 S** for every picture (zoomed out: a long hardcore tail seen whole). The time shows
 under the pitch, top right of the kick's picture. On the FM-1 a longer picture takes longer to work out: at 2 S it follows a
 knob less smoothly (the sound is never touched). RESET's SCREEN puts it back on AUTO.

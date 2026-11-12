@@ -1483,7 +1483,7 @@ static void draw_foot(const brk_status_t *st)
                                                     {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
         static const char *const KN_MORE[3][4] = {{"SKIN", "", "MODE", "AUTO SAVE"},   /* SETUP (K2 WAVE ZOOM: HOME's
                                           * SETTINGS, 0.9.2) */
-                                                  {"EFFECT", "ON / OFF", "", "KICK VIEW"},   /* (LOAF BREAKER: EFFECTS, */
+                                                  {"EFFECT", "ON / OFF", "", "EDIT VIEW"},   /* (LOAF BREAKER: EFFECTS, */
                                                   {"AMOUNT", "KICK", "DROP", "LENGTH"}};   /* FX SET) */
         static const char *const KN_TRK[4][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
                                                  {"STYLE", "SWEEP", "RISER", "GAP"}, {"", "RESET", "", "WHAT"}};

@@ -88,7 +88,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   (OBJ_KMEM2 = OBJ_NG0, pool RAM); always reach a memory through `kmem_at`, `ksmem_at`, `kx_at`, `kxh_at`, `klmem_at`.
   Each kick's PRESET name: `kick_lab_t.pre` (1 + OUT K4's place; 0 the memory's own built-in, `kpre_mem`).
 - WAVE TYPE (`set.wstyle`: REKORDBOX / SERATO; HOME › SETTINGS K2 alone since 0.9.25, GLO EFFECTS' K3 before; SYSTEM shows
-  none of HOME's SETTINGS any more, FLEXOR; common.c serato_col; the kick's RGB and cdj.c) and K4 KICK
+  none of HOME's SETTINGS any more, FLEXOR; common.c serato_col; the kick's RGB and cdj.c) and K4 EDIT
   VIEW (`set.kfocus`: the whole kick / the part edited: kick.c kv_ms, kv_kick) (10 Nov 2026, 0.206).
 - TUTORIAL (0.211, FLEXOR: "a sober name"): ui/tutor.c (included before screen.c), TUT[] steps (lesson, condition TC_*,
   keys and buttons to blink, text), `set.tut` (appended: 0 off, 1..TUT_N the step, 0xFE done, 0xFD the mode asked (0.229); a new FM-1 asks,

@@ -132,7 +132,7 @@ static void global_turn(int i, int32_t d)
                                           * edited */
             set.kfocus = d > 0 ? 1u : 0u;
             changed();
-            app_say("KICK VIEW", set.kfocus ? "THE PART EDITED" : "THE WHOLE KICK");
+            app_say("EDIT VIEW", set.kfocus ? "THE PART EDITED" : "THE WHOLE KICK");   /* (KICK VIEW until 0.9.25, FLEXOR) */
             ui.redraw |= RG_BLOCKS | RG_FOOT;
         }
         return;
@@ -263,7 +263,7 @@ static void draw_global(const brk_status_t *st)
             int32_t x = cv_text(84, 1, &FONT_T, EZ_NAME[ez_idx()], C_HI);
             cv_text(x + 8, 2, &FONT_XS, "PRESETS", C_DIM);
         }
-        cv_text(6, 16, &FONT_XS, "K4 KICK VIEW", C_GRAY);   /* (K3 WAVE gone, 0.9.25: HOME's SETTINGS) */
+        cv_text(6, 16, &FONT_XS, "K4 EDIT VIEW", C_GRAY);   /* (K3 WAVE gone, 0.9.25: HOME's SETTINGS) */
         cv_text(84, 15, &FONT_T, set.kfocus ? "THE PART EDITED" : "THE WHOLE KICK", C_HI);
         cv_blit(0, 44);
         for (e = 0; e < 2u; e++) {
