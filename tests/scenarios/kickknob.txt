@@ -4,16 +4,16 @@
 wait 4200
 tap EDIT
 wait 300
-# (0.253: the KICK menu opens on ATTACK's PRESET: EDIT again, BODY)
-tap EDIT
+# (0.253: the KICK menu opens on ATTACK's PRESET; 0.264: SELECT, BODY)
+turn SELECT 1 10
 wait 150
-tap EDIT
+turn SELECT 1 10
 wait 150
-tap EDIT
+turn SELECT 1 10
 wait 150
-tap EDIT
+turn SELECT 1 10
 wait 150
-tap EDIT
+turn SELECT 1 10
 wait 300
 expect kpage 11
 expect kslot 3
@@ -32,7 +32,7 @@ turn PRESET 3 10
 wait 100
 expect selk3_fn 10
 shot kk_kick4.png
-tap EDIT
+turn SELECT 1 10
 wait 300
 turn PRESET 1 10
 wait 200

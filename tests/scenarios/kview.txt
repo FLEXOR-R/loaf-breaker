@@ -5,8 +5,8 @@
 wait 4200
 tap EDIT
 wait 300
-# (0.253: the KICK menu opens on ATTACK's PRESET: EDIT again, BODY)
-tap EDIT
+# (0.253: the KICK menu opens on ATTACK's PRESET; 0.264: SELECT, BODY)
+turn SELECT 1 10
 wait 300
 expect page 4
 expect ksect 1
@@ -17,27 +17,27 @@ turn ALGO 1 60
 wait 200
 expect kpage 1
 shot kv_sub.png
-tap EDIT
+turn SELECT 1 10
 wait 300
 expect ksect 2
 expect kpage 15
 shot kv_tail.png
-tap EDIT
+turn SELECT 1 10
 wait 200
 expect ksect 3
-tap EDIT
+turn SELECT 1 10
 wait 200
 expect ksect 4
-tap EDIT
+turn SELECT 1 10
 wait 300
 expect ksect 5
 expect kpage 11
 shot kv_knobs.png
-tap EDIT
+turn SELECT 1 10
 wait 300
 expect ksect 0
 shot kv_attack.png
-tap EDIT
+turn SELECT 1 10
 wait 300
 expect ksect 1
 press EDIT

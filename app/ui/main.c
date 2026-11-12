@@ -563,12 +563,16 @@ static void input(void)
             lcd_fill(0, 44, 240, 44, C_BLACK);
     }
     if (ui.edit_hold && !(btn & 1u << B_EDIT)) {
-        if (ui.edit_hold == 1u && ui.page == PG_PERC) {   /* (on a drum: the next one, SNARE HAT CLAP round; the
-                                          * KICK stays on its sections: SEL + EDIT the other sources, FLEXOR 0.227) */
-            ui.einst = (uint8_t)(ui.einst >= DR_CLAP ? DR_SNARE : ui.einst + 1u);
+        if (ui.edit_hold == 1u && !set.novice && ui.einst >= DR_CLAP && ui.page == PG_PERC)
+            kick_open();                 /* (LOAF BREAKER, 0.266, FLEXOR: EXPERT, EDIT goes round the sounds, KICK SNARE
+                                          * HAT CLAP; SELECT the KICK's sections. After the CLAP, the KICK) */
+        else if (ui.edit_hold == 1u && (ui.page == PG_PERC || !set.novice)) {   /* (a drum: the next one; EXPERT's
+                                          * KICK: the SNARE; BEGINNER, SNARE HAT CLAP round, FLEXOR 0.227) */
+            ui.einst = (uint8_t)(ui.page != PG_PERC ? DR_SNARE : ui.einst >= DR_CLAP ? DR_SNARE : ui.einst + 1u);
+            ui.pbig = (uint8_t)!ui.kclassic;   /* (in the view the kick has) */
             edit_open();
         } else if (ui.edit_hold == 1u)
-            kick_sect_next();            /* (let go before the hold: the next section) */
+            kick_sect_next();            /* (BEGINNER's KICK: KICK, SHAPE, MIX) */
         ui.edit_hold = 0u;
         ui.redraw |= RG_FOOT | RG_BLOCKS;
     }

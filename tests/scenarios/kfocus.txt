@@ -18,8 +18,8 @@ expect kfocus 1
 shot kf_glo.png
 tap EDIT
 wait 300
-# (0.253: the KICK menu opens on ATTACK's PRESET: EDIT again, BODY)
-tap EDIT
+# (0.253: the KICK menu opens on ATTACK's PRESET; 0.264: SELECT, BODY)
+turn SELECT 1 10
 wait 400
 expect kpage 0
 shot kf_mix.png
@@ -27,24 +27,24 @@ turn ALGO 1 60
 wait 400
 expect kpage 1
 shot kf_sub.png
-tap EDIT
+turn SELECT 1 10
 wait 150
-tap EDIT
+turn SELECT 1 10
 wait 150
-tap EDIT
+turn SELECT 1 10
 wait 150
-tap EDIT
+turn SELECT 1 10
 wait 150
-tap EDIT
+turn SELECT 1 10
 wait 400
 expect ksect 0
 shot kf_click.png
 turn ALGO 1 60
 wait 400
 shot kf_punch.png
-tap EDIT
+turn SELECT 1 10
 wait 150
-tap EDIT
+turn SELECT 1 10
 wait 400
 expect ksect 2
 expect kpage 15

@@ -8,8 +8,8 @@ tap EDIT
 wait 300
 expect kpage 19
 expect ksect 0
-# (0.253: the KICK menu opens on ATTACK's PRESET: EDIT again, BODY)
-tap EDIT
+# (0.253: the KICK menu opens on ATTACK's PRESET; 0.264: SELECT, BODY)
+turn SELECT 1 10
 wait 300
 expect page 4
 expect kpage 0
@@ -18,22 +18,22 @@ turn ALGO 1 10
 wait 200
 expect kpage 1
 shot km_sub.png
-tap EDIT
+turn SELECT 1 10
 wait 300
 expect kpage 15
 shot km_synth.png
-tap EDIT
+turn SELECT 1 10
 wait 300
 expect kpage 5
 shot km_dirt.png
-tap EDIT
+turn SELECT 1 10
 wait 300
 expect page 10
 shot km_tone.png
-tap EDIT
+turn SELECT 1 10
 wait 300
 expect kpage 11
-tap EDIT
+turn SELECT 1 10
 wait 300
 # (0.253: ATTACK opens on PRESET, K1 the built-in kicks)
 expect kpage 19
@@ -41,7 +41,7 @@ turn K1 1 10
 wait 300
 expect kpreset 1
 shot km_preset.png
-tap EDIT
+turn SELECT 1 10
 wait 300
 expect page 4
 expect kpage 1
@@ -94,9 +94,9 @@ expect page 7
 expect pbig 1
 tap EDIT
 wait 100
-tap EDIT
+turn SELECT 1 10
 wait 100
-tap EDIT
+turn SELECT 1 10
 wait 200
 expect page 7
 shot km_snare_again.png

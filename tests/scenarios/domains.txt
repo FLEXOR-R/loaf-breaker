@@ -15,9 +15,9 @@ expect page 7
 expect einst 1
 tap EDIT
 wait 100
-tap EDIT
+turn SELECT 1 10
 wait 100
-tap EDIT
+turn SELECT 1 10
 wait 200
 expect einst 1
 press SEL

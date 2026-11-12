@@ -6,10 +6,10 @@
 wait 4200
 tap EDIT
 wait 300
-# (0.253: the KICK menu opens on ATTACK's PRESET: EDIT again, BODY)
-tap EDIT
+# (0.253: the KICK menu opens on ATTACK's PRESET; 0.264: SELECT, BODY)
+turn SELECT 1 10
 wait 200
-tap EDIT
+turn SELECT 1 10
 wait 200
 turn ALGO 3 10
 wait 200
@@ -18,15 +18,15 @@ turn K1 20 10
 wait 100
 expect csub 40
 expect kslot 3
-tap EDIT
+turn SELECT 1 10
 wait 200
-tap EDIT
+turn SELECT 1 10
 wait 200
-tap EDIT
+turn SELECT 1 10
 wait 200
-tap EDIT
+turn SELECT 1 10
 wait 200
-tap EDIT
+turn SELECT 1 10
 wait 200
 turn PRESET 1 10
 wait 200

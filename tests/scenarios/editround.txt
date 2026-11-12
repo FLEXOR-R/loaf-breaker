@@ -1,0 +1,24 @@
+# LOAF BREAKER (0.266, FLEXOR): EXPERT, EDIT goes round the sounds: the KICK, the SNARE, the HAT, the CLAP, the KICK
+# again; SELECT the KICK's sections (the tabs at the top).
+#   app/build/host/loaf-breaker_host tests/scenarios/editround.txt app/build/scenarios
+wait 4200
+tap EDIT
+wait 300
+expect page 4
+turn SELECT 1 10
+wait 300
+expect ksect 1
+tap EDIT
+wait 300
+expect page 7
+expect einst 1
+tap EDIT
+wait 300
+expect einst 2
+tap EDIT
+wait 300
+expect einst 3
+tap EDIT
+wait 300
+expect page 4
+expect ksect 1
