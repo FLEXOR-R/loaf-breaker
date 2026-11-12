@@ -744,8 +744,7 @@ the MIXER has LEVELS and SENDS; on SEQ, the break's two halves (BRK1, BRK2) alwa
 between them: SEL + ARP opens it); on the drum lanes K1 is **FILL**, K2 the lane's sound, K3 CLR / 4X4, K4 **LENGTH**
 the kick's alone (16, 32 or 64 steps; turning BEGINNER on
 sets every kick and drum of the group to 16; a drum lane stays 16, "LONGER: EXPERT MODE"), and a step held has no menu (the key just
-turns the step on or off); SONG keeps each part's essentials (TRACKS: the item's pattern and its loops; PLAY: the track;
-DROP: the build's bars; BUILD: its style); a white key held plays its loop with no knobs; the black keys are CHOPPAH's (R8 R16 R32 REV FRZ HLF VNL
+turns the step on or off); SONG is whole, as in EXPERT (0.9.22: every knob, ALGORITHM the items, PRESETS' BUILD KICK and TEMPO RISE); a white key held plays its loop with no knobs; the black keys are CHOPPAH's (R8 R16 R32 REV FRZ HLF VNL
 GAT RND FLT DUB; ARP › BLACK KEYS is EXPERT's), each with its knobs as in EXPERT; a knob BEGINNER leaves out is drawn blank
 and says "EXPERT MODE" when turned; SOUNDS › BREAK keeps
 its LEVEL (K4; the pitch is OCT's) and PATTERN › GROOVE its SWING.

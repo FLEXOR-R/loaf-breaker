@@ -1128,11 +1128,11 @@ static void track_say(int i)             /* the knob turned, on the strip */
 }
 /* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's SONG keeps each part's essentials: TRACKS the item's pattern (K2)
  * and its loops (K3); PLAY the track (K1); DROP the build's length (K1); BUILD its style (K1). The rest as it was set */
-static int trk_knob_ok(int i)
+static int trk_knob_ok(int i)            /* (0.9.22, FLEXOR: BEGINNER's SONG whole, as EXPERT's: every knob, ALGORITHM
+                                          * the items, PRESETS' BUILD KICK and TEMPO RISE) */
 {
-    if (!set.novice || RST_ON || ui.page != PG_TRACK)
-        return 1;
-    return ui.tpage == 0u ? i == 1 || i == 2 : i == 0;
+    (void)i;
+    return 1;
 }
 static void track_turn(int i, int32_t d)
 {

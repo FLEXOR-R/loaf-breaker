@@ -1025,8 +1025,8 @@ static void input(void)
                 kstyle_turn(d);          /* (KNOBS' STYLE: a style, the four knobs at once) */
             else
                 kick_mem_turn(d);
-        } else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage == 2u && !set.novice) {   /* LOAF BREAKER: DROP's
-                                          * BUILD KICK (BEGINNER: the pattern, below) */
+        } else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage == 2u) {   /* LOAF BREAKER: DROP's
+                                          * BUILD KICK (BEGINNER too, 0.9.22) */
             char t[12];
             set.drop_kick = (uint8_t)clamp((int32_t)set.drop_kick + (d > 0 ? 1 : -1), 0, (int32_t)KICK_MEMS);
             t[0] = 0;
@@ -1036,7 +1036,7 @@ static void input(void)
             ui.redraw |= RG_BLOCKS;
         } else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage < 2u)
             track_pick(d);               /* LOAF BREAKER: ENV: the track */
-        else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage == 4u && !set.novice) {   /* LOAF BREAKER TEST:
+        else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage == 4u) {   /* LOAF BREAKER TEST:
                                           * BUILD's TEMPO RISE */
             char t[8];
             set.drop_accel = (uint8_t)clamp((int32_t)set.drop_accel + (d > 0 ? 2 : -2), 0, 30);
