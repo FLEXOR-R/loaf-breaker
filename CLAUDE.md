@@ -81,7 +81,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   Navigation (0.9.2): on pages with tabs SELECT the top ones, ALGORITHM those below (EFFECTS: the slot / MAIN MORE MOD;
   SONG, MIX, SYSTEM, OVERLAY: their tabs; PATTERN: SELECT the lanes as ALGORITHM, 0.9.3); where those two move everywhere,
   the page's button again goes HOME (FX, ENV, LFO, GLO, ARP, SEQ (held: the clear, as before); not EDIT, not the kick's FX; GLO still confirms RESET and quits the TUTORIAL). The drums go AROUND the
-  FX by default (`drums_chain` 0 in the defaults; a saved THRU stays).
+  FX by default (`drums_chain` 0 in the defaults; a saved THRU stays). On HOME, SEL + PRESETS the kick (0.9.26, FLEXOR;
+  elsewhere the pattern).
 - **A saved setting never changes at a restart** (FLEXOR, 12 Nov 2026): defaults are for a new FM-1 and resets only;
   never force a value at power-on once it has been saved.
 - KICK 1-20 (0.9.2, FLEXOR): `KICK_MEMS` 20, `KMEM_A` 10 (the first ten's arrays as saved before); 11-20 in `km2`

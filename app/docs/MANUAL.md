@@ -195,7 +195,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 | SELECT | Tempo, 1 BPM a detent · **SEL + SELECT**, on any page: the drums' filter (DRUM FLT, as HOME's K3) |
 | ENV | **TRACK**: tracks of patterns and drops, playing them, the drop's settings (below) |
 | SEL (pressed alone) | The combinations card: every SEL combination on the strip. SEL used with something else (SEL + a knob, SEL + ALGORITHM, SEL + REC…) does that instead |
-| SEL + ALGORITHM · SEL + PRESETS | The break · the pattern, from any page |
+| SEL + ALGORITHM · SEL + PRESETS | The break · the pattern, from any page; **on HOME, SEL + PRESETS changes the kick** (KICK 1–20, 0.9.26) |
 | SEL + SAVE | **Undo** the last pattern wipe (SEL + REC, a drum lane's FILL, CLR / 4X4 or COPY); again: redo |
 | OCT− / OCT+ | Pitch in semitones (hold to go faster). Both: back to 0 |
 | PRESETS | The pattern, P1–P64 (§5); while playing the new one starts at the end of the loop |
@@ -207,7 +207,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 ### Where things are
 
 - **HOME**: playing, the main page. PERFORM, GENERATOR and SETTINGS (HOME again: the next tab), the CDJ waveform on the
-  first two. **SETTINGS** (0.9.2): K1 **VIEW** (WAVEFORM or SLICES: what PERFORM and GENERATOR show; HOME held still flips
+  first two; **SEL + PRESETS** there changes the kick (KICK 1–20, 0.9.26). **SETTINGS** (0.9.2): K1 **VIEW** (WAVEFORM or SLICES: what PERFORM and GENERATOR show; HOME held still flips
   it), K2 **WAVE TYPE** (REKORDBOX or SERATO colours), K3 **WAVE ZOOM** (how much of the past the wave holds), K4 **BREAK
   TIME** (NORMAL, or HALF: the break at half the tempo, at its own speed, its steps every other 16th, while the kick,
   the drums and the clock stay at the tempo: a 115 break under a 230 kick); SELECT stays the tempo. (0.9.25: these four

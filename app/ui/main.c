@@ -1010,8 +1010,13 @@ static void input(void)
             else {                     /* the next or previous break */
                 break_ask((set.brk + (d > 0 ? 1u : n_breaks - 1u)) % n_breaks);
             }
+        } else if (k == EN_PRESET && btn & 1u << B_SEL &&
+                   (ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_HSET)) {
+            kick_mem_turn(d);            /* (LOAF BREAKER, 0.9.26, FLEXOR: on HOME, SEL + PRESETS the kick, KICK 1-20;
+                                          * PRESETS alone the pattern) */
+            ui.redraw |= RG_FOOT;
         } else if (k == EN_PRESET && btn & 1u << B_SEL)
-            pattern_pick(d);             /* SEL held: the pattern, on any page */
+            pattern_pick(d);             /* SEL held: the pattern, on any page (HOME: the kick, above) */
         else if (k == EN_PRESET && ui.page == PG_FX)
             fx_type_turn(d);   /* the focused slot's effect (LOAF
                                           * BREAKER: BEGINNER, a whole scene) */
