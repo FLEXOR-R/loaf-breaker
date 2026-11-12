@@ -764,9 +764,10 @@ Nothing is lost: EXPERT shows everything again, as it was left, and what BEGINNE
 new FM-1, the web emulator and RESET ALL ask for the mode first (BEGINNER chosen to start; RESET ALL as a first start:
 its screen, the start screen, then the question); an FM-1 updated with its
 settings saved stays as it was.
-K4 **AUTO SAVE**, ON: what you change is saved by itself a minute after it changed, once the break has been stopped and
-**nothing has been heard for 10 s** (the flash is never written while it plays, nor while a long kick tail, a reverb, an
-echo or a drum played by hand still sounds: its stall would cut it).
+K4 **AUTO SAVE**, ON: what you change is saved by itself a minute after it changed, once the FM-1 has been **left for
+30 s: stopped, nothing heard and nothing touched** (0.9.26; a save holds the sound and the controls for most of a
+second: never while it plays, while a long kick tail, a reverb, an echo or a drum played by hand still sounds, nor
+while you are turning knobs or pressing keys, about to start again). SAVE saves at once.
 
 **METER** (EXPERT only: SYSTEM › MIDI, K3; not saved: off at every start, and in BEGINNER): once a second the header
 shows CPU (the share of its time the sound takes, average and peak: past ~85 % at its peak the sound is at its limit),

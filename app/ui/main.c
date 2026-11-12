@@ -1871,8 +1871,11 @@ void app_frame(void)
     brk_status(&st);
     b = brk_get_break();
     {                                    /* LOAF BREAKER: AUTO SAVE. A change waits a minute, then is saved once the
-                                          * break has been stopped and the output silent 10 s (a flash write stalls the
-                                          * sound: never while playing, nor while anything still sounds) */
+                                          * FM-1 has been left 30 s: stopped, the output silent and nothing touched (a
+                                          * flash write stalls the sound and the controls for most of a second: never
+                                          * while playing, while anything still sounds, nor while someone is at it,
+                                          * about to press PLAY; 0.9.26, FLEXOR: 10 s of silence alone was too soon) */
+#define AS_REST 30000u                   /* (AUTO SAVE: left this long first) */
         static uint32_t dirty_t, stop_t; /* (stop_t: when the break last played or the output was last heard, over
                                           * -60 dB: a long kick tail, a reverb, an echo, a drum played by hand) */
         if (st.playing || !stop_t || out_sound)
@@ -1882,7 +1885,8 @@ void app_frame(void)
             dirty_t = 0u;
         else if (!dirty_t)
             dirty_t = now | 1u;
-        else if (now - dirty_t >= 60000u && !st.playing && now - stop_t >= 10000u && !ui.lobo_t) {   /* (10 s: FLEXOR) */
+        else if (now - dirty_t >= 60000u && !st.playing && now - stop_t >= AS_REST && now - ui.idle_t >= AS_REST &&
+                 !ui.lobo_t) {
             int ok = store_all();
             set_dirty = 0u;
             dirty_t = 0u;

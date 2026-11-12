@@ -1,7 +1,9 @@
-# LOAF BREAKER: AUTO SAVE waits 10 s after the break stops (a flash write stalls the sound: the stop's tail kept). GLO
-# twice: SETUP, K4 AUTO SAVE on (a change); PLAY a minute and more: not saved while playing; stopped: not yet at 9 s,
-# saved by 10.5 s. Then the output heard holds it too: a change, stopped, the kick played by hand each second (EDIT, key 1)
-# past the minute: not saved while it sounds; saved 10 s after the last one.
+# LOAF BREAKER: AUTO SAVE waits until the FM-1 has been left 30 s: stopped, silent and untouched (a flash write stalls
+# the sound and the controls; 0.9.26, FLEXOR: 10 s of silence alone was too soon, it came while he was at it). GLO
+# twice: SETUP, K4 AUTO SAVE on (a change); PLAY a minute and more: not saved while playing; stopped: not yet at 29 s,
+# saved by 30.5 s. Then the output heard holds it too: a change, stopped, the kick played by hand each second (EDIT, key 1)
+# past the minute: not saved while it sounds; saved 30 s after the last one. Then a knob turned every 5 s, stopped and
+# silent: not saved while it is touched; saved 30 s after the last turn.
 #   app/build/host/loaf-breaker_host tests/scenarios/autosave.txt app/build/scenarios
 wait 4200
 tap GLO
@@ -15,7 +17,7 @@ tap PLAY
 wait 61000
 expect dirty 1
 tap PLAY
-wait 9000
+wait 29000
 expect dirty 1
 wait 1500
 expect dirty 0
@@ -60,7 +62,28 @@ wait 30
 key w0 up
 wait 970
 expect dirty 1
-wait 9000
+wait 29000
+expect dirty 1
+wait 1500
+expect dirty 0
+tap GLO
+wait 300
+turn K1 1 10
+wait 100
+turn K1 -1 10
+wait 100
+expect dirty 1
+wait 58000
+turn K2 1 10
+wait 5000
+turn K2 -1 10
+wait 5000
+turn K2 1 10
+wait 5000
+turn K2 -1 10
+wait 5000
+expect dirty 1
+wait 24000
 expect dirty 1
 wait 1500
 expect dirty 0
