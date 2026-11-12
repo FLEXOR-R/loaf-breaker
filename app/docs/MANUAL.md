@@ -21,8 +21,9 @@ The FM-1 starts in **BEGINNER** mode (SYSTEM › SETUP: GLO, then SELECT; K1): t
 or **EXPERT** (a knob moves the choice, PLAY takes it; white keys 1–3 too). SYSTEM › SETUP K3, turned left past
 BEGINNER, starts the tutorial again. The header says one thing to do at a time, the button or the keys that do it blink, and
 when it's done, "OK!" and the next: at once for a button (HOME, EDIT, SEQ, SAVE ..), five seconds later where there is
-something to hear (an effect, a kick, the drop): 26 steps in eight lessons, THE
-BREAK (HOME: the PERFORM menu, PLAY, the slices, ALGORITHM: another break), EFFECTS (a black key; ARP, the OVERLAY page, two of its effects), THE PATTERN (SEQ: two kicks, a snare),
+something to hear (an effect, a kick, the drop): 31 steps in nine lessons, THE
+BREAK (HOME: the PERFORM menu, PLAY, the slices, ALGORITHM: another break), HOME (0.9.2: HOME again, GENERATOR; again,
+SETTINGS; KNOB 1, the slices; HOME, PERFORM in slices; HOME held, the waveform again), EFFECTS (a black key; ARP, the OVERLAY page, two of its effects), THE PATTERN (SEQ: two kicks, a snare),
 THE KICK (EDIT, PLAY to stop: stopped, white keys 1–4 play the kick, the snare, the hat and the clap; KNOB 1 a built-in
 kick, key 1 to hear it; KNOB 2 its DISTO; EDIT again: SHAPE, KNOB 3 a longer tail; PRESETS: your ten kicks, each heard
 on key 1), THE DRUMS (SELECT: the SNARE, KNOB 1 its presets, KNOB 2 its FX, heard on key 2), THE FX (PLAY again, FX,
@@ -474,7 +475,7 @@ a moment. So, stopped, they are saved on the way (no sound to cut); playing, the
 **SAVE OR STOP**: press SAVE (or stop), then pick the pattern again. The same goes for a track or a drop that leads into
 another group. A new group starts with 16 empty patterns; what you had before this version is P1–P16.
 
-**SEQ** opens the sequencer. **ALGORITHM** (or **SEQ again**) picks what the white keys edit:
+**SEQ** opens the sequencer. **SELECT** or **ALGORITHM** picks what the white keys edit (0.9.2: **SEQ again** goes back to HOME):
 
 ![SEQ: the break's steps and the drum lanes](img/screen-seq.png "The SEQ page") ![A kick step held: NOTE, HITS, COND, NUDGE on K1–K4](img/screen-step.png "A step held")
 
@@ -497,7 +498,7 @@ all 16.
 
 **SEQ's hands** (on SEQ):
 - **Playing, the keys follow the bar playing**: on a lane of 32 or 64 steps (the break, a kick of 64, a snare of 32),
-  the lane shown moves on with the bar the sequencer plays, so you write where you hear. ALGORITHM or SEQ again picks a
+  the lane shown moves on with the bar the sequencer plays, so you write where you hear. SELECT or ALGORITHM picks a
   lane by hand: then it stays put until you stop.
 - **SEQ held + white key 1–4**: the bar shown copied onto bar 1–4 of the same lane (its steps, their HITS, COND, NUDGE
   and notes): write the kick's first bar, then copy it onto 2, 3 and 4.

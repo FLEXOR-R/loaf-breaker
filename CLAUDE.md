@@ -79,8 +79,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - HOME (0.9.2, FLEXOR: the main page): PERFORM, GENERATOR, SETTINGS (PG_HSET, global.c hset_*: K1 VIEW `ui.blocks` kept in
   `bkeys.bk[BK_VIEW]`, K2 WAVE TYPE `wstyle`, K3 WAVE ZOOM `wzoom` (SETUP's K2 before), K4 BREAK TIME (MIDI's K4 before)).
   Navigation (0.9.2): on pages with tabs SELECT the top ones, ALGORITHM those below (EFFECTS: the slot / MAIN MORE MOD;
-  SONG, MIX, SYSTEM, OVERLAY: their tabs); where those two move everywhere, the page's button again goes HOME (FX, ENV,
-  LFO, GLO, ARP; not EDIT, not the kick's FX; GLO still confirms RESET and quits the TUTORIAL). The drums go AROUND the
+  SONG, MIX, SYSTEM, OVERLAY: their tabs; PATTERN: SELECT the lanes as ALGORITHM, 0.9.3); where those two move everywhere,
+  the page's button again goes HOME (FX, ENV, LFO, GLO, ARP, SEQ (held: the clear, as before); not EDIT, not the kick's FX; GLO still confirms RESET and quits the TUTORIAL). The drums go AROUND the
   FX by default (`drums_chain` 0 in the defaults; a saved THRU stays).
 - **A saved setting never changes at a restart** (FLEXOR, 12 Nov 2026): defaults are for a new FM-1 and resets only;
   never force a value at power-on once it has been saved.
@@ -93,7 +93,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   keys and buttons to blink, text), `set.tut` (appended: 0 off, 1..TUT_N the step, 0xFE done, 0xFD the mode asked (0.229); a new FM-1 asks,
   an older save not), the counters tut_* in common.c; the header draws the step (screen.c); SETUP K3 left of
   BEGINNER; GLO quits, SEL + GLO skips. 0.212 (FLEXOR): HOME first (on PERFORM already, HOME stays: tut_home_stay),
-  OUT's K4 the built-in kicks (0.223: BEGINNER's KICK page, K1). 0.235: 23 steps in eight lessons (0.244: 25, the OVERLAY page; 0.246: 24, the ARP key's step gone, FLEXOR: not relevant; 0.252: 26, THE PATTERN before THE KICK, then the kick and the snare heard stopped on keys 1-4: `tut_heard`, a key after the last knob turn), BEGINNER as FLEXOR
+  OUT's K4 the built-in kicks (0.223: BEGINNER's KICK page, K1). 0.235: 23 steps in eight lessons (0.244: 25, the OVERLAY page; 0.246: 24, the ARP key's step gone, FLEXOR: not relevant; 0.252: 26, THE PATTERN before THE KICK, then the kick and the snare heard stopped on keys 1-4: `tut_heard`, a key after the last knob turn; 0.9.3: 31, lesson HOME after the break's: GENERATOR, SETTINGS, KNOB 1 the slices, PERFORM, HOME held, TC_HGEN..TC_HHOLD), BEGINNER as FLEXOR
   chose it (ALGORITHM a break, ARP + K1, K2 DISTO, EDIT to SHAPE and K3 TAIL, SELECT to the SNARE and its PRESET / FX,
   the FX page's PRESETS). 0.213: a step done waits 5 s (`TUT_WAIT`, the header counting) only where there is
   something to hear (TUT[].wait: slices, effects, kicks, DISTO, steps, the drop); a button step goes on at once. Off a step's page the header says the way back (0.248, `tut_away`); the page buttons a step doesn't ask for are held back (0.249, `tut_btn_ok`); the steps say KNOB 1, not K1. AUTO SAVE (0.250, FLEXOR): off while the tutorial runs, on at its end or quit; the first start's BEGINNER turns it on. Keep

@@ -8,6 +8,7 @@
  * quits it, SEL + GLO skips a step. set.tut: 0 off, 1..TUT_N the step running (kept with SAVE), TUT_DONE finished.
  * (Part of app.c's unity: included there in order, before screen.c, which draws the header.) */
 
+enum { TC_HGEN = 100, TC_HSET, TC_HVIEW, TC_HBACK, TC_HHOLD };   /* (0.9.2, FLEXOR: HOME's tabs) */
 enum { TC_HOME, TC_PLAY, TC_SLICES, TC_BRK, TC_PAD, TC_OVLPG, TC_OVLKEY, TC_EDIT, TC_STOP, TC_KEYS4, TC_KPRE, TC_DISTO, TC_SHAPE, TC_TAIL, TC_PRESETS,
        TC_SNPG, TC_PPRE, TC_PFX, TC_SEQ, TC_KICKS, TC_SNARE, TC_FXPG, TC_FXT, TC_DROP, TC_SAVE, TC_END };
 #define TK_WHITE 1u                      /* (the keys a step blinks: the white ones, the black ones) */
@@ -15,9 +16,9 @@ enum { TC_HOME, TC_PLAY, TC_SLICES, TC_BRK, TC_PAD, TC_OVLPG, TC_OVLKEY, TC_EDIT
 #define TK_DRUMS 4u                      /* (keys 1-4: the kick, the snare, the hat, the clap, stopped) */
 #define TK_KEY1 8u                       /* (key 1: the kick) */
 #define TK_KEY2 16u                      /* (key 2: the snare) */
-#define TUT_LESSONS 9u
+#define TUT_LESSONS 10u
 static const char *const TUT_LESSON[TUT_LESSONS] = {"THE BREAK", "EFFECTS", "THE KICK", "THE DRUMS", "THE PATTERN", "THE FX",
-                                                    "THE DROP", "SAVE", "DONE"};
+                                                    "THE DROP", "SAVE", "DONE", "HOME"};
 static const struct {
     uint8_t lesson, cond, keys, wait;    /* (wait: 1, its result to hear: 5 s before the next; 0: at once) */
     uint16_t btn;                        /* (the buttons it blinks: bit B_*) */
@@ -28,6 +29,11 @@ static const struct {
     {0u, TC_PLAY, 0u, 1u, 1u << B_PLAY, "PRESS PLAY: THE BREAK PLAYS"},
     {0u, TC_SLICES, TK_WHITE, 1u, 0u, "PLAY THE WHITE KEYS: ITS SLICES"},
     {0u, TC_BRK, 0u, 1u, 0u, "TURN ALGORITHM: ANOTHER BREAK"},
+    {9u, TC_HGEN, 0u, 0u, 1u << B_HOME, "PRESS HOME AGAIN: GENERATOR"},   /* (0.9.2, FLEXOR: HOME's tabs) */
+    {9u, TC_HSET, 0u, 0u, 1u << B_HOME, "PRESS HOME AGAIN: SETTINGS"},
+    {9u, TC_HVIEW, 0u, 0u, 0u, "TURN KNOB 1 RIGHT: THE SLICES"},
+    {9u, TC_HBACK, 0u, 1u, 1u << B_HOME, "PRESS HOME: PERFORM, IN SLICES"},
+    {9u, TC_HHOLD, 0u, 1u, 1u << B_HOME, "HOLD HOME: THE WAVEFORM AGAIN"},
     {1u, TC_PAD, TK_BLACK, 1u, 0u, "HOLD A BLACK KEY: AN EFFECT"},
     {1u, TC_OVLPG, 0u, 0u, 1u << B_ARP, "PRESS ARP: ALL THE EFFECTS"},   /* (0.244: the OVERLAY page back) */
     {1u, TC_OVLKEY, TK_WHITE, 1u, 0u, "HOLD WHITE KEYS: AN EFFECT EACH"},
@@ -191,6 +197,16 @@ static void tut_quit(void)
 static int tut_done(uint32_t c, const brk_status_t *st)
 {
     switch (c) {
+    case TC_HGEN:                        /* (0.9.2: HOME's tabs, PERFORM, GENERATOR, SETTINGS, the VIEW) */
+        return ui.page == PG_GEN;
+    case TC_HSET:
+        return ui.page == PG_HSET;
+    case TC_HVIEW:
+        return ui.page == PG_HSET && ui.blocks;
+    case TC_HBACK:
+        return ui.page == PG_HOME;
+    case TC_HHOLD:
+        return ui.page == PG_HOME && !ui.blocks;
     case TC_HOME:                        /* (HOME pressed, PERFORM: on it already, it stays: tut_home_stay) */
         return tut_home != tut_at.home && ui.page == PG_HOME;
     case TC_PLAY:
@@ -253,6 +269,18 @@ static const char *tut_away(uint32_t c, uint16_t *btn)
     int home = ui.page == PG_HOME || ui.page == PG_GEN, kick = ui.page == PG_KICK;
     *btn = 0u;
     switch (c) {
+    case TC_HVIEW:                       /* (0.9.2: off HOME's SETTINGS) */
+        if (ui.page != PG_HSET) {
+            *btn = 1u << B_HOME;
+            return "PRESS HOME: BACK TO SETTINGS";
+        }
+        return 0;
+    case TC_HHOLD:
+        if (ui.page != PG_HOME) {
+            *btn = 1u << B_HOME;
+            return "PRESS HOME: BACK TO PERFORM";
+        }
+        return 0;
     case TC_SLICES:
     case TC_BRK:
         if (!home) {

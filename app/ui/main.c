@@ -654,13 +654,9 @@ static void input(void)
         }
     }
     if (seq_wait) {
-        if (!(btn & 1u << B_SEQ)) {      /* let go: on SEQ already, the next lane */
-            if (seq_wait & 2u) {
-                ui.seq_manual = 1u;      /* (a lane picked: the bar playing no longer followed, until stopped) */
-                seq_lane_step(1);
-                ui.redraw |= RG_FOOT | RG_BLOCKS;
-                page_say();
-            }
+        if (!(btn & 1u << B_SEQ)) {      /* let go: on SEQ already, HOME (0.9.2, FLEXOR: SELECT the lanes) */
+            if (seq_wait & 2u)
+                home_back();
             seq_wait = 0u;
         } else if (now - seq_t >= 700u) {   /* held: the pattern playing, all of it, once SEQ is pressed again */
             char t[12] = "CLEAR P";
@@ -933,6 +929,13 @@ static void input(void)
         }
         if (k == EN_SELECT && ui.page == PG_TRACK) {   /* (0.9.2, FLEXOR: SONG, SELECT its tabs; the tempo: HOME) */
             track_tab_turn(d);
+            continue;
+        }
+        if (k == EN_SELECT && ui.page == PG_SEQ) {   /* (0.9.2, FLEXOR: PATTERN, SELECT its lanes, as ALGORITHM) */
+            ui.seq_manual = 1u;
+            seq_lane_step(d);
+            page_say();
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
             continue;
         }
         if (k == EN_SELECT && ui.page == PG_MIX) {   /* (0.9.2, FLEXOR: MIX, SELECT its tabs: LEVELS, SENDS, MASTER,

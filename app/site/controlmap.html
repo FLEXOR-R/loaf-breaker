@@ -185,7 +185,7 @@
               ["SEL + EDIT", "The next source: KICK, DRUMS, BREAK"], ["Keys 1–4, stopped", "Play KICK SNARE HAT CLAP (big and classic views, the drums)"],
               ["SHAPE (drums)", "SNAP / CUT / SPREAD / BEND · DRIVE · PRESET"], ["SEL + REC on a layer's FX", "That effect back to its start"],
               ["MIDI 36 · 38 · 39 · 42", "Kick · snare · clap · hat"]] },
-    { id: "seq", btn: "SEQ", name: "PATTERN", sub: "64 patterns, every step, the groove", again: "next lane (14, then KEYS, GROOVE)", subs: [
+    { id: "seq", btn: "SEQ", name: "PATTERN", sub: "64 patterns, every step, the groove", again: "back to HOME (SELECT or ALGORITHM: the lane)", subs: [
       { n: "BREAK", k: ["", "", "", "STEPS"], strip: "THE BREAK'S ROWS ON THE GRID", note: "EXPERT: above the first lane; K4 HIDDEN, 16, 32 (it plays 32 whatever)" },
       { n: "STEPS 1-16", k: ["SLICE", "PITCH", "HITS", "REVERSE"], strip: "THE BREAK'S STEPS · THE DRUM LANES", note: "the step edited outlined" },
       { n: "STEPS 17-32", k: ["SLICE", "PITCH", "HITS", "REVERSE"], strip: "THE BREAK'S STEPS · THE DRUM LANES", note: "" },
@@ -193,7 +193,7 @@
       { n: "SNARE · HAT · CLAP", k: ["FILL", "SOUND", "CLR / 4X4", "LENGTH"], strip: "THE KEYS: THIS BAR'S 16 STEPS · ALL THE LANES", note: "two lanes each: 1-16, 17-32 (BEGINNER: 16, LONGER in EXPERT)" },
       { n: "A STEP HELD", k: ["NOTE", "HITS", "COND", "NUDGE"], strip: "THAT STEP'S OWN (THE FOOT NAMES THEM)", note: "COND: ALWAYS 75% 50% 25% 1:2 2:2" },
       { n: "GROOVE", k: ["SWING", "", "", ""], strip: "SWING · THE BAR'S 16THS", note: "also SEL + ARP; LENGTH: 1 BEAT … 2 STEPS, /8: in 8ths" } ],
-      algo: "Lane", presets: "Pattern P1–P64", keys: "steps", sel: "Tempo (SEL: drum filter)",
+      algo: "Lane", presets: "Pattern P1–P64", keys: "steps", sel: "Lane, as ALGORITHM (SEL: drum filter)",
       notes: [["REC", "Record the keys and MIDI notes into the pattern"], ["SEL + REC", "Clear: the lane here, the pattern elsewhere"],
               ["SEQ held, then SEQ", "Clear the whole pattern (SEL + SAVE undoes)"], ["SEL + SEQ", "Copy the pattern; on another: paste"],
               ["EDIT (a drum lane)", "That drum's sound"], ["SEQ held + white key 1–4", "The bar shown copied onto that bar"],

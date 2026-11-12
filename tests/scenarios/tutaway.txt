@@ -1,7 +1,7 @@
 # LOAF BREAKER: the TUTORIAL keeps to its steps (0.249, FLEXOR: "the tutorial must flow"): a page button the step
 # doesn't ask for does nothing ("FOLLOW THE STEP"); off the step's page all the same (0.248), the header says the way
-# back and only that button blinks and works. Step 3 (the slices, HOME): EDIT held back. SEL + GLO to step 9 (two kicks
-# into the pattern), still on HOME: "PRESS SEQ: BACK TO THE PATTERN"; EDIT held back, SEQ: the pattern, the step again.
+# back and only that button blinks and works. Step 3 (the slices, HOME): EDIT held back. SEL + GLO to step 14 (two kicks
+# into the pattern; 9 before HOME's five steps, 0.9.2), still on HOME: "PRESS SEQ: BACK TO THE PATTERN"; EDIT held back, SEQ: the pattern, the step again.
 #   app/build/host/loaf-breaker_host tests/scenarios/tutaway.txt app/build/scenarios
 wait 4200
 tap GLO
@@ -34,9 +34,19 @@ wait 150
 tap GLO
 wait 150
 tap GLO
+wait 150
+tap GLO
+wait 150
+tap GLO
+wait 150
+tap GLO
+wait 150
+tap GLO
+wait 150
+tap GLO
 release SEL
 wait 300
-expect tut 9
+expect tut 14
 expect page 0
 tap EDIT
 wait 400
