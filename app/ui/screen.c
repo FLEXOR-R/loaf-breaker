@@ -142,7 +142,7 @@ void app_splash(void)
     grey_draw(SPLASH_RLE, sizeof SPLASH_RLE, SPLASH_PAL, SPLASH_W, SPLASH_H, (240 - SPLASH_W) / 2, 240 - SPLASH_H);
     sfx_splash_d = 0u;
     {
-        char t[16];
+        char t[24];                     /* (a TEST's "0.268 TEST 12" too) */
         version_text(t);
         cv_begin(240, 240 - SPLASH_H, C_BLACK);
         cv_text(234 - text_w(&FONT_T, t), 1, &FONT_T, t, C_GRAY);
