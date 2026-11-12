@@ -26,7 +26,7 @@ zven confirmed on 12 Nov 2026 that LOAF BREAKER is welcome on the hub.
 | 2 | A GitHub release with the .fwsc | Every push to `loaf`: release `loaf-vX.YYY` with `loaf-breaker-X.YYY.fwsc` |
 | 3 | Its own `FM-1_` identity | `FM-1_2623` (above) |
 | 4 | The update loader in the package | felucca-bsp's, shipped in every package |
-| 5 | Tested on a real FM-1: from V15, from another firmware, and another installed from it | **To do** before the form (before leaving LOAF BREAKER: SYSTEM › RESET › WIPE MEMORY, 0.263, its saves erased so the next firmware finds that memory blank) |
+| 5 | Tested on a real FM-1: from V15, from another firmware, and another installed from it | Done by FLEXOR with 0.9.1 (12 Nov 2026), and the form sent; his V15's instrument list was already broken (its factory data overwritten, M-VAVE's to restore), said in the form. Before (before leaving LOAF BREAKER: SYSTEM › RESET › WIPE MEMORY, 0.263, its saves erased so the next firmware finds that memory blank) |
 | 6 | `fmhub.json` in the root of the default branch | Done (`loaf`, the default branch) |
 
 The site has no install code any more (0.261, public): the firmware installs from it, from the releases and from the hub.
