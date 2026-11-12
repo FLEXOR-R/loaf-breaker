@@ -354,7 +354,9 @@ static uint8_t drop_kick_want, drop_kick_back;   /* LOAF BREAKER: the build's ki
                                           * one to come back at the drop (+ 1) */
 static void drop_start_k(uint32_t to, int item);
 static uint8_t b_stut;                   /* (0.9.26, FLEXOR: this build's STUTTER, a track's DROP item's K3: the break
-                                          * rolled over the BUILD's style; kept in the item's break byte, a DROP's unused) */
+                                          * rolled over the BUILD's style; kept in the item's break byte, a DROP's unused:
+                                          * bit 0; bits 1-2 its K4, what the GAP keeps, b_gapm) */
+static const char *const GAPM_NAME[4] = {"NOTHING", "BREAK", "DRUMS", "ECHOES"};
 static void drop_kick_text(char *t)      /* (DROP's PRESETS: SAME, KICK n) */
 {
     if (!set.drop_kick || set.drop_kick > KICK_MEMS)
@@ -380,7 +382,8 @@ static void drop_start_k(uint32_t to, int item)   /* item: a track's DROP item (
         if (drop_to == 0xFFu && grp_blocked(ui.drop_pat))
             ui.drop_pat = 0xFFu;
         drop_kick_want = item >= 0 ? *trk_kick((uint32_t)item) : set.drop_kick;   /* (the build's kick) */
-        b_stut = (uint8_t)(item >= 0 && *trk_brk((uint32_t)item) == 1u);
+        b_stut = (uint8_t)(item >= 0 && *trk_brk((uint32_t)item) & 1u);
+        b_gapm = (uint8_t)(item >= 0 ? *trk_brk((uint32_t)item) >> 1 & 3u : 0u);
         p = &pats.p[set.pattern % NPAT];
         if (drop_to < NPAT)
             p = &pats.p[drop_to];
@@ -1111,10 +1114,12 @@ static void track_value(int i, char *t)
             text_cat(t, "X");
             int_text(tr->rep[ui.trk_cur % TRK_ITEMS], t + 1);
         } else if (tr->it[ui.trk_cur % TRK_ITEMS] == TI_DROP)
-            text_cat(t, *trk_brk(ui.trk_cur) == 1u ? "ON" : "OFF");
+            text_cat(t, *trk_brk(ui.trk_cur) & 1u ? "ON" : "OFF");
         else
             text_cat(t, "-");
-    } else if (!trk_is_pat(tr, ui.trk_cur))
+    } else if (tr->it[ui.trk_cur % TRK_ITEMS] == TI_DROP)
+        text_cat(t, GAPM_NAME[*trk_brk(ui.trk_cur) >> 1 & 3u]);
+    else if (!trk_is_pat(tr, ui.trk_cur))
         text_cat(t, "-");
     else if (!*trk_brk(ui.trk_cur) || *trk_brk(ui.trk_cur) > n_breaks)
         text_cat(t, "SAME");
@@ -1128,7 +1133,8 @@ static void track_say(int i)             /* the knob turned, on the strip */
                                         {"BUILD STYLE", "SWEEP", "RISER", "GAP"}, {"RESET", "RESET", "RESET", "RESET"}};
     char t[20];
     track_value(i, t);
-    app_say(!ui.tpage && i == 2 && trk_now()->it[ui.trk_cur % TRK_ITEMS] == TI_DROP ? "STUTTER" : N[ui.tpage % NTPART][i & 3], t);
+    int drp = !ui.tpage && trk_now()->it[ui.trk_cur % TRK_ITEMS] == TI_DROP;
+    app_say(drp && i == 2 ? "STUTTER" : drp && i == 3 ? "GAP KEEPS" : N[ui.tpage % NTPART][i & 3], t);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
 /* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's SONG keeps each part's essentials: TRACKS the item's pattern (K2)
@@ -1267,7 +1273,7 @@ static void track_turn(int i, int32_t d)
                 t->rep[c] = 1u;
         } else if (i == 2) {
             if (t->it[c] == TI_DROP) {   /* (0.9.26, FLEXOR: a DROP's K3 its STUTTER, right ON, left OFF) */
-                *trk_brk(c) = dir > 0 ? 1u : 0u;
+                *trk_brk(c) = (uint8_t)((*trk_brk(c) & ~1u) | (dir > 0 ? 1u : 0u));
                 set_dirty = 1u;
                 track_say(2);
                 return;
@@ -1275,6 +1281,16 @@ static void track_turn(int i, int32_t d)
             if (t->it[c] == TI_END || t->it[c] == TI_GAP)
                 return;
             t->rep[c] = (uint8_t)clamp((int32_t)t->rep[c] + dir, 1, 16);
+        } else if (t->it[c] == TI_DROP) {   /* (0.9.26, FLEXOR: a DROP's K4, what its GAP keeps: NOTHING, BREAK,
+                                          * DRUMS, ECHOES; the GAP's length BUILD's K4) */
+            *trk_brk(c) = (uint8_t)((*trk_brk(c) & 1u) |
+                                    (uint32_t)clamp((int32_t)(*trk_brk(c) >> 1 & 3u) + dir, 0, 3) << 1);
+            set_dirty = 1u;
+            if (!set.drop_gap) {
+                app_say("NO GAP YET", "SONG > BUILD: K4 GAP");
+                ui.redraw |= RG_BLOCKS | RG_FOOT;
+                return;
+            }
         } else {                         /* (LOAF BREAKER: K4 the item's break; the END on PLAY's K3) */
             if (!trk_is_pat(t, c))
                 return;
@@ -1662,11 +1678,19 @@ static void track_picture(int32_t top)
                 kk[0] = 'K';
                 int_text((int32_t)*trk_kick(i), kk + 1);
             }
-            if (t->it[i] == TI_DROP && *trk_brk(i) == 1u)
-                text_cat(kk, "S");       /* (0.9.26: its STUTTER) */
+            if (t->it[i] == TI_DROP && *trk_brk(i) & 1u)
+                text_cat(kk, "S");       /* (0.9.26: its STUTTER; what its GAP keeps: B, D, E) */
+            if (t->it[i] == TI_DROP && *trk_brk(i) >> 1 & 3u) {
+                uint32_t kn = text_n(kk);
+                kk[kn] = "BDE"[(*trk_brk(i) >> 1 & 3u) - 1u];
+                kk[kn + 1u] = 0;
+            }
             if (t->it[i] == TI_DROP && kk[0]) {   /* (LOAF BREAKER: its build's kick under it, S its STUTTER) */
                 cv_text(x + (28 - text_w(&FONT_XS, "DRP")) / 2, y + 3, &FONT_XS, "DRP", c);
-                cv_text(x + (28 - text_w(&FONT_XS, kk)) / 2, y + 16, &FONT_XS, kk, c);
+                {                        /* (too wide, "K20SE": the smaller face) */
+                    const felucca_font_t *kf = text_w(&FONT_XS, kk) > 27 ? &FONT_T : &FONT_XS;
+                    cv_text(x + (28 - text_w(kf, kk)) / 2, y + 16, kf, kk, c);
+                }
             } else if (t->it[i] == TI_DROP)
                 cv_text(x + (28 - text_w(&FONT_XS, "DRP")) / 2, y + 9, &FONT_XS, "DRP", c);
             else {

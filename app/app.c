@@ -958,6 +958,8 @@ static volatile uint8_t build_bars = 4u; /* the next build's (the main loop's, a
 static volatile uint32_t build_len;      /* the build's steps (the render's) */
 static volatile uint8_t build_wait;      /* asked for: it starts at the next bar (none: the drop at this bar's end) */
 static volatile float drop_gain = 1.0f;  /* the crash's level */
+static volatile uint8_t b_gapm;          /* (0.9.26, FLEXOR: what the GAP keeps: 0 nothing, 1 the break, 2 the drums, 3
+                                          * the echoes (the sources quiet, the FX ringing on); a track's DROP item's K4) */
 static volatile uint8_t b_style, b_sweep, b_gap;   /* (the main loop's, as it asks: this build's style (DS_*, chance
                                           * picked), its filter (0 HP, 1 LP, 2 none), its gap (steps)) */
 static volatile float b_riser = 1.0f;    /* its noise's level (1: as it always was) */
@@ -1945,6 +1947,25 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                 for (i = 0; i < m; i++)
                     kick[i] += perc[i];
         }
+        if ((gap_was || ngev) && b_gapm) {   /* (0.9.26: a GAP that keeps something: the others quiet here, before
+                                          * the chain, in ~1 ms, as the whole mix below otherwise) */
+            static float gk = 1.0f;
+            uint32_t j = 0u, on = gap_was, km = b_gapm;
+            for (i = 0; i < m; i++) {
+                while (j < ngev && gev_at[j] <= i)
+                    on = gev_v[j++];
+                gk += ((on ? 0.0f : 1.0f) - gk) * 0.02f;
+                if (km != 1u) {          /* (DRUMS, ECHOES: the break and its throws) */
+                    mono[i] *= gk;
+                    echo[i] *= gk;
+                    verb[i] *= gk;
+                }
+                if (km != 2u) {          /* (BREAK, ECHOES: the kick and the drums) */
+                    kick[i] *= gk;
+                    perc[i] *= gk;
+                }
+            }
+        }
         /* the break through the DJ filter, the drums joining it into the chain (or around it) */
         {
             const float *drums = kick_dry ? perc : kick;   /* (the kick apart: the snare and the hat alone here) */
@@ -1977,8 +1998,10 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                                           * everything; the drop's crash */
             static float h1l, h1r, h2l, h2r, cl;
             static uint32_t nz = 0x1234567u;
-            int bu = b_on && build_len, sw = b_sweep;   /* (LOAF BREAKER: its filter: 0 HP, 1 LP, 2 none) */
-            float p = bu ? build_p : 0.0f, rz = 0.22f * p * p * b_riser;
+            int bu = b_on && build_len && !(gap_now && b_gapm), sw = b_sweep;   /* (LOAF BREAKER: its filter: 0 HP, 1 LP, 2
+                                          * none; 0.9.26: a GAP that keeps something, heard open) */
+            float p = bu ? build_p : 0.0f, rz = gap_now ? 0.0f : 0.22f * p * p * b_riser;   /* (0.9.26: the riser quiet in
+                                          * the GAP whatever it keeps) */
             float kk = brk_clampf(sw == 1 ? 6.2832f * 18000.0f * brk_exp2f(-p * 5.5f) / (float)BRK_SR
                                           : 6.2832f * 30.0f * brk_exp2f(p * 6.5f) / (float)BRK_SR, 0.0f, 0.9f);
             for (i = 0; i < m; i++) {
@@ -2032,7 +2055,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             }
             lr_test = left > 1u ? left : 0u;
         }
-        if (gap_was || ngev) {           /* LOAF BREAKER: the GAP, silence (in ~1 ms) till the drop, the crash on it */
+        if ((gap_was || ngev) && !b_gapm) {   /* LOAF BREAKER: the GAP, silence (in ~1 ms) till the drop, the crash on it */
             static float gg = 1.0f;
             uint32_t j = 0u, on = gap_was;
             for (i = 0; i < m; i++) {
