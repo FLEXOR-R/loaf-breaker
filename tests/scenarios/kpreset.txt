@@ -28,7 +28,10 @@ key w1 up
 wait 100
 shot kp_aud.png
 wait 200
-turn SELECT 1 10
+# (0.264: SELECT on the KICK menu is its sections; the drums: SEL + EDIT)
+press SEL
+tap EDIT
+release SEL
 wait 300
 expect page 7
 key w2 down

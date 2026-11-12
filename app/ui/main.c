@@ -884,9 +884,20 @@ static void input(void)
             ui.redraw |= RG_FOOT;        /* (the foot shows them: SEL held or locked) */
             continue;
         }
+        if (k == EN_SELECT && !set.novice && (ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX())) {
+            kick_sect_turn(d);           /* LOAF BREAKER (0.264, FLEXOR): EXPERT's KICK menu, SELECT the tabs at the top
+                                          * (its sections), ALGORITHM those at the bottom (its parts); the drums: SEL +
+                                          * EDIT */
+            ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
+            continue;
+        }
         if (k == EN_SELECT && (ui.page == PG_KICK || ui.page == PG_PERC) &&
             (set.novice || (ui.page == PG_KICK && !ui.kclassic) || (ui.page == PG_PERC && ui.pbig))) {   /* (BEGINNER:
                                           * either view, 0.230) */
+            if (!set.novice && ui.page == PG_PERC)   /* (0.264, FLEXOR: EXPERT's drums, SELECT their tabs at the top,
+                                          * SNARE, HAT, CLAP round; the KICK: SEL + EDIT) */
+                ui.einst = (uint8_t)(1u + (ui.einst + (d > 0 ? 0u : 1u)) % (NDRUMS - 1u));
+            else
             ui.einst = (uint8_t)((ui.einst + (d > 0 ? 1u : NDRUMS - 1u)) % NDRUMS);   /* LOAF BREAKER: the big view:
                                           * SELECT goes from drum to drum (the KICK, SNARE, HAT, CLAP), each in
                                           * it (not the tempo here) */

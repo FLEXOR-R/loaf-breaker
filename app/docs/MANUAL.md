@@ -214,8 +214,9 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
   **OUT** (BODY's last part), **K4 PRESET**: 909, TECHNO, EARLY HC, ROTTERDAM, INDUSTRIAL, DISTORTO, on the kick
   selected (PRESETS: KICK 1–10), its volume, steps and DISTO and SCREAM kept. **A kick copied onto another:** K4 PRESET past
   them, **COPY K1 … COPY K10**: that memory's kick, its SYNTH and its knobs (KNOBS, CLEAN SUB, BASS, MORPH) onto the
-  kick selected, its volume kept (pick the kick to fill with PRESETS, then the one to copy with K4). On the big view, **SELECT** goes from drum to drum (the KICK,
-  SNARE, HAT, CLAP, and round), each in a big view of its own: its hit drawn large over its level, its decay
+  kick selected, its volume kept (pick the kick to fill with PRESETS, then the one to copy with K4). On the KICK menu, **SELECT** goes through the tabs at the top (its sections: ATTACK, BODY, TAIL, DIRT, TONE,
+  KNOBS) and **ALGORITHM** through those at the bottom (the section's parts) (0.264). **SEL + EDIT** opens the drums; there,
+  SELECT goes from drum to drum (SNARE, HAT, CLAP, and round; BEGINNER: the KICK too), each in a big view of its own: its hit drawn large over its level, its decay
   marked in amber, its memory and tune, the four drums along the bottom (stopped: keys 1–4 play them), the part's
   knobs as cards (ALGORITHM: SOUND or SHAPE, PRESETS its memories). SELECT is not the tempo there. **SEL + EDIT** opens
   the drums in the view the kick has, and **EDIT held** goes round the same three views from either page (RGB, its

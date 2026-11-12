@@ -304,11 +304,19 @@ static void kick_sect_next(void)         /* EDIT on the KICK menu */
     ui.ksect = (uint8_t)((ui.ksect + 1u) % KSECTS);
     kick_open();
 }
-static void kick_sect_step(int32_t d)    /* ALGORITHM on it */
+static void kick_sect_turn(int32_t d)    /* LOAF BREAKER (0.264, FLEXOR): SELECT on the KICK menu, the tabs at the top:
+                                          * its sections, either way (EDIT still the next one) */
+{
+    ui.ksect = (uint8_t)((ui.ksect + (d > 0 ? 1u : KSECTS - 1u)) % KSECTS);
+    kick_open();
+}
+static void kick_sect_step(int32_t d)    /* ALGORITHM on it: the tabs at the bottom, its parts */
 {
     uint32_t s = ui.ksect % KSECTS, n = KSECT_N[s], k;
-    if (set.novice) {                    /* (BEGINNER: KICK, SHAPE, as EDIT) */
-        kick_sect_next();
+    if (set.novice) {                    /* (BEGINNER: KICK, SHAPE, MIX, either way; 0.264) */
+        keasy_pg = (uint8_t)((keasy_pg + (d > 0 ? 1u : KE_PAGES - 1u)) % KE_PAGES);
+        kick_part_set(KP_PART_OUT);
+        app_say("KICK", KE_PAGE[keasy_pg % KE_PAGES]);
         return;
     }
     for (k = 0; k < n; k++) {            /* (BEGINNER: the advanced parts passed over) */
