@@ -26,7 +26,7 @@ one is held, K1–K4 tune it. In EXPERT, **ARP › BLACK KEYS** picks another la
 ## 4. EDIT: shape the kick
 
 **EDIT** opens the kick, drawn large: what you hear, its pitch falling in amber. K1–K4 change the part shown;
-**ALGORITHM** goes to the next part, **SELECT** to the next section (ATTACK, BODY, TAIL, DIRT, TONE, KNOBS: the tabs at the top), and **EDIT** again to the next sound (KICK, SNARE, HAT, CLAP, round). In EXPERT it opens on ATTACK's **PRESET**: KNOB 1 picks a built-in kick, 909 to DISTORTO. Each part
+**ALGORITHM** goes to the next part, **SELECT** to the next section (ATTACK, BODY, TAIL, DIRT, FX, KNOBS: the tabs at the top), and **EDIT** again to the next sound (KICK, SNARE, HAT, CLAP, round). In EXPERT it opens on ATTACK's **PRESET**: KNOB 1 picks a built-in kick, 909 to DISTORTO. Each part
 says in a few words what it is for. Try **DIRT › DISTO** (K1: the distortion) and **SYNTH › BASS** (K2: the
 rawstyle reverse bass). **PRESETS** there picks one of the 10 kick memories: each keeps its own sound.
 
@@ -40,6 +40,8 @@ steps of the lane shown; ALGORITHM: the lane) and chain them on **ENV** (TRACKS:
 - **SEL**, tapped alone: the card of shortcuts, those that work everywhere and those of the page you are on.
   Twice quickly: SEL stays held (lit) for one-handed shortcuts; once more frees it.
 - **SAVE**: keeps everything (or SYSTEM › SETUP: AUTO SAVE).
+- **Live: SEL + K1–K4** change the kick while it plays, on any page (DRIVE, SCREAM, SCREECH, DISTO to start). **SEL
+  twice** locks SEL down, lit: both hands free for the kick knobs; once more frees it.
 
 When you know your way around: **SYSTEM › SETUP (GLO twice), K1 → EXPERT** shows every page (the kick's layers and their effects,
 SCREAM and DISTO +, SYNTH +, CLEAN MORPH, each knob's settings…). The full manual has the rest.

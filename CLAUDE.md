@@ -44,12 +44,12 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   (https://claude.ai/artifact/MCakoDjuGTXjMLFiobM1k3; the choice in its store, `tri/choix`): 9 breaks, NUSKOOL first (FLEXOR's order; LO-FI out in 0.200 for room).
 - Patterns (10 Nov 2026, 0.197): 64, four groups of 16 (`NGRP`, `NPAT_ALL`); the group in RAM is pats.p/kn/hits and
   steps.b (`set.pgrp`; `set.pattern` its slot; `pat_cur()` 0..63; `pat_go()` brings one in). Each group has its own
-  objects (OBJ_PG0/KG0/SG0 + g; NG0 unused since 0.209); SAVE (`store_all`) writes 7 (with OBJ_KLAB). Leaving a group with unsaved changes while playing is
+  objects (OBJ_PG0/KG0/SG0 + g; NG0's first is KICK 11-20 since 0.9.2, the others unused); SAVE (`store_all`) writes 8 (with OBJ_KLAB, OBJ_KMEM2). Leaving a group with unsaved changes while playing is
   refused ("SAVE OR STOP", FLEXOR's choice: never a cut in the sound). Track items, `drop_after`, `ui.drop_pat` and
   `pat_next` are 0..63 (or 1..64); `drop_to` stays a slot (0xFF: another group's, read in at the drop).
 - MELODY and KEYS (0.198-0.208) removed in 0.209 (FLEXOR: "kicks and drums only"): perc.c's PV_STAB is an empty place
   (perc_t's layout in the saves), DR_STAB gone (NDRUMS 4; `NDRUMS_SAVED` 5 for pats.hits), OBJ_NG0 + g no longer
-  saved or read (SAVE writes 7 objects), settings' pstab/smem/sslot/mel_vol/mel_ver unused, st[k][2] bits 3-7 unused.
+  saved or read (SAVE wrote 7 objects; 8 since 0.9.2, OBJ_NG0 holding KICK 11-20), settings' pstab/smem/sslot/mel_vol/mel_ver unused, st[k][2] bits 3-7 unused.
   Don't bring a melody back without FLEXOR asking.
 - Domains (10 Nov 2026, 0.201; 0.200 is the layout before, FLEXOR may want it back): the header and the tabs name the
   domain (`DOM[]`, `dom_name()` in main.c): LIVE, SOUNDS, PATTERN, SONG, MIX, EFFECTS, SYSTEM. SOUNDS' sources: KICK,
@@ -69,12 +69,21 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   kick_mem_go, copied with COPY K n, off with a built-in PRESET / RESET); engine `kick_set_lab`, `kick_set_stack`
   (a second kick voice, kv2, until STACK's hand-over), `kick_set_solo`. All 0 renders bit for bit as 0.203: keep it so.
   The tabs drop the "KICK" label on the KICK menu (six sections).
-- KICK menu by anatomy (10 Nov 2026, 0.205, FLEXOR's choice): KSECT ATTACK, BODY, TAIL, DIRT, TONE, KNOBS (kick.c);
+- KICK menu by anatomy (10 Nov 2026, 0.205, FLEXOR's choice): KSECT ATTACK, BODY, TAIL, DIRT, FX (TONE until 0.9.1), KNOBS (kick.c;
+  0.9.2: FX's parts EQ B, EQ S, FX1, FX2 drawn as tabs on the EQ and FX pages too, `ksect_row`; KNOBS' STYLE named ASSIGN);
   app_ui_init opens it on ATTACK's PRESET (0.253, FLEXOR: KP_PRESET, part KP_PART_PRESET, K1 the built-in kicks alone; ui.ksect 0; 0.205-0.252 on BODY's MIX); the parts in a row at the
   picture's foot (0.264, FLEXOR: SELECT the tabs at the top, its sections, kick_sect_turn; ALGORITHM those at the
   bottom, its parts; EXPERT's drums: SELECT round SN HH CP, the KICK by SEL + EDIT; 0.266: EXPERT's EDIT goes round the sounds, KICK SN HH CP) (kick_chip; 0.207: a full-width bar of tabs, FONT_T if it fits, the wave up: its middle y 45, 29
   px each way). Views (ui.kview, EDIT held): RGB (kick_rgb, 500 ms), WAVE, then CLASSIC (ui.kclassic); 0.231 the drums'
   big view too (perc_rgb into kv_rgb, shared: kv_sig / pw_sig say whose), one state for all.
+- HOME (0.9.2, FLEXOR: the main page): PERFORM, GENERATOR, SETTINGS (PG_HSET, global.c hset_*: K1 VIEW `ui.blocks` kept in
+  `bkeys.bk[BK_VIEW]`, K2 WAVE TYPE `wstyle`, K3 WAVE ZOOM `wzoom` (SETUP's K2 before), K4 BREAK TIME (MIDI's K4 before)).
+  Navigation (0.9.2): on pages with tabs SELECT the top ones, ALGORITHM those below (EFFECTS: the slot / MAIN MORE MOD;
+  SONG: its tabs); where those two move everywhere, the page's button again goes HOME (FX, ENV; not EDIT, not the
+  kick's FX). The drums go AROUND the FX at every power-on (`drums_chain` 0).
+- KICK 1-20 (0.9.2, FLEXOR): `KICK_MEMS` 20, `KMEM_A` 10 (the first ten's arrays as saved before); 11-20 in `km2`
+  (OBJ_KMEM2 = OBJ_NG0, pool RAM); always reach a memory through `kmem_at`, `ksmem_at`, `kx_at`, `kxh_at`, `klmem_at`.
+  Each kick's PRESET name: `kick_lab_t.pre` (1 + OUT K4's place; 0 the memory's own built-in, `kpre_mem`).
 - GLO EFFECTS K3 WAVE (`set.wstyle`: REKORDBOX / SERATO, common.c serato_col; the kick's RGB and cdj.c) and K4 KICK
   VIEW (`set.kfocus`: the whole kick / the part edited: kick.c kv_ms, kv_kick) (10 Nov 2026, 0.206).
 - TUTORIAL (0.211, FLEXOR: "a sober name"): ui/tutor.c (included before screen.c), TUT[] steps (lesson, condition TC_*,
@@ -95,7 +104,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   BREADCRUMBZ, 11 letters, is the widest that fits); set.skin
   carries SKIN_NEW (bit 7), an older save's 0..17 mapped by SKIN_OLD; read it with `skin_idx()`. SETUP shows two rows
   of twelve swatches.
-- SETUP (0.213, FLEXOR): the knobs in the screen's order, K1 SKIN, K2 WAVE ZOOM (PRESETS too), K3 MODE, K4 AUTO SAVE;
+- SETUP (0.213, FLEXOR): the knobs in the screen's order, K1 SKIN, K2 (WAVE ZOOM until 0.9.1: HOME SETTINGS), K3 MODE, K4 AUTO SAVE;
   the METER moved to MIDI's K3, EXPERT only (BEGINNER turns it off).
 - Drum presets (11 Nov 2026, in progress): FLEXOR picks styled presets by ear on listening pages (rendered on the
   host); his picks, the prototype engine and the plan in `docs/sounds/PERC_PRESETS.md`. His aim: BEGINNER's drum pages
@@ -109,8 +118,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   keep it exactly), CUSTOM; stored in `set.bkeys.bk` (the STAB's old 24 bytes: BK_TAG, preset, eleven functions). ARP's
   tabs in EXPERT (`ui.opage`, ovl.c): ARP EFFECTS, BLACK KEYS (bk_turn, draw_bk); MORE gone for now (0.259, FLEXOR; its idea: new black-key
   settings, e.g. the ARP effects one a key). SYSTEM › MIDI shows USB and TRS only (no BT box, 0.259). The simulator starts on FLEXOR LAYOUT (its scenarios).
-- BREAK TIME (11 Nov 2026, 0.256, FLEXOR): SYSTEM › MIDI K4 NORMAL / HALF, `set.bkeys.bk[BK_BHALF]` (the STAB's old
-  bytes again: bk[14..23] still free); brk.c `p_bhalf` (`brk_half_time`): the break a step every other 16th at half
+- BREAK TIME (11 Nov 2026, 0.256, FLEXOR): HOME › SETTINGS K4 (SYSTEM › MIDI K4 until 0.9.1) NORMAL / HALF, `set.bkeys.bk[BK_BHALF]` (the STAB's old
+  bytes again: bk[14] BK_VIEW since 0.9.2, bk[15..23] still free); brk.c `p_bhalf` (`brk_half_time`): the break a step every other 16th at half
   ratio, the drums' step events, the swing and the clock at the tempo (they count `steps_total - pat_org`, not `step`).
 - RESET (0.209): after a reset its page's knobs do nothing for 3 s (`RST_COOL`, `ui.rst_done`, rst_cool()), DONE shown.
   WIPE MEMORY (0.263, FLEXOR: V15 odd after LOAF BREAKER): RESET's item before EVERYTHING, erases every sector of the

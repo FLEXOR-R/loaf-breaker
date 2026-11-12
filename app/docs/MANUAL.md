@@ -52,7 +52,7 @@ DST, SUB) or your own.
 ### 4. EDIT: shape the kick
 
 **EDIT** opens the kick, drawn large: what you hear, its pitch falling in amber. K1–K4 change the part shown;
-**ALGORITHM** goes to the next part, **SELECT** to the next section (ATTACK, BODY, TAIL, DIRT, TONE, KNOBS: the tabs at the top), and **EDIT** again to the next sound (KICK, SNARE, HAT, CLAP, round). In EXPERT it opens on ATTACK's **PRESET**: KNOB 1 picks a built-in kick, 909 to DISTORTO. Each part
+**ALGORITHM** goes to the next part, **SELECT** to the next section (ATTACK, BODY, TAIL, DIRT, FX, KNOBS: the tabs at the top), and **EDIT** again to the next sound (KICK, SNARE, HAT, CLAP, round). In EXPERT it opens on ATTACK's **PRESET**: KNOB 1 picks a built-in kick, 909 to DISTORTO. Each part
 says in a few words what it is for. Try **DIRT › DISTO** (K1: the distortion) and **SYNTH › BASS** (K2: the
 rawstyle reverse bass). **PRESETS** there picks one of the 10 kick memories: each keeps its own sound.
 
@@ -66,6 +66,17 @@ steps of the lane shown; ALGORITHM: the lane) and chain them on **ENV** (TRACKS:
 - **SEL**, tapped alone: the card of shortcuts, those that work everywhere and those of the page you are on.
   Twice quickly: SEL stays held (lit) for one-handed shortcuts; once more frees it.
 - **SAVE**: keeps everything (or SYSTEM › SETUP: AUTO SAVE).
+
+### Playing live: SEL + K1–K4
+
+**Hold SEL and turn K1–K4, on any page: the kick changes while it plays.** That is the FM-1's live shortcut, the one
+to remember above all in EXPERT. Out of the box: **SEL + K1** DRIVE, **SEL + K2** SCREAM, **SEL + K3** SCREECH, **SEL +
+K4** DISTO; their names and values show at the foot of the screen while SEL is held. Each kick (KICK 1–20) keeps its own
+four, chosen in **EDIT › KNOBS** (the four knobs one by one, or a whole style at once on **ASSIGN**).
+
+**SEL twice quickly locks it down: SEL stays lit** and counts as held, so both hands are free: K1–K4 move the kick, and
+every SEL combination works with one hand. **SEL once more frees it** (the light goes out). Lock it before a set: the
+four kick knobs are always under your fingers, whatever page is open.
 
 When you know your way around: **SYSTEM › SETUP (GLO twice), K1 → EXPERT** shows every page (the kick's layers and their effects,
 SCREAM and DISTO +, SYNTH +, CLEAN MORPH, each knob's settings…). The rest of this manual covers everything.
@@ -135,17 +146,17 @@ sources, the pattern, the song, the mix, the effects, the system.
 
 | Button | Domain | Its parts |
 | --- | --- | --- |
-| HOME | LIVE | PERFORM, GENERATOR |
-| EDIT | SOUNDS | Three sources, **SEL + EDIT** the next: **KICK** (its menu, by the kick's anatomy: ATTACK, BODY, TAIL, DIRT, TONE, KNOBS; SELECT its next section; EDIT again the next sound, EXPERT: SNARE, HAT, CLAP, then the KICK), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
+| HOME | LIVE | PERFORM, GENERATOR, SETTINGS (K1 VIEW, K2 WAVE TYPE, K3 WAVE ZOOM, K4 BREAK TIME); HOME again: the next tab. HOME is the main page: FX or ENV pressed again come back to it |
+| EDIT | SOUNDS | Three sources, **SEL + EDIT** the next: **KICK** (its menu, by the kick's anatomy: ATTACK, BODY, TAIL, DIRT, FX, KNOBS; SELECT its next section; EDIT again the next sound, EXPERT: SNARE, HAT, CLAP, then the KICK), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
 | SEQ | PATTERN | The lanes, **GROOVE** (SWING; also SEL + ARP) |
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD |
 | LFO | MIX | LEVELS (BREAK, KICK, PERC), SENDS (FX, the drums' route), MASTER, DYNAMICS |
 | FX | EFFECTS | The four slots: MAIN, MORE, MOD |
-| GLO | SYSTEM | MIDI (EXPERT: K3 METER), SETUP (K1 SKIN, K2 WAVE ZOOM, K3 MODE, K4 AUTO SAVE), EFFECTS (the screen's; the waves' colours; KICK VIEW; PRESETS: EDIT ZOOM), FX SET, RESET |
+| GLO | SYSTEM | MIDI (EXPERT: K3 METER), SETUP (K1 SKIN, K3 MODE, K4 AUTO SAVE), EFFECTS (the screen's; the waves' colours; KICK VIEW; PRESETS: EDIT ZOOM), FX SET, RESET |
 
 The same gestures everywhere: **the button again** is the next part; **ALGORITHM** the element in the part (a slot, a
 lane, a drum's part; where there is nothing to pick, the break); **PRESETS** the pattern, but on SOUNDS the source's
-memory (KICK 1–10, a drum's sound); **SEL + a button** that domain's second function, one
+memory (KICK 1–20, a drum's sound); **SEL + a button** that domain's second function, one
 table (tap SEL alone to see it):
 
 | SEL + | Does | SEL + | Does |
@@ -187,20 +198,23 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 
 ### Where things are
 
-- **HOME**: playing. PERFORM and GENERATOR (HOME again: the other), the CDJ waveform on both.
+- **HOME**: playing, the main page. PERFORM, GENERATOR and SETTINGS (HOME again: the next tab), the CDJ waveform on the
+  first two. **SETTINGS** (0.9.2): K1 **VIEW** (WAVEFORM or SLICES: what PERFORM and GENERATOR show; HOME held still flips
+  it), K2 **WAVE TYPE** (REKORDBOX or SERATO colours), K3 **WAVE ZOOM** (how much of the past the wave holds), K4 **BREAK
+  TIME** (NORMAL, or HALF: the break at half the tempo); SELECT stays the tempo.
 - **EDIT**: the **KICK menu**. Its picture: the kick's hit over a quarter of a second, its wave large (the cycles
   stretching as its pitch falls, squared off where it is driven), its level behind, the SUB's pitch falling in amber,
-  its memory (KICK 1–10), what the part is for in a few words ("FOLD DISTORTION") and its note; under it the part's four knobs as cards, their values large. **SELECT**: the
+  its memory (KICK 1–20), what the part is for in a few words ("FOLD DISTORTION") and its note; under it the part's four knobs as cards, their values large. **SELECT**: the
   next section (**EDIT again**: the next sound, SNARE, HAT, CLAP, then the KICK), the kick's anatomy from its hit to its end: **ATTACK** (PRESET: K1 the built-in kicks, the part the menu opens on; CLICK, PUNCH, STACK), **BODY** (MIX, SUB, GRIT,
   SYNTH, SYNTH +, MACRO, OUT; the menu opens here), **TAIL** (TAIL, TAIL +, BASS, MORPH), **DIRT** (DISTO, DISTO +,
-  SCREAM, the layers' effects), **TONE** (EQ BANDS, EQ SHAPE, FX 1, FX 2), **KNOBS** (KNOBS, K1–K4, STYLE, TOOLS);
+  SCREAM, the layers' effects), **FX** (EQ B, EQ S, FX1, FX2), **KNOBS** (KNOBS, K1–K4, ASSIGN, TOOLS);
   **ALGORITHM**: the next part in it (each section remembers where you were). The section's parts are a bar of tabs at
   the foot of the picture, the whole width, the one open lit (BEGINNER: those it passes over dimmed; short names
   there: SYN+ for SYNTH +, D+ for DISTO +, S FX .. C FX for the layers' effects). **KNOBS** puts the live knobs on the kick's picture: its first part, KNOBS, has K1–K4 turn what SEL + K1–K4
   turn (DRIVE, SCREAM, D+ SCREECH, DISTO to start: their first setting, their value large), so you hear and see the
   kick as you set them; then **K1 SET .. K4 SET**, each knob's function with all its settings (DISTO:
   AMOUNT, SUB, FIZZ, SUSTAIN; MORPH: AMOUNT, TO KICK…), the function's name by the kick's (KICK 4  K4 DISTO). They
-  are the kick playing's (PRESETS on KNOBS: KICK 1–10, each its own). **On K1 SET .. K4 SET, PRESETS gives that knob
+  are the kick playing's (PRESETS on KNOBS: KICK 1–20, each its own). **On K1 SET .. K4 SET, PRESETS gives that knob
   another function** (the DISTO and SCREAM, DRIVE, DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH and the rest), for
   the kick playing. **The picture has three views, EDIT held (half a second) the next:** **RGB** (to start: the
   kick's hit over half a second as rekordbox draws a track, each instant as tall as it is loud, its lows red, its mids
@@ -212,7 +226,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
   HAT, CLAP** once each, to hear them (the number on each drum's card; on the big views the strip names the
   drum played); playing, the keys play slices as ever. **A built-in kick on the kick selected:**
   **OUT** (BODY's last part), **K4 PRESET**: 909, TECHNO, EARLY HC, ROTTERDAM, INDUSTRIAL, DISTORTO, on the kick
-  selected (PRESETS: KICK 1–10), its volume, steps and DISTO and SCREAM kept. **A kick copied onto another:** K4 PRESET past
+  selected (PRESETS: KICK 1–20), its volume, steps and DISTO and SCREAM kept. **A kick copied onto another:** K4 PRESET past
   them, **COPY K1 … COPY K10**: that memory's kick, its SYNTH and its knobs (KNOBS, CLEAN SUB, BASS, MORPH) onto the
   kick selected, its volume kept (pick the kick to fill with PRESETS, then the one to copy with K4). On the KICK menu, **SELECT** goes through the tabs at the top (its sections: ATTACK, BODY, TAIL, DIRT, TONE,
   KNOBS) and **ALGORITHM** through those at the bottom (the section's parts) (0.264). **SEL + EDIT** opens the drums; there,
@@ -229,7 +243,8 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
     needed), MACRO.
   - **DIRT**: DISTO, DISTO + (DRIVE, TYPE, SCREECH, TAIL), SCREAM, then each layer's effect.
     (DISTO, DISTO + and SCREAM were called TERROR, TERROR + and TERROR 2 before 0.191: names a newcomer reads.)
-  - **TONE**: EQ BANDS, EQ SHAPE (its EQ), FX 1, FX 2 (its two FX slots).
+  - **FX** (TONE until 0.9.1): EQ B and EQ S (its EQ's bands and shape), FX1 and FX2 (its two FX slots), their tabs at
+    the foot as every section's.
   The DISTO and SCREAM's settings are the kick's own: they go with its memory. **SEL + EDIT**: the next source, DRUMS
   (SNARE, HAT, CLAP; EDIT again the next), then BREAK, then the kick.
   The kick's **SYNTH** section:
@@ -243,11 +258,11 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
     notes in SEQ and it slides between them), **REV BASS** (the rawstyle reverse bass: the kick's sub at its note
     swelling up between two kicks, cut as the next one hits; it goes through the kick's drive and DISTO), **START**
     (where in the beat it begins, 1/8 to 5/8), **CURVE** (how it swells: SLOW, SOFT, SHARP, SNAP).
-  At 0 each sounds as the kick always did. They go with its memory (KICK 1–10); its PRESET puts them back to 0.
+  At 0 each sounds as the kick always did. They go with its memory (KICK 1–20); its PRESET puts them back to 0.
 - **LFO** (MIX): LEVELS, SENDS, MASTER (K1 COMP, K2 its RATIO, K3 DUCK, K4 MAX OUT; COMP's reduction metered),
   DYNAMICS (COMP's ATTACK and RELEASE, DUCK's RELEASE, DUCKS: the break, or the break and the drums).
 - **ENV**: the song. TRACKS, PLAY, DROP, BUILD. (What SEL + each knob does: EDIT › KNOBS; RESET: GLO.)
-- **GLO** (SYSTEM): MIDI (EXPERT: the METER), SETUP (SKIN, WAVE ZOOM, MODE, AUTO SAVE: K1 to K4, top to bottom), EFFECTS (several at once, keys 1–7; K3 the waves' colours REKORDBOX or SERATO, K4 KICK VIEW: the whole kick or the part edited; PRESETS EDIT ZOOM: how much time EDIT's pictures show), FX SET, RESET.
+- **GLO** (SYSTEM): MIDI (EXPERT: the METER), SETUP (SKIN, MODE, AUTO SAVE: K1, K3, K4, top to bottom; WAVE ZOOM is HOME › SETTINGS since 0.9.2), EFFECTS (several at once, keys 1–7; K3 the waves' colours REKORDBOX or SERATO, K4 KICK VIEW: the whole kick or the part edited; PRESETS EDIT ZOOM: how much time EDIT's pictures show), FX SET, RESET.
   The break's PITCH, GRAIN and SNAP are SOUNDS › BREAK; SWING is PATTERN › GROOVE.
 
 ### The CDJ view (HOME)
@@ -264,12 +279,13 @@ instead, hold it again for the waveform; neither moves to HOME's next part.
 
 ### Tracks and drops (ENV)
 
-**ENV** opens TRACK; **ENV again** goes through its parts: TRACKS, PLAY, DROP. The tempo is SELECT's (the
-metronome and tap tempo are gone).
+**ENV** opens TRACK; **SELECT** goes through its tabs: TRACKS, PLAY, DROP, BUILD (0.9.2: ALGORITHM still the items on
+TRACKS); **ENV again** goes back to HOME (ENV held on TRACKS: a space after the item, as before). The tempo is SELECT's
+on HOME and the other pages (the metronome and tap tempo are gone).
 
 - **TRACKS**: eight tracks (**PRESETS** picks one), each up to 32 items in four rows of eight: a pattern (P1–P64)
   played for its loops (×1–×16), a **DROP** (the build, then the drop into the pattern after it), and its END.
-  **ALGORITHM** the item, **K1** its **kick**: SAME (the one playing goes on) or KICK 1–10, taken as the item's pattern
+  **ALGORITHM** the item, **K1** its **kick**: SAME (the one playing goes on) or KICK 1–20, taken as the item's pattern
   comes in (playing from it: at once; a DROP into it: with the drop; its cell shows it, "K7"); on a DROP, the kick its
   **build** plays (its kick roll, say), the one before back at the drop ("DRP K5"), **K2** what it is: END, EMPTY, DROP, P1–P64 (DROP just left of P1; EMPTY, left of DROP, empties the case and keeps its place: ENV held on it,
 or K2 left once more, deletes it, the rest moving up),
@@ -292,7 +308,7 @@ or K2 left once more, deletes it, the rest moving up),
   track goes on from there. PLAY again stops it.
 - **DROP**: **K1** the build: NONE (the bar playing ends in the drop), 1, 2, 4 or 8 bars; **K2** the pattern a SEL + ENV
   drop brings in (NEXT, or P1–P64); **K3** the break it brings in (SAME, or one of the bank's); **K4** the crash's
-  level; **PRESETS: BUILD KICK**, the kick the build plays (SAME, or KICK 1–10: for its kick roll, say), the one
+  level; **PRESETS: BUILD KICK**, the kick the build plays (SAME, or KICK 1–20: for its kick roll, say), the one
   before back at the drop (a track's DROP item: its own, TRACKS K1).
 - **BUILD**: how the build before a drop sounds, so drops don't all sound alike. **K1 STYLE**: SNARE ROLL (the
   snare speeding up, as ever), KICK ROLL (the kick doing it), KICK+SNARE (the two in turn), STUTTER (the drums out, the
@@ -330,7 +346,7 @@ or K2 left once more, deletes it, the rest moving up),
     (level, sweep, click): the attack. **DRUM FLT**: the drums' filter (SEL + SELECT's), on a knob. **HOLD**: SYNTH's
     HOLD, the kick square for longer before it falls. **KICK FX**: FX 1 MIX, FX 2 MIX, the kick's own two FX slots
     more or less.
-  - **STYLE** (KNOBS' last part, ALGORITHM back from KNOBS): **K1–K4** each give their own knob its function, one at a
+  - **ASSIGN** (STYLE until 0.9.1; KNOBS' last part, ALGORITHM back from KNOBS): **K1–K4** each give their own knob its function, one at a
     time (the cards show them); **PRESETS** turns through eight styles, each giving the four at once (the kick
     playing's): **TERROR** (DRIVE, SCREAM, D+ SCREECH, DISTO, as they
     start), **EARLY NEXT GEN** (PITCH DROP, RUMBLE, PUNCH, DRUM FLT), **HARDCORE** (DRIVE, PUNCH, DECAY, DISTO), **NEW
@@ -347,7 +363,7 @@ or K2 left once more, deletes it, the rest moving up),
   Every one of them has its place on the KICK menu too, the kick's own with no knob given it: the DISTO and SCREAM and DISTO +
   (DIRT), DRIVE (SYNTH's MACRO, INTENSITY), DECAY (SOUND's SUB), REV BASS and GLIDE (SYNTH's BASS),
   CLEAN SUB and MORPH (SYNTH's CLEAN MORPH).
-  **KNOB is the kick's own**: each kick memory (KICK 1–10) keeps its four functions and their settings (CLEAN SUB,
+  **KNOB is the kick's own**: each kick memory (KICK 1–20) keeps its four functions and their settings (CLEAN SUB,
   REV BASS, GLIDE, MORPH and its target; the DISTO and SCREAM, TUNE and DECAY were already its own). Change kick (PRESETS on the KICK
   menu) and the knobs are that kick's; come back and they are as you left them. KNOB shows
   whose they are (KICK 4) at the bottom. RESET KNOB puts back the kick playing's.
@@ -431,7 +447,7 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 | ARP | Its OVERLAY effect over the mix, while held (or latched): DIVE, RISE, RADIO, WAH, CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, WOBBLE, JET, REESE | EFFECT | AMOUNT (that effect's) | TIME: RATE for CHOP, GATE, WAH, PAN; SWEEP for DIVE, RISE | LATCH |
 | ARP, FX while held (MORE) | | THRU: the kick, the break or both | ON / OFF (OFF: K1 browses silent) | RATE (1/4 … 1/32) | SWEEP (1/4 bar … 2 bars) |
 | KIL | While held, the sequencer's kicks are quiet; let go, they play again (a kick roll still plays) | LATCH: ON, a press quiets them and the next brings them back | | | |
-| DST | A switch: a press, the kick's DISTO off, the next on again; its amount is never touched (at 0 % it stays 0 %: turn DISTO up to hear it). Lit while it is ON, even at 0 % (0.268); the kick's own (KICK 1–10), saved with SAVE | | | | |
+| DST | A switch: a press, the kick's DISTO off, the next on again; its amount is never touched (at 0 % it stays 0 %: turn DISTO up to hear it). Lit while it is ON, even at 0 % (0.268); the kick's own (KICK 1–20), saved with SAVE | | | | |
 | SUB | A press: the kick's SUB DRIVE on, the next off (its drive is the SUB layer's DRIVE effect, EDIT) | | | | |
 
 ![ROLL held: the caught slice repeating, each copy quieter](img/pad-roll8.png "ROLL held")
@@ -520,8 +536,9 @@ its level in and out.
 
 | Control | Does |
 | --- | --- |
-| ALGORITHM | The slot to tune (1–4) |
-| FX again | The slot's next part, round: MAIN, MORE, MOD, MAIN again (an MB COMP: its six); never another slot (ALGORITHM picks the slot) |
+| SELECT | The slot to tune (1–4): the tabs at the top (0.9.2; ALGORITHM before) |
+| ALGORITHM | The slot's part, MAIN, MORE, MOD, either way (an MB COMP: its six): the tabs below (0.9.2; FX again before) |
+| FX again | Back to HOME (0.9.2): SELECT and ALGORITHM move everywhere in it. On the kick's own FX (EDIT › FX), FX again still steps MAIN, MORE, MOD |
 | PRESETS | The effect in that slot, through the library (EMPTY first); a new effect comes in on, as you last left it (its MORE and MOD too; never touched: its starting settings) |
 | SEL + REC | The slot's effect back to its starting settings (its MORE, MOD and MB COMP detail too); SEL + REC again within 4 s takes the reset back. On EDIT KICK's FX parts the same for that layer's effect, which is also remembered effect by effect |
 
@@ -586,7 +603,7 @@ STOP fades the break out at once (a white key held keeps looping); the reverb's 
 
 ### Each effect's view, MORE and MOD
 
-Every effect (but MB COMP, which has its own page, below) has three parts, stepped by **FX again**: **MAIN** (its
+Every effect (but MB COMP, which has its own page, below) has three parts, stepped by **ALGORITHM** (FX again on the kick's own FX): **MAIN** (its
 three settings and mix, as in the table above), **MORE** (its extra knobs) and **MOD** (a modulator that moves one of
 its settings in time). The tab bar names the part (`< FILTER MOD >`), the strip shows it lit.
 
@@ -674,7 +691,7 @@ whose part you are on.
 
 **GLO** opens SYSTEM: the slice blocks give way to the state of MIDI, and K1–K4 set it (SAVE keeps it); in EXPERT, K3 is
 the **METER** (below).
-**GLO again** (or ALGORITHM) turns to SETUP: the skins, WAVE ZOOM, the mode and AUTO SAVE; then EFFECTS, FX SET and RESET (below). LOAF BREAKER has no Bluetooth: MIDI goes over USB and the TRS jack. On a computer the FM-1 shows as **LOAF BREAKER FM-1** (a MIDI device and, for recording, an audio input).
+**GLO again** (or ALGORITHM) turns to SETUP: the skins, the mode and AUTO SAVE; then EFFECTS, FX SET and RESET (below). LOAF BREAKER has no Bluetooth: MIDI goes over USB and the TRS jack. On a computer the FM-1 shows as **LOAF BREAKER FM-1** (a MIDI device and, for recording, an audio input).
 
 ![SYSTEM: MIDI in and out](img/screen-global.png "SYSTEM")
 
@@ -683,7 +700,7 @@ the **METER** (below).
 | K1 CLOCK IN | OFF · FOLLOW | Following, MIDI clock from USB or the TRS jack sets the tempo (the header says EXT; SELECT waits), START plays from bar 1, STOP stops, and the loop eases onto the clock's beat every beat. The clock is stamped where it lands, so the tempo it reads is steady |
 | K2 CLOCK OUT | OFF · ON | While playing, 24 clocks a beat (straight, whatever the swing); PLAY sends START, stopping sends STOP, HOME + PLAY sends START again |
 | K3 METER | OFF · ON | (EXPERT) CPU, IMG, FR in the header: the audio's load, the screen's |
-| K4 BREAK TIME | NORMAL · HALF | HALF: the break at half the tempo, at its own speed: its steps every other 16th, while the kick, the drums and the clock stay at the tempo. A 115 break under a 230 terror kick plays as it was recorded (the panel shows the break's tempo). NORMAL: the break at the tempo, as ever |
+| (K4 BREAK TIME) | NORMAL · HALF | On HOME › SETTINGS K4 since 0.9.2 (the panel here still shows it). HALF: the break at half the tempo, at its own speed: its steps every other 16th, while the kick, the drums and the clock stay at the tempo. A 115 break under a 230 terror kick plays as it was recorded (the panel shows the break's tempo). NORMAL: the break at the tempo, as ever |
 
 The panel shows the clock coming in (its tempo, where from, running or stopped), the clock going out, and a light for
 MIDI in and out on each port. The FM-1 has no MIDI out jack: MIDI goes out over USB only.
@@ -705,7 +722,7 @@ tempo's own repitch, HALF, REVERSE's speed and the tape stop stay speed effects.
 **SETUP (GLO twice):** its four settings top to bottom, K1 to K4. K1 **SKIN**, the screen's colours (RED to start; the
 whole screen changes at once), 24 chosen by FLEXOR, two rows of twelve swatches: CHROME, FIRE&ICE, CHOPPAH, GLOUPI,
 TESS, OUTRUN, THUNDER, CYBERPUNK, MC SALO, ACID, RED, GARRY, PIP-BOY, NEON, BLACKLIGHT, PATINA, SYNTHWAVE, MIAMI, ELECTRIC,
-ARCTIC, BREADCRUMBZ, IRIS, GLUCKSMAN, MAXENCE (an FM-1 updated from before keeps its colour, or the nearest left). K2 **WAVE ZOOM** (PRESETS too), how much of the past HOME's scrolling wave (the
+ARCTIC, BREADCRUMBZ, IRIS, GLUCKSMAN, MAXENCE (an FM-1 updated from before keeps its colour, or the nearest left). **WAVE ZOOM** (K2 here until 0.9.1: HOME › SETTINGS K3 now, PRESETS on HOME too), how much of the past HOME's scrolling wave (the
 CDJ view) holds across the screen: 1/2, 2/3, 5/6 of a bar (zoomed in), 1 BAR (as it was), 1 1/4, 1 1/2, 2 BARS (zoomed
 out). K3 **MODE**: TUTORIAL (left of BEGINNER: the tutorial, above), BEGINNER or EXPERT (right). **BEGINNER** keeps
 each thing to its essentials, to play the machine before learning it: the **KICK** is three pages, EDIT again (or
@@ -760,9 +777,9 @@ shows; 0: nothing), K3 **AT THE DROP** (how hard the drop shows; 0: nothing), K4
 ![SYSTEM's SETUP: the skins](img/screen-glomore.png "SETUP")
 
 **RESET** (SYSTEM's last part): puts one part back as it starts, the rest kept. **K4** picks what, in a list that scrolls (ALGORITHM goes to SYSTEM's other parts, as on its other pages; each says
-on the right what it puts back): DROP, BUILD, KNOB; **KICK** (the kick selected, KICK 1–10: ROTTERDAM again, its
+on the right what it puts back): DROP, BUILD, KNOB; **KICK** (the kick selected, KICK 1–20: ROTTERDAM again, its
 SYNTH, BASS, CLEAN SUB and MORPH at 0, its volume kept, its memory with it); **KICK TONE** (its EQ flat, its two FX slots empty);
-**ALL KICKS** (KICK 1–10 as they came, their knobs as they start); **DRUMS** (the snare's, hat's and clap's memory playing as it
+**ALL KICKS** (KICK 1–20 as they came, their knobs as they start); **DRUMS** (the snare's, hat's and clap's memory playing as it
 came); **MIX** (the MIXER: levels, swing, the drums' route, COMP and DUCK off with their timing, MAX OUT −3 dB);
 **FX CHAIN** (the four slots as they came, each effect's memory forgotten, the FX level kept); **STEPS** (this
 pattern's drum steps: 1 hit, ALWAYS, on time; the steps themselves kept); **PADS** (the black keys' settings:
@@ -778,8 +795,8 @@ you turn past the last one are lost instead of starting a new count, and DONE st
 ## 8. The drums: kick, snare, hat
 
 Three synthesised drums play under the break, in time with it (swing included), on the pattern's drum lanes (§5):
-their steps are SEQ's KICK, SNARE and HAT lanes; their sounds are made on **EDIT**. They go through the FX chain or
-around it together (MIX › SENDS K2).
+their steps are SEQ's KICK, SNARE and HAT lanes; their sounds are made on **EDIT**. They go around the FX chain
+(AROUND, at every power-on, whatever the mode: 0.9.2), or through it together while MIX › SENDS K2 says THRU.
 
 **EDIT** opens SOUNDS' KICK (SELECT: its next section; EDIT again, EXPERT: the next sound, KICK SNARE HAT CLAP round, 0.266); **SEL + EDIT** the next source: DRUMS (SNARE, HAT, CLAP: **EDIT again** the next), BREAK, the KICK again (the tabs show which).
 **ALGORITHM** turns through the drum's parts, **PRESETS** loads a built-in sound. The lower strip shows the three
@@ -806,7 +823,7 @@ The kick is four layers summed and pushed into a clipper:
 | Control | Does |
 | --- | --- |
 | ALGORITHM | The part: MIX, a layer (SUB, PUNCH, GRIT, CLICK), its FX, MACRO, OUT |
-| PRESETS | The kick selected: KICK 1–10, each its own memory |
+| PRESETS | The kick selected: KICK 1–20, each its own memory |
 | OUT K4 PRESET | A built-in kick on the kick selected: 909, TECHNO, EARLY HC, ROTTERDAM (the start), INDUSTRIAL, DISTORTO. The steps, routing, volume and DISTO and SCREAM stay |
 | MIDI note 36 (C1) | Plays the kick, from any channel, also while stopped |
 
@@ -825,7 +842,7 @@ flattens into the long, distorted gabber kick.
 
 The KICK LAB is where a hardcore kick is built the way it is in a studio: its tail tuned and shaped, its attack
 taken from another kick. Its pages sit where they act: **TAIL** and **TAIL +** in the TAIL section, **STACK** in
-ATTACK, **TOOLS** in KNOBS. Everything in it is the kick's own (each KICK 1–10 its LAB), saved with SAVE; a kick with
+ATTACK, **TOOLS** in KNOBS. Everything in it is the kick's own (each KICK 1–20 its LAB), saved with SAVE; a kick with
 nothing set there sounds exactly as it always did.
 
 ![The LAB's TAIL: CLEAN, on D#1, the drop LINEAR, cut at 200 ms](img/screen-klab-tail.png "TAIL") ![STACK: KICK 1's attack, this kick's tail](img/screen-klab-stack.png "STACK")
@@ -834,7 +851,7 @@ nothing set there sounds exactly as it always did.
 | --- | --- | --- | --- | --- |
 | TAIL | MODE: CLASSIC · CLEAN | NOTE: FREE · A#0 … A2 | CURVE: EXP · LINEAR · SNAP | END: OFF · 40 – 1000 ms |
 | TAIL + | FILTER: OFF · 11 kHz – 190 Hz | F TIME: 20 – 600 ms | DRIVE: OFF · 1 – 100 % | |
-| STACK | ATTACK: OFF · KICK 1–10 | CROSS: 10 – 300 ms | FADE: 2 – 150 ms | SOLO: BOTH · ATTACK · TAIL |
+| STACK | ATTACK: OFF · KICK 1–20 | CROSS: 10 – 300 ms | FADE: 2 – 150 ms | SOLO: BOTH · ATTACK · TAIL |
 | TOOLS | MUTATE | A/B | | |
 
 - **MODE CLEAN** fixes the "goofy" tail. In CLASSIC the kick fades *before* its distortion, so DISTO's fold and SCREAM
@@ -849,7 +866,7 @@ nothing set there sounds exactly as it always did.
 - **FILTER** closes a low-pass on the kick as it goes, from open at the hit down to its value in **F TIME**: the
   attack bright, the tail darker, the fizz gone. **DRIVE** pushes the tail (after the attack) harder into the clip:
   a denser, flatter tail.
-- **STACK** is layering: **ATTACK** takes the hit from another kick (KICK 1–10, as it is in its memory, its own LAB
+- **STACK** is layering: **ATTACK** takes the hit from another kick (KICK 1–20, as it is in its memory, its own LAB
   too), this kick plays the tail. **CROSS** is where one hands over to the other (amber dashes on the picture),
   **FADE** how long the hand-over takes. **SOLO** lets you hear the attack alone or the tail alone (not saved).
   Two kicks sound at once until the hand-over: watch the METER (SYSTEM › MIDI K3) with STACK on.
@@ -913,10 +930,10 @@ break alone: sweep it down and the drums stay full on top.
 | --- | --- | --- | --- | --- |
 | HOME (perform) | Gate | Filter: the DJ filter on the break (left low-pass, right high-pass) | Drum flt: the same on the drums | Sub decay: the kick's SUB's length |
 | HOME again (generator) | Complexity | Anchor | Roll | Fill |
-| EDIT, the KICK menu (SELECT: its section; ALGORITHM: its part; EDIT again: the next sound) | SOUND: MIX, SUB … CLICK, OUT · SYNTH: SYNTH, SYNTH +, BASS, CLEAN MORPH, MACRO · DIRT: DISTO, DISTO +, SCREAM, the layers' effects · TONE: EQ BANDS, EQ SHAPE, FX 1, FX 2 (§8) | | | |
+| EDIT, the KICK menu (SELECT: its section; ALGORITHM: its part; EDIT again: the next sound) | SOUND: MIX, SUB … CLICK, OUT · SYNTH: SYNTH, SYNTH +, BASS, CLEAN MORPH, MACRO · DIRT: DISTO, DISTO +, SCREAM, the layers' effects · FX: EQ B, EQ S, FX1, FX2 (§8) | | | |
 | The drums (SELECT on the big view; SEL + EDIT; EDIT held: the other view) | Level · Snap / cut / spread / bend | Tune · Drive | Decay · Preset | Tone |
 | SEQ (the break's steps) | Slice | Pitch | Hits | Reverse |
-| SEQ, a drum lane | Fill | Sound: the kick (KICK 1–10), the drum's memory | Clear / 4x4 / grooves | Length |
+| SEQ, a drum lane | Fill | Sound: the kick (KICK 1–20), the drum's memory | Clear / 4x4 / grooves | Length |
 | SEQ, a drum step held | Note (the kick's) | Hits | Cond | Nudge |
 | ENV TRACKS (PRESETS: the track; a white key: its pattern in; SEL + PLAY: start here) | Item (ALGORITHM too) | Pattern / DROP / END | Loops | Its break |
 | ENV PLAY (PLAY: the track) | Track | From item | At the end | |
@@ -927,10 +944,11 @@ break alone: sweep it down and the drums stay full on top.
 | LFO again (groove) | Swing | Drums: through the chain or around it | | |
 | LFO, MASTER | Comp | Ratio | Duck | Max out |
 | LFO, DYNAMICS | Comp attack | Comp release | Duck release | Ducks: the break, or the break and the drums |
-| FX (the chain) | the focused slot's effect: its three settings (FX again: its MORE and MOD parts; an MB COMP its six, see §6) | | | Its mix |
+| FX (the chain; SELECT the slot, ALGORITHM its part) | the focused slot's effect: its three settings (ALGORITHM: its MORE and MOD parts; an MB COMP its six, see §6) | | | Its mix |
 | GLO (MIDI) | Clock in | Clock out | | |
 | GLO again (pitch, snap) | Keep length / speed | Grain | Snap | Reset all (fifteen turns) |
-| GLO twice (SETUP; PRESETS: wave zoom) | Mode: beginner / expert | Auto save | Meter | Skin |
+| GLO twice (SETUP) | Skin | | Mode: beginner / expert | Auto save |
+| HOME three times (SETTINGS) | View: waveform / slices | Wave type | Wave zoom | Break time |
 | GLO a fourth time (EFFECTS; keys 1–7: each on or off) | The effect | On / off | | |
 | GLO a fifth time (FX SET) | Amount | On a kick | At the drop | Length |
 | GLO a sixth time (RESET; ALGORITHM: what too; after a reset, 3 s at rest) | What | Reset (five clicks) | Reset (five clicks) | Reset (five clicks) |
