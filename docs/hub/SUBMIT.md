@@ -10,7 +10,7 @@ zven confirmed on 12 Nov 2026 that LOAF BREAKER is welcome on the hub.
 
 - **Package identity:** `FM-1_2623` (fm1.toml `id_prefix`): dev builds `FM-1_262300`, releases `FM-1_2623` + the
   package number as two digits each (0.220 is package 1.0.21: `FM-1_2623010021`; 1.00 will be 2.0.0:
-  `FM-1_2623020000`, always above the last: `scripts/loaf_version.sh`). Checked free on the hub's catalogue on
+  `FM-1_2623020000`; since 0.9.1 (12 Nov 2026) A.B.C is A+2 . B . C: 0.9.1 is `FM-1_2623020901`, always above the last: `scripts/loaf_version.sh`). Checked free on the hub's catalogue on
   9 Nov 2026: no identity there starts with 2623, and 2623 starts none of theirs. CHOPPAH keeps its own, `FM-1_86`.
   Nothing is reserved on the hub: an identity is chosen, used in the releases, and given in the mail.
 - **Files:** `loaf-breaker-X.fwsc` (fm1.toml `name`), the site's installer and the releases.

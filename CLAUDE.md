@@ -6,15 +6,15 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 ## LOAF BREAKER (FLEXOR's fork)
 
 - The repository is FLEXOR-R/loaf-breaker (public from 11 Nov 2026, FLEXOR). **Work goes to `dev`** (12 Nov 2026, FLEXOR:
-  not twenty public versions a day): each push there replaces the one pre-release `loaf-test` (loaf-breaker-X.YY-testN.zip: the .fwsc zipped, as the hub lists
+  not twenty public versions a day): each push there replaces the one pre-release `loaf-test` (loaf-breaker-A.B.C-testN.zip: the .fwsc zipped, as the hub lists
   the newest release with a .fwsc, pre-releases too;
-  the splash "X.YY TEST N"; no site, no soak, no tag). **A release only when FLEXOR asks** ("release", "publie"): dev
-  pushed to `loaf` (`git push origin dev:loaf`, a fast-forward), whose every push is a release `loaf-vX.YY`
+  the splash "A.B.C TEST N"; no site, no soak, no tag). **A release only when FLEXOR asks** ("release", "publie"): dev
+  pushed to `loaf` (`git push origin dev:loaf`, a fast-forward), whose every push is a release `loaf-vA.B.C` (0.9.1 on; 0.02-0.267 were X.YY)
   (`.github/workflows/loaf.yml`; CLAUDE.md alone releases nothing) and updates the site, https://flexor-r.github.io/loaf-breaker/ (0.261: the firmware on it
   open, no install code; tools/site_lock.py and the secret LOAF_INSTALL_CODE no longer used). Never write that old code anywhere.
 - The changelog, in French, is FLEXOR's Claude Doc (project 6f32699a-06f8-4eaa-a41a-6f03a8b20dc9, node 1fc2737b-3a82):
   after each release (not a TEST) add a row (everything since the last one) (version, date, what changed) above the top one and put the version in the intro's
-  "LOAF BREAKER 0.1xx". Keep its first part current whenever it is relevant: the summary paragraph, "Les grandes
+  "LOAF BREAKER 0.9.x". Keep its first part current whenever it is relevant: the summary paragraph, "Les grandes
   étapes", and "Les modifs importantes" (where things are, what was removed or replaced, shortcuts, "À savoir").
 - Identity (9 Nov 2026): its own, `FM-1_2623` (fm1.toml `id_prefix`; CHOPPAH's is FM-1_86), files `loaf-breaker*`
   (`name`: loaf-breaker.fwsc, app/build/host/loaf-breaker_host), `fmhub.json` LOAF BREAKER's (author FLEXOR). CHOPPAH
@@ -168,10 +168,11 @@ files before it define. `app/dsp/*.c` are separate `o2` units (brk, brk_fx, kick
   `./build.sh` regenerates `app/bank_data.h` (never commit it, never edit it). The bank has 400 KB (`IMAGE_CAPACITY`
   in `tools/prep_breaks.py`) and 16 slots, a break at most `CH_PCM_MAX` 106,496 samples (pool ~326 of 344 KB). The breaks are the bank's only: brk_synth is the no-bank fallback (and
   the tests'). No loading of samples of your own (dropped from scope), and the breaks stay 2 bars (32 steps; a one-bar break plays twice, LO-FI 165 was one in 0.196-0.199).
-- Releases are automatic: every push to `loaf` is the last `loaf-vX.YY` + 1 (`scripts/loaf_version.sh next`; past
-  0.99 on to 0.100 ...). `./LOAF_MAJOR` is the floor of X: set it to 1 and push for 1.00 (then 1.01 ...). The
-  package's own number (fm1-base's X.Y.Z, two digits each) is `scripts/loaf_version.sh pkg`: 0.220 is 1.0.21, 1.00
-  is 2.0.0, always above the one before (`check` in CI). Don't tag by hand. (`scripts/next_version.sh` and
+- Releases are automatic: every push to `loaf` is a release. Numbers A.B.C since 12 Nov 2026 (FLEXOR: "on passe en
+  0.9.1"): the last `loaf-vA.B.C` tag's patch + 1 (`scripts/loaf_version.sh next`), or `./LOAF_FROM` if higher
+  (0.9.1 now; write 0.10.0 or 1.0.0 there for a new minor or major). Before: X.YY, 0.02 to 0.267. The package's own
+  number (fm1-base's X.Y.Z, two digits each) is `scripts/loaf_version.sh pkg`: 0.267 is 1.0.68, A.B.C is A+2 . B . C
+  (0.9.1 is 2.9.1, 1.0.0 is 3.0.0), always above the one before (`check` in CI). Don't tag by hand. (`scripts/next_version.sh` and
   `VERSION` are CHOPPAH's main branch's.)
 - **Always push to GitHub after changes** (Laurens' standing rule, 4 Nov 2026): commit and push as soon as a change is
   done, before moving on: to `dev` (a TEST build for FLEXOR), never straight to `loaf` (FLEXOR, 12 Nov 2026); `loaf`

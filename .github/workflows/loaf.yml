@@ -5,9 +5,9 @@
 # loaf-vX.YY with loaf-breaker-X.YY.fwsc and the host simulator's screens (loaf-breaker-screens-X.YY.zip). A re-run of a
 # commit already released builds the same number again.
 # A push to dev (FLEXOR, 12 Nov 2026: not twenty public versions a day) is a TEST: the same build and scenarios, no
-# site, no soak, no loaf-v tag, and one pre-release only, loaf-test, replaced at each push: loaf-breaker-X.YY-testN.zip
+# site, no soak, no loaf-v tag, and one pre-release only, loaf-test, replaced at each push: loaf-breaker-A.B.C-testN.zip
 # (its .fwsc zipped: the Firmware Hub lists the newest release with a .fwsc attached, pre-releases too)
-# (X.YY the next release's number, N the commits on dev since loaf; its splash "X.YY TEST N"). A release is dev merged
+# (A.B.C the next release's number, N the commits on dev since loaf; its splash "A.B.C TEST N"). A release is dev merged
 # into loaf, when FLEXOR says so.
 name: LOAF BREAKER
 
@@ -40,8 +40,9 @@ jobs:
 
       - name: Version
         run: |
-          # (LOAF BREAKER's loaf-vX.YY tags go on from GLOUPI BREAKS' gloupi-vX.YY: one count; ./LOAF_MAJOR the
-          # floor of X: 1 for 1.00. The package's own number, always higher than the last: scripts/loaf_version.sh)
+          # (LOAF BREAKER's numbers: A.B.C since 0.9.1 (FLEXOR, 12 Nov 2026), the last tag's patch + 1, ./LOAF_FROM the
+          # lowest the next may be (1.0.0 there for 1.0.0); before, X.YY up to 0.267. The package's own number, always
+          # higher than the last: scripts/loaf_version.sh)
           scripts/loaf_version.sh check
           TAGS="$(git ls-remote --tags origin 'refs/tags/loaf-v*' 'refs/tags/gloupi-v*' | sed 's|\^{}$||')"
           V="$(printf '%s\n' "$TAGS" | grep "^$GITHUB_SHA" | sed 's|.*refs/tags/[a-z]*-v||' | head -1)"
