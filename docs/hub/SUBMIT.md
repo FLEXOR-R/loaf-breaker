@@ -2,8 +2,9 @@
 
 LOAF BREAKER is FLEXOR's fork of [CHOPPAH](https://github.com/profikid/fm1-break-choppah) (Laurens Profittlich). It
 has its own name, files and package identity, and credits CHOPPAH everywhere it is shown (README, site, card text).
-The hub's rules: <https://thefirmwarehub.com/fmhub.md> and <https://thefirmwarehub.com/kb/>. It takes a firmware by
-**mail** (`zven@thefirmwarehub.com`), once the six points below hold.
+The hub's rules: <https://thefirmwarehub.com/fmhub.md> and <https://thefirmwarehub.com/kb/>. It takes a firmware through
+its **form**, <https://thefirmwarehub.com/submit/> (zven, 12 Nov 2026: not by mail), once the six points below hold.
+zven confirmed on 12 Nov 2026 that LOAF BREAKER is welcome on the hub.
 
 ## Identity
 
@@ -21,16 +22,16 @@ The hub's rules: <https://thefirmwarehub.com/fmhub.md> and <https://thefirmwareh
 
 | # | The hub asks | LOAF BREAKER |
 | --- | --- | --- |
-| 1 | Open source, the whole source public, a LICENSE | MPL-2.0, LICENSE in the root. **The repository is private**: to be made public (FLEXOR's call). Its history is clean: the GLOUPI BREAKS photo is in no branch and no tag since 10 Nov 2026 (branches rewritten, then the 219 tags with it by the PURGE START-UP PHOTO action, since removed; GitHub's cached views of the old commits: a Support request) |
+| 1 | Open source, the whole source public, a LICENSE | MPL-2.0, LICENSE in the root. Public since 11 Nov 2026. Its history is clean: the GLOUPI BREAKS photo is in no branch and no tag since 10 Nov 2026 (branches rewritten, then the 219 tags with it by the PURGE START-UP PHOTO action, since removed; GitHub's cached views of the old commits: a Support request) |
 | 2 | A GitHub release with the .fwsc | Every push to `loaf`: release `loaf-vX.YYY` with `loaf-breaker-X.YYY.fwsc` |
 | 3 | Its own `FM-1_` identity | `FM-1_2623` (above) |
 | 4 | The update loader in the package | felucca-bsp's, shipped in every package |
-| 5 | Tested on a real FM-1: from V15, from another firmware, and another installed from it | **To do** before the mail (before leaving LOAF BREAKER: SYSTEM › RESET › WIPE MEMORY, 0.263, its saves erased so the next firmware finds that memory blank) |
+| 5 | Tested on a real FM-1: from V15, from another firmware, and another installed from it | **To do** before the form (before leaving LOAF BREAKER: SYSTEM › RESET › WIPE MEMORY, 0.263, its saves erased so the next firmware finds that memory blank) |
 | 6 | `fmhub.json` in the root of the default branch | Done (`loaf`, the default branch) |
 
 The site has no install code any more (0.261, public): the firmware installs from it, from the releases and from the hub.
 
-## The mail, when 1 and 5 are done
+## The form, once 5 is done (what to put in it)
 
 > Hello, here is LOAF BREAKER, a firmware for the M-VAVE FM-1, by FLEXOR. It is a fork of CHOPPAH by Laurens
 > Profittlich, credited as such.
