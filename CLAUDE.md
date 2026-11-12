@@ -113,8 +113,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   carries SKIN_NEW (bit 7), an older save's 0..17 mapped by SKIN_OLD; read it with `skin_idx()`. SETUP shows two rows
   of twelve swatches.
 - SETUP (0.213, FLEXOR): the knobs in the screen's order, K1 SKIN, K2 (WAVE ZOOM until 0.9.1: HOME SETTINGS), K3 MODE, K4 AUTO SAVE
-  (0.9.26, FLEXOR, asked several times: it saves only once the FM-1 is left 30 s, stopped, silent AND untouched, `AS_REST`;
-  never make it sooner);
+  (0.9.26, FLEXOR, asked several times: never while PLAY runs, once PLAY has been stopped 20 s, `AS_REST`; touching the
+  FM-1 stopped holds nothing, his choice; never make it sooner);
   the METER moved to MIDI's K3, EXPERT only (BEGINNER turns it off).
 - Drum presets (11 Nov 2026, in progress): FLEXOR picks styled presets by ear on listening pages (rendered on the
   host); his picks, the prototype engine and the plan in `docs/sounds/PERC_PRESETS.md`. His aim: BEGINNER's drum pages

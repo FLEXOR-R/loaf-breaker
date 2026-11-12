@@ -337,8 +337,7 @@ static void draw_global(const brk_status_t *st)
         cv_text(6, 2, &FONT_T, "K4 AUTO SAVE", C_GRAY);
         cv_text(96, 2, &FONT_T, set.auto_save ? "ON" : "OFF", set.auto_save ? C_HI : C_DIM);
         cv_text(96, 16, &FONT_XS, "A MINUTE AFTER A CHANGE,", C_DIM);
-        cv_text(96, 28, &FONT_XS, "LEFT 30 S: STOPPED,", C_DIM);
-        cv_text(96, 40, &FONT_XS, "SILENT, UNTOUCHED", C_DIM);
+        cv_text(96, 28, &FONT_XS, "ONCE STOPPED 20 S", C_DIM);
         cv_blit(0, 140);
         return;
     }

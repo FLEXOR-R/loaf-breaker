@@ -1,9 +1,8 @@
-# LOAF BREAKER: AUTO SAVE waits until the FM-1 has been left 30 s: stopped, silent and untouched (a flash write stalls
-# the sound and the controls; 0.9.26, FLEXOR: 10 s of silence alone was too soon, it came while he was at it). GLO
-# twice: SETUP, K4 AUTO SAVE on (a change); PLAY a minute and more: not saved while playing; stopped: not yet at 29 s,
-# saved by 30.5 s. Then the output heard holds it too: a change, stopped, the kick played by hand each second (EDIT, key 1)
-# past the minute: not saved while it sounds; saved 30 s after the last one. Then a knob turned every 5 s, stopped and
-# silent: not saved while it is touched; saved 30 s after the last turn.
+# LOAF BREAKER: AUTO SAVE, a minute after a change, never while PLAY runs, once PLAY has been stopped 20 s (0.9.26,
+# FLEXOR: 10 s after the sound's end came too soon; touching the FM-1 stopped is no problem). GLO twice: SETUP, K4
+# AUTO SAVE on (a change); PLAY a minute and more: not saved while playing; stopped: not yet at 19 s, saved by 20.5 s.
+# Then a change, stopped long since, a knob turned and the kick played by hand every few seconds: saved at its minute
+# all the same.
 #   app/build/host/loaf-breaker_host tests/scenarios/autosave.txt app/build/scenarios
 wait 4200
 tap GLO
@@ -17,7 +16,7 @@ tap PLAY
 wait 61000
 expect dirty 1
 tap PLAY
-wait 29000
+wait 19000
 expect dirty 1
 wait 1500
 expect dirty 0
@@ -26,64 +25,26 @@ wait 100
 turn K1 -1 10
 wait 100
 expect dirty 1
-wait 58000
 tap EDIT
 wait 300
 key w0 down
 wait 30
 key w0 up
-wait 970
-key w0 down
-wait 30
-key w0 up
-wait 970
-key w0 down
-wait 30
-key w0 up
-wait 970
-key w0 down
-wait 30
-key w0 up
-wait 970
-key w0 down
-wait 30
-key w0 up
-wait 970
-key w0 down
-wait 30
-key w0 up
-wait 970
-key w0 down
-wait 30
-key w0 up
-wait 970
-key w0 down
-wait 30
-key w0 up
-wait 970
-expect dirty 1
-wait 29000
-expect dirty 1
-wait 1500
-expect dirty 0
-tap GLO
-wait 300
-turn K1 1 10
-wait 100
-turn K1 -1 10
-wait 100
-expect dirty 1
-wait 58000
+wait 9970
 turn K2 1 10
-wait 5000
+wait 10000
+key w0 down
+wait 30
+key w0 up
+wait 9970
 turn K2 -1 10
-wait 5000
+wait 10000
+key w0 down
+wait 30
+key w0 up
+wait 9970
 turn K2 1 10
-wait 5000
-turn K2 -1 10
-wait 5000
+wait 7000
 expect dirty 1
-wait 24000
-expect dirty 1
-wait 1500
+wait 3500
 expect dirty 0
