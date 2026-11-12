@@ -628,7 +628,7 @@ static void sub_drive_toggle(void)
 }
 
 /* LOAF BREAKER (11 Nov 2026): a black key's function lit: a pad on (or rolling the kick), the ARP key's effect on,
- * the kicks held quiet, the kick's DISTO sounding, its SUB DRIVE on (0.244's BEGINNER restrictions gone: FLEXOR) */
+ * the kicks held quiet, the DISTO switch on, its SUB DRIVE on (0.244's BEGINNER restrictions gone: FLEXOR) */
 static int bkf_lit(uint32_t f, const brk_status_t *st)
 {
     if (f < BRK_NPADS)
@@ -637,7 +637,7 @@ static int bkf_lit(uint32_t f, const brk_status_t *st)
         return ovl_pad_on();
     if (f == BKF_KIL)
         return kick_hold != 0u;
-    if (f == BKF_DST)
-        return KICK_TERROR(&set.kick) && !terror_off;
+    if (f == BKF_DST)                    /* (the switch on, even with the DISTO at 0 %: 0.268, FLEXOR) */
+        return !terror_off;
     return sub_drive_on();
 }
