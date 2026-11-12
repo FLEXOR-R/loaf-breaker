@@ -33,7 +33,9 @@ turn SELECT 1 10
 wait 200
 turn ALGO 1 10
 wait 100
+press SEL
 turn PRESET -1 10
+release SEL
 wait 200
 expect selk1 8
 tap GLO

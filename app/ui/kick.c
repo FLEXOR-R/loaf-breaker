@@ -138,6 +138,7 @@ static void kick_mem_go(uint32_t n)      /* (LOAF BREAKER: KICK n, 0..9, as abov
     for (j = 0; j < KS_N; j++)           /* (LOAF BREAKER: its SYNTH with it) */
         ksmem_at(set.kslot % KICK_MEMS)[j] = set.ksyn[j];
     kx_put(set.kslot);
+    kfx_put(set.kslot);                  /* (0.9.26, FLEXOR: its FX section, EQ, FX1, FX2, with it) */
     (*klmem_at(set.kslot % KICK_MEMS)) = klab.cur;   /* (LOAF BREAKER: its KICK LAB with it) */
     set.kslot = (uint8_t)(n % KICK_MEMS);
     klab.cur = (*klmem_at(set.kslot));
@@ -145,6 +146,8 @@ static void kick_mem_go(uint32_t n)      /* (LOAF BREAKER: KICK n, 0..9, as abov
     for (j = 0; j < KS_N; j++)
         set.ksyn[j] = ksmem_at(set.kslot)[j];
     kx_get(set.kslot);
+    kfx_get(set.kslot);
+    changed_fx();                        /* (its FX section to the engine) */
     set.kick.volume = vol;
     ui.kpreset = (uint8_t)kpre_mem(set.kslot);   /* (its PRESET: its own, 0.9.2) */
     ab_take();                           /* (LOAF BREAKER: TOOLS' A/B: this kick as it comes) */
@@ -733,6 +736,8 @@ static void kick_knob_turn(int i, int32_t d)
             for (j = 0; j < KS_N; j++)
                 set.ksyn[j] = ksmem_at(n)[j];
             kx_get(n);
+            kfx_get(n);                  /* (0.9.26: its FX section too) */
+            changed_fx();
             klab.cur = (*klmem_at(n));      /* (LOAF BREAKER: its KICK LAB too) */
             app_say(t, "ON THIS KICK");
             ui.redraw |= RG_BLOCKS | RG_FOOT;
@@ -1150,7 +1155,7 @@ static void kick_picture(int32_t top)
         if (p >= KP_BASE + 11u && p <= KP_BASE + 14u)
             kick_part_name(p, t);
         else if (p == KP_BASE + 16u) {   /* (STYLE: the one the knobs have now; PRESETS picks one) */
-            text_cat(t, "PRESETS: ");
+            text_cat(t, "SEL+PRESETS: ");
             text_cat(t, kstyle_name());
         }
         else if (kick_easy())            /* (BEGINNER's pages) */

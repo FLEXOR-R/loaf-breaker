@@ -18,7 +18,9 @@ turn ALGO 2 10
 wait 300
 expect page 2
 expect fx_focus 4
+press SEL
 turn PRESET 3 10
+release SEL
 turn K1 10 10
 wait 300
 expect fx_on 1
@@ -26,7 +28,9 @@ shot k_fx1.png
 turn ALGO 1 10
 wait 200
 expect fx_focus 5
+press SEL
 turn PRESET 8 10
+release SEL
 wait 300
 shot k_fx2.png
 tap HOME

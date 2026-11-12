@@ -224,8 +224,8 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
   turn (DRIVE, SCREAM, D+ SCREECH, DISTO to start: their first setting, their value large), so you hear and see the
   kick as you set them; then **K1 SET .. K4 SET**, each knob's function with all its settings (DISTO:
   AMOUNT, SUB, FIZZ, SUSTAIN; MORPH: AMOUNT, TO KICK…), the function's name by the kick's (KICK 4  K4 DISTO). They
-  are the kick playing's (PRESETS on KNOBS: KICK 1–20, each its own). **On K1 SET .. K4 SET, PRESETS gives that knob
-  another function** (the DISTO and SCREAM, DRIVE, DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH and the rest), for
+  are the kick playing's (PRESETS on KNOBS: KICK 1–20, each its own). **On K1 SET .. K4 SET, SEL + PRESETS gives that knob
+  another function** (0.9.26: PRESETS alone changes the kick, on every page of the KICK menu) (the DISTO and SCREAM, DRIVE, DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH and the rest), for
   the kick playing. **The picture has three views, EDIT held (half a second) the next:** **RGB** (to start: the
   kick's hit over half a second as rekordbox draws a track, each instant as tall as it is loud, its lows red, its mids
   green, its highs blue: a distorted kick white at the hit, orange in its body, red as its tail darkens, a SCREAM
@@ -357,7 +357,7 @@ or K2 left once more, deletes it, the rest moving up),
     HOLD, the kick square for longer before it falls. **KICK FX**: FX 1 MIX, FX 2 MIX, the kick's own two FX slots
     more or less.
   - **ASSIGN** (STYLE until 0.9.1; KNOBS' last part, ALGORITHM back from KNOBS): **K1–K4** each give their own knob its function, one at a
-    time (the cards show them); **PRESETS** turns through eight styles, each giving the four at once (the kick
+    time (the cards show them); **SEL + PRESETS** turns through eight styles (PRESETS alone: the kick, 0.9.26), each giving the four at once (the kick
     playing's): **TERROR** (DRIVE, SCREAM, D+ SCREECH, DISTO, as they
     start), **EARLY NEXT GEN** (PITCH DROP, RUMBLE, PUNCH, DRUM FLT), **HARDCORE** (DRIVE, PUNCH, DECAY, DISTO), **NEW
     SCHOOL** (DRIVE, CLEAN SUB, D+ TYPE, DISTO), **RAWSTYLE** (REV BASS, GLIDE, PITCH DROP, D+ TAIL), **INDUSTRIAL** (T+
@@ -554,9 +554,10 @@ its level in and out.
 
 **KICK FX** (EDIT KICK's parts FX 1 and FX 2, after EQ BANDS and EQ SHAPE): the FX page on the kick's own two slots,
 after its EQ and before everything else (the break's chain never sees them). Every effect of the library but REVERB
-and DELAY; PRESETS the effect (remembered as left, apart from the chain's), ALGORITHM the kick's next or previous part,
+and DELAY; **SEL + PRESETS** the effect (remembered as left, apart from the chain's; PRESETS alone the kick, 0.9.26), ALGORITHM the kick's next or previous part,
 FX the next part of the effect (MAIN, MORE, MOD), FX held + ALGORITHM moves the slot, SEL + FX bypasses, SEL + REC resets.
-FX from another page: the chain.
+FX from another page: the chain. **Each kick has its own FX section** (EQ B, EQ S, FX1, FX2: KICK 1–20 each its own,
+0.9.26): another kick picked brings its own EQ and effects.
 
 **BEGINNER's chain.** In BEGINNER mode the FX page has two slots (the third and fourth are muted and hidden; EXPERT
 gives them back as they were) and PRESETS turns through a short list: EMPTY, FILTER, CRUNCH, DRIVE, FLANGER, REVERB,
@@ -948,7 +949,7 @@ break alone: sweep it down and the drums stay full on top.
 | ENV PLAY (PLAY: the track) | Track | From item | At the end | |
 | ENV DROP | Build bars | After the drop | Break | Crash |
 | ENV BUILD (PRESETS: tempo rise) | Style | Sweep | Riser | Gap |
-| EDIT KICK › KNOBS, K1 SET .. K4 SET (ALGORITHM: the knob; PRESETS: its function) | its function's four settings | | | |
+| EDIT KICK › KNOBS, K1 SET .. K4 SET (ALGORITHM: the knob; SEL + PRESETS: its function) | its function's four settings | | | |
 | LFO (mixer: levels; LFO held, any page: the same) | Break level | Kick level | Drums level | FX (the chain, dry to wet) |
 | LFO, SENDS (SELECT) | Swing | Drums: through the chain or around it | | |
 | LFO, MASTER | Comp | Ratio | Duck | Max out |

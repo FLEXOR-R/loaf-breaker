@@ -158,6 +158,7 @@ static void reset_all(void)
     uint8_t ble_was_off = set.ble_off;
     settings_defaults();
     klab_defaults();                     /* (LOAF BREAKER: the KICK LAB off on every kick) */
+    kfx_all();                           /* (0.9.26: every kick's FX section as the defaults left it) */
     kx_all();                            /* (every kick's knobs as they start) */
     if (n_breaks > n_synth)
         set.brk = (uint8_t)n_synth;      /* the bank's first break */
@@ -1010,6 +1011,20 @@ static void input(void)
             else {                     /* the next or previous break */
                 break_ask((set.brk + (d > 0 ? 1u : n_breaks - 1u)) % n_breaks);
             }
+        } else if (k == EN_PRESET && (ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX())) {
+            if (!(btn & 1u << B_SEL))    /* (LOAF BREAKER, 0.9.26, FLEXOR: in the KICK menu, PRESETS the kick on every
+                                          * page, its FX too; SEL + PRESETS what PRESETS did there: K1-K4 SET a knob's
+                                          * function, ASSIGN a style, KICK FX the effect; elsewhere the pattern) */
+                kick_mem_turn(d);
+            else if (ui.page == PG_KICK && ui.kpage == KP_KSET)
+                selk_assign_k(ui.kks, d);
+            else if (ui.page == PG_KICK && ui.kpage == KP_STYLE)
+                kstyle_turn(d);
+            else if (IS_KFX())
+                fx_type_turn(d);
+            else
+                pattern_pick(d);
+            ui.redraw |= RG_FOOT;
         } else if (k == EN_PRESET && btn & 1u << B_SEL &&
                    (ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_HSET)) {
             kick_mem_turn(d);            /* (LOAF BREAKER, 0.9.26, FLEXOR: on HOME, SEL + PRESETS the kick, KICK 1-20;

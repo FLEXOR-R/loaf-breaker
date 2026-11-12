@@ -20,7 +20,9 @@ expect kslot 3
 turn ALGO 1 10
 wait 100
 expect kpage 12
+press SEL
 turn PRESET 4 10
+release SEL
 wait 100
 turn K1 25 10
 wait 100
@@ -28,7 +30,9 @@ expect csub 50
 turn ALGO 2 10
 wait 100
 expect kpage 12
+press SEL
 turn PRESET 3 10
+release SEL
 wait 100
 expect selk3_fn 10
 shot kk_kick4.png
@@ -46,4 +50,4 @@ expect csub 50
 expect selk3_fn 10
 tap SAVE
 wait 50
-expect store_writes 8
+expect store_writes 9

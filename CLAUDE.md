@@ -44,7 +44,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   (https://claude.ai/artifact/MCakoDjuGTXjMLFiobM1k3; the choice in its store, `tri/choix`): 9 breaks, NUSKOOL first (FLEXOR's order; LO-FI out in 0.200 for room).
 - Patterns (10 Nov 2026, 0.197): 64, four groups of 16 (`NGRP`, `NPAT_ALL`); the group in RAM is pats.p/kn/hits and
   steps.b (`set.pgrp`; `set.pattern` its slot; `pat_cur()` 0..63; `pat_go()` brings one in). Each group has its own
-  objects (OBJ_PG0/KG0/SG0 + g; NG0's first is KICK 11-20 since 0.9.2, the others unused); SAVE (`store_all`) writes 8 (with OBJ_KLAB, OBJ_KMEM2). Leaving a group with unsaved changes while playing is
+  objects (OBJ_PG0/KG0/SG0 + g; NG0's first is KICK 11-20 since 0.9.2, the others unused); SAVE (`store_all`) writes 9 (with OBJ_KLAB, OBJ_KMEM2, OBJ_KFXM). Leaving a group with unsaved changes while playing is
   refused ("SAVE OR STOP", FLEXOR's choice: never a cut in the sound). Track items, `drop_after`, `ui.drop_pat` and
   `pat_next` are 0..63 (or 1..64); `drop_to` stays a slot (0xFF: another group's, read in at the drop).
 - MELODY and KEYS (0.198-0.208) removed in 0.209 (FLEXOR: "kicks and drums only"): perc.c's PV_STAB is an empty place
@@ -88,6 +88,9 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - KICK 1-20 (0.9.2, FLEXOR): `KICK_MEMS` 20, `KMEM_A` 10 (the first ten's arrays as saved before); 11-20 in `km2`
   (OBJ_KMEM2 = OBJ_NG0, pool RAM); always reach a memory through `kmem_at`, `ksmem_at`, `kx_at`, `kxh_at`, `klmem_at`.
   Each kick's PRESET name: `kick_lab_t.pre` (1 + OUT K4's place; 0 the memory's own built-in, `kpre_mem`).
+  Each kick's FX section (EQ B/S, FX1, FX2: set.keq, kfx, kfxx, kmbc) is its own since 0.9.26 (FLEXOR): `kfxm`, 16-bit
+  packed, OBJ_KFXM = OBJ_NG0 + 1 (0xBA000), `kfx_put` / `kfx_get` in kick_mem_go and COPY; SAVE writes 9 objects. In the
+  KICK menu PRESETS is the kick on every page; SEL + PRESETS the KICK FX effect, K1-K4 SET's function, ASSIGN's style.
 - WAVE TYPE (`set.wstyle`: REKORDBOX / SERATO; HOME › SETTINGS K2 alone since 0.9.25, GLO EFFECTS' K3 before; SYSTEM shows
   none of HOME's SETTINGS any more, FLEXOR; common.c serato_col; the kick's RGB and cdj.c) and K4 EDIT
   VIEW (`set.kfocus`: the whole kick / the part edited: kick.c kv_ms, kv_kick) (10 Nov 2026, 0.206).

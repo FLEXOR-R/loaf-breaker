@@ -31,7 +31,9 @@ turn K3 -5 10
 release SEL
 wait 200
 expect t_screech 30
+press SEL
 turn PRESET -4 10
+release SEL
 wait 200
 expect selk3_fn 1
 shot n_assign.png

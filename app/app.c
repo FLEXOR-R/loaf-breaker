@@ -800,6 +800,82 @@ static void grp_load(uint32_t g)         /* group g into RAM (none saved yet: em
     grp_sum = grp_hash();
     grp_new = 0u;
 }
+/* LOAF BREAKER (0.9.26, FLEXOR): each kick's own FX section (EQ B, EQ S, FX1, FX2: set.keq, set.kfx, kfxx, kmbc),
+ * KICK 1..20, kept here packed (every setting 0..1 as 16 bits) while another kick plays; set.* hold the kick playing's.
+ * Its own store object (OBJ_KFXM); a save from before it: every kick with the FX section the kicks shared then */
+#define KFXM_MAGIC 0x4D58464Bu           /* "KFXM" */
+#define KFX_NF 31u                       /* (a slot's settings: p[3], mix, x[8], an MB COMP's 19) */
+typedef struct {
+    uint8_t b[4];                        /* type, on, the extras' type, the MB COMP's solo */
+    uint16_t v[KFX_NF];
+} kfxp_t;
+typedef struct {
+    uint32_t magic;
+    struct {
+        kfxp_t s[BRK_KFX_SLOTS];
+        uint16_t eq[8];
+    } k[KICK_MEMS];
+} kfxm_t;
+_Static_assert(sizeof(kfxm_t) <= 3840u, "a store object holds 3840 bytes");
+static kfxm_t kfxm;
+static float *kfx_f(uint32_t j, uint32_t i)   /* the kick FX slot j's setting i (KFX_NF of them) */
+{
+    brk_fxslot_t *s = &set.kfx[j % BRK_KFX_SLOTS];
+    brk_fxx_t *x = &set.kfxx[j % BRK_KFX_SLOTS];
+    brk_mbc_t *m = &set.kmbc[j % BRK_KFX_SLOTS];
+    if (i < 3u)
+        return &s->p[i];
+    if (i == 3u)
+        return &s->mix;
+    if (i < 12u)
+        return &x->x[i - 4u];
+    i -= 12u;
+    if (i < 15u) {
+        float *b[5] = {m->thr, m->ratio, m->att, m->rel, m->gain};
+        return &b[i / 3u][i % 3u];
+    }
+    return i == 15u ? &m->xlo : i == 16u ? &m->xhi : i == 17u ? &m->knee : &m->out;
+}
+static uint16_t kfx_q(float v) { return (uint16_t)(brk_clampf(v, 0.0f, 1.0f) * 65535.0f + 0.5f); }
+static void kfx_put(uint32_t n)          /* the kick playing's FX section into kick n's place */
+{
+    uint32_t j, i;
+    n %= KICK_MEMS;
+    for (j = 0; j < BRK_KFX_SLOTS; j++) {
+        kfxp_t *p = &kfxm.k[n].s[j];
+        p->b[0] = set.kfx[j].type;
+        p->b[1] = set.kfx[j].on;
+        p->b[2] = set.kfxx[j].type;
+        p->b[3] = set.kmbc[j].solo;
+        for (i = 0; i < KFX_NF; i++)
+            p->v[i] = kfx_q(*kfx_f(j, i));
+    }
+    for (i = 0; i < 8u; i++)
+        kfxm.k[n].eq[i] = kfx_q(set.keq[i]);
+}
+static void kfx_get(uint32_t n)          /* kick n's FX section, the one playing's now */
+{
+    uint32_t j, i;
+    n %= KICK_MEMS;
+    for (j = 0; j < BRK_KFX_SLOTS; j++) {
+        const kfxp_t *p = &kfxm.k[n].s[j];
+        set.kfx[j].type = p->b[0] < BRK_NFXT ? p->b[0] : FXT_EMPTY;
+        set.kfx[j].on = p->b[1];
+        set.kfxx[j].type = p->b[2];
+        set.kmbc[j].solo = p->b[3];
+        for (i = 0; i < KFX_NF; i++)
+            *kfx_f(j, i) = (float)p->v[i] * (1.0f / 65535.0f);
+    }
+    for (i = 0; i < 8u; i++)
+        set.keq[i] = (float)kfxm.k[n].eq[i] * (1.0f / 65535.0f);
+}
+static void kfx_all(void)                /* every kick with the FX section playing (an older save, a reset) */
+{
+    uint32_t k;
+    kfxm.magic = KFXM_MAGIC;
+    for (k = 0; k < KICK_MEMS; k++)
+        kfx_put(k);
+}
 static int store_all(void)               /* SAVE: the settings, the patterns (the group in RAM too), the steps: 1 done */
 {
     if (wiped)                           /* (LOAF BREAKER, 0.263: WIPE MEMORY done: nothing saved until a restart) */
@@ -807,7 +883,8 @@ static int store_all(void)               /* SAVE: the settings, the patterns (th
     return plat_store_save(OBJ_SETTINGS, &set, sizeof set) == 0 && plat_store_save(OBJ_PAT, &pats, sizeof pats) == 0 &&
            plat_store_save(OBJ_STEP, &steps, sizeof steps) == 0 && grp_save() &&
            plat_store_save(OBJ_KLAB, &klab, sizeof klab) == 0 &&
-           plat_store_save(OBJ_KMEM2, &km2, sizeof km2) == 0;   /* (KICK 11..20, 0.9.2) */
+           plat_store_save(OBJ_KMEM2, &km2, sizeof km2) == 0 &&   /* (KICK 11..20, 0.9.2) */
+           (kfx_put(set.kslot), plat_store_save(OBJ_KFXM, &kfxm, sizeof kfxm) == 0);   /* (each kick's FX, 0.9.26) */
 }
 /* LOAF BREAKER: the kick memory k's knobs from the ones playing (kx_put), the ones playing from k's (kx_get); kx_all:
  * every memory's as the ones playing (an older save, RESET ALL) */
@@ -1342,6 +1419,8 @@ void app_init(void)
         km2_lab_clear();
         if (plat_store_load(OBJ_KMEM2, &km2, sizeof km2) != (int)sizeof km2 || km2.magic != KM2_MAGIC)
             km2_defaults();
+        if (plat_store_load(OBJ_KFXM, &kfxm, sizeof kfxm) != (int)sizeof kfxm || kfxm.magic != KFXM_MAGIC)
+            kfx_all();                   /* (0.9.26: each kick's FX section; before, the one they shared) */
     }
     int ssz = plat_store_load(OBJ_STEP, &steps, sizeof steps), sok;
     sok = (ssz == (int)sizeof steps || ssz == (int)STEPS_SIZE_KXH || ssz == (int)STEPS_SIZE_TK || ssz == (int)STEPS_SIZE_KX ||
