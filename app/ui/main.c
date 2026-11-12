@@ -63,6 +63,11 @@ static void perc_clip(void)
     changed();
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
+static int sel_bt_page(void)             /* (0.9.26, FLEXOR: the pages where SEL + ALGORITHM is BREAK TIME) */
+{
+    return ui.page <= PG_GEN || ui.page == PG_HSET || ui.page == PG_MIX || ui.page == PG_OVL ||
+           (ui.page == PG_TRACK && ui.tpage) || (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK);
+}
 static void kfx_open(int on)             /* to KICK FX (on), or the FX page back on the chain */
 {
     if (on && ui.fx_focus < BRK_FX_SLOTS) {
@@ -1027,6 +1032,9 @@ static void input(void)
         } else if (k == EN_ALGO) {       /* what the page edits; on HOME, ARP, MIXER (and SEL held: anywhere) the break */
             if (ui.page == PG_FX && btn & 1u << B_FX)
                 fx_algo(d, 1u);          /* FX held: the slot moves along the chain */
+            else if (btn & 1u << B_SEL && sel_bt_page())
+                hset_turn(3, d);         /* (0.9.26, FLEXOR: where ALGORITHM alone is the break, SEL + ALGORITHM
+                                          * BREAK TIME, right HALF, left NORMAL) */
             else if (btn & 1u << B_SEL)
                 break_ask((set.brk + (d > 0 ? 1u : n_breaks - 1u)) % n_breaks);
             else if (ui.page == PG_TRACK && ui.tpage == 0u)
@@ -1051,7 +1059,7 @@ static void input(void)
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
             } else if (ui.page == PG_SEQ) {   /* SEQ: the lane its keys edit */
                 ui.seq_manual = 1u;      /* (LOAF BREAKER: picked: not following the bar playing, until stopped) */
-                seq_lane_step(d);
+                seq_bar_step(d);         /* (0.9.26, FLEXOR: the bar shown of a long lane; one bar: the lane) */
                 page_say();
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
             } else if (ui.page == PG_KEQ || IS_KFX()) {   /* (the KICK menu's EQ and FX parts: its section's next) */
@@ -1082,7 +1090,8 @@ static void input(void)
                 pattern_pick(d);
             ui.redraw |= RG_FOOT;
         } else if (k == EN_PRESET && btn & 1u << B_SEL &&
-                   (ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_HSET)) {
+                   (ui.page <= PG_GEN || ui.page == PG_HSET || ui.page == PG_SEQ || ui.page == PG_MIX ||
+                    ui.page == PG_OVL || (ui.page == PG_GLOBAL && ui.gpage != 2u && ui.gpage != 3u))) {
             kick_mem_turn(d);            /* (LOAF BREAKER, 0.9.26, FLEXOR: on HOME, SEL + PRESETS the kick, KICK 1-20;
                                           * PRESETS alone the pattern) */
             ui.redraw |= RG_FOOT;
@@ -1134,13 +1143,9 @@ static void input(void)
             changed();
             app_say("DRUM VIEW ZOOM", ez_idx() ? EZ_NAME[ez_idx()] : "AUTO (EACH PART ITS OWN)");
             ui.redraw |= RG_BLOCKS;
-        } else if (k == EN_PRESET && ui.page == PG_GLOBAL && ui.gpage == 2u) {   /* LOAF BREAKER: GLO MORE: WAVE ZOOM,
-                                          * how much of the past the scrolling wave holds */
-            set.wzoom = (uint8_t)clamp((int32_t)(set.wzoom % CDJ_ZN) + (d > 0 ? 1 : -1), 0, CDJ_ZN - 1);
-            changed();
-            app_say("WAVE ZOOM", CDJ_ZNAME[set.wzoom % CDJ_ZN]);
-            ui.redraw |= RG_BLOCKS;
-        } else if (k == EN_PRESET)
+        } else if (k == EN_PRESET && ui.page == PG_GLOBAL && ui.gpage == 2u)
+            global_turn(0, d);           /* (SETUP: PRESETS the skin, as K1; 0.9.26, FLEXOR: WAVE ZOOM before) */
+        else if (k == EN_PRESET)
             pattern_pick(d);             /* elsewhere: the pattern */
         else if (ui.kil_focus && k == EN_K1) {   /* LOAF BREAKER: KIL held, K1: its LATCH, right on (held now: it
                                           * stays quiet), left off */
@@ -1483,7 +1488,7 @@ static void draw_help(void)
         cv_text(46, (int32_t)i * 13, &FONT_XS, i != 3u ? G[i][1] : ui.page == PG_PERC ? "COPY DRUM"
                 : ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX() ? "COPY KICK" : G[i][1], C_WHITE);
         cv_text(124, (int32_t)i * 13, &FONT_XS, G[i + 4u][0], C_HI);
-        cv_text(170, (int32_t)i * 13, &FONT_XS, G[i + 4u][1], C_WHITE);
+        cv_text(170, (int32_t)i * 13, &FONT_XS, i == 2u && sel_bt_page() ? "BREAK TIME" : G[i + 4u][1], C_WHITE);
     }
     cv_blit(0, 88u);
     cv_begin(240, 52, C_BLACK);
@@ -2235,8 +2240,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped"};
-    int v[124];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin"};
+    int v[125];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -2366,7 +2371,8 @@ int app_expect(const char *what, int *got)
     v[121] = set.auto_save;
     v[122] = set.bkeys.bk[BK_BHALF] & 1u;
     v[123] = wiped ? 2 : wipe_at ? 1 : 0;   /* (the host keeps the store apart: the erase itself is the FM-1's) */
-    for (i = 0; i < 124u; i++)
+    v[124] = (int32_t)skin_idx();
+    for (i = 0; i < 125u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

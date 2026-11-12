@@ -14,10 +14,10 @@ wait 300
 tap SEQ
 wait 300
 expect page 6
-turn ALGO -1 80
+turn SELECT -1 80
 wait 200
 expect page 6
-turn ALGO 1 80
+turn SELECT 1 80
 wait 200
 expect page 6
 expect seq_lane 2
@@ -40,7 +40,7 @@ expect lane_steps 64
 turn K4 -1 60
 wait 200
 expect lane_steps 32
-turn ALGO 2 80
+turn SELECT 2 80
 wait 200
 expect lane_steps 16
 turn K4 2 60

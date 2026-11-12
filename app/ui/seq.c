@@ -105,6 +105,16 @@ static void seq_lane_step(int32_t d)     /* ALGORITHM / SEQ again: the next lane
     else
         global_part(GP_FILL);            /* (past the last: GROOVE) */
 }
+static void seq_bar_step(int32_t d)      /* (0.9.26, FLEXOR: ALGORITHM on SEQ: the next bar of the lane's drum, or the
+                                          * break's other half, round; a lane of one bar, or BREAK: the next lane) */
+{
+    uint32_t sl = ui.seq_lane % NSEQL, b = SL_BAR[sl], n = sl < SL_KICK ? 2u : sl_bars(&pats.p[set.pattern % NPAT], sl);
+    if (SEQ_BRK || n < 2u || (sl < SL_KICK && !(brk_shown(0u) && brk_shown(1u)))) {
+        seq_lane_step(d);
+        return;
+    }
+    ui.seq_lane = (uint8_t)(sl - b + (b + (d > 0 ? 1u : n - 1u)) % n);
+}
 static void seq_value(int i, char *t);
 enum { UNDO_RANDOM = 1, UNDO_CLEAR, UNDO_LANE };   /* (UNDO_LANE + the knob) */
 static void undo_mark(uint32_t what);

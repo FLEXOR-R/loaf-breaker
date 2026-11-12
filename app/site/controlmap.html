@@ -166,8 +166,8 @@
       { n: "PERFORM", k: ["GATE", "FILTER", "DRUM FLT", "SUB DECAY"], strip: "THE MIX AS A CDJ, IN REKORDBOX COLOURS (HOME HELD: THE 16 SLICES)", note: "a track playing: its progress and DROP IN 4" },
       { n: "GENERATOR", k: ["COMPLEXITY", "ANCHOR", "ROLL", "FILL"], strip: "THE MIX AS A CDJ (HOME HELD: THE 16 SLICES)", note: "HOME again" },
       { n: "SETTINGS", k: ["VIEW", "WAVE TYPE", "WAVE ZOOM", "BREAK TIME"], strip: "THE FOUR AS CARDS · WHAT THEY DO", note: "VIEW: WAVEFORM or SLICES (HOME held: the same); WAVE TYPE: REKORDBOX, SERATO; BREAK TIME HALF: the break at half the tempo" } ],
-      algo: "Break (next bar)", brk: true, presets: "Pattern P1–P64", keys: "slices", sel: "Tempo (SEL: drum filter)",
-      notes: [["SEL", "Tapped alone: the shortcuts, everywhere and this page's own"], ["SEL + ALGO · SEL + PRESETS", "Break · pattern, any page (HOME: SEL + PRESETS the kick, KICK 1–20)"],
+      algo: "Break (next bar; SEL: BREAK TIME, NORMAL / HALF)", brk: true, presets: "Pattern P1–P64", keys: "slices", sel: "Tempo (SEL: drum filter)",
+      notes: [["SEL", "Tapped alone: the shortcuts, everywhere and this page's own"], ["SEL + ALGO · SEL + PRESETS", "Break · pattern, any page; here BREAK TIME (NORMAL / HALF) · the kick, KICK 1–20"],
               ["SEL + K1–K4", "LIVE: the kick changed while it plays, any page (EDIT › KNOBS gives the four); named at the foot while SEL is held or locked"], ["SEL ×2 · SEL + ENV", "SEL locked down, lit: both hands free for SEL + K1–K4 (again: free) · the drop"],
               ["HOME held", "The slices, or the CDJ view again"], ["HOME + PLAY", "Back to bar 1"], ["ARP", "The OVERLAY page: an effect on each white key"], ["LFO + K1–K3", "Break, kick, drums levels, any page: 5 % a detent"]] },
     { id: "edit", btn: "EDIT", name: "SOUNDS", sub: "Kick, drums, break (SEL + EDIT: the next source)", again: "EXPERT: the next sound (KICK, SNARE, HAT, CLAP) · BEGINNER: the kick's next page", part: true, subs: [
@@ -179,7 +179,7 @@
       { n: "KNOBS", k: ["SEL + K1's", "SEL + K2's", "SEL + K3's", "SEL + K4's"], strip: "THE KICK'S WAVE, THE PART (K4 DISTO) · 4 KNOB CARDS", note: "ALGO: KNOBS (the four live functions), K1 SET .. K4 SET (each one's settings; SEL + PRESETS there: that knob's function), ASSIGN (K1–K4 each knob's function; SEL + PRESETS a style: TERROR, EARLY NEXT GEN, HARDCORE … the four at once, then PRESET 1–4, your own, functions and values, SAVE there stores them), TOOLS (MUTATE, A/B); the kick playing's, KICK 1–10 each its own" },
       { n: "DRUM (BIG)", k: ["LEVEL", "TUNE", "DECAY", "TONE"], strip: "THE DRUM'S HIT LARGE, ITS DECAY MARKED · THE 4 DRUMS · 4 KNOB CARDS", note: "SELECT from the kick's big view: SNARE, HAT, CLAP, KICK" },
       { n: "DRUM (CLASSIC)", k: ["LEVEL", "TUNE", "DECAY", "TONE"], strip: "ITS 6 SETTINGS · THE 4 DRUMS' SHAPES", note: "SEL + EDIT (in the kick's view); EDIT held: the other view; EDIT again: the next drum (SNARE HAT CLAP)" },
-      { n: "BREAK", k: ["PITCH", "GRAIN", "SNAP", "LEVEL"], strip: "PITCH MODE · GRAIN · SNAP", note: "SEL + EDIT from the drums; ALGORITHM: the break" } ],
+      { n: "BREAK", k: ["PITCH", "GRAIN", "SNAP", "LEVEL"], strip: "PITCH MODE · GRAIN · SNAP", note: "SEL + EDIT from the drums; ALGORITHM: the break; SEL + ALGORITHM: BREAK TIME; SEL + PRESETS: the kick" } ],
       algo: "Part (in its section) · drums: SOUND / SHAPE", presets: "Kick 1–20 on every page of the KICK menu, its FX too (SEL + PRESETS: KICK FX the effect, K1–K4 SET the knob's function, ASSIGN a style) · the drum's memories", keys: "slices", sel: "KICK: its section (the tabs at the top) · drums: the next drum",
       notes: [["EDIT again", "EXPERT: the next sound, KICK SNARE HAT CLAP (SELECT: the sections ATTACK, BODY, TAIL, DIRT, FX, KNOBS)"], ["EDIT held", "The kick's next view: RGB, WAVE, CLASSIC (the drums: big or classic)"], ["SELECT", "KICK menu: the tabs at the top (sections), ALGORITHM those at the bottom (parts) · drums: SNARE, HAT, CLAP"],
               ["SEL + EDIT", "The next source: KICK, DRUMS, BREAK"], ["SEL + ARP", "Copy the kick (or the drum); PRESETS to another; SEL + ARP again: pasted there, its FX too"], ["Keys 1–4, stopped", "Play KICK SNARE HAT CLAP (big and classic views, the drums)"],
@@ -193,7 +193,7 @@
       { n: "SNARE · HAT · CLAP", k: ["FILL", "SOUND", "CLR / 4X4", "LENGTH"], strip: "THE KEYS: THIS BAR'S 16 STEPS · ALL THE LANES", note: "two lanes each: 1-16, 17-32 (BEGINNER: 16, LONGER in EXPERT)" },
       { n: "A STEP HELD", k: ["NOTE", "HITS", "COND", "NUDGE"], strip: "THAT STEP'S OWN (THE FOOT NAMES THEM)", note: "COND: ALWAYS 75% 50% 25% 1:2 2:2" },
       { n: "GROOVE", k: ["SWING", "", "", ""], strip: "SWING · THE BAR'S 16THS", note: "also SEL + ARP; LENGTH: 1 BEAT … 2 STEPS, /8: in 8ths" } ],
-      algo: "Lane", presets: "Pattern P1–P64", keys: "steps", sel: "Lane, as ALGORITHM (SEL: drum filter)",
+      algo: "The bar shown of a long lane (1–4; one bar: the next lane)", presets: "Pattern P1–P64 (SEL + PRESETS: the kick)", keys: "steps", sel: "Lane (SEL: drum filter)",
       notes: [["REC", "Record the keys and MIDI notes into the pattern"], ["SEL + REC", "Clear: the lane here, the pattern elsewhere"],
               ["SEQ held, then SEQ", "Clear the whole pattern (SEL + SAVE undoes)"], ["SEL + SEQ", "Copy the pattern; on another: paste"],
               ["EDIT (a drum lane)", "That drum's sound"], ["SEQ held + white key 1–4", "The bar shown copied onto that bar"],
@@ -204,7 +204,7 @@
       { n: "PLAY", k: ["TRACK", "FROM", "END", ""], strip: "A RADIO: THE TRACKS ON A DIAL", note: "PLAY: the track, then HOME" },
       { n: "DROP", k: ["BUILD", "AFTER", "BREAK", "CRASH"], strip: "THE DROP'S SETTINGS", note: "SEL + ENV: the build from the next bar; PRESETS: BUILD KICK, the kick the build plays (back at the drop)" },
       { n: "BUILD", k: ["STYLE", "SWEEP", "RISER", "GAP"], strip: "THE BUILD BEFORE A DROP", note: "PRESETS: TEMPO RISE, up to +30 % to the drop" } ],
-      algo: "TRACKS: the item · else the break (next bar)", brk: true, presets: "Track 1–8 · BUILD: tempo rise", keys: "patterns / tracks", sel: "The tabs: TRACKS, PLAY, DROP, BUILD (SEL: drum filter)",
+      algo: "TRACKS: the item · else the break (next bar; SEL: BREAK TIME)", brk: true, presets: "Track 1–8 · BUILD: tempo rise", keys: "patterns / tracks", sel: "The tabs: TRACKS, PLAY, DROP, BUILD (SEL: drum filter)",
       notes: [["White key (TRACKS)", "Its pattern at the item"], ["ALGORITHM (TRACKS)", "Move along the items (SEL + ALGO: the break)"],
               ["ENV held (TRACKS)", "A space after the item; on a space: it goes"], ["SEL + PLAY (TRACKS)", "The track starts here"],
               ["PLAY (TRACKS)", "The track from its start item, on TRACKS"], ["White keys 1–8 (PLAY)", "That track played"]] },
@@ -213,7 +213,7 @@
       { n: "SENDS", k: ["FX", "DRUMS", "", ""], strip: "THE FX FADER AND ITS 4 SLOTS · THE DRUMS AROUND THE FX OR THROUGH", note: "DRUMS: AROUND by default, THRU when turned (saved: kept); SWING: PATTERN › GROOVE" },
       { n: "MASTER", k: ["COMP", "RATIO", "DUCK", "MAX OUT"], strip: "COMP AND ITS REDUCTION · DUCK · MAX OUT", note: "the mix as it leaves" },
       { n: "DYNAMICS", k: ["C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"], strip: "THE FOUR VALUES", note: "COMP's and DUCK's timing" } ],
-      algo: "Break (next bar)", brk: true, presets: "Pattern P1–P64", keys: "slices", sel: "The tabs: LEVELS, SENDS, MASTER, DYNAMICS (SEL: drum filter)", notes: [] },
+      algo: "Break (next bar; SEL: BREAK TIME)", brk: true, presets: "Pattern P1–P64 (SEL: the kick)", keys: "slices", sel: "The tabs: LEVELS, SENDS, MASTER, DYNAMICS (SEL: drum filter)", notes: [] },
     { id: "fx", btn: "FX", name: "EFFECTS", sub: "The FX chain: four slots in series", again: "back to HOME (SELECT: the slot; ALGORITHM: MAIN, MORE, MOD)", part: true, subs: [
       { n: "MAIN", k: ["PARAM 1", "PARAM 2", "PARAM 3", "MIX"], strip: "THE EFFECT LIVE · THE CHAIN · ITS MODULATOR · IN / OUT", note: "SELECT: the slot (1–4); ALGORITHM: the part" },
       { n: "MORE", k: ["EXTRA 1", "EXTRA 2", "EXTRA 3", "EXTRA 4"], strip: "THE EFFECT LIVE · THE CHAIN · ITS MODULATOR · IN / OUT", note: "each effect its own: see §6" },
@@ -225,15 +225,15 @@
               ["MB COMP · band", "THRESH · RATIO · ATTACK · RELEASE"], ["MB COMP · GAIN / X-OVER", "LOW MID HIGH SOLO · LOW X HIGH X KNEE OUTPUT"]] },
     { id: "glo", btn: "GLO", name: "SYSTEM", sub: "MIDI, setup, screen effects, reset", again: "back to HOME (SELECT: the parts)", subs: [
       { n: "MIDI", k: ["CLOCK IN", "CLOCK OUT", "METER", ""], strip: "MIDI OVER USB AND THE TRS JACK · CLOCK IN · CLOCK OUT", note: "BREAK TIME: HOME › SETTINGS; no Bluetooth; K3 METER (EXPERT only): CPU, IMG, FR in the header" },
-      { n: "SETUP", k: ["SKIN", "", "MODE", "AUTO SAVE"], strip: "THE 24 SKINS' COLOURS, MODE, AUTO SAVE", note: "the knobs top to bottom; WAVE ZOOM: HOME › SETTINGS; K3 MODE: TUTORIAL (18 guided steps; SEL + GLO skips, GLO quits), BEGINNER (the essentials: the KICK one page, the FX as scenes, SEQ's BEAT, SONG trimmed) or EXPERT (all of it)" },
+      { n: "SETUP", k: ["SKIN", "", "MODE", "AUTO SAVE"], strip: "THE 24 SKINS' COLOURS, MODE, AUTO SAVE", note: "PRESETS: the skin too; the knobs top to bottom; WAVE ZOOM: HOME › SETTINGS; K3 MODE: TUTORIAL (18 guided steps; SEL + GLO skips, GLO quits), BEGINNER (the essentials: the KICK one page, the FX as scenes, SEQ's BEAT, SONG trimmed) or EXPERT (all of it)" },
       { n: "EFFECTS", k: ["EFFECT", "ON / OFF", "", "EDIT VIEW"], strip: "THE SEVEN SCREEN EFFECTS, LIT WHEN ON · EDIT VIEW", note: "keys 1–7: CRT VHS GRAIN RGB SHAKE STROBE 8-BIT, several at once; the waves' colours: HOME › SETTINGS; K4 the KICK menu's picture: the whole kick or the part edited; PRESETS: DRUM VIEW ZOOM, the time EDIT's pictures show (AUTO, 250 MS, 500, 750, 1 S, 1.5, 2 S), the kick's and the drums'" },
       { n: "FX SET", k: ["AMOUNT", "KICK", "DROP", "LENGTH"], strip: "THE EFFECTS' FOUR SETTINGS AS BARS", note: "0..100 %, 5 % a detent; KICK, DROP 0: none" },
       { n: "RESET", k: ["", "RESET", "", "WHAT"], strip: "16 PARTS: DROP BUILD KNOB KICK KICK TONE ALL KICKS DRUMS MIX FX CHAIN STEPS PADS KEYS TRACK SCREEN WIPE MEMORY EVERYTHING · 5 BOXES FILL", note: "K4 the part; K2 five clicks (each within 2 s), then GLO: reset" } ],
-      algo: "Part (RESET: what)", presets: "Pattern P1–P64", keys: "slices", sel: "The parts: MIDI, SETUP, EFFECTS, FX SET, RESET (SEL: drum filter)", notes: [["RESET › EVERYTHING", "RESET ALL: K2 five turns, then GLO"], ["RESET › WIPE MEMORY", "Every LOAF BREAKER save erased, before installing another firmware"]] },
+      algo: "Part (RESET: what)", presets: "Pattern P1–P64 (SEL: the kick, but SETUP, EFFECTS; SETUP: the skin)", keys: "slices", sel: "The parts: MIDI, SETUP, EFFECTS, FX SET, RESET (SEL: drum filter)", notes: [["RESET › EVERYTHING", "RESET ALL: K2 five turns, then GLO"], ["RESET › WIPE MEMORY", "Every LOAF BREAKER save erased, before installing another firmware"]] },
     { id: "arp", btn: "ARP", name: "OVERLAY", sub: "Sixteen effects over everything; the black keys' layout", again: "back to HOME (SELECT: the other tab, EXPERT)", subs: [
       { n: "ARP EFFECTS", k: ["AMOUNT", "RATE", "SWEEP", "LATCH"], strip: "SIXTEEN EFFECTS, ONE A WHITE KEY: LIT WHILE THEY SOUND", note: "held, or LATCH on: a key switches its effect on and off" },
       { n: "BLACK KEYS", k: ["PRESET", "KEY", "EFFECT", ""], strip: "THE ELEVEN BLACK KEYS AND WHAT EACH DOES · THE KEY EDITED · THE PRESET", note: "EXPERT; K1 CHOPPAH, FLEXOR LAYOUT, CUSTOM; a black key pressed picks itself; K3 on a preset: a CUSTOM copy" } ],
-      algo: "Break (next bar)", presets: "Pattern P1–P64", keys: "16 effects", sel: "EXPERT: the other tab (BEGINNER: tempo)",
+      algo: "Break (next bar; SEL: BREAK TIME)", presets: "Pattern P1–P64 (SEL: the kick)", keys: "16 effects", sel: "EXPERT: the other tab (BEGINNER: tempo)",
       notes: [["SEL + ARP", "PATTERN › GROOVE: SWING"], ["The ARP black key (FLEXOR LAYOUT, CUSTOM)", "Its overlay effect: EFFECT, AMOUNT, TIME, LATCH; FX while held: THRU, ON / OFF, RATE, SWEEP"]] }
   ];
   const PADS = ["R8", "R16", "R32", "REV", "FRZ", "HLF", "VNL", "GAT", "RND", "FLT", "DUB"];   // (CHOPPAH's layout, a new FM-1's)

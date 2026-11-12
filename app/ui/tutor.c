@@ -40,7 +40,7 @@ static const struct {
     {4u, TC_SEQ, 0u, 0u, 1u << B_SEQ, "PRESS SEQ: THE PATTERN"},   /* (0.252, FLEXOR: THE PATTERN before THE
                                           * KICK: kicks in it first) */
     {4u, TC_KICKS, TK_WHITE, 1u, 0u, "WHITE KEYS: PUT 2 KICKS IN"},
-    {4u, TC_SNARE, TK_WHITE, 1u, 0u, "ALGORITHM TO SNARE, ADD ONE"},
+    {4u, TC_SNARE, TK_WHITE, 1u, 0u, "SELECT TO SNARE, ADD ONE"},
     {2u, TC_EDIT, 0u, 0u, 1u << B_EDIT, "PRESS EDIT: THE KICK"},
     {2u, TC_STOP, 0u, 0u, 1u << B_PLAY, "PRESS PLAY: STOP THE BREAK"},   /* (0.252, FLEXOR: heard stopped, keys 1-4) */
     {2u, TC_KEYS4, TK_DRUMS, 1u, 0u, "KEYS 1-4: KICK SNARE HAT CLAP"},
@@ -329,7 +329,7 @@ static const char *tut_away(uint32_t c, uint16_t *btn)
             return "PRESS SEQ: BACK TO THE PATTERN";
         }
         if (c == TC_KICKS && !sl_kick(ui.seq_lane))
-            return "TURN ALGORITHM: THE KICK LANE";
+            return "TURN SELECT: THE KICK LANE";
         return 0;
     case TC_FXT:
         if (ui.page != PG_FX) {

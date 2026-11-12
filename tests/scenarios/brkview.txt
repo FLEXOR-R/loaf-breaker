@@ -1,4 +1,4 @@
-# LOAF BREAKER (FLEXOR, 11 Nov 2026, 0.234): EXPERT's SEQ: ALGORITHM up past the lanes reaches BREAK (the tab says it),
+# LOAF BREAKER (FLEXOR, 11 Nov 2026, 0.234): EXPERT's SEQ: SELECT up past the lanes (ALGORITHM until 0.9.26) reaches BREAK (the tab says it),
 # K4 the break's rows the grid shows: HIDDEN, 16 (the first 16 steps), 32 (both rows, as to start); the pattern plays
 # 32 whatever. Hidden: the lanes go from BREAK to K1; 16: BRK1 then K1. Above BREAK, GROOVE as before.
 #   app/build/host/loaf-breaker_host tests/scenarios/brkview.txt app/build/scenarios
@@ -8,13 +8,13 @@ wait 300
 expect page 6
 expect seq_lane 2
 expect brkview 2
-turn ALGO -1 80
+turn SELECT -1 80
 wait 150
 expect seq_lane 1
-turn ALGO -1 80
+turn SELECT -1 80
 wait 150
 expect seq_lane 0
-turn ALGO -1 80
+turn SELECT -1 80
 wait 200
 expect seq_brk 1
 wait 800
@@ -24,11 +24,11 @@ wait 200
 expect brkview 0
 wait 800
 shot bv_hidden.png
-turn ALGO 1 80
+turn SELECT 1 80
 wait 150
 expect seq_brk 0
 expect seq_lane 2
-turn ALGO -1 80
+turn SELECT -1 80
 wait 150
 expect seq_brk 1
 turn K4 1 80
@@ -36,15 +36,15 @@ wait 200
 expect brkview 1
 wait 800
 shot bv_16.png
-turn ALGO 1 80
+turn SELECT 1 80
 wait 150
 expect seq_lane 0
-turn ALGO 1 80
+turn SELECT 1 80
 wait 150
 expect seq_lane 2
-turn ALGO -2 80
+turn SELECT -2 80
 wait 150
 expect seq_brk 1
-turn ALGO -1 80
+turn SELECT -1 80
 wait 300
 expect page 3
