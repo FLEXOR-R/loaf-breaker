@@ -68,10 +68,11 @@ wait 350
 shot p_kil.png
 key b8 up
 wait 250
+# (0.265, FLEXOR: DST a switch, DISTO used or not, its amount never touched: at 0 % it stays 0 %)
 key b9 down
 wait 250
-expect ter_off 0
-expect terror 50
+expect ter_off 1
+expect terror 0
 shot p_ter.png
 key b9 up
 wait 250
@@ -79,8 +80,13 @@ key b9 down
 wait 30
 key b9 up
 wait 250
+expect ter_off 0
+expect terror 0
+key b9 down
+wait 30
+key b9 up
+wait 250
 expect ter_off 1
-expect terror 50
 key b9 down
 wait 30
 key b9 up

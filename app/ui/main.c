@@ -423,16 +423,10 @@ static void input(void)
         ovl_pad_key(0);
     if ((kdn & PAD_BIT(BKF_SUB)))        /* GLOUPI BREAKS: SUB turns the kick's SUB DRIVE on and off */
         sub_drive_toggle();
-    if (kdn & PAD_BIT(BKF_DST)) {        /* LOAF BREAKER: DST, as SUB's DRIVE: the kick's TERROR off if it sounds (its
-                                          * amount kept), else on (an amount at nothing: 50 %, a key that does something) */
-        if (KICK_TERROR(&set.kick) && !terror_off)
-            set.selk_hi |= 16u;
-        else {
-            set.selk_hi &= (uint8_t)~16u;
-            if (!KICK_TERROR(&set.kick))
-                KICK_TERROR(&set.kick) = 50u;
-        }
-        app_say("DISTO", terror_off ? "OFF" : "ON");
+    if (kdn & PAD_BIT(BKF_DST)) {        /* LOAF BREAKER: DST, a switch: the kick's DISTO used or not, its amount never
+                                          * touched (0.265, FLEXOR: no more 50 % from nothing) */
+        set.selk_hi ^= 16u;
+        app_say("DISTO", terror_off ? "OFF" : KICK_TERROR(&set.kick) ? "ON" : "ON (AT 0 %)");
         changed_kick();
         ui.redraw |= RG_FOOT | RG_BLOCKS;
     }
