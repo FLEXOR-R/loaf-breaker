@@ -6,7 +6,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 ## LOAF BREAKER (FLEXOR's fork)
 
 - The repository is FLEXOR-R/loaf-breaker (public from 11 Nov 2026, FLEXOR). **Work goes to `dev`** (12 Nov 2026, FLEXOR:
-  not twenty public versions a day): each push there replaces the one pre-release `loaf-test` (loaf-breaker-X.YY-testN.fwsc,
+  not twenty public versions a day): each push there replaces the one pre-release `loaf-test` (loaf-breaker-X.YY-testN.zip: the .fwsc zipped, as the hub lists
+  the newest release with a .fwsc, pre-releases too;
   the splash "X.YY TEST N"; no site, no soak, no tag). **A release only when FLEXOR asks** ("release", "publie"): dev
   pushed to `loaf` (`git push origin dev:loaf`, a fast-forward), whose every push is a release `loaf-vX.YY`
   (`.github/workflows/loaf.yml`; CLAUDE.md alone releases nothing) and updates the site, https://flexor-r.github.io/loaf-breaker/ (0.261: the firmware on it
