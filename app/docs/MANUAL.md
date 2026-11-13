@@ -158,7 +158,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 | EDIT | SOUNDS | Three sources, **SEL + EDIT** the next: **KICK** (its menu, by the kick's anatomy: ATTACK, BODY, TAIL, DIRT, FX1, FX2, MORE; SELECT its next section; EDIT again the next sound, EXPERT: SNARE, HAT, CLAP, then the KICK), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
 | SEQ | PATTERN | The lanes (ALGORITHM); the views FULL, DRUMS and **SETTINGS** (SWING, BREAK ROWS, FOLLOW; also SEL + ARP) on SELECT |
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD |
-| LFO | MIX | LEVELS (BREAK, KICK, PERC, ARP), SENDS (FX, the drums' route, ARP), MASTER, DYNAMICS |
+| LFO | MIX | LEVELS (BREAK, KICK, PERC), SENDS (FX, the drums' route, ARP), MASTER, DYNAMICS |
 | FX | EFFECTS | The four slots: MAIN, MORE, MOD |
 | GLO | SYSTEM | MIDI (EXPERT: K3 METER), SETUP (K1 SKIN, also PRESETS; K3 MODE, K4 AUTO SAVE), EFFECTS (the screen's), FX SET, RESET |
 
@@ -928,7 +928,7 @@ MIDI notes 38 (D1) play the snare, 42, 44 and 46 the hat, also while stopped. SA
 ## 9. The mixer
 
 **LFO** opens the MIXER: three channels side by side, each a fader (BREAK, KICK and PERC with a level meter).
-**SELECT** turns to SENDS, MASTER and DYNAMICS (0.9.2; **LFO again** goes back to HOME): SENDS (the FX fader, the chain's four slots beside it, lit: on; DRUMS, their route; ARP, the ARP's effects on the BREAK, the KICK or THRU, everything: the same as the ARP key's THRU, also LEVELS' K4). **LFO held +
+**SELECT** turns to SENDS, MASTER and DYNAMICS (0.9.2; **LFO again** goes back to HOME): SENDS (the FX fader, the chain's four slots beside it, lit: on; DRUMS, their route; ARP, the ARP's effects on the BREAK, the KICK or THRU, everything: the same as the ARP key's THRU). **LFO held +
 K1–K4**, on any page: the break's, the kick's and the drums' level, 5 % a detent (the MIXER's own page: 2 %), the page staying where it is (LFO let go after a turn opens nothing): the mix moved without
 going into the MIXER.
 
@@ -936,8 +936,8 @@ going into the MIXER.
 
 | Half | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- |
-| LEVELS | BREAK: the break's level (its throws into the delay and the reverb too) | KICK: the kick's level (the KICK page's VOLUME) | PERC: the snare, the hat and the clap together | ARP: what the ARP's effects take, BREAK, KICK or THRU (the whole mix); the ARP key's THRU (0.9.29) |
-| SENDS | FX: the master FX chain against the dry sound | DRUMS: through the FX chain or around it | ARP: BREAK, KICK or THRU, as LEVELS' K4 | |
+| LEVELS | BREAK: the break's level (its throws into the delay and the reverb too) | KICK: the kick's level (the KICK page's VOLUME) | PERC: the snare, the hat and the clap together | |
+| SENDS | FX: the master FX chain against the dry sound | DRUMS: through the FX chain or around it | ARP: what the ARP's effects take, BREAK, KICK or THRU (the whole mix); the ARP key's THRU (0.9.29; the kick sounds the same whichever, 0.9.31) | |
 
 FX is how much of the chain you hear (the drums routed around it stay dry). Bring BREAK down to drop the break and
 let the drums run alone, then up again for the drop. HOME keeps the gate, FX and COMPLEXITY to ride (K1, K3, K4) and the **DJ filter** (K2), which filters the

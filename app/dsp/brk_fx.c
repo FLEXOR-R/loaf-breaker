@@ -31,6 +31,9 @@ static svf_t dj_p;                       /* LOAF BREAKER: the same on the snare,
 static svf_t dj_d;                       /* (0.9.26: the FILTER pad's throw on the drums, its THRU DRUMS or BOTH) */
 static volatile uint32_t p_fthru;        /* (its THRU: 0 BREAK, 1 DRUMS, 2 BOTH) */
 void brk_fx_flt_thru(uint32_t m) { p_fthru = m <= 2u ? m : 0u; }
+static volatile uint32_t p_late;         /* (0.9.31: the limiter left to brk_fx_add_dry, after the ARP's overlays and the
+                                          * kick joining: the kick limited with the rest as ever, FLEXOR) */
+void brk_fx_late_limit(uint32_t on) { p_late = on; }
 static float djk_s;                      /* its smoothed position */
 const char *const BRK_FXT_NAME[BRK_NFXT] = {"EMPTY", "FILTER", "CRUNCH", "DRIVE", "PUNCH", "FLANGER", "RING MOD",
                                             "TREMOLO", "REVERB", "DELAY", "EQ", "TAPE", "MB COMP", "CLIP"};
@@ -448,9 +451,13 @@ float brk_fx_dj_now(void) { return dj_s; }
 BRK_COLD void brk_fx_add_dry(float *l, float *r, const float *xl, const float *xr, uint32_t n)
 {
     uint32_t i;
-    for (i = 0; i < n; i++) {
-        l[i] = knee(l[i] + xl[i]);
-        r[i] = knee(r[i] + xr[i]);
+    for (i = 0; i < n; i++) {            /* (0.9.31, FLEXOR: then the chain's limiter on it all, as the kick always had:
+                                          * added after it, only the soft clip, it came out louder and fatter) */
+        float a = l[i] + xl[i], b = r[i] + xr[i], pk = brk_absf(a) > brk_absf(b) ? brk_absf(a) : brk_absf(b);
+        float want = pk * lim_gain > 0.95f ? 0.95f / pk : 1.0f;
+        lim_gain += (want - lim_gain) * (want < lim_gain ? 0.5f : 0.0002f);
+        l[i] = knee(a * lim_gain);
+        r[i] = knee(b * lim_gain);
     }
 }
 
@@ -1131,7 +1138,7 @@ BRK_COLD void brk_fx_mb_meter(uint32_t slot, float *gr, float *lvl)
 }
 
 /* the block's samples, all four slots: from RAM on the FM-1 (BRK_RAM, one call a block: nothing in it calls out) */
-typedef struct { svf_c djc; dl_c_t dub_c; float wet; int dj_hp, dub_on; uint32_t k0, k1, kick, fmode; } fx_q_t;
+typedef struct { svf_c djc; dl_c_t dub_c; float wet; int dj_hp, dub_on; uint32_t k0, k1, kick, fmode, late; } fx_q_t;
 BRK_RAM static void fx_samples(const fx_q_t *q, const float *in, const float *thru, const float *echo, const float *verb,
                                const float *post, float *l, float *r, uint32_t n)
 {
@@ -1201,7 +1208,10 @@ BRK_RAM static void fx_samples(const fx_q_t *q, const float *in, const float *th
             xl += el * q->dub_c.ret;
             xr += er * q->dub_c.ret;
         }
-        {   /* the limiter: a fast attack, a slow release, then a soft clip for what gets past */
+        if (q->late) {                   /* (0.9.31: limited later, the kick in: brk_fx_add_dry) */
+            l[i] = xl;
+            r[i] = xr;
+        } else {   /* the limiter: a fast attack, a slow release, then a soft clip for what gets past */
             float pk = brk_absf(xl) > brk_absf(xr) ? brk_absf(xl) : brk_absf(xr);
             float want = pk * lim_gain > 0.95f ? 0.95f / pk : 1.0f;
             lim_gain += (want - lim_gain) * (want < lim_gain ? 0.5f : 0.0002f);
@@ -1274,6 +1284,7 @@ void brk_fx_process(const float *in, const float *thru, const float *echo, const
         q.k0 = 0u;
         q.k1 = BRK_FX_SLOTS;
         q.kick = 0u;
+        q.late = p_late;
         {                                /* (the THRU while the pad throws, or the filter on its way back from it) */
             float home = brk_clampf(fx.dj, -1.0f, 1.0f);
             q.fmode = throw || dj_s - home > 0.01f || dj_s - home < -0.01f ? p_fthru : 0u;

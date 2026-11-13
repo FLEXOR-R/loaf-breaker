@@ -2041,6 +2041,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
         /* the break through the DJ filter, the drums joining it into the chain (or around it) */
         {
             const float *drums = kick_dry ? perc : kick;   /* (the kick apart: the snare and the hat alone here) */
+            brk_fx_late_limit((uint32_t)kick_dry);   /* (0.9.31: then the limiter after the kick joins, brk_fx_add_dry) */
             brk_fx_process(mono, set.drums_chain ? drums : 0, echo, verb, set.drums_chain ? 0 : drums, l, r, m,
                            st.pads);
         }

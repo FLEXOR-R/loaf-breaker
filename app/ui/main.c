@@ -153,8 +153,8 @@ static void knob_turn(int k, int32_t d)
         } else if (k == EN_K3) {         /* PERC: the snare and the hat */
             set.perc.volume = knob_f(set.perc.volume, d, lvl_step(d), 0.0f, 1.0f);
             say_int("PERC", (int32_t)(set.perc.volume * 100.0f + 0.5f), "%");
-        } else                           /* (K4: the MELODY's fader 0.200-0.208; 0.9.29 the ARP's route) */
-            arp_thru_turn(d);
+        }                                /* (K4: the MELODY's fader 0.200-0.208; the ARP's route 0.9.29-0.9.30: SENDS
+                                          * alone since, FLEXOR) */
         ui.redraw |= RG_BLOCKS;
     } else if (ui.page == PG_HOME) {
         if (k == EN_K1) {                /* the gate: how much of every slice sounds (complexity: GENERATOR) */
@@ -1568,7 +1568,7 @@ static void draw_foot(const brk_status_t *st)
                                               {"P1", "P2", "P3", "MIX"},
                                               {"CLOCK IN", "CLOCK OUT", "", ""},
                                               {"", "", "", ""},
-                                              {"BREAK", "KICK", "PERC", "ARP"},
+                                              {"BREAK", "KICK", "PERC", ""},
                                               {"SLICE", "PITCH", "HITS", "REVERSE"},
                                               {"", "", "", ""},
                                               {"KICK", "PUT", "LOOPS", "BREAK"},

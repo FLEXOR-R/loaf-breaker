@@ -32,12 +32,11 @@ static void mix_value(uint32_t h, int i, char *t)
             text_cat(t, ARP_THRU[(set.ovl_pad >> 6) & 3u]);
         return;
     }
-    if (i == 3)                          /* (0.9.29, FLEXOR: the ARP's effects on BREAK, KICK, THRU: SENDS K3 too) */
-        text_cat(t, ARP_THRU[(set.ovl_pad >> 6) & 3u]);
     if (i == 0) {
         int_text(set.brk_level, t);
         text_cat(t, "%");
-    } else if (i < 3)                    /* (K4: the MELODY's, 0.200-0.208; the ARP's route since 0.9.29) */
+    } else if (i < 3)                    /* (K4: the MELODY's, 0.200-0.208; the ARP's route in 0.9.29-0.9.30, SENDS'
+                                          * alone since, FLEXOR) */
         pct_text(i == 1 ? set.kick.volume : set.perc.volume, t);
 }
 
@@ -78,7 +77,7 @@ static void mix_arp(int32_t x)            /* the ARP's route: BREAK, KICK, THRU,
 }
 static void mix_picture(int32_t top)
 {
-    static const char *const NAME[4][4] = {{"BREAK", "KICK", "PERC", "ARP"}, {"FX", "DRUMS", "ARP", ""},
+    static const char *const NAME[4][4] = {{"BREAK", "KICK", "PERC", ""}, {"FX", "DRUMS", "ARP", ""},
                                            {"COMP", "RATIO", "DUCK", "MAX OUT"},
                                            {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
     uint32_t c;
@@ -136,7 +135,6 @@ static void mix_picture(int32_t top)
     mix_meter(90, meter_kick);
     mix_fader(130, set.perc.volume, set.perc.volume > 0.0f);
     mix_meter(150, meter_perc);
-    mix_arp(186);
 }
 static void draw_mixer(void)
 {
