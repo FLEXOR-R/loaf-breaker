@@ -526,7 +526,7 @@ all 16.
 WAH, CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, WOBBLE, JET, REESE), on while the key is held, any
 together. **K1** the amount of the one touched last, **K2** the rate of the ones on the beat (CHOP, GATE, WAH, PAN),
 **K3** the sweeps' length (DIVE, RISE), **K4** LATCH: on, a key switches its effect on and off (and what is latched
-stays on on the other pages). The ARP black key keeps its own effect, chosen on its own knobs. (The FILL that ARP held
+stays on on the other pages). The page and the ARP black key share one effect (0.9.27): a white key touched here is the ARP key's effect, and the one K1 tunes; the ARP key's K1 turns it, the page follows; AMOUNT, RATE and SWEEP are the same on both. The white keys of the effects on are lit (held, latched, the ARP key's). (The FILL that ARP held
 played from 0.1xx to 0.243 is gone, LOAF BREAKER 0.244.)
 
 In EXPERT the page has two tabs (**SELECT** goes to the other, 0.9.2; **ARP** again goes back to HOME): **ARP EFFECTS** (the above)

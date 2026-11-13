@@ -55,7 +55,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   domain (`DOM[]`, `dom_name()` in main.c): LIVE, SOUNDS, PATTERN, SONG, MIX, EFFECTS, SYSTEM. SOUNDS' sources: KICK,
   DRUMS (einst 1-3), BREAK (PG_GLOBAL `GP_BREAK`, GLO's old PITCH code, K4 LEVEL); SEL + EDIT the
   next; EDIT again: the KICK's sections only (0.227, FLEXOR: the 0.226 round to the drums taken back), a drum's the next drum. PATTERN's GROOVE is PG_GLOBAL `GP_FILL` (SWING alone since 0.244: FILL gone), reached from SEQ's ALGORITHM and SEL + ARP;
-  ARP itself is the OVERLAY page again (0.244, FLEXOR: ovl.c, PG_OVL);
+  ARP itself is the OVERLAY page again (0.244, FLEXOR: ovl.c, PG_OVL; 0.9.27: its effect touched last is the ARP key's, `ovl_last` = set.ovl_pad & 15, and its keys of the effects on lit);
   LEDs light EDIT / SEQ for those two. EXPERT's SEQ (0.234): BREAK above the first lane (`ui.seq_brk`, `SEQ_BRK`), K4
   the break's rows shown (`brk_view()`, settings' `brkv`: the old mel_ver byte, tagged 0xB0, since settings_t is at
   3840 bytes: no field can be appended any more without a new magic or freeing one). SYSTEM's parts `GLO_ORD` (MIDI, SETUP, EFFECTS, FX SET, RESET); RESET ALL is

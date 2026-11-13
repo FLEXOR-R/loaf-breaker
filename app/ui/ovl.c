@@ -3,10 +3,13 @@
  * from before with all the FX"). Each white key an effect over everything that plays (dsp/ovl.c), on while held, any
  * together; with LATCH a press switches its effect on and off (and latched ones stay on on the other pages). K1 the
  * amount of the effect touched last, K2 the rate of the ones on the beat, K3 the sweeps' length, K4 LATCH. The ARP
- * black key keeps its own effect. (Part of app.c's unity: included there in order.) */
+ * black key shares the effect touched last (0.9.27, ovl_last), and the white keys of the effects on are lit (seq.c
+ * keys_lit). (Part of app.c's unity: included there in order.) */
 
 static uint32_t ovl_held, ovl_latched;   /* bit OV_*: held down on this page; switched on (LATCH) */
-static uint8_t ovl_last;                 /* the effect touched last: K1 its amount */
+#define ovl_last (set.ovl_pad & 15u)     /* the effect touched last: K1 its amount (0.9.27, FLEXOR: the ARP key's own, one
+                                          * effect for both: touched on the page, the key plays it; turned on the key's K1,
+                                          * the page tunes it) */
 
 static uint32_t ovl_pad_bits(void) { return ovl_pad_on() ? 1u << (set.ovl_pad & 15u) : 0u; }   /* the ARP key's */
 static void ovl_push(void)
@@ -33,7 +36,8 @@ static void ovl_keys(uint32_t keys, uint32_t kdn)   /* every input: the white ke
     if (ui.page == PG_OVL && ui.opage == 0u)   /* (ARP EFFECTS: the keys; BLACK KEYS, MORE: none) */
         for (i = 0; i < 16u; i++) {
             if (kdn >> WK[i] & 1u) {
-                ovl_last = (uint8_t)i;
+                set.ovl_pad = (uint8_t)((set.ovl_pad & ~15u) | i);
+                set_dirty = 1u;
                 tut_ovl++;               /* (LOAF BREAKER: the TUTORIAL's count) */
                 if (set.ovl_latch)
                     ovl_latched ^= 1u << i;
