@@ -81,8 +81,8 @@ SYSTEM (GLO). The button again: the next part; SEL + a button: that domain's sec
 
 ## Breaks
 
-LOAF BREAKER has 9 breaks on ALGORITHM, 2 bars each: NUSKOOL 140, AMEN20 164, AMEN19 172,
-UPDOWN 165, AMEN15 174, JUNGLE 175, THINK 114, APACHE 115 and THEWORM 110. [`breaks/breaks.txt`](breaks/breaks.txt) marks with `*` the ones
+LOAF BREAKER has 8 breaks on ALGORITHM, 2 bars each: NUSKOOL 140, AMEN20 164, AMEN19 172,
+UPDOWN 165, JUNGLE 175, THINK 114, APACHE 115 and THEWORM 110. [`breaks/breaks.txt`](breaks/breaks.txt) marks with `*` the ones
 built in (the bank has 400 KB); `./build.sh` builds them into `app/bank_data.h` (generated, git-ignored). The breaks
 are built in: LOAF BREAKER does not load samples of your own.
 

@@ -16,7 +16,7 @@
 *   cw/cw_amen20_164.wav                        164     2     2   AMEN20 164
 *   cw/cw_amen19_172.wav                        172     2     4   AMEN19 172
 *   huge/cw_amen_updown.wav                     165     2     2   UPDOWN 165
-*   cw/cw_amen15_174.wav                        174     2     4   AMEN15 174
+-   cw/cw_amen15_174.wav                        174     2     4   AMEN15 174
 *   huge/cw_amen_jungle.wav                     175     2     2   JUNGLE 175
 *   classics/lyn_collins_think_about_it.wav     113.78  2     4   THINK 114
 *   classics/incredible_bongo_band_apache.wav   114.78  2     4   APACHE 115
