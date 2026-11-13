@@ -58,6 +58,7 @@ int app_ble_at_boot(void);
 enum { OBJ_SETTINGS, OBJ_PANEL, OBJ_BLE, OBJ_PAT, OBJ_STEP, OBJ_PG0, OBJ_KG0 = OBJ_PG0 + 4, OBJ_SG0 = OBJ_KG0 + 4,
        OBJ_NG0 = OBJ_SG0 + 4, OBJ_KLAB = OBJ_NG0 + 4, OBJ_NOBJ };
 #define OBJ_KFXM (OBJ_NG0 + 1)          /* (LOAF BREAKER, 0.9.26: each kick's FX section, EQ and FX1 FX2: 0xBA000) */
+#define OBJ_DX (OBJ_NG0 + 2)            /* (LOAF BREAKER, 0.9.30: the snare's, hat's, clap's bars 3 and 4, every group's: 0xBC000) */
 #define OBJ_KMEM2 OBJ_NG0                /* (LOAF BREAKER, 0.9.2: KICK 11..20, in the first of the hoover notes' old
                                           * objects, unused since 0.209: 0xB8000) */   /* (LOAF BREAKER: OBJ_STEP, each drum step's
                                                                  * HITS, CHANCE, NUDGE: 0xD8000, the old bank's room) */   /* OBJ_BLE: Bluetooth's address and pairing;

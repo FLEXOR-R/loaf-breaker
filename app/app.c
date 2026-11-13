@@ -754,16 +754,27 @@ static void km2_lab_clear(void)
 #define NGRP 4u
 #define NPAT_ALL (NPAT * NGRP)
 #define KH_SIZE (sizeof pats.kn + sizeof pats.hits)
+/* (0.9.30: the snare's, hat's, clap's bars 3 and 4, every group's: dx_of below) */
+#define DX_MAGIC 0x31435844u             /* "DXC1" */
+typedef struct {
+    uint32_t magic;
+    uint16_t b[NGRP][NPAT][6];           /* the snare's bars 3, 4, the hat's, the clap's */
+} dx_t;
+static dx_t dx PLAT_POOL;
+static uint8_t dx_old;                   /* (a save before it: bits 5-7 of the lengths cleared as a group comes in) */
+static const pat_t *dx_tp;
+static uint8_t dx_tg, dx_ts;
+static void dx_lens(void);
 _Static_assert(offsetof(pats_t, hits) == offsetof(pats_t, kn) + sizeof(((pats_t *)0)->kn), "kn, hits: one run");
 static uint32_t grp_sum;                 /* the group's hash as it came in or was saved */
 static uint8_t grp_new;                  /* the group has none of its own objects yet (an older save's P1-16) */
 static uint32_t pat_cur(void) { return set.pgrp % NGRP * NPAT + set.pattern % NPAT; }   /* 0..63 */
 static uint32_t grp_hash(void)
 {
-    const uint8_t *r[3] = {(const uint8_t *)pats.p, pats.kn[0], steps.b[0]};
-    const uint32_t n[3] = {sizeof pats.p, KH_SIZE, sizeof steps.b};
+    const uint8_t *r[4] = {(const uint8_t *)pats.p, pats.kn[0], steps.b[0], (const uint8_t *)dx.b[set.pgrp % NGRP]};
+    const uint32_t n[4] = {sizeof pats.p, KH_SIZE, sizeof steps.b, sizeof dx.b[0]};
     uint32_t h = 2166136261u, i, k;
-    for (k = 0; k < 3u; k++)
+    for (k = 0; k < 4u; k++)
         for (i = 0; i < n[k]; i++)
             h = (h ^ r[k][i]) * 16777619u;
     return h;
@@ -779,11 +790,13 @@ static int grp_save(void)                /* the group in RAM to its objects: 1 d
         return 0;
     ok = plat_store_save(OBJ_PG0 + g, pats.p, sizeof pats.p) == 0 &&
              plat_store_save(OBJ_KG0 + g, pats.kn, KH_SIZE) == 0 &&
-             plat_store_save(OBJ_SG0 + g, steps.b, sizeof steps.b) == 0;   /* (LOAF BREAKER, 0.209: OBJ_NG0 + g, the
+             plat_store_save(OBJ_SG0 + g, steps.b, sizeof steps.b) == 0 &&   /* (LOAF BREAKER, 0.209: OBJ_NG0 + g, the
                                           * MELODY's notes, no more) */
+             plat_store_save(OBJ_DX, &dx, sizeof dx) == 0;   /* (0.9.30: the drums' bars 3 and 4, every group's) */
     if (ok) {
         grp_sum = grp_hash();
         grp_new = 0u;
+        dx_old = 0u;                     /* (OBJ_DX written: lengths of 64 kept from now on) */
     }
     return ok;
 }
@@ -812,9 +825,12 @@ static void grp_load(uint32_t g)         /* group g into RAM (none saved yet: em
     g %= NGRP;
     if (!grp_has(g) || plat_store_load(OBJ_PG0 + g, pats.p, sizeof pats.p) != (int)sizeof pats.p ||
         plat_store_load(OBJ_KG0 + g, pats.kn, KH_SIZE) != (int)KH_SIZE ||
-        plat_store_load(OBJ_SG0 + g, steps.b, sizeof steps.b) != (int)sizeof steps.b)
+        plat_store_load(OBJ_SG0 + g, steps.b, sizeof steps.b) != (int)sizeof steps.b) {
         grp_blank();
+        memset(dx.b[g], 0, sizeof dx.b[g]);
+    }
     set.pgrp = (uint8_t)g;
+    dx_lens();
     grp_sum = grp_hash();
     grp_new = 0u;
 }
@@ -1072,6 +1088,7 @@ static void pat_defaults(void)
 {
     uint32_t i, k;
     pats.magic = PAT_MAGIC;
+    memset(dx.b[set.pgrp % NGRP], 0, sizeof dx.b[0]);
     for (i = 0; i < NPAT; i++) {
         pat_t *p = &pats.p[i];
         for (k = 0; k < PAT_STEPS; k++) {
@@ -1138,12 +1155,34 @@ static uint32_t kick_bars(const pat_t *p)   /* the kick's bars played: 1, 2 or 4
 /* LOAF BREAKER: every drum, bar b of its two (the kick's four): the hat's second in the spare bytes of steps 7-8, the
  * clap's two in 9-12; 32 steps or 16: step 6's spare byte, bit 3 the hat, bit 4 the clap */
 static const uint8_t LEN_BIT[NDRUMS] = {0u, PAT_SNARE32, 8u, 16u};   /* (bit 5: the MELODY's, 0.200-0.208) */
+/* LOAF BREAKER (0.9.30, FLEXOR): the snare, the hat and the clap over four bars too (64 steps: step 6's spare byte, bits
+ * 5-7); their bars 3 and 4, every group's, in their own store object (OBJ_DX); a step's HITS, CHANCE, NUDGE there:
+ * steps 33-64 share those of 1-32 (stepb). dx_tp: another group's pattern read in for a drop (track.c), its place */
+static const uint8_t LEN64[NDRUMS] = {0u, 32u, 64u, 128u};
+static uint16_t *dx_of(const pat_t *p, uint32_t d, uint32_t b)
+{
+    uint32_t i = (d - 1u) % 3u * 2u + (b & 1u);
+    if (p >= pats.p && p < pats.p + NPAT)
+        return &dx.b[set.pgrp % NGRP][p - pats.p][i];
+    return p && p == dx_tp ? &dx.b[dx_tg % NGRP][dx_ts % NPAT][i] : 0;
+}
+static void dx_lens(void)                /* (a save from before them: no drum 64 steps long) */
+{
+    uint32_t i;
+    if (dx_old)
+        for (i = 0; i < NPAT; i++)
+            PAT_LEN(&pats.p[i]) &= 0x1Fu;
+}
 static uint32_t drum_at(uint32_t d, uint32_t b) { return d == DR_HAT ? 7u : 9u + (b & 1u) * 2u; }
 static uint32_t drum_bar(const pat_t *p, uint32_t d, uint32_t b)
 {
     uint32_t k;
     if (d == DR_KICK)
         return kick_bar(p, b);
+    if (b & 2u) {                        /* (bars 3 and 4: OBJ_DX's) */
+        const uint16_t *x = dx_of(p, d, b);
+        return x ? *x : 0u;
+    }
     if (d == DR_SNARE)
         return snare_bar(p, b);
     if (d == DR_HAT && !(b & 1u))
@@ -1156,7 +1195,11 @@ static void drum_bar_set(pat_t *p, uint32_t d, uint32_t b, uint32_t m)
     uint32_t k;
     if (d == DR_KICK)
         kick_bar_set(p, b, m);
-    else if (d == DR_SNARE)
+    else if (b & 2u) {
+        uint16_t *x = dx_of(p, d, b);
+        if (x)
+            *x = (uint16_t)m;
+    } else if (d == DR_SNARE)
         snare_bar_set(p, b, m);
     else if (d == DR_HAT && !(b & 1u))
         p->lane[LANE_HAT] = (uint16_t)m;
@@ -1190,11 +1233,11 @@ static void kick_note_set(pat_t *p, uint32_t s, int32_t v)
     if (b)
         *b = (uint8_t)(s & 1u ? (*b & 0x0Fu) | n << 4 : (*b & 0xF0u) | n);
 }
-static uint32_t drum_bars(const pat_t *p, uint32_t d)   /* its bars played: the kick 1, 2 or 4, the rest 1 or 2 */
+static uint32_t drum_bars(const pat_t *p, uint32_t d)   /* its bars played: 1, 2 or 4 */
 {
     if (d == DR_KICK)
         return kick_bars(p);
-    return PAT_LEN(p) & LEN_BIT[d] ? 2u : 1u;
+    return PAT_LEN(p) & LEN64[d] ? 4u : PAT_LEN(p) & LEN_BIT[d] ? 2u : 1u;
 }
 static void pat_step_of(uint32_t pi, uint32_t k)   /* step k of pattern pi, to the engine */
 {
@@ -1441,6 +1484,13 @@ void app_init(void)
             km2_defaults();
         if (plat_store_load(OBJ_KFXM, &kfxm, sizeof kfxm) != (int)sizeof kfxm || kfxm.magic != KFXM_MAGIC)
             kfx_all();                   /* (0.9.26: each kick's FX section; before, the one they shared) */
+        dx_old = 0u;
+        if (plat_store_load(OBJ_DX, &dx, sizeof dx) != (int)sizeof dx || dx.magic != DX_MAGIC) {
+            memset(&dx, 0, sizeof dx);   /* (0.9.30: the drums' bars 3 and 4; a save before them: none) */
+            dx.magic = DX_MAGIC;
+            dx_old = 1u;
+            dx_lens();
+        }
     }
     int ssz = plat_store_load(OBJ_STEP, &steps, sizeof steps), sok;
     sok = (ssz == (int)sizeof steps || ssz == (int)STEPS_SIZE_KXH || ssz == (int)STEPS_SIZE_TK || ssz == (int)STEPS_SIZE_KX ||

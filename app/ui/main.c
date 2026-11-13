@@ -1339,7 +1339,7 @@ static const char *dom_name(void)
         return "PATTERN";
     return DOM[ui.page % NPAGES];
 }
-static const char *const SEQL[NSEQL] = {"1-16", "17-32", "K1", "K2", "K3", "K4", "S1", "S2", "H1", "H2", "C1", "C2",
+static const char *const SEQL[NSEQL] = {"1-16", "17-32", "K1", "K2", "K3", "K4", "S1", "S2", "S3", "S4", "H1", "H2", "H3", "H4", "C1", "C2", "C3", "C4",
 };
 static void draw_tabs(void)
 {

@@ -397,10 +397,14 @@ static void drop_start_k(uint32_t to, int item)   /* item: a track's DROP item (
                 memset(&tp[0], 0, sizeof(pat_t));   /* (none saved: an empty pattern) */
                 p = &tp[0];
             }
+            dx_tp = p;                   /* (0.9.30: its drums' bars 3 and 4, OBJ_DX's) */
+            dx_tg = (uint8_t)(ui.drop_pat / NPAT);
+            dx_ts = (uint8_t)sl;
         }
         for (d = 0; d < NDRUMS; d++)
             for (b = 0; b < 4u; b++)
                 drum_next[d][b] = (uint16_t)drum_bar(p, d, b % drum_bars(p, d));
+        dx_tp = 0;
         drum_next_ok = 1u;
         build_bars = DROP_BARS[set.drop_bars % 5u];
         drop_gain = (float)set.drop_crash * 0.01f;

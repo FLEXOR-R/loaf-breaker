@@ -495,7 +495,7 @@ another group. A new group starts with 16 empty patterns; what you had before th
 | --- | --- | --- | --- | --- | --- |
 | **BREAK** (EXPERT: above the first lane; the tab says BREAK) | Play slices | | | | STEPS: the break's rows the grid shows, HIDDEN, 16 (BRK1) or 32 (BRK1 and BRK2, as to start); the pattern plays 32 steps whatever (hidden rows: ALGORITHM passes them by) |
 | STEPS 1-16, STEPS 17-32 | Pick a step to edit (outlined) | SLICE: OFF · LOOP · 1–16 | PITCH: −12 … +12 | HITS: ×1–×4 (a ratchet in the step) | REVERSE |
-| KICK, SNARE, HAT, CLAP | That lane's 16 steps, on and off (as the key comes up) | FILL: 0–16 hits spread evenly from the downbeat (Euclidean) | DRUM FLT (HOME's drums' filter) | Left CLEAR, right 4X4 (the lane's bar shown) | LENGTH: 16 or 32 steps (the kick: 16, 32, 64) |
+| KICK, SNARE, HAT, CLAP | That lane's 16 steps, on and off (as the key comes up) | FILL: 0–16 hits spread evenly from the downbeat (Euclidean) | DRUM FLT (HOME's drums' filter) | Left CLEAR, right 4X4 (the lane's bar shown) | LENGTH: 16, 32 or 64 steps, every drum (the snare, the hat and the clap 64 since 0.9.30: their steps 33–64 share the HITS, CHANCE and NUDGE of 1–32) |
 | **A step held** (a drum lane) | its own, the foot naming them | NOTE: −8 … +7 semitones (the kick's) | **HITS**: 1–4, the step taps that many times in its 16th | **COND**: ALWAYS, 75 %, 50 %, 25 % (it plays that often), 1:2 (the first loop of two), 2:2 (the second), (FILL and NOT FILL, from before 0.244: always) | **NUDGE**: on time .. 7/16 of a step late |
 
 The upper strip shows the half's 16 steps (a number: its own slice; a dot: LOOP; a dash: off; a mark under it: hits

@@ -44,7 +44,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   (https://claude.ai/artifact/MCakoDjuGTXjMLFiobM1k3; the choice in its store, `tri/choix`): 9 breaks, NUSKOOL first (FLEXOR's order; LO-FI out in 0.200 for room; AMEN15 174 out in 0.9.30, FLEXOR, for the drums' 64 steps: 8 breaks, 298 KB).
 - Patterns (10 Nov 2026, 0.197): 64, four groups of 16 (`NGRP`, `NPAT_ALL`); the group in RAM is pats.p/kn/hits and
   steps.b (`set.pgrp`; `set.pattern` its slot; `pat_cur()` 0..63; `pat_go()` brings one in). Each group has its own
-  objects (OBJ_PG0/KG0/SG0 + g; NG0's first is KICK 11-20 since 0.9.2, the others unused); SAVE (`store_all`) writes 9 (with OBJ_KLAB, OBJ_KMEM2, OBJ_KFXM). Leaving a group with unsaved changes while playing is
+  objects (OBJ_PG0/KG0/SG0 + g; NG0's first is KICK 11-20 since 0.9.2, the others unused); SAVE (`store_all`) writes 10 (with OBJ_KLAB, OBJ_KMEM2, OBJ_KFXM, OBJ_DX). Every drum 16, 32 or 64 steps (0.9.30, FLEXOR): the snare's, hat's, clap's bars 3-4 of all four groups in `dx` (OBJ_DX = OBJ_NG0 + 2, read through `dx_of`; `dx_tp` for a drop's pattern from another group), 64 = PAT_LEN bits 5-7 (`LEN64`), SEQ lanes S3 S4 H3 H4 C3 C4; their steps 33-64 share 1-32's stepb. Leaving a group with unsaved changes while playing is
   refused ("SAVE OR STOP", FLEXOR's choice: never a cut in the sound). Track items, `drop_after`, `ui.drop_pat` and
   `pat_next` are 0..63 (or 1..64); `drop_to` stays a slot (0xFF: another group's, read in at the drop).
 - MELODY and KEYS (0.198-0.208) removed in 0.209 (FLEXOR: "kicks and drums only"): perc.c's PV_STAB is an empty place
