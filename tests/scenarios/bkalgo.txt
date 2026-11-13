@@ -1,0 +1,23 @@
+# LOAF BREAKER 0.9.26 (FLEXOR): ARP › BLACK KEYS, ALGORITHM moves along the keys as K2 does (K2 still); FLEXOR LAYOUT:
+# R8 R16 R32 RND HLF FLT ARP VNL KIL DST SUB (key 4 RANDOM, 5 HALF SPEED, 6 FILTER, 7 ARP, 8 VINYL BREAK; REVERSE out).
+#   app/build/host/loaf-breaker_host tests/scenarios/bkalgo.txt app/build/scenarios
+wait 4200
+tap ARP
+wait 300
+turn SELECT 1 10
+wait 300
+expect opage 1
+expect bk_pre 1
+expect bk_key 0
+turn ALGO 3 10
+wait 200
+expect bk_key 3
+expect bk_fn 8
+turn ALGO 1 10
+wait 200
+expect bk_key 4
+expect bk_fn 5
+shot a_bk_algo.png
+turn K2 -1 10
+wait 200
+expect bk_key 3

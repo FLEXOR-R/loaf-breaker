@@ -449,7 +449,7 @@ slices you marked ring out, the classic dub throw. (Without a DELAY slot, ECHO g
 
 The black keys act while held and combine. Which key does what is a **layout** (ARP › BLACK KEYS, below): CHOPPAH's,
 left to right R8 R16 R32 REV FRZ HLF VNL GAT RND FLT DUB (a new FM-1's, after RESET ALL too; BEGINNER keeps the layout EXPERT left, 0.9.23),
-FLEXOR LAYOUT (R8 R16 R32 REV RND HLF VNL ARP KIL DST SUB) or CUSTOM, each key any of the fifteen below. (HOME's K1 is
+FLEXOR LAYOUT (R8 R16 R32 RND HLF FLT ARP VNL KIL DST SUB, 0.9.26) or CUSTOM, each key any of the fifteen below. (HOME's K1 is
 the gate and K2 the DJ filter as well.) While a pad is held, the slice blocks give way to an
 animation of what it does, and **K1–K4 tune that pad** (the foot shows its settings; SAVE keeps them):
 
@@ -531,7 +531,7 @@ played from 0.1xx to 0.243 is gone, LOAF BREAKER 0.244.)
 
 In EXPERT the page has two tabs (**SELECT** goes to the other, 0.9.2; **ARP** again goes back to HOME): **ARP EFFECTS** (the above)
 and **BLACK KEYS**. **BLACK KEYS** lays out the black keys: **K1 PRESET**, CHOPPAH (CHOPPAH's eleven, the ARP
-key not among them), FLEXOR LAYOUT (LOAF BREAKER's until 0.244) or CUSTOM; **K2 KEY**, the key you edit (or press it:
+key not among them), FLEXOR LAYOUT (R8 R16 R32 RND HLF FLT ARP VNL KIL DST SUB since 0.9.26) or CUSTOM; **K2 KEY** (or **ALGORITHM**, 0.9.26), the key you edit (or press it:
 here a black key picks itself and plays nothing); **K3 EFFECT**, what it does: any of R8, R16, R32, REV, FRZ, HLF, VNL,
 GAT, RND, FLT, DUB, ARP, KIL, DST, SUB. Turned on a preset, K3 makes a CUSTOM of it first, that key changed (keys
 outlined amber differ from CHOPPAH's). SAVE keeps the layout. BEGINNER always plays CHOPPAH's (turning BEGINNER on

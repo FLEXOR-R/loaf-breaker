@@ -227,8 +227,10 @@ enum { BKP_CHOPPAH, BKP_FLEXOR, BKP_CUSTOM, BKP_N };
 #define BK_BHALF 13u                     /* (bk[13]: BREAK TIME, 0 NORMAL, 1 HALF: the break at half the tempo, 0.256) */
 static const uint8_t BK_LAY[2][11] = {{PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, PAD_REVERSE, PAD_FREEZE, PAD_HALF,
                                        PAD_TAPESTOP, PAD_GATE, PAD_RANDOM, PAD_FILTER, PAD_DUB},
-                                      {PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, PAD_REVERSE, PAD_RANDOM, PAD_HALF,
-                                       PAD_TAPESTOP, BKF_ARP, BKF_KIL, BKF_DST, BKF_SUB}};
+                                      {PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, PAD_RANDOM, PAD_HALF, PAD_FILTER,
+                                       BKF_ARP, PAD_TAPESTOP, BKF_KIL, BKF_DST, BKF_SUB}};   /* (FLEXOR LAYOUT, 0.9.26,
+                                          * FLEXOR: key 4 RANDOM, 5 HALF SPEED, 6 FILTER, 7 ARP, 8 VINYL BREAK; REVERSE
+                                          * out: CHOPPAH's, CUSTOM) */
 #define BK_PLAT 15u                      /* (bk[15]: 0xA0 | the LATCH bits of REVERSE, FREEZE, GATE, RANDOM (their K4),
                                           * 0.9.26, FLEXOR; tagged: an older save's byte there the STAB's leftover) */
 #define BK_FTHRU 16u                     /* (bk[16]: 0xC0 | the FILTER key's THRU, its K4: 0 BREAK, 1 DRUMS, 2 BOTH) */

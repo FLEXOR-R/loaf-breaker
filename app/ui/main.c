@@ -1053,6 +1053,8 @@ static void input(void)
                                           * BREAK TIME, right HALF, left NORMAL) */
             else if (btn & 1u << B_SEL)
                 break_ask((set.brk + (d > 0 ? 1u : n_breaks - 1u)) % n_breaks);
+            else if (ui.page == PG_OVL && ui.opage == 1u)
+                bk_turn(1, d);           /* (0.9.26, FLEXOR: ARP › BLACK KEYS, ALGORITHM the key, as K2) */
             else if (ui.page == PG_TRACK && ui.tpage == 0u)
                 track_turn(-1, d);       /* LOAF BREAKER: ENV's TRACKS: the item (the break: SEL + ALGORITHM; K1 the
                                           * item's kick) */

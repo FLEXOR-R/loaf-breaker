@@ -1,6 +1,6 @@
-# CHOPPAH: each pad held shows its animation; K1-K4 tune it while held (LOAF BREAKER, 10 Nov 2026: the 5th key RND, the
-# 8th the ARP key, the 9th KIL: the sequencer's kicks quiet while held, the 10th TER, as SUB: the kick's TERROR on (an amount at nothing: 50 %), off (its amount kept), on;
-# GATE and FILTER have no key)
+# CHOPPAH: each pad held shows its animation; K1-K4 tune it while held (LOAF BREAKER, 0.9.26 FLEXOR LAYOUT: the 4th key RND, the 5th HALF SPEED, the
+# 6th FILTER, the 7th the ARP key, the 8th VINYL BREAK, the 9th KIL: the sequencer's kicks quiet while held, the 10th TER, as SUB: the kick's TERROR on (an amount at nothing: 50 %), off (its amount kept), on;
+# REVERSE, FREEZE, GATE and DUB have no key)
 #   app/build/host/loaf-breaker_host tests/scenarios/pads.txt app/build/scenarios
 wait 4200
 tap PLAY
@@ -22,43 +22,43 @@ wait 350
 shot p_roll16.png
 key b1 up
 wait 250
-key b3 down
+key b4 down
 wait 250
 turn K1 6 10
 wait 300
 wait 350
-shot p_rev.png
-key b3 up
+shot p_half.png
+key b4 up
 wait 250
-key b4 down
+key b3 down
 wait 250
 turn K2 -4 10
 wait 300
 wait 350
 shot p_rnd.png
-key b4 up
+key b3 up
 wait 250
 key b5 down
 wait 250
 wait 350
-shot p_half.png
+shot p_filter.png
 key b5 up
 wait 250
-key b6 down
+key b7 down
 wait 250
 turn K1 2 10
 wait 300
 wait 350
 shot p_stop.png
-key b6 up
+key b7 up
 wait 250
-key b7 down
+key b6 down
 wait 250
 turn K2 5 10
 wait 300
 wait 350
 shot p_arp.png
-key b7 up
+key b6 up
 wait 250
 key b8 down
 wait 250

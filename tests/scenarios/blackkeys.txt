@@ -66,8 +66,8 @@ wait 200
 expect bk_pre 1
 tap HOME
 wait 200
-key b7 down
+key b6 down
 wait 300
 shot a_flexor_arp.png
-key b7 up
+key b6 up
 wait 300

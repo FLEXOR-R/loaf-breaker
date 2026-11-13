@@ -125,8 +125,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - BLACK KEYS (11 Nov 2026, 0.244, FLEXOR): each black key a function (app.c `BKF_*`: PAD_* 0-10, FREEZE and DUB
   back from CHOPPAH, then BKF_ARP, KIL, DST, SUB); `bk_fn(j)`, `bkf_mask(f)` (= `PAD_BIT`) follow the layout in use:
   presets CHOPPAH (a new FM-1's and RESET ALL's; BEGINNER keeps the layout in use since 0.9.23, FLEXOR: `bk_preset` no longer forces it; DST's
-  switch (`terror_off`: selk_hi bit 4 and a DST key in the layout, `bk_has`) and SUB DRIVE are each kick's own, FLEXOR 0.9.24), FLEXOR LAYOUT (0.244's:
-  keep it exactly), CUSTOM; stored in `set.bkeys.bk` (the STAB's old 24 bytes: BK_TAG, preset, eleven functions; bk[15]
+  switch (`terror_off`: selk_hi bit 4 and a DST key in the layout, `bk_has`) and SUB DRIVE are each kick's own, FLEXOR 0.9.24), FLEXOR LAYOUT (FLEXOR's, 0.9.26:
+  R8 R16 R32 RND HLF FLT ARP VNL KIL DST SUB; keep it exactly; on BLACK KEYS ALGORITHM moves along the keys as K2), CUSTOM; stored in `set.bkeys.bk` (the STAB's old 24 bytes: BK_TAG, preset, eleven functions; bk[15]
   BK_PLAT 0xA0 | the K4 LATCH bits of REVERSE, FREEZE, GATE, RANDOM, bk[16] BK_FTHRU 0xC0 | FILTER's K4 THRU BREAK / DRUMS /
   BOTH, 0.9.26, FLEXOR: no LATCH on FILTER; bk[17..23] free, tag new bytes: older saves hold the STAB's leftovers there). ARP's
   tabs in EXPERT (`ui.opage`, ovl.c): ARP EFFECTS, BLACK KEYS (bk_turn, draw_bk); MORE gone for now (0.259, FLEXOR; its idea: new black-key

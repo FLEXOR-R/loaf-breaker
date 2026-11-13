@@ -4,31 +4,31 @@
 wait 4200
 tap PLAY
 wait 500
-key b5 down
+key b4 down
 wait 200
 expect half_on 1
-key b5 up
+key b4 up
 wait 200
 expect half_on 0
-key b5 down
+key b4 down
 wait 100
 turn K3 1 10
 wait 100
 shot h_latch.png
-key b5 up
+key b4 up
 wait 300
 expect half_on 1
-key b5 down
-key b5 up
+key b4 down
+key b4 up
 wait 300
 expect half_on 0
-key b5 down
-key b5 up
+key b4 down
+key b4 up
 wait 300
 expect half_on 1
-key b5 down
+key b4 down
 turn K3 -1 10
-key b5 up
+key b4 up
 wait 300
 expect half_on 0
 tap PLAY
