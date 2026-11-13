@@ -1,9 +1,11 @@
 # LOAF BREAKER
 
-LOAF BREAKER turns the M-VAVE FM-1 into a hardcore and breakcore break chopper, by FLEXOR. Chop a break on the white
-keys, throw effects with the black keys, and shape a heavy kick with its own synth and distortion. Program the kick,
-snare, hat and clap step by step, then chain patterns into tracks with drops. BEGINNER keeps it simple, EXPERT opens
-everything, and a tutorial gets you started on the FM-1 itself.
+LOAF BREAKER turns the M-VAVE FM-1 into a hardcore kick synthesizer powerhouse and a breakbeat chopper, by FLEXOR.
+Built for hardcore, gabber, terror and speedcore: shape a heavy kick from its attack to its tail, with its own synth,
+DISTO and SCREAM distortion, its own effects and twenty kick memories, and bend it live from the knobs. Chop a break on
+the white keys, throw effects with the black keys, program the kick, snare, hat and clap step by step, then chain
+patterns into tracks with builds and drops. BEGINNER keeps it simple, EXPERT opens everything, and a tutorial gets you
+started on the FM-1 itself.
 
 ![LOAF BREAKER's start-up screen](manual/img/screen-boot.png "Switched on")
 ![LOAF BREAKER playing: the mix scrolling in as on a CDJ, in rekordbox's colours](manual/img/screen-slicer.png "Playing")
