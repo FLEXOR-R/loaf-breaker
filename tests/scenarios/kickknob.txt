@@ -17,7 +17,7 @@ turn SELECT 1 10
 wait 300
 expect kpage 11
 expect kslot 3
-turn ALGO 1 10
+turn ALGO 2 10
 wait 100
 expect kpage 12
 press SEL

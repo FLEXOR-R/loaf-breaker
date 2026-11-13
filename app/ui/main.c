@@ -1155,13 +1155,7 @@ static void input(void)
             app_say("TEMPO RISE", t);
             ui.redraw |= RG_BLOCKS;
         }
-        else if (k == EN_PRESET && ui.page == PG_GLOBAL && ui.gpage == 3u) {   /* LOAF BREAKER: SYSTEM › EFFECTS:
-                                          * EDIT ZOOM, the time EDIT's pictures show (the kick, the drums) */
-            set.ezoom = (uint8_t)(EZ_TAG | (uint32_t)clamp((int32_t)ez_idx() + (d > 0 ? 1 : -1), 0, EZ_N - 1));
-            changed();
-            app_say("DRUM VIEW ZOOM", ez_idx() ? EZ_NAME[ez_idx()] : "AUTO (EACH PART ITS OWN)");
-            ui.redraw |= RG_BLOCKS;
-        } else if (k == EN_PRESET && ui.page == PG_GLOBAL && ui.gpage == 2u)
+        else if (k == EN_PRESET && ui.page == PG_GLOBAL && ui.gpage == 2u)
             global_turn(0, d);           /* (SETUP: PRESETS the skin, as K1; 0.9.26, FLEXOR: WAVE ZOOM before) */
         else if (k == EN_PRESET)
             pattern_pick(d);             /* elsewhere: the pattern */
@@ -1583,7 +1577,7 @@ static void draw_foot(const brk_status_t *st)
                                                     {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
         static const char *const KN_MORE[3][4] = {{"SKIN", "", "MODE", "AUTO SAVE"},   /* SETUP (K2 WAVE ZOOM: HOME's
                                           * SETTINGS, 0.9.2) */
-                                                  {"EFFECT", "ON / OFF", "", "EDIT VIEW"},   /* (LOAF BREAKER: EFFECTS, */
+                                                  {"EFFECT", "ON / OFF", "", ""},   /* (LOAF BREAKER: EFFECTS, */
                                                   {"AMOUNT", "KICK", "DROP", "LENGTH"}};   /* FX SET) */
         static const char *const KN_TRK[4][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
                                                  {"STYLE", "SWEEP", "RISER", "GAP"}, {"", "RESET", "", "WHAT"}};

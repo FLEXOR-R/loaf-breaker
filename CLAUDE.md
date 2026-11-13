@@ -70,7 +70,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   (a second kick voice, kv2, until STACK's hand-over), `kick_set_solo`. All 0 renders bit for bit as 0.203: keep it so.
   The tabs drop the "KICK" label on the KICK menu (six sections).
 - KICK menu by anatomy (10 Nov 2026, 0.205, FLEXOR's choice): KSECT ATTACK, BODY, TAIL, DIRT, FX (TONE until 0.9.1), KNOBS (kick.c;
-  0.9.2: FX's parts EQ B, EQ S, FX1, FX2 drawn as tabs on the EQ and FX pages too, `ksect_row`; KNOBS' STYLE named ASSIGN);
+  0.9.2: FX's parts EQ B, EQ S, FX1, FX2 drawn as tabs on the EQ and FX pages too, `ksect_row`; KNOBS' STYLE named ASSIGN; 0.9.29: ASSIGN right after KNOBS, KSECT's KNOBS row 21 27 22-25 31);
   app_ui_init opens it on ATTACK's PRESET (0.253, FLEXOR: KP_PRESET, part KP_PART_PRESET, K1 the built-in kicks alone; ui.ksect 0; 0.205-0.252 on BODY's MIX); the parts in a row at the
   picture's foot (0.264, FLEXOR: SELECT the tabs at the top, its sections, kick_sect_turn; ALGORITHM those at the
   bottom, its parts; EXPERT's drums: SELECT round SN HH CP, the KICK by SEL + EDIT; 0.266: EXPERT's EDIT goes round the sounds, KICK SN HH CP) (kick_chip; 0.207: a full-width bar of tabs, FONT_T if it fits, the wave up: its middle y 45, 29
@@ -92,8 +92,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   packed, OBJ_KFXM = OBJ_NG0 + 1 (0xBA000), `kfx_put` / `kfx_get` in kick_mem_go and COPY; SAVE writes 9 objects. In the
   KICK menu PRESETS is the kick on every page; SEL + PRESETS the KICK FX effect, K1-K4 SET's function, ASSIGN's style. SEL + ARP there (and on a drum's page) copies, then on another kick pastes (`kick_clip`, `perc_clip` in main.c; `kick_copy_from`), GROOVE elsewhere. SEL + ALGORITHM where ALGORITHM is the break: BREAK TIME (`sel_bt_page`); SEL + PRESETS the kick on HOME, PATTERN, BREAK, MIX, OVERLAY, SYSTEM but SETUP / EFFECTS; SETUP's PRESETS the skin; SEQ's ALGORITHM the bar of a long lane (`seq_bar_step`), SELECT the lanes (0.9.26, FLEXOR). TRACKS: a DROP item's K1 its build's kick, K3 its STUTTER (`b_stut`, bit 0 of its `trk_brk` byte), K4 GAP KEEPS (`b_gapm`, bits 1-2: NOTHING, BREAK, DRUMS, ECHOES); FLEXOR wants more drop settings later.
 - WAVE TYPE (`set.wstyle`: REKORDBOX / SERATO; HOME › SETTINGS K2 alone since 0.9.25, GLO EFFECTS' K3 before; SYSTEM shows
-  none of HOME's SETTINGS any more, FLEXOR; common.c serato_col; the kick's RGB and cdj.c) and K4 EDIT
-  VIEW (`set.kfocus`: the whole kick / the part edited: kick.c kv_ms, kv_kick) (10 Nov 2026, 0.206).
+  none of HOME's SETTINGS any more, FLEXOR; common.c serato_col; the kick's RGB and cdj.c) and EDIT
+  VIEW (KICK › KNOBS › TOOLS K3 since 0.9.29, SYSTEM › EFFECTS K4 before; `set.kfocus`: the whole kick / the part edited: kick.c kv_ms, kv_kick) (10 Nov 2026, 0.206).
 - TUTORIAL (0.211, FLEXOR: "a sober name"): ui/tutor.c (included before screen.c), TUT[] steps (lesson, condition TC_*,
   keys and buttons to blink, text), `set.tut` (appended: 0 off, 1..TUT_N the step, 0xFE done, 0xFD the mode asked (0.229); a new FM-1 asks,
   an older save not), the counters tut_* in common.c; the header draws the step (screen.c); SETUP K3 left of
@@ -103,7 +103,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   the FX page's PRESETS). 0.213: a step done waits 5 s (`TUT_WAIT`, the header counting) only where there is
   something to hear (TUT[].wait: slices, effects, kicks, DISTO, steps, the drop); a button step goes on at once. Off a step's page the header says the way back (0.248, `tut_away`); the page buttons a step doesn't ask for are held back (0.249, `tut_btn_ok`); the steps say KNOB 1, not K1. AUTO SAVE (0.250, FLEXOR): off while the tutorial runs, on at its end or quit; the first start's BEGINNER turns it on. Keep
   its steps true when a control they teach moves.
-- EDIT ZOOM (0.216, FLEXOR: "a wider view"): `set.ezoom` (appended after `tut`; 0 AUTO), SYSTEM › EFFECTS PRESETS,
+- EDIT ZOOM (0.216, FLEXOR: "a wider view"): `set.ezoom` (appended after `tut`; 0 AUTO), KICK › KNOBS › TOOLS K4 "DRUM ZOOM" (0.9.29; SYSTEM › EFFECTS PRESETS before),
   EZ_MS[] in common.c (250, 500, 750 (0.257), 1000, 1500, 2000 ms; read with `ez_idx()`: EZ_TAG | index, an older save's 3.. one on): kick.c kv_ms() and perc.c draw_perc_big's pw_ms; the time drawn under the HZ.
   The picture's cost grows with its time (kick_rgb ticks the kick: 2 s = 88,200 samples a redraw, main loop only).
 - Skins (0.237, FLEXOR's for 1.0): 24 in common.c (SKIN_NAME, SKIN_RGB; picked and named on the artifacts

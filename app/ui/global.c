@@ -56,10 +56,7 @@ static void global_value(int i, char *t)
             text_cat(t, SFX_NAME[e]);
         else if (i == 1)
             text_cat(t, SFX_ON(e) ? "ON" : "OFF");
-        else if (i == 3)                 /* (LOAF BREAKER: K4 the KICK menu's picture; K3 the waves' colours until 0.9.24:
-                                          * HOME's SETTINGS only, FLEXOR) */
-            text_cat(t, set.kfocus ? "PART" : "WHOLE");
-        return;
+        return;                          /* (K4 EDIT VIEW and PRESETS DRUM VIEW ZOOM until 0.9.28: KICK › KNOBS › TOOLS) */
     }
     if (ui.gpage == 2u) {                /* SETUP (FLEXOR, 0.213: the knobs in the screen's order, top to bottom): K1 SKIN,
                                           * K2 WAVE ZOOM, K3 MODE, K4 AUTO SAVE */
@@ -128,13 +125,8 @@ static void global_turn(int i, int32_t d)
         else if (i == 2) {               /* (K3 WAVE until 0.9.24: HOME's SETTINGS K2 alone, FLEXOR) */
             app_say("WAVE TYPE", "HOME > SETTINGS");
             return;
-        } else {                         /* K4 KICK VIEW: the KICK menu's picture, left the WHOLE kick, right the PART
-                                          * edited */
-            set.kfocus = d > 0 ? 1u : 0u;
-            changed();
-            app_say("EDIT VIEW", set.kfocus ? "THE PART EDITED" : "THE WHOLE KICK");   /* (KICK VIEW until 0.9.25, FLEXOR) */
-            ui.redraw |= RG_BLOCKS | RG_FOOT;
-        }
+        } else                           /* (K4 EDIT VIEW until 0.9.28: KICK › KNOBS › TOOLS, FLEXOR) */
+            app_say("EDIT VIEW", "KICK > KNOBS > TOOLS");
         return;
     }
     if (ui.gpage == 4u) {                /* LOAF BREAKER: FX SET: K1 AMOUNT, K2 KICK, K3 DROP, K4 LENGTH, 5 % a detent */
@@ -258,13 +250,8 @@ static void draw_global(const brk_status_t *st)
     }
     if (ui.gpage == 3u) {                /* LOAF BREAKER: EFFECTS: the seven, lit when on (keys 1-7), K1's outlined */
         uint32_t e, cur = ui.sfx_cur < SFX_CRT || ui.sfx_cur >= SFX_N ? SFX_CRT : ui.sfx_cur;
-        cv_text(6, 2, &FONT_XS, "DRUM VIEW ZOOM", C_GRAY);   /* (LOAF BREAKER, 0.216: EDIT's pictures' time, PRESETS) */
-        {
-            int32_t x = cv_text(96, 1, &FONT_T, EZ_NAME[ez_idx()], C_HI);
-            cv_text(x + 8, 2, &FONT_XS, "PRESETS", C_DIM);
-        }
-        cv_text(6, 16, &FONT_XS, "K4 EDIT VIEW", C_GRAY);   /* (K3 WAVE gone, 0.9.25: HOME's SETTINGS) */
-        cv_text(96, 15, &FONT_T, set.kfocus ? "THE PART EDITED" : "THE WHOLE KICK", C_HI);
+        cv_text(6, 2, &FONT_XS, "EDIT VIEW, DRUM VIEW ZOOM:", C_GRAY);   /* (here until 0.9.28) */
+        cv_text(6, 15, &FONT_XS, "KICK > KNOBS > TOOLS", C_DIM);
         cv_blit(0, 44);
         for (e = 0; e < 2u; e++) {
             uint32_t j;

@@ -19,7 +19,7 @@ wait 300
 expect page 4
 expect kpage 11
 shot n_knob.png
-turn ALGO 3 10
+turn ALGO 4 10
 wait 200
 expect kpage 12
 expect selk3_fn 7

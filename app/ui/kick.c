@@ -269,7 +269,8 @@ static const uint8_t KSECT_N[KSECTS] = {4u, 7u, 4u, 7u, 4u, 7u};
 static const uint8_t KSECT[KSECTS][7] = {{32u, 7u, 3u, 30u},   /* (ATTACK: PRESET first, 0.253) */
                                          {0u, 1u, 5u, 18u, 19u, 9u, 10u}, {28u, 29u, 20u, 26u},
                                         {15u, 16u, 17u, 2u, 4u, 6u, 8u}, {11u, 12u, 13u, 14u},
-                                        {21u, 22u, 23u, 24u, 25u, 27u, 31u}};   /* (KNOBS: KP_BASE + 10 ..; 26 CLEAN MORPH) */
+                                        {21u, 27u, 22u, 23u, 24u, 25u, 31u}};   /* (KNOBS: KP_BASE + 10 ..; 26 CLEAN MORPH;
+                                          * 0.9.29, FLEXOR: ASSIGN right after KNOBS) */
 static void ksect_find(uint32_t p)       /* the part's section and place in it, kept */
 {
     uint32_t s, j;
@@ -406,7 +407,7 @@ static const char *const KN_KICK[KPAGES][4] = {{"SUB", "PUNCH", "GRIT", "CLICK"}
                                                {"", "", "", ""}, {"", "", "", ""},
                                                {"CLEAN SUB", "MORPH", "TO KICK", ""}, {"K1", "K2", "K3", "K4"},
                                                {"MODE", "NOTE", "CURVE", "END"}, {"FILTER", "F TIME", "DRIVE", ""},
-                                               {"ATTACK", "CROSS", "FADE", "SOLO"}, {"MUTATE", "A/B", "", ""},
+                                               {"ATTACK", "CROSS", "FADE", "SOLO"}, {"MUTATE", "A/B", "EDIT VIEW", "DRUM ZOOM"},
                                                {"PRESET", "", "", ""}};   /* (KNOBS, K SET: kick_knob_name) */
 /* LOAF BREAKER: OUT's K2 TERROR, K3 TERROR 2 (kick.h), 0..100 each; SEL + K4 and SEL + K3 on any page (main.c) */
 static uint8_t *kick_hc(kick_t *k, int i) { return i == 2 ? &KICK_TERROR2(k) : &KICK_TERROR(k); }
@@ -1164,7 +1165,7 @@ static void kick_picture(int32_t top)
                                           "MIDS PUSHED, SUB KEPT", "PITCH DROP AND BODY", "RUMBLE, TUNE",
                                           "GLIDE, REVERSE BASS", "WHAT SEL + K1-K4 DO", "", "", "", "",
                                           "ROUND SUB, BLEND KICKS", "", "THE TAIL", "TAIL DARKER, HARDER",
-                                          "ATTACK + TAIL", "MUTATE, A/B"};
+                                          "ATTACK + TAIL", "MUTATE, A/B, VIEWS"};
         uint32_t p = kick_part();
         t[0] = 0;
         if (p >= KP_BASE + 11u && p <= KP_BASE + 14u)
@@ -1474,6 +1475,12 @@ static void klab_value(int i, char *t)
     case KP_TOOLS * 4 + 1:
         text_cat(t, ab_b ? "B SAVED" : "A EDIT");
         break;
+    case KP_TOOLS * 4 + 2:               /* (0.9.29, FLEXOR: EDIT VIEW and DRUM VIEW ZOOM here, SYSTEM › EFFECTS before) */
+        text_cat(t, set.kfocus ? "PART" : "WHOLE");
+        break;
+    case KP_TOOLS * 4 + 3:
+        text_cat(t, EZ_NAME[ez_idx()]);
+        break;
     default:
         break;
     }
@@ -1495,6 +1502,8 @@ static float klab_norm(int i)
     case KP_STACK * 4 + 3: return (float)(klab_solo % 3u) * 0.5f;
     case KP_TOOLS * 4: return (float)(mut_n > 20u ? 20u : mut_n) * 0.05f;
     case KP_TOOLS * 4 + 1: return (float)ab_b;
+    case KP_TOOLS * 4 + 2: return (float)set.kfocus;
+    case KP_TOOLS * 4 + 3: return (float)ez_idx() / (float)(EZ_N - 1);
     default: return 0.0f;
     }
 }
@@ -1609,6 +1618,18 @@ static void klab_turn(int i, int32_t d)
             app_say("A/B", ab_b ? "B: AS SAVED" : "A: AS EDITED");
         ui.redraw |= RG_BLOCKS | RG_FOOT;
         changed_kick();
+        return;
+    case KP_TOOLS * 4 + 2:               /* EDIT VIEW: the picture, left the WHOLE kick, right the PART edited */
+        set.kfocus = d > 0 ? 1u : 0u;
+        changed();
+        app_say("EDIT VIEW", set.kfocus ? "THE PART EDITED" : "THE WHOLE KICK");
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        return;
+    case KP_TOOLS * 4 + 3:               /* DRUM VIEW ZOOM: the time EDIT's pictures show (the kick, the drums) */
+        set.ezoom = (uint8_t)(EZ_TAG | (uint32_t)clamp((int32_t)ez_idx() + (d > 0 ? 1 : -1), 0, EZ_N - 1));
+        changed();
+        app_say("DRUM VIEW ZOOM", ez_idx() ? EZ_NAME[ez_idx()] : "AUTO (EACH PART ITS OWN)");
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
         return;
     default:
         return;
