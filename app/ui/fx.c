@@ -1065,7 +1065,7 @@ static void draw_xview(uint32_t now)
     for (x = 0; x < 240; x += 4)         /* the middle (the tones), 0 dB (the responses) */
         cv_rect(x, mid, 2, 1, C_LINE);
     if (t == FXT_EMPTY)
-        cv_text(6, mid - 6, &FONT_T, FX_KICK() ? "EMPTY: SEL + PRESETS, AN EFFECT" : "EMPTY: PRESETS PUTS AN EFFECT HERE", C_GRAY);
+        cv_text(6, mid - 6, &FONT_T, FX_KICK() ? "EMPTY: PRESETS PUTS AN EFFECT HERE" : "EMPTY: PRESETS PUTS AN EFFECT HERE", C_GRAY);
     for (x = 0; t != FXT_EMPTY && x < 240; x++) {
         float in, base, v = x_plot(t, x, p, xx, now, &in, &base);
         y = mid - (int32_t)(brk_clampf(v, -1.0f, 1.0f) * (float)amp);

@@ -564,7 +564,7 @@ its level in and out.
 
 **KICK FX** (EDIT KICK's parts FX 1 and FX 2, after EQ BANDS and EQ SHAPE): the FX page on the kick's own two slots,
 after its EQ and before everything else (the break's chain never sees them). Every effect of the library but REVERB
-and DELAY; **SEL + PRESETS** the effect (remembered as left, apart from the chain's; PRESETS alone the kick, 0.9.26), ALGORITHM the kick's next or previous part,
+and DELAY; **PRESETS** the effect (remembered as left, apart from the chain's; 0.9.29: in the FX section PRESETS goes through the effects alone, nothing on EQ B and EQ S, and SEL + PRESETS changes the kick), ALGORITHM the kick's next or previous part,
 FX the next part of the effect (MAIN, MORE, MOD), FX held + ALGORITHM moves the slot, SEL + FX bypasses, SEL + REC resets.
 FX from another page: the chain. **Each kick has its own FX section** (EQ B, EQ S, FX1, FX2: KICK 1–20 each its own,
 0.9.26): another kick picked brings its own EQ and effects.

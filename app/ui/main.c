@@ -1094,16 +1094,23 @@ static void input(void)
                 break_ask((set.brk + (d > 0 ? 1u : n_breaks - 1u)) % n_breaks);
             }
         } else if (k == EN_PRESET && (ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX())) {
-            if (!(btn & 1u << B_SEL))    /* (LOAF BREAKER, 0.9.26, FLEXOR: in the KICK menu, PRESETS the kick on every
-                                          * page, its FX too; SEL + PRESETS what PRESETS did there: K1-K4 SET a knob's
-                                          * function, ASSIGN a style, KICK FX the effect; elsewhere the pattern) */
+            if ((ui.page == PG_KEQ || IS_KFX()) && !(btn & 1u << B_SEL)) {   /* (0.9.29, FLEXOR: the FX section,
+                                          * PRESETS the effects alone, FX1 and FX2; EQ B, EQ S nothing; SEL + PRESETS the
+                                          * kick there) */
+                if (IS_KFX())
+                    fx_type_turn(d);
+                else
+                    app_say("PRESETS", "FX1, FX2: THE EFFECT");
+            } else if (ui.page == PG_KEQ || IS_KFX())
+                kick_mem_turn(d);
+            else if (!(btn & 1u << B_SEL))   /* (LOAF BREAKER, 0.9.26, FLEXOR: in the KICK menu, PRESETS the kick on every
+                                          * page; SEL + PRESETS what PRESETS did there: K1-K4 SET a knob's function,
+                                          * ASSIGN a style; elsewhere the pattern) */
                 kick_mem_turn(d);
             else if (ui.page == PG_KICK && ui.kpage == KP_KSET)
                 selk_assign_k(ui.kks, d);
             else if (ui.page == PG_KICK && ui.kpage == KP_STYLE)
                 kstyle_turn(d);
-            else if (IS_KFX())
-                fx_type_turn(d);
             else
                 pattern_pick(d);
             ui.redraw |= RG_FOOT;
