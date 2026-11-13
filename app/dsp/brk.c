@@ -265,6 +265,10 @@ static void voice_start(const brk_break_t *b, int32_t s, int rev, float at, floa
     last_slice = s;
 }
 
+static uint8_t frz_set;                  /* (0.9.27: FREEZE holds a slice: only then does it own the voice. Pressed with no
+                                          * voice sounding (stopped, a gap), latched, it held nothing and kept the break
+                                          * quiet for good: now the next slice played is the one frozen) */
+static void freeze_voice(const brk_break_t *b, voice_t *c);
 static void trigger(const brk_break_t *b, int32_t s, int rev)
 {
     if (!b || s < 0 || (uint32_t)s >= b->nslices)
@@ -272,6 +276,8 @@ static void trigger(const brk_break_t *b, int32_t s, int rev)
     voice_start(b, s, rev, -1.0f, 1.0f);
     if (p_gate < 0.999f)                 /* the gate: this much of the slice, then a short fade */
         v[cur].gate_left = p_gate * (float)(b->slice[s + 1] - b->slice[s]);
+    if ((pads_now >> PAD_FREEZE & 1u) && !frz_set)
+        freeze_voice(b, &v[cur]);        /* (FREEZE on, nothing held yet: this slice) */
 }
 
 static brk_keyset_t keyset_of(int32_t s)
@@ -374,9 +380,18 @@ static int32_t generate(const brk_break_t *b, int32_t f)
 static int suppressed(void)              /* pads that own the voice: the sequencer counts on but stays quiet */
 {
     uint32_t ts = p_vinyl ? 1u << PAD_TAPESTOP : 0u;   /* (the vinyl on the drums alone: the break plays on) */
+    uint32_t fz = frz_set ? 1u << PAD_FREEZE : 0u;
     if (roll_arm)
-        return (pads_now & (1u << PAD_FREEZE | ts)) != 0u;
-    return (pads_now & (1u << PAD_ROLL8 | 1u << PAD_ROLL16 | 1u << PAD_ROLL32 | 1u << PAD_FREEZE | ts)) != 0u;
+        return (pads_now & (fz | ts)) != 0u;
+    return (pads_now & (1u << PAD_ROLL8 | 1u << PAD_ROLL16 | 1u << PAD_ROLL32 | fz | ts)) != 0u;
+}
+static void freeze_voice(const brk_break_t *b, voice_t *c)   /* (part of) the slice c plays, looping */
+{
+    c->lo = (float)b->slice[c->slice];
+    c->hi = c->lo + (float)((b->slice[c->slice + 1] - b->slice[c->slice]) >> (p_ps.frz_len & 3u));
+    c->loop = 1;
+    c->gate_left = -1.0f;                /* (held: no gate) */
+    frz_set = 1u;
 }
 
 static void roll_begin(const brk_break_t *b)   /* the roll repeats the slice sounding, from its start */
@@ -535,15 +550,13 @@ static void pads_changed(const brk_break_t *b, uint32_t now, float sl)
         c->dir = 1.0f;
         c->hi = (float)b->len;
     }
-    if (on & 1u << PAD_FREEZE && c->active) {   /* freeze: (part of) the slice playing loops until let go (LOAF
-                                          * BREAKER, 11 Nov 2026: back, CHOPPAH's, on the black keys' layouts) */
-        c->lo = (float)b->slice[c->slice];
-        c->hi = c->lo + (float)((b->slice[c->slice + 1] - b->slice[c->slice]) >> (p_ps.frz_len & 3u));
-        c->loop = 1;
-        c->gate_left = -1.0f;            /* (held: no gate) */
-    }
-    if (off & 1u << PAD_FREEZE)
+    if (on & 1u << PAD_FREEZE && c->active && c->slice >= 0)   /* freeze: (part of) the slice playing loops until let go
+                                          * (LOAF BREAKER, 11 Nov 2026: back, CHOPPAH's, on the black keys' layouts) */
+        freeze_voice(b, c);
+    if (off & 1u << PAD_FREEZE) {
         v[0].loop = v[1].loop = 0;
+        frz_set = 0u;
+    }
     if (on & 1u << PAD_TAPESTOP && p_vinyl) {   /* LOAF BREAKER: the vinyl slows what plays down to nothing: no gate,
                                           * no ratchet, no slice's end (a gated, reversed or one-shot slice ended
                                           * there: the stop cut off) */
@@ -919,6 +932,7 @@ BRK_COLD void brk_init(void)
     pending = BRK_NO_SLICE;
     pending_wait = -1.0f;
     bar = held_mask = pads_now = p_pads = 0u;
+    frz_set = 0u;
     p_playing = 0;
     to_next = 0.0f;
     tape = gate_amp = 1.0f;
