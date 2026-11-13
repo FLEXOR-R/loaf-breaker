@@ -15,6 +15,9 @@ zven confirmed on 12 Nov 2026 that LOAF BREAKER is welcome on the hub.
   Nothing is reserved on the hub: an identity is chosen, used in the releases, and given in the mail.
 - **Files:** `loaf-breaker-X.fwsc` (fm1.toml `name`), the site's installer and the releases.
 - **USB:** a MIDI device named "LOAF BREAKER FM-1", maker "LOAF BREAKER".
+- **Sounds** (13 Nov 2026, the hub's ask, Sven): `fmhub.json`'s `sounds` line says where `breaks/` comes from: Cyberworm's
+  Amen loops (rhythm-lab.com, royalty free) and the classics sampled from records (rights with their owners); see
+  `breaks/README.md`. FLEXOR answers for them. Then "Check again" on the hub's status page (it reads `loaf`).
 - **Card:** `fmhub.json` (root): LOAF BREAKER's text, FLEXOR as author, the site's emulator and manual, the picture
   `docs/img/loaf_breaker_card.png` (480 × 480 PNG), the screen's red.
 
