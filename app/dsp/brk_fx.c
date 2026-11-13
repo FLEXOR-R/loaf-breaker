@@ -28,6 +28,9 @@ static float lim_gain = 1.0f, dj_s;      /* the limiter; the DJ filter's smoothe
 static svf_t dj_b, dj_e, dj_v;           /* the DJ filter: on the break, its echo throw, its reverb throw */
 static svf_t dj_k;                       /* GLOUPI BREAKS: HOME's DJ filter, on the kick (brk_fx_kick_dj) */
 static svf_t dj_p;                       /* LOAF BREAKER: the same on the snare, the hat and the clap */
+static svf_t dj_d;                       /* (0.9.26: the FILTER pad's throw on the drums, its THRU DRUMS or BOTH) */
+static volatile uint32_t p_fthru;        /* (its THRU: 0 BREAK, 1 DRUMS, 2 BOTH) */
+void brk_fx_flt_thru(uint32_t m) { p_fthru = m <= 2u ? m : 0u; }
 static float djk_s;                      /* its smoothed position */
 const char *const BRK_FXT_NAME[BRK_NFXT] = {"EMPTY", "FILTER", "CRUNCH", "DRIVE", "PUNCH", "FLANGER", "RING MOD",
                                             "TREMOLO", "REVERB", "DELAY", "EQ", "TAPE", "MB COMP", "CLIP"};
@@ -1128,14 +1131,20 @@ BRK_COLD void brk_fx_mb_meter(uint32_t slot, float *gr, float *lvl)
 }
 
 /* the block's samples, all four slots: from RAM on the FM-1 (BRK_RAM, one call a block: nothing in it calls out) */
-typedef struct { svf_c djc; dl_c_t dub_c; float wet; int dj_hp, dub_on; uint32_t k0, k1, kick; } fx_q_t;
+typedef struct { svf_c djc; dl_c_t dub_c; float wet; int dj_hp, dub_on; uint32_t k0, k1, kick, fmode; } fx_q_t;
 BRK_RAM static void fx_samples(const fx_q_t *q, const float *in, const float *thru, const float *echo, const float *verb,
                                const float *post, float *l, float *r, uint32_t n)
 {
     uint32_t i, k, mono;
     for (i = 0; i < n; i++) {
         float x = in[i], xl, xr, lp, ec = echo ? echo[i] : 0.0f, vb = verb ? verb[i] : 0.0f;
-        if (!q->kick && (dj_s < -0.01f || dj_s > 0.01f)) {   /* the DJ filter: the break's alone (and its throws) */
+        float dv = thru ? thru[i] : post ? post[i] : 0.0f;   /* (the drums, into the chain or around it) */
+        int djon = !q->kick && (dj_s < -0.01f || dj_s > 0.01f);
+        if (djon && q->fmode) {          /* (0.9.26: the FILTER pad thrown, its THRU DRUMS or BOTH: the drums too) */
+            float h = svf_run(&dj_d, &q->djc, dv, &lp);
+            dv = q->dj_hp ? h : lp;
+        }
+        if (djon && q->fmode != 1u) {    /* the DJ filter: the break's alone (and its throws; THRU DRUMS: not) */
             float h = svf_run(&dj_b, &q->djc, x, &lp);
             x = q->dj_hp ? h : lp;
             h = svf_run(&dj_e, &q->djc, ec, &lp);
@@ -1144,7 +1153,7 @@ BRK_RAM static void fx_samples(const fx_q_t *q, const float *in, const float *th
             vb = q->dj_hp ? h : lp;
         }
         if (thru)
-            x += thru[i];
+            x += dv;
         xl = xr = x;
         mono = 1u;
         if (!q->kick) {
@@ -1180,8 +1189,8 @@ BRK_RAM static void fx_samples(const fx_q_t *q, const float *in, const float *th
             xr = x + (xr - x) * q->wet;
         }
         if (post) {                      /* the drums around the chain join here, clean */
-            xl += post[i];
-            xr += post[i];
+            xl += dv;
+            xr += dv;
         }
         if (dub_n && !dl_taken && (cur_throw != 0.0f || dub_idle < 4u * dub_n)) {   /* the delay after the chain: the
                                           * throws in, the echoes at the pad's mix (LOAF BREAKER, 0.226: at rest once
@@ -1265,6 +1274,10 @@ void brk_fx_process(const float *in, const float *thru, const float *echo, const
         q.k0 = 0u;
         q.k1 = BRK_FX_SLOTS;
         q.kick = 0u;
+        {                                /* (the THRU while the pad throws, or the filter on its way back from it) */
+            float home = brk_clampf(fx.dj, -1.0f, 1.0f);
+            q.fmode = throw || dj_s - home > 0.01f || dj_s - home < -0.01f ? p_fthru : 0u;
+        }
         fx_samples_p(&q, in, thru, echo, verb, post, l, r, n);
     }
 }
@@ -1290,6 +1303,7 @@ void brk_fx_kick(float *x, uint32_t n)
         q.k0 = BRK_FX_SLOTS;
         q.k1 = BRK_FX_ALL;
         q.kick = 1u;
+        q.fmode = 0u;
         q.wet = 1.0f;
         q.dj_hp = q.dub_on = 0;
         fx_samples_p(&q, x, 0, 0, 0, 0, x, x, n);

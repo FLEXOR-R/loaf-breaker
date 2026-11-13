@@ -197,6 +197,8 @@ void brk_fx_watch(uint32_t slot);
 /* the overload guard (PRD E-7): brk_fx_overload from the audio interrupt when a render ran over 90 % of its time;
  * the chain then bypasses its last slot on (another every ~0.2 s while it keeps happening), each back after 2 s
  * clear. brk_fx_shed: how many are shed now */
+void brk_fx_flt_thru(uint32_t m);        /* LOAF BREAKER (0.9.26): the FILTER pad's THRU: 0 the break (as ever), 1 the
+                                          * drums (the kick, the snare, the hat, the clap), 2 both */
 void brk_fx_overload(void);
 uint32_t brk_fx_shed(void);
 

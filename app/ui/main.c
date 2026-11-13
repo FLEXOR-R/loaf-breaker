@@ -458,6 +458,22 @@ static void input(void)
                 roll_key(i, 0, 0);
             continue;
         }
+        if (lat_bit(i) >= 0 && bk_lat() >> lat_bit(i) & 1u) {   /* (0.9.26, FLEXOR: REVERSE, FREEZE, GATE, RANDOM's
+                                          * K4 LATCH: a press on, a press off) */
+            if ((kdn & PAD_BIT(i))) {
+                pad_latched ^= (uint16_t)(1u << i);
+                brk_pad((int)i, pad_latched >> i & 1u);
+                ui.pad_focus = (int8_t)i;
+                ui.pad_since = now;
+                app_say(PAD_TITLE[i], pad_latched >> i & 1u ? "LATCHED" : "OFF");
+            }
+            continue;
+        }
+        if (pad_latched >> i & 1u && !(keys & PAD_BIT(i))) {   /* (its LATCH turned off, let go: off) */
+            pad_latched &= (uint16_t)~(1u << i);
+            brk_pad((int)i, 0);
+            continue;
+        }
         if (i == PAD_HALF && set.half_mt_off & 2u) {   /* LOAF BREAKER: HALF SPEED's LATCH: a press on, a press
                                           * off (its knobs while held, as ever) */
             if ((kdn & PAD_BIT(i))) {
@@ -2244,8 +2260,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm"};
-    int v[127];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru"};
+    int v[130];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -2378,7 +2394,14 @@ int app_expect(const char *what, int *got)
     v[124] = (int32_t)skin_idx();
     v[125] = build_p >= 0.0f && b_stut;
     v[126] = build_p >= 0.0f ? b_gapm : 0;
-    for (i = 0; i < 127u; i++)
+    {
+        brk_status_t ps;
+        brk_status(&ps);
+        v[127] = (int)ps.pads;
+    }
+    v[128] = pad_latched;
+    v[129] = (int)bk_fthru();
+    for (i = 0; i < 130u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

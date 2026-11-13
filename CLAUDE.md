@@ -126,11 +126,13 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   back from CHOPPAH, then BKF_ARP, KIL, DST, SUB); `bk_fn(j)`, `bkf_mask(f)` (= `PAD_BIT`) follow the layout in use:
   presets CHOPPAH (a new FM-1's and RESET ALL's; BEGINNER keeps the layout in use since 0.9.23, FLEXOR: `bk_preset` no longer forces it; DST's
   switch (`terror_off`: selk_hi bit 4 and a DST key in the layout, `bk_has`) and SUB DRIVE are each kick's own, FLEXOR 0.9.24), FLEXOR LAYOUT (0.244's:
-  keep it exactly), CUSTOM; stored in `set.bkeys.bk` (the STAB's old 24 bytes: BK_TAG, preset, eleven functions). ARP's
+  keep it exactly), CUSTOM; stored in `set.bkeys.bk` (the STAB's old 24 bytes: BK_TAG, preset, eleven functions; bk[15]
+  BK_PLAT 0xA0 | the K4 LATCH bits of REVERSE, FREEZE, GATE, RANDOM, bk[16] BK_FTHRU 0xC0 | FILTER's K4 THRU BREAK / DRUMS /
+  BOTH, 0.9.26, FLEXOR: no LATCH on FILTER; bk[17..23] free, tag new bytes: older saves hold the STAB's leftovers there). ARP's
   tabs in EXPERT (`ui.opage`, ovl.c): ARP EFFECTS, BLACK KEYS (bk_turn, draw_bk); MORE gone for now (0.259, FLEXOR; its idea: new black-key
   settings, e.g. the ARP effects one a key). SYSTEM › MIDI shows USB and TRS only (no BT box, 0.259). The simulator starts on FLEXOR LAYOUT (its scenarios).
 - BREAK TIME (11 Nov 2026, 0.256, FLEXOR): HOME › SETTINGS K4 (SYSTEM › MIDI K4 until 0.9.1) NORMAL / HALF, `set.bkeys.bk[BK_BHALF]` (the STAB's old
-  bytes again: bk[14] BK_VIEW since 0.9.2, bk[15..23] still free); brk.c `p_bhalf` (`brk_half_time`): the break a step every other 16th at half
+  bytes again: bk[14] BK_VIEW since 0.9.2, bk[15], bk[16] the latches and FILTER's THRU (0.9.26), bk[17..23] still free); brk.c `p_bhalf` (`brk_half_time`): the break a step every other 16th at half
   ratio, the drums' step events, the swing and the clock at the tempo (they count `steps_total - pat_org`, not `step`).
 - RESET (0.209): after a reset its page's knobs do nothing for 3 s (`RST_COOL`, `ui.rst_done`, rst_cool()), DONE shown.
   WIPE MEMORY (0.263, FLEXOR: V15 odd after LOAF BREAKER): RESET's item before EVERYTHING, erases every sector of the
@@ -172,7 +174,7 @@ files before it define. `app/dsp/*.c` are separate `o2` units (brk, brk_fx, kick
   were true: ~40 KB and ~37 KB of flash). Their app hooks (`APP_BLE_AT_BOOT`, `BP_MQ_ATTR` in app.h) stay as
   CHOPPAH's, inert; never turn either back on.
 - Flash: the app slot is 581,564 B (`APP_SLOT` 0x8DFBC in base/tools/fm1pkg_make.py: not 581 KiB); 577,288 B used at
-  0.192 with a 357 KB bank; 561,424 B at 0.220 (9 breaks); 568,492 B at 0.225 (the drums' extras): **~13 KB left**. **579,428 B at 0.9.26 (the FX chain's mono half freed 1.9 KB): ~2.1 KB left; RAM 96,380 of 98,304; .ram_text 16,924 of 32,768.**
+  0.192 with a 357 KB bank; 561,424 B at 0.220 (9 breaks); 568,492 B at 0.225 (the drums' extras): **~13 KB left**. **580,660 B at 0.9.26 (the latches and FILTER's THRU): ~0.9 KB left; RAM 96,396 of 98,304; .ram_text 17,200 of 32,768.**
   RAM .data+.bss 93,292 of 98,304 B at 0.225 (the drums' room, 5.8 KB of 16-bit lines, is in RAM): ~5 KB left; the
   pool has ~10.8 KB (it could take the room's lines). The break bank (`CH_BANK`) is most of it.
   New features are welcome before 1.0 (FLEXOR, 11 Nov 2026: "not that close to 1.0, I want to perfect the firmware");

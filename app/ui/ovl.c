@@ -62,6 +62,7 @@ static void bk_release_all(void)         /* (the layout changes: whatever a key 
     roll_sel = 0u;
     kroll = 0u;
     half_lat = 0u;
+    pad_latched = 0u;
     ovlpad_held = ovlpad_lat = 0u;
     ovl_push();
     kick_hold = 0u;

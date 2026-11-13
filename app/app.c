@@ -229,6 +229,19 @@ static const uint8_t BK_LAY[2][11] = {{PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, PAD_RE
                                        PAD_TAPESTOP, PAD_GATE, PAD_RANDOM, PAD_FILTER, PAD_DUB},
                                       {PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, PAD_REVERSE, PAD_RANDOM, PAD_HALF,
                                        PAD_TAPESTOP, BKF_ARP, BKF_KIL, BKF_DST, BKF_SUB}};
+#define BK_PLAT 15u                      /* (bk[15]: 0xA0 | the LATCH bits of REVERSE, FREEZE, GATE, RANDOM (their K4),
+                                          * 0.9.26, FLEXOR; tagged: an older save's byte there the STAB's leftover) */
+#define BK_FTHRU 16u                     /* (bk[16]: 0xC0 | the FILTER key's THRU, its K4: 0 BREAK, 1 DRUMS, 2 BOTH) */
+static uint32_t bk_lat(void) { return (set.bkeys.bk[BK_PLAT] & 0xF0u) == 0xA0u ? set.bkeys.bk[BK_PLAT] & 15u : 0u; }
+static uint32_t bk_fthru(void)
+{
+    uint32_t v = set.bkeys.bk[BK_FTHRU];
+    return (v & 0xF0u) == 0xC0u && (v & 15u) <= 2u ? v & 15u : 0u;
+}
+static int lat_bit(uint32_t pad)         /* (a pad's place in bk_lat, -1: none) */
+{
+    return pad == PAD_REVERSE ? 0 : pad == PAD_FREEZE ? 1 : pad == PAD_GATE ? 2 : pad == PAD_RANDOM ? 3 : -1;
+}
 static uint32_t bk_preset(void)          /* the preset in use (0.9.23, FLEXOR: BEGINNER keeps the one EXPERT left; a new
                                           * FM-1 and RESET ALL: CHOPPAH) */
 {
@@ -257,6 +270,8 @@ static void bk_defaults(void)
     for (j = 0; j < 11u; j++)
         set.bkeys.bk[2u + j] = BK_LAY[0][j];   /* (CUSTOM begins as CHOPPAH) */
     set.bkeys.bk[BK_BHALF] = 0u;
+    set.bkeys.bk[BK_PLAT] = 0xA0u;
+    set.bkeys.bk[BK_FTHRU] = 0xC0u;
 }
 static uint32_t brk_view(void) { return (set.brkv & 0xF0u) == BRKV_TAG && (set.brkv & 15u) <= 2u ? set.brkv & 15u : 2u; }
 static uint32_t max_out_db(void) { return set.max_out ? (set.max_out - 1u > 12u ? 12u : set.max_out - 1u) : 3u; }
@@ -501,6 +516,7 @@ static void fx_apply(void)
         brk_fx_set(&f);
     } else
         brk_fx_set(&set.fx);
+    brk_fx_flt_thru(bk_fthru());         /* (the FILTER key's THRU, 0.9.26) */
     for (k = 0; k < BRK_FX_SLOTS; k++) {
         brk_fx_set_mbc(k, &set.mbc[k]);
         brk_fx_set_fxx(k, &set.fxx[k]);

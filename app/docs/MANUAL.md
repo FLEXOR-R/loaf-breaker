@@ -456,13 +456,13 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 | Pad | Does | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- | --- |
 | R8 · R16 · R32 | Roll from the next 16th | RATE (1/4 … 1/64, triplets) | THRU: BREAK (the break rolled, as ever), KICK (the kick hit at the rate instead of its pattern: a kick roll; the break plays on), BOTH (the two); **SEL + the pad**: the kick alone, for that press, whatever THRU says | DRUM FLT (HOME's drums' filter) | DECAY: DOWN (each repeat quieter) or UP (a swell up to full) |
-| REV | Reverse | Speed | | | |
-| FRZ | FREEZE: the slice playing loops while held | LENGTH: the slice, 1/2, 1/4, 1/8 | PITCH (±12 semitones) | | |
+| REV | Reverse | Speed | | | LATCH: ON, a press turns it on and the next off (0.9.26) |
+| FRZ | FREEZE: the slice playing loops while held | LENGTH: the slice, 1/2, 1/4, 1/8 | PITCH (±12 semitones) | | LATCH: ON, a press turns it on and the next off (0.9.26) |
 | HLF | Half speed | Speed | MASTER TEMPO: the pitch kept (ON) or dropped | LATCH: ON, a press turns it on and the next off | |
 | VNL | VINYL BREAK: the record slowing to a stop, spinning back up when let go | Stop (beats) | Spin-up | THRU: the break, the kick or both | |
-| GAT | Gate: the break chopped on the beat | RATE | LENGTH (how much of each gate sounds) | | |
-| RND | Random slices | Amount | Random pitch | | |
-| FLT | Filter throw: the DJ filter sweeps to its target while held, back when let go | TARGET (low-pass left, high-pass right) | RESO | SPEED | |
+| GAT | Gate: the break chopped on the beat | RATE | LENGTH (how much of each gate sounds) | | LATCH: ON, a press turns it on and the next off (0.9.26) |
+| RND | Random slices | Amount | Random pitch | | LATCH: ON, a press turns it on and the next off (0.9.26) |
+| FLT | Filter throw: the DJ filter sweeps to its target while held, back when let go | TARGET (low-pass left, high-pass right) | RESO | SPEED | THRU: BREAK (the break, as ever), DRUMS (the kick, the snare, the hat, the clap), BOTH (0.9.26) |
 | DUB | Dub throw: the break into an echo while held, its tail ringing out | TIME (1/8, 3/16, 1/4, 3/8) | FEEDBACK | TONE | MIX (with a DELAY in the FX chain: that slot's own four) |
 | ARP | Its OVERLAY effect over the mix, while held (or latched): DIVE, RISE, RADIO, WAH, CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, WOBBLE, JET, REESE | EFFECT | AMOUNT (that effect's) | TIME: RATE for CHOP, GATE, WAH, PAN; SWEEP for DIVE, RISE | LATCH |
 | ARP, FX while held (MORE) | | THRU: the kick, the break or both | ON / OFF (OFF: K1 browses silent) | RATE (1/4 … 1/32) | SWEEP (1/4 bar … 2 bars) |
