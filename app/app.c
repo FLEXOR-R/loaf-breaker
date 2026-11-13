@@ -1882,7 +1882,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                 nk = 0u;                 /* LOAF BREAKER: KIL held: the sequencer's kicks quiet (a roll still plays) */
             if (krp && st.playing) {     /* the KICK ROLL's hits in this block, at its pad's rate */
                 static const float RS[BRK_ROLL_DIVS] = {4.0f, 2.0f, 1.0f, 0.5f, 0.25f, 4.0f / 3.0f, 2.0f / 3.0f,
-                                                        1.0f / 3.0f};   /* (16ths: brk.c's ROLL_STEPS) */
+                                                        1.0f / 3.0f, 6.0f, 3.0f, 1.5f};   /* (16ths: brk.c's ROLL_STEPS) */
                 int32_t per = (int32_t)(RS[set.pads.roll_div[(krp - 1u) % 3u] % BRK_ROLL_DIVS] * (float)BRK_SR * 15.0f /
                                         brk_get_tempo());
                 nk = 0u;                 /* (the roll, alone, in order) */

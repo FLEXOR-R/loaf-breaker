@@ -415,7 +415,7 @@ dot on its block):
 
 | Knob | Sets | Range |
 | --- | --- | --- |
-| K1 LENGTH | How long the window is, shown as music for this break | 1/8 of a slice … 16 slices (2-bar breaks: 1/64 … 2 BAR), with the jungle chops between: **3/16** after 1/8 and **3/8** after 1/4 (1.5 and 3 slices; 0.9.29, from CHOPPAH 1.3.1) |
+| K1 LENGTH | How long the window is, shown as music for this break | 1/8 of a slice … 16 slices (2-bar breaks: 1/64 … 2 BAR), with the jungle chops between: **3/32** after 1/16 (0.9.30), **3/16** after 1/8 and **3/8** after 1/4 (0.75, 1.5 and 3 slices; 0.9.29, from CHOPPAH 1.3.1) |
 | K2 PITCH | The key's own pitch, on top of OCT | −12 … +12 semitones |
 | K3 START | Where in the slice the window starts | 0 … 94 % of the slice |
 | K4 MODE | LOOP · PING-PONG (every other repeat backwards) · REVERSE · ONE SHOT (once, then quiet while held) | |
@@ -455,7 +455,7 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 
 | Pad | Does | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- | --- |
-| R8 · R16 · R32 | Roll from the next 16th | RATE (1/4 … 1/64, triplets) | THRU: BREAK (the break rolled, as ever), KICK (the kick hit at the rate instead of its pattern: a kick roll; the break plays on), BOTH (the two); **SEL + the pad**: the kick alone, for that press, whatever THRU says | DRUM FLT (HOME's drums' filter) | DECAY: DOWN (each repeat quieter) or UP (a swell up to full) |
+| R8 · R16 · R32 | Roll from the next 16th | RATE (3/8, 1/4, 3/16, 1/8, 3/32, 1/16, 1/32, 1/64, then the triplets; the dotted ones since 0.9.30) | THRU: BREAK (the break rolled, as ever), KICK (the kick hit at the rate instead of its pattern: a kick roll; the break plays on), BOTH (the two); **SEL + the pad**: the kick alone, for that press, whatever THRU says | DRUM FLT (HOME's drums' filter) | DECAY: DOWN (each repeat quieter) or UP (a swell up to full) |
 | REV | Reverse | Speed | | | LATCH: ON, a press turns it on and the next off (0.9.26) |
 | FRZ | FREEZE: the slice playing loops while held | LENGTH: the slice, 1/2, 1/4, 1/8 | PITCH (±12 semitones) | | LATCH: ON, a press turns it on and the next off (0.9.26) |
 | HLF | Half speed | Speed | MASTER TEMPO: the pitch kept (ON) or dropped | LATCH: ON, a press turns it on and the next off | |

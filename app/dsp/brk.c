@@ -37,12 +37,15 @@ const char *const BRK_SLX_NAME[BRK_SLX] = {"OFF", "LO-PASS", "HI-PASS", "CRUNCH"
 static float *send_echo, *send_verb;     /* the render's throws (brk_sends) */
 typedef union { uint32_t w; brk_keyset_t k; } keyword_t;
 
-const char *const BRK_ROLL_DIV_NAME[BRK_ROLL_DIVS] = {"1/4", "1/8", "1/16", "1/32", "1/64", "1/8T", "1/16T", "1/32T"};
+const char *const BRK_ROLL_DIV_NAME[BRK_ROLL_DIVS] = {"1/4", "1/8", "1/16", "1/32", "1/64", "1/8T", "1/16T", "1/32T",
+                                                           "3/8", "3/16", "3/32"};
+const uint8_t BRK_ROLL_ORDER[BRK_ROLL_DIVS] = {8u, 0u, 9u, 1u, 10u, 2u, 3u, 4u, 5u, 6u, 7u};
 const char *const BRK_GATE_DIV_NAME[BRK_GATE_DIVS] = {"1/8", "1/16", "1/32"};
-static const float ROLL_STEPS[BRK_ROLL_DIVS] = {4.0f, 2.0f, 1.0f, 0.5f, 0.25f, 4.0f / 3.0f, 2.0f / 3.0f, 1.0f / 3.0f};
+static const float ROLL_STEPS[BRK_ROLL_DIVS] = {4.0f, 2.0f, 1.0f, 0.5f, 0.25f, 4.0f / 3.0f, 2.0f / 3.0f, 1.0f / 3.0f,
+                                                    6.0f, 3.0f, 1.5f};
 static const float GATE_STEPS[BRK_GATE_DIVS] = {2.0f, 1.0f, 0.5f};
-const float BRK_KEY_SLICES[BRK_KEY_LENS] = {0.125f, 0.25f, 0.5f, 1.0f, 2.0f, 4.0f, 8.0f, 16.0f, 1.5f, 3.0f};
-const uint8_t BRK_KEY_ORDER[BRK_KEY_LENS] = {0u, 1u, 2u, 3u, 8u, 4u, 9u, 5u, 6u, 7u};
+const float BRK_KEY_SLICES[BRK_KEY_LENS] = {0.125f, 0.25f, 0.5f, 1.0f, 2.0f, 4.0f, 8.0f, 16.0f, 1.5f, 3.0f, 0.75f};
+const uint8_t BRK_KEY_ORDER[BRK_KEY_LENS] = {0u, 1u, 2u, 10u, 3u, 8u, 4u, 9u, 5u, 6u, 7u};
 const char *const BRK_KEY_MODE_NAME[BRK_KEY_MODES] = {"LOOP", "PING-PONG", "REVERSE", "ONE SHOT"};
 
 typedef struct { int8_t slice; uint8_t down; } kev_t;

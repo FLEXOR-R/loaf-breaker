@@ -49,7 +49,9 @@ typedef struct {
 } brk_gen_t;
 
 /* the pads' own settings, tuned with K1-K4 while a pad is held (PRD 5.1) */
-#define BRK_ROLL_DIVS 8u                 /* 1/4 1/8 1/16 1/32 1/64 1/8T 1/16T 1/32T */
+#define BRK_ROLL_DIVS 11u                /* 1/4 1/8 1/16 1/32 1/64 1/8T 1/16T 1/32T, then 3/8 3/16 3/32 (0.9.30, FLEXOR: the
+                                          * keys' dotted lengths; at the end so saved rates keep theirs; RATE turns through
+                                          * them in BRK_ROLL_ORDER) */
 #define BRK_GATE_DIVS 3u                 /* 1/8 1/16 1/32 */
 typedef struct {
     uint8_t roll_div[3];                 /* each roll pad's rate (0..BRK_ROLL_DIVS-1): 1/8, 1/16, 1/32 by default */
@@ -71,12 +73,13 @@ typedef struct {
     float rnd_pitch;                     /* 0..12 semitones of random pitch */
 } brk_padset_t;
 extern const char *const BRK_ROLL_DIV_NAME[BRK_ROLL_DIVS];
+extern const uint8_t BRK_ROLL_ORDER[BRK_ROLL_DIVS];   /* 3/8 1/4 3/16 1/8 3/32 1/16 1/32 1/64, the triplets */
 
 /* the white keys' own settings, tuned with K1-K4 while a key is held (PRD B-10a). Held, a key loops a window that
  * starts in its slice: LENGTH slices long (1/8 .. 16 of them), from START sixteenths into the slice, at PITCH, in
  * MODE. The loop restarts every LENGTH on the tempo's grid, playing or stopped. */
 #define BRK_KEYS 16u
-#define BRK_KEY_LENS 10u                 /* 1/8 1/4 1/2 1 2 4 8 16 slices, then 1.5 and 3 (3/16 and 3/8 of the bank's
+#define BRK_KEY_LENS 11u                 /* 1/8 1/4 1/2 1 2 4 8 16 slices, then 1.5, 3 and 0.75 (3/16, 3/8, 3/32 (0.9.30) of the bank's
                                           * 2-bar breaks, 16 slices each: the jungle chops; CHOPPAH 1.3.1's, 0.9.29: at the
                                           * end so saved lengths keep theirs; LENGTH turns through them in order, BRK_KEY_ORDER) */
 enum { KEY_LOOP, KEY_PINGPONG, KEY_REVERSE, KEY_ONESHOT, BRK_KEY_MODES };
@@ -87,7 +90,7 @@ typedef struct {
     uint8_t mode;                        /* KEY_* */
 } brk_keyset_t;                          /* 4 bytes: written to the render as one word */
 extern const float BRK_KEY_SLICES[BRK_KEY_LENS];
-extern const uint8_t BRK_KEY_ORDER[BRK_KEY_LENS];   /* the lengths shortest first: 0 1 2 3 8 4 9 5 6 7 */
+extern const uint8_t BRK_KEY_ORDER[BRK_KEY_LENS];   /* the lengths shortest first: 0 1 2 10 3 8 4 9 5 6 7 */
 
 /* each slice's own effect (PRD B-32), whenever that slice plays (the loop, a key, a roll): a filter, crunch, drive or
  * ring mod on the slice alone, or a throw of it into the FX chain's delay (ECHO) or reverb (VERB); and its own level.

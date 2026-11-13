@@ -286,7 +286,12 @@ static void pad_knob_turn(int pad, int k, int32_t d)
         return;
     switch (pad <= PAD_ROLL32 ? 0 : pad) {
     case 0:
-        if (k == 0) p->roll_div[pad] = (uint8_t)clamp((int32_t)p->roll_div[pad] + d, 0, BRK_ROLL_DIVS - 1);
+        if (k == 0) {                    /* (RATE: longest to shortest, the triplets last: BRK_ROLL_ORDER) */
+            int32_t o = 0;
+            while (o < (int32_t)BRK_ROLL_DIVS - 1 && BRK_ROLL_ORDER[o] != p->roll_div[pad] % BRK_ROLL_DIVS)
+                o++;
+            p->roll_div[pad] = BRK_ROLL_ORDER[clamp(o + d, 0, BRK_ROLL_DIVS - 1)];
+        }
         else if (k == 1) {               /* LOAF BREAKER: K2 THRU: BREAK, KICK, BOTH (the rolls together) */
             set.pads.rsv[0] = (uint8_t)clamp((int32_t)(set.pads.rsv[0] % 3u) + (d > 0 ? 1 : -1), 0, 2);
             roll_thru_now();

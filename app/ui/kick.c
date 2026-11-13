@@ -1067,7 +1067,8 @@ static void ksect_row(int32_t y)
         tw = text_w(f, c);
         sw = tw + (int32_t)pad + (int32_t)(extra / n) + (j < extra % n ? 1 : 0);   /* (the room shared) */
         cv_rect(cx, y, sw, 15, p == open ? C_HI : C_BLOCK);
-        cv_text(cx + (sw - tw) / 2, f == &FONT_T ? y + 2 : y + 4, f, c,
+        cv_text(cx + (sw - tw + 1) / 2, f == &FONT_T ? y + 2 : y, f, c,   /* (0.9.30, FLEXOR: the small
+                                          * letters centred, they sat low and left) */
                 p == open ? C_BLACK : kp_hidden(p) ? C_DIM : C_GRAY);
         cx += sw + 2;
     }
