@@ -122,11 +122,8 @@ static void global_turn(int i, int32_t d)
             ui.redraw |= RG_BLOCKS | RG_FOOT;
         } else if (i == 1)
             sfx_toggle(e, d > 0);
-        else if (i == 2) {               /* (K3 WAVE until 0.9.24: HOME's SETTINGS K2 alone, FLEXOR) */
-            app_say("WAVE TYPE", "HOME > SETTINGS");
-            return;
-        } else                           /* (K4 EDIT VIEW until 0.9.28: KICK › KNOBS › TOOLS, FLEXOR) */
-            app_say("EDIT VIEW", "KICK > KNOBS > TOOLS");
+                                         /* (K3 WAVE until 0.9.24: HOME's SETTINGS K2 alone; K4 EDIT VIEW until 0.9.28:
+                                          * KICK › MORE › TOOLS, FLEXOR; neither named here since 0.9.30) */
         return;
     }
     if (ui.gpage == 4u) {                /* LOAF BREAKER: FX SET: K1 AMOUNT, K2 KICK, K3 DROP, K4 LENGTH, 5 % a detent */
@@ -218,6 +215,72 @@ static void global_turn(int i, int32_t d)
 }
 
 /* the GLOBAL page's panel: Bluetooth, the clock coming in, the clock going out, MIDI through each port */
+/* LOAF BREAKER (0.9.30, FLEXOR): GLO EFFECTS' cards, two rows of four on rows 46-189, drawn into the strip from screen
+ * row top: each effect's card a small picture (a block, a zigzag, a floor) with that effect done to it, its key and
+ * name below, lit when on; the eighth what the keys do */
+static void sfx_cards(int32_t top)
+{
+    uint32_t f, cur = ui.sfx_cur < SFX_CRT || ui.sfx_cur >= SFX_N ? SFX_CRT : ui.sfx_cur;
+    cv_oy = -top;
+    for (f = SFX_CRT; f <= SFX_N; f++) {
+        int32_t x = 4 + (int32_t)((f - 1u) % 4u) * 59, y = 46 + (int32_t)((f - 1u) / 4u) * 74, i, yy;
+        char n[12] = {(char)('0' + f), ' ', 0};
+        if (f == SFX_N) {                /* (the last place: what the keys do here) */
+            cv_text(x + 2, y + 14, &FONT_XS, "KEYS 1-7:", C_DIM);
+            cv_text(x + 2, y + 28, &FONT_XS, "ON / OFF", C_DIM);
+            cv_text(x + 2, y + 42, &FONT_XS, "K1: PICK", C_DIM);
+            break;
+        }
+        if (f == cur)
+            cv_rect(x - 2, y - 2, 59, 74, C_WHITE);
+        cv_rect(x, y, 55, 70, C_BLACK);
+        cv_rect(x + 1, y + 1, 53, 50, C_LINE);       /* the picture: a sky, a floor, a block, a zigzag */
+        cv_rect(x + 1, y + 38, 53, 13, C_DIM);
+        cv_rect(x + 8, y + 12, 14, 14, C_HI);
+        for (i = 0; i < 53; i++) {
+            yy = (i * 3) % 24;
+            cv_rect(x + 1 + i, y + 20 + (yy < 12 ? yy : 24 - yy), 1, 2, C_WHITE);
+        }
+        for (yy = y + 1; yy < y + 51; yy++) {   /* (the effect, on this strip's rows of it) */
+            int32_t r = yy - top;
+            uint16_t *p, tmp[53];
+            if (r < 0 || r >= (int32_t)cv_h)
+                continue;
+            p = cv_px + (uint32_t)r * cv_w + (uint32_t)(x + 1);
+            for (i = 52; i >= 0; i--) {
+                uint32_t c = swap16(p[i]), h = ((uint32_t)i * 2654435761u) ^ ((uint32_t)yy * 40503u);
+                h ^= h >> 13;
+                if (f == SFX_CRT && (yy & 1))
+                    c = (c >> 2) & 0x39E7u;
+                else if (f == SFX_GRAIN && (h & 6u) == 0u)
+                    c = h & 1u ? (c >> 1) & 0x7BEFu : c | 0x39E7u;
+                else if (f == SFX_RGB)
+                    c = (c & 0x07FFu) | (i >= 3 ? swap16(p[i - 3]) & 0xF800u : 0u);
+                else if (f == SFX_SHAKE && i >= 5)
+                    c = ((c >> 1) & 0x7BEFu) + ((swap16(p[i - 5]) >> 1) & 0x7BEFu);
+                else if (f == SFX_STROBE)
+                    c = ~c & 0xFFFFu;
+                else if (f == SFX_8BIT)
+                    c = swap16(p[i - i % 3]) & 0xC618u;
+                tmp[i] = swap16(c);
+            }
+            if (f == SFX_VHS && ((yy - y) / 5) % 3 == 1) {   /* (a band in three slipped aside) */
+                int32_t d = ((yy - y) / 15) & 1 ? 5 : -5;
+                for (i = 0; i < 53; i++)
+                    p[i] = tmp[(i - d + 53) % 53];
+            } else
+                for (i = 0; i < 53; i++)
+                    p[i] = tmp[i];
+            if (f == SFX_8BIT && (yy - y - 1) % 3 && r > 0)
+                for (i = 0; i < 53; i++)
+                    p[i] = p[i - (int32_t)cv_w];   /* (3 x 3 blocks, the row above's) */
+        }
+        cv_rect(x, y + 53, 55, 17, SFX_ON(f) ? C_HI : C_BLOCK);
+        text_cat(n, SFX_NAME[f]);
+        cv_text(x + 3, y + 55, text_w(&FONT_T, n) <= 50 ? &FONT_T : &FONT_XS, n, SFX_ON(f) ? C_BLACK : C_GRAY);
+    }
+    cv_oy = 0;
+}
 static void draw_global(const brk_status_t *st)
 {
     static const char *const PORT_NAME[NPORTS] = {"USB", "BT", "TRS"};
@@ -248,31 +311,14 @@ static void draw_global(const brk_status_t *st)
         cv_blit(0, 140);
         return;
     }
-    if (ui.gpage == 3u) {                /* LOAF BREAKER: EFFECTS: the seven, lit when on (keys 1-7), K1's outlined */
-        uint32_t e, cur = ui.sfx_cur < SFX_CRT || ui.sfx_cur >= SFX_N ? SFX_CRT : ui.sfx_cur;
-        cv_text(6, 2, &FONT_XS, "EDIT VIEW, DRUM VIEW ZOOM:", C_GRAY);   /* (here until 0.9.28) */
-        cv_text(6, 15, &FONT_XS, "KICK > KNOBS > TOOLS", C_DIM);
-        cv_blit(0, 44);
-        for (e = 0; e < 2u; e++) {
-            uint32_t j;
-            cv_begin(240, 52, C_BLACK);
-            for (j = 0; j < 4u; j++) {
-                uint32_t f = SFX_CRT + e * 4u + j;
-                int32_t x = 4 + (int32_t)j * 59;
-                char n[2] = {(char)('0' + f), 0};
-                if (f >= SFX_N) {        /* (the last place: what the keys do here) */
-                    cv_text(x + 2, 8, &FONT_XS, "KEYS 1-7:", C_DIM);
-                    cv_text(x + 2, 20, &FONT_XS, "ON / OFF", C_DIM);
-                    cv_text(x + 2, 32, &FONT_XS, "SET: SELECT", C_DIM);
-                    break;
-                }
-                if (f == cur)
-                    cv_rect(x - 2, 2, 57, 46, C_WHITE);
-                cv_rect(x, 4, 53, 42, SFX_ON(f) ? C_HI : C_BLOCK);
-                cv_text(x + 4, 6, &FONT_T, n, SFX_ON(f) ? C_BLACK : C_DIM);
-                cv_text(x + 4, 26, &FONT_T, SFX_NAME[f], SFX_ON(f) ? C_BLACK : C_GRAY);
-            }
-            cv_blit(0, 88u + e * 52u);
+    if (ui.gpage == 3u) {                /* LOAF BREAKER: EFFECTS: the seven, lit when on (keys 1-7), K1's outlined;
+                                          * 0.9.30, FLEXOR: bigger, each one's picture with its effect on it */
+        static const uint8_t TOP[3] = {44u, 92u, 140u}, HT[3] = {48u, 48u, 52u};
+        uint32_t b;
+        for (b = 0; b < 3u; b++) {
+            cv_begin(240, HT[b], C_BLACK);
+            sfx_cards(TOP[b]);
+            cv_blit(0, TOP[b]);
         }
         return;
     }
