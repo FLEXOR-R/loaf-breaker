@@ -2035,6 +2035,8 @@ void app_frame(void)
         if (want != ui.shown) {
             if ((want >= 0) != (ui.shown >= 0) || want < -1 || ui.shown < -1)
                 lcd_fill(0, 86, 240, 106, C_BLACK);
+            if (ui.shown == PAD_TAPESTOP)
+                ui.redraw |= RG_WAVE;    /* (the platter gone: the wave back) */
             ui.shown = want;
             ui.redraw |= RG_FOOT | (want != -1 ? RG_FX : RG_BLOCKS);
         }
@@ -2149,6 +2151,7 @@ void app_frame(void)
     if (!ui.redraw)
         return;
     if (ui.redraw & RG_WAVE && ui.page != PG_TRACK && ui.page != PG_SEQ && ui.page != PG_GLOBAL &&
+        ui.shown != PAD_TAPESTOP &&      /* (0.9.30: VINYL BREAK's platter over it) */
         (ui.page != PG_KICK || ui.kclassic) &&
         (ui.page != PG_PERC || !ui.pbig))   /* (LOAF BREAKER: SEQ is a grid there) */
         draw_wave(&st, b);

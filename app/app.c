@@ -30,6 +30,7 @@
 #if CH_LOGO
 #include "splash_data.h"            /* LOAF BREAKER: the splash and the title (tools/make_egg.py) */
 #include "title_data.h"
+#include "face_data.h"              /* LOAF BREAKER (0.9.30): the face on VINYL BREAK's record (tools/make_face.py) */
 #endif
 
 /* ------------------------------------------------------------------ settings --- */

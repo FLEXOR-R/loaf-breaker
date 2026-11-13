@@ -519,32 +519,6 @@ static void draw_fx_band(int pad, const brk_status_t *st, uint32_t now, int32_t 
         cv_text(234 - text_w(&FONT_B, t), 0, &FONT_B, t, C_WHITE);
         break;
     }
-    case PAD_TAPESTOP: {                 /* LOAF BREAKER: the VINYL BREAK, a record slowing to a stop under the
-                                          * tonearm (ui.reel: its turns) */
-        int32_t j, cx = 92, cy = FX_MID + 2;
-        fx_disc(cx, cy, 37, C_BLOCK);    /* the record, its grooves, its label */
-        for (j = 33; j > 13; j -= 5)
-            fx_ring(cx, cy, j, C_DIM);
-        fx_disc(cx, cy, 12, C_HI);
-        fx_disc(cx, cy, 2, C_BLACK);
-        for (j = 0; j < 2; j++) {        /* the turning: a mark across the label, a glint in the grooves */
-            float a = ui.reel + (float)j * 0.5f, sa = brk_sin_turns(a), ca = brk_sin_turns(a + 0.25f);
-            fx_line(cx + (int32_t)(4.0f * ca), cy + (int32_t)(4.0f * sa), cx + (int32_t)(11.0f * ca),
-                    cy + (int32_t)(11.0f * sa), C_BLACK);
-            cv_rect(cx + (int32_t)(29.0f * ca) - 1, cy + (int32_t)(29.0f * sa) - 1, 3, 3, C_WHITE);
-        }
-        fx_disc(162, 30, 7, C_GRAY);     /* the tonearm: its pivot and weight, the arm, the head on the groove */
-        cv_rect(160, 14, 5, 9, C_GRAY);
-        for (j = 0; j < 3; j++)
-            fx_line(161 + j, 30, 146 + j, 78, C_WHITE);
-        fx_line(146, 78, 118, 84, C_WHITE);
-        cv_rect(112, 80, 9, 7, C_WHITE);
-        pct_text(st->tape, t);
-        text_cat(t, " ");
-        text_cat(t, THRU_NAME[set.vinyl & 3u]);
-        cv_text(234 - text_w(&FONT_XS, t), 2, &FONT_XS, t, C_GRAY);
-        break;
-    }
     case PAD_GATE: {                     /* GATE: the bar's gates, open part lit, the one playing bright */
         int32_t cells = 8 << (p->gate_div % BRK_GATE_DIVS), w = 236 / cells, curc;
         float pos = (float)(st->step < 0 ? 0 : st->step % 16) + st->phase;
@@ -637,9 +611,102 @@ static void draw_fx_band(int pad, const brk_status_t *st, uint32_t now, int32_t 
     cv_blit(0, FX_Y + (uint32_t)top);
 }
 
+/* LOAF BREAKER (0.9.30, FLEXOR: "le plateau géant décalé", the start-up picture's face on its label): VINYL BREAK held,
+ * a Technics platter over the wave and the middle (screen rows 44-187), to the left, cut by the screen: its rim's four
+ * rows of strobe dots (the 33's lit: still at full speed, the others creeping; all racing back as it slows), the record,
+ * its grooves, the face turning with it; the speed and its semitones in a column on the right. main.c leaves the wave
+ * alone meanwhile and draws it again when it goes */
+#define VN_CX 70
+#define VN_CY 72                         /* (its picture's rows: screen 44 + y) */
+#define VN_R 110
+static float vn_rows[4];                 /* each strobe row's drift, in dots */
+static void vn_circle(int32_t r, float off, int32_t step, uint16_t c, int32_t top, int32_t sz)   /* dots round a circle */
+{
+    int32_t n = r * 6283 / (step * 1000), d;
+    float cs, sn, cd = brk_sin_turns(0.25f + 1.0f / (float)n), sd = brk_sin_turns(1.0f / (float)n), t;
+    cs = brk_sin_turns(0.25f + off / (float)n);
+    sn = brk_sin_turns(off / (float)n);
+    for (d = 0; d < n; d++) {
+        int32_t y = VN_CY + (int32_t)((float)r * sn);
+        if (y >= top - 2 && y < top + FX_BAND + 2)
+            cv_rect(VN_CX + (int32_t)((float)r * cs), y, sz, sz, c);
+        t = cs * cd - sn * sd;           /* (the next dot: turned by one step) */
+        sn = sn * cd + cs * sd;
+        cs = t;
+    }
+}
+static void vn_band(const brk_status_t *st, int32_t top)
+{
+    float tape = st->tape, ca = brk_sin_turns(0.25f - ui.reel), sa = brk_sin_turns(-ui.reel);
+    int32_t r, x, y;
+    char t[16];
+    cv_begin(240, FX_BAND, C_BLACK);
+    cv_oy = -top;
+    fx_disc(VN_CX, VN_CY, VN_R + 2, C_BLOCK);
+    for (r = 0; r < 4; r++)
+        vn_circle(VN_R - 2 - r * 4, vn_rows[r], 4, r == 1 ? C_HI : C_GRAY, top, 2);
+    fx_disc(VN_CX, VN_CY, VN_R - 18, C_DIM);   /* the mat's edge, the record, its grooves */
+    fx_disc(VN_CX, VN_CY, VN_R - 21, C_BLACK);
+    for (r = VN_R - 25; r > 40; r -= 5)
+        vn_circle(r, 0.0f, 3, C_LINE, top, 1);
+    fx_disc(VN_CX, VN_CY, 36, C_HI);     /* the label: the face, turning with the record */
+    for (y = VN_CY - 32; y < VN_CY + 32; y++) {
+        if (y < top || y >= top + FX_BAND)
+            continue;
+        for (x = -32; x < 32; x++) {
+            int32_t dy = y - VN_CY, sx = (int32_t)(ca * (float)x - sa * (float)dy) + 32,
+                    sy = (int32_t)(sa * (float)x + ca * (float)dy) + 32;
+            uint32_t v;
+            if ((uint32_t)sx >= FACE_N || (uint32_t)sy >= FACE_N)
+                continue;
+            v = FACE_PX[((uint32_t)sy * FACE_N + (uint32_t)sx) >> 1];
+            v = sx & 1 ? v & 15u : v >> 4;
+            if (v)
+                cv_pset(VN_CX + x, y, (uint16_t)((v * 2u) << 11 | (v * 4u) << 5 | v * 2u));
+        }
+    }
+    fx_disc(VN_CX, VN_CY, 2, C_BLACK);
+    cv_rect(VN_CX + (int32_t)(68.0f * brk_sin_turns(0.25f + ui.reel * 3.0f)) - 1,
+            VN_CY + (int32_t)(68.0f * brk_sin_turns(ui.reel * 3.0f)) - 1, 3, 3, C_WHITE);   /* a glint in the grooves */
+    cv_rect(178, 0, 62, VN_CY * 2, C_BLACK);   /* the column: the speed, its semitones, the record, THRU */
+    cv_rect(178, 0, 1, VN_CY * 2, C_LINE);
+    int_text((int32_t)(tape * 100.0f + 0.5f), t);
+    text_cat(t, "%");
+    cv_text2(236 - text2_w(&FONT_B, t), 6, &FONT_B, t, tape < 0.02f ? C_HI : C_WHITE);
+    t[0] = 0;
+    if (tape > 0.004f)
+        signed_tenths(12.0f * brk_log2f(tape), " ST", t);
+    else
+        text_cat(t, "STOP");
+    cv_text(236 - text_w(&FONT_B, t), 40, &FONT_B, t, C_HI);
+    cv_text(236 - text_w(&FONT_XS, "33 1/3 RPM"), 112, &FONT_XS, "33 1/3 RPM", C_GRAY);
+    cv_text(236 - text_w(&FONT_XS, THRU_NAME[set.vinyl & 3u]), 126, &FONT_XS, THRU_NAME[set.vinyl & 3u], C_GRAY);
+    cv_oy = 0;
+    cv_blit(0, 44u + (uint32_t)top);
+}
+static void draw_vinyl(const brk_status_t *st, uint32_t now)
+{
+    static const float CREEP[4] = {0.6f, 0.0f, -0.5f, 1.1f};   /* (the 45's, 50 / 60 Hz rows creep; the 33's still) */
+    static uint32_t last;
+    float dt = (float)(now - last > 100u ? 33u : now - last) * 0.001f;
+    int32_t r;
+    last = now;
+    for (r = 0; r < 4; r++) {
+        vn_rows[r] += (CREEP[r] * st->tape - (1.0f - st->tape) * 24.0f) * dt;
+        if (vn_rows[r] < -1000.0f || vn_rows[r] > 1000.0f)
+            vn_rows[r] = 0.0f;
+    }
+    for (r = 0; r < 3; r++)
+        vn_band(st, r * FX_BAND);
+}
+
 /* (drawn in two bands of FX_BAND rows: the canvas is 60 rows) */
 static void draw_fx(int pad, const brk_status_t *st, uint32_t now)
 {
+    if (pad == PAD_TAPESTOP) {
+        draw_vinyl(st, now);
+        return;
+    }
     draw_fx_band(pad, st, now, 0);
     draw_fx_band(pad, st, now, FX_BAND);
 }

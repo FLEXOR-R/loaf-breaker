@@ -459,7 +459,7 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 | REV | Reverse | Speed | | | LATCH: ON, a press turns it on and the next off (0.9.26) |
 | FRZ | FREEZE: the slice playing loops while held | LENGTH: the slice, 1/2, 1/4, 1/8 | PITCH (±12 semitones) | | LATCH: ON, a press turns it on and the next off (0.9.26) |
 | HLF | Half speed | Speed | MASTER TEMPO: the pitch kept (ON) or dropped | LATCH: ON, a press turns it on and the next off | |
-| VNL | VINYL BREAK: the record slowing to a stop, spinning back up when let go | Stop (beats) | Spin-up | THRU: the break, the kick or both | |
+| VNL | VINYL BREAK: the record slowing to a stop, spinning back up when let go (the screen: a Technics platter over the wave, its strobe dots racing back as it slows, the LOAF BREAKER face turning on its label, the speed and its semitones on the right; 0.9.30) | Stop (beats) | Spin-up | THRU: the break, the kick or both | |
 | GAT | Gate: the break chopped on the beat | RATE | LENGTH (how much of each gate sounds) | | LATCH: ON, a press turns it on and the next off (0.9.26) |
 | RND | Random slices | Amount | Random pitch | | LATCH: ON, a press turns it on and the next off (0.9.26) |
 | FLT | Filter throw: the DJ filter sweeps to its target while held, back when let go | TARGET (low-pass left, high-pass right) | RESO | SPEED | THRU: BREAK (the break, as ever), DRUMS (the kick, the snare, the hat, the clap), BOTH (0.9.26) |
@@ -471,7 +471,7 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 | SUB | A press: the kick's SUB DRIVE on, the next off (its drive is the SUB layer's DRIVE effect, EDIT); the kick's own, as DST: each kick brings its own ON or OFF, the key lit with it | | | | |
 
 ![ROLL held: the caught slice repeating, each copy quieter](img/pad-roll8.png "ROLL held")
-![VINYL BREAK held: the record slowing down](img/pad-stop.png "VINYL BREAK held")
+![VINYL BREAK held: the platter slowing down](img/pad-stop.png "VINYL BREAK held")
 
 ## 5. Patterns and the sequencer
 
