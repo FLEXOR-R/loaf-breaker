@@ -40,7 +40,7 @@ static const struct {
     {4u, TC_SEQ, 0u, 0u, 1u << B_SEQ, "PRESS SEQ: THE PATTERN"},   /* (0.252, FLEXOR: THE PATTERN before THE
                                           * KICK: kicks in it first) */
     {4u, TC_KICKS, TK_WHITE, 1u, 0u, "WHITE KEYS: PUT 2 KICKS IN"},
-    {4u, TC_SNARE, TK_WHITE, 1u, 0u, "SELECT TO SNARE, ADD ONE"},
+    {4u, TC_SNARE, TK_WHITE, 1u, 0u, "ALGORITHM TO SNARE, ADD ONE"},
     {2u, TC_EDIT, 0u, 0u, 1u << B_EDIT, "PRESS EDIT: THE KICK"},
     {2u, TC_STOP, 0u, 0u, 1u << B_PLAY, "PRESS PLAY: STOP THE BREAK"},   /* (0.252, FLEXOR: heard stopped, keys 1-4) */
     {2u, TC_KEYS4, TK_DRUMS, 1u, 0u, "KEYS 1-4: KICK SNARE HAT CLAP"},

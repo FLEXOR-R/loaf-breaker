@@ -51,7 +51,7 @@ turn ALGO 1 10
 wait 200
 expect page 6
 expect seq_lane 0
-expect seq_brk 1
+expect seq_brk 0
 tap LFO
 wait 200
 turn SELECT 1 10

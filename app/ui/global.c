@@ -39,11 +39,14 @@ static void tut_quit(void);
 static void global_value(int i, char *t)
 {
     t[0] = 0;
-    if (ui.gpage == GP_FILL) {           /* (GROOVE: SWING; FILL's settings gone with it in 0.244) */
+    if (ui.gpage == GP_FILL) {           /* (SEQ's SETTINGS: SWING; 0.9.31, FLEXOR: BREAK ROWS, FOLLOW) */
         if (i == 0) {
             int_text(set.swing, t);
             text_cat(t, "%");
-        }
+        } else if (i == 1)
+            text_cat(t, bk_seq() & 2u ? "16 STEPS" : "32 STEPS");
+        else if (i == 2)
+            text_cat(t, bk_seq() & 1u ? "OFF" : "ON");
         return;
     }
     if (ui.gpage == 4u) {                /* (FX SET: each 0..100 %) */
@@ -94,7 +97,7 @@ static void global_value(int i, char *t)
 /* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's BREAK its LEVEL alone (K4; the pitch: OCT), GROOVE its SWING alone */
 static int glo_knob_ok(int i)
 {
-    return !set.novice || ui.page != PG_GLOBAL || (ui.gpage == GP_FILL ? i == 0 : ui.gpage == GP_BREAK ? i == 3 : 1);
+    return !set.novice || ui.page != PG_GLOBAL || (ui.gpage == GP_FILL ? i < 3 : ui.gpage == GP_BREAK ? i == 3 : 1);
 }
 static void global_turn(int i, int32_t d)
 {
@@ -104,13 +107,22 @@ static void global_turn(int i, int32_t d)
         easy_no();
         return;
     }
-    if (ui.gpage == GP_FILL) {           /* LOAF BREAKER: GROOVE: K1 SWING (0.244: FILL gone, its K2-K4 with it) */
-        if (i != 0)
+    if (ui.gpage == GP_FILL) {           /* LOAF BREAKER: SEQ's SETTINGS (GROOVE until 0.9.30): K1 SWING; 0.9.31, FLEXOR:
+                                          * K2 BREAK ROWS, the FULL view's (right 32), K3 FOLLOW, the grid's bar the one
+                                          * playing (right ON) */
+        static const char *const SN[3] = {"SWING", "BREAK ROWS", "FOLLOW"};
+        if (i == 0)
+            set.swing = (uint8_t)clamp((int32_t)set.swing + d, 50, 75);
+        else if (i < 3) {
+            uint32_t b = i == 1 ? 2u : 1u;
+            set.bkeys.bk[BK_SEQ] = (uint8_t)(0xD0u | (d > 0 ? bk_seq() & ~b : bk_seq() | b));
+            if (brk_view())              /* (the FULL view's rows now) */
+                set.brkv = (uint8_t)(BRKV_TAG | (bk_seq() & 2u ? 1u : 2u));
+        } else
             return;
-        set.swing = (uint8_t)clamp((int32_t)set.swing + d, 50, 75);
         set_dirty = 1u;
         global_value(i, t);
-        app_say("SWING", t);
+        app_say(SN[i], t);
         ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
         return;
     }
@@ -291,16 +303,20 @@ static void draw_global(const brk_status_t *st)
                                           * on the others */
     if (ui.gpage == GP_FILL) {           /* LOAF BREAKER: GROOVE: the swing (0.244: FILL gone), and the bar's 16ths
                                           * as it lays them out */
+        static const char *const SN[3] = {"SWING", "BREAK ROWS", "FOLLOW"};
         uint32_t s;
         char v[12];
-        cv_text(6, 1, &FONT_T, "GROOVE", C_GRAY);
-        cv_text(6, 16, &FONT_XS, "K1 SWING: EVERY SECOND 16TH LATER", C_DIM);
+        cv_text(6, 1, &FONT_T, "SEQ SETTINGS", C_GRAY);   /* (0.9.31, FLEXOR: GROOVE until 0.9.30) */
+        cv_text(6, 16, &FONT_XS, "K1 SWING  K2 THE BREAK'S ROWS IN FULL", C_DIM);
+        cv_text(6, 28, &FONT_XS, "K3 FOLLOW: THE GRID ON THE BAR PLAYING", C_DIM);
         cv_blit(0, 44);
         cv_begin(240, 52, C_BLACK);
-        global_value(0, v);
-        cv_rect(4, 4, 112, 42, C_BLOCK);
-        cv_text(8, 6, &FONT_XS, "SWING", C_GRAY);
-        cv_text(8, 24, &FONT_B, v, C_WHITE);
+        for (s = 0; s < 3u; s++) {       /* (each setting's box, its value large) */
+            global_value((int)s, v);
+            cv_rect(4 + (int32_t)s * 78, 4, 74, 42, C_BLOCK);
+            cv_text(8 + (int32_t)s * 78, 6, &FONT_XS, SN[s], C_GRAY);
+            cv_text(8 + (int32_t)s * 78, 24, text_w(&FONT_B, v) <= 66 ? &FONT_B : &FONT_T, v, C_WHITE);
+        }
         cv_blit(0, 88);
         cv_begin(240, 52, C_BLACK);
         cv_text(6, 2, &FONT_XS, "THE BAR'S 16THS, SWUNG", C_DIM);

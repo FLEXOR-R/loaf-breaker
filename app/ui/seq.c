@@ -65,57 +65,45 @@ static uint32_t seq_last_lane(void)      /* the pattern's last lane (its clap's,
         sl--;
     return sl;
 }
-static int brk_shown(uint32_t sl)         /* (LOAF BREAKER, 0.234: a break row on the grid: BEGINNER both, EXPERT as BREAK's
-                                          * K4 sets it) */
+static int brk_shown(uint32_t sl)         /* (a break row on the grid: SELECT's FULL view, BREAK ROWS 16 or 32; 0.9.31,
+                                          * FLEXOR: BEGINNER too) */
 {
-    return set.novice || brk_view() > sl;
+    return brk_view() > sl;
 }
 static int lane_ok(uint32_t sl)          /* (a lane ALGORITHM stops on: the pattern's drums, the break's rows shown) */
 {
     return sl >= SL_KICK ? sl_active(&pats.p[set.pattern % NPAT], sl) : brk_shown(sl);
 }
-static void seq_lane_step(int32_t d)     /* ALGORITHM / SEQ again: the next lane the pattern has (LOAF BREAKER: EXPERT,
-                                          * above the first BREAK (its rows shown or not: K4), past the last PATTERN's
-                                          * GROOVE; BEGINNER, the lanes round, 0.231) */
+static void seq_lane_step(int32_t d)     /* ALGORITHM (and SEQ again): the next lane the pattern has, top to bottom, round
+                                          * (0.9.31, FLEXOR: the whole sequencer, the break's rows shown and every bar
+                                          * of every drum) */
 {
-    int32_t sl = (int32_t)ui.seq_lane, step = d > 0 ? 1 : -1;
-    if (SEQ_BRK) {                       /* (on BREAK: up GROOVE, down the first lane) */
-        if (d < 0) {
-            global_part(GP_FILL);
+    int32_t sl = SEQ_BRK ? (d > 0 ? -1 : (int32_t)NSEQL) : (int32_t)ui.seq_lane, n;
+    ui.seq_brk = 0u;
+    for (n = 0; n < (int32_t)NSEQL; n++) {
+        sl = (sl + (d > 0 ? 1 : -1) + (int32_t)NSEQL) % (int32_t)NSEQL;
+        if (lane_ok((uint32_t)sl)) {
+            ui.seq_lane = (uint8_t)sl;
             return;
         }
-        ui.seq_brk = 0u;
-        for (sl = 0; sl < (int32_t)NSEQL && !lane_ok((uint32_t)sl); sl++)
-            ;
-        ui.seq_lane = (uint8_t)(sl < (int32_t)NSEQL ? sl : SL_KICK);
-        return;
     }
-    ui.seq_brk = 0u;
-    do
-        sl += step;
-    while (sl >= 0 && sl < (int32_t)NSEQL && !lane_ok((uint32_t)sl));
-    if (sl >= 0 && sl < (int32_t)NSEQL) {
-        ui.seq_lane = (uint8_t)sl;
-        return;
-    }
-    if (set.novice) {                    /* (BEGINNER: round, from the other end) */
-        for (sl = d > 0 ? 0 : (int32_t)NSEQL - 1; !lane_ok((uint32_t)sl); sl -= step)
-            ;
-        ui.seq_lane = (uint8_t)sl;
-    } else if (d < 0)
-        ui.seq_brk = 1u;                 /* (above the first lane: BREAK) */
-    else
-        global_part(GP_FILL);            /* (past the last: GROOVE) */
 }
-static void seq_bar_step(int32_t d)      /* (0.9.26, FLEXOR: ALGORITHM on SEQ: the next bar of the lane's drum, or the
-                                          * break's other half, round; a lane of one bar, or BREAK: the next lane) */
+static void seq_view_set(uint32_t v)     /* SEQ's view (0.9.31, FLEXOR, SELECT): 0 FULL, the break's rows (SETTINGS' BREAK
+                                          * ROWS: 16 or 32) and the drums; 1 DRUMS, the drums alone */
 {
-    uint32_t sl = ui.seq_lane % NSEQL, b = SL_BAR[sl], n = sl < SL_KICK ? 2u : sl_bars(&pats.p[set.pattern % NPAT], sl);
-    if (SEQ_BRK || n < 2u || (sl < SL_KICK && !(brk_shown(0u) && brk_shown(1u)))) {
-        seq_lane_step(d);
-        return;
-    }
-    ui.seq_lane = (uint8_t)(sl - b + (b + (d > 0 ? 1u : n - 1u)) % n);
+    set.brkv = (uint8_t)(BRKV_TAG | (v ? 0u : bk_seq() & 2u ? 1u : 2u));
+    set_dirty = 1u;
+    ui.seq_brk = 0u;
+    if (!lane_ok(ui.seq_lane))
+        seq_lane_step(1);
+}
+static void seq_view_turn(int32_t d)     /* SELECT on SEQ: FULL, DRUMS, SETTINGS (GP_FILL), round */
+{
+    uint32_t v = (brk_view() ? 0u : 1u) + (d > 0 ? 1u : 2u);
+    if (v % 3u == 2u)
+        global_part(GP_FILL);
+    else
+        seq_view_set(v % 3u);
 }
 static void seq_value(int i, char *t);
 enum { UNDO_RANDOM = 1, UNDO_CLEAR, UNDO_LANE };   /* (UNDO_LANE + the knob) */

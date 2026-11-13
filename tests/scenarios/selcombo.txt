@@ -1,8 +1,7 @@
 # LOAF BREAKER 0.9.26 (FLEXOR's choices on the SEL combinations page): SEL + ALGORITHM, where ALGORITHM alone is the
 # break (HOME, SOUNDS' BREAK, SONG's PLAY DROP BUILD, MIX, OVERLAY), BREAK TIME (right HALF, left NORMAL); SEL + PRESETS
 # the kick on PATTERN (SEQ, GROOVE), MIX, OVERLAY, SYSTEM's MIDI, FX SET, RESET; SETUP's PRESETS the skin; SEQ's
-# ALGORITHM the bar shown of a long lane (64 steps: bars 1-4, round; a lane of one bar: the next lane), SELECT still
-# the lanes.
+# ALGORITHM every lane top to bottom, the kick's four bars then the snare's (0.9.31, FLEXOR; SELECT the views).
 #   app/build/host/loaf-breaker_host tests/scenarios/selcombo.txt app/build/scenarios
 wait 4200
 expect bhalf 0
@@ -57,11 +56,11 @@ expect seq_lane 4
 shot sc_seq_bar3.png
 turn ALGO 2 80
 wait 150
-expect seq_lane 2
+expect seq_lane 6
 turn ALGO -1 80
 wait 150
 expect seq_lane 5
-turn SELECT 1 80
+turn ALGO 1 80
 wait 150
 expect seq_lane 6
 turn ALGO 1 80

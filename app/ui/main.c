@@ -1012,11 +1012,19 @@ static void input(void)
             track_tab_turn(d);
             continue;
         }
-        if (k == EN_SELECT && ui.page == PG_SEQ) {   /* (0.9.2, FLEXOR: PATTERN, SELECT its lanes, as ALGORITHM) */
-            ui.seq_manual = 1u;
-            seq_lane_step(d);
+        if (k == EN_SELECT && ui.page == PG_SEQ) {   /* (0.9.31, FLEXOR: PATTERN, SELECT its views: FULL, DRUMS,
+                                          * SETTINGS; ALGORITHM the lanes) */
+            seq_view_turn(d);
             page_say();
-            ui.redraw |= RG_BLOCKS | RG_FOOT;
+            ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
+            continue;
+        }
+        if (k == EN_SELECT && ui.page == PG_GLOBAL && ui.gpage == GP_FILL) {   /* (SETTINGS: on round to FULL, back to
+                                          * DRUMS) */
+            ui.page = PG_SEQ;
+            seq_view_set(d > 0 ? 0u : 1u);
+            page_say();
+            ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
             continue;
         }
         if (k == EN_SELECT && ui.page == PG_MIX) {   /* (0.9.2, FLEXOR: MIX, SELECT its tabs: LEVELS, SENDS, MASTER,
@@ -1068,9 +1076,9 @@ static void input(void)
                 ui.page = PG_SEQ;
                 ui.seq_manual = 1u;
                 ui.seq_lane = (uint8_t)(d > 0 ? SL_BREAK1 : seq_last_lane());
-                ui.seq_brk = (uint8_t)(d > 0 && !set.novice);   /* (0.234: EXPERT, on to BREAK first) */
-                if (d > 0 && set.novice)
-                    ui.seq_lane = (uint8_t)(brk_shown(SL_BREAK1) ? SL_BREAK1 : SL_KICK);
+                ui.seq_brk = 0u;
+                if (!lane_ok(ui.seq_lane))
+                    seq_lane_step(1);
                 page_say();
                 ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
             } else if (ui.page == PG_GLOBAL)   /* GLOBAL: its part (LOAF BREAKER: SYSTEM's) */
@@ -1080,7 +1088,7 @@ static void input(void)
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
             } else if (ui.page == PG_SEQ) {   /* SEQ: the lane its keys edit */
                 ui.seq_manual = 1u;      /* (LOAF BREAKER: picked: not following the bar playing, until stopped) */
-                seq_bar_step(d);         /* (0.9.26, FLEXOR: the bar shown of a long lane; one bar: the lane) */
+                seq_lane_step(d);        /* (0.9.31, FLEXOR: every lane, top to bottom, round) */
                 page_say();
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
             } else if (ui.page == PG_KEQ) {   /* (the KICK menu's EQ: MORE's next part; FX1, FX2: their own parts, as the
@@ -1370,14 +1378,9 @@ static void draw_tabs(void)
     else if (ui.page == PG_TRACK)        /* LOAF BREAKER: ENV: TRACKS, PLAY, DROP */
         for (i = 0; i < NTORD; i++)   /* (TRACKS, PLAY, DROP, BUILD: no "ENV" before them, for the room) */
             x = tab(x, TPART[TORDER[i]], TORDER[i] == ui.tpage);
-    else if (ui.page == PG_GLOBAL && ui.gpage == GP_FILL) {   /* (LOAF BREAKER: PATTERN's GROOVE) */
-        char pn[6] = "P";
-        int_text((int32_t)pat_cur() + 1, pn + 1);
-        x = tab(x, pn, 0);
-        tab(x, "GROOVE", 1);
-    } else if (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK)   /* (SOUNDS' BREAK: the break playing) */
+    else if (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK)   /* (SOUNDS' BREAK: the break playing) */
         tab(x, break_name(set.brk), 1);
-    else if (ui.page == PG_GLOBAL)
+    else if (ui.page == PG_GLOBAL && ui.gpage != GP_FILL)   /* (SEQ's SETTINGS: SEQ's tabs, below) */
         for (i = 0; i < NGLO; i++)
             x = tab(x, GPART[GLO_ORD[i]], GLO_ORD[i] == ui.gpage);
     else if (ui.page == PG_MIX) {
@@ -1385,14 +1388,17 @@ static void draw_tabs(void)
         x = tab(x, "SENDS", ui.mpage == 1u);
         x = tab(x, "MASTER", ui.mpage == 2u);
         tab(x, "DYN", ui.mpage == 3u);   /* (LOAF BREAKER: COMP's and DUCK's timing, what DUCK ducks) */
-    } else if (ui.page == PG_SEQ) {
-        char pn[6] = "P";                /* LOAF BREAKER: the pattern, then the lane the keys edit (SEQ again, or
-                                          * ALGORITHM: the next); the lanes themselves on the page */
+    } else if (ui.page == PG_SEQ || (ui.page == PG_GLOBAL && ui.gpage == GP_FILL)) {
+        char pn[6] = "P";                /* LOAF BREAKER: the pattern, then SELECT's views (0.9.31, FLEXOR: FULL, DRUMS,
+                                          * SETTINGS); the lane the keys edit in the header */
+        uint32_t v = ui.page == PG_GLOBAL ? 2u : brk_view() ? 0u : 1u;
         int_text((int32_t)pat_cur() + 1, pn + 1);
         if (pat_next >= 0)
             text_cat(pn, ">");
         x = tab(x, pn, 0);
-        tab(x, SEQ_BRK ? "BREAK" : SEQ_LANE_NAME[ui.seq_lane % NSEQL], 1);   /* (0.234: its BREAK entry) */
+        x = tab(x, "FULL", v == 0u);
+        x = tab(x, "DRUMS", v == 1u);
+        tab(x, "SETTINGS", v == 2u);
     } else if (ui.page == PG_FX && !IS_KFX()) {
         for (i = 0; i < fx_nslots(); i++)   /* (LOAF BREAKER: BEGINNER's two) */
             x = tab(x, SLOT_NUM[i], i == fx_foc());
@@ -1445,9 +1451,9 @@ static void page_say(void)
     case PG_GEN: text_cat(t, "GENERATOR"); break;
     case PG_HSET: text_cat(t, "SETTINGS"); break;
     case PG_KEQ: text_cat(t, ui.keq_part ? "KICK EQ SHAPE" : "KICK EQ BANDS"); break;
-    case PG_GLOBAL: text_cat(t, ui.gpage == GP_FILL ? "GROOVE" : ui.gpage == GP_BREAK ? "BREAK" : GPART[ui.gpage % NGPART]); break;
+    case PG_GLOBAL: text_cat(t, ui.gpage == GP_FILL ? "SETTINGS" : ui.gpage == GP_BREAK ? "BREAK" : GPART[ui.gpage % NGPART]); break;
     case PG_MIX: text_cat(t, ui.mpage == 3u ? "DYNAMICS" : ui.mpage == 2u ? "MASTER" : ui.mpage ? "SENDS" : "LEVELS"); break;
-    case PG_SEQ: text_cat(t, SEQ_BRK ? "BREAK" : SEQL[ui.seq_lane % NSEQL]); break;
+    case PG_SEQ: text_cat(t, SEQ_BRK ? "BREAK" : SEQ_LANE_NAME[ui.seq_lane % NSEQL]); break;
     case PG_TRACK: text_cat(t, TPART[ui.tpage % NTPART]); break;
     case PG_OVL: text_cat(t, OPAGE_NAME[ui.opage % 3u]); break;   /* (LOAF BREAKER: its tabs) */
     case PG_FX:
@@ -1590,7 +1596,7 @@ static void draw_foot(const brk_status_t *st)
                                                   {"AMOUNT", "KICK", "DROP", "LENGTH"}};   /* FX SET) */
         static const char *const KN_TRK[4][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
                                                  {"STYLE", "SWEEP", "RISER", "GAP"}, {"", "RESET", "", "WHAT"}};
-        static const char *const KN_FILL[4] = {"SWING", "", "", ""};   /* (LOAF BREAKER: GROOVE; 0.244 FILL gone) */
+        static const char *const KN_FILL[4] = {"SWING", "BREAK ROWS", "FOLLOW", ""};   /* (LOAF BREAKER: GROOVE; 0.244 FILL gone) */
         static const char *const KN_BK[2][4] = {{"PRESET", "KEY", "EFFECT", ""}, {"", "", "", ""}};   /* (ARP's
                                           * BLACK KEYS, MORE) */
         const char *name = ui.page == PG_OVL && ui.opage ? KN_BK[(ui.opage - 1u) & 1u][i] :
@@ -2067,7 +2073,7 @@ void app_frame(void)
     /* the header's own state: playing, the tempo, the break */
     if (!st.playing)
         ui.seq_manual = 0u;
-    if (ui.page == PG_SEQ && st.playing && !ui.seq_manual && !ui.note_key && !SEQ_BRK) {   /* LOAF BREAKER: a lane of 32 or 64
+    if (ui.page == PG_SEQ && st.playing && !ui.seq_manual && !ui.note_key && !SEQ_BRK && !(bk_seq() & 1u)) {   /* LOAF BREAKER: a lane of 32 or 64
                                           * steps: the keys show the bar playing (ALGORITHM, SEQ again: not, until
                                           * stopped) */
         const pat_t *p = &pats.p[set.pattern % NPAT];

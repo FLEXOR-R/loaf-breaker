@@ -235,6 +235,9 @@ static const uint8_t BK_LAY[2][11] = {{PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, PAD_RE
 #define BK_PLAT 15u                      /* (bk[15]: 0xA0 | the LATCH bits of REVERSE, FREEZE, GATE, RANDOM (their K4),
                                           * 0.9.26, FLEXOR; tagged: an older save's byte there the STAB's leftover) */
 #define BK_FTHRU 16u                     /* (bk[16]: 0xC0 | the FILTER key's THRU, its K4: 0 BREAK, 1 DRUMS, 2 BOTH) */
+#define BK_SEQ 17u                       /* (bk[17]: 0xD0 | SEQ's SETTINGS, 0.9.31, FLEXOR: bit 0 FOLLOW off, bit 1 the
+                                          * break's rows 16 (else 32) in the FULL view) */
+static uint32_t bk_seq(void) { return (set.bkeys.bk[BK_SEQ] & 0xF0u) == 0xD0u ? set.bkeys.bk[BK_SEQ] & 15u : 0u; }
 static uint32_t bk_lat(void) { return (set.bkeys.bk[BK_PLAT] & 0xF0u) == 0xA0u ? set.bkeys.bk[BK_PLAT] & 15u : 0u; }
 static uint32_t bk_fthru(void)
 {

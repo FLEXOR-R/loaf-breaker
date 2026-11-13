@@ -60,7 +60,7 @@ rawstyle reverse bass). **PRESETS** there picks one of the 10 kick memories: eac
 ### 5. Build and drop
 
 **SEL + ENV**: a build from the next bar, then the drop. Then write your own patterns on **SEQ** (white keys: the
-steps of the lane shown; SELECT: the lane, ALGORITHM: its bar on a long lane) and chain them on **ENV** (TRACKS: patterns and drops one after another).
+steps of the lane shown; ALGORITHM: the lane, SELECT: the view FULL, DRUMS, SETTINGS) and chain them on **ENV** (TRACKS: patterns and drops one after another).
 
 ### Two buttons to remember
 
@@ -156,7 +156,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 | --- | --- | --- |
 | HOME | LIVE | PERFORM, GENERATOR, SETTINGS (K1 VIEW, K2 WAVE TYPE, K3 WAVE ZOOM, K4 BREAK TIME); HOME again: the next tab. HOME is the main page: FX, ENV, LFO, GLO or ARP pressed again come back to it, SELECT turning their tabs |
 | EDIT | SOUNDS | Three sources, **SEL + EDIT** the next: **KICK** (its menu, by the kick's anatomy: ATTACK, BODY, TAIL, DIRT, FX1, FX2, MORE; SELECT its next section; EDIT again the next sound, EXPERT: SNARE, HAT, CLAP, then the KICK), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
-| SEQ | PATTERN | The lanes, **GROOVE** (SWING; also SEL + ARP) |
+| SEQ | PATTERN | The lanes (ALGORITHM); the views FULL, DRUMS and **SETTINGS** (SWING, BREAK ROWS, FOLLOW; also SEL + ARP) on SELECT |
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD |
 | LFO | MIX | LEVELS (BREAK, KICK, PERC, ARP), SENDS (FX, the drums' route, ARP), MASTER, DYNAMICS |
 | FX | EFFECTS | The four slots: MAIN, MORE, MOD |
@@ -172,7 +172,7 @@ table (tap SEL alone to see it):
 | EDIT | The next source | REC | Clear (the lane on SEQ, the pattern elsewhere) |
 | SEQ | Copy the pattern; on another, paste | SAVE | Undo |
 | ENV | The build, then the drop | ALGORITHM | The break |
-| ARP | PATTERN's GROOVE | SELECT | The drums' filter |
+| ARP | PATTERN's SETTINGS | SELECT | The drums' filter |
 
 (0.200 had the earlier layout: its release stays on GitHub, to go back to it.)
 
@@ -196,8 +196,8 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 | ENV | **TRACK**: tracks of patterns and drops, playing them, the drop's settings (below) |
 | SEL (pressed alone) | The combinations card: every SEL combination on the strip. SEL used with something else (SEL + a knob, SEL + ALGORITHM, SEL + REC…) does that instead |
 | SEL + ALGORITHM | The break, from any page; **BREAK TIME** (right HALF, left NORMAL) where ALGORITHM alone is already the break: HOME, SOUNDS › BREAK, SONG's PLAY / DROP / BUILD, MIX, OVERLAY (0.9.26) |
-| SEL + PRESETS | The pattern, from any page; **the kick** (KICK 1–20) on HOME, PATTERN (SEQ, GROOVE), MIX, OVERLAY and SYSTEM's MIDI, FX SET, RESET; in the KICK menu the KICK FX effect, a knob's function, a style (0.9.26) |
-| SEL + ARP | PATTERN › GROOVE; **in the KICK menu: copy the kick, then, on another kick (PRESETS), paste it** (its sound, LAB, KNOBS and FX; its volume kept); on a drum's page the same for that drum's memories (0.9.26) |
+| SEL + PRESETS | The pattern, from any page; **the kick** (KICK 1–20) on HOME, PATTERN (SEQ, SETTINGS), MIX, OVERLAY and SYSTEM's MIDI, FX SET, RESET; in the KICK menu the KICK FX effect, a knob's function, a style (0.9.26) |
+| SEL + ARP | PATTERN › SETTINGS; **in the KICK menu: copy the kick, then, on another kick (PRESETS), paste it** (its sound, LAB, KNOBS and FX; its volume kept); on a drum's page the same for that drum's memories (0.9.26) |
 | SEL + SAVE | **Undo** the last pattern wipe (SEL + REC, a drum lane's FILL, CLR / 4X4 or COPY); again: redo |
 | OCT− / OCT+ | Pitch in semitones (hold to go faster). Both: back to 0 |
 | PRESETS | The pattern, P1–P64 (§5); while playing the new one starts at the end of the loop |
@@ -278,7 +278,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
   DYNAMICS (COMP's ATTACK and RELEASE, DUCK's RELEASE, DUCKS: the break, or the break and the drums).
 - **ENV**: the song. TRACKS, PLAY, DROP, BUILD. (What SEL + each knob does: EDIT › KNOBS; RESET: GLO.)
 - **GLO** (SYSTEM): MIDI (EXPERT: the METER), SETUP (SKIN, MODE, AUTO SAVE: K1, K3, K4, top to bottom; PRESETS turns the skin too; WAVE ZOOM is HOME › SETTINGS since 0.9.2), EFFECTS (several at once, keys 1–7; each effect's card a small picture with that effect done to it, lit when on, since 0.9.30; the waves' colours are HOME › SETTINGS' WAVE TYPE since 0.9.25; EDIT VIEW and DRUM VIEW ZOOM are KICK › MORE › TOOLS since 0.9.29), FX SET, RESET.
-  The break's PITCH, GRAIN and SNAP are SOUNDS › BREAK; SWING is PATTERN › GROOVE.
+  The break's PITCH, GRAIN and SNAP are SOUNDS › BREAK; SWING is PATTERN › SETTINGS.
 
 ### The CDJ view (HOME)
 
@@ -487,13 +487,12 @@ a moment. So, stopped, they are saved on the way (no sound to cut); playing, the
 **SAVE OR STOP**: press SAVE (or stop), then pick the pattern again. The same goes for a track or a drop that leads into
 another group. A new group starts with 16 empty patterns; what you had before this version is P1–P16.
 
-**SEQ** opens the sequencer. **SELECT** picks what the white keys edit; **ALGORITHM** the bar shown of a long lane (a kick of 32 or 64 steps, a drum of 32: bars 1–4, round; the break: its two halves; a lane of one bar: the next lane, as SELECT; 0.9.26, FLEXOR) (0.9.2: **SEQ again** goes back to HOME):
+**SEQ** opens the sequencer. **ALGORITHM** picks what the white keys edit: every lane of the grid, top to bottom and round (the break's rows shown, then each bar of the kick, the snare, the hat and the clap; 0.9.31, FLEXOR). **SELECT** picks the view: **FULL** (the break's rows and the drums, as to start), **DRUMS** (the drums alone), **SETTINGS** (below) (0.9.2: **SEQ again** goes back to HOME):
 
 ![SEQ: the break's steps and the drum lanes](img/screen-seq.png "The SEQ page") ![A kick step held: NOTE, HITS, COND, NUDGE on K1–K4](img/screen-step.png "A step held")
 
 | Lane | White keys | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- | --- |
-| **BREAK** (EXPERT: above the first lane; the tab says BREAK) | Play slices | | | | STEPS: the break's rows the grid shows, HIDDEN, 16 (BRK1) or 32 (BRK1 and BRK2, as to start); the pattern plays 32 steps whatever (hidden rows: ALGORITHM passes them by) |
 | STEPS 1-16, STEPS 17-32 | Pick a step to edit (outlined) | SLICE: OFF · LOOP · 1–16 | PITCH: −12 … +12 | HITS: ×1–×4 (a ratchet in the step) | REVERSE |
 | KICK, SNARE, HAT, CLAP | That lane's 16 steps, on and off (as the key comes up) | FILL: 0–16 hits spread evenly from the downbeat (Euclidean) | DRUM FLT (HOME's drums' filter) | Left CLEAR, right 4X4 (the lane's bar shown) | LENGTH: 16, 32 or 64 steps, every drum (the snare, the hat and the clap 64 since 0.9.30: their steps 33–64 share the HITS, CHANCE and NUDGE of 1–32) |
 | **A step held** (a drum lane) | its own, the foot naming them | NOTE: −8 … +7 semitones (the kick's) | **HITS**: 1–4, the step taps that many times in its 16th | **COND**: ALWAYS, 75 %, 50 %, 25 % (it plays that often), 1:2 (the first loop of two), 2:2 (the second), (FILL and NOT FILL, from before 0.244: always) | **NUDGE**: on time .. 7/16 of a step late |
@@ -510,7 +509,7 @@ all 16.
 
 **SEQ's hands** (on SEQ):
 - **Playing, the keys follow the bar playing**: on a lane of 32 or 64 steps (the break, a kick of 64, a snare of 32),
-  the lane shown moves on with the bar the sequencer plays, so you write where you hear. SELECT (a lane) or ALGORITHM (its bar) picks by
+  the lane shown moves on with the bar the sequencer plays, so you write where you hear. ALGORITHM picks a lane by
   hand: then it stays put until you stop.
 - **SEQ held + white key 1–4**: the bar shown copied onto bar 1–4 of the same lane (its steps, their HITS, COND, NUDGE
   and notes): write the kick's first bar, then copy it onto 2, 3 and 4.
@@ -539,9 +538,10 @@ sets it back to CHOPPAH, and EXPERT keeps it until you change it).
 
 ![ARP › BLACK KEYS: the FLEXOR LAYOUT, key 1 edited](img/screen-blackkeys.png "BLACK KEYS")
 
-**PATTERN › GROOVE** (SEQ's SELECT past the last lane or above BREAK, or **SEL + ARP**) holds the swing (saved
-with the rest): **K1 SWING**, 50–75 % (was the MIXER's), every second 16th later; the page shows the bar's 16ths as it
-lays them out.
+**PATTERN › SETTINGS** (SEQ's third view on SELECT, GROOVE until 0.9.30; also **SEL + ARP**), saved with the rest:
+**K1 SWING**, 50–75 % (was the MIXER's), every second 16th later (the page shows the bar's 16ths as it lays them out);
+**K2 BREAK ROWS**, the break's rows the FULL view shows, 16 (BRK1) or 32 (both); **K3 FOLLOW**, ON: the lane shown
+moves on with the bar playing, OFF: it stays where you put it. SELECT there goes on to FULL (back: DRUMS).
 
 ## 6. The FX chain
 
@@ -752,14 +752,13 @@ hit; K2 **DROP TIME**, how long it falls; K3 **TAIL**, the SUB's length; K4 **TA
 **MIX** (the four layers' levels: SUB, PUNCH, GRIT, CLICK), its pages as tabs at the picture's foot, the header's tabs
 the sounds, KICK, SN, HH, CP, **SELECT** going round them (on the drums' page too); the drums' page is PRESET, FX, LEVEL and DECAY; the **FX**
 chain has two slots and a short list on PRESETS, MAGIC EQ and MAGIC MBC at its end (above); FX again stays on MAIN;
-the MIXER has LEVELS and SENDS; on SEQ, the break's two halves (BRK1, BRK2) always on top of the grid, and SELECT goes round the lanes (no GROOVE
-between them: SEL + ARP opens it); on the drum lanes K1 is **FILL**, K2 the lane's sound, K3 CLR / 4X4, K4 **LENGTH**
+the MIXER has LEVELS and SENDS; on SEQ, ALGORITHM goes round the lanes and SELECT through FULL, DRUMS and SETTINGS as in EXPERT; on the drum lanes K1 is **FILL**, K2 the lane's sound, K3 CLR / 4X4, K4 **LENGTH**
 the kick's alone (16, 32 or 64 steps; turning BEGINNER on
 sets every kick and drum of the group to 16; a drum lane stays 16, "LONGER: EXPERT MODE"), and a step held has no menu (the key just
 turns the step on or off); SONG is whole, as in EXPERT (0.9.22: every knob, ALGORITHM the items, PRESETS' BUILD KICK and TEMPO RISE); a white key held plays its loop with no knobs; the black keys keep the layout EXPERT left (0.9.23; a new FM-1
 starts on CHOPPAH's: R8 R16 R32 REV FRZ HLF VNL GAT RND FLT DUB; ARP › BLACK KEYS, to change it, is EXPERT's), each with its knobs as in EXPERT; a knob BEGINNER leaves out is drawn blank
 and says "EXPERT MODE" when turned; SOUNDS › BREAK keeps
-its LEVEL (K4; the pitch is OCT's) and PATTERN › GROOVE its SWING.
+its LEVEL (K4; the pitch is OCT's) and PATTERN › SETTINGS its SWING.
 Nothing is lost: EXPERT shows everything again, as it was left, and what BEGINNER sets is there to refine. A
 new FM-1, the web emulator and RESET ALL ask for the mode first (BEGINNER chosen to start; RESET ALL as a first start:
 its screen, the start screen, then the question); an FM-1 updated with its
@@ -981,7 +980,7 @@ the slice lit in the waveform shrinks with it. It covers the loop's slices, ratc
 
 The generator rearranges the break as it plays: **complexity** is how often it jumps, **anchor** keeps the kick and
 snare on the beats, **roll** repeats a slice or takes the one next to it, **fill** breaks the rules in the last bar
-of a phrase; it is HOME's second part (HOME again). (ARP is the OVERLAY page; SEL + ARP the GROOVE.)
+of a phrase; it is HOME's second part (HOME again). (ARP is the OVERLAY page; SEL + ARP PATTERN › SETTINGS.)
 
 ## 11. The control map
 
