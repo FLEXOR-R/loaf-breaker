@@ -158,7 +158,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 | EDIT | SOUNDS | Three sources, **SEL + EDIT** the next: **KICK** (its menu, by the kick's anatomy: ATTACK, BODY, TAIL, DIRT, FX1, FX2, MORE; SELECT its next section; EDIT again the next sound, EXPERT: SNARE, HAT, CLAP, then the KICK), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
 | SEQ | PATTERN | The lanes, **GROOVE** (SWING; also SEL + ARP) |
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD |
-| LFO | MIX | LEVELS (BREAK, KICK, PERC), SENDS (FX, the drums' route), MASTER, DYNAMICS |
+| LFO | MIX | LEVELS (BREAK, KICK, PERC, ARP), SENDS (FX, the drums' route, ARP), MASTER, DYNAMICS |
 | FX | EFFECTS | The four slots: MAIN, MORE, MOD |
 | GLO | SYSTEM | MIDI (EXPERT: K3 METER), SETUP (K1 SKIN, also PRESETS; K3 MODE, K4 AUTO SAVE), EFFECTS (the screen's), FX SET, RESET |
 
@@ -465,7 +465,7 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 | FLT | Filter throw: the DJ filter sweeps to its target while held, back when let go | TARGET (low-pass left, high-pass right) | RESO | SPEED | THRU: BREAK (the break, as ever), DRUMS (the kick, the snare, the hat, the clap), BOTH (0.9.26) |
 | DUB | Dub throw: the break into an echo while held, its tail ringing out | TIME (1/8, 3/16, 1/4, 3/8) | FEEDBACK | TONE | MIX (with a DELAY in the FX chain: that slot's own four) |
 | ARP | Its OVERLAY effect over the mix, while held (or latched): DIVE, RISE, RADIO, WAH, CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, WOBBLE, JET, REESE | EFFECT | AMOUNT (that effect's) | TIME: RATE for CHOP, GATE, WAH, PAN; SWEEP for DIVE, RISE | LATCH |
-| ARP, FX while held (MORE) | | THRU: the kick, the break or both | ON / OFF (OFF: K1 browses silent) | RATE (1/4 … 1/32) | SWEEP (1/4 bar … 2 bars) |
+| ARP, FX while held (MORE) | | THRU: BREAK, KICK or THRU (everything; LFO's ARP the same) | ON / OFF (OFF: K1 browses silent) | RATE (1/4 … 1/32) | SWEEP (1/4 bar … 2 bars) |
 | KIL | While held, the sequencer's kicks are quiet; let go, they play again (a kick roll still plays) | LATCH: ON, a press quiets them and the next brings them back | | | |
 | DST | A switch: a press, the kick's DISTO off, the next on again; its amount is never touched (at 0 % it stays 0 %: turn DISTO up to hear it). Lit while it is ON, even at 0 % (0.268); the kick's own (KICK 1–20): another kick picked (PRESETS, a track's item, a build) brings its own ON or OFF, the key lit with it; saved with SAVE. In BEGINNER too when its layout has DST (0.9.24) | | | | |
 | SUB | A press: the kick's SUB DRIVE on, the next off (its drive is the SUB layer's DRIVE effect, EDIT); the kick's own, as DST: each kick brings its own ON or OFF, the key lit with it | | | | |
@@ -929,7 +929,7 @@ MIDI notes 38 (D1) play the snare, 42, 44 and 46 the hat, also while stopped. SA
 ## 9. The mixer
 
 **LFO** opens the MIXER: three channels side by side, each a fader (BREAK, KICK and PERC with a level meter).
-**SELECT** turns to SENDS, MASTER and DYNAMICS (0.9.2; **LFO again** goes back to HOME): SENDS (the FX fader, the chain's four slots beside it, lit: on; DRUMS, their route). **LFO held +
+**SELECT** turns to SENDS, MASTER and DYNAMICS (0.9.2; **LFO again** goes back to HOME): SENDS (the FX fader, the chain's four slots beside it, lit: on; DRUMS, their route; ARP, the ARP's effects on the BREAK, the KICK or THRU, everything: the same as the ARP key's THRU, also LEVELS' K4). **LFO held +
 K1–K4**, on any page: the break's, the kick's and the drums' level, 5 % a detent (the MIXER's own page: 2 %), the page staying where it is (LFO let go after a turn opens nothing): the mix moved without
 going into the MIXER.
 
@@ -937,8 +937,8 @@ going into the MIXER.
 
 | Half | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- |
-| LEVELS | BREAK: the break's level (its throws into the delay and the reverb too) | KICK: the kick's level (the KICK page's VOLUME) | PERC: the snare, the hat and the clap together | |
-| SENDS | FX: the master FX chain against the dry sound | DRUMS: through the FX chain or around it | | |
+| LEVELS | BREAK: the break's level (its throws into the delay and the reverb too) | KICK: the kick's level (the KICK page's VOLUME) | PERC: the snare, the hat and the clap together | ARP: what the ARP's effects take, BREAK, KICK or THRU (the whole mix); the ARP key's THRU (0.9.29) |
+| SENDS | FX: the master FX chain against the dry sound | DRUMS: through the FX chain or around it | ARP: BREAK, KICK or THRU, as LEVELS' K4 | |
 
 FX is how much of the chain you hear (the drums routed around it stay dry). Bring BREAK down to drop the break and
 let the drums run alone, then up again for the drop. HOME keeps the gate, FX and COMPLEXITY to ride (K1, K3, K4) and the **DJ filter** (K2), which filters the
@@ -961,7 +961,7 @@ break alone: sweep it down and the drums stay full on top.
 | ENV BUILD (PRESETS: tempo rise) | Style | Sweep | Riser | Gap |
 | EDIT KICK › KNOBS, K1 SET .. K4 SET (ALGORITHM: the knob; SEL + PRESETS: its function) | its function's four settings | | | |
 | LFO (mixer: levels; LFO held, any page: the same) | Break level | Kick level | Drums level | FX (the chain, dry to wet) |
-| LFO, SENDS (SELECT) | Swing | Drums: through the chain or around it | | |
+| LFO, SENDS (SELECT) | FX (the chain, dry to wet) | Drums: through the chain or around it | ARP: break, kick or thru | |
 | LFO, MASTER | Comp | Ratio | Duck | Max out |
 | LFO, DYNAMICS | Comp attack | Comp release | Duck release | Ducks: the break, or the break and the drums |
 | FX (the chain; SELECT the slot, ALGORITHM its part) | the focused slot's effect: its three settings (ALGORITHM: its MORE and MOD parts; an MB COMP its six, see §6) | | | Its mix |

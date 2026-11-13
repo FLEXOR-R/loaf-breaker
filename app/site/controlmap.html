@@ -209,8 +209,8 @@
               ["ENV held (TRACKS)", "A space after the item; on a space: it goes"], ["SEL + PLAY (TRACKS)", "The track starts here"],
               ["PLAY (TRACKS)", "The track from its start item, on TRACKS"], ["White keys 1–8 (PLAY)", "That track played"]] },
     { id: "lfo", btn: "LFO", name: "MIX", sub: "Levels, sends, master, dynamics", again: "back to HOME (SELECT: the tabs)", subs: [
-      { n: "LEVELS", k: ["BREAK", "KICK", "PERC", ""], strip: "3 FADERS, 3 METERS", note: "the snare, the hat and the clap together on PERC" },
-      { n: "SENDS", k: ["FX", "DRUMS", "", ""], strip: "THE FX FADER AND ITS 4 SLOTS · THE DRUMS AROUND THE FX OR THROUGH", note: "DRUMS: AROUND by default, THRU when turned (saved: kept); SWING: PATTERN › GROOVE" },
+      { n: "LEVELS", k: ["BREAK", "KICK", "PERC", "ARP"], strip: "3 FADERS, 3 METERS · ARP: BREAK, KICK, THRU", note: "the snare, the hat and the clap together on PERC; ARP: what the ARP's effects take (the ARP key's THRU)" },
+      { n: "SENDS", k: ["FX", "DRUMS", "ARP", ""], strip: "THE FX FADER AND ITS 4 SLOTS · THE DRUMS AROUND THE FX OR THROUGH", note: "DRUMS: AROUND by default, THRU when turned (saved: kept); ARP: BREAK, KICK, THRU (everything); SWING: PATTERN › GROOVE" },
       { n: "MASTER", k: ["COMP", "RATIO", "DUCK", "MAX OUT"], strip: "COMP AND ITS REDUCTION · DUCK · MAX OUT", note: "the mix as it leaves" },
       { n: "DYNAMICS", k: ["C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"], strip: "THE FOUR VALUES", note: "COMP's and DUCK's timing" } ],
       algo: "Break (next bar; SEL: BREAK TIME)", brk: true, presets: "Pattern P1–P64 (SEL: the kick)", keys: "slices", sel: "The tabs: LEVELS, SENDS, MASTER, DYNAMICS (SEL: drum filter)", notes: [] },

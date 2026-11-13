@@ -1,6 +1,6 @@
 # LOAF BREAKER: the ARP black key (the tenth), its OVERLAY effect. Held: MAIN, K1 the effect, K2 its AMOUNT, K3 its
-# TIME (RATE for CHOP, GATE, WAH, PAN; SWEEP for DIVE, RISE), K4 LATCH; FX while held: MORE, K1 THRU (KICK, BREAK,
-# BOTH), K2 ON / OFF, K3 RATE, K4 SWEEP; FX again: MAIN.
+# TIME (RATE for CHOP, GATE, WAH, PAN; SWEEP for DIVE, RISE), K4 LATCH; FX while held: MORE, K1 THRU (BREAK, KICK,
+# THRU), K2 ON / OFF, K3 RATE, K4 SWEEP; FX again: MAIN.
 #   app/build/host/loaf-breaker_host tests/scenarios/arp.txt app/build/scenarios
 wait 4200
 tap PLAY
@@ -25,12 +25,12 @@ wait 300
 expect arp_more 1
 turn K1 -1 10
 wait 300
-expect arp_thru 1
-shot a_thru_break.png
-turn K1 -1 10
-wait 300
 expect arp_thru 2
 shot a_thru_kick.png
+turn K1 -1 10
+wait 300
+expect arp_thru 1
+shot a_thru_break.png
 turn K1 2 10
 turn K2 -1 10
 wait 300

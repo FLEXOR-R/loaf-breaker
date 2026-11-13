@@ -139,7 +139,9 @@ static void knob_turn(int k, int32_t d)
             } else if (k == EN_K2) {
                 set.drums_chain = d > 0 ? 0u : 1u;   /* right: around the chain, left: through it */
                 app_say("DRUMS", set.drums_chain ? "THRU FX" : "AROUND FX");
-            } else
+            } else if (k == EN_K3)
+                arp_thru_turn(d);        /* (0.9.29, FLEXOR: the ARP's effects on BREAK, KICK, THRU) */
+            else
                 return;
         } else if (k == EN_K1) {
             set.brk_level = (uint8_t)clamp((int32_t)set.brk_level + d * (int32_t)(lvl_step(d) * 100.0f + 0.5f), 0, 100);
@@ -151,7 +153,8 @@ static void knob_turn(int k, int32_t d)
         } else if (k == EN_K3) {         /* PERC: the snare and the hat */
             set.perc.volume = knob_f(set.perc.volume, d, lvl_step(d), 0.0f, 1.0f);
             say_int("PERC", (int32_t)(set.perc.volume * 100.0f + 0.5f), "%");
-        }                                /* (LOAF BREAKER: K4 the MELODY's fader, 0.200-0.208) */
+        } else                           /* (K4: the MELODY's fader 0.200-0.208; 0.9.29 the ARP's route) */
+            arp_thru_turn(d);
         ui.redraw |= RG_BLOCKS;
     } else if (ui.page == PG_HOME) {
         if (k == EN_K1) {                /* the gate: how much of every slice sounds (complexity: GENERATOR) */
@@ -1559,7 +1562,7 @@ static void draw_foot(const brk_status_t *st)
                                               {"P1", "P2", "P3", "MIX"},
                                               {"CLOCK IN", "CLOCK OUT", "", ""},
                                               {"", "", "", ""},
-                                              {"BREAK", "KICK", "PERC", "MELO"},
+                                              {"BREAK", "KICK", "PERC", "ARP"},
                                               {"SLICE", "PITCH", "HITS", "REVERSE"},
                                               {"", "", "", ""},
                                               {"KICK", "PUT", "LOOPS", "BREAK"},
@@ -1579,7 +1582,7 @@ static void draw_foot(const brk_status_t *st)
     }
     for (i = 0; i < 4u; i++) {
         static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "LEVEL"};   /* (SOUNDS' BREAK) */
-        static const char *const KN_GROOVE[3][4] = {{"FX", "DRUMS", "", ""}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
+        static const char *const KN_GROOVE[3][4] = {{"FX", "DRUMS", "ARP", ""}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
                                                     {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
         static const char *const KN_MORE[3][4] = {{"SKIN", "", "MODE", "AUTO SAVE"},   /* SETUP (K2 WAVE ZOOM: HOME's
                                           * SETTINGS, 0.9.2) */

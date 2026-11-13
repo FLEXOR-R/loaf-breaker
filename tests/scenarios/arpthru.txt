@@ -1,0 +1,37 @@
+# LOAF BREAKER (0.9.29, FLEXOR): LFO's ARP, what the ARP's effects take: BREAK, KICK, THRU (the whole mix, as before).
+# LEVELS K4 and SENDS K3, the same setting as the ARP key's MORE K1. THRU to start; K4 left: KICK, BREAK; SENDS K3
+# right: KICK, THRU.
+#   app/build/host/loaf-breaker_host tests/scenarios/arpthru.txt app/build/scenarios
+wait 4200
+tap PLAY
+wait 300
+tap LFO
+wait 300
+expect page 5
+expect mpage 0
+expect arp_thru 0
+turn K4 1 10
+wait 100
+expect arp_thru 0
+turn K4 -1 10
+wait 100
+expect arp_thru 2
+turn K4 -1 10
+wait 200
+expect arp_thru 1
+shot ma_levels.png
+turn SELECT 1 10
+wait 300
+expect mpage 1
+turn K3 1 10
+wait 200
+expect arp_thru 2
+shot ma_sends.png
+turn K3 1 10
+wait 100
+expect arp_thru 0
+turn K3 1 10
+wait 100
+expect arp_thru 0
+tap PLAY
+wait 200
