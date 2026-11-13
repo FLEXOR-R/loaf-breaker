@@ -65,7 +65,7 @@ wait 150
 expect seq_lane 6
 turn ALGO 1 80
 wait 150
-expect seq_lane 10
+expect seq_lane 7
 tap GLO
 wait 200
 expect page 3

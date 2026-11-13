@@ -819,7 +819,7 @@ static void grp_blank(void)              /* the group in RAM: 16 empty patterns 
         }
         pats.p[i].lane[LANE_KICK] = pats.p[i].lane[LANE_SNARE] = pats.p[i].lane[LANE_HAT] = 0u;
         pats.p[i].kick2 = 0u;
-        pats.p[i].st[6][3] = (uint8_t)(set.novice ? 1u : 0u);   /* (LOAF BREAKER, 0.227: BEGINNER, the kick 32 steps) */
+        pats.p[i].st[6][3] = 27u;        /* (0.9.32, FLEXOR: every drum 32 steps, whatever the mode: PAT_ALL32) */
     }
     memset(pats.kn, 0, KH_SIZE);
     memset(steps.b, 0, sizeof steps.b);
@@ -1101,8 +1101,8 @@ static void pat_defaults(void)
         }
         p->lane[LANE_KICK] = p->lane[LANE_SNARE] = p->lane[LANE_HAT] = 0u;   /* the drums start empty */
         p->kick2 = 0u;
-        p->st[6][3] = (uint8_t)(set.novice ? 4u : 0u);   /* (LOAF BREAKER: BEGINNER, the kick 16 steps (0.227-0.245:
-                                          * 32; 0.246, FLEXOR: 16, as the drums): PAT_KICK16, defined below) */
+        p->st[6][3] = 27u;               /* (0.9.32, FLEXOR: the kick, the snare, the hat and the clap 32 steps, whatever
+                                          * the mode: PAT_ALL32, below; BEGINNER's kick 16 in 0.246-0.9.31, 32 before) */
     }
     trk_defaults();
     pats.mem.fx_ok = pats.mem.kfx_ok = pats.kfm_ok = 0u;
@@ -1152,6 +1152,8 @@ static void snare_bar_set(pat_t *p, uint32_t b, uint32_t m)
 #define PAT_KICK32 1u                    /* the kick 32 steps (bars 1-2 again and again), else 64 */
 #define PAT_SNARE32 2u                   /* the snare 32 steps (bars 1-2), else 16 (bar 1 every bar) */
 #define PAT_KICK16 4u                    /* LOAF BREAKER: the kick 16 steps (bar 1 every bar), over PAT_KICK32 */
+#define PAT_ALL32 27u                    /* (0.9.32, FLEXOR: every drum 32 steps, a new pattern's: the kick, the snare 2, the
+                                          * hat 8, the clap 16) */
 static uint32_t kick_bars(const pat_t *p)   /* the kick's bars played: 1, 2 or 4 */
 {
     return PAT_LEN(p) & PAT_KICK16 ? 1u : PAT_LEN(p) & PAT_KICK32 ? 2u : 4u;
@@ -1265,13 +1267,13 @@ static void pat_lanes_out(void)
         for (l = 0; l < 4u; l++)
             drum_now[d][l] = (uint16_t)drum_bar(p, d, l % drum_bars(p, d));
 }
-/* LOAF BREAKER (FLEXOR, 11 Nov 2026, 0.227): BEGINNER turned on, the group in RAM's patterns: the kick 32 steps, the
- * snare, the hat and the clap 16 (their second bars kept, for EXPERT's LENGTH) */
+/* LOAF BREAKER (FLEXOR, 11 Nov 2026, 0.227): BEGINNER turned on, the group in RAM's patterns: every drum 32 steps
+ * (0.9.32, FLEXOR: as a new pattern's, whatever the mode; their other bars kept, for EXPERT's LENGTH) */
 static void novice_lengths(void)
 {
     uint32_t i;
     for (i = 0; i < NPAT; i++) {
-        uint8_t *len = &PAT_LEN(&pats.p[i]), v = PAT_KICK16;   /* (0.246, FLEXOR: 16, was 32) */
+        uint8_t *len = &PAT_LEN(&pats.p[i]), v = PAT_ALL32;   /* (0.9.32, FLEXOR: every drum 32; 0.246-0.9.31 the kick 16) */
         if (*len != v) {
             *len = v;
             set_dirty = 1u;

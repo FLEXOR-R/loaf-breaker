@@ -5,6 +5,10 @@ wait 4200
 tap SEQ
 wait 300
 expect seq_lane 2
+# (the kick 64 steps: four bars to follow)
+turn K4 1 10
+wait 150
+expect lane_steps 64
 turn SELECT -1 80
 wait 300
 expect page 3

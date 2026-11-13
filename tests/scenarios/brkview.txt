@@ -19,7 +19,7 @@ wait 800
 shot bv_32.png
 turn ALGO -1 80
 wait 150
-expect seq_lane 14
+expect seq_lane 15
 turn ALGO 3 80
 wait 150
 expect seq_lane 2
@@ -31,7 +31,7 @@ wait 800
 shot bv_hidden.png
 turn ALGO -1 80
 wait 150
-expect seq_lane 14
+expect seq_lane 15
 turn ALGO 1 80
 wait 150
 expect seq_lane 2
@@ -52,7 +52,7 @@ wait 150
 expect seq_lane 0
 turn ALGO -1 80
 wait 150
-expect seq_lane 14
+expect seq_lane 15
 turn SELECT -1 80
 wait 300
 expect page 3

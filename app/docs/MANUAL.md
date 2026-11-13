@@ -476,8 +476,8 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 ## 5. Patterns and the sequencer
 
 LOAF BREAKER holds **64 patterns**, P1–P64. Each is the break's 32 steps (2 bars), each step playing the loop's own
-slice (LOOP, where the generator can move it), a slice of its own, or nothing; and three drum lanes of 16 steps (kick,
-snare, hat) that repeat every bar. **PRESETS** picks the pattern on most pages (left of P1: P64); while playing, the
+slice (LOOP, where the generator can move it), a slice of its own, or nothing; and the drum lanes (kick, snare, hat,
+clap), each 32 steps in a new pattern whatever the mode (0.9.32, FLEXOR; LENGTH: 16, 32 or 64). **PRESETS** picks the pattern on most pages (left of P1: P64); while playing, the
 next one starts when the loop comes round (the header shows "P2>").
 
 **Four groups of 16.** The FM-1 keeps one group in memory at a time: P1–16, P17–32, P33–48 or P49–64; the others wait
@@ -754,7 +754,7 @@ the sounds, KICK, SN, HH, CP, **SELECT** going round them (on the drums' page to
 chain has two slots and a short list on PRESETS, MAGIC EQ and MAGIC MBC at its end (above); FX again stays on MAIN;
 the MIXER has LEVELS and SENDS; on SEQ, ALGORITHM goes round the lanes and SELECT through FULL, DRUMS and SETTINGS as in EXPERT; on the drum lanes K1 is **FILL**, K2 the lane's sound, K3 CLR / 4X4, K4 **LENGTH**
 the kick's alone (16, 32 or 64 steps; turning BEGINNER on
-sets every kick and drum of the group to 16; a drum lane stays 16, "LONGER: EXPERT MODE"), and a step held has no menu (the key just
+sets every kick and drum of the group to 32 (0.9.32, FLEXOR); a drum lane's LENGTH stays as it is, "LONGER: EXPERT MODE"), and a step held has no menu (the key just
 turns the step on or off); SONG is whole, as in EXPERT (0.9.22: every knob, ALGORITHM the items, PRESETS' BUILD KICK and TEMPO RISE); a white key held plays its loop with no knobs; the black keys keep the layout EXPERT left (0.9.23; a new FM-1
 starts on CHOPPAH's: R8 R16 R32 REV FRZ HLF VNL GAT RND FLT DUB; ARP › BLACK KEYS, to change it, is EXPERT's), each with its knobs as in EXPERT; a knob BEGINNER leaves out is drawn blank
 and says "EXPERT MODE" when turned; SOUNDS › BREAK keeps
