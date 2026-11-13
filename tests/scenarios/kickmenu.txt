@@ -28,10 +28,16 @@ expect kpage 5
 shot km_dirt.png
 turn SELECT 1 10
 wait 300
-expect page 10
+expect page 2
+expect ksect 4
 shot km_tone.png
 turn SELECT 1 10
 wait 300
+expect page 2
+expect ksect 5
+turn SELECT 1 10
+wait 300
+expect ksect 6
 expect kpage 11
 turn SELECT 1 10
 wait 300

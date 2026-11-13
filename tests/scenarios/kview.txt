@@ -31,6 +31,9 @@ expect ksect 4
 turn SELECT 1 10
 wait 300
 expect ksect 5
+turn SELECT 1 10
+wait 300
+expect ksect 6
 expect kpage 11
 shot kv_knobs.png
 turn SELECT 1 10

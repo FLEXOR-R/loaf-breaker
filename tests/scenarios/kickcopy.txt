@@ -27,6 +27,8 @@ wait 200
 turn SELECT 1 10
 wait 200
 turn SELECT 1 10
+wait 150
+turn SELECT 1 10
 wait 200
 turn PRESET 1 10
 wait 200

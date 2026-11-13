@@ -4,7 +4,6 @@
 
 /* LOAF BREAKER: a slot k: the chain's 0..3, KICK FX's 4, 5 (HOME's fourth part: the FX page on fx_focus 4 or 5) */
 #define FX_KICK() (ui.fx_focus >= BRK_FX_SLOTS)
-static void ksect_row(int32_t y);      /* (kick.c: the KICK LAB section's parts in a row, 0.9.2) */
 /* LOAF BREAKER (FLEXOR, 11 Nov 2026, 0.229): BEGINNER's chain: two slots (the third and fourth muted and hidden, as
  * they were in EXPERT), PRESETS a short list (FX_EASY: EMPTY, FILTER, CRUNCH, DRIVE, FLANGER, REVERB, DELAY, TAPE,
  * CLIP), MAGIC EQ and MAGIC MBC after it; the 0.223-0.228 scenes gone */
@@ -1060,12 +1059,12 @@ static void draw_xview(uint32_t now)
     cv_begin(240, 52, C_BLACK);
     fx_chips(XP_NAME, NXP, ui.fx_page, 40, sl->on ? "ON" : "BYPASS", sl->on ? C_HI : C_DIM);
     {
-    int32_t mid = FX_KICK() ? 24 : 32, amp = FX_KICK() ? 10 : 19;   /* (KICK FX, 0.9.2: lower, the KICK LAB's FX
-                                          * section's parts under it, as its other sections') */
+    int32_t mid = 32, amp = 19;          /* (KICK FX 0.9.2-0.9.28 lower, its section's parts under it; 0.9.29: FX1, FX2
+                                          * sections of their own, the slot's parts in the row above, as the chain's) */
     for (x = 0; x < 240; x += 4)         /* the middle (the tones), 0 dB (the responses) */
         cv_rect(x, mid, 2, 1, C_LINE);
     if (t == FXT_EMPTY)
-        cv_text(6, mid - 6, &FONT_T, FX_KICK() ? "EMPTY: PRESETS PUTS AN EFFECT HERE" : "EMPTY: PRESETS PUTS AN EFFECT HERE", C_GRAY);
+        cv_text(6, mid - 6, &FONT_T, "EMPTY: PRESETS PUTS AN EFFECT HERE", C_GRAY);
     for (x = 0; t != FXT_EMPTY && x < 240; x++) {
         float in, base, v = x_plot(t, x, p, xx, now, &in, &base);
         y = mid - (int32_t)(brk_clampf(v, -1.0f, 1.0f) * (float)amp);
@@ -1078,8 +1077,6 @@ static void draw_xview(uint32_t now)
         py = y;
     }
     }
-    if (FX_KICK())
-        ksect_row(36);
     cv_blit(0, 88);
     cv_begin(240, 52, C_BLACK);
     for (i = 0; !FX_KICK() && i < 4u; i++) {   /* the chain: each slot's effect, this one lit (KICK FX: its two in the

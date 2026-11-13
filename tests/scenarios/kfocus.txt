@@ -16,7 +16,7 @@ tap EDIT
 wait 300
 turn SELECT -1 10
 wait 200
-expect ksect 5
+expect ksect 6
 turn ALGO 6 10
 wait 300
 expect kpage 18
@@ -43,6 +43,8 @@ wait 150
 turn SELECT 1 10
 wait 150
 turn SELECT 1 10
+wait 150
+turn SELECT 1 10
 wait 400
 expect ksect 0
 shot kf_click.png
@@ -56,9 +58,9 @@ wait 400
 expect ksect 2
 expect kpage 15
 shot kf_tail.png
-turn SELECT 3 10
+turn SELECT 4 10
 wait 300
-expect ksect 5
+expect ksect 6
 expect kpage 18
 turn K3 -1 60
 wait 200

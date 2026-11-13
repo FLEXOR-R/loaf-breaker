@@ -69,8 +69,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   kick_mem_go, copied with COPY K n, off with a built-in PRESET / RESET); engine `kick_set_lab`, `kick_set_stack`
   (a second kick voice, kv2, until STACK's hand-over), `kick_set_solo`. All 0 renders bit for bit as 0.203: keep it so.
   The tabs drop the "KICK" label on the KICK menu (six sections).
-- KICK menu by anatomy (10 Nov 2026, 0.205, FLEXOR's choice): KSECT ATTACK, BODY, TAIL, DIRT, FX (TONE until 0.9.1), KNOBS (kick.c;
-  0.9.2: FX's parts EQ B, EQ S, FX1, FX2 drawn as tabs on the EQ and FX pages too, `ksect_row`; KNOBS' STYLE named ASSIGN; 0.9.29: ASSIGN right after KNOBS, KSECT's KNOBS row 21 27 22-25 31);
+- KICK menu by anatomy (10 Nov 2026, 0.205, FLEXOR's choice): KSECT ATTACK, BODY, TAIL, DIRT, FX1, FX2, MORE (kick.c;
+  0.9.29, FLEXOR: FX1 and FX2 sections of one part each, ALGORITHM there the effect's parts (`fx_part_turn`, the FX page's chips), no ksect_row on them; MORE (KNOBS until 0.9.28) 21 27 22-25 31 11 12: KNOBS, ASSIGN, K1-K4 SET, TOOLS, EQ B, EQ S, nine parts (KSECT rows of 9; `ksect_row` narrows its margins to fit); KNOBS' STYLE named ASSIGN in 0.9.2);
   app_ui_init opens it on ATTACK's PRESET (0.253, FLEXOR: KP_PRESET, part KP_PART_PRESET, K1 the built-in kicks alone; ui.ksect 0; 0.205-0.252 on BODY's MIX); the parts in a row at the
   picture's foot (0.264, FLEXOR: SELECT the tabs at the top, its sections, kick_sect_turn; ALGORITHM those at the
   bottom, its parts; EXPERT's drums: SELECT round SN HH CP, the KICK by SEL + EDIT; 0.266: EXPERT's EDIT goes round the sounds, KICK SN HH CP) (kick_chip; 0.207: a full-width bar of tabs, FONT_T if it fits, the wave up: its middle y 45, 29

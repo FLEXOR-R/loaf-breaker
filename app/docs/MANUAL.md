@@ -53,7 +53,7 @@ DST, SUB) or your own.
 ### 4. EDIT: shape the kick
 
 **EDIT** opens the kick, drawn large: what you hear, its pitch falling in amber. K1–K4 change the part shown;
-**ALGORITHM** goes to the next part, **SELECT** to the next section (ATTACK, BODY, TAIL, DIRT, FX, KNOBS: the tabs at the top), and **EDIT** again to the next sound (KICK, SNARE, HAT, CLAP, round). In EXPERT it opens on ATTACK's **PRESET**: KNOB 1 picks a built-in kick, 909 to DISTORTO. Each part
+**ALGORITHM** goes to the next part, **SELECT** to the next section (ATTACK, BODY, TAIL, DIRT, FX1, FX2, MORE: the tabs at the top), and **EDIT** again to the next sound (KICK, SNARE, HAT, CLAP, round). In EXPERT it opens on ATTACK's **PRESET**: KNOB 1 picks a built-in kick, 909 to DISTORTO. Each part
 says in a few words what it is for. Try **DIRT › DISTO** (K1: the distortion) and **SYNTH › BASS** (K2: the
 rawstyle reverse bass). **PRESETS** there picks one of the 10 kick memories: each keeps its own sound.
 
@@ -155,7 +155,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 | Button | Domain | Its parts |
 | --- | --- | --- |
 | HOME | LIVE | PERFORM, GENERATOR, SETTINGS (K1 VIEW, K2 WAVE TYPE, K3 WAVE ZOOM, K4 BREAK TIME); HOME again: the next tab. HOME is the main page: FX, ENV, LFO, GLO or ARP pressed again come back to it, SELECT turning their tabs |
-| EDIT | SOUNDS | Three sources, **SEL + EDIT** the next: **KICK** (its menu, by the kick's anatomy: ATTACK, BODY, TAIL, DIRT, FX, KNOBS; SELECT its next section; EDIT again the next sound, EXPERT: SNARE, HAT, CLAP, then the KICK), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
+| EDIT | SOUNDS | Three sources, **SEL + EDIT** the next: **KICK** (its menu, by the kick's anatomy: ATTACK, BODY, TAIL, DIRT, FX1, FX2, MORE; SELECT its next section; EDIT again the next sound, EXPERT: SNARE, HAT, CLAP, then the KICK), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
 | SEQ | PATTERN | The lanes, **GROOVE** (SWING; also SEL + ARP) |
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD |
 | LFO | MIX | LEVELS (BREAK, KICK, PERC), SENDS (FX, the drums' route), MASTER, DYNAMICS |
@@ -219,10 +219,10 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
   its memory (KICK 1–20), what the part is for in a few words ("FOLD DISTORTION") and its note; under it the part's four knobs as cards, their values large. **SELECT**: the
   next section (**EDIT again**: the next sound, SNARE, HAT, CLAP, then the KICK), the kick's anatomy from its hit to its end: **ATTACK** (PRESET: K1 the built-in kicks, the part the menu opens on; CLICK, PUNCH, STACK), **BODY** (MIX, SUB, GRIT,
   SYNTH, SYNTH +, MACRO, OUT; the menu opens here), **TAIL** (TAIL, TAIL +, BASS, MORPH), **DIRT** (DISTO, DISTO +,
-  SCREAM, the layers' effects), **FX** (EQ B, EQ S, FX1, FX2), **KNOBS** (KNOBS, ASSIGN, K1–K4, TOOLS: ASSIGN right after KNOBS since 0.9.29);
+  SCREAM, the layers' effects), **FX1** and **FX2** (its two FX slots, each a section of its own since 0.9.29: ALGORITHM goes through the effect's parts, MAIN, MORE, MOD or the MB COMP's), **MORE** (KNOBS until 0.9.28: KNOBS, ASSIGN, K1–K4, TOOLS, then EQ B and EQ S, its EQ's bands and shape);
   **ALGORITHM**: the next part in it (each section remembers where you were). The section's parts are a bar of tabs at
   the foot of the picture, the whole width, the one open lit (BEGINNER: those it passes over dimmed; short names
-  there: SYN+ for SYNTH +, D+ for DISTO +, S FX .. C FX for the layers' effects). **KNOBS** puts the live knobs on the kick's picture: its first part, KNOBS, has K1–K4 turn what SEL + K1–K4
+  there: SYN+ for SYNTH +, D+ for DISTO +, S FX .. C FX for the layers' effects). **MORE** puts the live knobs on the kick's picture: its first part, KNOBS, has K1–K4 turn what SEL + K1–K4
   turn (DRIVE, SCREAM, D+ SCREECH, DISTO to start: their first setting, their value large), so you hear and see the
   kick as you set them; then **K1 SET .. K4 SET**, each knob's function with all its settings (DISTO:
   AMOUNT, SUB, FIZZ, SUSTAIN; MORPH: AMOUNT, TO KICK…), the function's name by the kick's (KICK 4  K4 DISTO). They
@@ -258,8 +258,8 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
     needed), MACRO.
   - **DIRT**: DISTO, DISTO + (DRIVE, TYPE, SCREECH, TAIL), SCREAM, then each layer's effect.
     (DISTO, DISTO + and SCREAM were called TERROR, TERROR + and TERROR 2 before 0.191: names a newcomer reads.)
-  - **FX** (TONE until 0.9.1): EQ B and EQ S (its EQ's bands and shape), FX1 and FX2 (its two FX slots), their tabs at
-    the foot as every section's.
+  - **FX1**, **FX2** (FX until 0.9.28, TONE until 0.9.1): its two FX slots, a section each: ALGORITHM the effect's parts
+    (MAIN, MORE, MOD), as on the FX page. Its EQ (EQ B, EQ S) is in **MORE**, after TOOLS.
   The DISTO and SCREAM's settings are the kick's own: they go with its memory. **SEL + EDIT**: the next source, DRUMS
   (SNARE, HAT, CLAP; EDIT again the next), then BREAK, then the kick.
   The kick's **SYNTH** section:
@@ -562,10 +562,10 @@ its level in and out.
 | PRESETS | The effect in that slot, through the library (EMPTY first); a new effect comes in on, as you last left it (its MORE and MOD too; never touched: its starting settings) |
 | SEL + REC | The slot's effect back to its starting settings (its MORE, MOD and MB COMP detail too); SEL + REC again within 4 s takes the reset back. On EDIT KICK's FX parts the same for that layer's effect, which is also remembered effect by effect |
 
-**KICK FX** (EDIT KICK's parts FX 1 and FX 2, after EQ BANDS and EQ SHAPE): the FX page on the kick's own two slots,
+**KICK FX** (EDIT KICK's sections FX1 and FX2, after DIRT): the FX page on the kick's own two slots,
 after its EQ and before everything else (the break's chain never sees them). Every effect of the library but REVERB
-and DELAY; **PRESETS** the effect (remembered as left, apart from the chain's; 0.9.29: in the FX section PRESETS goes through the effects alone, nothing on EQ B and EQ S, and SEL + PRESETS changes the kick), ALGORITHM the kick's next or previous part,
-FX the next part of the effect (MAIN, MORE, MOD), FX held + ALGORITHM moves the slot, SEL + FX bypasses, SEL + REC resets.
+and DELAY; **PRESETS** the effect (remembered as left, apart from the chain's; 0.9.29: in the FX section PRESETS goes through the effects alone, nothing on EQ B and EQ S, and SEL + PRESETS changes the kick), ALGORITHM the next part of the effect (MAIN, MORE, MOD, or
+the MB COMP's), SELECT the kick's next section, FX the next part of the effect too, FX held + ALGORITHM moves the slot, SEL + FX bypasses, SEL + REC resets.
 FX from another page: the chain. **Each kick has its own FX section** (EQ B, EQ S, FX1, FX2: KICK 1–20 each its own,
 0.9.26): another kick picked brings its own EQ and effects.
 

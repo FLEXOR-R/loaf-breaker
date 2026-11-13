@@ -10,7 +10,7 @@ expect kv_ms 500
 shot ez_auto.png
 turn SELECT -1 10
 wait 200
-expect ksect 5
+expect ksect 6
 turn ALGO 6 10
 wait 300
 expect kpage 18

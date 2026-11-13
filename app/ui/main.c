@@ -1080,7 +1080,8 @@ static void input(void)
                 seq_bar_step(d);         /* (0.9.26, FLEXOR: the bar shown of a long lane; one bar: the lane) */
                 page_say();
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
-            } else if (ui.page == PG_KEQ || IS_KFX()) {   /* (the KICK menu's EQ and FX parts: its section's next) */
+            } else if (ui.page == PG_KEQ) {   /* (the KICK menu's EQ: MORE's next part; FX1, FX2: their own parts, as the
+                                          * FX page's, below; 0.9.29, FLEXOR) */
                 kick_sect_step(d);
                 ui.redraw |= RG_BLOCKS | RG_FOOT;
             } else if (ui.page == PG_PERC) {   /* the snare or the hat: SOUND or SHAPE (LOAF BREAKER: MORE; BEGINNER:
@@ -1094,15 +1095,13 @@ static void input(void)
                 break_ask((set.brk + (d > 0 ? 1u : n_breaks - 1u)) % n_breaks);
             }
         } else if (k == EN_PRESET && (ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX())) {
-            if ((ui.page == PG_KEQ || IS_KFX()) && !(btn & 1u << B_SEL)) {   /* (0.9.29, FLEXOR: the FX section,
-                                          * PRESETS the effects alone, FX1 and FX2; EQ B, EQ S nothing; SEL + PRESETS the
-                                          * kick there) */
-                if (IS_KFX())
-                    fx_type_turn(d);
-                else
-                    app_say("PRESETS", "FX1, FX2: THE EFFECT");
-            } else if (ui.page == PG_KEQ || IS_KFX())
+            if (IS_KFX() && !(btn & 1u << B_SEL))   /* (0.9.29, FLEXOR: FX1, FX2, PRESETS the effects alone; SEL +
+                                          * PRESETS the kick there) */
+                fx_type_turn(d);
+            else if (IS_KFX() || (ui.page == PG_KEQ && btn & 1u << B_SEL))
                 kick_mem_turn(d);
+            else if (ui.page == PG_KEQ)
+                ;                        /* (0.9.29, FLEXOR: EQ B, EQ S, PRESETS nothing, SEL + PRESETS the kick) */
             else if (!(btn & 1u << B_SEL))   /* (LOAF BREAKER, 0.9.26, FLEXOR: in the KICK menu, PRESETS the kick on every
                                           * page; SEL + PRESETS what PRESETS did there: K1-K4 SET a knob's function,
                                           * ASSIGN a style; elsewhere the pattern) */

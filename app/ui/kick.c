@@ -262,14 +262,16 @@ static void kick_part_name(uint32_t p, char *t)
  * of them at the picture's foot, the one open lit). ATTACK: PRESET (0.253), CLICK, PUNCH, STACK. BODY: MIX, SUB, GRIT, SYNTH, SYNTH +,
  * MACRO, OUT. TAIL: TAIL, TAIL +, BASS, CLEAN MORPH. DIRT: DISTO, DISTO +, SCREAM, the layers' effects. TONE: EQ
  * BANDS, EQ SHAPE, FX 1, FX 2. KNOBS: KNOBS, K1-K4 SET, STYLE, TOOLS. The menu opens on BODY (app_ui_init) */
-#define KSECTS 6u
-static const char *const KSECT_NAME[KSECTS] = {"ATTACK", "BODY", "TAIL", "DIRT", "FX", "KNOBS"};   /* (FX: TONE until
+#define KSECTS 7u
+static const char *const KSECT_NAME[KSECTS] = {"ATTACK", "BODY", "TAIL", "DIRT", "FX1", "FX2", "MORE"};   /* (0.9.29,
+                                          * FLEXOR: FX1 and FX2 sections of their own, ALGORITHM there their parts; the
+                                          * EQ in MORE, KNOBS until then) */   /* (FX: TONE until
                                           * 0.9.1, FLEXOR) */
-static const uint8_t KSECT_N[KSECTS] = {4u, 7u, 4u, 7u, 4u, 7u};
-static const uint8_t KSECT[KSECTS][7] = {{32u, 7u, 3u, 30u},   /* (ATTACK: PRESET first, 0.253) */
+static const uint8_t KSECT_N[KSECTS] = {4u, 7u, 4u, 7u, 1u, 1u, 9u};
+static const uint8_t KSECT[KSECTS][9] = {{32u, 7u, 3u, 30u},   /* (ATTACK: PRESET first, 0.253) */
                                          {0u, 1u, 5u, 18u, 19u, 9u, 10u}, {28u, 29u, 20u, 26u},
-                                        {15u, 16u, 17u, 2u, 4u, 6u, 8u}, {11u, 12u, 13u, 14u},
-                                        {21u, 27u, 22u, 23u, 24u, 25u, 31u}};   /* (KNOBS: KP_BASE + 10 ..; 26 CLEAN MORPH;
+                                        {15u, 16u, 17u, 2u, 4u, 6u, 8u}, {13u}, {14u},
+                                        {21u, 27u, 22u, 23u, 24u, 25u, 31u, 11u, 12u}};   /* (KNOBS: KP_BASE + 10 ..; 26 CLEAN MORPH;
                                           * 0.9.29, FLEXOR: ASSIGN right after KNOBS) */
 static void ksect_find(uint32_t p)       /* the part's section and place in it, kept */
 {
@@ -1031,9 +1033,9 @@ static void ksect_row(int32_t y)
     const felucca_font_t *f = &FONT_T;
     int32_t cx = 4;
     char c[16];
-    for (j = 0; j < KSECTS * 7u; j++)    /* (the section holding the open part: the EQ and FX pages' own, FX) */
-        if (j % 7u < KSECT_N[j / 7u] && KSECT[j / 7u][j % 7u] == open) {
-            s = j / 7u;
+    for (j = 0; j < KSECTS * 9u; j++)    /* (the section holding the open part: the EQ and FX pages' own, FX) */
+        if (j % 9u < KSECT_N[j / 9u] && KSECT[j / 9u][j % 9u] == open) {
+            s = j / 9u;
             break;
         }
     n = KSECT_N[s];
@@ -1043,12 +1045,17 @@ static void ksect_row(int32_t y)
         w += (uint32_t)text_w(&FONT_T, c) + 8u;
     }
     w += 2u * (n - 1u);
-    if (w > KV_W) {                  /* (too wide: the small letters) */
+    uint32_t pad = 8u;
+    if (w > KV_W) {                  /* (too wide: the small letters; 0.9.29, MORE's nine: narrower margins too) */
         f = &FONT_XS;
-        for (w = 2u * (n - 1u), j = 0; j < n; j++) {
-            c[0] = 0;
-            kick_chip(KSECT[s][j], c);
-            w += (uint32_t)text_w(&FONT_XS, c) + 6u;
+        for (pad = 6u; pad >= 2u; pad -= 2u) {
+            for (w = 2u * (n - 1u), j = 0; j < n; j++) {
+                c[0] = 0;
+                kick_chip(KSECT[s][j], c);
+                w += (uint32_t)text_w(&FONT_XS, c) + pad;
+            }
+            if (w <= KV_W)
+                break;
         }
     }
     extra = w < KV_W ? KV_W - w : 0u;
@@ -1058,7 +1065,7 @@ static void ksect_row(int32_t y)
         c[0] = 0;
         kick_chip(p, c);
         tw = text_w(f, c);
-        sw = tw + (f == &FONT_T ? 8 : 6) + (int32_t)(extra / n) + (j < extra % n ? 1 : 0);   /* (the room shared) */
+        sw = tw + (int32_t)pad + (int32_t)(extra / n) + (j < extra % n ? 1 : 0);   /* (the room shared) */
         cv_rect(cx, y, sw, 15, p == open ? C_HI : C_BLOCK);
         cv_text(cx + (sw - tw) / 2, f == &FONT_T ? y + 2 : y + 4, f, c,
                 p == open ? C_BLACK : kp_hidden(p) ? C_DIM : C_GRAY);

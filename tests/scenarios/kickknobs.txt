@@ -15,6 +15,8 @@ wait 200
 turn SELECT 1 10
 wait 200
 turn SELECT 1 10
+wait 200
+turn SELECT 1 10
 wait 300
 expect kpage 11
 turn K1 10 10
@@ -29,7 +31,7 @@ turn K2 5 10
 turn K3 -5 10
 wait 200
 shot kn_k4set.png
-turn ALGO 3 10
+turn ALGO 5 10
 wait 200
 expect kpage 11
 # K SET: PRESETS gives that knob another function (here K2: TERROR 2 to TERROR +, COMP passed over), the kick's own; on KNOBS, PRESETS is
