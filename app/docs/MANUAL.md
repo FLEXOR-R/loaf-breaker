@@ -408,7 +408,7 @@ Beside the ten built in, the FM-1 holds breaks of your own (0.9.32, from CHOPPAH
 room, five to seven breaks of the library's size.
 The site's [Breaks](https://flexor-r.github.io/loaf-breaker/breaks/) page, in Chrome or Edge on a computer, does it:
 
-1. **The library**: the seventy breaks of the project (the Cyberworm Amens, the Huge Amen pack, the classics), each
+1. **The library**: the project's breaks, over eighty (the Cyberworm Amens, the Huge Amen pack, the classics, FLEXOR's hardcore breaks under the track's whole name, the FM-1's short name beside it), each
    made as the built-in ones (two bars, levelled, sixteen slices on the hits). Filter them, search a name or a tempo,
    **▶** to hear one chopped as the FM-1 plays it (Play, Chop, the tempo, the keys 1–8 and Q–I), **+ Add** to put it in
    your list. The ten built in are marked: they are on the FM-1 already.

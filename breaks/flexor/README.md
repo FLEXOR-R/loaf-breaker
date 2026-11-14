@@ -19,6 +19,13 @@ library shows (0.9.40, FLEXOR: `Artist – Track (kind)`, the FM-1's short name 
 | `tripped_matt_green_underground_panther_jacket.wav` | Tripped & Matt Green, "Underground Panther Jacket" (break) | 170 | 2 | PANTHER 170 (0.9.34) |
 | `artheist_the_obedience_algorithm.wav` | Artheist, "The Obedience Algorithm" (break) | 165 | 2 | OBEDIENC165 in 0.9.37; in the library since 0.9.38 |
 | `dolphin_rotterdam_shuffle.wav` | Dolphin, "Rotterdam Shuffle" (intro break) | 190 | 2 | SHUFFLE 190 (0.9.38, in OBEDIENC165's place) |
+| `deathmachine_bad_man_crew.wav` | Deathmachine, "Bad Man Crew" (break) | 200 | 2 | the library (BADMAN 200, 0.9.40) |
+| `detest_tripped_hardcore_to_the_penis_vocal.wav` | Detest & Tripped, "Hardcore To The Penis" (vocal break) | 175 | 2 | the library (DETESTV 175, 0.9.40) |
+| `dolphin_buckshot.wav` | Dolphin, "Buckshot" (break) | 200 | 2 | the library (BUCKSHT 200, 0.9.40) |
+| `dolphin_hong_kong_ping_pong.wav` | Dolphin, "Hong Kong Ping Pong" (intro break) | 220 | 2 | the library (HONGKONG220, 0.9.40) |
+| `lil_texas_louder_2.wav` | Lil Texas, "LOUDER" (break 2) | 175 | 2 | the library (LOUDER2 175, 0.9.40) |
+| `the_outside_agency_hells_basement.wav` | The Outside Agency, "Hell's Basement" (intro break) | 175 | 2 | the library (TOAHELL 175, 0.9.40) |
+| `the_outside_agency_like_a_fire.wav` | The Outside Agency, "Like A Fire" (intro break) | 160 | 2 | the library (TOAFIRE 160, 0.9.40) |
 FLEXOR's breaks are sliced on an even grid (FLEXOR: "EVEN GRID", as he sends them from the BREAKS page): `*=` (or `-=`)
 in breaks.txt; and louder than the others: -12 dBFS RMS, 4 dB above the other breaks' -16 (0.9.35 had them at their files' own
 level, FLEXOR: too loud). **Every break put here gets that level** (FLEXOR, 14 Nov 2026: his DJ library, mastered

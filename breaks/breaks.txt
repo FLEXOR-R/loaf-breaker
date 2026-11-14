@@ -55,6 +55,13 @@
 # -12 dBFS on an even grid; those not in the firmware (in the site's library):
 -=  flexor/artheist_the_obedience_algorithm.wav 165   2     2   OBEDIENC165
 -=  flexor/akira_custom_grind.wav               190     2     2   AKIRA 190
+-=  flexor/deathmachine_bad_man_crew.wav        200     2     2   BADMAN 200
+-=  flexor/detest_tripped_hardcore_to_the_penis_vocal.wav 175 2 2 DETESTV 175
+-=  flexor/dolphin_buckshot.wav                 200     2     2   BUCKSHT 200
+-=  flexor/dolphin_hong_kong_ping_pong.wav      220     2     2   HONGKONG220
+-=  flexor/lil_texas_louder_2.wav               175     2     2   LOUDER2 175
+-=  flexor/the_outside_agency_hells_basement.wav 175   2     2   TOAHELL 175
+-=  flexor/the_outside_agency_like_a_fire.wav   160     2     2   TOAFIRE 160
 #
 # classics/: ten breaks from the records (32-bit float WAV, 4 bars each, tempos from their lengths)
 -   classics/the_winstons_amen_brother.wav      141.82  2     4   AMEN 142
