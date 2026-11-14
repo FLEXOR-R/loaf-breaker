@@ -864,7 +864,7 @@ The kick is four layers summed and pushed into a clipper:
 | --- | --- |
 | ALGORITHM | The part: MIX, a layer (SUB, PUNCH, GRIT, CLICK), its FX, MACRO, OUT |
 | PRESETS | The kick selected: KICK 1–20, each its own memory |
-| OUT K4 PRESET | A built-in kick on the kick selected: 909, TECHNO, EARLY HC, ROTTERDAM (the start), INDUSTRIAL, DISTORTO, TERROR (FLEXOR's: ROTTERDAM with DISTO 30 % FOLD, DRIVE 69 %, no GRIT, the SUB to 1279 ms through DRIVE 50 %, TAIL + DRIVE 100 %, EQ LOW +6.2 dB, DROP +20 in 167 ms, a pure sine), SPINE (TERROR with DRIVE 50 %, D+ TYPE RECT, the SUB to 766 ms). The steps, routing, volume and DISTO and SCREAM stay (TERROR and SPINE set their own DISTO) |
+| OUT K4 PRESET | A built-in kick on the kick selected: 909, TECHNO, EARLY HC, ROTTERDAM (the start), INDUSTRIAL, DISTORTO, TERROR (FLEXOR's: ROTTERDAM with DISTO 30 % FOLD, DRIVE 69 %, no GRIT, the SUB to 1279 ms through DRIVE 50 %, TAIL MODE CLEAN, TAIL + DRIVE 100 %, EQ LOW +6.2 dB, DROP +20 in 167 ms, a pure sine), SPINE (TERROR with DRIVE 50 %, D+ TYPE RECT, the SUB to 766 ms, TAIL MODE CLASSIC). The steps, routing, volume and DISTO and SCREAM stay (TERROR and SPINE set their own DISTO) |
 | MIDI note 36 (C1) | Plays the kick, from any channel, also while stopped |
 
 | Part | K1 | K2 | K3 | K4 |

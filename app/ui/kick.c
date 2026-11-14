@@ -157,13 +157,13 @@ static void kick_mem_go(uint32_t n)      /* (LOAF BREAKER: KICK n, 0..9, as abov
     changed_kick();
 }
 /* LOAF BREAKER (0.9.32, FLEXOR): a built-in kick's part outside kick_t, after the SYNTH and the LAB zeroed: TERROR's and SPINE's
- * SYNTH (DROP +20, TIME 167 ms, SHAPE -50: a pure sine), TAIL + DRIVE 100 and its KICK EQ (LOW +6.2 dB, MID and HIGH
+ * SYNTH (DROP +20, TIME 167 ms, SHAPE -50: a pure sine), TAIL + DRIVE 100 (TERROR its TAIL MODE CLEAN too, 0.9.35) and its KICK EQ (LOW +6.2 dB, MID and HIGH
  * flat). The others leave the EQ as it was, as always */
 static void kpre_extra(uint32_t p)
 {
     if (p != KICK_PRESET_TERROR && p != KICK_PRESET_SPINE)   /* (SPINE: TERROR's too) */
         return;
-    kt_extra(set.ksyn, &klab.cur, set.keq);   /* (app.c) */
+    kt_extra(p, set.ksyn, &klab.cur, set.keq);   /* (app.c) */
     changed_fx();
 }
 /* LOAF BREAKER: OUT's K4 PRESET: the built-in kicks (909 .. DISTORTO, TERROR, SPINE), then COPY KICK 1..10: that memory's kick, its

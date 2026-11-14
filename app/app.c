@@ -917,8 +917,10 @@ static void kfx_all(void)                /* every kick with the FX section playi
 /* LOAF BREAKER (0.9.32, FLEXOR): TERROR's and SPINE's part outside kick_t: their SYNTH (DROP +20, TIME 167 ms, SHAPE
  * -50: a pure sine), TAIL + DRIVE 100 and the KICK EQ's gains (LOW +6.2 dB, MID and HIGH flat); ui/kick.c kpre_extra
  * on the kick playing, kmem_extra on a kick memory as it begins */
-static void kt_extra(int8_t *syn, kick_lab_t *lab, float *eq)
+static void kt_extra(uint32_t p, int8_t *syn, kick_lab_t *lab, float *eq)
 {
+    if (p == KICK_PRESET_TERROR)         /* (0.9.35, FLEXOR: TERROR's TAIL MODE CLEAN; SPINE's CLASSIC) */
+        lab->mode = 1u;
     syn[KS_DROP] = 20;
     syn[KS_TIME] = 12;                   /* (120 ms x 2^0.48: 167 ms) */
     syn[KS_SHAPE] = -50;
@@ -934,7 +936,7 @@ static void kmem_extra(uint32_t k)       /* (0.9.33, FLEXOR: kick memory k as it
     klmem_at(k)->pre = (uint8_t)(p + 1u);
     if (p == KICK_PRESET_TERROR || p == KICK_PRESET_SPINE) {
         float e[3];
-        kt_extra(ksmem_at(k), klmem_at(k), e);
+        kt_extra(p, ksmem_at(k), klmem_at(k), e);
         for (i = 0; i < 3u; i++)
             kfxm.k[k % KICK_MEMS].eq[i] = kfx_q(e[i]);
     }
