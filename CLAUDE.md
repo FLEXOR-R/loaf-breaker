@@ -91,6 +91,10 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   Each kick's FX section (EQ B/S, FX1, FX2: set.keq, kfx, kfxx, kmbc) is its own since 0.9.26 (FLEXOR): `kfxm`, 16-bit
   packed, OBJ_KFXM = OBJ_NG0 + 1 (0xBA000), `kfx_put` / `kfx_get` in kick_mem_go and COPY; SAVE writes 9 objects. In the
   KICK menu PRESETS is the kick; SEL + PRESETS K1-K4 SET's function, ASSIGN's style; in its FX section (0.9.29, FLEXOR) PRESETS the effect (FX1, FX2; nothing on EQ B, EQ S), SEL + PRESETS the kick. SEL + ARP there (and on a drum's page) copies, then on another kick pastes (`kick_clip`, `perc_clip` in main.c; `kick_copy_from`), GROOVE elsewhere. SEL + ALGORITHM where ALGORITHM is the break: BREAK TIME (`sel_bt_page`); SEL + PRESETS the kick on HOME, PATTERN, BREAK, MIX, OVERLAY, SYSTEM but SETUP / EFFECTS; SETUP's PRESETS the skin; SEQ's ALGORITHM every lane top to bottom, round (`seq_lane_step`), SELECT the views FULL, DRUMS, SETTINGS (`seq_view_turn`; SETTINGS is GP_FILL: SWING, BREAK ROWS, FOLLOW in bk[17] `BK_SEQ`; 0.9.31, FLEXOR). TRACKS: a DROP item's K1 its build's kick, K3 its STUTTER (`b_stut`, bit 0 of its `trk_brk` byte), K4 GAP KEEPS (`b_gapm`, bits 1-2: NOTHING, BREAK, DRUMS, ECHOES); FLEXOR wants more drop settings later.
+- TERROR, the seventh built-in kick (0.9.32, FLEXOR, chosen by ear: PRD A-54i): `KICK_PRESET_TERROR`, its kick_t part in
+  kick.c PRESET / kick_preset, the rest (SYNTH, TAIL + DRIVE, KICK EQ LOW) in ui/kick.c `kpre_extra`; the kick memories
+  begin as the first six, round (`KICK_PRESETS_MEM`: never `% KICK_PRESETS` for them). Kick listening pages: the host's
+  `kset NAME VALUE` (ui/main.c) sets a kick exactly as its knobs show it.
 - WAVE TYPE (`set.wstyle`: REKORDBOX / SERATO; HOME › SETTINGS K2 alone since 0.9.25, GLO EFFECTS' K3 before; SYSTEM shows
   none of HOME's SETTINGS any more, FLEXOR; common.c serato_col; the kick's RGB and cdj.c) and EDIT
   VIEW (KICK › KNOBS › TOOLS K3 since 0.9.29, SYSTEM › EFFECTS K4 before; `set.kfocus`: the whole kick / the part edited: kick.c kv_ms, kv_kick) (10 Nov 2026, 0.206).

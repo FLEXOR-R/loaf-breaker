@@ -8,7 +8,8 @@
 
 const char *const KICK_LAYER_NAME[KICK_LAYERS] = {"SUB", "PUNCH", "GRIT", "CLICK"};
 const char *const KICK_FX_NAME[KICK_FX] = {"OFF", "DRIVE", "CRUNCH", "FILTER", "RING MOD"};
-const char *const KICK_PRESET_NAME[KICK_PRESETS] = {"909", "TECHNO", "EARLY HC", "ROTTERDAM", "INDUSTRIAL", "DISTORTO"};
+const char *const KICK_PRESET_NAME[KICK_PRESETS] = {"909", "TECHNO", "EARLY HC", "ROTTERDAM", "INDUSTRIAL", "DISTORTO",
+                                                     "TERROR"};
 
 static inline float soft(float x) { return x / (1.0f + brk_absf(x)); }
 
@@ -822,6 +823,8 @@ static const float PRESET[KICK_PRESETS][KICK_LAYERS * 4 + 1] = {
      0.70f},                             /* INDUSTRIAL: metal and noise */
     {0.85f, 0.35f, 0.55f, 0.80f, 0.85f, 0.50f, 0.40f, 0.80f, 0.70f, 0.40f, 0.50f, 0.80f, 0.40f, 0.55f, 0.25f, 0.45f,
      1.00f},                             /* DISTORTO: everything into the clip */
+    {0.90f, 0.30f, 0.92f, 0.60f, 0.70f, 0.45f, 0.45f, 0.70f, 0.00f, 0.30f, 0.55f, 0.70f, 0.35f, 0.60f, 0.20f, 0.50f,
+     0.69f},                             /* TERROR (FLEXOR): ROTTERDAM, the SUB to 1279 ms, no GRIT, DRIVE 69 % */
 };
 
 BRK_COLD void kick_preset(kick_t *k, uint32_t i)
@@ -840,6 +843,10 @@ BRK_COLD void kick_preset(kick_t *k, uint32_t i)
         k->l[l].wet = 1.0f;
     }
     k->intensity = p[KICK_LAYERS * 4u];
+    if (i % KICK_PRESETS == KICK_PRESET_TERROR) {   /* (its SUB through DRIVE at 50 %, DISTO 30 % FOLD) */
+        k->l[KL_SUB].fx = KFX_DRIVE;
+        KICK_TERROR(k) = 30u;
+    }
 }
 
 BRK_COLD void kick_defaults(kick_t *k)

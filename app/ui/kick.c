@@ -127,7 +127,7 @@ static uint32_t kpre_mem(uint32_t slot)  /* (0.9.2, FLEXOR: the PRESET a kick me
                                           * picked, the built-in it began as: settings_defaults' order) */
 {
     const kick_lab_t *l = slot % KICK_MEMS == set.kslot % KICK_MEMS ? &klab.cur : klmem_at(slot % KICK_MEMS);
-    return l->pre ? (uint32_t)(l->pre - 1u) : slot % KICK_PRESETS;
+    return l->pre ? (uint32_t)(l->pre - 1u) : slot % KICK_PRESETS_MEM;
 }
 static void kick_mem_go(uint32_t n)      /* (LOAF BREAKER: KICK n, 0..9, as above; a track item's too) */
 {
@@ -156,7 +156,22 @@ static void kick_mem_go(uint32_t n)      /* (LOAF BREAKER: KICK n, 0..9, as abov
     ui.redraw |= RG_BLOCKS | RG_FOOT;
     changed_kick();
 }
-/* LOAF BREAKER: OUT's K4 PRESET: the built-in kicks (909 .. DISTORTO), then COPY KICK 1..10: that memory's kick, its
+/* LOAF BREAKER (0.9.32, FLEXOR): a built-in kick's part outside kick_t, after the SYNTH and the LAB zeroed: TERROR's
+ * SYNTH (DROP +20, TIME 167 ms, SHAPE -50: a pure sine), TAIL + DRIVE 100 and its KICK EQ (LOW +6.2 dB, MID and HIGH
+ * flat). The others leave the EQ as it was, as always */
+static void kpre_extra(uint32_t p)
+{
+    if (p != KICK_PRESET_TERROR)
+        return;
+    set.ksyn[KS_DROP] = 20;
+    set.ksyn[KS_TIME] = 12;              /* (120 ms x 2^0.48: 167 ms) */
+    set.ksyn[KS_SHAPE] = -50;
+    klab.cur.drive = 100u;
+    set.keq[0] = 0.76f;                  /* (+6.2 dB: (0.76 - 0.5) x 24) */
+    set.keq[1] = set.keq[2] = 0.5f;
+    changed_fx();
+}
+/* LOAF BREAKER: OUT's K4 PRESET: the built-in kicks (909 .. DISTORTO, TERROR), then COPY KICK 1..10: that memory's kick, its
  * SYNTH and its knobs (KNOBS, CLEAN SUB, BASS, MORPH) onto the kick selected, its volume kept */
 #define KPRE_N (KICK_PRESETS + KICK_MEMS)
 static void kpre_text(char *t)
@@ -740,6 +755,7 @@ static void kick_knob_turn(int i, int32_t d)
                 set.ksyn[j] = 0;
             memset(&klab.cur, 0, sizeof klab.cur);   /* (and its KICK LAB off) */
             klab.cur.pre = (uint8_t)(ui.kpreset + 1u);   /* (the PRESET it shows, as its memory's, 0.9.2) */
+            kpre_extra(ui.kpreset);
         } else {                         /* (COPY KICK n: that memory's, if it is another) */
             uint32_t n = ui.kpreset - KICK_PRESETS, j;
             float vol = k->volume;

@@ -454,7 +454,7 @@ static void settings_defaults(void)
     kick_defaults(&set.kick);
     for (k = 0; k < KICK_MEMS; k++) {    /* LOAF BREAKER: the kick memories begin as the built-in kicks (7..10: the
                                           * first four again) */
-        kick_preset(kmem_at(k), k % KICK_PRESETS);
+        kick_preset(kmem_at(k), k % KICK_PRESETS_MEM);
         (*kmem_at(k)).volume = set.kick.volume;
     }
     set.kslot = 3u;                      /* (ROTTERDAM's, set.kick's) */
@@ -959,7 +959,7 @@ static void km2_defaults(void)           /* (KICK 11..20 as they begin: a save f
     uint32_t k;
     km2.magic = KM2_MAGIC;
     for (k = KMEM_A; k < KICK_MEMS; k++) {
-        kick_preset(kmem_at(k), k % KICK_PRESETS);
+        kick_preset(kmem_at(k), k % KICK_PRESETS_MEM);
         kmem_at(k)->volume = set.kick.volume;
         memset(ksmem_at(k), 0, KS_N);
         kx_put(k);
