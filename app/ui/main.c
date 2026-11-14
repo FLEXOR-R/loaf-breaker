@@ -80,6 +80,7 @@ static void kfx_open(int on)             /* to KICK FX (on), or the FX page back
         ui.fx_page = 0u;
     }
 }
+static uint32_t ed_live_t;              /* (LOAF BREAKER 0.9.45: the editor's LIVE view last asked: the scope kept on) */
 static uint8_t lvl_fast;                /* LOAF BREAKER: LFO + K1-K4: the levels by 5 % a detent (the MIXER's own
                                           * page: 2 %) */
 static float lvl_step(int32_t d) { (void)d; return lvl_fast ? 0.05f : 0.02f; }
@@ -1568,8 +1569,8 @@ static float foot_norm(int i)            /* the page's knob i, 0..1, or -1 (no g
                : -1.0f;
     return -1.0f;
 }
-/* the foot: the pads, then the page and its knobs with their values */
-static void draw_foot(const brk_status_t *st)
+/* the page's knob i (0..3) name, as the foot shows it (LOAF BREAKER 0.9.45: the editor's too) */
+static const char *knob_name(int i)
 {
     static const char *const KN[NPAGES][4] = {{"GATE", "FILTER", "DRUM FLT", "SUB DECAY"},
                                               {"CMPLX", "ANCHOR", "ROLL", "FILL"},
@@ -1583,6 +1584,55 @@ static void draw_foot(const brk_status_t *st)
                                               {"AMOUNT", "RATE", "SWEEP", "LATCH"},
                                               {"LOW", "MID", "HIGH", "MID FREQ"},
                                               {"VIEW", "WAVE TYPE", "WAVE ZOOM", "BREAK TIME"}};
+    static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "LEVEL"};   /* (SOUNDS' BREAK) */
+    static const char *const KN_GROOVE[3][4] = {{"FX", "DRUMS", "ARP", "ROLL"}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
+                                                {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
+    static const char *const KN_MORE[3][4] = {{"SKIN", "", "MODE", "AUTO SAVE"},   /* SETUP (K2 WAVE ZOOM: HOME's
+                                      * SETTINGS, 0.9.2) */
+                                              {"EFFECT", "ON / OFF", "", ""},   /* (LOAF BREAKER: EFFECTS, */
+                                              {"AMOUNT", "KICK", "DROP", "LENGTH"}};   /* FX SET) */
+    static const char *const KN_TRK[4][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
+                                             {"STYLE", "SWEEP", "RISER", "GAP"}, {"", "RESET", "", "WHAT"}};
+    static const char *const KN_FILL[4] = {"SWING", "BREAK ROWS", "FOLLOW", ""};   /* (LOAF BREAKER: GROOVE; 0.244 FILL gone) */
+    static const char *const KN_BK[2][4] = {{"PRESET", "KEY", "EFFECT", ""}, {"", "", "", ""}};   /* (ARP's
+                                      * BLACK KEYS, MORE) */
+    const char *name = ui.page == PG_OVL && ui.opage ? KN_BK[(ui.opage - 1u) & 1u][i] :
+                       ui.page == PG_GLOBAL && ui.gpage == GP_FILL ? KN_FILL[i] : RST_ON ? KN_TRK[3][i] : ui.page == PG_TRACK &&
+                       ui.tpage ? KN_TRK[ui.tpage == 4u ? 2u : (ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
+                       ui.gpage >= 2u ? KN_MORE[(ui.gpage - 2u) % 3u][i] : ui.page == PG_GLOBAL && ui.gpage
+                       ? KN_PITCH[i] : ui.page == PG_MIX && ui.mpage
+                       ? KN_GROOVE[ui.mpage >= 3u ? 2u : ui.mpage == 2u][i] : KN[ui.page][i];
+    if (ui.page == PG_TRACK && !ui.tpage && !RST_ON && i >= 2 && trk_now()->it[ui.trk_cur % TRK_ITEMS] == TI_DROP)
+        name = i == 2 ? "STUTTER" : "GAP KEEPS";   /* (0.9.26: a DROP item's K3, K4) */
+    if (ui.page == PG_FX)            /* the focused slot's effect: its settings, then MIX */
+        name = fx_param_name(ui.fx_focus, (int)i);
+    else if (ui.page == PG_KICK)
+        name = kick_knob_name((int)i);
+    else if (ui.page == PG_PERC)
+        name = perc_kname(ui.pvoice, perc_pg(), (int)i);
+    else if (ui.page == PG_KEQ)
+        name = KEQ_NAME[ui.keq_part & 1u][i];
+    else if (ui.page == PG_SEQ && SEQ_BRK)
+        name = i == 3 ? "STEPS" : "";   /* (LOAF BREAKER, 0.234: BREAK, K4 its rows shown) */
+    else if (ui.page == PG_SEQ && ui.seq_lane >= SL_KICK) {
+        static const char *const KN_LANE[2][4] = {{"FILL", "SOUND", "CLR / 4X4", "LENGTH"},
+                                                  {"NOTE", "HITS", "COND", "NUDGE"}};   /* (LOAF BREAKER: a
+                                      * step held, its own; K2 what the lane plays: KICK, the drum's SOUND) */
+        name = KN_LANE[ui.note_key != 0u][i];
+        if (!ui.note_key && i == 1)
+            name = sl_kick(ui.seq_lane) ? "KICK" : "SOUND";
+        if (set.novice)              /* (LOAF BREAKER: BEGINNER, no step menu) */
+            name = KN_LANE[0][i];
+        if (set.novice && i == 1)
+            name = sl_kick(ui.seq_lane) ? "KICK" : "SOUND";
+    }
+    if (ui.page == PG_GLOBAL && !ui.gpage && i == 2 && !set.novice)
+        name = "METER";              /* (LOAF BREAKER, 0.213: SYSTEM › MIDI K3, EXPERT only) */
+    return name ? name : "";
+}
+/* the foot: the pads, then the page and its knobs with their values */
+static void draw_foot(const brk_status_t *st)
+{
     uint32_t i;
     char t[16];
     draw_tabs();
@@ -1595,26 +1645,7 @@ static void draw_foot(const brk_status_t *st)
         cv_text(x + (20 - text_w(&FONT_T, BKF_NAME[f])) / 2, 1, &FONT_T, BKF_NAME[f], on ? C_BLACK : C_GRAY);
     }
     for (i = 0; i < 4u; i++) {
-        static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "LEVEL"};   /* (SOUNDS' BREAK) */
-        static const char *const KN_GROOVE[3][4] = {{"FX", "DRUMS", "ARP", "ROLL"}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
-                                                    {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
-        static const char *const KN_MORE[3][4] = {{"SKIN", "", "MODE", "AUTO SAVE"},   /* SETUP (K2 WAVE ZOOM: HOME's
-                                          * SETTINGS, 0.9.2) */
-                                                  {"EFFECT", "ON / OFF", "", ""},   /* (LOAF BREAKER: EFFECTS, */
-                                                  {"AMOUNT", "KICK", "DROP", "LENGTH"}};   /* FX SET) */
-        static const char *const KN_TRK[4][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
-                                                 {"STYLE", "SWEEP", "RISER", "GAP"}, {"", "RESET", "", "WHAT"}};
-        static const char *const KN_FILL[4] = {"SWING", "BREAK ROWS", "FOLLOW", ""};   /* (LOAF BREAKER: GROOVE; 0.244 FILL gone) */
-        static const char *const KN_BK[2][4] = {{"PRESET", "KEY", "EFFECT", ""}, {"", "", "", ""}};   /* (ARP's
-                                          * BLACK KEYS, MORE) */
-        const char *name = ui.page == PG_OVL && ui.opage ? KN_BK[(ui.opage - 1u) & 1u][i] :
-                           ui.page == PG_GLOBAL && ui.gpage == GP_FILL ? KN_FILL[i] : RST_ON ? KN_TRK[3][i] : ui.page == PG_TRACK &&
-                           ui.tpage ? KN_TRK[ui.tpage == 4u ? 2u : (ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
-                           ui.gpage >= 2u ? KN_MORE[(ui.gpage - 2u) % 3u][i] : ui.page == PG_GLOBAL && ui.gpage
-                           ? KN_PITCH[i] : ui.page == PG_MIX && ui.mpage
-                           ? KN_GROOVE[ui.mpage >= 3u ? 2u : ui.mpage == 2u][i] : KN[ui.page][i];
-        if (ui.page == PG_TRACK && !ui.tpage && !RST_ON && i >= 2u && trk_now()->it[ui.trk_cur % TRK_ITEMS] == TI_DROP)
-            name = i == 2u ? "STUTTER" : "GAP KEEPS";   /* (0.9.26: a DROP item's K3, K4) */
+        const char *name = knob_name((int)i);
         if (ui.sel_foot) {               /* LOAF BREAKER (0.258, FLEXOR): SEL held or locked (SEL x2): the knobs are
                                           * SEL + K1-K4's, their functions (EDIT KICK › KNOBS) and their values */
             selk_value(selk_fn(i), 0, t);
@@ -1650,30 +1681,6 @@ static void draw_foot(const brk_status_t *st)
             cv_text(4 + (int32_t)i * 60, 30, &FONT_XS, t, C_WHITE);
             continue;
         }
-        if (ui.page == PG_FX)            /* the focused slot's effect: its settings, then MIX */
-            name = fx_param_name(ui.fx_focus, (int)i);
-        else if (ui.page == PG_KICK)
-            name = kick_knob_name((int)i);
-        else if (ui.page == PG_PERC)
-            name = perc_kname(ui.pvoice, perc_pg(), (int)i);
-        else if (ui.page == PG_KEQ)
-            name = KEQ_NAME[ui.keq_part & 1u][i];
-        else if (ui.page == PG_SEQ && SEQ_BRK)
-            name = i == 3 ? "STEPS" : "";   /* (LOAF BREAKER, 0.234: BREAK, K4 its rows shown) */
-        else if (ui.page == PG_SEQ && ui.seq_lane >= SL_KICK) {
-            static const char *const KN_LANE[2][4] = {{"FILL", "SOUND", "CLR / 4X4", "LENGTH"},
-                                                      {"NOTE", "HITS", "COND", "NUDGE"}};   /* (LOAF BREAKER: a
-                                          * step held, its own; K2 what the lane plays: KICK, the drum's SOUND) */
-            name = KN_LANE[ui.note_key != 0u][i];
-            if (!ui.note_key && i == 1)
-                name = sl_kick(ui.seq_lane) ? "KICK" : "SOUND";
-            if (set.novice)              /* (LOAF BREAKER: BEGINNER, no step menu) */
-                name = KN_LANE[0][i];
-            if (set.novice && i == 1)
-                name = sl_kick(ui.seq_lane) ? "KICK" : "SOUND";
-        }
-        if (ui.page == PG_GLOBAL && !ui.gpage && i == 2u && !set.novice)
-            name = "METER";              /* (LOAF BREAKER, 0.213: SYSTEM › MIDI K3, EXPERT only) */
         if (!trk_knob_ok((int)i) || !glo_knob_ok((int)i))   /* (LOAF BREAKER: BEGINNER, a knob it leaves out: blank) */
             continue;
         cv_text(4 + (int32_t)i * 60, 18, &FONT_T, name, ui.page == PG_FX
@@ -1998,7 +2005,8 @@ void app_frame(void)
         ui.last_keys = ui.keys;
         ui.redraw |= RG_BLOCKS;
     }
-    scope_on = (uint8_t)(ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_KICK);   /* (LOAF BREAKER: the
+    scope_on = (uint8_t)(ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_KICK ||
+                         (ed_live_t && plat_ms() - ed_live_t < 1500u));   /* (0.9.45: the editor's LIVE view) */   /* (LOAF BREAKER: the
                                           * scrolling wave's work in the render, only where it shows) */
     if (ui.page == PG_GLOBAL && now - ui.panel_drawn >= 200u)   /* the GLOBAL page's panel: five times a second */
         ui.redraw |= RG_BLOCKS;
@@ -2243,11 +2251,9 @@ static uint32_t unpack7(const uint8_t *s, uint32_t n, uint8_t *d)
             d[k++] = (uint8_t)(s[i + j] | ((s[i] >> (j - 1u)) & 1u) << 7);
     return k;
 }
-static void cu_reply(uint32_t cmd, uint32_t code, const uint8_t *d, uint32_t n)
+static void cu_reply_in(uint8_t *f, uint32_t cmd, uint32_t code, const uint8_t *d, uint32_t n)
 {
-    uint8_t *f = (uint8_t *)(void *)cv_px;   /* (LOAF BREAKER: no demo: the canvas, a frame drawn again after) */
     uint32_t k;
-    lcd_sync();
     f[0] = 0xF0;
     f[1] = 0x7D;
     f[2] = 0x43;
@@ -2257,6 +2263,11 @@ static void cu_reply(uint32_t cmd, uint32_t code, const uint8_t *d, uint32_t n)
     k = 6u + pack7(d, n, f + 6);
     f[k++] = 0xF7;
     (void)plat_sysex_send(f, k);
+}
+static void cu_reply(uint32_t cmd, uint32_t code, const uint8_t *d, uint32_t n)
+{
+    lcd_sync();                          /* (LOAF BREAKER: no demo: the canvas, a frame drawn again after) */
+    cu_reply_in((uint8_t *)(void *)cv_px, cmd, code, d, n);
 }
 static uint32_t rd32(const uint8_t *p) { return p[0] | p[1] << 8 | p[2] << 16 | (uint32_t)p[3] << 24; }
 void app_redraw(void)                    /* (LOAF BREAKER 0.9.44: the mirror lost a part: every row sent again) */
@@ -2408,8 +2419,10 @@ static int ed_sysex(uint32_t cmd, const uint8_t *u, uint32_t len)
             int ok = store_all();
             set_dirty = 0u;
             app_say("SAVE", ok ? "DONE" : "FAILED");
-        } else if (u[0] == 4u)
-            transport(!playing_now(), 1);
+        } else if (u[0] == 4u) {
+            transport(!playing_now(), 0);   /* (as PLAY) */
+            muted = 0u;
+        }
         cmd = 7u;
     }
     if (cmd == 7u) {                     /* ED_INFO */
@@ -2591,6 +2604,358 @@ static int ed_step(const uint8_t *u)
     ui.redraw |= RG_ALL;
     return ok;
 }
+/* LOAF BREAKER (0.9.45, FLEXOR: "gérer séquenceur, banque de patterns et tracks ... comme si j'utilisais un DAW"): the
+ * editor's rest, cmd 13 (ED_X), its first byte what: 1 STATUS {1, scope wanted, since u32} -> {1, 1, playing, tempo x10
+ * u16, ext clock, break, breaks, break step, bar64, pattern, next, track, track on, its item, bars done u16, of u16,
+ * drop in int8, kick, novice, unsaved (bit 0 settings, bit 1 patterns), BREAK TIME half, WAVE TYPE, scope_w u32, bar
+ * u16, columns, each {lows, mids, highs, peak}} (no canvas: the screen left alone, so it may come often); 2 PAGE {2,
+ * page, a, b, knob, delta} any page's knobs as the foot shows them (MIX a its part; SONG a its part, b the item; SYSTEM a
+ * its part, never RESET; ARP a its tab, b the black key; FX a the slot, b its part; HOME, GENERATOR, SETTINGS), turned
+ * by knob_turn (FX: knob 4 the effect, 5 on / off) -> {2, page, a, b, 4 x {name 12, text 16, bar 0..200 or 255}, FX: its
+ * effect 12, on, part, parts, each 8}; 3 TRACK {3, track} -> {3, track, the track picked, on, its item, end, from, it
+ * 32, rep 32, break 32, kick 32}; 4 TRACK WRITE {4, track, end, from, it, rep, break, kick} -> as 3; 5 TRACK PLAY {5, 1
+ * play / 2 stop / 3 pick, track}; 6 BANK {6, group} -> {6, group, 16 x {bars 4, masks 4 x 4 u16, break steps u32}};
+ * 7 RGB {7, what (0 the kick, 1..3 SN HH CP, 4 the break), ms u16} -> {7, what, 240 x {lows, mids, highs, peak}; the
+ * break: bars, slices, each its column, name 12}; 8 TRANSPORT {8, op, value u16}: 1 tempo (x10), 2 the break, 3 PLAY
+ * / STOP, 4 the breaks' names -> STATUS, the names {8, n, each 12} */
+static uint32_t edx_status(uint8_t *o, const uint8_t *u, uint32_t len)
+{
+    brk_status_t st;
+    uint32_t k = 0u, w = scope_w, from, done = 0u, total = 0u, c;
+    int32_t din = -1;
+    brk_status(&st);
+    o[k++] = 1u;
+    o[k++] = 1u;
+    o[k++] = (uint8_t)playing_now();
+    o[k++] = (uint8_t)set.tempo_x10;
+    o[k++] = (uint8_t)(set.tempo_x10 >> 8);
+    o[k++] = (uint8_t)ext_active();
+    o[k++] = set.brk;
+    o[k++] = (uint8_t)n_breaks;
+    o[k++] = (uint8_t)(st.playing && st.step >= 0 ? st.step % (int32_t)PAT_STEPS : 0xFF);
+    o[k++] = (uint8_t)(st.playing && st.bar64 >= 0 ? st.bar64 : 0xFF);
+    o[k++] = (uint8_t)pat_cur();
+    o[k++] = (uint8_t)(pat_next >= 0 ? pat_next : 0xFF);
+    o[k++] = set.trk;
+    (void)trk_where(&st, &done, &total, &din);
+    o[k++] = ui.trk_on;
+    o[k++] = ui.trk_pos;
+    o[k++] = (uint8_t)done;
+    o[k++] = (uint8_t)(done >> 8);
+    o[k++] = (uint8_t)total;
+    o[k++] = (uint8_t)(total >> 8);
+    o[k++] = (uint8_t)(int8_t)(din > 127 ? 127 : din);
+    o[k++] = (uint8_t)(set.kslot % KICK_MEMS);
+    o[k++] = set.novice;
+    o[k++] = (uint8_t)((set_dirty ? 1u : 0u) | (grp_changed() ? 2u : 0u));
+    o[k++] = (uint8_t)(set.bkeys.bk[BK_BHALF] & 1u);
+    o[k++] = set.wstyle;
+    o[k++] = (uint8_t)w;
+    o[k++] = (uint8_t)(w >> 8);
+    o[k++] = (uint8_t)(w >> 16);
+    o[k++] = (uint8_t)(w >> 24);
+    o[k++] = (uint8_t)st.bar;
+    o[k++] = (uint8_t)(st.bar >> 8);
+    from = w;
+    if (len >= 6u && u[1]) {             /* (the LIVE view: the columns since the last asked, 96 at most) */
+        uint32_t since = rd32(u + 2);
+        ed_live_t = plat_ms() | 1u;
+        from = w - since <= 96u ? since : w - 96u;
+    }
+    o[k++] = (uint8_t)(w - from);
+    for (c = from; c != w; c++) {
+        const uint8_t *v = scope[c % SCOPE_N];
+        o[k++] = v[0];
+        o[k++] = v[1];
+        o[k++] = v[2];
+        o[k++] = v[3];
+    }
+    return k;
+}
+typedef struct { uint8_t page, mpage, tpage, gpage, opage, bk, fxf, fxp, fxm, trk, novice; } edx_ctx_t;
+static int edx_page(const uint8_t *u, uint32_t len, uint8_t *o, uint32_t *n)
+{
+    edx_ctx_t c = {ui.page, ui.mpage, ui.tpage, ui.gpage, ui.opage, ui.bk_sel, ui.fx_focus, ui.fx_page, ui.fx_main,
+                   ui.trk_cur, set.novice};
+    uint32_t pg = u[1], a = u[2], b = u[3], k = 0u, i;
+    int32_t d = len >= 6u ? (int8_t)u[5] : 0;
+    int ok = 1;
+    set.novice = 0u;
+    ui.page = (uint8_t)pg;
+    if (pg == PG_MIX)
+        ui.mpage = (uint8_t)(a % 4u);
+    else if (pg == PG_TRACK) {
+        ui.tpage = (uint8_t)(a % 5u);
+        ui.trk_cur = (uint8_t)(b % TRK_ITEMS);
+    } else if (pg == PG_GLOBAL)
+        ok = a < 7u && a != 5u ? (ui.gpage = (uint8_t)a, 1) : 0;   /* (never RESET) */
+    else if (pg == PG_OVL) {
+        ui.opage = (uint8_t)(a % 2u);
+        ui.bk_sel = (uint8_t)(b % 11u);
+    } else if (pg == PG_FX) {
+        if (a < BRK_FX_ALL) {
+            uint32_t np;
+            ui.fx_focus = (uint8_t)a;
+            np = fx_npages(fx_sl(fx_foc())->type);
+            ui.fx_page = (uint8_t)(b < np ? b : 0u);
+        } else
+            ok = 0;
+    } else if (pg != PG_HOME && pg != PG_GEN && pg != PG_HSET)
+        ok = 0;                          /* (the kick, the drums, SEQ: their own commands) */
+    if (ok && d) {
+        if (pg == PG_FX && u[4] == 4u) {
+            fx_type_turn(d);
+            ui.fx_page = 0u;
+        } else if (pg == PG_FX && u[4] == 5u) {
+            brk_fxslot_t *sl = fx_sl(fx_foc());
+            if (sl->type != FXT_EMPTY && sl->on != (d > 0)) {
+                sl->on = (uint8_t)(d > 0);
+                app_say(BRK_FXT_NAME[sl->type], sl->on ? "ON" : "BYPASS");
+                changed();
+            }
+        } else if (u[4] < 4u)
+            knob_turn(EN_K1 + (int)u[4], d);
+    }
+    o[k++] = 2u;
+    o[k++] = (uint8_t)pg;
+    o[k++] = ui.page == PG_MIX ? ui.mpage : ui.page == PG_TRACK ? ui.tpage : ui.page == PG_GLOBAL ? ui.gpage :
+             ui.page == PG_OVL ? ui.opage : ui.page == PG_FX ? ui.fx_focus : 0u;
+    o[k++] = ui.page == PG_TRACK ? ui.trk_cur : ui.page == PG_OVL ? ui.bk_sel : ui.page == PG_FX ? ui.fx_page : 0u;
+    for (i = 0; i < 4u; i++, k += 29u) {
+        char t[24];
+        float f;
+        if (!ok) {
+            memset(o + k, 0, 29u);
+            continue;
+        }
+        t[0] = 0;
+        knob_value((int)i, t);
+        ed_str(o + k, knob_name((int)i), 12u);
+        ed_str(o + k + 12u, t, 16u);
+        if (pg == PG_FX && mb_detail(fx_foc()))
+            f = ui.fx_page == MBP_GAIN && i == 3u ? (float)mbc_at(fx_foc())->solo / (float)MB_BANDS
+                                                  : *mb_knob_val(mbc_at(fx_foc()), (int)i);
+        else if (pg == PG_FX && x_detail(fx_foc()))
+            f = fxx_of(fx_foc())->x[i + (ui.fx_page == XP_MOD ? 4u : 0u)];
+        else
+            f = foot_norm((int)i);
+        o[k + 28u] = f < 0.0f ? 255u : (uint8_t)(brk_clampf(f, 0.0f, 1.0f) * 200.0f + 0.5f);
+    }
+    if (ok && pg == PG_FX) {
+        uint32_t np = fx_npages(fx_sl(fx_foc())->type), m;
+        k += ed_str(o + k, fx_name(fx_foc()), 12u);
+        o[k++] = (uint8_t)fx_sl(fx_foc())->on;
+        o[k++] = ui.fx_page;
+        o[k++] = (uint8_t)np;
+        for (m = 0; m < np; m++)
+            k += ed_str(o + k, fx_sl(fx_foc())->type == FXT_MBCOMP ? MBP_NAME[m % NMBP] : XP_NAME[m % NXP], 8u);
+    }
+    ui.page = c.page; ui.mpage = c.mpage; ui.tpage = c.tpage; ui.gpage = c.gpage; ui.opage = c.opage; ui.bk_sel = c.bk;
+    ui.fx_focus = c.fxf; ui.fx_page = c.fxp; ui.fx_main = c.fxm; ui.trk_cur = c.trk; set.novice = c.novice;
+    ui.redraw |= RG_ALL;
+    *n = k;
+    return ok;
+}
+static uint32_t edx_track(uint32_t tn, uint8_t *o)
+{
+    const track_t *t = &pats.trk[tn % NTRACKS];
+    uint32_t k = 0u, i;
+    o[k++] = 3u;
+    o[k++] = (uint8_t)(tn % NTRACKS);
+    o[k++] = set.trk;
+    o[k++] = ui.trk_on;
+    o[k++] = ui.trk_pos;
+    o[k++] = t->end;
+    o[k++] = t->rsv[0];
+    for (i = 0; i < TRK_ITEMS; i++)
+        o[k + i] = t->it[i];
+    k += TRK_ITEMS;
+    for (i = 0; i < TRK_ITEMS; i++)
+        o[k + i] = t->rep[i];
+    k += TRK_ITEMS;
+    for (i = 0; i < TRK_ITEMS; i++)
+        o[k + i] = steps.tb[tn % NTRACKS][i];
+    k += TRK_ITEMS;
+    for (i = 0; i < TRK_ITEMS; i++)
+        o[k + i] = steps.tk[tn % NTRACKS][i];
+    k += TRK_ITEMS;
+    o[k++] = (uint8_t)(pat_len() / 16u);      /* (a pattern's loop, in bars; a drop's build: DROP's BUILD) */
+    o[k++] = DROP_BARS[set.drop_bars % 5u];
+    return k;
+}
+static void edx_track_write(const uint8_t *u, uint32_t len)   /* (the page's whole track, each item checked) */
+{
+    track_t *t = &pats.trk[u[1] % NTRACKS];
+    uint32_t i, n = 0u, tn = u[1] % NTRACKS;
+    const uint8_t *it = u + 4, *rp = it + TRK_ITEMS, *tb = rp + TRK_ITEMS, *tk = tb + TRK_ITEMS;
+    if (len < 4u + 4u * TRK_ITEMS)
+        return;
+    for (i = 0; i < TRK_ITEMS; i++) {
+        uint8_t v = it[i];
+        int pat = v >= 1u && v <= NPAT_ALL;
+        if (n < i || !(pat || v == TI_DROP || v == TI_GAP))
+            v = TI_END;                  /* (nothing after an END) */
+        else
+            n = i + 1u;
+        t->it[i] = v;
+        t->rep[i] = (uint8_t)(rp[i] >= 1u && rp[i] <= 16u ? rp[i] : 1u);
+        steps.tb[tn][i] = v == TI_DROP ? (uint8_t)(tb[i] & 7u) : pat && tb[i] <= n_breaks ? tb[i] : 0u;
+        steps.tk[tn][i] = pat || v == TI_DROP ? (uint8_t)(tk[i] <= KICK_MEMS ? tk[i] : 0u) : 0u;
+    }
+    t->end = (uint8_t)(u[2] <= 2u ? u[2] : 0u);
+    t->rsv[0] = (uint8_t)(u[3] < n ? u[3] : 0u);
+    if (ui.trk_on && tn == set.trk % NTRACKS && ui.trk_pos >= n)
+        track_stop("CHANGED");
+    set_dirty = 1u;
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
+static uint32_t edx_bank(uint32_t g, uint8_t *o)   /* (16 patterns' pictures: the group in RAM, or another read in) */
+{
+    pat_t *ps = pats.p;
+    uint32_t k = 0u, i, d, b, j;
+    g %= NGRP;
+    if (g != set.pgrp % NGRP) {
+        ps = (pat_t *)(void *)((uint8_t *)(void *)cv_px + 8192u);
+        if (!grp_has(g) || plat_store_load(OBJ_PG0 + g, ps, sizeof pats.p) != (int)sizeof pats.p) {
+            o[k++] = 6u;
+            o[k++] = (uint8_t)g;
+            memset(o + k, 0, 16u * 40u);   /* (none saved: empty) */
+            return k + 16u * 40u;
+        }
+    }
+    o[k++] = 6u;
+    o[k++] = (uint8_t)g;
+    for (i = 0; i < NPAT; i++) {
+        const pat_t *p = &ps[i];
+        uint32_t bm = 0u;
+        if (ps != pats.p) {              /* (another group's: its drums' bars 3, 4 found as a drop's) */
+            dx_tp = p;
+            dx_tg = (uint8_t)g;
+            dx_ts = (uint8_t)i;
+        }
+        for (d = 0; d < NDRUMS; d++)
+            o[k++] = (uint8_t)drum_bars(p, d);
+        for (d = 0; d < NDRUMS; d++)
+            for (b = 0; b < 4u; b++) {
+                uint32_t m = drum_bar(p, d, b);
+                o[k++] = (uint8_t)m;
+                o[k++] = (uint8_t)(m >> 8);
+            }
+        for (j = 0; j < PAT_STEPS; j++)
+            if (p->st[j][0])
+                bm |= 1u << j;
+        o[k++] = (uint8_t)bm;
+        o[k++] = (uint8_t)(bm >> 8);
+        o[k++] = (uint8_t)(bm >> 16);
+        o[k++] = (uint8_t)(bm >> 24);
+    }
+    dx_tp = 0;
+    return k;
+}
+static uint32_t edx_rgb(const uint8_t *u, uint8_t *o)
+{
+    uint32_t what = u[1], ms = (uint32_t)u[2] | (uint32_t)u[3] << 8, k = 0u, i;
+    uint8_t (*col)[4] = (uint8_t (*)[4])(void *)(o + 2);
+    ms = ms < 50u ? 50u : ms > 2000u ? 2000u : ms;
+    o[k++] = 7u;
+    o[k++] = (uint8_t)what;
+    if (what == 0u)
+        kick_rgb(&set.kick, col, 240u, ms);
+    else if (what <= 3u)
+        perc_rgb(what - 1u, perc_voice(what - 1u), col, 240u, ms);
+    else {                               /* the break playing, whole, its bands as the CDJ view's (app.c's scope) */
+        const brk_break_t *bb = brk_get_break();
+        memset(col, 0, 240u * 4u);
+        if (bb && bb->len) {
+            float l1 = 0.0f, l2 = 0.0f, a1 = 0.0285f * 44100.0f / (float)bb->rate,
+                  a2 = brk_clampf(0.356f * 44100.0f / (float)bb->rate, 0.0f, 1.0f), pk[4] = {0};
+            static const float G[4] = {300.0f, 380.0f, 520.0f, 255.0f};
+            uint32_t c = 0u, j;
+            for (i = 0; i < bb->len; i++) {
+                float x = (float)bb->pcm[i] * (1.0f / 32768.0f), v[4];
+                l1 += (x - l1) * a1;
+                l2 += (x - l2) * a2;
+                v[0] = brk_absf(l1);
+                v[1] = brk_absf(l2 - l1);
+                v[2] = brk_absf(x - l2);
+                v[3] = brk_absf(x);
+                for (j = 0; j < 4u; j++)
+                    if (v[j] > pk[j])
+                        pk[j] = v[j];
+                if ((i + 1u) * 240u / bb->len != c || i + 1u == bb->len) {
+                    for (j = 0; j < 4u; j++) {
+                        col[c % 240u][j] = (uint8_t)brk_clampf(pk[j] * G[j], 0.0f, 255.0f);
+                        pk[j] = 0.0f;
+                    }
+                    c = (i + 1u) * 240u / bb->len;
+                }
+            }
+        }
+        k += 240u * 4u;
+        o[k++] = (uint8_t)(bb ? bb->bars : 0u);
+        o[k++] = (uint8_t)(bb ? bb->nslices : 0u);
+        for (i = 0; bb && i < bb->nslices && i < BRK_MAX_SLICES; i++)
+            o[k++] = (uint8_t)(bb->slice[i] * 240u / bb->len);
+        k += ed_str(o + k, bb ? break_name(set.brk) : "", 12u);
+        return k;
+    }
+    return k + 240u * 4u;
+}
+static int edx_sysex(const uint8_t *u, uint32_t len)
+{
+    uint8_t *o = (uint8_t *)(void *)cv_px + 1024u;
+    uint32_t n = 0u;
+    int ok = 1;
+    if (len < 2u)
+        return 0;
+    if (u[0] == 2u && len >= 5u)
+        ok = edx_page(u, len, o, &n);
+    else if (u[0] == 3u)
+        n = edx_track(u[1], o);
+    else if (u[0] == 4u) {
+        edx_track_write(u, len);
+        n = edx_track(u[1], o);
+    } else if (u[0] == 5u) {
+        if (u[1] == 1u) {
+            set.trk = (uint8_t)(u[2] % NTRACKS);
+            track_play(0);
+        } else if (u[1] == 2u && ui.trk_on)
+            track_stop("STOPPED");
+        else if (u[1] == 3u) {
+            set.trk = (uint8_t)(u[2] % NTRACKS);
+            ui.trk_cur = 0u;
+            changed();
+        }
+        n = edx_track(set.trk, o);
+    } else if (u[0] == 6u)
+        n = edx_bank(u[1], o);
+    else if (u[0] == 7u && len >= 4u)
+        n = edx_rgb(u, o);
+    else if (u[0] == 8u && len >= 4u) {
+        uint32_t v = (uint32_t)u[2] | (uint32_t)u[3] << 8;
+        if (u[1] == 4u) {                /* the breaks' names */
+            uint32_t i;
+            o[n++] = 8u;
+            o[n++] = (uint8_t)n_breaks;
+            for (i = 0; i < n_breaks && i < 40u; i++)
+                n += ed_str(o + n, break_name(i), 12u);
+        } else {
+            if (u[1] == 1u && !ext_active()) {
+                set.tempo_x10 = (uint16_t)clamp((int32_t)v, 400, 3000);
+                changed();
+            } else if (u[1] == 2u && v < n_breaks)
+                break_ask(v);
+            else if (u[1] == 3u) {       /* (as PLAY) */
+                transport(!playing_now(), 0);
+                muted = 0u;
+            }
+            n = edx_status(o, u, 0u);
+        }
+    } else
+        return 0;
+    cu_reply(13u, ok ? 0u : 2u, o, n);
+    return 1;
+}
 int app_sysex(const uint8_t *p, uint32_t n)
 {
     uint8_t *u = (uint8_t *)(void *)cv_px, a[16];   /* (the canvas, its last blit done: lcd_sync) */
@@ -2601,12 +2966,22 @@ int app_sysex(const uint8_t *p, uint32_t n)
     z = p[3] >> 4 & 7u;
     if (z >= CU_NZ)
         return 0;
+    if (!z && cmd == 13u && n >= 6u && n <= 20u) {   /* (the editor's STATUS: small, often; the canvas left alone) */
+        uint8_t q[16], o[32u + 96u * 4u], f[8u + (32u + 96u * 4u) * 8u / 7u + 8u];
+        uint32_t m = unpack7(p + 4, n - 4u, q);
+        if (q[0] == 1u) {
+            cu_reply_in(f, 13u, 0u, o, edx_status(o, q, m));
+            return 1;
+        }
+    }
     lcd_sync();
     ui.idle_t = plat_ms();
     ui.redraw |= RG_ALL;                 /* (the canvas taken: the screen drawn again) */
     len = unpack7(p + 4, n - 4u > 600u ? 600u : n - 4u, u);
     if (!z && cmd >= 7u && cmd <= 10u)   /* (LOAF BREAKER 0.9.45: the sound editor, any time) */
         return ed_sysex(cmd, u, len) || 1;
+    if (!z && cmd == 13u)                /* (the rest: pages, tracks, the patterns, RGB, transport) */
+        return edx_sysex(u, len) || 1;
     if (!z && cmd == 11u) {              /* (its sequencer) */
         ed_seq(0u);
         return 1;

@@ -17,7 +17,7 @@ each: AMEN20 164, AMEN19 172, UPDOWN 165, DETEST 175, LOUDER 175, SATAN 200, PAN
 - [Install](install/) From Chrome or Edge, with the FM-1 connected by USB.
 - [Manual](manual/) Start in five minutes, then the kick, the sequencer, the tracks and drops, the pads, the effects.
 - [Controls](manual/#controls) The control map: every page's buttons and knobs, to explore.
-- [Editor](editor/) The kick and the drums, every setting on one screen, turned from the computer over USB (Chrome or Edge).
+- [Studio](editor/) The whole FM-1 on the computer, as a DAW: the kick and the drums with every setting at once, the sequencer, the 64 patterns, the tracks of your set on a timeline, the effects and the mix, the waveforms in RGB and the mix scrolling live (USB, Chrome or Edge).
 - [Mirror](mirror/) The FM-1's screen and panel live on your computer over USB (Chrome or Edge): see it big, record it, play the panel from the computer.
 - [Breaks](breaks/) The library's breaks to hear (over ninety, FLEXOR's hardcore breaks among them), and yours sent to the FM-1.
 - [Source](https://github.com/FLEXOR-R/loaf-breaker) The code (MPL-2.0) and every version's .fwsc.
