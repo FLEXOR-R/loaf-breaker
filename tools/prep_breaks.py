@@ -21,6 +21,7 @@ import argparse
 import array
 import json
 import math
+import re
 import struct
 import sys
 import wave
@@ -234,6 +235,12 @@ def level(x, rate, target_db, ceiling=0.98):
     return out, 20.0 * math.log10(g), -20.0 * math.log10(most)
 
 
+def name_loud(field):
+    """a catalogue line's NAME and its own loudness: "AKIRA 190 @0" -> ("AKIRA 190", 0.0); none -> (NAME, None)"""
+    m = re.match(r"^(.*?)\s+@([+-]?\d+(?:\.\d+)?)\s*$", field.strip())
+    return (m.group(1).strip(), float(m.group(2))) if m else (field.strip(), None)
+
+
 def read_list(path):
     """the catalogue's lines marked *, as specs FILE:BPM:BARS:NAME (FILE resolved) and the FILE as written"""
     specs = []
@@ -244,8 +251,9 @@ def read_list(path):
         if len(f) < 6 or f[0] not in ("*", "-", "*=", "-="):
             raise SystemExit(f"{path}:{n}: expected IN FILE BPM BARS OF NAME, IN * or - (*= or -=: slices on an even grid)")
         if f[0].startswith("*"):
-            specs.append((f"{Path(path).parent / f[1]}:{f[2]}:{f[3]}:{f[5].strip()}" + (":grid" if f[0].endswith("=") else ""),
-                          f[1]))
+            name, loud = name_loud(f[5])
+            specs.append((f"{Path(path).parent / f[1]}:{f[2]}:{f[3]}:{name}" + (":grid" if f[0].endswith("=") else "") +
+                          (f":loud={loud}" if loud is not None else ""), f[1]))
     if not specs:
         raise SystemExit(f"{path}: no line marked *")
     return specs
@@ -257,8 +265,10 @@ def prepare(spec, args, shown=None):
     bpm = float(parts[1]) if len(parts) > 1 and parts[1] else None
     bars = int(parts[2]) if len(parts) > 2 and parts[2] else args.bars
     given = parts[3] if len(parts) > 3 else None
-    transients = args.transients and not (len(parts) > 4 and parts[4] == "grid")   # (LOAF BREAKER 0.9.34: a break
-                                             # marked *= or -= in the catalogue: an even grid, the BREAKS page's EVEN GRID)
+    extra = parts[4:]                        # (LOAF BREAKER 0.9.34: "grid", a break marked *= or -= in the catalogue: an even
+    transients = args.transients and "grid" not in extra   # grid, the BREAKS page's EVEN GRID; 0.9.35 "loud=X": its own
+    loud = next((float(e[5:]) for e in extra if e.startswith("loud=")), args.loudness)   # loudness, NAME @X there; @0 its
+                                             # file's own level, the peaks to full scale)
     x, rate = read_wav(path)
     if bpm is None:                          # the file is whole bars
         bpm = 240.0 * bars / (len(x) / rate)
@@ -266,8 +276,8 @@ def prepare(spec, args, shown=None):
     x = x[:int(round(bar_len * bars))]       # exactly the bars asked for
     if len(x) < int(bar_len * bars) - 2:
         raise SystemExit(f"{path}: shorter than {bars} bar(s) at {bpm:.2f} BPM")
-    if args.loudness:                        # every break as loud as the others (its peaks limited)
-        x, gain_db, lim_db = level(x, rate, args.loudness)
+    if loud:                                 # every break as loud as the others (its peaks limited)
+        x, gain_db, lim_db = level(x, rate, loud)
     else:                                    # the loudest sample at full scale
         peak = max(1e-9, max(abs(v) for v in x))
         gain_db, lim_db = 20.0 * math.log10(0.98 / peak), 0.0

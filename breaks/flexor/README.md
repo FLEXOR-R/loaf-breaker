@@ -16,5 +16,6 @@ the WAV holds, a name of up to 11 characters. A `*` puts it in the firmware; eve
 | `the_satan_gangzta_cash.wav` | The Satan, "Gangzta Cash" (intro break) | 200 | 2 | SATAN 200 (0.9.34) |
 | `tripped_matt_green_underground_panther_jacket.wav` | Tripped & Matt Green, "Underground Panther Jacket" (break) | 170 | 2 | PANTHER 170 (0.9.34) |
 FLEXOR's breaks are sliced on an even grid (FLEXOR: "EVEN GRID", as he sends them from the BREAKS page): `*=` (or `-=`)
-in breaks.txt. Their first three (Akira, "Custom Grind"; Detest & Tripped, "Hardcore to The Penis"; The Satan, "Gangzta
+in breaks.txt; and at their own level, as loud as FLEXOR mastered them (`@0` after the name, 0.9.35: not brought down
+to the other breaks' -16 dBFS). Their first three (Akira, "Custom Grind"; Detest & Tripped, "Hardcore to The Penis"; The Satan, "Gangzta
 Cash") were taken out on 14 Nov 2026 for FLEXOR to make them again.
