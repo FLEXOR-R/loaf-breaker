@@ -421,7 +421,7 @@ The site's [Breaks](https://flexor-r.github.io/loaf-breaker/breaks/) page, in Ch
    the room taken, and a break that fits in neither is refused with the room left. Remove one, hear one. **Connect** the FM-1 by USB, **stop** LOAF BREAKER, **Send to the FM-1**:
    the list replaces what was on it (sending an empty list deletes them). Connected, the page reads back the ones on it.
 
-Your breaks come **after the ten built in** on ALGORITHM (break 11 on, in the list's order; your saved patterns and
+Your breaks come **after the nine built in** on ALGORITHM (break 10 on, in the list's order; your saved patterns and
 tracks keep their breaks). The FM-1 says RECEIVING A BREAK, then plays the first of them. They stay through updates of LOAF BREAKER;
 RESET ALL and WIPE MEMORY keep them.
 

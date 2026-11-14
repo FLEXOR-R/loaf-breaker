@@ -10,7 +10,7 @@ the WAV holds, a name of up to 11 characters. A `*` puts it in the firmware; eve
 
 | File | Artist, track | BPM | Bars | In the firmware |
 | --- | --- | --- | --- | --- |
-| `akira_custom_grind.wav` | Akira, "Custom Grind" (drop break) | 190 | 2 | AKIRA 190 (0.9.34) |
+| `akira_custom_grind.wav` | Akira, "Custom Grind" (drop break) | 190 | 2 | AKIRA 190 (0.9.34-0.9.39; the library since 0.9.40) |
 | `detest_tripped_hardcore_to_the_penis.wav` | Detest & Tripped, "Hardcore To The Penis" (intro break) | 175 | 2 | DETEST 175 (0.9.34) |
 | `lil_texas_louder.wav` | Lil Texas, "LOUDER" (break) | 175 | 2 | LOUDER 175 (0.9.34) |
 | `the_satan_gangzta_cash.wav` | The Satan, "Gangzta Cash" (intro break) | 200 | 2 | SATAN 200 (0.9.34) |
