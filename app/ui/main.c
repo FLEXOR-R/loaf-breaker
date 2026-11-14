@@ -2444,7 +2444,56 @@ int app_host_cmd(const char *cmd, const char *a, const char *b, const char *c, c
                     brk_absf(120.0f * brk_exp2f_c((float)best * 0.04f) - v))
                     best = j;
             set.ksyn[KS_TIME] = (int8_t)best;
-        } else {
+        } else if (strchr(a, '.')) {     /* (raw, the listening pages' presets: LAYER.level|pitch|decay|tone|fa|fb|wet
+                                          * 0..1 and LAYER.fx 0..4 (sub punch grit click); syn.drop .. syn.tune -50..50;
+                                          * lab.note|curve|end|filt|ftime 0..; t.sub|fizz|sus|drive|screech|tail,
+                                          * t2.sub|scream|push as the knobs' numbers) */
+            static const char *const LN[] = {"sub", "punch", "grit", "click"};
+            static const char *const SN[] = {"drop", "time", "shape", "hold", "rumble", "rtime", "asym", "tune"};
+            const char *f = strchr(a, '.') + 1;
+            uint32_t j, ok = 0;
+            for (j = 0; j < 4u; j++)
+                if (!strncmp(a, LN[j], strlen(LN[j])) && a[strlen(LN[j])] == '.') {
+                    kick_layer_t *l = &k->l[j];
+                    ok = 1u;
+                    if (!strcmp(f, "level")) l->level = v;
+                    else if (!strcmp(f, "pitch")) l->pitch = v;
+                    else if (!strcmp(f, "decay")) l->decay = v;
+                    else if (!strcmp(f, "tone")) l->tone = v;
+                    else if (!strcmp(f, "fa")) l->fa = v;
+                    else if (!strcmp(f, "fb")) l->fb = v;
+                    else if (!strcmp(f, "wet")) l->wet = v;
+                    else if (!strcmp(f, "fx")) l->fx = (uint8_t)clamp(n, 0, KICK_FX - 1);
+                    else ok = 0;
+                }
+            if (!strncmp(a, "syn.", 4))
+                for (j = 0; j < KS_N; j++)
+                    if (!strcmp(f, SN[j]))
+                        set.ksyn[j] = (int8_t)clamp(n, -50, 50), ok = 1u;
+            if (!strncmp(a, "lab.", 4)) {
+                uint8_t *p = !strcmp(f, "note") ? &klab.cur.note : !strcmp(f, "curve") ? &klab.cur.curve :
+                             !strcmp(f, "end") ? &klab.cur.end : !strcmp(f, "filt") ? &klab.cur.filt :
+                             !strcmp(f, "ftime") ? &klab.cur.ftime : 0;
+                if (p)
+                    *p = (uint8_t)clamp(n, 0, 100), ok = 1u;
+            }
+            if (!strncmp(a, "t.", 2) || !strncmp(a, "t2.", 3)) {
+                uint8_t *p = !strcmp(a, "t.sub") ? &KICK_T_SUB(k) : !strcmp(a, "t.fizz") ? &KICK_T_FIZZ(k) :
+                             !strcmp(a, "t.sus") ? &KICK_T_SUS(k) : !strcmp(a, "t.drive") ? &KICK_T_DRIVE(k) :
+                             !strcmp(a, "t.screech") ? &KICK_T_SCREECH(k) : !strcmp(a, "t.tail") ? &KICK_T_TAIL(k) :
+                             !strcmp(a, "t2.sub") ? &KICK_T2_SUB(k) : !strcmp(a, "t2.scream") ? &KICK_T2_SCREAM(k) :
+                             !strcmp(a, "t2.push") ? &KICK_T2_PUSH(k) : 0;
+                if (p)
+                    *p = (uint8_t)(int8_t)clamp(n, -50, 100), ok = 1u;
+            }
+            if (!ok) {
+                printf("  kset: no setting %s\n", a);
+                host_fails++;
+                return 1;
+            }
+        } else if (!strcmp(a, "csub"))
+            set.csub = (uint8_t)clamp(n, 0, 100);
+        else {
             printf("  kset: no setting %s\n", a);
             host_fails++;
             return 1;
