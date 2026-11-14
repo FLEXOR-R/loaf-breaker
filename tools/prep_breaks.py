@@ -241,10 +241,11 @@ def read_list(path):
         if not line.strip() or line.lstrip().startswith("#"):
             continue
         f = line.split(None, 5)
-        if len(f) < 6 or f[0] not in ("*", "-"):
-            raise SystemExit(f"{path}:{n}: expected IN FILE BPM BARS OF NAME, IN * or -")
-        if f[0] == "*":
-            specs.append((f"{Path(path).parent / f[1]}:{f[2]}:{f[3]}:{f[5].strip()}", f[1]))
+        if len(f) < 6 or f[0] not in ("*", "-", "*=", "-="):
+            raise SystemExit(f"{path}:{n}: expected IN FILE BPM BARS OF NAME, IN * or - (*= or -=: slices on an even grid)")
+        if f[0].startswith("*"):
+            specs.append((f"{Path(path).parent / f[1]}:{f[2]}:{f[3]}:{f[5].strip()}" + (":grid" if f[0].endswith("=") else ""),
+                          f[1]))
     if not specs:
         raise SystemExit(f"{path}: no line marked *")
     return specs
@@ -256,6 +257,8 @@ def prepare(spec, args, shown=None):
     bpm = float(parts[1]) if len(parts) > 1 and parts[1] else None
     bars = int(parts[2]) if len(parts) > 2 and parts[2] else args.bars
     given = parts[3] if len(parts) > 3 else None
+    transients = args.transients and not (len(parts) > 4 and parts[4] == "grid")   # (LOAF BREAKER 0.9.34: a break
+                                             # marked *= or -= in the catalogue: an even grid, the BREAKS page's EVEN GRID)
     x, rate = read_wav(path)
     if bpm is None:                          # the file is whole bars
         bpm = 240.0 * bars / (len(x) / rate)
@@ -274,7 +277,7 @@ def prepare(spec, args, shown=None):
         raise SystemExit(f"{shown or path}: {bars} bar(s) at {bpm:.2f} BPM are {len(x)} samples, the firmware's buffer "
                          f"holds {BANK_MAX_LEN} (fewer bars)")
     nslices = min(BANK_SLICES, args.break_slices or args.slices * bars)
-    pts = slice_points(x, args.rate, nslices, args.transients)
+    pts = slice_points(x, args.rate, nslices, transients)
     data = adpcm_encode(x)
     name = (given or (args.name_prefix + path.stem)).upper()[:11]
     return {"name": name, "file": shown or str(path), "bpm": round(bpm, 2), "bars": bars, "rate": args.rate,

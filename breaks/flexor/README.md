@@ -14,4 +14,5 @@ the WAV holds, a name of up to 11 characters. A `*` puts it in the firmware; eve
 | `detest_tripped_hardcore_to_the_penis.wav` | Detest & Tripped, "Hardcore to The Penis" (intro break) | 175 | 4 | DETEST 175 (0.9.34) |
 | `the_satan_gangzta_cash.wav` | The Satan, "Gangzta Cash" (intro break) | 200 | 4 | SATAN 200 (0.9.34) |
 
-The tempos come from their lengths (whole bars, 16-bit 44.1 kHz stereo WAV); the firmware takes their first two bars.
+The tempos come from their lengths (whole bars, 16-bit 44.1 kHz stereo WAV); the firmware takes their first two bars,
+sliced on an even grid (FLEXOR: "EVEN GRID", as he sent them from the BREAKS page): `*=` in breaks.txt.

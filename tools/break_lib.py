@@ -21,12 +21,12 @@ FOLDER = {"cw": "CYBERWORM AMENS", "huge": "HUGE AMEN PACK", "classics": "CLASSI
 
 
 def entries(path):
-    """every line of the catalogue: (built in, file, bpm, bars, name)"""
+    """every line of the catalogue: (built in, file, bpm, bars, name, on an even grid)"""
     out = []
     for line in path.read_text(encoding="utf-8").splitlines():
         f = line.split(None, 5)
-        if len(f) == 6 and f[0] in ("*", "-"):
-            out.append((f[0] == "*", f[1], float(f[2]), int(f[3]), f[5].strip()))
+        if len(f) == 6 and f[0] in ("*", "-", "*=", "-="):
+            out.append((f[0].startswith("*"), f[1], float(f[2]), int(f[3]), f[5].strip(), f[0].endswith("=")))
     return out
 
 
@@ -34,12 +34,12 @@ def main(outdir):
     out = Path(outdir)
     out.mkdir(parents=True, exist_ok=True)
     index = []
-    for built, file, bpm, bars, name in entries(ROOT / "breaks" / "breaks.txt"):
+    for built, file, bpm, bars, name, grid in entries(ROOT / "breaks" / "breaks.txt"):
         rate = min(22050, int(pb.BANK_MAX_LEN // (bars * 240.0 / bpm)))   # (slow ones lower, as the page does)
         args = argparse.Namespace(bars=bars, slices=16, break_slices=16, rate=rate, transients=True, loudness=-16.0,
                                   name_prefix="")
         try:
-            s = pb.prepare(f"{ROOT / 'breaks' / file}:{bpm}:{bars}:{name}", args, file)
+            s = pb.prepare(f"{ROOT / 'breaks' / file}:{bpm}:{bars}:{name}" + (":grid" if grid else ""), args, file)
         except SystemExit as e:                     # (one that won't make: left out, said)
             print(f"break_lib: {file}: {e}", file=sys.stderr)
             continue
