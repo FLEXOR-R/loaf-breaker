@@ -57,7 +57,7 @@ def restyle(path, cls, controls_href, extra=""):
     if nav:                                          # "Controls" after "Manual"
         breaks = "breaks/" if controls_href.startswith("manual/") else "../breaks/"   # (the front page, the manual)
         links = re.sub(r'(<a href="[^"]*manual/"[^>]*>Manual</a>)',
-                       r'\1<a href="' + controls_href + '">Controls</a><a href="' + breaks + '">Breaks</a>',
+                       r'\1<a href="' + controls_href + '">Controls</a><a href="' + breaks + '">Breaks</a><a href="' + breaks.replace("breaks", "editor") + '">Editor</a>',
                        nav.group(2), count=1)
         s = s[:nav.start(2)] + links + s[nav.end(2):]
     return s
@@ -68,7 +68,7 @@ def header(current):
     name = re.search(r'^title\s*=\s*"([^"]+)"', conf, re.M) or re.search(r'^name\s*=\s*"([^"]+)"', conf, re.M)
     repo = re.search(r'^repo\s*=\s*"([^"]+)"', conf, re.M)
     links = [("../emu/", "Emulator"), ("../install/", "Install"), ("../manual/", "Manual"), ("../manual/#controls", "Controls"),
-             ("../breaks/", "Breaks")]
+             ("../breaks/", "Breaks"), ("../editor/", "Editor")]
     if repo:
         links.append((repo.group(1), "Source"))
     return ('<div class="page"><header class="site"><a class="home" href="../">' + (name.group(1) if name else "CHOPPAH") +
@@ -174,12 +174,25 @@ def breaks(site):
     break_lib.main(site / "breaks" / "lib")
 
 
+def editor(site):
+    """the sound editor (app/site/editor.html, LOAF BREAKER 0.9.45: the kick's and the drums' every setting on one screen,
+    over Web MIDI): the site's style and header, at editor/"""
+    page = (APP / "site" / "editor.html").read_text(encoding="utf-8")
+    css = (APP / "site" / "site.css").read_text(encoding="utf-8")
+    if "/*SITE_CSS*/" not in page or "<!--HEADER-->" not in page:
+        raise SystemExit("app/site/editor.html: no /*SITE_CSS*/ or <!--HEADER--> to fill")
+    page = page.replace("<style>/*SITE_CSS*/", FONTS + "<style>" + css, 1).replace("<!--HEADER-->", header("Editor"), 1)
+    (site / "editor").mkdir(parents=True, exist_ok=True)
+    (site / "editor" / "index.html").write_text(page, encoding="utf-8")
+
+
 def main(site):
     site = Path(site)
     rebrand(site)
     install(site)
     emu(site)
     breaks(site)
+    editor(site)
     home = site / "index.html"
     if home.exists():
         home.write_text(restyle(home, "home", "manual/#controls"), encoding="utf-8")

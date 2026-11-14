@@ -2264,6 +2264,186 @@ void app_redraw(void)                    /* (LOAF BREAKER 0.9.44: the mirror los
     rows_forget(0, 240u);
     ui.redraw |= RG_ALL;
 }
+/* LOAF BREAKER (0.9.45, FLEXOR: "une interface efficace et complète, beaucoup plus de paramètres en même temps"): the
+ * sound editor (the site's editor/ page) over the same SysEx: every part of the KICK menu (but FX1, FX2: the FX page's)
+ * and of the drums' pages, knob by knob, headless: the screen's place kept, EXPERT's knobs, the FM-1's own names, texts
+ * and turns (kick_knob_turn, perc_turn, keq_turn: the same clamps and steps). Commands (zone 0): 7 ED_INFO -> {1, kick
+ * slot, playing, sections, each {name 8, parts, each {part, name 12, 1 editable}}}; 8 ED_KNOB {sound 0 kick / 1..3
+ * SN HH CP, part (the drums: their page 0..2), knob, delta int8 (0: read)} -> {sound, part, 4 x {name 12, text 16,
+ * bar 0..200}}; 9 ED_ACT {1 KICK n, 2 hit (sound), 3 SAVE, 4 PLAY / STOP} -> ED_INFO's head; 10 ED_WAVE {ms u16} ->
+ * 240 columns of the kick's hit, -60..60 */
+typedef struct { uint8_t page, kpage, klayer, kks, keq, novice, pvoice, ppage, ksect, kpos; } ed_ctx_t;
+static int ed_kpart(uint32_t p)          /* (kick_part_set's KICK menu, no message; 0: a part not here, FX1 / FX2) */
+{
+    if (p == KP_PART_PRESET) {
+        ui.kpage = KP_PRESET;
+        return 1;
+    }
+    if (p >= KP_BASE) {
+        uint32_t q = (p - KP_BASE) % 21u;
+        if (q < 2u) {
+            ui.page = PG_KEQ;
+            ui.keq_part = (uint8_t)q;
+        } else if (q < 4u)
+            return 0;
+        else if (q >= 17u)
+            ui.kpage = (uint8_t)(KP_TAIL + q - 17u);
+        else if (q == 15u)
+            ui.kpage = KP_CMORPH;
+        else if (q == 16u)
+            ui.kpage = KP_STYLE;
+        else if (q >= 10u) {
+            ui.kpage = q == 10u ? KP_KNOBS : KP_KSET;
+            ui.kks = (uint8_t)((q - 11u) & 3u);
+        } else
+            ui.kpage = (uint8_t)(KP_TERROR + q - 4u);
+    } else if (p == 0u)
+        ui.kpage = KP_MIX;
+    else if (p == KP_BASE - 2u)
+        ui.kpage = KP_MACRO;
+    else if (p == KP_BASE - 1u)
+        ui.kpage = KP_OUT;
+    else {
+        ui.kpage = (p - 1u) & 1u ? KP_FX : KP_LAYER;
+        ui.klayer = (uint8_t)((p - 1u) / 2u);
+    }
+    return 1;
+}
+static int ed_enter(ed_ctx_t *c, uint32_t snd, uint32_t part)
+{
+    c->page = ui.page; c->kpage = ui.kpage; c->klayer = ui.klayer; c->kks = ui.kks; c->keq = ui.keq_part;
+    c->novice = set.novice; c->pvoice = ui.pvoice; c->ppage = ui.ppage; c->ksect = ui.ksect;
+    c->kpos = ui.kpos[ui.ksect % KSECTS];
+    set.novice = 0u;
+    if (snd) {
+        ui.page = PG_PERC;
+        ui.pvoice = (uint8_t)((snd - 1u) % 3u);
+        ui.ppage = (uint8_t)(part % 3u);
+        return 1;
+    }
+    ui.page = PG_KICK;
+    return ed_kpart(part);
+}
+static void ed_leave(const ed_ctx_t *c)
+{
+    ui.page = c->page; ui.kpage = c->kpage; ui.klayer = c->klayer; ui.kks = c->kks; ui.keq_part = c->keq;
+    set.novice = c->novice; ui.pvoice = c->pvoice; ui.ppage = c->ppage; ui.ksect = c->ksect;
+    ui.kpos[ui.ksect % KSECTS] = c->kpos;
+    ui.redraw |= RG_ALL;
+}
+static uint32_t ed_str(uint8_t *o, const char *t, uint32_t n)   /* t in n bytes, 0-padded (no libc on the FM-1) */
+{
+    uint32_t j, e = 0;
+    for (j = 0; j < n; j++) {
+        if (!e && (!t || !t[j])) e = 1;
+        o[j] = e ? 0u : (uint8_t)t[j];
+    }
+    return n;
+}
+
+static void ed_knob(uint32_t snd, int i, uint8_t *o)   /* {name 12, text 16, bar 0..200} */
+{
+    char t[24];
+    const char *nm;
+    float f;
+    uint32_t j;
+    t[0] = 0;
+    if (snd) {
+        nm = perc_kname(ui.pvoice, perc_pg(), i);
+        perc_value(i, t);
+        f = perc_knob_f(i);
+    } else if (ui.page == PG_KEQ) {
+        nm = KEQ_NAME[ui.keq_part & 1u][i & 3];
+        keq_value(i, t);
+        f = set.keq[(ui.keq_part & 1u) * 4u + (uint32_t)(i & 3)];
+    } else {
+        nm = kick_knob_name(i);
+        kick_value(i, t);
+        f = kick_knob_f(i);
+    }
+    for (j = 0; j < 12u && nm && nm[j]; j++)
+        o[j] = (uint8_t)nm[j];
+    for (; j < 12u; j++)
+        o[j] = 0u;
+    for (j = 0; j < 16u && t[j]; j++)
+        o[12u + j] = (uint8_t)t[j];
+    for (; j < 16u; j++)
+        o[12u + j] = 0u;
+    o[28] = (uint8_t)(brk_clampf(f, 0.0f, 1.0f) * 200.0f + 0.5f);
+}
+static int ed_sysex(uint32_t cmd, const uint8_t *u, uint32_t len)
+{
+    uint8_t *o = (uint8_t *)(void *)cv_px + 1024u;   /* (the reply's bytes in the canvas, past the request's) */
+    uint32_t k = 0u, s, j;
+    char t[24];
+    if (cmd == 9u && len >= 2u) {        /* ED_ACT */
+        if (u[0] == 1u)
+            kick_mem_go(u[1] % KICK_MEMS);
+        else if (u[0] == 2u)
+            u[1] ? perc_hit((u[1] - 1u) % 3u) : kick_hit();
+        else if (u[0] == 3u) {
+            int ok = store_all();
+            set_dirty = 0u;
+            app_say("SAVE", ok ? "DONE" : "FAILED");
+        } else if (u[0] == 4u)
+            transport(!playing_now(), 1);
+        cmd = 7u;
+    }
+    if (cmd == 7u) {                     /* ED_INFO */
+        o[k++] = 1u;
+        o[k++] = (uint8_t)(set.kslot % KICK_MEMS);
+        o[k++] = (uint8_t)playing_now();
+        o[k++] = (uint8_t)KSECTS;
+        for (s = 0; s < KSECTS; s++) {
+            k += ed_str(o + k, KSECT_NAME[s], 8u);
+            o[k++] = KSECT_N[s];
+            for (j = 0; j < KSECT_N[s]; j++) {
+                uint32_t p = KSECT[s][j];
+                ed_ctx_t x;
+                int ok = ed_enter(&x, 0u, p);
+                t[0] = 0;
+                kick_part_name(p, t);
+                ed_leave(&x);
+                o[k++] = (uint8_t)p;
+                k += ed_str(o + k, t, 12u);
+                o[k++] = (uint8_t)ok;
+            }
+        }
+        cu_reply(7u, 0u, o, k);
+        return 1;
+    }
+    if (cmd == 8u && len >= 4u) {        /* ED_KNOB */
+        ed_ctx_t x;
+        uint32_t snd = u[0] % 4u;
+        int ok = ed_enter(&x, snd, u[1]);
+        if (ok && u[3]) {
+            int32_t d = (int8_t)u[3];
+            if (snd)
+                perc_turn(u[2] & 3, d);
+            else if (ui.page == PG_KEQ)
+                keq_turn(u[2] & 3, d);
+            else
+                kick_knob_turn(u[2] & 3, d);
+        }
+        o[k++] = (uint8_t)snd;
+        o[k++] = u[1];
+        for (j = 0; j < 4u; j++, k += 29u)
+            if (ok)
+                ed_knob(snd, (int)j, o + k);
+            else
+                memset(o + k, 0, 29u);
+        ed_leave(&x);
+        cu_reply(8u, ok ? 0u : 2u, o, k);
+        return 1;
+    }
+    if (cmd == 10u && len >= 2u) {       /* ED_WAVE */
+        uint32_t ms = (uint32_t)u[0] | (uint32_t)u[1] << 8;
+        kick_wave(&set.kick, (int8_t *)o, 240u, ms < 50u ? 50u : ms > 2000u ? 2000u : ms, 60u);
+        cu_reply(10u, 0u, o, 240u);
+        return 1;
+    }
+    return 0;
+}
 int app_sysex(const uint8_t *p, uint32_t n)
 {
     uint8_t *u = (uint8_t *)(void *)cv_px, a[16];   /* (the canvas, its last blit done: lcd_sync) */
@@ -2278,6 +2458,8 @@ int app_sysex(const uint8_t *p, uint32_t n)
     ui.idle_t = plat_ms();
     ui.redraw |= RG_ALL;                 /* (the canvas taken: the screen drawn again) */
     len = unpack7(p + 4, n - 4u > 600u ? 600u : n - 4u, u);
+    if (!z && cmd >= 7u && cmd <= 10u)   /* (LOAF BREAKER 0.9.45: the sound editor, any time) */
+        return ed_sysex(cmd, u, len) || 1;
     if (cmd == 1u || cmd == 5u) {        /* INFO, READ: any time */
         if (cmd == 1u) {
             uint32_t v[1u + 3u * CU_NZ], y;

@@ -1,0 +1,390 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<!-- LOAF BREAKER's sound editor (0.9.45, FLEXOR: "une interface efficace et complète, avec beaucoup plus de paramètres
+     utilisables en même temps"): every part of the KICK menu and of the drums' pages on one screen, over Web MIDI
+     SysEx (ui/main.c ed_sysex: ED_INFO 7, ED_KNOB 8, ED_ACT 9, ED_WAVE 10; F0 7D 43 48 CMD 7-bit-packed DATA F7). The
+     page turns the FM-1's own knobs, headless: its names, texts, clamps and steps, whatever page the FM-1 shows.
+     tools/site_style.py puts it at editor/ with the site's style and header. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LOAF BREAKER · Editor</title>
+<style>/*SITE_CSS*/
+.edt .page { max-width: 1400px; }
+.edt h1 { margin-top: 8px; }
+.edt .lede { color: var(--dim); max-width: 760px; margin: 0 0 18px; }
+.edt button {
+  font: 600 13px/1 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--hot);
+  background: #2a261d; border: 0; padding: 10px 13px; border-radius: 6px; box-shadow: inset 0 -2px 0 #11100c; cursor: pointer;
+}
+.edt button:hover:not(:disabled) { background: #3a3426; }
+.edt button.go { background: var(--amber); color: #1a1406; }
+.edt button:disabled { opacity: .4; cursor: default; }
+.edt button[aria-pressed="true"], .edt button[aria-pressed="true"]:hover:not(:disabled) { background: var(--amber); color: #1a1406; }
+.edt .preset .knobs { grid-template-columns: 1fr; }
+.edt .preset .knob .v { font-size: 20px; }
+.edt button:focus-visible, .edt .knob:focus-visible, .edt select:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.edt .bar { position: sticky; top: 0; z-index: 5; background: var(--bg, #0e0d0a); padding: 10px 0; display: grid; gap: 8px; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+.edt .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.edt .state { font: 500 14px/1.5 var(--f-mono); color: var(--dim); }
+.edt .state b { color: var(--fg); }
+.edt .state .bad { color: #ff9b85; }
+.edt .slots { display: flex; flex-wrap: wrap; gap: 4px; }
+.edt .slots button { padding: 7px 0; width: 38px; font-size: 12px; }
+.edt .tabs { display: flex; gap: 6px; }
+.edt .label { font: 600 12px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.edt .hidden { display: none !important; }
+.edt .top { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 14px; align-items: stretch; margin-bottom: 14px; }
+.edt .wavebox { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; gap: 6px; }
+.edt canvas { display: block; width: 100%; height: 150px; background: #0b0a08; border-radius: 6px; }
+.edt .preset { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 8px; align-content: start; }
+.edt .preset b { font: 600 22px/1.1 var(--f-mono); color: var(--fg); }
+.edt select { font: 500 14px/1.2 var(--f-mono); color: var(--fg); background: var(--raise); border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; }
+.edt .sects { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; align-items: start; }
+.edt .sect { display: grid; gap: 10px; align-content: start; }
+.edt .sect > h2 { font: 600 14px/1 var(--f-mono); letter-spacing: .12em; color: var(--amber); margin: 4px 0 0; padding: 0; border: 0; }
+.edt .part { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+.edt .part h3 { font: 600 12px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--dim); margin: 0 0 8px; }
+.edt .part.away { opacity: .6; }
+.edt .knobs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.edt .knob { background: var(--raise); border-radius: 7px; padding: 7px 7px 8px; cursor: ns-resize; user-select: none; touch-action: none; min-width: 0; }
+.edt .knob.blank { visibility: hidden; }
+.edt .knob .n { font: 600 10.5px/1.2 var(--f-mono); letter-spacing: .04em; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.edt .knob .v { font: 600 15px/1.25 var(--f-mono); color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 3px 0 6px; font-variant-numeric: tabular-nums; }
+.edt .knob .b { height: 4px; background: #0b0a08; border-radius: 2px; overflow: hidden; }
+.edt .knob .b i { display: block; height: 100%; background: var(--amber); }
+.edt .knob.busy .v { color: var(--amber); }
+.edt details.more { grid-column: 1 / -1; }
+.edt details.more summary { cursor: pointer; font: 600 14px/1 var(--f-mono); letter-spacing: .12em; color: var(--amber); padding: 6px 0; }
+.edt details.more .sects { margin-top: 10px; }
+.edt .drums { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+.edt .hint { font-size: 14px; color: var(--faint); max-width: 900px; }
+.edt kbd { font: 600 12px/1 var(--f-mono); background: var(--raise); border-radius: 4px; padding: 3px 5px; color: var(--fg); }
+@media (max-width: 760px) { .edt .top { grid-template-columns: 1fr; } .edt .knobs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+</head>
+<body class="edt">
+<!--HEADER-->
+<div class="page">
+<main id="main">
+<h1>Editor</h1>
+<p class="lede">The kick and the drums of your FM-1, every setting on one screen. Plug it in by USB (LOAF BREAKER
+0.9.45 or later), connect, and turn: drag a knob up or down, roll the mouse wheel over it, or tab to it and use the
+arrow keys. You hear each change on the FM-1 at once, and its screen stays where it was. SAVE keeps it, as on the
+FM-1. Chrome or Edge, on a computer.</p>
+
+<div class="bar">
+  <div class="row">
+    <button id="connect" class="go">Connect</button>
+    <span class="state" id="status" role="status">Not connected.</span>
+  </div>
+  <div class="row" id="ctl">
+    <div class="tabs" role="group" aria-label="What to edit">
+      <button id="t-kick" aria-pressed="true">Kick</button><button id="t-drums" aria-pressed="false">Drums</button>
+    </div>
+    <button id="hit" disabled>▶ Hit <kbd>Space</kbd></button>
+    <button id="play" disabled>Play</button>
+    <button id="save" disabled>Save</button>
+    <span class="label">Kick</span>
+    <div class="slots" id="slots" role="group" aria-label="Kick memory"></div>
+  </div>
+</div>
+
+<section id="v-kick">
+  <div class="top">
+    <div class="wavebox">
+      <div class="row" style="justify-content:space-between"><span class="label">The kick's hit (in dB)</span>
+        <label class="label">Zoom <select id="zoom"><option>250</option><option selected>500</option><option>1000</option><option>1500</option><option>2000</option></select> ms</label></div>
+      <canvas id="wave" width="1200" height="300" aria-label="The kick's waveform"></canvas>
+    </div>
+    <div class="preset" id="presetBox"></div>
+  </div>
+  <div class="sects" id="sects"></div>
+  <details class="more" id="moreBox"><summary>MORE: the SEL + knobs, their functions, tools, EQ</summary><div class="sects" id="moreSects"></div></details>
+  <p class="hint">FX1 and FX2 (the kick's own effect slots) are edited on the FM-1 for now. <kbd>↑</kbd> <kbd>↓</kbd> one
+  step, <kbd>Shift</kbd> five; <kbd>Space</kbd> plays the kick, <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> the snare, hat, clap.</p>
+</section>
+
+<section id="v-drums" class="hidden">
+  <div class="drums" id="drums"></div>
+</section>
+</main>
+</div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+/* ---------------------------------------------------------------- the link (as the BREAKS page's) */
+function pack7(b) {
+  const out = [];
+  for (let i = 0; i < b.length; i += 7) {
+    const g = b.slice(i, i + 7);
+    out.push(g.reduce((h, v, j) => h | ((v >> 7) & 1) << j, 0));
+    for (const v of g) out.push(v & 0x7F);
+  }
+  return out;
+}
+function unpack7(p) {
+  const u = [];
+  for (let i = 0; i < p.length; i += 8)
+    for (let j = 1; j < 8 && i + j < p.length; j++) u.push(p[i + j] | ((p[i] >> (j - 1)) & 1) << 7);
+  return Uint8Array.from(u);
+}
+let midi = null, out = null, waiting = null, chain = Promise.resolve();
+function onMsg(e) {
+  const d = e.data;
+  if (d[0] !== 0xF0 || d[1] !== 0x7D || d[2] !== 0x43 || d[3] !== 0x48) return;
+  if (waiting && (d[4] & 0x3F) === waiting.cmd) { const w = waiting; waiting = null; w.res({ code: d[5], data: unpack7(d.subarray(6, d.length - 1)) }); }
+}
+function ask1(cmd, data, ms = 2500, port = out) {
+  return new Promise((res, rej) => {
+    waiting = { cmd, res };
+    port.send([0xF0, 0x7D, 0x43, 0x48, cmd, ...pack7(Array.from(data)), 0xF7]);
+    setTimeout(() => { if (waiting && waiting.res === res) { waiting = null; rej(new Error("no answer")); } }, ms);
+  });
+}
+function ask(cmd, data = []) {              /* (one at a time: each waits for the one before) */
+  const p = chain.then(() => ask1(cmd, data));
+  chain = p.catch(() => {});
+  return p;
+}
+const str = (d, a, n) => { let s = ""; for (let i = a; i < a + n && d[i]; i++) s += String.fromCharCode(d[i]); return s; };
+
+/* ---------------------------------------------------------------- the model */
+let info = null, view = "kick";
+const parts = {};                           /* "snd:part" -> {el, knobs[4]} */
+const pending = {};                         /* "snd:part:knob" -> clicks not yet sent */
+let busy = false, lastTurn = 0;
+function readInfo(d) {
+  const r = { kslot: d[1], playing: !!d[2], sects: [] };
+  let k = 4;
+  for (let s = 0; s < d[3]; s++) {
+    const sect = { name: str(d, k, 8), parts: [] }, n = d[k + 8];
+    k += 9;
+    for (let j = 0; j < n; j++, k += 14) sect.parts.push({ p: d[k], name: str(d, k + 1, 12), ok: !!d[k + 13] });
+    r.sects.push(sect);
+  }
+  return r;
+}
+function readKnobs(d) {
+  const ks = [];
+  for (let i = 0; i < 4; i++) { const o = 2 + 29 * i; ks.push({ name: str(d, o, 12), text: str(d, o + 12, 16), bar: d[o + 28] / 200 }); }
+  return ks;
+}
+
+/* ---------------------------------------------------------------- the knobs */
+function knobEl(snd, part, i) {
+  const el = document.createElement("div");
+  el.className = "knob blank";
+  el.tabIndex = 0;
+  el.setAttribute("role", "slider");
+  el.setAttribute("aria-valuemin", "0"); el.setAttribute("aria-valuemax", "100");
+  el.innerHTML = '<div class="n"></div><div class="v"></div><div class="b"><i></i></div>';
+  const key = snd + ":" + part + ":" + i;
+  let y0 = null, acc = 0;
+  el.addEventListener("pointerdown", (e) => { y0 = e.clientY; acc = 0; el.setPointerCapture(e.pointerId); el.focus(); });
+  el.addEventListener("pointermove", (e) => {
+    if (y0 === null) return;
+    acc += (y0 - e.clientY) / (e.shiftKey ? 14 : 5); y0 = e.clientY;
+    const n = Math.trunc(acc);
+    if (n) { acc -= n; turn(snd, part, i, n); }
+  });
+  el.addEventListener("pointerup", () => { y0 = null; });
+  el.addEventListener("wheel", (e) => { e.preventDefault(); turn(snd, part, i, (e.deltaY < 0 ? 1 : -1) * (e.shiftKey ? 5 : 1)); }, { passive: false });
+  el.addEventListener("keydown", (e) => {
+    const m = e.shiftKey ? 5 : 1;
+    if (e.key === "ArrowUp" || e.key === "ArrowRight") turn(snd, part, i, m);
+    else if (e.key === "ArrowDown" || e.key === "ArrowLeft") turn(snd, part, i, -m);
+    else if (e.key === "PageUp") turn(snd, part, i, 10);
+    else if (e.key === "PageDown") turn(snd, part, i, -10);
+    else return;
+    e.preventDefault();
+  });
+  el.dataset.key = key;
+  return el;
+}
+function partEl(snd, part, title, ok) {
+  const el = document.createElement("div");
+  el.className = "part" + (ok ? "" : " away");
+  el.innerHTML = `<h3>${esc(title)}</h3>`;
+  const ks = document.createElement("div"); ks.className = "knobs";
+  const knobs = [0, 1, 2, 3].map((i) => knobEl(snd, part, i));
+  knobs.forEach((k) => ks.appendChild(k));
+  if (ok) el.appendChild(ks);
+  else el.insertAdjacentHTML("beforeend", '<p class="hint" style="margin:0">On the FM-1 (the FX page).</p>');
+  parts[snd + ":" + part] = { el, knobs, title };
+  return el;
+}
+function show(snd, part, ks) {
+  const P = parts[snd + ":" + part];
+  if (!P) return;
+  ks.forEach((k, i) => {
+    const el = P.knobs[i];
+    const hide = !k.name || (snd === 0 && k.name === "PRESET" && part !== 32);   /* (the kick's PRESET knob: its own box) */
+    el.classList.toggle("blank", hide);
+    el.tabIndex = hide ? -1 : 0;
+    el.querySelector(".n").textContent = k.name;
+    el.querySelector(".v").textContent = k.text;
+    el.querySelector(".b i").style.width = Math.round(k.bar * 100) + "%";
+    el.setAttribute("aria-label", (snd ? DRUM[snd - 1] + " " : "") + P.title + " " + k.name);
+    el.setAttribute("aria-valuenow", String(Math.round(k.bar * 100)));
+    el.setAttribute("aria-valuetext", k.text);
+  });
+}
+function turn(snd, part, i, n) {
+  if (!out) return;
+  const key = snd + ":" + part + ":" + i;
+  pending[key] = (pending[key] || 0) + n;
+  lastTurn = Date.now();
+  const el = parts[snd + ":" + part] && parts[snd + ":" + part].knobs[i];
+  if (el) el.classList.add("busy");
+  flush();
+}
+async function flush() {
+  if (busy) return;
+  busy = true;
+  try {
+    for (;;) {
+      const key = Object.keys(pending).find((k) => pending[k]);
+      if (!key) break;
+      const [snd, part, i] = key.split(":").map(Number), d = Math.max(-60, Math.min(60, pending[key]));
+      pending[key] -= d;
+      const r = await ask(8, [snd, part, i, d & 255]);
+      show(snd, part, readKnobs(r.data));
+      const el = parts[snd + ":" + part].knobs[i];
+      if (!pending[key]) el.classList.remove("busy");
+      changed = true;
+    }
+  } catch (e) { say("Lost the FM-1: " + e.message + ". Connect again.", true); }
+  busy = false;
+}
+
+/* ---------------------------------------------------------------- building the screen from ED_INFO */
+const DRUM = ["SNARE", "HAT", "CLAP"], DPAGE = ["SOUND", "SHAPE", "MORE"];
+function build() {
+  const sects = $("sects"), more = $("moreSects");
+  sects.innerHTML = ""; more.innerHTML = "";
+  for (const s of info.sects) {
+    const box = document.createElement("div"); box.className = "sect";
+    box.innerHTML = `<h2>${esc(s.name)}</h2>`;
+    for (const p of s.parts) {
+      if (s.name === "ATTACK" && p.p === 32) continue;   /* (the PRESET: its own box) */
+      box.appendChild(partEl(0, p.p, p.name, p.ok));
+    }
+    if (s.name === "FX1" || s.name === "FX2") continue;
+    (s.name === "MORE" ? more : sects).appendChild(box);
+  }
+  const pb = $("presetBox");
+  pb.innerHTML = '<span class="label">Built-in kick</span>';
+  const pe = partEl(0, 32, "Built-in kick", true);
+  pe.style.border = "0"; pe.style.padding = "0"; pe.querySelector("h3").remove();
+  pb.appendChild(pe);
+  pb.insertAdjacentHTML("beforeend", '<p class="hint" style="margin:0">Turn it to load a built-in kick on this memory.</p>');
+  const dr = $("drums"); dr.innerHTML = "";
+  DRUM.forEach((name, v) => {
+    const box = document.createElement("div"); box.className = "sect";
+    box.innerHTML = `<h2>${name}</h2>`;
+    const b = document.createElement("button"); b.textContent = "▶ Hit " + name; b.onclick = () => act(2, v + 1);
+    box.appendChild(b);
+    DPAGE.forEach((pg, k) => box.appendChild(partEl(v + 1, k, pg, true)));
+    dr.appendChild(box);
+  });
+  const sl = $("slots"); sl.innerHTML = "";
+  for (let n = 0; n < 20; n++) {
+    const b = document.createElement("button"); b.textContent = n + 1; b.setAttribute("aria-label", "KICK " + (n + 1));
+    b.onclick = () => act(1, n); sl.appendChild(b);
+  }
+}
+function showInfo(r) {
+  info.kslot = r.kslot; info.playing = r.playing;
+  $("slots").querySelectorAll("button").forEach((b, n) => b.setAttribute("aria-pressed", String(n === r.kslot)));
+  $("play").textContent = r.playing ? "Stop" : "Play";
+  say(`<b>${esc(out.name)}</b> connected · KICK ${r.kslot + 1} · ${r.playing ? "playing" : "stopped"}`);
+}
+async function readAll() {
+  const keys = Object.keys(parts).filter((k) => !parts[k].el.classList.contains("away") && (view === "kick" ? k[0] === "0" : k[0] !== "0"));
+  for (const k of keys) {
+    if (Object.keys(pending).some((p) => pending[p])) return;
+    const [snd, part] = k.split(":").map(Number);
+    const r = await ask(8, [snd, part, 0, 0]);
+    if (!r.code) show(snd, part, readKnobs(r.data));
+  }
+  if (view === "kick") await drawWave();
+}
+async function drawWave() {
+  const ms = +$("zoom").value, r = await ask(10, [ms & 255, ms >> 8]);
+  const cv = $("wave"), g = cv.getContext("2d"), W = cv.width, H = cv.height, d = r.data, n = d.length;
+  g.fillStyle = "#0b0a08"; g.fillRect(0, 0, W, H);
+  g.fillStyle = "#3a3426"; g.fillRect(0, H / 2, W, 1);
+  g.fillStyle = "#ffb21a";                  /* (each column's furthest sample from 0: drawn as its envelope, both ways) */
+  for (let i = 0; i < n; i++) {
+    const a = Math.abs((d[i] << 24 >> 24) / 60), v = a > 0 ? Math.max(0, 1 + Math.log10(a) * 20 / 36) : 0;   /* (in dB, 36 dB
+                                            * deep: the decay seen even on a kick driven flat) */
+    const x = i * W / n, w = Math.ceil(W / n), h = v * (H / 2 - 8);
+    g.fillRect(x, H / 2 - h, w, Math.max(1, 2 * h));
+  }
+  g.fillStyle = "#a39a85"; g.font = "600 22px 'IBM Plex Mono', monospace";
+  for (let t = 0; t <= ms; t += ms / 4) g.fillText(Math.round(t) + " ms", Math.min(W - 110, t / ms * W + 6), H - 10);
+}
+async function act(a, arg) {
+  if (!out) return;
+  try {
+    const r = await ask(9, [a, arg]);
+    showInfo(readInfo(r.data));
+    if (a === 1 || a === 3) await readAll();
+  } catch (e) { say("Lost the FM-1: " + e.message, true); }
+}
+function say(t, bad) { $("status").innerHTML = bad ? `<span class="bad">${t}</span>` : t; }
+
+/* ---------------------------------------------------------------- the controls */
+let changed = false;
+function setView(v) {
+  view = v;
+  $("t-kick").setAttribute("aria-pressed", String(v === "kick")); $("t-drums").setAttribute("aria-pressed", String(v === "drums"));
+  $("v-kick").classList.toggle("hidden", v !== "kick"); $("v-drums").classList.toggle("hidden", v !== "drums");
+  if (out) readAll().catch(() => {});
+}
+$("t-kick").onclick = () => setView("kick");
+$("t-drums").onclick = () => setView("drums");
+$("zoom").onchange = () => out && drawWave().catch(() => {});
+$("hit").onclick = () => act(2, 0);
+$("play").onclick = () => act(4, 0);
+$("save").onclick = () => act(3, 0);
+document.addEventListener("keydown", (e) => {
+  if (!out || e.target.closest && e.target.closest("input, select, textarea")) return;
+  if (e.key === " " && !(e.target.classList && e.target.classList.contains("knob")) && e.target.tagName !== "BUTTON") { e.preventDefault(); act(2, 0); }
+  else if (e.key === " " && e.target.classList && e.target.classList.contains("knob")) { e.preventDefault(); act(2, 0); }
+  else if (["1", "2", "3"].includes(e.key)) act(2, +e.key);
+});
+setInterval(async () => {                  /* (after a turn: the other parts it moved, the wave; idle: what the FM-1's
+                                            * own knobs did) */
+  if (!out || busy || document.hidden) return;
+  const quiet = Date.now() - lastTurn;
+  if (changed && quiet > 300) { changed = false; readAll().catch(() => {}); return; }
+  if (quiet > 4000 && !waiting) {
+    try { const r = await ask(7); showInfo(readInfo(r.data)); await readAll(); } catch (e) { /* next time */ }
+  }
+}, 400);
+$("connect").onclick = async () => {
+  try { midi = midi || await navigator.requestMIDIAccess({ sysex: true }); }
+  catch (e) { say("No MIDI with SysEx here: use Chrome or Edge, and allow it.", true); return; }
+  say("Looking for LOAF BREAKER…");
+  midi.inputs.forEach((i) => { i.onmidimessage = onMsg; });
+  const outs = [...midi.outputs.values()].filter((o) => o.state !== "disconnected");
+  const likely = outs.filter((o) => /loaf|choppah|fm-?1/i.test(o.name));
+  out = null;
+  for (const o of likely.concat(outs.filter((o) => !likely.includes(o)))) {
+    try { const r = await ask1(7, [], 800, o); if (r.data[0] >= 1) { out = o; info = readInfo(r.data); break; } } catch (e) { /* not it */ }
+  }
+  if (!out) { say("No LOAF BREAKER 0.9.45 or later found. Plug it in, update it (the site's installer), and connect again.", true); return; }
+  build(); showInfo(info);
+  ["hit", "play", "save"].forEach((id) => { $(id).disabled = false; });
+  $("connect").textContent = "Refresh";
+  await readAll();
+};
+if (!navigator.requestMIDIAccess) say("This browser has no Web MIDI: use Chrome or Edge on a computer.", true);
+</script>
+</body>
+</html>
