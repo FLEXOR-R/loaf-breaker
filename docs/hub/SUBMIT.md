@@ -18,7 +18,7 @@ zven confirmed on 12 Nov 2026 that LOAF BREAKER is welcome on the hub.
 - **Sounds** (13 Nov 2026, the hub's ask, Sven): `fmhub.json`'s `sounds` line says where `breaks/` comes from: Cyberworm's
   Amen loops (Rhythm Lab, royalty free) and the classics sampled from records (rights with their owners); plain text, at most 300 characters, no web address (the hub's check); see
   `breaks/README.md`. FLEXOR answers for them. Then "Check again" on the hub's status page (it reads `loaf`).
-- **Card:** `fmhub.json` (root): LOAF BREAKER's text, FLEXOR as author, the site's emulator and manual, the picture
+- **Card:** `fmhub.json` (root): LOAF BREAKER's text, FLEXOR as author, the site's emulator, its BREAKS page as the `editor` (0.9.37, FLEXOR) and the manual, the picture
   `docs/img/loaf_breaker_card.png` (480 × 480 PNG), the screen's red.
 
 ## The six points
