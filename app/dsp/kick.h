@@ -60,11 +60,12 @@ typedef struct {
     float volume;                        /* 0..1 */
 } kick_t;                                /* 136 bytes (its steps are the pattern's: the app's) */
 
-#define KICK_PRESETS 7u
+#define KICK_PRESETS 8u
 #define KICK_PRESET_TERROR 6u            /* (LOAF BREAKER, 0.9.32, FLEXOR: TERROR, his kick made a preset: ROTTERDAM, GRIT
                                           * 0, DISTO 30 FOLD, DRIVE 69, SUB 1279 ms, SUB FX DRIVE 50; with the app's part,
                                           * ui/kick.c kpre_extra: SYNTH DROP +20, TIME 167 ms, SHAPE -50, TAIL + DRIVE 100,
                                           * EQ LOW +6.2 dB) */
+#define KICK_PRESET_SPINE 7u            /* (0.9.32, FLEXOR: SPINE, TERROR's variant: DRIVE 50, D+ TYPE RECT, SUB 766 ms) */
 #define KICK_PRESETS_MEM 6u              /* (the kick memories begin as the first six, round, as before TERROR) */
 extern const char *const KICK_PRESET_NAME[KICK_PRESETS];
 void kick_preset(kick_t *k, uint32_t i);   /* the sound of a built-in kick (the volume kept) */

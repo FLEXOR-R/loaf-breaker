@@ -156,12 +156,12 @@ static void kick_mem_go(uint32_t n)      /* (LOAF BREAKER: KICK n, 0..9, as abov
     ui.redraw |= RG_BLOCKS | RG_FOOT;
     changed_kick();
 }
-/* LOAF BREAKER (0.9.32, FLEXOR): a built-in kick's part outside kick_t, after the SYNTH and the LAB zeroed: TERROR's
+/* LOAF BREAKER (0.9.32, FLEXOR): a built-in kick's part outside kick_t, after the SYNTH and the LAB zeroed: TERROR's and SPINE's
  * SYNTH (DROP +20, TIME 167 ms, SHAPE -50: a pure sine), TAIL + DRIVE 100 and its KICK EQ (LOW +6.2 dB, MID and HIGH
  * flat). The others leave the EQ as it was, as always */
 static void kpre_extra(uint32_t p)
 {
-    if (p != KICK_PRESET_TERROR)
+    if (p != KICK_PRESET_TERROR && p != KICK_PRESET_SPINE)   /* (SPINE: TERROR's too) */
         return;
     set.ksyn[KS_DROP] = 20;
     set.ksyn[KS_TIME] = 12;              /* (120 ms x 2^0.48: 167 ms) */
@@ -171,7 +171,7 @@ static void kpre_extra(uint32_t p)
     set.keq[1] = set.keq[2] = 0.5f;
     changed_fx();
 }
-/* LOAF BREAKER: OUT's K4 PRESET: the built-in kicks (909 .. DISTORTO, TERROR), then COPY KICK 1..10: that memory's kick, its
+/* LOAF BREAKER: OUT's K4 PRESET: the built-in kicks (909 .. DISTORTO, TERROR, SPINE), then COPY KICK 1..10: that memory's kick, its
  * SYNTH and its knobs (KNOBS, CLEAN SUB, BASS, MORPH) onto the kick selected, its volume kept */
 #define KPRE_N (KICK_PRESETS + KICK_MEMS)
 static void kpre_text(char *t)
