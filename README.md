@@ -133,3 +133,5 @@ Laurens Profittlich, itself on [fm1-base](https://github.com/charlesvestal/fm1-b
 Kuroshita (Hügelton Instruments).
 
 M-VAVE and FM-1 are trademarks of their owners. LOAF BREAKER is not affiliated with M-VAVE, nor with CHOPPAH's author.
+
+You can also try LOAF BREAKER in the browser, no flashing needed, in the free community [FM-1 Emulator](https://fm1-emulator.atst.tools/).
