@@ -13,10 +13,12 @@ started on the FM-1 itself.
 Version {{VERSION}} (beta). Installing is at your own risk; the installer can put M-VAVE's own firmware back. 8 breaks, 2 bars
 each: NUSKOOL 140, AMEN20 164, AMEN19 172, UPDOWN 165, JUNGLE 175, THINK 114, APACHE 115, THEWORM 110. Five to seven of your own after them: [Breaks](breaks/), the seventy breaks of the library to hear, or a sample of yours.
 
-- [Try it in the browser](emu/): the same code the FM-1 runs, with sound. No FM-1 needed.
-- [Install](install/): from Chrome or Edge, with the FM-1 connected by USB.
-- [Manual](manual/): start in five minutes, then the kick, the sequencer, the tracks and drops, the pads, the effects.
-- [Source and releases](https://github.com/FLEXOR-R/loaf-breaker): the code (MPL-2.0) and every version's .fwsc.
+- [Emulator](emu/) The same code the FM-1 runs, in the browser, with sound. No FM-1 needed.
+- [Install](install/) From Chrome or Edge, with the FM-1 connected by USB.
+- [Manual](manual/) Start in five minutes, then the kick, the sequencer, the tracks and drops, the pads, the effects.
+- [Controls](manual/#controls) The control map: every page's buttons and knobs, to explore.
+- [Breaks](breaks/) The seventy breaks of the library to hear, and yours sent to the FM-1.
+- [Source](https://github.com/FLEXOR-R/loaf-breaker) The code (MPL-2.0) and every version's .fwsc.
 
 Built on CHOPPAH by Laurens Profittlich, on fm1-base and felucca-bsp, from Felucca by Leo Kuroshita, Hügelton
 Instruments. MPL-2.0. M-VAVE and FM-1 are trademarks of their owners. LOAF BREAKER is not affiliated with M-VAVE.

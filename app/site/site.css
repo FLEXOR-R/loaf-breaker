@@ -148,7 +148,9 @@ nav.contents a[aria-current] { background: var(--amber-soft); color: var(--amber
 /* the front page */
 body.home main h1 { font-size: clamp(44px, 8vw, 84px); letter-spacing: .02em; margin-top: 18px; }
 body.home main h1::after { content: " "; display: inline-block; width: .32em; height: .32em; margin-left: .12em; border-radius: 4px; background: var(--amber); }
-body.home main > ul { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; max-width: none; }
+body.home main > ul { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; max-width: none; }
+@media (max-width: 900px) { body.home main > ul { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { body.home main > ul { grid-template-columns: 1fr; } }
 body.home main > ul li { max-width: none; margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; color: var(--dim); }
 body.home main > ul li a { display: block; font: 600 18px var(--f-display); color: var(--fg); text-decoration: none; margin-bottom: 4px; }
 body.home main > ul li a:hover { color: var(--amber); }
