@@ -150,6 +150,7 @@ jobs:
         run: |
           sh tests/custom_break.sh
           sh tests/page_parity.sh
+          sh tests/lib_same.sh
 
       # LOAF BREAKER's site, as CHOPPAH's: the front page, the web installer, the emulator in the browser and the
       # manual, its screenshots taken from this build (tools/site_shots.sh), in CHOPPAH's look (tools/site_style.py)
