@@ -34,7 +34,7 @@ again where you left it; SAVE keeps where you are). An FM-1 already in use when 
 
 ### 1. Press PLAY
 
-The break plays with its kick at once (AMEN20 164 to start). **ALGORITHM** picks the next break (it changes on the next
+The break plays with its kick at once (the slowest to start, AMEN20 164; the breaks go slowest to fastest; once saved, the FM-1 starts on the break you left it on). **ALGORITHM** picks the next break (it changes on the next
 bar), **SELECT** sets the tempo, **PRESETS** the pattern (P1–P64). PLAY again stops.
 
 ### 2. Play the white keys: the slices
