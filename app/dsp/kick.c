@@ -38,6 +38,9 @@ typedef struct {
     uint32_t t;                          /* LOAF BREAKER LAB: samples since the hit */
     float pl, gend, fenv, f1, f2;        /* the drop's ramp (LINEAR, SNAP), END's gain, the TAIL FILTER's fall, its
                                           * two poles */
+    float tok_ph, tok_env, tok_pe, tok_n1, tok_n2;   /* (0.9.45) TOK: its phase, level, pitch's fall, its filters */
+    uint32_t g_pos;                      /* the TAIL GATE: where in its chop */
+    float g_s;                           /* its gain, smoothed (no clicks) */
 } kv_t;
 
 /* the block's settings, mapped */
@@ -70,7 +73,15 @@ typedef struct {
     float grat, pl_step, fa_end, f_dec, tdrive;   /* GRIT's FM ratio, the ramp's step, the filter's coefficient at its
                                           * end, its fall a sample, TAIL DRIVE */
     uint32_t end_n, x0, x1;              /* END (0 off), STACK's hand-over from .. to (samples from the hit) */
+    float tok_lvl, tok_f1, tok_fd, tok_pdec, tok_edec, tok_k;   /* (0.9.45) TOK: level (0 off), its end frequency and
+                                          * the drop above it (cycles a sample), their falls, NOISE's band coefficient */
+    uint8_t tok_type;
+    uint32_t g_len, g_on, g_start, g_fade_n;   /* the TAIL GATE: a chop's samples (0 off), those that sound, where it
+                                          * starts, its fade in (0 at once) */
+    float g_fade_k;
 } kc_t;
+static volatile kick_x2_t p_x2;          /* (0.9.45) kick_set_x2 */
+BRK_COLD void kick_set_x2(const kick_x2_t *x) { *(kick_x2_t *)&p_x2 = *x; }
 static volatile float p_glide, p_rbl, p_rbs, p_rbk, p_spb = 15562.0f;   /* (TEST) kick_set_bass, kick_set_beat */
 void kick_set_bass(float glide_ms, float rb_level, float rb_start, float rb_curve)
 {
@@ -330,6 +341,30 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c, const volatile int8_t *sy
             c->x1 = c->x0 + (uint32_t)fd + 1u;
         }
     }
+    {                                    /* (0.9.45) TOK and the TAIL GATE: the kick playing's (kick_set_x2) */
+        kick_x2_t x = *(const kick_x2_t *)&p_x2;
+        static const uint8_t CHOPS[KICK_GATES] = {0u, 2u, 3u, 4u, 6u, 8u};   /* (a beat's chops: 1/8 .. 1/32) */
+        float f0 = 400.0f * brk_exp2f_c((float)(x.tok_pitch > 100u ? 100u : x.tok_pitch) * 0.0332193f);   /* (400 ..
+                                          * 4000 Hz) */
+        float ms = 2.0f + 0.28f * (float)(x.tok_len > 100u ? 100u : x.tok_len);
+        c->tok_lvl = (float)(x.tok > 100u ? 100u : x.tok) * 0.012f;
+        c->tok_type = (uint8_t)(x.tok_type % KICK_TOK_TYPES);
+        c->tok_f1 = f0 * (1.0f / 3.5f) / (float)BRK_SR;
+        c->tok_fd = f0 / (float)BRK_SR - c->tok_f1;
+        c->tok_pdec = decay_factor(18.0f);
+        c->tok_edec = decay_factor(ms * 4.6f);
+        c->tok_k = brk_clampf(6.2832f * f0 / (float)BRK_SR, 0.01f, 0.9f);
+        c->g_len = 0u;
+        if (x.gate && x.gate < KICK_GATES) {
+            float spb = p_spb > 2000.0f ? p_spb : 2000.0f, fn;
+            c->g_len = (uint32_t)(spb / (float)CHOPS[x.gate]);
+            c->g_on = (uint32_t)((float)c->g_len * (0.1f + 0.008f * (float)(x.gate_len > 100u ? 100u : x.gate_len)));
+            c->g_start = (uint32_t)(spb * 0.25f);
+            fn = x.gate_fade ? (20.0f + 9.8f * (float)(x.gate_fade > 100u ? 100u : x.gate_fade)) * (float)(BRK_SR / 1000u) : 0.0f;
+            c->g_fade_n = (uint32_t)fn;
+            c->g_fade_k = fn > 0.0f ? 1.0f / fn : 0.0f;
+        }
+    }
 }
 
 static void kv_hit(kv_t *v)
@@ -350,6 +385,10 @@ static void kv_hit(kv_t *v)
     v->t = 0u;                           /* (LOAF BREAKER LAB) */
     v->pl = v->gend = v->fenv = 1.0f;
     v->f1 = v->f2 = 0.0f;                /* (the filter open at the hit: it passes it all) */
+    v->tok_ph = v->tok_n1 = v->tok_n2 = 0.0f;   /* (0.9.45: TOK from the hit; the gate open) */
+    v->tok_env = v->tok_pe = 1.0f;
+    v->g_pos = 0u;
+    v->g_s = 1.0f;
 }
 
 static inline float noise(kv_t *v)
@@ -473,6 +512,25 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
         }
         v->rb_t++;
     }
+    if (c->tok_lvl > 0.0f && v->tok_env > 1e-4f) {   /* (0.9.45) TOK: the short pitched attack, into the clip */
+        float s;
+        if (c->tok_type == 1u) {         /* NOISE: high-passed, then low-passed, in a band */
+            float n = noise(v);
+            v->tok_n1 += (n - v->tok_n1) * c->tok_k;
+            v->tok_n2 += ((n - v->tok_n1) - v->tok_n2) * (c->tok_k * 2.5f < 0.9f ? c->tok_k * 2.5f : 0.9f);
+            s = v->tok_n2 * 3.0f;
+        } else {
+            s = c->tok_type == 2u ? brk_sin_turns(v->tok_ph) : (v->tok_ph < 0.5f ? 1.0f : -1.0f);
+            v->tok_n2 += (s - v->tok_n2) * 0.6f;   /* (the square's edges rounded, ~7 kHz) */
+            s = v->tok_n2;
+            v->tok_ph += c->tok_f1 + c->tok_fd * v->tok_pe;
+            if (v->tok_ph >= 1.0f)
+                v->tok_ph -= 1.0f;
+            v->tok_pe *= c->tok_pdec;
+        }
+        y += s * v->tok_env * c->tok_lvl;
+        v->tok_env *= c->tok_edec;
+    }
     /* the sum: a drive into a clip, soft and then (INTENSITY over half) hard: the distorted kick */
     d = y * c->g;
     if (c->tdrive > 0.0f)                /* (LAB: TAIL DRIVE, after the attack) */
@@ -582,6 +640,18 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
         }
         out *= v->gend;
     }
+    if (c->g_len && v->t >= c->g_start) {   /* (0.9.45) the TAIL GATE: from the second 16th, chopped in time */
+        float on = v->g_pos < c->g_on ? 1.0f : 0.0f, tg = on;
+        if (++v->g_pos >= c->g_len)
+            v->g_pos = 0u;
+        if (c->g_fade_n) {               /* (coming in little by little) */
+            uint32_t e = v->t - c->g_start;
+            float k = e >= c->g_fade_n ? 1.0f : (float)e * c->g_fade_k;
+            tg = 1.0f - k * (1.0f - on);
+        }
+        v->g_s += (tg - v->g_s) * 0.06f;
+        out *= v->g_s;
+    }
     v->t++;
     out *= c->vol;
     v->last = out;
@@ -664,6 +734,8 @@ void kick_render(float *out, uint32_t n, const uint16_t *at, uint32_t nat)
         kick_lab_t al = *(const kick_lab_t *)&p_alab;
         kc_make(&ak, &c2, p_asyn, &al);
         c2.rum = c2.rb_lvl = c2.csub = 0.0f;
+        c2.tok_lvl = 0.0f;               /* (0.9.45: TOK and the gate the tail kick's alone) */
+        c2.g_len = 0u;
         c2.vol = c.vol;                  /* (at the kick's volume) */
     } else
         c2 = c;

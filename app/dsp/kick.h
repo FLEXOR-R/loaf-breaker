@@ -109,6 +109,24 @@ typedef struct {
 float kick_lab_ms(uint32_t what, uint32_t v);   /* KL_END, KL_CROSS, KL_FADE, KL_FTIME as ms; KL_FILT, KL_NOTE as Hz */
 enum { KLM_END, KLM_CROSS, KLM_FADE, KLM_FTIME, KLM_FILT, KLM_NOTE };
 void kick_set_lab(const kick_lab_t *l);  /* main loop: the kick playing's */
+/* LOAF BREAKER (0.9.45, FLEXOR's Kick Lab 2: chosen by ear, HARD 909's dry attack and ROLL's chopped tail): TOK, a short
+ * pitched attack in front of the layers, into the clip with them (the dirt takes it too); the TAIL GATE, the kick
+ * chopped in time from its second 16th on. Each kick its own (the app keeps them apart from kick_lab_t); all 0: as the
+ * kick always sounded */
+typedef struct {
+    uint8_t tok;                         /* TOK: 0 off, 1..100 its level */
+    uint8_t tok_type;                    /* 0 SQUARE (the hard tok), 1 NOISE (a burst in a band), 2 SINE (rounder) */
+    uint8_t tok_pitch;                   /* 0..100: where it starts, 400 .. 4000 Hz (it falls to a third in ~4 ms); NOISE
+                                          * its band */
+    uint8_t tok_len;                     /* 0..100: 2 .. 30 ms */
+    uint8_t gate;                        /* TAIL GATE: 0 off, 1 1/8, 2 1/12, 3 1/16, 4 1/24, 5 1/32 */
+    uint8_t gate_len;                    /* the part of each chop that sounds, 0..100: 10 .. 90 % */
+    uint8_t gate_fade;                   /* 0: chopped at once; 1..100: the chop coming in over 20 .. 1000 ms */
+    uint8_t rsv;
+} kick_x2_t;
+#define KICK_TOK_TYPES 3u
+#define KICK_GATES 6u
+void kick_set_x2(const kick_x2_t *x);    /* main loop: the kick playing's */
 /* main loop: STACK's attack, its kick, SYNTH and LAB (its own STACK not heard); k 0: off */
 void kick_set_stack(const kick_t *k, const int8_t *syn, const kick_lab_t *l);
 void kick_set_solo(uint32_t s);          /* STACK's SOLO: 0 both, 1 the attack alone, 2 the tail alone */

@@ -161,6 +161,7 @@ static void reset_do(uint32_t w)
         set.kbass[2] = set.kbass[3] = 50u;
         kx_all();
         klab_defaults();                 /* (LOAF BREAKER: their KICK LAB off) */
+        kx2_defaults();                  /* (0.9.45: their TOK and TAIL GATE off) */
         kmem_extras();                   /* (0.9.33: KICK 7 TERROR, KICK 8 SPINE, whole; the one selected's EQ too) */
         kfx_get(set.kslot);
         changed_fx();
@@ -252,6 +253,7 @@ static void reset_do(uint32_t w)
         for (j = 0; j < KS_N; j++)
             ksmem_at(set.kslot % KICK_MEMS)[j] = 0;
         memset(&klab.cur, 0, sizeof klab.cur);   /* (LOAF BREAKER: its KICK LAB off) */
+        memset(kx2_at(set.kslot), 0, sizeof(kick_x2_t));   /* (0.9.45: its TOK and TAIL GATE off) */
         (*klmem_at(set.kslot % KICK_MEMS)) = klab.cur;
     }
     changed();

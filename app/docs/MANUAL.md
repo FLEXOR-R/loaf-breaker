@@ -217,8 +217,8 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 - **EDIT**: the **KICK menu**. Its picture: the kick's hit over a quarter of a second, its wave large (the cycles
   stretching as its pitch falls, squared off where it is driven), its level behind, the SUB's pitch falling in amber,
   its memory (KICK 1–20), what the part is for in a few words ("FOLD DISTORTION") and its note; under it the part's four knobs as cards, their values large. **SELECT**: the
-  next section (**EDIT again**: the next sound, SNARE, HAT, CLAP, then the KICK), the kick's anatomy from its hit to its end: **ATTACK** (PRESET: K1 the built-in kicks, the part the menu opens on; CLICK, PUNCH, STACK), **BODY** (MIX, SUB, GRIT,
-  SYNTH, SYNTH +, MACRO, OUT; the menu opens here), **TAIL** (TAIL, TAIL +, BASS, MORPH), **DIRT** (DISTO, DISTO +,
+  next section (**EDIT again**: the next sound, SNARE, HAT, CLAP, then the KICK), the kick's anatomy from its hit to its end: **ATTACK** (PRESET: K1 the built-in kicks, the part the menu opens on; CLICK, PUNCH, STACK, TOK), **BODY** (MIX, SUB, GRIT,
+  SYNTH, SYNTH +, MACRO, OUT; the menu opens here), **TAIL** (TAIL, TAIL +, BASS, MORPH, GATE), **DIRT** (DISTO, DISTO +,
   SCREAM, the layers' effects), **FX1** and **FX2** (its two FX slots, each a section of its own since 0.9.29: ALGORITHM goes through the effect's parts, MAIN, MORE, MOD or the MB COMP's), **MORE** (KNOBS until 0.9.28: KNOBS, ASSIGN, K1–K4, TOOLS, then EQ B and EQ S, its EQ's bands and shape);
   **ALGORITHM**: the next part in it (each section remembers where you were). The section's parts are a bar of tabs at
   the foot of the picture, the whole width, the one open lit (BEGINNER: those it passes over dimmed; short names
@@ -896,6 +896,16 @@ nothing set there sounds exactly as it always did.
 | TAIL + | FILTER: OFF · 11 kHz – 190 Hz | F TIME: 20 – 600 ms | DRIVE: OFF · 1 – 100 % | |
 | STACK | ATTACK: OFF · KICK 1–20 | CROSS: 10 – 300 ms | FADE: 2 – 150 ms | SOLO: BOTH · ATTACK · TAIL |
 | TOOLS | MUTATE | A/B | | |
+| TOK (ATTACK) | LEVEL: OFF · 2 – 100 % | TYPE: SQUARE · NOISE · SINE | PITCH: 400 Hz – 4 kHz | LENGTH: 2 – 30 ms |
+| GATE (TAIL) | DIVISION: OFF · 1/8 · 1/12 · 1/16 · 1/24 · 1/32 | LENGTH: 10 – 90 % | FADE IN: OFF · 20 – 1000 ms | |
+
+- **TOK** (0.9.45, picked by ear) is a short, pitched attack in front of the kick: a SQUARE (the dry, hard tok), a burst
+  of NOISE in a band, or a rounder SINE, falling from its PITCH to a third of it in a few milliseconds, LENGTH long. It
+  goes into the clip with the layers, so DISTO and DRIVE take it too. Turned on the first time it starts at about
+  1.4 kHz and 15 ms.
+- **GATE** chops the kick in time from its second 16th on: at 1/16 it rolls in sixteenths, at 1/32 it stutters, at
+  1/12 it rolls in triplets; LENGTH is the part of each chop that sounds (short: dry and choppy), FADE IN lets the chop
+  come in little by little. It follows the tempo, and the next kick cuts it as it cuts the tail.
 
 - **MODE CLEAN** fixes the "goofy" tail. In CLASSIC the kick fades *before* its distortion, so DISTO's fold and SCREAM
   change colour as it falls (the tail "talks": wah, yoy), and PUNCH and GRIT sit on notes of their own that rub

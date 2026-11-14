@@ -321,6 +321,21 @@ static int8_t *ksmem_at(uint32_t n);
 static kick_lab_t *klmem_at(uint32_t n);
 static void km2_lab_clear(void);
 static uint8_t klab_solo;                /* STACK's SOLO (not saved): 0 both, 1 the attack, 2 the tail */
+/* LOAF BREAKER (0.9.45, FLEXOR's Kick Lab 2): each kick's TOK and TAIL GATE (kick.h kick_x2_t), KICK 1..20, their own
+ * store object (OBJ_KX2: the KICK LAB's object kept as it was, so no save is lost); the kick playing's is its memory's
+ * (kx2_at(set.kslot)). A save before them: all 0, every kick as it sounded */
+#define KX2_MAGIC 0x3258324Bu            /* "K2X2" */
+typedef struct {
+    uint32_t magic;
+    kick_x2_t m[KICK_MEMS];
+} kx2_t;
+static kx2_t kx2 PLAT_POOL;
+static kick_x2_t *kx2_at(uint32_t k) { return &kx2.m[k % KICK_MEMS]; }
+static void kx2_defaults(void)
+{
+    memset(&kx2, 0, sizeof kx2);
+    kx2.magic = KX2_MAGIC;
+}
 static void klab_defaults(void)
 {
     memset(&klab, 0, sizeof klab);
@@ -331,6 +346,7 @@ static void klab_send(void)              /* the LAB to the engine, STACK's attac
 {
     uint32_t n = klab.cur.src ? (uint32_t)(klab.cur.src - 1u) % KICK_MEMS : 0u;
     kick_set_lab(&klab.cur);
+    kick_set_x2(kx2_at(set.kslot));      /* (0.9.45: its TOK and TAIL GATE) */
     if (!klab.cur.src)
         kick_set_stack(0, 0, 0);
     else if (n == set.kslot % KICK_MEMS)   /* (its own: the kick playing, as it is) */
@@ -1005,7 +1021,8 @@ static int store_all(void)               /* SAVE: the settings, the patterns (th
            plat_store_save(OBJ_STEP, &steps, sizeof steps) == 0 && grp_save() &&
            plat_store_save(OBJ_KLAB, &klab, sizeof klab) == 0 &&
            plat_store_save(OBJ_KMEM2, &km2, sizeof km2) == 0 &&   /* (KICK 11..20, 0.9.2) */
-           (kfx_put(set.kslot), plat_store_save(OBJ_KFXM, &kfxm, sizeof kfxm) == 0);   /* (each kick's FX, 0.9.26) */
+           (kfx_put(set.kslot), plat_store_save(OBJ_KFXM, &kfxm, sizeof kfxm) == 0) &&   /* (each kick's FX, 0.9.26) */
+           plat_store_save(OBJ_KX2, &kx2, sizeof kx2) == 0;   /* (each kick's TOK and TAIL GATE, 0.9.45) */
 }
 /* LOAF BREAKER: the kick memory k's knobs from the ones playing (kx_put), the ones playing from k's (kx_get); kx_all:
  * every memory's as the ones playing (an older save, RESET ALL) */
@@ -1660,7 +1677,9 @@ void app_init(void)
     if (pats.magic != PAT_MAGIC && pats.magic != PAT2_MAGIC && pats.magic != PAT1_MAGIC)
         pat_defaults();
     if (plat_store_load(OBJ_KLAB, &klab, sizeof klab) != (int)sizeof klab || klab.magic != KLAB_MAGIC)
-        klab_defaults();                 /* (LOAF BREAKER: a save before the KICK LAB: every kick as it sounded) */
+        klab_defaults();
+    if (plat_store_load(OBJ_KX2, &kx2, sizeof kx2) != (int)sizeof kx2 || kx2.magic != KX2_MAGIC)
+        kx2_defaults();                  /* (0.9.45: a save before TOK and the TAIL GATE: none on any kick) */                 /* (LOAF BREAKER: a save before the KICK LAB: every kick as it sounded) */
     {                                    /* (LOAF BREAKER, 0.9.2: KICK 11..20; a save before them: as they begin; the
                                           * KICK LAB's line above may have cleared their LAB: theirs read after) */
         km2_lab_clear();

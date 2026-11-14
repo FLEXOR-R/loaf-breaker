@@ -94,4 +94,4 @@ expect kl_mode 1
 expect kl_src 1
 tap SAVE
 wait 300
-expect store_writes 10
+expect store_writes 11

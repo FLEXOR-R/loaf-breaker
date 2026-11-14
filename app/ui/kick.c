@@ -5,7 +5,8 @@
 /* ---- the KICK page (PRD K-*): EDIT opens it, EDIT again the next sub-page. The white keys are the kick's 16
  * steps, ALGORITHM the layer, PRESETS the built-in kicks, SEL + EDIT through the FX chain or around it */
 enum { KP_MIX, KP_LAYER, KP_FX, KP_MACRO, KP_OUT, KP_TERROR, KP_TMORE, KP_TERROR2, KP_SYN1, KP_SYN2, KP_BASS, KP_KNOBS,
-       KP_KSET, KP_CMORPH, KP_STYLE, KP_TAIL, KP_TAIL2, KP_STACK, KP_TOOLS, KP_PRESET, KPAGES };   /* (KP_PRESET: LOAF
+       KP_KSET, KP_CMORPH, KP_STYLE, KP_TAIL, KP_TAIL2, KP_STACK, KP_TOOLS, KP_PRESET, KP_TOK, KP_GATE, KPAGES };   /* (KP_TOK,
+                                          * KP_GATE: 0.9.45, FLEXOR's Kick Lab 2) */   /* (KP_PRESET: LOAF
                                           * BREAKER 0.253, FLEXOR: ATTACK's first part, the built-in kicks alone) */
 /* LOAF BREAKER: the KICK LAB, the menu's LAB section (klab in app.c, kick.h kick_lab_t): TAIL (K1 MODE, K2 NOTE, K3
  * CURVE, K4 END), TAIL + (K1 FILTER, K2 F TIME, K3 DRIVE), STACK (K1 ATTACK, K2 CROSS, K3 FADE, K4 SOLO), TOOLS (K1
@@ -204,6 +205,7 @@ static void kick_copy_from(uint32_t n)    /* (0.9.26: kick memory n's everything
     kx_get(n);
     kfx_get(n);
     klab.cur = (*klmem_at(n));
+    *kx2_at(set.kslot) = *kx2_at(n);     /* (0.9.45: its TOK and TAIL GATE too) */
     changed_kick();
     changed_fx();
 }
@@ -213,13 +215,17 @@ static void kick_mem_turn(int32_t d)
 }
 static const char *const KPAGE_NAME[KPAGES] = {"MIX", "LAYER", "LAYER FX", "MACRO", "OUT", "DISTO", "DISTO +",
                                                 "SCREAM", "SYNTH", "SYNTH +", "BASS", "KNOBS", "K SET",
-                                                "CLEAN MORPH", "ASSIGN", "TAIL", "TAIL +", "STACK", "TOOLS", "PRESET"};
+                                                "CLEAN MORPH", "ASSIGN", "TAIL", "TAIL +", "STACK", "TOOLS", "PRESET",
+                                                "TOK", "TAIL GATE"};
 /* the kick's parts in a row, as ALGORITHM turns through them: MIX, SUB, SUB FX, PUNCH, PUNCH FX, GRIT, GRIT FX,
  * CLICK, CLICK FX, MACRO, OUT (each a sub-page, and for a layer its layer); LOAF BREAKER TEST: then EQ BANDS, EQ
  * SHAPE (the KICK EQ page), FX 1, FX 2 (the FX page on the kick's slots), TERROR, TERROR +, TERROR 2 */
 #define KP_BASE (3u + 2u * KICK_LAYERS)
-#define KPARTS (KP_BASE + 22u)       /* (LOAF BREAKER: then the LAB's TAIL, TAIL +, STACK, TOOLS; then PRESET, 0.253) */
+#define KPARTS (KP_BASE + 24u)       /* (LOAF BREAKER: then the LAB's TAIL, TAIL +, STACK, TOOLS; then PRESET, 0.253; TOK,
+                                          * TAIL GATE, 0.9.45) */
 #define KP_PART_PRESET (KP_BASE + 21u)
+#define KP_PART_TOK (KP_BASE + 22u)
+#define KP_PART_GATE (KP_BASE + 23u)
 static const char *const KP_MORE_NAME[11] = {"EQ BANDS", "EQ SHAPE", "FX 1", "FX 2", "DISTO", "DISTO +", "SCREAM",
                                             "SYNTH", "SYNTH +", "BASS", "KNOBS"};   /* (then K1 SET .. K4 SET: "K1 C SUB") */   /* (SYNTH, SYNTH +: ALGORITHM left from MIX) */
 static uint32_t kick_part(void)
@@ -228,6 +234,8 @@ static uint32_t kick_part(void)
         return KP_BASE + (ui.keq_part & 1u);
     if (ui.page == PG_KICK && ui.kpage == KP_PRESET)
         return KP_PART_PRESET;
+    if (ui.page == PG_KICK && (ui.kpage == KP_TOK || ui.kpage == KP_GATE))
+        return ui.kpage == KP_TOK ? KP_PART_TOK : KP_PART_GATE;
     if (ui.page == PG_FX)
         return KP_BASE + 2u + (uint32_t)(ui.fx_focus - BRK_FX_SLOTS) % 2u;
     if (ui.kpage == KP_CMORPH)
@@ -247,6 +255,10 @@ static void kick_part_name(uint32_t p, char *t)
 {
     if (p == KP_PART_PRESET) {
         text_cat(t, "PRESET");
+        return;
+    }
+    if (p == KP_PART_TOK || p == KP_PART_GATE) {
+        text_cat(t, p == KP_PART_TOK ? "TOK" : "TAIL GATE");
         return;
     }
     if (p == KP_BASE + 15u) {
@@ -290,9 +302,11 @@ static const char *const KSECT_NAME[KSECTS] = {"ATTACK", "BODY", "TAIL", "DIRT",
                                           * FLEXOR: FX1 and FX2 sections of their own, ALGORITHM there their parts; the
                                           * EQ in MORE, KNOBS until then) */   /* (FX: TONE until
                                           * 0.9.1, FLEXOR) */
-static const uint8_t KSECT_N[KSECTS] = {4u, 7u, 4u, 7u, 1u, 1u, 9u};
-static const uint8_t KSECT[KSECTS][9] = {{32u, 7u, 3u, 30u},   /* (ATTACK: PRESET first, 0.253) */
-                                         {0u, 1u, 5u, 18u, 19u, 9u, 10u}, {28u, 29u, 20u, 26u},
+static const uint8_t KSECT_N[KSECTS] = {5u, 7u, 5u, 7u, 1u, 1u, 9u};
+static const uint8_t KSECT[KSECTS][9] = {{32u, 7u, 3u, 30u, 33u},   /* (ATTACK: PRESET first, 0.253; TOK last, 0.9.45:
+                                          * the parts before where they were) */
+                                         {0u, 1u, 5u, 18u, 19u, 9u, 10u}, {28u, 29u, 20u, 26u, 34u},   /* (TAIL: its GATE
+                                          * last, 0.9.45) */
                                         {15u, 16u, 17u, 2u, 4u, 6u, 8u}, {13u}, {14u},
                                         {21u, 27u, 22u, 23u, 24u, 25u, 31u, 11u, 12u}};   /* (KNOBS: KP_BASE + 10 ..; 26 CLEAN MORPH;
                                           * 0.9.29, FLEXOR: ASSIGN right after KNOBS) */
@@ -384,6 +398,8 @@ static void kick_part_set(uint32_t p)
     ui.page = PG_KICK;
     if (p == KP_PART_PRESET)             /* (LOAF BREAKER, 0.253: ATTACK's PRESET, the built-in kicks on K1) */
         ui.kpage = KP_PRESET;
+    else if (p == KP_PART_TOK || p == KP_PART_GATE)   /* (0.9.45: ATTACK's TOK, TAIL's GATE) */
+        ui.kpage = p == KP_PART_TOK ? KP_TOK : KP_GATE;
     else if (p >= KP_BASE) {                  /* (TEST) the KICK EQ, the kick's FX slots, its TERRORs */
         uint32_t q = (p - KP_BASE) % 21u;
         if (q >= 17u)                    /* (LOAF BREAKER: the LAB) */
@@ -433,7 +449,95 @@ static const char *const KN_KICK[KPAGES][4] = {{"SUB", "PUNCH", "GRIT", "CLICK"}
                                                {"CLEAN SUB", "MORPH", "TO KICK", ""}, {"K1", "K2", "K3", "K4"},
                                                {"MODE", "NOTE", "CURVE", "END"}, {"FILTER", "F TIME", "DRIVE", ""},
                                                {"ATTACK", "CROSS", "FADE", "SOLO"}, {"MUTATE", "A/B", "EDIT VIEW", "DRUM ZOOM"},
-                                               {"PRESET", "", "", ""}};   /* (KNOBS, K SET: kick_knob_name) */
+                                               {"PRESET", "", "", ""},
+                                               {"LEVEL", "TYPE", "PITCH", "LENGTH"}, {"DIVISION", "LENGTH", "FADE IN", ""}};   /* (KNOBS,
+                                          * K SET: kick_knob_name; TOK, TAIL GATE: 0.9.45) */
+/* LOAF BREAKER (0.9.45, FLEXOR's Kick Lab 2, chosen by ear): ATTACK's TOK, a short pitched attack (K1 LEVEL, K2 TYPE
+ * SQUARE NOISE SINE, K3 PITCH 400 .. 4000 Hz, K4 LENGTH 2 .. 30 ms), and TAIL's GATE, the kick chopped in time from its
+ * second 16th (K1 DIVISION 1/8 .. 1/32, K2 LENGTH: the part that sounds, K3 FADE IN); each kick its own (kx2) */
+static const char *const TOK_TYPE[KICK_TOK_TYPES] = {"SQUARE", "NOISE", "SINE"};
+static const char *const GATE_DIV[KICK_GATES] = {"OFF", "1/8", "1/12", "1/16", "1/24", "1/32"};
+static int kx2_page(void) { return ui.kpage == KP_TOK || ui.kpage == KP_GATE; }
+static void kx2_value(int i, char *t)
+{
+    const kick_x2_t *x = kx2_at(set.kslot);
+    t[0] = 0;
+    if (ui.kpage == KP_TOK) {
+        if (i == 0) {
+            if (!x->tok)
+                text_cat(t, "OFF");
+            else {
+                int_text(x->tok, t);
+                text_cat(t, "%");
+            }
+        } else if (i == 1)
+            text_cat(t, TOK_TYPE[x->tok_type % KICK_TOK_TYPES]);
+        else if (i == 2)
+            hz_text(400.0f * brk_exp2f_c((float)x->tok_pitch * 0.0332193f), t);
+        else {
+            int_text((int32_t)(2.0f + 0.28f * (float)x->tok_len + 0.5f), t);
+            text_cat(t, " MS");
+        }
+        return;
+    }
+    if (i == 0)
+        text_cat(t, GATE_DIV[x->gate % KICK_GATES]);
+    else if (i == 1) {
+        int_text((int32_t)(10.0f + 0.8f * (float)x->gate_len + 0.5f), t);
+        text_cat(t, "%");
+    } else if (i == 2) {
+        if (!x->gate_fade)
+            text_cat(t, "OFF");
+        else {
+            int_text((int32_t)(20.0f + 9.8f * (float)x->gate_fade + 0.5f), t);
+            text_cat(t, " MS");
+        }
+    }
+}
+static float kx2_norm(int i)
+{
+    const kick_x2_t *x = kx2_at(set.kslot);
+    if (ui.kpage == KP_TOK)
+        return i == 0 ? (float)x->tok * 0.01f : i == 1 ? (float)(x->tok_type % KICK_TOK_TYPES) * 0.5f
+               : i == 2 ? (float)x->tok_pitch * 0.01f : (float)x->tok_len * 0.01f;
+    return i == 0 ? (float)(x->gate % KICK_GATES) * 0.2f : i == 1 ? (float)x->gate_len * 0.01f
+           : i == 2 ? (float)x->gate_fade * 0.01f : 0.0f;
+}
+static void kx2_turn(int i, int32_t d)
+{
+    kick_x2_t *x = kx2_at(set.kslot);
+    int dir = d > 0 ? 1 : -1;
+    char t[16];
+    if (ui.kpage == KP_TOK) {
+        if (i == 0) {
+            if (!x->tok && dir > 0 && !x->tok_pitch && !x->tok_len) {
+                x->tok_pitch = 55u;      /* (turned on the first time: HARD 909's, ~1.4 kHz, ~15 ms) */
+                x->tok_len = 45u;
+            }
+            x->tok = (uint8_t)clamp((int32_t)x->tok + d * 2, 0, 100);
+        } else if (i == 1)
+            x->tok_type = (uint8_t)clamp((int32_t)(x->tok_type % KICK_TOK_TYPES) + dir, 0, (int32_t)KICK_TOK_TYPES - 1);
+        else if (i == 2)
+            x->tok_pitch = (uint8_t)clamp((int32_t)x->tok_pitch + d * 2, 0, 100);
+        else
+            x->tok_len = (uint8_t)clamp((int32_t)x->tok_len + d * 2, 0, 100);
+    } else {
+        if (i == 0) {
+            if (!x->gate && dir > 0 && !x->gate_len)
+                x->gate_len = 55u;       /* (turned on the first time: about half of each chop sounding) */
+            x->gate = (uint8_t)clamp((int32_t)(x->gate % KICK_GATES) + dir, 0, (int32_t)KICK_GATES - 1);
+        } else if (i == 1)
+            x->gate_len = (uint8_t)clamp((int32_t)x->gate_len + d * 2, 0, 100);
+        else if (i == 2)
+            x->gate_fade = (uint8_t)clamp((int32_t)x->gate_fade + d * 2, 0, 100);
+        else
+            return;
+    }
+    kx2_value(i, t);
+    app_say(KN_KICK[ui.kpage % KPAGES][i], t);
+    changed_kick();
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
 /* LOAF BREAKER: OUT's K2 TERROR, K3 TERROR 2 (kick.h), 0..100 each; SEL + K4 and SEL + K3 on any page (main.c) */
 static uint8_t *kick_hc(kick_t *k, int i) { return i == 2 ? &KICK_TERROR2(k) : &KICK_TERROR(k); }
 static void kick_hc_text(const kick_t *k, int i, char *t)
@@ -498,6 +602,10 @@ static void kick_value(int i, char *t)
     const kick_t *k = &set.kick;
     const kick_layer_t *l = &k->l[ui.klayer % KICK_LAYERS];
     t[0] = 0;
+    if (kx2_page()) {                    /* (0.9.45: TOK, TAIL GATE) */
+        kx2_value(i, t);
+        return;
+    }
     if (ui.kpage == KP_PRESET) {         /* (LOAF BREAKER, 0.253: ATTACK's PRESET: K1 the built-in kick, alone) */
         if (i == 0)
             kpre_text(t);
@@ -667,6 +775,10 @@ static void kick_knob_turn(int i, int32_t d)
     char t[16];
     if (ui.kpage == KP_PRESET && i != 0)
         return;                          /* (ATTACK's PRESET: K1 alone) */
+    if (kx2_page()) {                    /* (0.9.45: TOK, TAIL GATE) */
+        kx2_turn(i, d);
+        return;
+    }
     if (kick_easy() && ke(i) != KE_PRESET) {   /* (BEGINNER's pages) */
         char w[24];
         kick_layer_t *sub = &k->l[KL_SUB];
@@ -765,6 +877,7 @@ static void kick_knob_turn(int i, int32_t d)
             for (j = 0; j < KS_N; j++)   /* (LOAF BREAKER: its SYNTH back to as it always was too) */
                 set.ksyn[j] = 0;
             memset(&klab.cur, 0, sizeof klab.cur);   /* (and its KICK LAB off) */
+            memset(kx2_at(set.kslot), 0, sizeof(kick_x2_t));   /* (0.9.45: its TOK and TAIL GATE off, as the LAB) */
             klab.cur.pre = (uint8_t)(ui.kpreset + 1u);   /* (the PRESET it shows, as its memory's, 0.9.2) */
             kpre_extra(ui.kpreset);
             if (KICK_TERROR(k))          /* (0.9.40, FLEXOR: a preset made with its DISTO sounds with it: the DST
@@ -924,6 +1037,8 @@ static float kick_knob_f(int i)          /* the part's knob i, 0..1 (as its bar)
 {
     const kick_t *k = &set.kick;
     const kick_layer_t *l = &k->l[ui.klayer % KICK_LAYERS];
+    if (kx2_page())                      /* (0.9.45: TOK, TAIL GATE) */
+        return kx2_norm(i);
     if (kick_easy() && ke(i) != KE_PRESET) {   /* (BEGINNER's pages) */
         uint32_t e = ke(i);
         switch (e) {
@@ -1040,11 +1155,12 @@ static void kick_chip(uint32_t p, char *t)   /* (LOAF BREAKER: a part's name at 
     }
     {                                    /* (the long ones short: "SYNTH +" SYN+, "DISTO +" D+, EQ's BANDS, SHAPE;
                                           * a layer's effect S FX .. C FX, below) */
-        static const uint8_t P[7] = {KP_BASE + 8u, KP_BASE + 5u, KP_BASE + 0u, KP_BASE + 1u, KP_BASE + 18u,
-                                     KP_BASE + 2u, KP_BASE + 3u};
-        static const char *const S[7] = {"SYN+", "D+", "EQ B", "EQ S", "TAIL+", "FX1", "FX2"};   /* (FX's: 0.9.2) */
+        static const uint8_t P[8] = {KP_BASE + 8u, KP_BASE + 5u, KP_BASE + 0u, KP_BASE + 1u, KP_BASE + 18u,
+                                     KP_BASE + 2u, KP_BASE + 3u, KP_PART_GATE};
+        static const char *const S[8] = {"SYN+", "D+", "EQ B", "EQ S", "TAIL+", "FX1", "FX2", "GATE"};   /* (FX's: 0.9.2;
+                                          * TAIL GATE's, 0.9.45) */
         uint32_t j;
-        for (j = 0; j < 7u; j++)
+        for (j = 0; j < 8u; j++)
             if (p == P[j]) {
                 text_cat(t, S[j]);
                 return;
@@ -1321,7 +1437,7 @@ static void draw_kick_classic(const brk_status_t *st)   /* LOAF BREAKER: the men
 static void draw_kick(const brk_status_t *st)
 {
     uint32_t sig = sig_of(&set.kick, sizeof set.kick) ^ sig_of(set.ksyn, sizeof set.ksyn) ^
-                   sig_of(&klab.cur, sizeof klab.cur) * 3u ^ kv_part_sig() * 7u, top;   /* (LOAF BREAKER: its LAB too, the
+                   (sig_of(&klab.cur, sizeof klab.cur) ^ sig_of(kx2_at(set.kslot), sizeof(kick_x2_t)) * 5u) * 3u ^ kv_part_sig() * 7u, top;   /* (LOAF BREAKER: its LAB too, the
                                           * part shown) */
     kick_t kk;
     if (ui.kclassic) {
