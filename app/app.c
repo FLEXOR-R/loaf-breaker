@@ -1146,8 +1146,8 @@ static volatile float comp_gr;           /* LOAF BREAKER: COMP's reduction now, 
 /* LOAF BREAKER: what leaves the mix (before MASTER), a column a 15th of a step (44100 / BPM samples): its lows (under
  * ~200 Hz), mids, highs (over ~2.5 kHz) and peak, 0..255, for HOME's CDJ view (cdj.c); a ring, scope_w the columns
  * written so far */
-#define SCOPE_N 480u                     /* (LOAF BREAKER: two bars, for WAVE ZOOM's widest; in RAM, the pool is full) */
-static uint8_t scope[SCOPE_N][4];
+#define SCOPE_N 480u                     /* (LOAF BREAKER: two bars, for WAVE ZOOM's widest) */
+static uint8_t scope[SCOPE_N][4] PLAT_POOL;   /* (in the pool since 0.9.44: the RAM for the screen mirror) */
 static volatile uint8_t scope_on = 1u;   /* (LOAF BREAKER, 0.226: the main loop's: the CDJ view on screen; else the
                                           * render spares the scope's work) */
 static volatile uint32_t scope_w;

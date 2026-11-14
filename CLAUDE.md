@@ -155,6 +155,9 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   WIPE MEMORY (0.263, FLEXOR: V15 odd after LOAF BREAKER): RESET's item before EVERYTHING, erases every sector of the
   store map but the panel's (track.c `wipe_step`, a sector a frame, plat_data_erase), settings unreadable, `wiped`
   blocks saves until a restart; on the host the store is kept apart, so only the FM-1 really erases.
+- Screen mirror (0.9.44, FLEXOR: a computer interface, then a bigger sequencer and kick editor on it later): fm1-base's
+  `mirror = true` (fm1.toml; its web page at the site's mirror/, tools/fm1_mirror.py), `APP_REDRAW` (main.c app_redraw);
+  for the RAM: app.h MR_SEGW 240 (whole rows), MRQ 2048, the CDJ `scope` in the pool: RAM 97,116 of 98,304, pool 340,712.
 - No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository. FLEXOR's
   sleeping photo (art/egg_sleep.png, commit afbbd5c, 6 Nov) stays in the history: FLEXOR, 12 Nov 2026, no purge.
 - Fonts: `font_trim` is on (fm1.toml, 9 Nov 2026). LOAF BREAKER draws in FONT_T, FONT_XS and FONT_B only (cv_text2 for

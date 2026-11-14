@@ -2259,6 +2259,11 @@ static void cu_reply(uint32_t cmd, uint32_t code, const uint8_t *d, uint32_t n)
     (void)plat_sysex_send(f, k);
 }
 static uint32_t rd32(const uint8_t *p) { return p[0] | p[1] << 8 | p[2] << 16 | (uint32_t)p[3] << 24; }
+void app_redraw(void)                    /* (LOAF BREAKER 0.9.44: the mirror lost a part: every row sent again) */
+{
+    rows_forget(0, 240u);
+    ui.redraw |= RG_ALL;
+}
 int app_sysex(const uint8_t *p, uint32_t n)
 {
     uint8_t *u = (uint8_t *)(void *)cv_px, a[16];   /* (the canvas, its last blit done: lcd_sync) */

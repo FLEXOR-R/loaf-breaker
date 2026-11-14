@@ -10,6 +10,8 @@ ble_stack = "own"              # fm1-base's own stack: nothing of JieLi's, ~40 K
 bt_audio = false               # GLOUPI BREAKS: no Bluetooth audio out (CHOPPAH: true, PRD A-72)
 usb_audio_in = true            # the FM-1 recordable over USB (PRD A-50)
 usb_audio_out = false
+mirror = true                  # LOAF BREAKER (0.9.44, FLEXOR): the screen and panel live on a computer over USB, the
+                               # panel played from it (fm1-base's web/mirror: the site's mirror/; tools/fm1_mirror.py)
 midi_stamp = true             # LOAF BREAKER: MIDI in (the clock) stamped where it lands, USB and TRS (fm1-base)
 words = "words.tsv"
 font_trim = true               # LOAF BREAKER: each glyph stored as its lit box (the same pixels, the fonts ~55 % smaller);
