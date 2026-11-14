@@ -767,6 +767,9 @@ static void kick_knob_turn(int i, int32_t d)
             memset(&klab.cur, 0, sizeof klab.cur);   /* (and its KICK LAB off) */
             klab.cur.pre = (uint8_t)(ui.kpreset + 1u);   /* (the PRESET it shows, as its memory's, 0.9.2) */
             kpre_extra(ui.kpreset);
+            if (KICK_TERROR(k))          /* (0.9.40, FLEXOR: a preset made with its DISTO sounds with it: the DST
+                                          * switch on again; its SUB DRIVE, the SUB layer's effect, is the preset's) */
+                set.selk_hi &= (uint8_t)~16u;
         } else {                         /* (COPY KICK n: that memory's, if it is another) */
             uint32_t n = (ui.kpreset - KICK_PRESETS) % KICK_MEMS, j;
             float vol = k->volume;

@@ -491,7 +491,7 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 | ARP, FX while held (MORE) | | THRU: BREAK, KICK or THRU (everything; LFO's ARP the same) | ON / OFF (OFF: K1 browses silent) | RATE (1/4 … 1/32) | SWEEP (1/4 bar … 2 bars) |
 | KIL | While held, the sequencer's kicks are quiet; let go, they play again (a kick roll still plays) | LATCH: ON, a press quiets them and the next brings them back | | | |
 | DST | A switch: a press, the kick's DISTO off, the next on again; its amount is never touched (at 0 % it stays 0 %: turn DISTO up to hear it). Lit while it is ON, even at 0 % (0.268); the kick's own (KICK 1–20): another kick picked (PRESETS, a track's item, a build) brings its own ON or OFF, the key lit with it; saved with SAVE. In BEGINNER too when its layout has DST (0.9.24) | | | | |
-| SUB | A press: the kick's SUB DRIVE on, the next off (its drive is the SUB layer's DRIVE effect, EDIT); the kick's own, as DST: each kick brings its own ON or OFF, the key lit with it | | | | |
+| SUB | A press: the kick's SUB DRIVE on, the next off (its drive is the SUB layer's DRIVE effect, EDIT); the kick's own, as DST: each kick brings its own ON or OFF, the key lit with it. A built-in kick picked on PRESET (0.9.40) sets both as it is made: DST on again if it has DISTO (TERROR, SPINE, EARLY HC, INDUSTRIAL, 909 DRIVE, GABBER, MILLENNIUM, DOOMCORE), SUB DRIVE on for TERROR and SPINE, off for the others | | | | |
 
 ![ROLL held: the caught slice repeating, each copy quieter](img/pad-roll8.png "ROLL held")
 ![VINYL BREAK held: the platter slowing down](img/pad-stop.png "VINYL BREAK held")

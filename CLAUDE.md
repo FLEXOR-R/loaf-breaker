@@ -105,6 +105,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   PRESET_X, app.c `KT_X` (SYNTH, LAB, KICK EQ; `on` 0: ROTTERDAM, DISTORTO, the EQ left as it was). The memories `KMEM_ORD`
   (ROTTERDAM KICK 4, the start's `kslot` 3; EARLY HC KICK 5). His taste for new ones: drive and distortion, SUB and tails
   medium to long, TAIL MODE CLEAN, tails not shrill (a page measures above 3 kHz in the tail: TERROR's -40 dB the mark).
+  A built-in picked (K1 / OUT K4) turns DST back on when it has DISTO (selk_hi bit 4, 0.9.40, FLEXOR); SUB DRIVE is the
+  SUB layer's effect, so the preset's own.
   The host's `kset LAYER.level|pitch|decay|tone|fx|fa|fb|wet`, `syn.*`, `lab.*`, `t.*`, `t2.*`, `csub` set any of a kick raw.
 - WAVE TYPE (`set.wstyle`: REKORDBOX / SERATO; HOME › SETTINGS K2 alone since 0.9.25, GLO EFFECTS' K3 before; SYSTEM shows
   none of HOME's SETTINGS any more, FLEXOR; common.c serato_col; the kick's RGB and cdj.c) and EDIT
