@@ -21,15 +21,15 @@ body.studio[data-theme="nexus"] { --bg: #050607; --panel: #0e1114; --raise: #171
   --amber: #2fb5ff; --amber-soft: rgba(47,181,255,.14); --hot: #d7f0ff; }
 body.studio[data-theme="acid"] { --bg: #0b0612; --panel: #140c1f; --raise: #1f1430; --line: #2e2142; --fg: #f2ecff; --dim: #a99bc4; --faint: #6f6290;
   --amber: #c6ff3d; --amber-soft: rgba(198,255,61,.13); --hot: #efffd0; }
-body.studio[data-theme="nexus"] .tbar, body.studio[data-theme="nexus"] .nav { background: #08090b; }
-body.studio[data-theme="acid"] .tbar, body.studio[data-theme="acid"] .nav { background: #0f0818; }
+body.studio[data-theme="nexus"] .tbar, body.studio[data-theme="nexus"] .side { background: #08090b; }
+body.studio[data-theme="acid"] .tbar, body.studio[data-theme="acid"] .side { background: #0f0818; }
 body.studio[data-theme] button { color: var(--hot); background: var(--raise); }
 body.studio[data-theme] button[aria-pressed="true"], body.studio[data-theme] button.go { background: var(--amber); color: #071018; }
 body.studio[data-theme="acid"] button[aria-pressed="true"], body.studio[data-theme="acid"] button.go { color: #172200; }
 body.studio[data-theme] .dev { background: linear-gradient(var(--raise), var(--panel)); }
-body.studio[data-theme] .cell { background: color-mix(in srgb, var(--raise) 85%, #000); }
-body.studio[data-theme] .cell.q { background: var(--raise); }
-body.studio[data-theme] .cell.on { background: var(--lc); }
+body.studio[data-theme] .cell:not(.brk) { background: color-mix(in srgb, var(--raise) 85%, #000); }
+body.studio[data-theme] .cell.q:not(.brk) { background: var(--raise); }
+body.studio[data-theme] .cell.on:not(.brk) { background: var(--lc); }
 .studio > .page { max-width: none; padding: 0 14px; width: auto; flex: none; }
 .studio header.site { padding: 6px 0; margin: 0; border-bottom: 1px solid var(--line); }
 .studio header.site .home { font-size: 16px; }
@@ -69,7 +69,10 @@ body.studio[data-theme] .cell.on { background: var(--lc); }
 
 /* the frame: the views on the left, the view, the deck under it */
 .frame { flex: 1; min-height: 0; display: flex; }
-.nav { flex: none; width: 138px; background: #12110d; border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 8px 6px; gap: 2px; overflow-y: auto; }
+.side { flex: none; width: 138px; background: #12110d; border-right: 1px solid var(--line); display: flex; flex-direction: column; }
+.nav { flex: 1; display: flex; flex-direction: column; padding: 8px 6px; gap: 2px; overflow-y: auto; }
+.design { display: grid; gap: 6px; padding: 10px; border-top: 1px solid var(--line); }
+.launch button.has[aria-pressed="true"], .launch button[aria-pressed="true"] { background: var(--amber); color: #1a0907; }
 .nav button { display: flex; align-items: center; gap: 9px; width: 100%; text-align: left; background: none; box-shadow: none; color: var(--dim); padding: 9px; font-size: 11.5px; border-radius: 6px; }
 .nav button svg { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .nav button:hover:not(:disabled) { background: var(--raise); color: var(--fg); }
@@ -255,7 +258,7 @@ kbd { font: 600 11px/1 var(--f-mono); background: var(--raise); border-radius: 4
 .welcome .feat span { color: var(--dim); font-size: 14px; }
 @media (max-width: 1100px) { .tlayout { grid-template-columns: 1fr; } .live { grid-template-columns: 1fr; } }
 @media (max-width: 760px) {
-  .studio { height: auto; overflow: visible; } .frame { flex-direction: column; } .nav { width: auto; flex-direction: row; overflow-x: auto; }
+  .studio { height: auto; overflow: visible; } .frame { flex-direction: column; } .side { width: auto; } .nav { flex-direction: row; overflow-x: auto; }
   .nav button { width: auto; } .nav .k { display: none; } .view { overflow: visible; } .knobs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>
 </head>
@@ -272,12 +275,12 @@ kbd { font: 600 11px/1 var(--f-mono); background: var(--raise); border-radius: 4
   <div class="grp"><span class="lab">Bar</span><span class="big" id="barNow">—</span></div>
   <div class="grp"><span class="lab">Kick</span><span class="big" id="kickNow">—</span></div>
   <div class="sp"></div>
-  <div class="grp"><span class="lab">Design</span><select id="theme" aria-label="Design"><option value="">Loaf</option><option value="nexus">Nexus</option><option value="acid">Acid</option></select></div>
   <div class="grp"><button id="wstyle" disabled title="The waveforms' colours, as the FM-1's WAVE TYPE">Rekordbox</button>
     <button id="save" class="save" disabled title="Save (Ctrl+S)">Save</button></div>
 </div>
 <div class="frame">
-  <nav class="nav" aria-label="Views" id="nav"></nav>
+  <div class="side"><nav class="nav" aria-label="Views" id="nav"></nav>
+    <label class="design"><span class="lab">Design</span><select id="theme"><option value="">Loaf</option><option value="nexus">Nexus</option><option value="acid">Acid</option></select></label></div>
   <div class="main">
     <main class="view" id="view" tabindex="-1"></main>
     <div class="deck" aria-label="The mix as it leaves the FM-1, live, in RGB"><canvas id="deck"></canvas>

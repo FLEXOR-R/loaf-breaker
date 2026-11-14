@@ -34,9 +34,10 @@ function onMsg(e) {
   if (d[0] !== 0xF0 || d[1] !== 0x7D || d[2] !== 0x43 || d[3] !== 0x48) return;
   if (waiting && (d[4] & 0x3F) === waiting.cmd) { const w = waiting; waiting = null; w.res({ code: d[5], data: unpack7(d.subarray(6, d.length - 1)) }); }
 }
+const REPLY = { 9: 7, 12: 11 };              /* (ED_ACT answers as ED_INFO, ED_STEP as ED_SEQ) */
 function ask1(cmd, data, ms = 2500, port = out) {
   return new Promise((res, rej) => {
-    waiting = { cmd, res };
+    waiting = { cmd: REPLY[cmd] || cmd, res };
     port.send([0xF0, 0x7D, 0x43, 0x48, cmd, ...pack7(Array.from(data)), 0xF7]);
     setTimeout(() => { if (waiting && waiting.res === res) { waiting = null; rej(new Error("no answer")); } }, ms);
   });
