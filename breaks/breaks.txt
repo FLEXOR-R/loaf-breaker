@@ -9,18 +9,24 @@
 #
 # in  file                                        bpm     bars  of  name
 #
-# LOAF BREAKER's base: the 9 breaks in the firmware, in ALGORITHM's order (NUSKOOL at power-on). Break Sort
-# (10 Nov 2026, FLEXOR's listening page, 0.193-0.196): AMEN20 164 and JUNGLE 175 in; AMEN04, AMEN13, IDM,
-# AMEN10, BREAKIN and (0.200, for room) LO-FI out, in FLEXOR's order. Before: Break Swap (9 Nov), the Break Picks tests.
-*   huge/cw_amen_nuskool.wav                    139.99  2     4   NUSKOOL 140
+# LOAF BREAKER's base: the 9 breaks in the firmware, in ALGORITHM's order (AKIRA 190 at power-on). FLEXOR's Break
+# Swap (14 Nov 2026, 0.9.34): his three from flexor/ in, NUSKOOL 140 and JUNGLE 175 out. Break Sort (10 Nov 2026,
+# FLEXOR's listening page, 0.193-0.196): AMEN20 164 and JUNGLE 175 in; AMEN04, AMEN13, IDM, AMEN10, BREAKIN and
+# (0.200, for room) LO-FI out, in FLEXOR's order. Before: Break Swap (9 Nov), the Break Picks tests.
+*   flexor/akira_custom_grind.wav               190     2     4   AKIRA 190
 *   cw/cw_amen20_164.wav                        164     2     2   AMEN20 164
 *   cw/cw_amen19_172.wav                        172     2     4   AMEN19 172
 *   huge/cw_amen_updown.wav                     165     2     2   UPDOWN 165
--   cw/cw_amen15_174.wav                        174     2     4   AMEN15 174
-*   huge/cw_amen_jungle.wav                     175     2     2   JUNGLE 175
+*   flexor/detest_tripped_hardcore_to_the_penis.wav 175 2  4   DETEST 175
+*   flexor/the_satan_gangzta_cash.wav           200     2     4   SATAN 200
 *   classics/lyn_collins_think_about_it.wav     113.78  2     4   THINK 114
 *   classics/incredible_bongo_band_apache.wav   114.78  2     4   APACHE 115
 *   classics/jimmy_mcgriff_the_worm.wav         109.79  2     4   THEWORM 110
+#
+# out of the base on 14 Nov 2026 (FLEXOR's Break Swap, for his three; AMEN15 174 out on 13 Nov, 0.9.30, for room)
+-   huge/cw_amen_nuskool.wav                    139.99  2     4   NUSKOOL 140
+-   huge/cw_amen_jungle.wav                     175     2     2   JUNGLE 175
+-   cw/cw_amen15_174.wav                        174     2     4   AMEN15 174
 #
 # out of the base on 10 Nov 2026 (Break Sort; IDM was in 0.193-0.194, AMEN10 0.193-0.195, LO-FI 0.196-0.199):
 -   huge/cw_amen_lo-fi.wav                      165.06  1     1   LO-FI 165

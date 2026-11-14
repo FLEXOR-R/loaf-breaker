@@ -1,7 +1,7 @@
 <!doctype html>
 <!-- SPDX-License-Identifier: MPL-2.0 -->
 <!-- LOAF BREAKER's BREAKS page (CHOPPAH 1.4's break manager, by Laurens Profittlich; LOAF BREAKER 0.9.32, PRD A-54h):
-     the repository's breaks to hear (lib/, tools/break_lib.py) and yours on the FM-1 (two places, four in each), after the eight
+     the repository's breaks to hear (lib/, tools/break_lib.py) and yours on the FM-1 (two places, four in each), after the ones
      built in, from the library or from a sample. tools/site_style.py puts it at breaks/ on
      the site, with the site's style and header. A sample is made into a break here exactly as the built-in ones are
      (tools/prep_breaks.py: two bars, levelled to -16 dBFS with a look-ahead limiter, at most 22.05 kHz, sixteen slices
@@ -83,7 +83,7 @@
 <div class="page">
 <main id="main">
 <h1>Breaks</h1>
-<p class="lede">The FM-1 plays the eight breaks built into LOAF BREAKER, and your own after them on ALGORITHM: 232 KB
+<p class="lede">The FM-1 plays the breaks built into LOAF BREAKER, and your own after them on ALGORITHM: 232 KB
 of room, five to seven breaks of the library's size (a break takes 29 to 47 KB). Hear the seventy breaks of the project's library, or a sample of yours chopped
 exactly as the FM-1 will play it, add the ones you want to your list, and send it over USB. Chrome or Edge, on a
 computer.</p>
@@ -515,7 +515,7 @@ function renderMine() {
     const row = document.createElement("div");
     row.className = "item" + (heard && heard.one === m.one ? " now" : "");
     row.innerHTML = `<button aria-label="Hear ${esc(m.name)}">▶</button><div><div class="nm">${esc(m.name)}</div>` +
-      `<div class="meta">break ${9 + k} · ${m.bpm.toFixed(2)} BPM · ${kb(m.one.length)}</div></div>` +
+      `<div class="meta">break ${NB + 1 + k} · ${m.bpm.toFixed(2)} BPM · ${kb(m.one.length)}</div></div>` +
       `<div class="acts"><span class="tag${m.sent ? "" : " hot"}">${m.sent ? "On the FM-1" : "Not sent yet"}</span>` +
       `<button aria-label="Remove ${esc(m.name)}">Remove</button></div>`;
     const [hear, , ] = row.querySelectorAll("button");
@@ -595,6 +595,7 @@ function renderLib() {
     el.appendChild(row);
   }
 }
+let NB = 9;                              /* (the breaks built in: the library's marked ones, 9 since 0.9.34) */
 async function loadLib() {
   try {
     lib = await (await fetch("lib/index.json")).json();
@@ -607,6 +608,8 @@ async function loadLib() {
     b.onclick = () => { filt = f; showAll = false; for (const c of $("chips").children) c.setAttribute("aria-pressed", c === b); renderLib(); };
     $("chips").appendChild(b);
   }
+  NB = lib.filter((e) => e.built).length || NB;
+  renderMine();
   $("built").innerHTML = lib.filter((e) => e.built).map((e) => `<span class="tag">${esc(e.name)}</span>`).join("");
   renderLib();
 }
@@ -763,8 +766,8 @@ $("send").onclick = async () => {
       done += img.length;
     }
     bar.style.width = "100%";
-    say(st, mine.length ? `On the FM-1: ${mine.map((m, k) => `<b>${esc(m.name)}</b> (break ${9 + k})`).join(", ")}. ALGORITHM reaches them after the eight built in.`
-                        : "Your breaks are deleted from the FM-1. The eight built in stay.");
+    say(st, mine.length ? `On the FM-1: ${mine.map((m, k) => `<b>${esc(m.name)}</b> (break ${NB + 1 + k})`).join(", ")}. ALGORITHM reaches them after the ${NB} built in.`
+                        : `Your breaks are deleted from the FM-1. The ${NB} built in stay.`);
     await info();
   } catch (e) {
     say(st, "Not sent: " + e.message, true);
