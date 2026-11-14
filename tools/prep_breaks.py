@@ -12,7 +12,7 @@ whole bars). Slices are an equal grid (--slices 16 a bar by default, at most 32 
 the grid's markers moved to the nearest drum hit. Python 3 standard library only.
 
 --list reads a catalogue (breaks/breaks.txt): one WAV a line, "IN FILE BPM BARS OF NAME", FILE relative to the
-catalogue; the lines whose IN is * become the bank, sorted by BPM (0.9.45: the slowest first; the same BPM, in order). Paths in the manifest stay relative, so nothing generated
+catalogue; the lines whose IN is * become the bank, sorted by BPM (0.9.43: the slowest first; the same BPM, in order). Paths in the manifest stay relative, so nothing generated
 points outside the repo.
 
 The bank layout is app/dsp/brk_bank.h's. Uploading it to the FM-1 arrives in milestone M5 (tools/fm1_breaks.py).
@@ -391,7 +391,7 @@ def main():
     if len(specs) > BANK_SLOTS:
         raise SystemExit(f"{len(specs)} breaks: at most {BANK_SLOTS}")
     slots = [prepare(s, args, shown) for s, shown in specs]
-    if args.list:                        # (LOAF BREAKER 0.9.45, FLEXOR: the bank always slowest to fastest, whatever the
+    if args.list:                        # (LOAF BREAKER 0.9.43, FLEXOR: the bank always slowest to fastest, whatever the
         slots.sort(key=lambda s: s["bpm"])   # catalogue's order (the same BPM: its order kept): a new FM-1 starts on the
                                          # slowest, the bank's first)
     capacity = IMAGE_CAPACITY if args.header else BANK_CAPACITY

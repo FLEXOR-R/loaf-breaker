@@ -478,7 +478,7 @@ function welcome(root) {
   root.innerHTML = `<div class="welcome"><h1>LOAF BREAKER Studio</h1>
   <p>Your FM-1 on the computer, as a DAW: the kick and the drums with every setting at once, the sequencer, the 64
   patterns, the tracks of your live set, the effects and the mix, the waveforms in RGB as on its screen. Plug the FM-1 in
-  by USB (LOAF BREAKER 0.9.45 or later), then <b>Connect</b> above. Chrome or Edge, on a computer.</p>
+  by USB (LOAF BREAKER 0.9.43 or later), then <b>Connect</b> above. Chrome or Edge, on a computer.</p>
   <div class="feat"><div><b>KICK</b><span>Every part of the KICK menu, FX1 and FX2, the EQ, its RGB waveform redrawn as you turn.</span></div>
   <div><b>SEQUENCER</b><span>The break's 32 steps over its own waveform, the kick, snare, hat and clap over four bars.</span></div>
   <div><b>PATTERNS</b><span>The 64 patterns as cards, each with its picture: click to play it next.</span></div>
@@ -1409,8 +1409,8 @@ $("connect").onclick = async () => {
   for (const o of likely.concat(outs.filter((o) => !likely.includes(o)))) {
     try { const r = await ask1(7, [], 800, o); if (r.data[0] >= 1) { out = o; info = readInfo(r.data); break; } } catch (e) { /* not it */ }
   }
-  if (out) {                                 /* (0.9.45 or later: ED_X answers) */
-    try { await ask1(13, [1, 0, 0, 0, 0, 0], 800); } catch (e) { out = null; toast("This LOAF BREAKER is too old for the Studio: update it (the site's installer) to 0.9.45 or later."); }
+  if (out) {                                 /* (0.9.43 or later: ED_X answers) */
+    try { await ask1(13, [1, 0, 0, 0, 0, 0], 800); } catch (e) { out = null; toast("This LOAF BREAKER is too old for the Studio: update it (the site's installer) to 0.9.43 or later."); }
   }
   $("connect").textContent = out ? "Refresh" : "Connect";
   if (!out) { $("dot").className = "dot bad"; if (!$("toast").textContent.includes("old")) toast("No LOAF BREAKER found. Plug it in by USB, update it if needed, and connect again."); return; }

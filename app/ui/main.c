@@ -80,7 +80,7 @@ static void kfx_open(int on)             /* to KICK FX (on), or the FX page back
         ui.fx_page = 0u;
     }
 }
-static uint32_t ed_live_t;              /* (LOAF BREAKER 0.9.45: the editor's LIVE view last asked: the scope kept on) */
+static uint32_t ed_live_t;              /* (LOAF BREAKER 0.9.43: the editor's LIVE view last asked: the scope kept on) */
 static uint8_t lvl_fast;                /* LOAF BREAKER: LFO + K1-K4: the levels by 5 % a detent (the MIXER's own
                                           * page: 2 %) */
 static float lvl_step(int32_t d) { (void)d; return lvl_fast ? 0.05f : 0.02f; }
@@ -510,9 +510,9 @@ static void input(void)
     }
     if ((kup & PAD_BIT(BKF_ARP)) && !(keys & PAD_BIT(BKF_ARP)))
         ovl_pad_key(0);
-    if (kdn & PAD_BIT(BKF_SUB)) {        /* LOAF BREAKER (0.9.45, FLEXOR): SUB, a switch: the kick's SUB FX (the SUB
+    if (kdn & PAD_BIT(BKF_SUB)) {        /* LOAF BREAKER (0.9.43, FLEXOR): SUB, a switch: the kick's SUB FX (the SUB
                                           * layer's effect, whichever EDIT set) used or not, its settings never touched
-                                          * (as DST, DRV; GLOUPI BREAKS to 0.9.44: SUB DRIVE itself on and off) */
+                                          * (as DST, DRV; GLOUPI BREAKS to 0.9.43: SUB DRIVE itself on and off) */
         set.selk_hi ^= 64u;
         app_say("SUB FX", subfx_off ? "OFF" : set.kick.l[KL_SUB].fx != KFX_OFF ? "ON" : "ON (NONE SET)");
         changed_kick();
@@ -525,7 +525,7 @@ static void input(void)
         changed_kick();
         ui.redraw |= RG_FOOT | RG_BLOCKS;
     }
-    if (kdn & PAD_BIT(BKF_DRV)) {        /* LOAF BREAKER (0.9.44, FLEXOR): DRV, a switch: the kick's DRIVE (INTENSITY)
+    if (kdn & PAD_BIT(BKF_DRV)) {        /* LOAF BREAKER (0.9.43, FLEXOR): DRV, a switch: the kick's DRIVE (INTENSITY)
                                           * used or not, its amount never touched (as DST) */
         set.selk_hi ^= 32u;
         app_say("DRIVE", drive_off ? "OFF" : set.kick.intensity > 0.005f ? "ON" : "ON (AT 0 %)");
@@ -1575,7 +1575,7 @@ static float foot_norm(int i)            /* the page's knob i, 0..1, or -1 (no g
                : -1.0f;
     return -1.0f;
 }
-/* the page's knob i (0..3) name, as the foot shows it (LOAF BREAKER 0.9.45: the editor's too) */
+/* the page's knob i (0..3) name, as the foot shows it (LOAF BREAKER 0.9.43: the editor's too) */
 static const char *knob_name(int i)
 {
     static const char *const KN[NPAGES][4] = {{"GATE", "FILTER", "DRUM FLT", "SUB DECAY"},
@@ -2012,7 +2012,7 @@ void app_frame(void)
         ui.redraw |= RG_BLOCKS;
     }
     scope_on = (uint8_t)(ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_KICK ||
-                         (ed_live_t && plat_ms() - ed_live_t < 1500u));   /* (0.9.45: the editor's LIVE view) */   /* (LOAF BREAKER: the
+                         (ed_live_t && plat_ms() - ed_live_t < 1500u));   /* (0.9.43: the editor's LIVE view) */   /* (LOAF BREAKER: the
                                           * scrolling wave's work in the render, only where it shows) */
     if (ui.page == PG_GLOBAL && now - ui.panel_drawn >= 200u)   /* the GLOBAL page's panel: five times a second */
         ui.redraw |= RG_BLOCKS;
@@ -2276,12 +2276,12 @@ static void cu_reply(uint32_t cmd, uint32_t code, const uint8_t *d, uint32_t n)
     cu_reply_in((uint8_t *)(void *)cv_px, cmd, code, d, n);
 }
 static uint32_t rd32(const uint8_t *p) { return p[0] | p[1] << 8 | p[2] << 16 | (uint32_t)p[3] << 24; }
-void app_redraw(void)                    /* (LOAF BREAKER 0.9.44: the mirror lost a part: every row sent again) */
+void app_redraw(void)                    /* (LOAF BREAKER 0.9.43: the mirror lost a part: every row sent again) */
 {
     rows_forget(0, 240u);
     ui.redraw |= RG_ALL;
 }
-/* LOAF BREAKER (0.9.45, FLEXOR: "une interface efficace et complète, beaucoup plus de paramètres en même temps"): the
+/* LOAF BREAKER (0.9.43, FLEXOR: "une interface efficace et complète, beaucoup plus de paramètres en même temps"): the
  * sound editor (the site's editor/ page) over the same SysEx: every part of the KICK menu (but FX1, FX2: the FX page's)
  * and of the drums' pages, knob by knob, headless: the screen's place kept, EXPERT's knobs, the FM-1's own names, texts
  * and turns (kick_knob_turn, perc_turn, keq_turn: the same clamps and steps). Commands (zone 0): 7 ED_INFO -> {1, kick
@@ -2510,7 +2510,7 @@ static int ed_sysex(uint32_t cmd, const uint8_t *u, uint32_t len)
     }
     return 0;
 }
-/* LOAF BREAKER (0.9.45, FLEXOR: "un séquenceur plus digeste"): the editor's sequencer, the pattern in RAM whole, edited
+/* LOAF BREAKER (0.9.43, FLEXOR: "un séquenceur plus digeste"): the editor's sequencer, the pattern in RAM whole, edited
  * through SEQ's own code (lane_toggle, lane_knob, seq_turn: the same steps, clamps and undo). 11 ED_SEQ {} -> {1,
  * pattern 0..63, playing, bar64 (0xFF none), break step (0xFF none), slices, break steps, bars of KICK SN HH CP, the
  * kick's memory, the drums', novice, group changed, the next pattern (0xFF none), the bars' masks [4][4] u16, stepb (kick 64, the others 32 each:
@@ -2610,7 +2610,7 @@ static int ed_step(const uint8_t *u)
     ui.redraw |= RG_ALL;
     return ok;
 }
-/* LOAF BREAKER (0.9.45, FLEXOR: "gérer séquenceur, banque de patterns et tracks ... comme si j'utilisais un DAW"): the
+/* LOAF BREAKER (0.9.43, FLEXOR: "gérer séquenceur, banque de patterns et tracks ... comme si j'utilisais un DAW"): the
  * editor's rest, cmd 13 (ED_X), its first byte what: 1 STATUS {1, scope wanted, since u32} -> {1, 1, playing, tempo x10
  * u16, ext clock, break, breaks, break step, bar64, pattern, next, track, track on, its item, bars done u16, of u16,
  * drop in int8, kick, novice, unsaved (bit 0 settings, bit 1 patterns), BREAK TIME half, WAVE TYPE, scope_w u32, bar
@@ -2984,7 +2984,7 @@ int app_sysex(const uint8_t *p, uint32_t n)
     ui.idle_t = plat_ms();
     ui.redraw |= RG_ALL;                 /* (the canvas taken: the screen drawn again) */
     len = unpack7(p + 4, n - 4u > 600u ? 600u : n - 4u, u);
-    if (!z && cmd >= 7u && cmd <= 10u)   /* (LOAF BREAKER 0.9.45: the sound editor, any time) */
+    if (!z && cmd >= 7u && cmd <= 10u)   /* (LOAF BREAKER 0.9.43: the sound editor, any time) */
         return ed_sysex(cmd, u, len) || 1;
     if (!z && cmd == 13u)                /* (the rest: pages, tracks, the patterns, RGB, transport) */
         return edx_sysex(u, len) || 1;
@@ -3418,8 +3418,8 @@ int app_expect(const char *what, int *got)
     v[135] = (int)n_breaks;
     v[136] = (int)(set.fx.dj * 100.0f + (set.fx.dj < 0.0f ? -0.5f : 0.5f));   /* (0.9.40: the break's filter, -100..100) */
     v[137] = (int)(set.pads.rsv[0] % 3u);   /* (the rolls' THRU: SENDS' K4) */
-    v[138] = drive_off ? 1 : 0;          /* (0.9.44: the kick's DRV switch) */
-    v[139] = subfx_off ? 1 : 0;          /* (0.9.45: the kick's SUB FX switch) */
+    v[138] = drive_off ? 1 : 0;          /* (0.9.43: the kick's DRV switch) */
+    v[139] = subfx_off ? 1 : 0;          /* (0.9.43: the kick's SUB FX switch) */
     for (i = 0; i < sizeof W / sizeof W[0]; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];

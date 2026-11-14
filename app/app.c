@@ -182,7 +182,7 @@ typedef struct {
                                           * one playing, n KICK n (a track's DROP item: its own, TRACKS K1); back at the drop */
     uint8_t selk_hi;                     /* (appended) each SEL + knob's function code's fifth bit (bit 0 K1 .. bit 3 K4:
                                           * selk_asg2, selk_asg hold the four below; codes past 15); bit 4 the kick's
-                                          * TERROR off (TER); bit 5 its DRIVE off (DRV, 0.9.44) */
+                                          * TERROR off (TER); bit 5 its DRIVE off (DRV, 0.9.43) */
     uint8_t pgrp;                        /* (appended) LOAF BREAKER: the patterns' group in RAM, 0..3 (P1-16 .. P49-64);
                                           * pattern its slot there */
     uint8_t fill_cfg;                    /* (appended) LOAF BREAKER: FILL (ARP; SEL + ARP its page): bit 0 LATCH, bits
@@ -218,10 +218,10 @@ static float rel_ms(uint32_t v) { return 20.0f * brk_exp2f_c((float)(v > 100u ? 
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");
 static settings_t set;
 /* LOAF BREAKER (11 Nov 2026, FLEXOR): the black keys' functions, BKF_*: the eleven pads (brk.h PAD_*: FREEZE and DUB
- * back), then ARP (an OVERLAY effect), KIL (the sequencer's kicks quiet), DST (the kick's DISTO), SUB (its SUB FX on / off: 0.9.45, FLEXOR).
+ * back), then ARP (an OVERLAY effect), KIL (the sequencer's kicks quiet), DST (the kick's DISTO), SUB (its SUB FX on / off: 0.9.43, FLEXOR).
  * A layout: the function of each key, left to right. Presets: CHOPPAH (CHOPPAH's keys; BEGINNER's only), FLEXOR LAYOUT
  * (LOAF BREAKER's until 0.244), CUSTOM (each key its own: ARP › BLACK KEYS) */
-enum { BKF_ARP = BRK_NPADS, BKF_KIL, BKF_DST, BKF_SUB, BKF_DRV, BKF_N };   /* (BKF_DRV: the kick's DRIVE, 0.9.44) */
+enum { BKF_ARP = BRK_NPADS, BKF_KIL, BKF_DST, BKF_SUB, BKF_DRV, BKF_N };   /* (BKF_DRV: the kick's DRIVE, 0.9.43) */
 enum { BKP_CHOPPAH, BKP_FLEXOR, BKP_CUSTOM, BKP_N };
 #define BK_TAG 0xB4u
 #define BK_VIEW 14u                      /* (bk[14]: HOME's VIEW, 0 the waveform, 1 the slices, 0.9.2) */
@@ -356,9 +356,9 @@ static int bk_has(uint32_t f)            /* (a black key of the layout in use do
 #define terror_off ((set.selk_hi & 16u) && bk_has(BKF_DST))   /* (the kick's own DST switch, each kick its own (kx_put);
                                           * 0.9.24: in either mode, where the layout has a DST key (BEGINNER keeps
                                           * EXPERT's layout since 0.9.23); with none, the DISTO always heard) */
-#define drive_off ((set.selk_hi & 32u) && bk_has(BKF_DRV))   /* (LOAF BREAKER 0.9.44, FLEXOR: DRV, the kick's DRIVE
+#define drive_off ((set.selk_hi & 32u) && bk_has(BKF_DRV))   /* (LOAF BREAKER 0.9.43, FLEXOR: DRV, the kick's DRIVE
                                           * (INTENSITY) off, its amount kept; each kick its own, as DST) */
-#define subfx_off ((set.selk_hi & 64u) && bk_has(BKF_SUB))   /* (LOAF BREAKER 0.9.45, FLEXOR: SUB, the kick's SUB FX (the
+#define subfx_off ((set.selk_hi & 64u) && bk_has(BKF_SUB))   /* (LOAF BREAKER 0.9.43, FLEXOR: SUB, the kick's SUB FX (the
                                           * SUB layer's effect, whichever) off, its settings kept; each kick its own) */
 static void kick_send(void)
 {
@@ -1153,7 +1153,7 @@ static volatile float comp_gr;           /* LOAF BREAKER: COMP's reduction now, 
  * ~200 Hz), mids, highs (over ~2.5 kHz) and peak, 0..255, for HOME's CDJ view (cdj.c); a ring, scope_w the columns
  * written so far */
 #define SCOPE_N 480u                     /* (LOAF BREAKER: two bars, for WAVE ZOOM's widest) */
-static uint8_t scope[SCOPE_N][4] PLAT_POOL;   /* (in the pool since 0.9.44: the RAM for the screen mirror) */
+static uint8_t scope[SCOPE_N][4] PLAT_POOL;   /* (in the pool since 0.9.43: the RAM for the screen mirror) */
 static volatile uint8_t scope_on = 1u;   /* (LOAF BREAKER, 0.226: the main loop's: the CDJ view on screen; else the
                                           * render spares the scope's work) */
 static volatile uint32_t scope_w;

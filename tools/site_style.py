@@ -175,11 +175,11 @@ def breaks(site):
 
 
 def editor(site):
-    """the Studio (app/site/editor.html and editor.js, LOAF BREAKER 0.9.45: the whole FM-1 from a computer over Web MIDI,
+    """the Studio (app/site/editor.html and editor.js, LOAF BREAKER 0.9.43: the whole FM-1 from a computer over Web MIDI,
     as a DAW): the site's style, header and the script inlined, at editor/"""
     page = (APP / "site" / "editor.html").read_text(encoding="utf-8")
     css = (APP / "site" / "site.css").read_text(encoding="utf-8")
-    js = (APP / "site" / "editor.js").read_text(encoding="utf-8")   # (0.9.45: the Studio's script, its own file)
+    js = (APP / "site" / "editor.js").read_text(encoding="utf-8")   # (0.9.43: the Studio's script, its own file)
     if "/*SITE_CSS*/" not in page or "<!--HEADER-->" not in page or "/*SCRIPT*/" not in page:
         raise SystemExit("app/site/editor.html: no /*SITE_CSS*/, <!--HEADER--> or /*SCRIPT*/ to fill")
     page = page.replace("<style>/*SITE_CSS*/", FONTS + "<style>" + css, 1).replace("<!--HEADER-->", header("Studio"), 1)

@@ -1,6 +1,6 @@
 #!/bin/sh
 # SPDX-License-Identifier: MPL-2.0
-# The sound editor's link (LOAF BREAKER 0.9.45, the site's editor/ page; ui/main.c ed_sysex) end to end in the host
+# The sound editor's link (LOAF BREAKER 0.9.43, the site's editor/ page; ui/main.c ed_sysex) end to end in the host
 # simulator: ED_INFO's sections and parts; a kick part, a drum page and the kick EQ read and turned (their texts change,
 # the FM-1's screen stays where it was); FX1's effect and a knob of it; the kick's wave; KICK n; the Studio's ED_X (status, pages,
 # a track written, the patterns, RGB, transport, the live scope); the sequencer (ED_SEQ,

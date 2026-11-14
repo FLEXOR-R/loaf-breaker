@@ -84,7 +84,7 @@ void app_input_only(void);               /* between frames: input only */
 void app_say(const char *a, const char *b);   /* a short message on the screen */
 
 /* the break manager's SysEx (ui/main.c app_sysex: the custom break; LOAF BREAKER 0.9.32, CHOPPAH 1.4's) */
-#define APP_REDRAW                       /* LOAF BREAKER (0.9.44, FLEXOR): the screen mirror (fm1.toml mirror): what a
+#define APP_REDRAW                       /* LOAF BREAKER (0.9.43, FLEXOR): the screen mirror (fm1.toml mirror): what a
                                          * slow link dropped, the whole screen drawn again (ui/main.c app_redraw) */
 void app_redraw(void);
 #define MR_SEGW 240u                     /* (the mirror's segments a whole row: rows_send sends whole rows anyway; 7.7 KB

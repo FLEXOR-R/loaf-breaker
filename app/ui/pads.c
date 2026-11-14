@@ -737,7 +737,7 @@ static int bkf_lit(uint32_t f, const brk_status_t *st)
         return kick_hold != 0u;
     if (f == BKF_DST)                    /* (the switch on, even with the DISTO at 0 %: 0.268, FLEXOR) */
         return !terror_off;
-    if (f == BKF_DRV)                    /* (0.9.44: the DRIVE switch on, even at 0 %) */
+    if (f == BKF_DRV)                    /* (0.9.43: the DRIVE switch on, even at 0 %) */
         return !drive_off;
-    return !subfx_off;                   /* (0.9.45: SUB, the SUB FX switch on, even with no effect set) */
+    return !subfx_off;                   /* (0.9.43: SUB, the SUB FX switch on, even with no effect set) */
 }

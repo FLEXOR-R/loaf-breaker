@@ -770,9 +770,9 @@ static void kick_knob_turn(int i, int32_t d)
             if (KICK_TERROR(k))          /* (0.9.40, FLEXOR: a preset made with its DISTO sounds with it: the DST
                                           * switch on again; its SUB DRIVE, the SUB layer's effect, is the preset's) */
                 set.selk_hi &= (uint8_t)~16u;
-            if (k->intensity > 0.005f)   /* (0.9.44: and with its DRIVE: DRV on again) */
+            if (k->intensity > 0.005f)   /* (0.9.43: and with its DRIVE: DRV on again) */
                 set.selk_hi &= (uint8_t)~32u;
-            if (k->l[KL_SUB].fx != KFX_OFF)   /* (0.9.45: and with its SUB FX: SUB on again) */
+            if (k->l[KL_SUB].fx != KFX_OFF)   /* (0.9.43: and with its SUB FX: SUB on again) */
                 set.selk_hi &= (uint8_t)~64u;
         } else {                         /* (COPY KICK n: that memory's, if it is another) */
             uint32_t n = (ui.kpreset - KICK_PRESETS) % KICK_MEMS, j;
