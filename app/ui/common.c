@@ -265,7 +265,7 @@ static const char *const BKF_NAME[BKF_N] = {"R8", "R16", "R32", "REV", "FRZ", "H
                                             "ARP", "KIL", "DST", "SUB", "DRV"};
 static const char *const BKF_LONG[BKF_N] = {"ROLL 1/8", "ROLL 1/16", "ROLL 1/32", "REVERSE", "FREEZE", "HALF SPEED",
                                             "VINYL BREAK", "GATE", "RANDOM", "FILTER", "DUB", "ARP (OVERLAY)",
-                                            "KICKS OFF", "DISTO", "SUB DRIVE", "DRIVE"};
+                                            "KICKS OFF", "DISTO", "SUB FX", "DRIVE"};
 static const char *const BKP_NAME[BKP_N] = {"CHOPPAH", "FLEXOR LAYOUT", "CUSTOM"};
 static const uint8_t WK[16] = PLAT_WHITE_KEYS, BK[11] = PLAT_BLACK_KEYS;
 /* LOAF BREAKER: what the TUTORIAL (tutor.c) watches, counted where it happens: white keys pressed, black keys pressed

@@ -218,7 +218,7 @@ static float rel_ms(uint32_t v) { return 20.0f * brk_exp2f_c((float)(v > 100u ? 
 _Static_assert(sizeof(settings_t) <= 3840u, "a store object holds 3840 bytes");
 static settings_t set;
 /* LOAF BREAKER (11 Nov 2026, FLEXOR): the black keys' functions, BKF_*: the eleven pads (brk.h PAD_*: FREEZE and DUB
- * back), then ARP (an OVERLAY effect), KIL (the sequencer's kicks quiet), DST (the kick's DISTO), SUB (its SUB DRIVE).
+ * back), then ARP (an OVERLAY effect), KIL (the sequencer's kicks quiet), DST (the kick's DISTO), SUB (its SUB FX on / off: 0.9.45, FLEXOR).
  * A layout: the function of each key, left to right. Presets: CHOPPAH (CHOPPAH's keys; BEGINNER's only), FLEXOR LAYOUT
  * (LOAF BREAKER's until 0.244), CUSTOM (each key its own: ARP › BLACK KEYS) */
 enum { BKF_ARP = BRK_NPADS, BKF_KIL, BKF_DST, BKF_SUB, BKF_DRV, BKF_N };   /* (BKF_DRV: the kick's DRIVE, 0.9.44) */
@@ -358,6 +358,8 @@ static int bk_has(uint32_t f)            /* (a black key of the layout in use do
                                           * EXPERT's layout since 0.9.23); with none, the DISTO always heard) */
 #define drive_off ((set.selk_hi & 32u) && bk_has(BKF_DRV))   /* (LOAF BREAKER 0.9.44, FLEXOR: DRV, the kick's DRIVE
                                           * (INTENSITY) off, its amount kept; each kick its own, as DST) */
+#define subfx_off ((set.selk_hi & 64u) && bk_has(BKF_SUB))   /* (LOAF BREAKER 0.9.45, FLEXOR: SUB, the kick's SUB FX (the
+                                          * SUB layer's effect, whichever) off, its settings kept; each kick its own) */
 static void kick_send(void)
 {
     uint32_t m = set.kmorph > 100u ? 100u : set.kmorph, i, j;
@@ -367,6 +369,8 @@ static void kick_send(void)
             KICK_TERROR(&k) = 0u;
         if (drive_off)
             k.intensity = 0.0f;
+        if (subfx_off)
+            k.l[KL_SUB].fx = KFX_OFF;
         kick_set(&k);
         kick_set_synth(set.ksyn);
     } else {
@@ -408,6 +412,8 @@ static void kick_send(void)
             KICK_TERROR(&k) = 0u;
         if (drive_off)
             k.intensity = 0.0f;
+        if (subfx_off)
+            k.l[KL_SUB].fx = KFX_OFF;
         kick_set(&k);
         kick_set_synth(sy);
     }

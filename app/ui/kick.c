@@ -772,6 +772,8 @@ static void kick_knob_turn(int i, int32_t d)
                 set.selk_hi &= (uint8_t)~16u;
             if (k->intensity > 0.005f)   /* (0.9.44: and with its DRIVE: DRV on again) */
                 set.selk_hi &= (uint8_t)~32u;
+            if (k->l[KL_SUB].fx != KFX_OFF)   /* (0.9.45: and with its SUB FX: SUB on again) */
+                set.selk_hi &= (uint8_t)~64u;
         } else {                         /* (COPY KICK n: that memory's, if it is another) */
             uint32_t n = (ui.kpreset - KICK_PRESETS) % KICK_MEMS, j;
             float vol = k->volume;

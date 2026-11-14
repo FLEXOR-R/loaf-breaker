@@ -73,7 +73,7 @@ static const char *const PAD_KNOB[BKF_N][4] = {   /* (LOAF BREAKER: by function,
                                           * each) */
 static const char *const PAD_TITLE[BKF_N] = {"ROLL", "ROLL", "ROLL", "REVERSE", "FREEZE", "HALF SPEED",
                                               "VINYL BREAK", "GATE", "RANDOM", "FILTER", "DUB", "OVERLAY", "KICKS OFF",
-                                              "DISTO", "SUB DRIVE", "DRIVE"};
+                                              "DISTO", "SUB FX", "DRIVE"};
 static const char *const FRZ_LEN_NAME[4] = {"SLICE", "1/2", "1/4", "1/8"};
 
 /* LOAF BREAKER: the ARP key's knobs (the OVERLAY page gone, its settings here). MAIN: K1 EFFECT, K2 its AMOUNT, K3
@@ -724,26 +724,9 @@ static void draw_fx(int pad, const brk_status_t *st, uint32_t now)
 static uint8_t ovlpad_held, ovlpad_lat;
 static int ovl_pad_on(void) { return (ovlpad_held || ovlpad_lat) && !(set.ovl_pad & 32u); }   /* (bit 5: K3 OFF) */
 
-/* GLOUPI BREAKS: the SUB key (BKF_SUB; LOAF BREAKER, 11 Nov 2026: FREEZE back beside it): the kick's SUB through its DRIVE, on
- * and off at each press (the SUB layer's effect DRIVE or OFF; its settings, EDIT's, kept; saved with SAVE) */
-static int sub_drive_on(void) { return set.kick.l[KL_SUB].fx == KFX_DRIVE; }
-static void sub_drive_toggle(void)
-{
-    kick_layer_t *l = &set.kick.l[KL_SUB];
-    if (l->fx == KFX_DRIVE)
-        l->fx = KFX_OFF;
-    else {
-        l->fx = KFX_DRIVE;
-        if (l->wet < 0.05f)              /* (a mix at nothing would make it a key that does nothing) */
-            l->wet = 1.0f;
-    }
-    changed();
-    app_say("SUB DRIVE", sub_drive_on() ? "ON" : "OFF");
-    ui.redraw |= RG_BLOCKS | RG_FOOT;
-}
 
 /* LOAF BREAKER (11 Nov 2026): a black key's function lit: a pad on (or rolling the kick), the ARP key's effect on,
- * the kicks held quiet, the DISTO switch on, its SUB DRIVE on (0.244's BEGINNER restrictions gone: FLEXOR) */
+ * the kicks held quiet, the DISTO switch on, its SUB FX switch on (0.244's BEGINNER restrictions gone: FLEXOR) */
 static int bkf_lit(uint32_t f, const brk_status_t *st)
 {
     if (f < BRK_NPADS)
@@ -756,5 +739,5 @@ static int bkf_lit(uint32_t f, const brk_status_t *st)
         return !terror_off;
     if (f == BKF_DRV)                    /* (0.9.44: the DRIVE switch on, even at 0 %) */
         return !drive_off;
-    return sub_drive_on();
+    return !subfx_off;                   /* (0.9.45: SUB, the SUB FX switch on, even with no effect set) */
 }

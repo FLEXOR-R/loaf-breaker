@@ -510,8 +510,14 @@ static void input(void)
     }
     if ((kup & PAD_BIT(BKF_ARP)) && !(keys & PAD_BIT(BKF_ARP)))
         ovl_pad_key(0);
-    if ((kdn & PAD_BIT(BKF_SUB)))        /* GLOUPI BREAKS: SUB turns the kick's SUB DRIVE on and off */
-        sub_drive_toggle();
+    if (kdn & PAD_BIT(BKF_SUB)) {        /* LOAF BREAKER (0.9.45, FLEXOR): SUB, a switch: the kick's SUB FX (the SUB
+                                          * layer's effect, whichever EDIT set) used or not, its settings never touched
+                                          * (as DST, DRV; GLOUPI BREAKS to 0.9.44: SUB DRIVE itself on and off) */
+        set.selk_hi ^= 64u;
+        app_say("SUB FX", subfx_off ? "OFF" : set.kick.l[KL_SUB].fx != KFX_OFF ? "ON" : "ON (NONE SET)");
+        changed_kick();
+        ui.redraw |= RG_FOOT | RG_BLOCKS;
+    }
     if (kdn & PAD_BIT(BKF_DST)) {        /* LOAF BREAKER: DST, a switch: the kick's DISTO used or not, its amount never
                                           * touched (0.265, FLEXOR: no more 50 % from nothing) */
         set.selk_hi ^= 16u;
@@ -3259,8 +3265,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off"};
-    int v[139];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off"};
+    int v[140];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -3413,7 +3419,8 @@ int app_expect(const char *what, int *got)
     v[136] = (int)(set.fx.dj * 100.0f + (set.fx.dj < 0.0f ? -0.5f : 0.5f));   /* (0.9.40: the break's filter, -100..100) */
     v[137] = (int)(set.pads.rsv[0] % 3u);   /* (the rolls' THRU: SENDS' K4) */
     v[138] = drive_off ? 1 : 0;          /* (0.9.44: the kick's DRV switch) */
-    for (i = 0; i < 139u; i++)
+    v[139] = subfx_off ? 1 : 0;          /* (0.9.45: the kick's SUB FX switch) */
+    for (i = 0; i < sizeof W / sizeof W[0]; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

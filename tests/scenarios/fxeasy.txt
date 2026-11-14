@@ -2,7 +2,7 @@
 # PRESETS the short list (EMPTY, FILTER, CRUNCH, DRIVE, FLANGER, REVERB, DELAY, TAPE, CLIP), then MAGIC EQ, MAGIC MBC.
 # In EXPERT the third slot gets a FILTER, focused; BEGINNER on: the focus back on the first, ALGORITHM goes round the
 # two. BEGINNER keeps the black keys' layout (0.9.23: FLEXOR LAYOUT here): DST leaves a DISTO at 0 as it is, SUB turns
-# the SUB DRIVE turned on in EXPERT off again.
+# the SUB FX switched off in EXPERT on again (0.9.45: a switch, the effect itself untouched).
 #   app/build/host/loaf-breaker_host tests/scenarios/fxeasy.txt app/build/scenarios
 wait 4200
 tap PLAY
@@ -19,7 +19,8 @@ key b10 down
 wait 100
 key b10 up
 wait 300
-expect subdrv 50
+expect sub_off 1
+expect subdrv -1
 tap GLO
 wait 150
 turn SELECT 1 10
@@ -57,5 +58,5 @@ key b10 down
 wait 100
 key b10 up
 wait 300
-expect subdrv -1
+expect sub_off 0
 shot fe_sub.png

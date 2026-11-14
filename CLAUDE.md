@@ -105,8 +105,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   PRESET_X, app.c `KT_X` (SYNTH, LAB, KICK EQ; `on` 0: ROTTERDAM, DISTORTO, the EQ left as it was). The memories `KMEM_ORD`
   (ROTTERDAM KICK 4, the start's `kslot` 3; EARLY HC KICK 5). His taste for new ones: drive and distortion, SUB and tails
   medium to long, TAIL MODE CLEAN, tails not shrill (a page measures above 3 kHz in the tail: TERROR's -40 dB the mark).
-  A built-in picked (K1 / OUT K4) turns DST back on when it has DISTO (selk_hi bit 4, 0.9.40, FLEXOR); SUB DRIVE is the
-  SUB layer's effect, so the preset's own.
+  A built-in picked (K1 / OUT K4) turns DST back on when it has DISTO (selk_hi bit 4, 0.9.40, FLEXOR), DRV with a DRIVE,
+  SUB with a SUB FX (bit 6, 0.9.45); SUB DRIVE is the SUB layer's effect, so the preset's own.
   The host's `kset LAYER.level|pitch|decay|tone|fx|fa|fb|wet`, `syn.*`, `lab.*`, `t.*`, `t2.*`, `csub` set any of a kick raw.
 - WAVE TYPE (`set.wstyle`: REKORDBOX / SERATO; HOME › SETTINGS K2 alone since 0.9.25, GLO EFFECTS' K3 before; SYSTEM shows
   none of HOME's SETTINGS any more, FLEXOR; common.c serato_col; the kick's RGB and cdj.c) and EDIT
@@ -140,9 +140,9 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   MELODY's old place, `perc_x()`, `set.pxv` = PX_OK), FLEXOR's presets PP_SN / PP_CP in ui/perc.c with their FX,
   pages SOUND / SHAPE (K4 DIRT) / MORE, BEGINNER's PRESET / FX / LEVEL / TUNE.
 - BLACK KEYS (11 Nov 2026, 0.244, FLEXOR): each black key a function (app.c `BKF_*`: PAD_* 0-10, FREEZE and DUB
-  back from CHOPPAH, then BKF_ARP, KIL, DST, SUB, DRV: 0.9.44, FLEXOR, the kick's DRIVE switch, selk_hi bit 5, `drive_off`, as DST; in no preset layout, CUSTOM only); `bk_fn(j)`, `bkf_mask(f)` (= `PAD_BIT`) follow the layout in use:
+  back from CHOPPAH, then BKF_ARP, KIL, DST, SUB (0.9.45, FLEXOR: a switch, the kick's SUB FX off / on whichever effect, selk_hi bit 6, `subfx_off`, its name SUB FX; never SUB DRIVE itself any more), DRV: 0.9.44, FLEXOR, the kick's DRIVE switch, selk_hi bit 5, `drive_off`, as DST; in no preset layout, CUSTOM only); `bk_fn(j)`, `bkf_mask(f)` (= `PAD_BIT`) follow the layout in use:
   presets CHOPPAH (a new FM-1's and RESET ALL's; BEGINNER keeps the layout in use since 0.9.23, FLEXOR: `bk_preset` no longer forces it; DST's
-  switch (`terror_off`: selk_hi bit 4 and a DST key in the layout, `bk_has`) and SUB DRIVE are each kick's own, FLEXOR 0.9.24), FLEXOR LAYOUT (FLEXOR's, 0.9.26:
+  switch (`terror_off`: selk_hi bit 4 and a DST key in the layout, `bk_has`) and SUB's are each kick's own, FLEXOR 0.9.24), FLEXOR LAYOUT (FLEXOR's, 0.9.26:
   R8 R16 R32 RND HLF FLT ARP VNL KIL DST SUB; keep it exactly; on BLACK KEYS ALGORITHM moves along the keys as K2), CUSTOM; stored in `set.bkeys.bk` (the STAB's old 24 bytes: BK_TAG, preset, eleven functions; bk[15]
   BK_PLAT 0xA0 | the K4 LATCH bits of REVERSE, FREEZE, GATE, RANDOM, bk[16] BK_FTHRU 0xC0 | FILTER's K4 THRU BREAK / DRUMS /
   BOTH, 0.9.26, FLEXOR: no LATCH on FILTER; bk[17..23] free, tag new bytes: older saves hold the STAB's leftovers there). ARP's
