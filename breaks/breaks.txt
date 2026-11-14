@@ -62,6 +62,16 @@
 -=  flexor/lil_texas_louder_2.wav               175     2     2   LOUDER2 175
 -=  flexor/the_outside_agency_hells_basement.wav 175   2     2   TOAHELL 175
 -=  flexor/the_outside_agency_like_a_fire.wav   160     2     2   TOAFIRE 160
+-=  flexor/dj_hidden_the_nightmare_connector_vip.wav 175     2     2   NIGHTMR 175
+-=  flexor/dj_hidden_the_nightmare_connector_vip_outro_break.wav 175     2     2   NIGHTOUT175
+-=  flexor/dj_hidden_times_like_these_vip_break_2.wav 175     2     2   TIMES2 175
+-=  flexor/dj_hidden_times_like_these_vip.wav       175     2     2   TIMES 175
+-=  flexor/dngn_drgns_focuz_dngn_drgns_remix_break_2.wav 175     2     2   FOCUZ2 175
+-=  flexor/dngn_drgns_focuz_dngn_drgns_remix.wav    175     2     2   FOCUZ 175
+-=  flexor/dolphin_bangphase.wav                    155     2     2   BANGPHS 155
+-=  flexor/poley_tight_facecracker_break_2.wav      170     2     2   FACECRK2170
+-=  flexor/poley_tight_facecracker.wav              170     2     2   FACECRK 170
+-=  flexor/tripped_krtm_fcking_zutsu.wav            160     2     2   ZUTSU 160
 #
 # classics/: ten breaks from the records (32-bit float WAV, 4 bars each, tempos from their lengths)
 -   classics/the_winstons_amen_brother.wav      141.82  2     4   AMEN 142

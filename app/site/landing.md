@@ -17,7 +17,7 @@ each: AMEN20 164, AMEN19 172, UPDOWN 165, THINK 114, DETEST 175, LOUDER 175, SAT
 - [Install](install/) From Chrome or Edge, with the FM-1 connected by USB.
 - [Manual](manual/) Start in five minutes, then the kick, the sequencer, the tracks and drops, the pads, the effects.
 - [Controls](manual/#controls) The control map: every page's buttons and knobs, to explore.
-- [Breaks](breaks/) The library's breaks to hear (over eighty, FLEXOR's hardcore breaks among them), and yours sent to the FM-1.
+- [Breaks](breaks/) The library's breaks to hear (over ninety, FLEXOR's hardcore breaks among them), and yours sent to the FM-1.
 - [Source](https://github.com/FLEXOR-R/loaf-breaker) The code (MPL-2.0) and every version's .fwsc.
 
 Built on CHOPPAH by Laurens Profittlich, on fm1-base and felucca-bsp, from Felucca by Leo Kuroshita, Hügelton
