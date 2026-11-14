@@ -10,11 +10,13 @@
 
 <p align="center">
 <a href="https://flexor-r.github.io/loaf-breaker/"><b>Site</b></a> ·
-<a href="https://flexor-r.github.io/loaf-breaker/emu/">Try it in the browser</a> ·
+<a href="https://flexor-r.github.io/loaf-breaker/emu/">Emulator</a> ·
 <a href="https://flexor-r.github.io/loaf-breaker/install/">Install</a> ·
-<a href="https://flexor-r.github.io/loaf-breaker/manual/#start-in-five-minutes"><b>Start in five minutes</b></a> ·
 <a href="https://flexor-r.github.io/loaf-breaker/manual/">Manual</a> ·
-<a href="../../releases">Releases</a>
+<a href="https://flexor-r.github.io/loaf-breaker/manual/#controls">Controls</a> ·
+<a href="https://flexor-r.github.io/loaf-breaker/breaks/">Breaks</a> ·
+<a href="../../releases">Releases</a><br>
+<a href="https://flexor-r.github.io/loaf-breaker/manual/#start-in-five-minutes"><b>Start in five minutes</b></a>
 </p>
 
 LOAF BREAKER is FLEXOR's firmware for the [M-VAVE FM-1](https://www.m-vave.com/), built on
