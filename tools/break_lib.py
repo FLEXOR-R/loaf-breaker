@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MPL-2.0
+"""LOAF BREAKER (0.9.32, FLEXOR): the BREAKS page's library. Every break of breaks/breaks.txt (in the firmware or not)
+made exactly as the firmware's bank makes them (tools/prep_breaks.py: levelled to -16 dBFS, sixteen slices on the
+hits, IMA ADPCM), each a bank of one slot the page plays and sends as it is; a slow break at a lower rate so its bars
+fit the FM-1's buffer (the page's own rule for a sample). And index.json, the list the page shows.
+
+  tools/break_lib.py OUTDIR            (tools/site_style.py: site/breaks/lib)
+"""
+import argparse
+import json
+import re
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+import prep_breaks as pb  # noqa: E402
+
+ROOT = Path(__file__).resolve().parent.parent
+FOLDER = {"cw": "CYBERWORM AMENS", "huge": "HUGE AMEN PACK", "classics": "CLASSICS"}
+
+
+def entries(path):
+    """every line of the catalogue: (built in, file, bpm, bars, name)"""
+    out = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        f = line.split(None, 5)
+        if len(f) == 6 and f[0] in ("*", "-"):
+            out.append((f[0] == "*", f[1], float(f[2]), int(f[3]), f[5].strip()))
+    return out
+
+
+def main(outdir):
+    out = Path(outdir)
+    out.mkdir(parents=True, exist_ok=True)
+    index = []
+    for built, file, bpm, bars, name in entries(ROOT / "breaks" / "breaks.txt"):
+        rate = min(22050, int(pb.BANK_MAX_LEN // (bars * 240.0 / bpm)))   # (slow ones lower, as the page does)
+        args = argparse.Namespace(bars=bars, slices=16, break_slices=16, rate=rate, transients=True, loudness=-16.0,
+                                  name_prefix="")
+        try:
+            s = pb.prepare(f"{ROOT / 'breaks' / file}:{bpm}:{bars}:{name}", args, file)
+        except SystemExit as e:                     # (one that won't make: left out, said)
+            print(f"break_lib: {file}: {e}", file=sys.stderr)
+            continue
+        img = pb.build_bank([s])
+        bid = re.sub(r"[^a-z0-9]+", "-", Path(file).stem.lower()).strip("-")
+        (out / f"{bid}.bin").write_bytes(img)
+        folder = file.split("/")[0]
+        index.append({"id": bid, "name": s["name"], "file": file, "folder": FOLDER.get(folder, folder.upper()),
+                      "bpm": s["bpm"], "bars": bars, "size": len(img), "built": built})
+    (out / "index.json").write_text(json.dumps(index, separators=(",", ":")), encoding="utf-8")
+    total = sum(e["size"] for e in index)
+    print(f"break_lib: {len(index)} breaks, {total / 1024:.0f} KB, in {out}")
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        raise SystemExit(__doc__)
+    main(sys.argv[1])

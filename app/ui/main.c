@@ -2325,7 +2325,8 @@ int app_sysex(const uint8_t *p, uint32_t n)
         breaks_count();
         if (!code && !n_user)
             code = 4u;
-        break_ask(n_user ? n_breaks - 1u : n_synth);   /* (LOAF BREAKER: the custom break, the last; or the bank's first) */
+        break_ask(n_user ? n_synth + n_bank : n_synth);   /* (LOAF BREAKER: the first of the player's, after the bank's;
+                                          * or the bank's first) */
     } else
         return 0;
     if (code > 1u)

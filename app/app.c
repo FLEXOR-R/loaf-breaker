@@ -1370,14 +1370,16 @@ static const bank_slot_t *bank_check(const uint8_t *bank, uint32_t size, uint32_
     return s;
 }
 
-/* LOAF BREAKER (0.9.32, from CHOPPAH 1.4, FLEXOR: "your break"): one break of the player's, a bank of one slot in the
- * flash's data area below the store objects (0xB6000 on), written over USB from the site's break manager (app_sysex,
- * ui/main.c). Present, it is the last break (after the bank's: the breaks saved by number keep theirs); a RESET ALL and
- * WIPE MEMORY leave it (not in the store map) */
+/* LOAF BREAKER (0.9.32, from CHOPPAH 1.4, FLEXOR: the site's BREAKS page): the player's own breaks, up to CU_MAX, one
+ * bank of them in the flash's data area below the store objects (0xB6000 on), written whole over USB from the site's
+ * break manager (app_sysex, ui/main.c). Present, they come after the bank's (the breaks saved by number keep theirs);
+ * a RESET ALL and WIPE MEMORY leave them (not in the store map) */
 #define CU_BASE 0x97000u                 /* the data area's start */
-#define CU_SECTORS 14u                   /* 56 KB: a slot and CH_PCM_MAX samples of ADPCM */
+#define CU_SECTORS 31u                   /* 124 KB, up to the KICK LAB's object (0xB6000): two breaks of CH_PCM_MAX, or
+                                          * three or four shorter */
+#define CU_MAX 4u
 #define CU_CAP (CU_SECTORS * 4096u)
-static uint32_t n_user, n_bank;          /* the custom break there (checked whole: cu_scan); the bank's */
+static uint32_t n_user, n_bank;          /* the player's breaks there (checked whole: cu_scan); the bank's */
 static uint32_t crc32_of(const uint8_t *p, uint32_t n)   /* zlib's */
 {
     uint32_t c = ~0u, k;
@@ -1392,10 +1394,17 @@ static void cu_scan(void)
 {
     const uint8_t *p = plat_data(CU_BASE);
     const bank_header_t *h = (const bank_header_t *)p;
-    n_user = p && h->nslots == 1u && h->data_size <= CU_CAP - 16u && bank_check(p, CU_CAP, 0u) &&
-             crc32_of(p + 16, h->data_size) == h->crc32 ? 1u : 0u;
+    uint32_t k;
+    n_user = 0u;
+    if (!p || !h->nslots || h->nslots > CU_MAX || h->data_size > CU_CAP - 16u ||
+        crc32_of(p + 16, h->data_size) != h->crc32)
+        return;
+    for (k = 0; k < h->nslots; k++)      /* (every one sane, or none) */
+        if (!bank_check(p, CU_CAP, k))
+            return;
+    n_user = h->nslots;
 }
-/* break i's slot and its bank: the bank built into the image (or a synthesised Amen), then the custom break */
+/* break i's slot and its bank: the bank built into the image (or a synthesised Amen), then the player's */
 static const bank_slot_t *slot_of(uint32_t i, const uint8_t **bank)
 {
     *bank = 0;
@@ -1405,9 +1414,9 @@ static const bank_slot_t *slot_of(uint32_t i, const uint8_t **bank)
         return bank_check(CH_BANK, CH_BANK_SIZE, i - n_synth);
     }
 #endif
-    if (n_user && i == n_synth + n_bank) {
+    if (i >= n_synth + n_bank && i - n_synth - n_bank < n_user) {
         *bank = plat_data(CU_BASE);
-        return bank_check(*bank, CU_CAP, 0u);
+        return bank_check(*bank, CU_CAP, i - n_synth - n_bank);
     }
     return 0;
 }

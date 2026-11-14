@@ -1,15 +1,16 @@
 #!/bin/sh
 # SPDX-License-Identifier: MPL-2.0
-# The custom break (LOAF BREAKER 0.9.32, CHOPPAH 1.4's) end to end in the host simulator: a WAV made into a bank as the
-# break manager page makes it (tools/cu_frames.py, prep_breaks.py's way), uploaded over SysEx, checked, the last
-# break (the ninth) and loaded, kept through a reboot, read back byte for byte, deleted. Needs ./build.sh --host first.
+# The player's breaks (LOAF BREAKER 0.9.32, CHOPPAH 1.4's custom break, several) end to end in the host simulator: two
+# WAVs made into one bank as the BREAKS page makes it (tools/cu_frames.py, prep_breaks.py's way), uploaded over SysEx,
+# checked, breaks 9 and 10 (the first played), kept through a reboot, read back byte for byte, deleted. Needs ./build.sh --host first.
 #   tests/custom_break.sh
 set -e
 cd "$(dirname "$0")/.."
 O=app/build/custom
 mkdir -p "$O"
 W=breaks/classics/rotary_connection_life_could.wav
-python3 tools/cu_frames.py --bank "$W" 99.81 "LIFE COULD" "$O/bank.bin"
+W2=breaks/classics/lightnin_rod_sport.wav
+python3 tools/cu_frames.py --bank "$W" 99.81 "LIFE COULD" "$W2" 120.69 "SPORT" "$O/bank.bin"
 N=$(wc -c < "$O/bank.bin")
 {
 cat <<'S'
@@ -20,7 +21,7 @@ expect n_breaks 8
 sysex_out
 sysex F0 7D 43 48 01 F7
 wait 50
-expect_sysex F0 7D 43 48 41 00 20 01 00 00 0E 00 60 00 00 00 00 00 00 00 F7
+expect_sysex F0 7D 43 48 41 00 20 01 00 00 1F 00 70 01 00 00 00 00 00 00 F7
 tap PLAY
 wait 300
 sysex F0 7D 43 48 02 03 55 4F 00 00 F7
@@ -29,10 +30,10 @@ expect_sysex F0 7D 43 48 42 01 F7
 tap PLAY
 wait 300
 S
-python3 tools/cu_frames.py "$W" 99.81 "LIFE COULD" | tail -n +2
+python3 tools/cu_frames.py "$W" 99.81 "LIFE COULD" "$W2" 120.69 "SPORT" | tail -n +2
 cat <<'S'
-expect n_user 1
-expect n_breaks 9
+expect n_user 2
+expect n_breaks 10
 expect brk 8
 shot cu_loaded.png
 tap PLAY
@@ -42,8 +43,8 @@ tap PLAY
 wait 300
 reboot
 wait 4200
-expect n_user 1
-expect n_breaks 9
+expect n_user 2
+expect n_breaks 10
 S
 off=0
 while [ $off -lt $N ]; do

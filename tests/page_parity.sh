@@ -20,14 +20,16 @@ lv, _, _ = pb.level(x, rate, -16.0)
 args = argparse.Namespace(bars=2, slices=16, break_slices=16, rate=22050, transients=True, loudness=-16.0, name_prefix="")
 s = pb.prepare(f"breaks/classics/rotary_connection_life_could.wav:{bpm}:2:LIFE COULD", args)
 img = pb.build_bank([s])
+s2 = pb.prepare("breaks/classics/lightnin_rod_sport.wav:120.69:2:SPORT", args)   # (LOAF BREAKER 0.9.32: two, merged)
 json.dump({"x": x[::1], "rate": rate, "level": lv, "pcm": s["pcm"], "slices": s["slices"], "bpm": bpm,
-           "hex": img.hex()}, open(f"{o}/py.json", "w"))
+           "hex": img.hex(), "hex2": pb.build_bank([s2]).hex(), "both": pb.build_bank([s, s2]).hex()},
+          open(f"{o}/py.json", "w"))
 P
 node - "$O" <<'N'
 const fs = require("fs"), o = process.argv[2];
 const page = fs.readFileSync("app/site/breaks.html", "utf8");
 const code = page.split("the break, as tools/prep_breaks.py makes it */")[1].split("/* ----------------------------------------------------------------")[0];
-const api = new Function(code + "; return {level, slicePoints, buildBank, readBank, adpcmDecode};")();
+const api = new Function(code + "; return {level, slicePoints, buildBank, readBank, adpcmDecode, mergeBanks, splitBank};")();
 const py = JSON.parse(fs.readFileSync(o + "/py.json"));
 let worst = 0;
 const lv = api.level(Float32Array.from(py.x), py.rate);
@@ -49,7 +51,13 @@ const probe = Uint8Array.from({ length: 516 }, (_, i) => (i * 37 + 200) & 255);
 const pyPacked = execSync(`python3 -c "import sys; sys.path.insert(0,'tools'); import cu_frames as c; print(c.pack7(bytes((i*37+200)&255 for i in range(516))).hex())"`).toString().trim();
 if (Buffer.from(pack7(probe)).toString("hex") !== pyPacked) throw new Error("pack7 differs from cu_frames.py's");
 if (Buffer.compare(Buffer.from(unpack7(Uint8Array.from(pack7(probe)))), Buffer.from(probe))) throw new Error("unpack7(pack7) is not the same");
+const hx = (h) => Uint8Array.from(Buffer.from(h, "hex"));
+const both = api.mergeBanks([hx(py.hex), hx(py.hex2)]);
+if (Buffer.from(both).toString("hex") !== py.both) throw new Error("two banks merged differ from build_bank's");
+const parts = api.splitBank(both);
+if (parts.length !== 2 || Buffer.from(parts[0]).toString("hex") !== py.hex || Buffer.from(parts[1]).toString("hex") !== py.hex2)
+  throw new Error("split back differs");
 const back = api.readBank(img);
 if (!back || back.name !== "LIFE COULD" || back.slices.length !== 17) throw new Error("readBank");
-console.log(`page_parity: level within ${worst.toExponential(1)}, slices the same, the bank the same (${img.length} B), read back; the frames packed as cu_frames.py`);
+console.log(`page_parity: level within ${worst.toExponential(1)}, slices the same, the bank the same (${img.length} B), read back; two merged as build_bank and split back; the frames packed as cu_frames.py`);
 N
