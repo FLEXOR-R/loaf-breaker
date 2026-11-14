@@ -26,6 +26,12 @@ firmware has the first two bars of eight of them:
 These are commercial recordings: their rights belong to the labels and artists. They are here because the project's
 owner chose to publish them; anyone building on this should make their own call.
 
+## flexor/: FLEXOR's breaks
+
+Breaks FLEXOR picked (14 Nov 2026), sampled from artists' records: not royalty free, their rights with the artists
+and labels, published by FLEXOR's choice. Their list, the records they come from and how to add one:
+[`flexor/README.md`](flexor/README.md).
+
 ## cw/, huge/: Cyberworm's Amens
 
 60 Amen loops by Dmitriy "Cyberworm" Vasilyev (rhythm-lab.com), who offers them royalty free (`huge/info.txt`): 20 in

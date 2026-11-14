@@ -37,6 +37,8 @@
 -   cw/cw_amen02_165.wav                        165     2     2   AMEN02 165
 -   classics/bobby_byrd_hot_pants.wav           114.78  2     4   HOTPANT 115
 #
+# flexor/: FLEXOR's breaks (14 Nov 2026), sampled from artists' records (not royalty free: flexor/README.md)
+#
 # classics/: ten breaks from the records (32-bit float WAV, 4 bars each, tempos from their lengths)
 -   classics/the_winstons_amen_brother.wav      141.82  2     4   AMEN 142
 -   classics/james_brown_cold_sweat.wav         114     2     4   COLDSWE 114

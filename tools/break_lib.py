@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 import prep_breaks as pb  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
-FOLDER = {"cw": "CYBERWORM AMENS", "huge": "HUGE AMEN PACK", "classics": "CLASSICS"}
+FOLDER = {"cw": "CYBERWORM AMENS", "huge": "HUGE AMEN PACK", "classics": "CLASSICS", "flexor": "FLEXOR"}
 
 
 def entries(path):
