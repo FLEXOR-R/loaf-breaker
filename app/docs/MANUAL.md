@@ -203,7 +203,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 | PRESETS | The pattern, P1–P64 (§5); while playing the new one starts at the end of the loop |
 | SEQ · REC | The sequencer; recording the keys into the pattern (§5). SEL + REC: clear the pattern (SEL + SAVE takes it back) |
 | MIDI notes | Notes 48–63 (C3–D#4) play slices 1–16, held like the white keys; 36 the kick, 38 the snare, 42 / 44 / 46 the hat (§8); any channel |
-| ALGORITHM | (HOME, MIXER; SEL held: any page) The next or previous break: its name shows at once (amber in the header) and, while playing, it comes in at the next bar (the old one goes quiet for the bar's last 16th meanwhile); stopped, at once. NUSKOOL 140, AMEN20 164, AMEN19 172, UPDOWN 165, AMEN15 174, JUNGLE 175, THINK 114 (Lyn Collins), APACHE 115 (Incredible Bongo Band), THEWORM 110 (Jimmy McGriff) (the Amens: The Winstons, cut by Cyberworm): 2 bars each, played at the tempo you set |
+| ALGORITHM | (HOME, MIXER; SEL held: any page) The next or previous break: its name shows at once (amber in the header) and, while playing, it comes in at the next bar (the old one goes quiet for the bar's last 16th meanwhile); stopped, at once. NUSKOOL 140, AMEN20 164, AMEN19 172, UPDOWN 165, JUNGLE 175, THINK 114 (Lyn Collins), APACHE 115 (Incredible Bongo Band), THEWORM 110 (Jimmy McGriff) (the Amens: The Winstons, cut by Cyberworm): 2 bars each, played at the tempo you set; then **your own break**, if you sent one (below) |
 | MASTER | Volume |
 
 ### Where things are
@@ -401,6 +401,26 @@ all the way up: -3 dB to start with (headroom for the FM-1's output and your spe
 ![TRACKS: track 1's items, P1 ×4, P2 ×4, a DROP, P3 ×8](img/t_tracks.png "TRACKS") ![PLAY: the radio, track 2 tuned in](img/t_play.png "PLAY") ![A build on its way to the drop](img/t_build.png "BUILD")
 
 ![A key held: its slice looping](img/screen-held.png "Key 6 held")
+
+### Your own break
+
+Beside the eight built in, the FM-1 holds one break of your own (0.9.32, CHOPPAH 1.4's break manager). Make it on the
+site's [Your break](https://flexor-r.github.io/loaf-breaker/breaks/) page, in Chrome or Edge on a computer:
+
+1. **Load a sample**: a drum loop of whole bars, in any format the browser plays. The page guesses how many bars it
+   is from its length (pick another number if it guessed wrong, or type the tempo), and which two bars to use.
+2. **Hear it chopped**: the page makes the break exactly as the built-in ones were made (levelled to match them, at
+   22.05 kHz, sixteen slices snapped to the hits) and plays what the FM-1 will play. Play loops it, a slice or the
+   keys 1–8 and Q–I play one slice, Chop rearranges the slices every bar, and the slider previews it at another
+   tempo.
+3. **Connect** the FM-1 by USB, **stop** LOAF BREAKER, and **send it**. It takes a few seconds; the FM-1 says
+   RECEIVING A BREAK, then BREAK and its name, and plays it.
+
+Your break is **the ninth**, after the eight built in (ALGORITHM reaches it; your saved patterns and tracks keep their
+breaks). Sending another replaces it. Connected, the page reads the break on the FM-1 back: you see and hear what is on
+it, and can delete it (the built-in breaks stay). A break of your own is two bars and at most 56 KB: breaks under
+99.4 BPM are kept at a slightly lower sample rate to fit. It stays through updates of LOAF BREAKER; RESET ALL and WIPE
+MEMORY keep it.
 
 ### Key loops
 

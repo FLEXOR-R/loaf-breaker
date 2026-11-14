@@ -219,7 +219,7 @@ static void reset_all(void)
     klab_defaults();                     /* (LOAF BREAKER: the KICK LAB off on every kick) */
     kfx_all();                           /* (0.9.26: every kick's FX section as the defaults left it) */
     kx_all();                            /* (every kick's knobs as they start) */
-    if (n_breaks > n_synth)
+    if (n_bank)
         set.brk = (uint8_t)n_synth;      /* the bank's first break */
     pat_defaults();
     if (ble_was_off)
@@ -2204,6 +2204,136 @@ void app_frame(void)
     ui.redraw = 0u;
 }
 
+/* the break manager (the site's breaks/ page; LOAF BREAKER 0.9.32, CHOPPAH 1.4's, PRD A-54h): the custom break over USB SysEx, F0 7D 43 48 CMD DATA F7
+ * (7D: non-commercial; "CH"), DATA 7-bit packed (each 7 bytes after a byte of their top bits). Answers: F0 7D 43 48
+ * 0x40|CMD CODE DATA F7, CODE 0 done, 1 playing (stop first), 2 too big or out of place, 3 flash, 4 the break as
+ * written doesn't check. Commands: 1 INFO -> {version 1, playing, present, sectors, capacity u32, size u32};
+ * 2 BEGIN {size u32}: the sectors erased, the custom break gone; 3 DATA {offset u32 (16 on: the header comes last),
+ * bytes}; 4 COMMIT {the 16-byte header}: written last, the break checked and loaded; 5 READ {offset u32, count u32
+ * (256 at most)} -> {offset u32, bytes}; 6 DELETE. Writes only while stopped (they stall the sound). The scratch is the
+ * canvas (LOAF BREAKER: no demo) */
+static uint32_t cu_size;                 /* the bytes BEGIN made room for */
+static uint32_t pack7(const uint8_t *s, uint32_t n, uint8_t *d)
+{
+    uint32_t i, k = 0, j;
+    for (i = 0; i < n; i += 7u) {
+        uint32_t hi = k++;
+        d[hi] = 0;
+        for (j = 0; j < 7u && i + j < n; j++) {
+            d[hi] |= (uint8_t)((s[i + j] >> 7) << j);
+            d[k++] = s[i + j] & 0x7Fu;
+        }
+    }
+    return k;
+}
+static uint32_t unpack7(const uint8_t *s, uint32_t n, uint8_t *d)
+{
+    uint32_t i, k = 0, j;
+    for (i = 0; i < n; i += 8u)
+        for (j = 1; j < 8u && i + j < n; j++)
+            d[k++] = (uint8_t)(s[i + j] | ((s[i] >> (j - 1u)) & 1u) << 7);
+    return k;
+}
+static void cu_reply(uint32_t cmd, uint32_t code, const uint8_t *d, uint32_t n)
+{
+    uint8_t *f = (uint8_t *)(void *)cv_px;   /* (LOAF BREAKER: no demo: the canvas, a frame drawn again after) */
+    uint32_t k;
+    lcd_sync();
+    f[0] = 0xF0;
+    f[1] = 0x7D;
+    f[2] = 0x43;
+    f[3] = 0x48;
+    f[4] = (uint8_t)(0x40u | cmd);
+    f[5] = (uint8_t)code;
+    k = 6u + pack7(d, n, f + 6);
+    f[k++] = 0xF7;
+    (void)plat_sysex_send(f, k);
+}
+static uint32_t rd32(const uint8_t *p) { return p[0] | p[1] << 8 | p[2] << 16 | (uint32_t)p[3] << 24; }
+int app_sysex(const uint8_t *p, uint32_t n)
+{
+    uint8_t *u = (uint8_t *)(void *)cv_px, a[16];   /* (the canvas, its last blit done: lcd_sync) */
+    uint32_t cmd, len, off, i, code = 0u;
+    if (n < 4u || p[0] != 0x7Du || p[1] != 0x43u || p[2] != 0x48u)
+        return 0;
+    cmd = p[3];
+    lcd_sync();
+    ui.idle_t = plat_ms();
+    ui.redraw |= RG_ALL;                 /* (the canvas taken: the screen drawn again) */
+    len = unpack7(p + 4, n - 4u > 600u ? 600u : n - 4u, u);
+    if (cmd == 1u || cmd == 5u) {        /* INFO, READ: any time */
+        if (cmd == 1u) {
+            const bank_header_t *h = (const bank_header_t *)plat_data(CU_BASE);
+            uint32_t v[4] = {1u | (uint32_t)playing_now() << 8 | n_user << 16 | CU_SECTORS << 24, CU_CAP,
+                             n_user ? 16u + h->data_size : 0u, 0u};
+            cu_reply(cmd, 0u, (const uint8_t *)v, 12u);
+            return 1;
+        }
+        off = rd32(u);
+        len = rd32(u + 4);
+        if (len > 256u || off > CU_CAP || len > CU_CAP - off) {
+            cu_reply(cmd, 2u, 0, 0u);
+            return 1;
+        }
+        for (i = 0; i < 4u; i++)
+            a[i] = u[i];
+        {                                /* {offset, bytes}: packed straight from the flash (a, then the bytes) */
+            const uint8_t *src = plat_data(CU_BASE + off);
+            uint8_t *f = u;
+            uint32_t k;
+            f[0] = 0xF0; f[1] = 0x7D; f[2] = 0x43; f[3] = 0x48; f[4] = 0x45u; f[5] = 0u;
+            k = 6u;
+            for (i = 0; i < 4u + len; i += 7u) {   /* (the groups of 7 cross from the offset into the bytes) */
+                uint8_t g[7];
+                uint32_t j;
+                for (j = 0; j < 7u; j++)
+                    g[j] = i + j < 4u ? a[i + j] : i + j < 4u + len ? src[i + j - 4u] : 0u;
+                k += pack7(g, 4u + len - i < 7u ? 4u + len - i : 7u, f + k);
+            }
+            f[k++] = 0xF7;
+            (void)plat_sysex_send(f, k);
+        }
+        return 1;
+    }
+    if (playing_now()) {                 /* the writes stall the sound: stopped only */
+        app_say("STOP FIRST", "TO LOAD A BREAK");
+        cu_reply(cmd, 1u, 0, 0u);
+        return 1;
+    }
+    if (cmd == 2u || cmd == 6u) {        /* BEGIN, DELETE: room made, the custom break gone */
+        cu_size = cmd == 2u ? rd32(u) : 1u;
+        if (cu_size < 16u + 168u && cmd == 2u)
+            code = 2u;
+        for (i = 0; !code && i < (cu_size + 4095u) / 4096u; i++)
+            if (i >= CU_SECTORS || plat_data_erase(CU_BASE + i * 4096u))
+                code = i >= CU_SECTORS ? 2u : 3u;
+        breaks_count();
+        if (set.brk >= n_breaks)         /* (LOAF BREAKER: it was the one playing: the bank's first) */
+            break_ask(n_synth);
+        if (cmd == 2u)
+            app_say("RECEIVING", "A BREAK");
+    } else if (cmd == 3u) {              /* DATA: after the header, into what BEGIN erased */
+        off = rd32(u);
+        len -= 4u;
+        if (len > 600u || off < 16u || off > cu_size || len > cu_size - off)
+            code = 2u;
+        else if (plat_data_write(CU_BASE + off, u + 4, len))
+            code = 3u;
+    } else if (cmd == 4u) {              /* COMMIT: the header last, then the whole checked */
+        if (len < 16u || plat_data_write(CU_BASE, u, 16u))
+            code = 3u;
+        breaks_count();
+        if (!code && !n_user)
+            code = 4u;
+        break_ask(n_user ? n_breaks - 1u : n_synth);   /* (LOAF BREAKER: the custom break, the last; or the bank's first) */
+    } else
+        return 0;
+    if (code > 1u)
+        app_say("BREAK NOT LOADED", code == 4u ? "IT DOESN'T CHECK" : "FLASH OR SIZE");
+    cu_reply(cmd, code, 0, 0u);
+    return 1;
+}
+
 #ifdef PLAT_HOST
 /* the host simulator's commands: "splash" draws the power-on screen (the device draws it before app_init; the
  * simulator never does) */
@@ -2274,8 +2404,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0"};
-    int v[134];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks"};
+    int v[136];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -2423,7 +2553,9 @@ int app_expect(const char *what, int *got)
     }
     v[132] = set.keys[0].len;
     v[133] = set.pads.roll_div[0];
-    for (i = 0; i < 134u; i++)
+    v[134] = (int)n_user;                /* (0.9.32: a custom break, the last) */
+    v[135] = (int)n_breaks;
+    for (i = 0; i < 136u; i++)
         if (!strcmp(what, W[i])) {
             *got = v[i];
             return 1;

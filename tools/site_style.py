@@ -55,7 +55,9 @@ def restyle(path, cls, controls_href, extra=""):
     s = s.replace("<body>", f'<body class="{cls}">', 1)
     nav = re.search(r'(<header class="site">.*?<nav>)(.*?)(</nav>)', s, re.S)
     if nav:                                          # "Controls" after "Manual"
-        links = re.sub(r'(<a href="[^"]*manual/"[^>]*>Manual</a>)', r'\1<a href="' + controls_href + '">Controls</a>',
+        breaks = "breaks/" if controls_href.startswith("manual/") else "../breaks/"   # (the front page, the manual)
+        links = re.sub(r'(<a href="[^"]*manual/"[^>]*>Manual</a>)',
+                       r'\1<a href="' + controls_href + '">Controls</a><a href="' + breaks + '">Your break</a>',
                        nav.group(2), count=1)
         s = s[:nav.start(2)] + links + s[nav.end(2):]
     return s
@@ -65,7 +67,8 @@ def header(current):
     conf = (APP / "fm1.toml").read_text(encoding="utf-8")
     name = re.search(r'^title\s*=\s*"([^"]+)"', conf, re.M) or re.search(r'^name\s*=\s*"([^"]+)"', conf, re.M)
     repo = re.search(r'^repo\s*=\s*"([^"]+)"', conf, re.M)
-    links = [("../emu/", "Emulator"), ("../install/", "Install"), ("../manual/", "Manual"), ("../manual/#controls", "Controls")]
+    links = [("../emu/", "Emulator"), ("../install/", "Install"), ("../manual/", "Manual"), ("../manual/#controls", "Controls"),
+             ("../breaks/", "Your break")]
     if repo:
         links.append((repo.group(1), "Source"))
     return ('<div class="page"><header class="site"><a class="home" href="../">' + (name.group(1) if name else "CHOPPAH") +
@@ -157,11 +160,24 @@ def logo(site):
         f.write_text(s, encoding="utf-8")
 
 
+def breaks(site):
+    """the break manager (app/site/breaks.html, CHOPPAH 1.4's: a break of your own over Web MIDI): the site's style
+    and header, at breaks/"""
+    page = (APP / "site" / "breaks.html").read_text(encoding="utf-8")
+    css = (APP / "site" / "site.css").read_text(encoding="utf-8")
+    if "/*SITE_CSS*/" not in page or "<!--HEADER-->" not in page:
+        raise SystemExit("app/site/breaks.html: no /*SITE_CSS*/ or <!--HEADER--> to fill")
+    page = page.replace("<style>/*SITE_CSS*/", FONTS + "<style>" + css, 1).replace("<!--HEADER-->", header("Your break"), 1)
+    (site / "breaks").mkdir(parents=True, exist_ok=True)
+    (site / "breaks" / "index.html").write_text(page, encoding="utf-8")
+
+
 def main(site):
     site = Path(site)
     rebrand(site)
     install(site)
     emu(site)
+    breaks(site)
     home = site / "index.html"
     if home.exists():
         home.write_text(restyle(home, "home", "manual/#controls"), encoding="utf-8")

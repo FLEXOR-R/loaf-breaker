@@ -84,7 +84,9 @@ SYSTEM (GLO). The button again: the next part; SEL + a button: that domain's sec
 LOAF BREAKER has 8 breaks on ALGORITHM, 2 bars each: NUSKOOL 140, AMEN20 164, AMEN19 172,
 UPDOWN 165, JUNGLE 175, THINK 114, APACHE 115 and THEWORM 110. [`breaks/breaks.txt`](breaks/breaks.txt) marks with `*` the ones
 built in (the bank has 400 KB); `./build.sh` builds them into `app/bank_data.h` (generated, git-ignored). The breaks
-are built in: LOAF BREAKER does not load samples of your own.
+are built in, and one break of your own goes beside them (0.9.32, CHOPPAH 1.4's break manager): the site's
+[Your break](https://flexor-r.github.io/loaf-breaker/breaks/) page (`app/site/breaks.html`) makes it from a sample as
+`prep_breaks.py` would and writes it over USB into the flash's data area, where it is the ninth break.
 
 ## Building
 

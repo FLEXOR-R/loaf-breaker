@@ -1355,31 +1355,81 @@ static void wave_build(const brk_break_t *b)
     }
 }
 
-/* the bank built into the image: its slot i (0..), or 0 when absent or not sane */
-static const bank_slot_t *bank_slot(uint32_t i)
+/* a bank's slot i (0..), or 0 when absent or not sane (size: the bytes the bank may span; CHOPPAH 1.4's) */
+static const bank_slot_t *bank_check(const uint8_t *bank, uint32_t size, uint32_t i)
 {
-#if CH_HAVE_BANK
-    const bank_header_t *h = (const bank_header_t *)CH_BANK;
+    const bank_header_t *h = (const bank_header_t *)bank;
     const bank_slot_t *s;
-    if (h->magic != BANK_MAGIC || h->version != BANK_VERSION || i >= h->nslots || i >= BANK_SLOTS ||
-        16u + 168u * (i + 1u) > CH_BANK_SIZE)
+    if (!bank || h->magic != BANK_MAGIC || h->version != BANK_VERSION || i >= h->nslots || i >= BANK_SLOTS ||
+        16u + 168u * (i + 1u) > size)
         return 0;
-    s = (const bank_slot_t *)(CH_BANK + 16u + 168u * i);
-    if (s->data_off + s->data_len > CH_BANK_SIZE || s->len > CH_PCM_MAX || s->data_len < (s->len + 1u) / 2u ||
+    s = (const bank_slot_t *)(bank + 16u + 168u * i);
+    if (s->data_off + s->data_len > size || s->len > CH_PCM_MAX || s->data_len < (s->len + 1u) / 2u ||
         !s->nslices || s->nslices > BANK_SLICES || !s->bars || s->slice[s->nslices] != s->len || !s->bpm_x100)
         return 0;
     return s;
-#else
-    (void)i;
-    return 0;
+}
+
+/* LOAF BREAKER (0.9.32, from CHOPPAH 1.4, FLEXOR: "your break"): one break of the player's, a bank of one slot in the
+ * flash's data area below the store objects (0xB6000 on), written over USB from the site's break manager (app_sysex,
+ * ui/main.c). Present, it is the last break (after the bank's: the breaks saved by number keep theirs); a RESET ALL and
+ * WIPE MEMORY leave it (not in the store map) */
+#define CU_BASE 0x97000u                 /* the data area's start */
+#define CU_SECTORS 14u                   /* 56 KB: a slot and CH_PCM_MAX samples of ADPCM */
+#define CU_CAP (CU_SECTORS * 4096u)
+static uint32_t n_user, n_bank;          /* the custom break there (checked whole: cu_scan); the bank's */
+static uint32_t crc32_of(const uint8_t *p, uint32_t n)   /* zlib's */
+{
+    uint32_t c = ~0u, k;
+    while (n--) {
+        c ^= *p++;
+        for (k = 0; k < 8u; k++)
+            c = c >> 1 ^ (0xEDB88320u & (0u - (c & 1u)));
+    }
+    return ~c;
+}
+static void cu_scan(void)
+{
+    const uint8_t *p = plat_data(CU_BASE);
+    const bank_header_t *h = (const bank_header_t *)p;
+    n_user = p && h->nslots == 1u && h->data_size <= CU_CAP - 16u && bank_check(p, CU_CAP, 0u) &&
+             crc32_of(p + 16, h->data_size) == h->crc32 ? 1u : 0u;
+}
+/* break i's slot and its bank: the bank built into the image (or a synthesised Amen), then the custom break */
+static const bank_slot_t *slot_of(uint32_t i, const uint8_t **bank)
+{
+    *bank = 0;
+#if CH_HAVE_BANK
+    if (i >= n_synth && i - n_synth < n_bank) {
+        *bank = CH_BANK;
+        return bank_check(CH_BANK, CH_BANK_SIZE, i - n_synth);
+    }
 #endif
+    if (n_user && i == n_synth + n_bank) {
+        *bank = plat_data(CU_BASE);
+        return bank_check(*bank, CU_CAP, 0u);
+    }
+    return 0;
+}
+static void breaks_count(void)
+{
+    cu_scan();
+    n_synth = n_bank = 0u;
+#if CH_HAVE_BANK
+    while (n_bank < BANK_SLOTS && bank_check(CH_BANK, CH_BANK_SIZE, n_bank))
+        n_bank++;
+#endif
+    if (!n_bank)                         /* a build without a bank still has a break: a synthesised Amen */
+        n_synth = 1u;
+    n_breaks = n_synth + n_bank + n_user;
 }
 
 /* break i's name, for the screen before it is in */
 static const char *break_name(uint32_t i)
 {
     static char t[13];
-    const bank_slot_t *s = i >= n_synth ? bank_slot(i - n_synth) : 0;
+    const uint8_t *bk;
+    const bank_slot_t *s = slot_of(i, &bk);
     uint32_t k;
     for (k = 0; k < 12u; k++)
         t[k] = s ? s->name[k] : 0;
@@ -1391,15 +1441,14 @@ static const char *break_name(uint32_t i)
  * break_poll); hand it to the render after */
 static const brk_break_t *break_load(uint32_t i)
 {
-    const bank_slot_t *s = i >= n_synth ? bank_slot(i - n_synth) : 0;
+    const uint8_t *bk;
+    const bank_slot_t *s = slot_of(i, &bk);
     brk_break_t *d = brk_get_break() == &brk_cur[0] ? &brk_cur[1] : &brk_cur[0];
     const brk_break_t *b = &brk0;
     uint32_t k;
     if (s) {
         adpcm_state_t st = {0, 0, 0};
-#if CH_HAVE_BANK
-        adpcm_decode(&st, CH_BANK + s->data_off, pcm_a, s->len);
-#endif
+        adpcm_decode(&st, bk + s->data_off, pcm_a, s->len);
         d->pcm = pcm_a;
         d->len = s->len;
         d->rate = s->rate;
@@ -1435,11 +1484,7 @@ void app_init(void)
     kick_init();
     perc_init();
     ovl_init(ovl_line);
-    n_synth = n_breaks = 0u;             /* the breaks are the bank's (breaks/breaks.txt) */
-    while (n_breaks < BANK_SLOTS && bank_slot(n_breaks))
-        n_breaks++;
-    if (!n_breaks)                       /* a build without a bank still has a break: a synthesised Amen */
-        n_synth = n_breaks = 1u;
+    breaks_count();                      /* the bank's (breaks/breaks.txt), then the player's own (0.9.32) */
     settings_defaults();                 /* (what a shorter, older save doesn't reach keeps these) */
     {
         int sz = plat_store_size(OBJ_SETTINGS);
@@ -1465,7 +1510,7 @@ void app_init(void)
     if (set.magic != SET_MAGIC || set.tempo_x10 < 400u || set.tempo_x10 > 3000u || set.swing < 50u ||
         set.swing > 75u) {
         settings_defaults();
-        if (n_breaks > n_synth)
+        if (n_bank)
             set.brk = (uint8_t)n_synth;  /* the bank's first break */
     }
     if (set.brk >= n_breaks)
