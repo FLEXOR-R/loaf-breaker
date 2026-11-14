@@ -6,6 +6,7 @@
 #
 #   in:    * in the firmware, - not; *= or -= its slices on an even grid (the BREAKS page's EVEN GRID), else on the hits
 #   name @X: (optional, after the name) its own loudness instead of -16 dBFS; @0 its file's own (the peaks to full scale).
+#   name NNNNNHz: (optional) its own sample rate instead of 22050 (THINK 114 at 16000 for room, 0.9.37)
 #   flexor/'s breaks are all at -12 dBFS (FLEXOR: his DJ library, mastered alike) unless their line says @X
 #   file:  relative to this folder   bpm:   the loop's tempo   bars: how many bars go into the firmware
 #   (the WAV holds 'of' bars)        name:  on the screen, up to 11 characters
@@ -20,7 +21,7 @@
 *   cw/cw_amen20_164.wav                        164     2     2   AMEN20 164
 *   cw/cw_amen19_172.wav                        172     2     4   AMEN19 172
 *   huge/cw_amen_updown.wav                     165     2     2   UPDOWN 165
-*   classics/lyn_collins_think_about_it.wav     113.78  2     4   THINK 114
+*   classics/lyn_collins_think_about_it.wav     113.78  2     4   THINK 114 16000Hz
 *=  flexor/akira_custom_grind.wav               190     2     2   AKIRA 190
 *=  flexor/detest_tripped_hardcore_to_the_penis.wav 175 2  2   DETEST 175
 *=  flexor/lil_texas_louder.wav                 175     2     2   LOUDER 175

@@ -49,7 +49,8 @@ bank` builds the bank on its own and says whether it fits. The tool reads intege
 Every break is brought to the same loudness, −16 dBFS RMS over its loud parts (the quiet gaps left out), and a
 look-ahead limiter (2 ms ahead, 40 ms release) holds its peaks under −0.2 dBFS, so a spiky break is as loud as a dense
 one: THINK gains 11.6 dB with 9.7 dB off its few loudest hits, AMEN 3.9 dB (3.6 off its peaks), COLD SWEAT 2.4 dB.
-A line of breaks.txt may give a break its own level after its name: `@-12` (dBFS RMS), or `@0`, the file's own level,
+A line of breaks.txt may give a break its own sample rate after its name, `16000Hz` (THINK 114, 0.9.37, for room:
+12.8 KB less, the same below 8 kHz), and its own level: `@-12` (dBFS RMS), or `@0`, the file's own level,
 its peaks to full scale (FLEXOR's five, 0.9.35: as loud as he mastered them). The build prints each break's gain and how much its peaks were held down; `--loudness 0` puts the peaks at full scale
 instead (the old way, which left THINK about 8 dB quieter than DRUMMER).
 

@@ -235,10 +235,25 @@ def level(x, rate, target_db, ceiling=0.98):
     return out, 20.0 * math.log10(g), -20.0 * math.log10(most)
 
 
+def name_opts(field):
+    """a catalogue line's NAME and its options after it, in any order: @X its own loudness, NNNNNHz its own sample
+    rate (LOAF BREAKER 0.9.37, FLEXOR: THINK at 16 kHz for room): "THINK 114 16000Hz" -> ("THINK 114", None, 16000)"""
+    name, loud, hz = field.strip(), None, None
+    while True:
+        m = re.match(r"^(.*?)\s+(@[+-]?\d+(?:\.\d+)?|\d{4,5}Hz)$", name)
+        if not m:
+            return name, loud, hz
+        name, opt = m.group(1).strip(), m.group(2)
+        if opt.startswith("@"):
+            loud = float(opt[1:])
+        else:
+            hz = int(opt[:-2])
+
+
 def name_loud(field):
     """a catalogue line's NAME and its own loudness: "AKIRA 190 @0" -> ("AKIRA 190", 0.0); none -> (NAME, None)"""
-    m = re.match(r"^(.*?)\s+@([+-]?\d+(?:\.\d+)?)\s*$", field.strip())
-    return (m.group(1).strip(), float(m.group(2))) if m else (field.strip(), None)
+    name, loud, _ = name_opts(field)
+    return name, loud
 
 
 FOLDER_LOUD = {"flexor": -12.0}         # (LOAF BREAKER, 14 Nov 2026, FLEXOR: his breaks, from his DJ library, all
@@ -260,10 +275,10 @@ def read_list(path):
         if len(f) < 6 or f[0] not in ("*", "-", "*=", "-="):
             raise SystemExit(f"{path}:{n}: expected IN FILE BPM BARS OF NAME, IN * or - (*= or -=: slices on an even grid)")
         if f[0].startswith("*"):
-            name, loud = name_loud(f[5])
+            name, loud, hz = name_opts(f[5])
             loud = line_loud(f[1], loud)
             specs.append((f"{Path(path).parent / f[1]}:{f[2]}:{f[3]}:{name}" + (":grid" if f[0].endswith("=") else "") +
-                          (f":loud={loud}" if loud is not None else ""), f[1]))
+                          (f":loud={loud}" if loud is not None else "") + (f":hz={hz}" if hz else ""), f[1]))
     if not specs:
         raise SystemExit(f"{path}: no line marked *")
     return specs
@@ -278,7 +293,8 @@ def prepare(spec, args, shown=None):
     extra = parts[4:]                        # (LOAF BREAKER 0.9.34: "grid", a break marked *= or -= in the catalogue: an even
     transients = args.transients and "grid" not in extra   # grid, the BREAKS page's EVEN GRID; 0.9.35 "loud=X": its own
     loud = next((float(e[5:]) for e in extra if e.startswith("loud=")), args.loudness)   # loudness, NAME @X there; @0 its
-                                             # file's own level, the peaks to full scale)
+                                             # file's own level, the peaks to full scale; 0.9.37 "hz=N": its own rate)
+    out_rate = next((int(e[3:]) for e in extra if e.startswith("hz=")), args.rate)
     x, rate = read_wav(path)
     if bpm is None:                          # the file is whole bars
         bpm = 240.0 * bars / (len(x) / rate)
@@ -292,15 +308,15 @@ def prepare(spec, args, shown=None):
         peak = max(1e-9, max(abs(v) for v in x))
         gain_db, lim_db = 20.0 * math.log10(0.98 / peak), 0.0
         x = [v * (0.98 / peak) for v in x]
-    x = resample(x, rate, args.rate)
+    x = resample(x, rate, out_rate)
     if len(x) > BANK_MAX_LEN:
         raise SystemExit(f"{shown or path}: {bars} bar(s) at {bpm:.2f} BPM are {len(x)} samples, the firmware's buffer "
                          f"holds {BANK_MAX_LEN} (fewer bars)")
     nslices = min(BANK_SLICES, args.break_slices or args.slices * bars)
-    pts = slice_points(x, args.rate, nslices, transients)
+    pts = slice_points(x, out_rate, nslices, transients)
     data = adpcm_encode(x)
     name = (given or (args.name_prefix + path.stem)).upper()[:11]
-    return {"name": name, "file": shown or str(path), "bpm": round(bpm, 2), "bars": bars, "rate": args.rate,
+    return {"name": name, "file": shown or str(path), "bpm": round(bpm, 2), "bars": bars, "rate": out_rate,
             "len": len(x), "nslices": nslices, "slices": pts, "data": data, "pcm": x,
             "gain_db": round(gain_db, 1), "limit_db": round(lim_db, 1)}
 

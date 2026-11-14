@@ -26,8 +26,8 @@ def entries(path):
     for line in path.read_text(encoding="utf-8").splitlines():
         f = line.split(None, 5)
         if len(f) == 6 and f[0] in ("*", "-", "*=", "-="):
-            name, loud = pb.name_loud(f[5])
-            out.append((f[0].startswith("*"), f[1], float(f[2]), int(f[3]), name, f[0].endswith("="), pb.line_loud(f[1], loud)))
+            name, loud, hz = pb.name_opts(f[5])
+            out.append((f[0].startswith("*"), f[1], float(f[2]), int(f[3]), name, f[0].endswith("="), pb.line_loud(f[1], loud), hz))
     return out
 
 
@@ -35,13 +35,13 @@ def main(outdir):
     out = Path(outdir)
     out.mkdir(parents=True, exist_ok=True)
     index = []
-    for built, file, bpm, bars, name, grid, loud in entries(ROOT / "breaks" / "breaks.txt"):
-        rate = min(22050, int(pb.BANK_MAX_LEN // (bars * 240.0 / bpm)))   # (slow ones lower, as the page does)
+    for built, file, bpm, bars, name, grid, loud, hz in entries(ROOT / "breaks" / "breaks.txt"):
+        rate = hz or min(22050, int(pb.BANK_MAX_LEN // (bars * 240.0 / bpm)))   # (its own, or slow ones lower, as the page does)
         args = argparse.Namespace(bars=bars, slices=16, break_slices=16, rate=rate, transients=True, loudness=-16.0,
                                   name_prefix="")
         try:
             s = pb.prepare(f"{ROOT / 'breaks' / file}:{bpm}:{bars}:{name}" + (":grid" if grid else "") +
-                           (f":loud={loud}" if loud is not None else ""), args, file)
+                           (f":loud={loud}" if loud is not None else "") + (f":hz={hz}" if hz else ""), args, file)
         except SystemExit as e:                     # (one that won't make: left out, said)
             print(f"break_lib: {file}: {e}", file=sys.stderr)
             continue
