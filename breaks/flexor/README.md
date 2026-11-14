@@ -29,9 +29,9 @@ library shows (0.9.40, FLEXOR: `Artist – Track (kind)`, the FM-1's short name 
 | `dj_hidden_the_nightmare_connector_vip.wav` | DJ Hidden, "The Nightmare Connector VIP" (break) | 175 | 2 | the library (NIGHT 175, 0.9.40) |
 | `dj_hidden_the_nightmare_connector_vip_outro_break.wav` | DJ Hidden, "The Nightmare Connector VIP" (outro break) | 175 | 2 | the library (NIGHT2 175, 0.9.40) |
 | `dj_hidden_times_like_these_vip_break_2.wav` | DJ Hidden, "Times Like These VIP" (break 2) | 175 | 2 | the library (TIMES2 175, 0.9.40) |
-| `dj_hidden_times_like_these_vip.wav` | DJ Hidden, "Times Like These VIP" (break) | 175 | 2 | the library (TIMES 175, 0.9.40) |
+| `dj_hidden_times_like_these_vip.wav` | DJ Hidden, "Times Like These VIP" (break) | 175 | 2 | TIMES 175 (the library in 0.9.40; the firmware since 0.9.43) |
 | `dngn_drgns_focuz_dngn_drgns_remix_break_2.wav` | DNGN DRGNS, "Focuz (DNGN DRGNS Remix)" (break 2) | 175 | 2 | the library (FOCUZ2 175, 0.9.40) |
-| `dngn_drgns_focuz_dngn_drgns_remix.wav` | DNGN DRGNS, "Focuz (DNGN DRGNS Remix)" (break) | 175 | 2 | the library (FOCUZ 175, 0.9.40) |
+| `dngn_drgns_focuz_dngn_drgns_remix.wav` | DNGN DRGNS, "Focuz (DNGN DRGNS Remix)" (break) | 175 | 2 | FOCUZ 175 (the library in 0.9.40; the firmware since 0.9.43) |
 | `dolphin_bangphase.wav` | Dolphin, "Bangphase" (break) | 155 | 2 | the library (BANGPHS 155, 0.9.40) |
 | `poley_tight_facecracker_break_2.wav` | Poley Tight, "Facecracker" (break 2) | 170 | 2 | the library (FACECR2 170, 0.9.40) |
 | `poley_tight_facecracker.wav` | Poley Tight, "Facecracker" (break) | 170 | 2 | the library (FACECR 170, 0.9.40) |
