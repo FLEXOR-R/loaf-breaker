@@ -27,7 +27,7 @@ def entries(path):
         f = line.split(None, 5)
         if len(f) == 6 and f[0] in ("*", "-", "*=", "-="):
             name, loud = pb.name_loud(f[5])
-            out.append((f[0].startswith("*"), f[1], float(f[2]), int(f[3]), name, f[0].endswith("="), loud))
+            out.append((f[0].startswith("*"), f[1], float(f[2]), int(f[3]), name, f[0].endswith("="), pb.line_loud(f[1], loud)))
     return out
 
 

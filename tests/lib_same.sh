@@ -17,6 +17,8 @@ n = 0
 for built, file, bpm, bars, name, grid, loud in bl.entries(Path("breaks/breaks.txt")):
     if not built:
         continue
+    if file.startswith("flexor/"):
+        assert loud == -12.0, f"{name}: FLEXOR's breaks at -12 dBFS (breaks.txt @X or flexor/'s level)"
     lib = f"breaks/{file}:{bpm}:{bars}:{name}" + (":grid" if grid else "") + (f":loud={loud}" if loud is not None else "")
     a = pb.build_bank([pb.prepare(lib, args, file)])
     b = pb.build_bank([pb.prepare(fw[file], args, file)])

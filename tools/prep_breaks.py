@@ -241,6 +241,15 @@ def name_loud(field):
     return (m.group(1).strip(), float(m.group(2))) if m else (field.strip(), None)
 
 
+FOLDER_LOUD = {"flexor": -12.0}         # (LOAF BREAKER, 14 Nov 2026, FLEXOR: his breaks, from his DJ library, all
+                                         # mastered alike: every one at -12 dBFS RMS unless its line says @X)
+
+
+def line_loud(file, loud):
+    """a catalogue line's level: its own @X, or its folder's (flexor/: -12), or None (the default, -16)"""
+    return loud if loud is not None else FOLDER_LOUD.get(file.split("/")[0])
+
+
 def read_list(path):
     """the catalogue's lines marked *, as specs FILE:BPM:BARS:NAME (FILE resolved) and the FILE as written"""
     specs = []
@@ -252,6 +261,7 @@ def read_list(path):
             raise SystemExit(f"{path}:{n}: expected IN FILE BPM BARS OF NAME, IN * or - (*= or -=: slices on an even grid)")
         if f[0].startswith("*"):
             name, loud = name_loud(f[5])
+            loud = line_loud(f[1], loud)
             specs.append((f"{Path(path).parent / f[1]}:{f[2]}:{f[3]}:{name}" + (":grid" if f[0].endswith("=") else "") +
                           (f":loud={loud}" if loud is not None else ""), f[1]))
     if not specs:

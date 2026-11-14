@@ -155,7 +155,7 @@ computer.</p>
       <label class="f">Use bars<select id="start"></select></label>
       <label class="f">Tempo (BPM)<input type="number" id="bpm" min="40" max="300" step="0.01"></label>
       <label class="f">Slices<select id="snap"><option value="1" selected>On the hits</option><option value="0">Even grid</option></select></label>
-      <label class="f">Level<select id="level"><option value="1" selected>As the built-in breaks</option><option value="0">Loudest at full scale</option></select></label>
+      <label class="f">Level<select id="level"><option value="1" selected>As the built-in breaks</option><option value="2">DJ master (−12 dBFS, as FLEXOR's)</option><option value="0">Loudest at full scale</option></select></label>
     </div>
     <div class="facts" id="facts"></div>
     <div class="wave"><canvas id="wave" width="1100" height="150" aria-label="Your break: its waveform and slices"></canvas></div>
@@ -653,7 +653,7 @@ async function make() {                  /* the sample -> the break, as prep_bre
   } else x = src.x.slice(Math.round(startBar * barLen), Math.round((startBar + 2) * barLen));
   const want = Math.round(2 * barLen);
   if (x.length < want - 2) { const y = new Float32Array(want); y.set(x); x = y; }
-  x = $("level").value === "1" ? level(x, src.rate) : peakNorm(x);
+  x = $("level").value === "1" ? level(x, src.rate) : $("level").value === "2" ? level(x, src.rate, -12) : peakNorm(x);
   const rate = Math.min(RATE, Math.floor(MAX_LEN / (2 * 240 / bpm)));   /* slow breaks at a lower rate, to fit */
   const oc = new OfflineAudioContext(1, Math.max(1, Math.round(x.length * rate / src.rate)), rate);
   const ab = oc.createBuffer(1, x.length, src.rate);
@@ -801,6 +801,10 @@ drop.ondragleave = () => drop.classList.remove("over");
 drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove("over"); e.dataTransfer.files[0] && loadFile(e.dataTransfer.files[0]); };
 $("bars").onchange = () => { fillStart(); $("bpm").value = (240 * +$("bars").value / src.dur).toFixed(2); make(); };
 for (const id of ["start", "bpm", "snap", "level", "name"]) $(id).onchange = make;
+for (const id of ["snap", "level"]) {    /* (the slices and the level kept in this browser: a DJ's samples alike) */
+  try { const v = localStorage.getItem("brk." + id); if (v !== null && [...$(id).options].some((o) => o.value === v)) $(id).value = v; } catch (e) { /* none */ }
+  $(id).addEventListener("change", () => { try { localStorage.setItem("brk." + id, $(id).value); } catch (e) { /* none */ } });
+}
 $("play").onclick = () => { audio().resume(); player.on ? player.stop() : player.start(); };
 $("lplay").onclick = () => { audio().resume(); lp.on ? lp.stop() : lp.start(); };
 $("chop").onclick = (e) => { player.chop = !player.chop; e.target.setAttribute("aria-pressed", player.chop); };
