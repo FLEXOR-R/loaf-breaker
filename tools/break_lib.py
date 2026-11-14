@@ -31,10 +31,24 @@ def entries(path):
     return out
 
 
+def titles(readme):
+    """(0.9.40, FLEXOR) a folder's README table: | `FILE.wav` | Artist, "Track" (kind) | ... -> {FILE: "Artist - Track (kind)"},
+    the library's full name for a break whose name on the FM-1 is short"""
+    out = {}
+    if not readme.exists():
+        return out
+    for line in readme.read_text(encoding="utf-8").splitlines():
+        m = re.match(r'\|\s*`([^`]+)`\s*\|\s*([^|"]+?),\s*"([^"]+)"\s*(\([^)]*\))?\s*\|', line)
+        if m:
+            out[m.group(1)] = f"{m.group(2).strip()} \u2013 {m.group(3).strip()}" + (f" {m.group(4)}" if m.group(4) else "")
+    return out
+
+
 def main(outdir):
     out = Path(outdir)
     out.mkdir(parents=True, exist_ok=True)
     index = []
+    full = {f"flexor/{k}": v for k, v in titles(ROOT / "breaks" / "flexor" / "README.md").items()}
     for built, file, bpm, bars, name, grid, loud, hz in entries(ROOT / "breaks" / "breaks.txt"):
         rate = hz or min(22050, int(pb.BANK_MAX_LEN // (bars * 240.0 / bpm)))   # (its own, or slow ones lower, as the page does)
         args = argparse.Namespace(bars=bars, slices=16, break_slices=16, rate=rate, transients=True, loudness=-16.0,
@@ -51,6 +65,8 @@ def main(outdir):
         folder = file.split("/")[0]
         index.append({"id": bid, "name": s["name"], "file": file, "folder": FOLDER.get(folder, folder.upper()),
                       "bpm": s["bpm"], "bars": bars, "size": len(img), "built": built})
+        if file in full:                         # (the track's whole name, on the page only: the FM-1 keeps "name")
+            index[-1]["title"] = full[file]
     (out / "index.json").write_text(json.dumps(index, separators=(",", ":")), encoding="utf-8")
     total = sum(e["size"] for e in index)
     print(f"break_lib: {len(index)} breaks, {total / 1024:.0f} KB, in {out}")

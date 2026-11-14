@@ -559,7 +559,7 @@ function listen(h, play) {
   heard = h;
   lp.set(h.b);
   $("listen").classList.remove("hidden");
-  $("lname").textContent = h.name;
+  $("lname").textContent = h.title ? `${h.title} (${h.name} on the FM-1)` : h.name;
   $("ltempo").value = Math.round(h.b.bpm); $("ltempoV").textContent = Math.round(h.b.bpm) + " BPM";
   $("lfacts").innerHTML = `${h.b.bpm.toFixed(2)} BPM · ${h.b.bars} bar${h.b.bars > 1 ? "s" : ""} · ${(h.b.pcm.length / h.b.rate).toFixed(2)} s at ` +
     `${(h.b.rate / 1000).toFixed(2)} kHz · ${kb(h.one.length)}` + (h.built ? " · <b>built into LOAF BREAKER</b>" : "");
@@ -579,7 +579,7 @@ function renderLib() {
   if (!lib.length) return;
   const q = query.trim().toUpperCase();
   const shown = lib.filter((e) => (filt === "ALL" || (filt === "BUILT IN" ? e.built : e.folder === filt)) &&
-    (!q || e.name.includes(q) || String(Math.round(e.bpm)).startsWith(q) || e.file.toUpperCase().includes(q)));
+    (!q || e.name.includes(q) || (e.title || "").toUpperCase().includes(q) || String(Math.round(e.bpm)).startsWith(q) || e.file.toUpperCase().includes(q)));
   const list = showAll || q ? shown : shown.slice(0, 20);
   $("libMore").classList.toggle("hidden", list.length === shown.length);
   $("libMore").textContent = `Show all ${shown.length}`;
@@ -587,12 +587,12 @@ function renderLib() {
   for (const e of list) {
     const row = document.createElement("div"), one = bins.get(e.id), taken = one && mine.some((m) => m.one === one);
     row.className = "item" + (heard && heard.id === e.id ? " now" : "");
-    row.innerHTML = `<button aria-label="Hear ${esc(e.name)}">▶</button><div><div class="nm">${esc(e.name)}</div>` +
-      `<div class="meta">${esc(e.folder)} · ${e.bpm.toFixed(2)} BPM · ${e.bars} bar${e.bars > 1 ? "s" : ""} · ${kb(e.size)}</div></div>` +
+    row.innerHTML = `<button aria-label="Hear ${esc(e.title || e.name)}">▶</button><div><div class="nm">${esc(e.title || e.name)}</div>` +
+      `<div class="meta">${e.title ? `on the FM-1: ${esc(e.name)} · ` : ""}${esc(e.folder)} · ${e.bpm.toFixed(2)} BPM · ${e.bars} bar${e.bars > 1 ? "s" : ""} · ${kb(e.size)}</div></div>` +
       `<div class="acts">${e.built ? '<span class="tag">Built in</span>' : `<button${taken ? " disabled" : ""}>${taken ? "Added" : "+ Add"}</button>`}</div>`;
     row.querySelector("button").onclick = async () => {
       const img = await libBank(e);
-      listen({ name: e.name, one: img, b: readBank(img), from: "lib", id: e.id, built: e.built }, true);
+      listen({ name: e.name, title: e.title, one: img, b: readBank(img), from: "lib", id: e.id, built: e.built }, true);
     };
     const addB = row.querySelector(".acts button");
     if (addB) addB.onclick = async () => { const img = await libBank(e); add(e.name, img, readBank(img)); };

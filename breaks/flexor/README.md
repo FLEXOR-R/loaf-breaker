@@ -7,6 +7,8 @@ on this should make their own call.
 Put the WAVs here (any sample rate and bit depth; 16-bit or 24-bit PCM, or 32-bit float), whole bars, then give each
 a line in [`../breaks.txt`](../breaks.txt): `flexor/FILE.wav`, its BPM, the bars that go into the firmware (2), the bars
 the WAV holds, a name of up to 11 characters. A `*` puts it in the firmware; every line is in the site's library.
+And a row in the table below: its "Artist, track" column, `Artist, "Track" (kind of break)`, is the name the site's
+library shows (0.9.40, FLEXOR: `Artist – Track (kind)`, the FM-1's short name beside it; tools/break_lib.py `titles`).
 
 | File | Artist, track | BPM | Bars | In the firmware |
 | --- | --- | --- | --- | --- |
