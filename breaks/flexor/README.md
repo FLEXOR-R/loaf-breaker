@@ -15,6 +15,7 @@ the WAV holds, a name of up to 11 characters. A `*` puts it in the firmware; eve
 | `lil_texas_louder.wav` | Lil Texas, "LOUDER" (break) | 175 | 2 | LOUDER 175 (0.9.34) |
 | `the_satan_gangzta_cash.wav` | The Satan, "Gangzta Cash" (intro break) | 200 | 2 | SATAN 200 (0.9.34) |
 | `tripped_matt_green_underground_panther_jacket.wav` | Tripped & Matt Green, "Underground Panther Jacket" (break) | 170 | 2 | PANTHER 170 (0.9.34) |
+| `artheist_the_obedience_algorithm.wav` | Artheist, "The Obedience Algorithm" (break) | 165 | 2 | OBEDIENC165 (0.9.37) |
 FLEXOR's breaks are sliced on an even grid (FLEXOR: "EVEN GRID", as he sends them from the BREAKS page): `*=` (or `-=`)
 in breaks.txt; and louder than the others: -12 dBFS RMS, 4 dB above the other breaks' -16 (0.9.35 had them at their files' own
 level, FLEXOR: too loud). **Every break put here gets that level** (FLEXOR, 14 Nov 2026: his DJ library, mastered
