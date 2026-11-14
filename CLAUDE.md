@@ -157,12 +157,15 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   blocks saves until a restart; on the host the store is kept apart, so only the FM-1 really erases.
 - Screen mirror (0.9.44, FLEXOR: a computer interface, then a bigger sequencer and kick editor on it later): fm1-base's
   `mirror = true` (fm1.toml; its web page at the site's mirror/, tools/fm1_mirror.py), `APP_REDRAW` (main.c app_redraw);
-  for the RAM: app.h MR_SEGW 240 (whole rows), MRQ 2048, the CDJ `scope` in the pool: RAM 97,116 of 98,304, pool 340,712 (fm1.toml `pool_spare` 3072: the 8 KB margin spent on it, 3,352 B left; more in the pool frees room first). Image 560,960 B with the editor: ~20.6 KB left.
+  for the RAM: app.h MR_SEGW 240 (whole rows), MRQ 2048, the CDJ `scope` in the pool: RAM 97,116 of 98,304, pool 340,712 (fm1.toml `pool_spare` 3072: the 8 KB margin spent on it, 3,352 B left; more in the pool frees room first). Image 562,000 B with the editor and its sequencer: ~19.6 KB left.
 - Sound editor (0.9.45, FLEXOR: "une interface efficace et complète, beaucoup plus de paramètres en même temps"): the site's
   editor/ page (app/site/editor.html, tools/site_style.py `editor`), SysEx ED_INFO 7 / ED_KNOB 8 / ED_ACT 9 / ED_WAVE 10
   (ui/main.c `ed_sysex`: the KICK menu's parts but FX1/FX2, the EQ, the drums' pages; headless, `ed_enter`/`ed_leave`
   keep the screen's place and force EXPERT; the FM-1's own kick_knob_turn / perc_turn / keq_turn, names, texts);
-  tests/editor_link.sh in CI. Next FLEXOR wants: a bigger sequencer on it, FX1/FX2 there too.
+  its Sequencer (ED_SEQ 11: the pattern in RAM whole, 370 B; ED_STEP 12: a drum step on / off, a step's NOTE HITS COND
+  NUDGE, a lane bar's FILL / CLR / 4X4, SOUND, LENGTH, a break step's SLICE PITCH REPEAT REVERSE, the pattern as PRESETS,
+  SEL + SAVE's undo: through SEQ's own lane_toggle / lane_knob / seq_turn, `ed_step`); tests/editor_link.sh in CI. Next
+  FLEXOR wants: FX1/FX2 there too.
 - No Bluetooth, ever (FLEXOR's rule). The GLOUPI BREAKS start-up photo must never come back into the repository. FLEXOR's
   sleeping photo (art/egg_sleep.png, commit afbbd5c, 6 Nov) stays in the history: FLEXOR, 12 Nov 2026, no purge.
 - Fonts: `font_trim` is on (fm1.toml, 9 Nov 2026). LOAF BREAKER draws in FONT_T, FONT_XS and FONT_B only (cv_text2 for

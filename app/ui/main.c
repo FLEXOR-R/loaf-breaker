@@ -2444,6 +2444,106 @@ static int ed_sysex(uint32_t cmd, const uint8_t *u, uint32_t len)
     }
     return 0;
 }
+/* LOAF BREAKER (0.9.45, FLEXOR: "un séquenceur plus digeste"): the editor's sequencer, the pattern in RAM whole, edited
+ * through SEQ's own code (lane_toggle, lane_knob, seq_turn: the same steps, clamps and undo). 11 ED_SEQ {} -> {1,
+ * pattern 0..63, playing, bar64 (0xFF none), break step (0xFF none), slices, break steps, bars of KICK SN HH CP, the
+ * kick's memory, the drums', novice, group changed, the next pattern (0xFF none), the bars' masks [4][4] u16, stepb (kick 64, the others 32 each:
+ * HITS bits 0-1, COND 2-4, NUDGE 5-7), the kick's notes 64 int8, the break's steps 32 x {slice, pitch, flags}};
+ * 12 ED_STEP {op, a, b, c, delta int8}: 1 a drum's step on / off (a drum, b its step 0..63), 2 a step's knob (c: K1
+ * NOTE, K2 HITS, K3 COND, K4 NUDGE), 3 a lane's knob (b its bar; c: FILL, SOUND, CLR / 4X4, LENGTH), 4 a break step's
+ * knob (b 0..31; c: SLICE, PITCH, REPEAT, REVERSE), 5 the pattern a (0..63), 6 SEL + SAVE's undo -> ED_SEQ (code 2:
+ * refused) */
+static void ed_seq(uint32_t code)
+{
+    uint8_t *o = (uint8_t *)(void *)cv_px + 1024u;
+    const pat_t *p = pat_now();
+    brk_status_t st;
+    uint32_t k = 0u, d, b, i;
+    brk_status(&st);
+    o[k++] = 1u;
+    o[k++] = (uint8_t)pat_cur();
+    o[k++] = (uint8_t)playing_now();
+    o[k++] = (uint8_t)(st.playing && st.bar64 >= 0 ? st.bar64 : 0xFF);
+    o[k++] = (uint8_t)(st.playing && st.step >= 0 ? st.step % (int32_t)PAT_STEPS : 0xFF);
+    o[k++] = (uint8_t)n_slices();
+    o[k++] = (uint8_t)pat_len();
+    for (d = 0; d < NDRUMS; d++)
+        o[k++] = (uint8_t)drum_bars(p, d);
+    o[k++] = (uint8_t)(set.kslot % KICK_MEMS);
+    for (d = 0; d < 3u; d++)
+        o[k++] = (uint8_t)*perc_slot(d);
+    o[k++] = (uint8_t)set.novice;
+    o[k++] = (uint8_t)grp_changed();
+    o[k++] = (uint8_t)(pat_next >= 0 ? pat_next : 0xFF);
+    for (d = 0; d < NDRUMS; d++)
+        for (b = 0; b < 4u; b++) {
+            uint32_t m = drum_bar(p, d, b);
+            o[k++] = (uint8_t)m;
+            o[k++] = (uint8_t)(m >> 8);
+        }
+    for (d = 0; d < NDRUMS; d++)
+        for (i = 0; i < (d == DR_KICK ? 64u : 32u); i++)
+            o[k++] = *stepb(set.pattern, d, i);
+    for (i = 0; i < 64u; i++)
+        o[k++] = (uint8_t)kick_note(p, i);
+    for (i = 0; i < PAT_STEPS; i++) {
+        o[k++] = p->st[i][0];
+        o[k++] = p->st[i][1];
+        o[k++] = p->st[i][2];
+    }
+    cu_reply(11u, code, o, k);
+}
+static int ed_step(const uint8_t *u)
+{
+    uint8_t lane = ui.seq_lane, step = ui.seq_step, nk = ui.note_key, nt = ui.note_turned, sb = ui.seq_brk;
+    uint8_t nov = set.novice;
+    uint32_t op = u[0], dr = u[1] % NDRUMS, at = u[2], kn = u[3] & 3u;
+    int32_t d = (int8_t)u[4];
+    int ok = 1;
+    set.novice = 0u;
+    ui.seq_brk = 0u;
+    ui.note_key = 0u;
+    if (op == 1u || op == 2u) {          /* a drum's step: its lane (its drum's bar), its place in it */
+        ui.seq_lane = (uint8_t)(SL_KICK + dr * 4u + (at & 63u) / 16u);
+        if (op == 1u)
+            lane_toggle(ui.seq_lane, at & 15u);
+        else if (d) {
+            ui.note_key = (uint8_t)((at & 15u) + 1u);
+            lane_knob((int)kn, d);
+        }
+    } else if (op == 3u && d) {
+        ui.seq_lane = (uint8_t)(SL_KICK + dr * 4u + (at & 3u));
+        lane_knob((int)kn, d);
+    } else if (op == 4u && d) {
+        ui.seq_lane = (uint8_t)((at % PAT_STEPS) / 16u);
+        ui.seq_step = (uint8_t)(at % PAT_STEPS);
+        seq_turn((int)kn, d);
+    } else if (op == 5u) {                 /* (as PRESETS: playing, at the loop's end) */
+        uint32_t want = u[1] % NPAT_ALL;
+        if (grp_blocked(want))
+            ok = 0;
+        else if (playing_now())
+            pat_next = (int8_t)want;
+        else if ((ok = pat_go(want)) != 0) {
+            pat_apply();
+            set_dirty = 1u;
+        }
+        if (ok)
+            say_int(playing_now() ? "NEXT PATTERN" : "PATTERN", (int32_t)want + 1, "");
+    } else if (op == 6u) {
+        ok = undo_idx < NPAT;
+        undo_swap();
+    }
+    ui.seq_lane = lane;
+    ui.seq_step = step;
+    ui.note_key = nk;
+    ui.note_turned = nt;
+    ui.seq_brk = sb;
+    set.novice = nov;
+    seq_lane_fix();
+    ui.redraw |= RG_ALL;
+    return ok;
+}
 int app_sysex(const uint8_t *p, uint32_t n)
 {
     uint8_t *u = (uint8_t *)(void *)cv_px, a[16];   /* (the canvas, its last blit done: lcd_sync) */
@@ -2460,6 +2560,15 @@ int app_sysex(const uint8_t *p, uint32_t n)
     len = unpack7(p + 4, n - 4u > 600u ? 600u : n - 4u, u);
     if (!z && cmd >= 7u && cmd <= 10u)   /* (LOAF BREAKER 0.9.45: the sound editor, any time) */
         return ed_sysex(cmd, u, len) || 1;
+    if (!z && cmd == 11u) {              /* (its sequencer) */
+        ed_seq(0u);
+        return 1;
+    }
+    if (!z && cmd == 12u && len >= 5u) {
+        int ok = ed_step(u);
+        ed_seq(ok ? 0u : 2u);
+        return 1;
+    }
     if (cmd == 1u || cmd == 5u) {        /* INFO, READ: any time */
         if (cmd == 1u) {
             uint32_t v[1u + 3u * CU_NZ], y;

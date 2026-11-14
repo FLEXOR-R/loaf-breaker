@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 # The sound editor's link (LOAF BREAKER 0.9.45, the site's editor/ page; ui/main.c ed_sysex) end to end in the host
 # simulator: ED_INFO's sections and parts; a kick part, a drum page and the kick EQ read and turned (their texts change,
-# the FM-1's screen stays where it was); FX1 refused (the FX page's); the kick's wave; KICK n and SAVE.
+# the FM-1's screen stays where it was); FX1 refused (the FX page's); the kick's wave; KICK n; the sequencer (ED_SEQ,
+# ED_STEP): a kick step, a snare step's HITS, the hat's LENGTH, a break step's SLICE, a FILL undone.
 # Needs ./build.sh --host first.
 #   tests/editor_link.sh
 set -e
@@ -36,6 +37,21 @@ fr 9 "1, 4"                                # KICK 5
 echo "wait 100"
 echo "expect kslot 4"
 echo "expect page 0"
+fr 11 ""                                  # ED_SEQ: the pattern
+echo "wait 50"
+fr 12 "1, 0, 1, 0, 0"                      # the kick's step 2 on / off
+echo "wait 50"
+fr 12 "2, 1, 4, 1, 1"                      # the snare's step 5: HITS one more
+echo "wait 50"
+fr 12 "3, 2, 0, 3, 1"                      # the hat's lane: LENGTH longer
+echo "wait 50"
+fr 12 "4, 0, 3, 0, 2"                      # the break's step 4: SLICE two on
+echo "wait 50"
+fr 12 "3, 3, 0, 0, 3"                      # the clap's lane: FILL, three more hits
+echo "wait 50"
+fr 12 "6, 0, 0, 0, 0"                      # SEL + SAVE's undo: the FILL
+echo "wait 50"
+echo "expect page 0"
 echo "sysex_log off"
 } > "$O/editor.txt"
 rm -f "$O/out.syx"
@@ -52,7 +68,7 @@ def unpack(p):
 rep = []
 for f in raw.split(b"\xf0")[1:]:
     f = f.split(b"\xf7")[0]
-    if f[:3] == bytes([0x7D, 0x43, 0x48]) and 0x47 <= f[3] <= 0x4A:
+    if f[:3] == bytes([0x7D, 0x43, 0x48]) and 0x47 <= f[3] <= 0x4C:
         rep.append((f[3] & 15, f[4], unpack(f[5:])))
 def knobs(d):
     return [(d[2 + 29 * i:14 + 29 * i].rstrip(b"\0").decode(), d[14 + 29 * i:30 + 29 * i].rstrip(b"\0").decode(), d[30 + 29 * i]) for i in range(4)]
@@ -75,5 +91,16 @@ e = knobs(eq[2])
 assert e[0][0] == "LOW" and e[0][1] != "0 DB", f"kick EQ LOW {e[0]}"
 assert fx1[1] == 2, "FX1 refused"
 assert wave[0] == 10 and len(wave[2]) == 240 and max(abs((v ^ 0x80) - 0x80) for v in wave[2]) > 20, "the kick's wave"
+def sq(d):
+    return dict(pat=d[1], bars=list(d[7:11]), mask=[[d[18 + 8 * r + 2 * c] | d[19 + 8 * r + 2 * c] << 8 for c in range(4)] for r in range(4)],
+                sb=list(d[50:210]), brk=[tuple(d[274 + 3 * i:277 + 3 * i]) for i in range(32)], n=len(d))
+s0, s1, s2, s3, s4, s5, s6 = (sq(r[2]) for r in rep[9:16])
+assert all(r[0] == 11 for r in rep[9:16]) and s0["n"] == 370, f"ED_SEQ {s0['n']}"
+assert (s1["mask"][0][0] ^ s0["mask"][0][0]) == 2, "the kick's step 2"
+assert (s2["sb"][64 + 4] & 3) == (s1["sb"][64 + 4] & 3) + 1, "the snare's step 5 HITS"
+assert s3["bars"][2] > s2["bars"][2], f"the hat's LENGTH {s2['bars']} -> {s3['bars']}"
+assert s4["brk"][3][0] == s3["brk"][3][0] + 2, f"the break's step 4 {s3['brk'][3]} -> {s4['brk'][3]}"
+assert bin(s5["mask"][3][0]).count("1") > bin(s4["mask"][3][0]).count("1") and s6["mask"][3][0] == s4["mask"][3][0], "FILL, undone"
+print(f"editor_link: the sequencer: a kick step, a snare step's HITS, the hat {16 * s2['bars'][2]} -> {16 * s3['bars'][2]} steps, a break step's slice, the clap's FILL undone")
 print(f"editor_link: kick SUB LEVEL {a[0][1]} -> {b[0][1]}, snare TUNE {c[1][1]} -> {d[1][1]}, kick EQ LOW {e[0][1]}; FX1 refused; the wave; KICK 5; the screen kept")
 P
