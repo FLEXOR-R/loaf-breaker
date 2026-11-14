@@ -414,7 +414,7 @@ The site's [Breaks](https://flexor-r.github.io/loaf-breaker/breaks/) page, in Ch
    your list. The ten built in are marked: they are on the FM-1 already.
 2. **A sample of your own**: a drum loop of whole bars in any format the browser plays; the page guesses its bars and
    tempo, makes it as the built-in ones and plays what the FM-1 will play; **+ Add to your breaks**. Its **Level**:
-   as the built-in breaks (−16 dBFS), **DJ master** (−12 dBFS, as FLEXOR's breaks: a sample from a DJ's library) or
+   as the built-in breaks (−16 LUFS, the level as heard), **DJ master** (−12 LUFS, as FLEXOR's breaks: a sample from a DJ's library) or
    the loudest at full scale; its **Slices** on the hits or an even grid. The page keeps both for the next sample.
 3. **Your breaks**: the list, as much as fits in the FM-1's two places for them, 140 KB and 92 KB (four breaks at most
    in each; a library break takes 29 to 47 KB: five to seven in all). The page picks each one's place; the two meters say

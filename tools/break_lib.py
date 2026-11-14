@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MPL-2.0
 """LOAF BREAKER (0.9.32, FLEXOR): the BREAKS page's library. Every break of breaks/breaks.txt (in the firmware or not)
-made exactly as the firmware's bank makes them (tools/prep_breaks.py: levelled to -16 dBFS, sixteen slices on the
+made exactly as the firmware's bank makes them (tools/prep_breaks.py: levelled to -16 LUFS, sixteen slices on the
 hits, IMA ADPCM), each a bank of one slot the page plays and sends as it is; a slow break at a lower rate so its bars
 fit the FM-1's buffer (the page's own rule for a sample). And index.json, the list the page shows.
 

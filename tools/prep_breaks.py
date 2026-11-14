@@ -185,14 +185,44 @@ def adpcm_decode(data, n):
     return out
 
 
+def _biquad(x, b0, b1, b2, a1, a2):
+    out, x1, x2, y1, y2 = [0.0] * len(x), 0.0, 0.0, 0.0, 0.0
+    for i, v in enumerate(x):
+        o = b0 * v + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2
+        x2, x1, y2, y1 = x1, v, y1, o
+        out[i] = o
+    return out
+
+
+def k_weight(x, rate):
+    """ITU-R BS.1770's K-weighting at any rate (the RBJ forms of its two stages): a high shelf of +4 dB above ~1.7 kHz
+    (the head's), then a high-pass at ~38 Hz: what the ear hears of a level"""
+    A, w = 10.0 ** (3.99984385397 / 40.0), 2.0 * math.pi * 1681.97445095 / rate
+    c, al = math.cos(w), math.sin(w) / (2.0 * 0.7071752369554193)
+    a0 = (A + 1) - (A - 1) * c + 2 * math.sqrt(A) * al
+    y = _biquad(x, A * ((A + 1) + (A - 1) * c + 2 * math.sqrt(A) * al) / a0, -2 * A * ((A - 1) + (A + 1) * c) / a0,
+                A * ((A + 1) + (A - 1) * c - 2 * math.sqrt(A) * al) / a0, 2 * ((A - 1) - (A + 1) * c) / a0,
+                ((A + 1) - (A - 1) * c - 2 * math.sqrt(A) * al) / a0)
+    w = 2.0 * math.pi * 38.13547087613982 / rate
+    c, al = math.cos(w), math.sin(w) / (2.0 * 0.5003270373253953)
+    a0 = 1 + al
+    return _biquad(y, (1 + c) / 2 / a0, -(1 + c) / a0, (1 + c) / 2 / a0, -2 * c / a0, (1 - al) / a0)
+
+
 def loudness_db(x, rate):
-    """the break's level: the RMS of its 50 ms windows, the windows 20 dB under the plain mean left out (quiet gaps
-    don't make a sparse break look quiet), in dBFS"""
-    w = max(1, int(rate * 0.05))
-    win = [sum(v * v for v in x[i:i + w]) / w for i in range(0, max(1, len(x) - w + 1), w)]
-    mean = sum(win) / len(win)
-    loud = [e for e in win if e > mean * 0.01] or win
-    return 10.0 * math.log10(max(1e-12, sum(loud) / len(loud)))
+    """the break's level as it is heard (LOAF BREAKER 0.9.42, FLEXOR: "tout mieux égaliser"; the RMS before): K-weighted
+    (k_weight), 400 ms blocks every 100 ms, those under -70 and then 10 dB under the mean left out (BS.1770's gates),
+    in LUFS"""
+    y, n, hop = k_weight(x, rate), max(1, int(rate * 0.4)), max(1, int(rate * 0.1))
+    z = []
+    for i in range(0, max(1, len(y) - n + 1), hop):
+        seg = y[i:i + n]
+        z.append(sum(v * v for v in seg) / len(seg))
+    lk = lambda e: -0.691 + 10.0 * math.log10(max(1e-12, e))
+    z = [e for e in z if lk(e) > -70.0] or z
+    rel = lk(sum(z) / len(z)) - 10.0
+    z = [e for e in z if lk(e) > rel] or z
+    return lk(sum(z) / len(z))
 
 
 def limit(y, rate, ceiling):
@@ -257,7 +287,7 @@ def name_loud(field):
 
 
 FOLDER_LOUD = {"flexor": -12.0}         # (LOAF BREAKER, 14 Nov 2026, FLEXOR: his breaks, from his DJ library, all
-                                         # mastered alike: every one at -12 dBFS RMS unless its line says @X)
+                                         # mastered alike: every one at -12 LUFS unless its line says @X)
 
 
 def line_loud(file, loud):
@@ -347,7 +377,7 @@ def main():
     ap.add_argument("--rate", type=int, default=22050, help="sample rate in the bank (default 22050, PRD Q4)")
     ap.add_argument("--transients", action="store_true", help="move markers to the nearest hit")
     ap.add_argument("--loudness", type=float, default=-16.0,
-                    help="every break to this level, dBFS RMS of its loud parts, its peaks limited (default -16; "
+                    help="every break to this level, LUFS (as heard: K-weighted, gated), its peaks limited (default -16; "
                          "0: peaks to full scale instead)")
     ap.add_argument("--name-prefix", default="", help="put before each name")
     ap.add_argument("-o", "--out", type=Path, default=Path("build/bank.bin"))

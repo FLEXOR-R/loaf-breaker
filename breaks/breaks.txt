@@ -5,9 +5,9 @@
 # tools/prep_breaks.py --list ... --dry-run). A break is at most 106,496 samples (2 bars at 99.4 BPM and up).
 #
 #   in:    * in the firmware, - not; *= or -= its slices on an even grid (the BREAKS page's EVEN GRID), else on the hits
-#   name @X: (optional, after the name) its own loudness instead of -16 dBFS; @0 its file's own (the peaks to full scale).
+#   name @X: (optional, after the name) its own loudness instead of -16 LUFS (as heard, 0.9.42; RMS before); @0 its file's own (the peaks to full scale).
 #   name NNNNNHz: (optional) its own sample rate instead of 22050 (THINK 114 at 16000 for room, 0.9.37)
-#   flexor/'s breaks are all at -12 dBFS (FLEXOR: his DJ library, mastered alike) unless their line says @X
+#   flexor/'s breaks are all at -12 LUFS (FLEXOR: his DJ library, mastered alike) unless their line says @X
 #   file:  relative to this folder   bpm:   the loop's tempo   bars: how many bars go into the firmware
 #   (the WAV holds 'of' bars)        name:  on the screen, up to 11 characters
 #
@@ -52,7 +52,7 @@
 -   classics/bobby_byrd_hot_pants.wav           114.78  2     4   HOTPANT 115
 #
 # flexor/: FLEXOR's breaks (14 Nov 2026), sampled from artists' records (not royalty free: flexor/README.md), all at
-# -12 dBFS on an even grid; those not in the firmware (in the site's library):
+# -12 LUFS on an even grid; those not in the firmware (in the site's library):
 -=  flexor/artheist_the_obedience_algorithm.wav 165   2     2   OBEDIENC165
 -=  flexor/akira_custom_grind.wav               190     2     2   AKIRA 190
 -=  flexor/deathmachine_bad_man_crew.wav        200     2     2   BADMAN 200

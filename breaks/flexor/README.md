@@ -41,7 +41,7 @@ library shows (0.9.40, FLEXOR: `Artist – Track (kind)`, the FM-1's short name 
 | `the_outside_agency_enlightened_species_break_2.wav` | The Outside Agency, "Enlightened Species" (break 2) | 175 | 2 | the library (TOASPC2 175, 0.9.40) |
 | `the_satan_strangers.wav` | The Satan, "Strangers" (break) | 175 | 2 | the library (STRANGR 175, 0.9.40) |
 FLEXOR's breaks are sliced on an even grid (FLEXOR: "EVEN GRID", as he sends them from the BREAKS page): `*=` (or `-=`)
-in breaks.txt; and louder than the others: -12 dBFS RMS, 4 dB above the other breaks' -16 (0.9.35 had them at their files' own
+in breaks.txt; and louder than the others: -12 LUFS (as heard, 0.9.42; -12 dBFS RMS before, which left them up to 5 dB apart), 4 dB above the other breaks' -16 (0.9.35 had them at their files' own
 level, FLEXOR: too loud). **Every break put here gets that level** (FLEXOR, 14 Nov 2026: his DJ library, mastered
 alike; tools/prep_breaks.py `FOLDER_LOUD`), unless its line in breaks.txt says another (`@X` after the name). Their first three (Akira, "Custom Grind"; Detest & Tripped, "Hardcore to The Penis"; The Satan, "Gangzta
 Cash") were taken out on 14 Nov 2026 for FLEXOR to make them again.

@@ -4,7 +4,7 @@
      the repository's breaks to hear (lib/, tools/break_lib.py) and yours on the FM-1 (two places, four in each), after the ones
      built in, from the library or from a sample. tools/site_style.py puts it at breaks/ on
      the site, with the site's style and header. A sample is made into a break here exactly as the built-in ones are
-     (tools/prep_breaks.py: two bars, levelled to -16 dBFS with a look-ahead limiter, at most 22.05 kHz, sixteen slices
+     (tools/prep_breaks.py: two bars, levelled to -16 LUFS (as heard) with a look-ahead limiter, at most 22.05 kHz, sixteen slices
      snapped to the hits, IMA ADPCM, a bank of one slot) and written over Web MIDI SysEx (ui/main.c app_sysex: F0 7D 43
      48 CMD 7-bit-packed DATA F7). The preview plays the ADPCM decoded again: what the FM-1 will play. -->
 <html lang="en">
@@ -156,7 +156,7 @@ computer.</p>
       <label class="f">Use bars<select id="start"></select></label>
       <label class="f">Tempo (BPM)<input type="number" id="bpm" min="40" max="300" step="0.01"></label>
       <label class="f">Slices<select id="snap"><option value="1" selected>On the hits</option><option value="0">Even grid</option></select></label>
-      <label class="f">Level<select id="level"><option value="1" selected>As the built-in breaks</option><option value="2">DJ master (−12 dBFS, as FLEXOR's)</option><option value="0">Loudest at full scale</option></select></label>
+      <label class="f">Level<select id="level"><option value="1" selected>As the built-in breaks</option><option value="2">DJ master (−12 LUFS, as FLEXOR's)</option><option value="0">Loudest at full scale</option></select></label>
     </div>
     <div class="facts" id="facts"></div>
     <div class="wave"><canvas id="wave" width="1100" height="150" aria-label="Your break: its waveform and slices"></canvas></div>
@@ -191,17 +191,39 @@ const STEP = [7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21, 23, 25, 28, 31, 34, 3
 const ADJ = [-1, -1, -1, -1, 2, 4, 6, 8];
 const clamp = (v, lo, hi) => v < lo ? lo : v > hi ? hi : v;
 
-function loudnessDb(x, rate) {             /* the RMS of 50 ms windows, the quiet ones left out */
-  const w = Math.max(1, Math.floor(rate * 0.05)), win = [];
-  for (let i = 0; i < Math.max(1, x.length - w + 1); i += w) {
-    let e = 0;
-    for (let k = i; k < i + w && k < x.length; k++) e += x[k] * x[k];
-    win.push(e / w);
+function biquad(x, b0, b1, b2, a1, a2) {
+  const out = new Float64Array(x.length);
+  let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+  for (let i = 0; i < x.length; i++) {
+    const v = x[i], o = b0 * v + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+    x2 = x1; x1 = v; y2 = y1; y1 = o; out[i] = o;
   }
-  const mean = win.reduce((a, b) => a + b, 0) / win.length;
-  let loud = win.filter((e) => e > mean * 0.01);
-  if (!loud.length) loud = win;
-  return 10 * Math.log10(Math.max(1e-12, loud.reduce((a, b) => a + b, 0) / loud.length));
+  return out;
+}
+function kWeight(x, rate) {                /* BS.1770's K-weighting (prep_breaks.py k_weight): +4 dB shelf, 38 Hz high-pass */
+  const A = Math.pow(10, 3.99984385397 / 40);
+  let w = 2 * Math.PI * 1681.97445095 / rate, c = Math.cos(w), al = Math.sin(w) / (2 * 0.7071752369554193);
+  let a0 = (A + 1) - (A - 1) * c + 2 * Math.sqrt(A) * al;
+  const y = biquad(x, A * ((A + 1) + (A - 1) * c + 2 * Math.sqrt(A) * al) / a0, -2 * A * ((A - 1) + (A + 1) * c) / a0,
+    A * ((A + 1) + (A - 1) * c - 2 * Math.sqrt(A) * al) / a0, 2 * ((A - 1) - (A + 1) * c) / a0,
+    ((A + 1) - (A - 1) * c - 2 * Math.sqrt(A) * al) / a0);
+  w = 2 * Math.PI * 38.13547087613982 / rate; c = Math.cos(w); al = Math.sin(w) / (2 * 0.5003270373253953); a0 = 1 + al;
+  return biquad(y, (1 + c) / 2 / a0, -(1 + c) / a0, (1 + c) / 2 / a0, -2 * c / a0, (1 - al) / a0);
+}
+function loudnessDb(x, rate) {             /* the level as heard: K-weighted, 400 ms blocks, BS.1770's gates, in LUFS */
+  const y = kWeight(x, rate), n = Math.max(1, Math.floor(rate * 0.4)), hop = Math.max(1, Math.floor(rate * 0.1));
+  let z = [];
+  for (let i = 0; i < Math.max(1, y.length - n + 1); i += hop) {
+    let e = 0, m = 0;
+    for (let k = i; k < i + n && k < y.length; k++, m++) e += y[k] * y[k];
+    z.push(e / m);
+  }
+  const lk = (e) => -0.691 + 10 * Math.log10(Math.max(1e-12, e));
+  const g1 = z.filter((e) => lk(e) > -70);
+  if (g1.length) z = g1;
+  const rel = lk(z.reduce((a, b) => a + b, 0) / z.length) - 10, g2 = z.filter((e) => lk(e) > rel);
+  if (g2.length) z = g2;
+  return lk(z.reduce((a, b) => a + b, 0) / z.length);
 }
 function limit(y, rate, ceiling) {         /* look-ahead (2 ms) limiter, 40 ms release: -> [samples, most gain off] */
   const n = y.length, la = Math.max(1, Math.floor(rate * 0.002));

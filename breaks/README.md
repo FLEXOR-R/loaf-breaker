@@ -46,11 +46,12 @@ mono, 22.05 kHz, IMA ADPCM, 16 slices a break with the markers on the drum hits 
 (8 classics at 2 bars: ~360 KB) and a break may be at most 106,496 samples (2 bars at 99.4 BPM and up); `./build.sh
 bank` builds the bank on its own and says whether it fits. The tool reads integer PCM (8–32 bit) and float WAVs.
 
-Every break is brought to the same loudness, −16 dBFS RMS over its loud parts (the quiet gaps left out), and a
+Every break is brought to the same loudness as heard, −16 LUFS (0.9.42, FLEXOR: some sounded louder than others at the same
+RMS; ITU-R BS.1770's K-weighting and its gates, `loudness_db`), and a
 look-ahead limiter (2 ms ahead, 40 ms release) holds its peaks under −0.2 dBFS, so a spiky break is as loud as a dense
 one: THINK gains 11.6 dB with 9.7 dB off its few loudest hits, AMEN 3.9 dB (3.6 off its peaks), COLD SWEAT 2.4 dB.
 A line of breaks.txt may give a break its own sample rate after its name, `16000Hz` (THINK 114, 0.9.37, for room:
-12.8 KB less, the same below 8 kHz), and its own level: `@-12` (dBFS RMS), or `@0`, the file's own level,
+12.8 KB less, the same below 8 kHz), and its own level: `@-12` (LUFS), or `@0`, the file's own level,
 its peaks to full scale (FLEXOR's five, 0.9.35: as loud as he mastered them). The build prints each break's gain and how much its peaks were held down; `--loudness 0` puts the peaks at full scale
 instead (the old way, which left THINK about 8 dB quieter than DRUMMER).
 
