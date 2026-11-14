@@ -30,6 +30,8 @@ static void mix_value(uint32_t h, int i, char *t)
             text_cat(t, set.drums_chain ? "THRU FX" : "AROUND FX");
         else if (i == 2)
             text_cat(t, ARP_THRU[(set.ovl_pad >> 6) & 3u]);
+        else
+            text_cat(t, ROLL_THRU_NAME[set.pads.rsv[0] % 3u]);   /* (0.9.40: the rolls' THRU) */
         return;
     }
     if (i == 0) {
@@ -77,7 +79,7 @@ static void mix_arp(int32_t x)            /* the ARP's route: BREAK, KICK, THRU,
 }
 static void mix_picture(int32_t top)
 {
-    static const char *const NAME[4][4] = {{"BREAK", "KICK", "PERC", ""}, {"FX", "DRUMS", "ARP", ""},
+    static const char *const NAME[4][4] = {{"BREAK", "KICK", "PERC", ""}, {"FX", "DRUMS", "ARP", "ROLL"},
                                            {"COMP", "RATIO", "DUCK", "MAX OUT"},
                                            {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
     uint32_t c;
@@ -124,9 +126,14 @@ static void mix_picture(int32_t top)
             cv_text(70, 67, &FONT_XS, "AROUND", thru ? C_GRAY : C_BLACK);
         }
         mix_arp(126);
-        cv_text(186, 34, &FONT_XS, "SWING:", C_DIM);
-        cv_text(186, 46, &FONT_XS, "PATTERN", C_DIM);
-        cv_text(186, 58, &FONT_XS, "> GROOVE", C_DIM);
+        {                                /* (0.9.40, FLEXOR: the three rolls' THRU, the one taken lit) */
+            uint32_t j;
+            for (j = 0; j < 3u; j++) {
+                int on = set.pads.rsv[0] % 3u == j;
+                cv_rect(186, 22 + (int32_t)j * 26, 48, 22, on ? C_BLOCK_HI : C_BLOCK);
+                cv_text(190, 27 + (int32_t)j * 26, &FONT_XS, ROLL_THRU_NAME[j], on ? C_BLACK : C_GRAY);
+            }
+        }
         return;
     }
     mix_fader(10, (float)set.brk_level * 0.01f, set.brk_level > 0u);

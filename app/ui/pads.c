@@ -16,7 +16,8 @@ static void arp_thru_turn(int32_t d)     /* BREAK, KICK, THRU in that order (FLE
 }
 static uint8_t ovlpad_held, ovlpad_lat;  /* (the ARP key's: below) */
 static int ovl_pad_on(void);
-/* LOAF BREAKER: the three roll pads' THRU (K2, set.pads.rsv[0]): 0 BREAK (the roll as ever), 1 KICK (the kick rolled
+/* LOAF BREAKER: the three roll pads' THRU (MIX › SENDS K4 since 0.9.40, FLEXOR: their K2 the break's filter, to roll
+ * and filter at once; K2 0.245-0.9.39; set.pads.rsv[0]): 0 BREAK (the roll as ever), 1 KICK (the kick rolled
  * at the pad's rate, the break left alone), 2 BOTH. kroll: the pad rolling the kick (app.c's render) */
 static const char *const ROLL_THRU_NAME[3] = {"BREAK", "KICK", "BOTH"};
 static uint8_t roll_held = 0xFFu;        /* the roll pad held (0xFF none) */
@@ -28,6 +29,12 @@ static void roll_thru_now(void)          /* (THRU turned while a roll pad is hel
         return;
     brk_pad((int)roll_held, th != 1u);
     kroll = (uint8_t)(th ? roll_held + 1u : 0u);
+}
+static void roll_thru_turn(int32_t d)    /* (SENDS' K4: BREAK, KICK, BOTH) */
+{
+    set.pads.rsv[0] = (uint8_t)clamp((int32_t)(set.pads.rsv[0] % 3u) + (d > 0 ? 1 : -1), 0, 2);
+    roll_thru_now();
+    app_say("ROLL", ROLL_THRU_NAME[set.pads.rsv[0] % 3u]);
 }
 static void roll_key(uint32_t pad, int down, int sel)   /* a roll pad down or up, through its THRU (SEL held as it
                                           * went down: the kick alone, for that press) */
@@ -54,7 +61,7 @@ static uint16_t pad_latched;             /* (0.9.26: REVERSE, FREEZE, GATE, RAND
 static const char *const FTHRU_NAME[3] = {"BREAK", "DRUMS", "BOTH"};
 /* what K1-K4 tune while a pad is held, by pad (brk.h PAD_*); 0: that knob does nothing for it */
 static const char *const PAD_KNOB[BKF_N][4] = {   /* (LOAF BREAKER: by function, app.c BKF_*) */
-    {"RATE", "THRU", "DRUM FLT", "DECAY"}, {"RATE", "THRU", "DRUM FLT", "DECAY"}, {"RATE", "THRU", "DRUM FLT", "DECAY"},
+    {"RATE", "BRK FLT", "DRUM FLT", "DECAY"}, {"RATE", "BRK FLT", "DRUM FLT", "DECAY"}, {"RATE", "BRK FLT", "DRUM FLT", "DECAY"},
     {"SPEED", 0, 0, "LATCH"}, {"LENGTH", "PITCH", 0, "LATCH"}, {"SPEED", "M. TEMPO", "LATCH", 0},
     {"STOP", "SPIN UP", "THRU", 0}, {"RATE", "LENGTH", 0, "LATCH"}, {"AMOUNT", "PITCH", 0, "LATCH"},
     {"TARGET", "RESO", "SPEED", "THRU"},   /* (0.9.26, FLEXOR: K4 LATCH on the keys with a knob free; FILTER's K4
@@ -202,9 +209,9 @@ static void pad_knob_value(int pad, int k, char *t)
     switch (pad <= PAD_ROLL32 ? 0 : pad) {
     case 0:
         if (k == 0) text_cat(t, BRK_ROLL_DIV_NAME[p->roll_div[pad] % BRK_ROLL_DIVS]);
-        else if (k == 1) text_cat(t, ROLL_THRU_NAME[set.pads.rsv[0] % 3u]);   /* LOAF BREAKER: K2 THRU: the break,
-                                          * the kick (a kick roll) or both; K3 HOME's drums' filter (the break's */
-        else if (k == 2) kick_flt_text(t);   /* low-pass, the kick's), DECAY on K4 (the pitch and LEVEL gone) */
+        else if (k == 1) brk_flt_text(t);   /* LOAF BREAKER: K2 HOME's break filter (0.9.40, FLEXOR; THRU before:
+                                          * SENDS' K4), K3 HOME's drums' filter, DECAY on K4 (the pitch and LEVEL gone) */
+        else if (k == 2) kick_flt_text(t);
         else roll_decay_text(p->roll_decay, t);
         break;
     case PAD_REVERSE: if (k == 3) goto lat; times_text(p->rev_speed, t); break;
@@ -292,9 +299,9 @@ static void pad_knob_turn(int pad, int k, int32_t d)
                 o++;
             p->roll_div[pad] = BRK_ROLL_ORDER[clamp(o + d, 0, BRK_ROLL_DIVS - 1)];
         }
-        else if (k == 1) {               /* LOAF BREAKER: K2 THRU: BREAK, KICK, BOTH (the rolls together) */
-            set.pads.rsv[0] = (uint8_t)clamp((int32_t)(set.pads.rsv[0] % 3u) + (d > 0 ? 1 : -1), 0, 2);
-            roll_thru_now();
+        else if (k == 1) {               /* (0.9.40, FLEXOR: K2 the break's filter, HOME's, rolling) */
+            brk_flt_turn(d);
+            return;
         } else if (k == 2) {             /* K3 the drums' filter: HOME's (and SEQ's) */
             kick_flt_turn(d);
             return;
