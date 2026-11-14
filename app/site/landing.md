@@ -10,8 +10,8 @@ started on the FM-1 itself.
 ![LOAF BREAKER's start-up screen](manual/img/screen-boot.png "Switched on")
 ![LOAF BREAKER playing: the mix scrolling in as on a CDJ, in rekordbox's colours](manual/img/screen-slicer.png "Playing")
 
-Version {{VERSION}} (beta). Installing is at your own risk; the installer can put M-VAVE's own firmware back. 9 breaks, 2 bars
-each: AKIRA 190, AMEN20 164, AMEN19 172, UPDOWN 165, DETEST 175, SATAN 200, THINK 114, APACHE 115, THEWORM 110. Five to seven of your own after them: [Breaks](breaks/), the seventy breaks of the library to hear, or a sample of yours.
+Version {{VERSION}} (beta). Installing is at your own risk; the installer can put M-VAVE's own firmware back. 8 breaks, 2 bars
+each: NUSKOOL 140, AMEN20 164, AMEN19 172, UPDOWN 165, JUNGLE 175, THINK 114, APACHE 115, THEWORM 110. Five to seven of your own after them: [Breaks](breaks/), the seventy breaks of the library to hear, or a sample of yours.
 
 - [Emulator](emu/) The same code the FM-1 runs, in the browser, with sound. No FM-1 needed.
 - [Install](install/) From Chrome or Edge, with the FM-1 connected by USB.

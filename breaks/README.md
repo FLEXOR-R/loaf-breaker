@@ -42,7 +42,7 @@ the firmware's breaks until 1 November 2026; none is marked now.
 
 `./build.sh` turns the marked lines into `app/bank_data.h` (generated, git-ignored) with `tools/prep_breaks.py`:
 mono, 22.05 kHz, IMA ADPCM, 16 slices a break with the markers on the drum hits (or, for a line marked `*=` or
-`-=`, on an even grid: the BREAKS page's EVEN GRID; FLEXOR's three since 0.9.34). The firmware has 400 KB for breaks
+`-=`, on an even grid: the BREAKS page's EVEN GRID, FLEXOR's breaks in flexor/). The firmware has 400 KB for breaks
 (8 classics at 2 bars: ~360 KB) and a break may be at most 106,496 samples (2 bars at 99.4 BPM and up); `./build.sh
 bank` builds the bank on its own and says whether it fits. The tool reads integer PCM (8–32 bit) and float WAVs.
 

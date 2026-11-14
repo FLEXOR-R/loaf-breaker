@@ -8,7 +8,7 @@ skips one, GLO quits; SETUP K3 left of BEGINNER starts it again).
 
 ## 1. Press PLAY
 
-The break plays with its kick at once (AKIRA 190 to start). **ALGORITHM** picks the next break (it changes on the next
+The break plays with its kick at once (NUSKOOL 140 to start). **ALGORITHM** picks the next break (it changes on the next
 bar), **SELECT** sets the tempo, **PRESETS** the pattern (P1–P64). PLAY again stops.
 
 ## 2. Play the white keys: the slices

@@ -595,7 +595,7 @@ function renderLib() {
     el.appendChild(row);
   }
 }
-let NB = 9;                              /* (the breaks built in: the library's marked ones, 9 since 0.9.34) */
+let NB = 8;                              /* (the breaks built in: the library's marked ones) */
 async function loadLib() {
   try {
     lib = await (await fetch("lib/index.json")).json();
