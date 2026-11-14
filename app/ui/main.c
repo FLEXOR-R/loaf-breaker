@@ -2275,6 +2275,10 @@ static void cu_reply(uint32_t cmd, uint32_t code, const uint8_t *d, uint32_t n)
     lcd_sync();                          /* (LOAF BREAKER: no demo: the canvas, a frame drawn again after) */
     cu_reply_in((uint8_t *)(void *)cv_px, cmd, code, d, n);
 }
+/* (LOAF BREAKER 0.9.43, the Studio on a real FM-1: its requests in a buffer on the stack, never the canvas, so a read
+ * redraws nothing; the screen drawn again only after a change, ed_turned) */
+static uint8_t *ed_o, *ed_f, *ed_ps, ed_turned;
+static void ed_reply(uint32_t cmd, uint32_t code, const uint8_t *d, uint32_t n) { cu_reply_in(ed_f, cmd, code, d, n); }
 static uint32_t rd32(const uint8_t *p) { return p[0] | p[1] << 8 | p[2] << 16 | (uint32_t)p[3] << 24; }
 void app_redraw(void)                    /* (LOAF BREAKER 0.9.43: the mirror lost a part: every row sent again) */
 {
@@ -2356,7 +2360,8 @@ static void ed_leave(const ed_ctx_t *c)
     set.novice = c->novice; ui.pvoice = c->pvoice; ui.ppage = c->ppage; ui.ksect = c->ksect;
     ui.kpos[ui.ksect % KSECTS] = c->kpos;
     ui.fx_focus = c->fxf; ui.fx_page = c->fxp; ui.fx_main = c->fxm;
-    ui.redraw |= RG_ALL;
+    if (ed_turned)
+        ui.redraw |= RG_ALL;
 }
 static uint32_t ed_str(uint8_t *o, const char *t, uint32_t n)   /* t in n bytes, 0-padded (no libc on the FM-1) */
 {
@@ -2413,7 +2418,7 @@ static void ed_knob(uint32_t snd, int i, uint8_t *o)   /* {name 12, text 16, bar
 }
 static int ed_sysex(uint32_t cmd, const uint8_t *u, uint32_t len)
 {
-    uint8_t *o = (uint8_t *)(void *)cv_px + 1024u;   /* (the reply's bytes in the canvas, past the request's) */
+    uint8_t *o = ed_o;
     uint32_t k = 0u, s, j;
     char t[24];
     if (cmd == 9u && len >= 2u) {        /* ED_ACT */
@@ -2451,7 +2456,7 @@ static int ed_sysex(uint32_t cmd, const uint8_t *u, uint32_t len)
                 o[k++] = (uint8_t)ok;
             }
         }
-        cu_reply(7u, 0u, o, k);
+        ed_reply(7u, 0u, o, k);
         return 1;
     }
     if (cmd == 8u && len >= 4u) {        /* ED_KNOB */
@@ -2499,13 +2504,13 @@ static int ed_sysex(uint32_t cmd, const uint8_t *u, uint32_t len)
                 k += ed_str(o + k, fx_sl(fx_foc())->type == FXT_MBCOMP ? MBP_NAME[m % NMBP] : XP_NAME[m % NXP], 8u);
         }
         ed_leave(&x);
-        cu_reply(8u, ok ? 0u : 2u, o, k);
+        ed_reply(8u, ok ? 0u : 2u, o, k);
         return 1;
     }
     if (cmd == 10u && len >= 2u) {       /* ED_WAVE */
         uint32_t ms = (uint32_t)u[0] | (uint32_t)u[1] << 8;
         kick_wave(&set.kick, (int8_t *)o, 240u, ms < 50u ? 50u : ms > 2000u ? 2000u : ms, 60u);
-        cu_reply(10u, 0u, o, 240u);
+        ed_reply(10u, 0u, o, 240u);
         return 1;
     }
     return 0;
@@ -2521,7 +2526,7 @@ static int ed_sysex(uint32_t cmd, const uint8_t *u, uint32_t len)
  * refused) */
 static void ed_seq(uint32_t code)
 {
-    uint8_t *o = (uint8_t *)(void *)cv_px + 1024u;
+    uint8_t *o = ed_o;
     const pat_t *p = pat_now();
     brk_status_t st;
     uint32_t k = 0u, d, b, i;
@@ -2557,7 +2562,7 @@ static void ed_seq(uint32_t code)
         o[k++] = p->st[i][1];
         o[k++] = p->st[i][2];
     }
-    cu_reply(11u, code, o, k);
+    ed_reply(11u, code, o, k);
 }
 static int ed_step(const uint8_t *u)
 {
@@ -2607,7 +2612,7 @@ static int ed_step(const uint8_t *u)
     ui.seq_brk = sb;
     set.novice = nov;
     seq_lane_fix();
-    ui.redraw |= RG_ALL;
+    ui.redraw |= RG_ALL;                 /* (a step: always a change) */
     return ok;
 }
 /* LOAF BREAKER (0.9.43, FLEXOR: "gérer séquenceur, banque de patterns et tracks ... comme si j'utilisais un DAW"): the
@@ -2663,10 +2668,11 @@ static uint32_t edx_status(uint8_t *o, const uint8_t *u, uint32_t len)
     o[k++] = (uint8_t)st.bar;
     o[k++] = (uint8_t)(st.bar >> 8);
     from = w;
-    if (len >= 6u && u[1]) {             /* (the LIVE view: the columns since the last asked, 96 at most) */
+    if (len >= 6u && u[1]) {             /* (the LIVE view: the columns since the last asked, 240 at most: a second and
+                                          * more, the page's hiccups bridged) */
         uint32_t since = rd32(u + 2);
         ed_live_t = plat_ms() | 1u;
-        from = w - since <= 96u ? since : w - 96u;
+        from = w - since <= 240u ? since : w - 240u;
     }
     o[k++] = (uint8_t)(w - from);
     for (c = from; c != w; c++) {
@@ -2758,7 +2764,8 @@ static int edx_page(const uint8_t *u, uint32_t len, uint8_t *o, uint32_t *n)
     }
     ui.page = c.page; ui.mpage = c.mpage; ui.tpage = c.tpage; ui.gpage = c.gpage; ui.opage = c.opage; ui.bk_sel = c.bk;
     ui.fx_focus = c.fxf; ui.fx_page = c.fxp; ui.fx_main = c.fxm; ui.trk_cur = c.trk; set.novice = c.novice;
-    ui.redraw |= RG_ALL;
+    if (ed_turned)
+        ui.redraw |= RG_ALL;
     *n = k;
     return ok;
 }
@@ -2821,7 +2828,7 @@ static uint32_t edx_bank(uint32_t g, uint8_t *o)   /* (16 patterns' pictures: th
     uint32_t k = 0u, i, d, b, j;
     g %= NGRP;
     if (g != set.pgrp % NGRP) {
-        ps = (pat_t *)(void *)((uint8_t *)(void *)cv_px + 8192u);
+        ps = (pat_t *)(void *)ed_ps;
         if (!grp_has(g) || plat_store_load(OBJ_PG0 + g, ps, sizeof pats.p) != (int)sizeof pats.p) {
             o[k++] = 6u;
             o[k++] = (uint8_t)g;
@@ -2909,7 +2916,7 @@ static uint32_t edx_rgb(const uint8_t *u, uint8_t *o)
 }
 static int edx_sysex(const uint8_t *u, uint32_t len)
 {
-    uint8_t *o = (uint8_t *)(void *)cv_px + 1024u;
+    uint8_t *o = ed_o;
     uint32_t n = 0u;
     int ok = 1;
     if (len < 2u)
@@ -2959,7 +2966,7 @@ static int edx_sysex(const uint8_t *u, uint32_t len)
         }
     } else
         return 0;
-    cu_reply(13u, ok ? 0u : 2u, o, n);
+    ed_reply(13u, ok ? 0u : 2u, o, n);
     return 1;
 }
 int app_sysex(const uint8_t *p, uint32_t n)
@@ -2973,30 +2980,43 @@ int app_sysex(const uint8_t *p, uint32_t n)
     if (z >= CU_NZ)
         return 0;
     if (!z && cmd == 13u && n >= 6u && n <= 20u) {   /* (the editor's STATUS: small, often; the canvas left alone) */
-        uint8_t q[16], o[32u + 96u * 4u], f[8u + (32u + 96u * 4u) * 8u / 7u + 8u];
+        uint8_t q[16], o[32u + 240u * 4u], f[8u + (32u + 240u * 4u) * 8u / 7u + 8u];
         uint32_t m = unpack7(p + 4, n - 4u, q);
         if (q[0] == 1u) {
             cu_reply_in(f, 13u, 0u, o, edx_status(o, q, m));
             return 1;
         }
     }
+    if (!z && cmd >= 7u && cmd <= 13u) { /* (LOAF BREAKER 0.9.43: the Studio, any time; its bytes on the stack: the
+                                          * request 600, the answer 1120, then its frame or another group's patterns) */
+        uint32_t buf[1000];
+        uint8_t *b = (uint8_t *)buf, *e = b;
+        ed_o = b + 600;
+        ed_f = ed_ps = b + 1720;
+        len = unpack7(p + 4, n - 4u > 600u ? 600u : n - 4u, e);
+        ed_turned = (uint8_t)(cmd == 9u || cmd == 12u || (cmd == 8u && len >= 4u && e[3]) ||
+                              (cmd == 13u && len >= 2u && (e[0] == 4u || e[0] == 5u || (e[0] == 8u && e[1] != 4u) ||
+                                                          (e[0] == 2u && len >= 6u && e[5]))));
+        if (ed_turned)
+            ui.idle_t = plat_ms();
+        if (cmd <= 10u)
+            return ed_sysex(cmd, e, len) || 1;
+        if (cmd == 13u)                  /* (the rest: pages, tracks, the patterns, RGB, transport) */
+            return edx_sysex(e, len) || 1;
+        if (cmd == 11u) {                /* (its sequencer) */
+            ed_seq(0u);
+            return 1;
+        }
+        if (len >= 5u) {
+            int ok = ed_step(e);
+            ed_seq(ok ? 0u : 2u);
+        }
+        return 1;
+    }
     lcd_sync();
     ui.idle_t = plat_ms();
     ui.redraw |= RG_ALL;                 /* (the canvas taken: the screen drawn again) */
     len = unpack7(p + 4, n - 4u > 600u ? 600u : n - 4u, u);
-    if (!z && cmd >= 7u && cmd <= 10u)   /* (LOAF BREAKER 0.9.43: the sound editor, any time) */
-        return ed_sysex(cmd, u, len) || 1;
-    if (!z && cmd == 13u)                /* (the rest: pages, tracks, the patterns, RGB, transport) */
-        return edx_sysex(u, len) || 1;
-    if (!z && cmd == 11u) {              /* (its sequencer) */
-        ed_seq(0u);
-        return 1;
-    }
-    if (!z && cmd == 12u && len >= 5u) {
-        int ok = ed_step(u);
-        ed_seq(ok ? 0u : 2u);
-        return 1;
-    }
     if (cmd == 1u || cmd == 5u) {        /* INFO, READ: any time */
         if (cmd == 1u) {
             uint32_t v[1u + 3u * CU_NZ], y;

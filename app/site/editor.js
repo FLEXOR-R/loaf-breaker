@@ -42,12 +42,13 @@ function ask1(cmd, data, ms = 2500, port = out) {
     setTimeout(() => { if (waiting && waiting.res === res) { waiting = null; rej(new Error("no answer")); } }, ms);
   });
 }
-function ask(cmd, data = []) {              /* (one at a time: each waits for the one before) */
+let fails = 0;                              /* (answers missed in a row: the toast at the third, a hiccup is no loss) */
+function ask(cmd, data = [], ms = 2500) {    /* (one at a time: each waits for the one before) */
   inflight++;
-  const p = chain.then(() => ask1(cmd, data));
+  const p = chain.then(() => ask1(cmd, data, ms));
   chain = p.catch(() => {});
-  p.then(() => { inflight--; if (lost) { lost = false; $("dot").className = "dot on"; } },
-         () => { inflight--; lostLink(); });
+  p.then(() => { inflight--; fails = 0; if (lost) { lost = false; $("dot").className = "dot on"; } },
+         () => { inflight--; if (++fails >= 3) lostLink(); });
   return p;
 }
 function lostLink() {
@@ -133,7 +134,7 @@ function arcPath(cx, cy, r, a0, a1) {
   const [x0, y0] = p(a0), [x1, y1] = p(a1);
   return `M${x0.toFixed(2)} ${y0.toFixed(2)}A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
 }
-let lastTurn = 0, turnedAny = false;
+let lastTurn = 0, turnedAny = false, turnedAll = false, lastPollT = 0, polling = false;
 const pending = new Map();                  /* panel -> [clicks per knob] */
 let flushing = false;
 class Panel {
@@ -254,6 +255,8 @@ async function flush() {
       if (!r.code) panel.show(r.ks);
       if (!p[i] && panel.knobs[i]) panel.knobs[i].classList.remove("busy");
       if (panel.opt.onTurn) panel.opt.onTurn(i, d);
+      if (panel.opt.all) turnedAll = true;
+      if (performance.now() - lastPollT > 150) await poll(true);   /* (the live deck fed while a knob turns) */
     }
   } catch (e) { pending.clear(); document.querySelectorAll(".kn.busy").forEach((k) => k.classList.remove("busy")); }
   flushing = false;
@@ -275,6 +278,9 @@ function readStatus(d) {
     const c = (o.w - n + i) >>> 0;
     ring.set(d.subarray(32 + 4 * i, 36 + 4 * i), (c % SCOPE) * 4);
   }
+  const start = (o.w - n) >>> 0;
+  if (n && ringW && start > ringW)            /* (columns never received: black, not an old lap's) */
+    for (let c = Math.max(ringW, start - SCOPE); c < start; c++) ring.fill(0, (c % SCOPE) * 4, (c % SCOPE) * 4 + 4);
   if (n) ringW = o.w;
   if (o.playing && o.bar64 !== 255) {         /* (the grid under the scope: 15 columns a step, the bar's first lit) */
     const abs = o.bar * 16 + (o.bar64 % 16), base = o.w - abs * 15;
@@ -283,16 +289,18 @@ function readStatus(d) {
   }
   return o;
 }
-async function poll() {
-  if (!out || inflight || flushing) return;
+async function poll(force) {               /* (force: between a view's own requests, which come first otherwise) */
+  if (!out || polling || (!force && (inflight || flushing))) return;
+  polling = true; lastPollT = performance.now();
   try {
     const since = scopeSince >>> 0;
-    const r = await ask(13, [1, 1, since & 255, since >> 8 & 255, since >> 16 & 255, since >>> 24]);
+    const r = await ask(13, [1, 1, since & 255, since >> 8 & 255, since >> 16 & 255, since >>> 24], 1000);
     const was = { ...S };
     Object.assign(S, readStatus(r.data));
     scopeSince = S.w;
     showStatus(was);
   } catch (e) { /* lostLink */ }
+  polling = false;
 }
 function fmtTempo(t) { return (t / 10).toFixed(1); }
 function showStatus(was) {
@@ -457,7 +465,11 @@ function addPanel(parent, p) { parent.appendChild(p.el); view.panels.push(p); re
 async function refreshView(first) {
   if (!out || !view) return;
   const v = view;
-  for (const p of v.panels) { if (view !== v || pending.size && [...pending.values()].some((a) => a.some((x) => x))) return; await p.read(); }
+  for (const p of v.panels) {
+    if (view !== v || pending.size && [...pending.values()].some((a) => a.some((x) => x))) return;
+    if (performance.now() - lastPollT > 150) await poll(true);   /* (the status between, the deck never starved) */
+    await p.read();
+  }
   if (view === v && v.refresh) await v.refresh(first);
 }
 setInterval(async () => {                    /* the status ~8 times a second; a turn quiet: the view again; idle: now and then */
@@ -465,8 +477,13 @@ setInterval(async () => {                    /* the status ~8 times a second; a 
   await poll();
   if (!view || flushing) return;
   const quiet = Date.now() - lastTurn;
-  if (turnedAny && quiet > 700) { turnedAny = false; refreshView(false); return; }
-  if (quiet > (view.every || 5000) && Date.now() - viewTimer > (view.every || 5000) && !inflight) { viewTimer = Date.now(); refreshView(false); }
+  if (turnedAny && quiet > 700) {           /* (after a turn: the whole view again only where one knob moves others) */
+    turnedAny = false;
+    if (turnedAll) { turnedAll = false; refreshView(false); }
+    return;
+  }
+  const every = Math.max(8000, view.every || 8000);   /* (idle: what the FM-1's own knobs did, now and then) */
+  if (quiet > every && Date.now() - viewTimer > every && !inflight) { viewTimer = Date.now(); refreshView(false); }
 }, 125);
 function vh(root, title, sub, right) {
   const e = h("div", "vh", `<div><h1>${title}</h1><p>${sub}</p></div><div class="r"></div>`);
@@ -700,7 +717,7 @@ defView({ id: "kick", title: "Kick", icon: "kick", every: 6000,
     $("kZoom").onchange = () => { kickZoom = +$("kZoom").value; this.wave(); };
     top.querySelectorAll("[data-m]").forEach((b) => { b.onclick = () => { kickMode = b.dataset.m; this.wave(); }; });
     const onTurn = () => { clearTimeout(this.wt); this.wt = setTimeout(() => this.wave(), 250); };
-    addPanel($("kPre"), new Panel({ t: "k", snd: 0, part: 32 }, "", { big: true, onTurn, label: "Built-in kick" }));
+    addPanel($("kPre"), new Panel({ t: "k", snd: 0, part: 32 }, "", { big: true, onTurn, label: "Built-in kick", all: true }));
     $("kPre").insertAdjacentHTML("beforeend", '<p class="hint" style="margin:6px 0 0">Turn it to load a built-in kick on this memory.</p>');
     const main = h("div", "grid3");
     main.style.marginTop = "12px";
@@ -722,7 +739,7 @@ defView({ id: "kick", title: "Kick", icon: "kick", every: 6000,
       const card = h("div", "card", `<h2>${esc(s.name)}</h2>`);
       for (const p of s.parts) {
         if (s.name === "ATTACK" && p.p === 32) continue;
-        addPanel(card, new Panel({ t: "k", snd: 0, part: p.p }, p.name, { onTurn, hide: (k) => k.name === "PRESET" }));
+        addPanel(card, new Panel({ t: "k", snd: 0, part: p.p }, p.name, { onTurn, hide: (k) => k.name === "PRESET", all: s.name === "MORE" }));
       }
       (s.name === "MORE" ? moreIn : main).appendChild(card);
     }
