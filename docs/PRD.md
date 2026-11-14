@@ -2,7 +2,7 @@
 
 > **LOAF BREAKER** (FLEXOR's fork, 2026) builds on this PRD: CHOPPAH's sections below are where it started, and each
 > LOAF BREAKER change has its own row (marked "LOAF BREAKER", A-50 onwards). It has no Bluetooth, kicks and drums
-> only (no melody), 8 breaks (AMEN15 174 out in 0.9.30 for room). Its 1.0 (§13, M8) waits on launch points, not code: the repository made public, the
+> only (no melody), 7 breaks (AMEN15 174 out in 0.9.30 for room, THEWORM 110 in 0.9.34, FLEXOR). Its 1.0 (§13, M8) waits on launch points, not code: the repository made public, the
 > tests on an FM-1 (installs from M-VAVE's V15 and from another firmware, another firmware back over it, an hour's
 > play) and the breaks' rights. (The site's install code is gone: public since 0.261.)
 
