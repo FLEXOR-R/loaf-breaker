@@ -580,7 +580,7 @@ function renderLib() {
   const q = query.trim().toUpperCase();
   const shown = lib.filter((e) => (filt === "ALL" || (filt === "BUILT IN" ? e.built : e.folder === filt)) &&
     (!q || e.name.includes(q) || (e.title || "").toUpperCase().includes(q) || String(Math.round(e.bpm)).startsWith(q) || e.file.toUpperCase().includes(q)));
-  const list = showAll || q ? shown : shown.slice(0, 20);
+  const list = showAll || q ? shown : shown.slice(0, 40);
   $("libMore").classList.toggle("hidden", list.length === shown.length);
   $("libMore").textContent = `Show all ${shown.length}`;
   el.innerHTML = list.length ? "" : '<p class="empty">Nothing by that name.</p>';
@@ -603,6 +603,10 @@ let NB = 9;                               /* (the breaks built in: the library's
 async function loadLib() {
   try {
     lib = await (await fetch("lib/index.json")).json();
+    /* (0.9.41, FLEXOR: the built-in first, then his own, the newest on top, then the rest; the list shows 40 before
+     * Show all, so his are all in view) */
+    const rank = (e, i) => e.built ? i : e.folder === "FLEXOR" ? 1000 - i : 2000 + i;
+    lib = lib.map((e, i) => [rank(e, i), e]).sort((a, b) => a[0] - b[0]).map((x) => x[1]);
   } catch (e) { $("lib").innerHTML = '<p class="empty">The library is not here (it is built with the site).</p>'; return; }
   const folders = ["ALL", "BUILT IN", ...new Set(lib.map((e) => e.folder))];
   for (const f of folders) {
