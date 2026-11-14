@@ -452,9 +452,9 @@ static void settings_defaults(void)
         brk_slicefx_defaults(&set.slx[k]);
     }
     kick_defaults(&set.kick);
-    for (k = 0; k < KICK_MEMS; k++) {    /* LOAF BREAKER: the kick memories begin as the built-in kicks (7..10: the
+    for (k = 0; k < KICK_MEMS; k++) {    /* LOAF BREAKER: the kick memories begin as the built-in kicks (0.9.33: the eight in order, round; the
                                           * first four again) */
-        kick_preset(kmem_at(k), k % KICK_PRESETS_MEM);
+        kick_preset(kmem_at(k), k % KICK_PRESETS);   /* (0.9.33, FLEXOR: KICK 7 TERROR, KICK 8 SPINE) */
         (*kmem_at(k)).volume = set.kick.volume;
     }
     set.kslot = 3u;                      /* (ROTTERDAM's, set.kick's) */
@@ -914,6 +914,40 @@ static void kfx_all(void)                /* every kick with the FX section playi
     for (k = 0; k < KICK_MEMS; k++)
         kfx_put(k);
 }
+/* LOAF BREAKER (0.9.32, FLEXOR): TERROR's and SPINE's part outside kick_t: their SYNTH (DROP +20, TIME 167 ms, SHAPE
+ * -50: a pure sine), TAIL + DRIVE 100 and the KICK EQ's gains (LOW +6.2 dB, MID and HIGH flat); ui/kick.c kpre_extra
+ * on the kick playing, kmem_extra on a kick memory as it begins */
+static void kt_extra(int8_t *syn, kick_lab_t *lab, float *eq)
+{
+    syn[KS_DROP] = 20;
+    syn[KS_TIME] = 12;                   /* (120 ms x 2^0.48: 167 ms) */
+    syn[KS_SHAPE] = -50;
+    lab->drive = 100u;
+    eq[0] = 0.76f;                       /* (+6.2 dB: (0.76 - 0.5) x 24) */
+    eq[1] = eq[2] = 0.5f;
+}
+static void kmem_extra(uint32_t k)       /* (0.9.33, FLEXOR: kick memory k as it begins, the built-in k % 8 (KICK 7
+                                          * TERROR, KICK 8 SPINE): its PRESET stored, TERROR's and SPINE's rest; after
+                                          * the LAB cleared and the FX sections set) */
+{
+    uint32_t p = k % KICK_PRESETS, i;
+    klmem_at(k)->pre = (uint8_t)(p + 1u);
+    if (p == KICK_PRESET_TERROR || p == KICK_PRESET_SPINE) {
+        float e[3];
+        kt_extra(ksmem_at(k), klmem_at(k), e);
+        for (i = 0; i < 3u; i++)
+            kfxm.k[k % KICK_MEMS].eq[i] = kfx_q(e[i]);
+    }
+}
+static void kmem_extras(void)            /* (every memory: a new FM-1, RESET ALL, RESET's ALL KICKS) */
+{
+    uint32_t k;
+    for (k = 0; k < KICK_MEMS; k++)
+        kmem_extra(k);
+    klab.cur = *klmem_at(set.kslot % KICK_MEMS);   /* (the kick playing's LAB: its memory's) */
+    for (k = 0; k < KS_N; k++)
+        set.ksyn[k] = ksmem_at(set.kslot % KICK_MEMS)[k];
+}
 static int store_all(void)               /* SAVE: the settings, the patterns (the group in RAM too), the steps: 1 done */
 {
     if (wiped)                           /* (LOAF BREAKER, 0.263: WIPE MEMORY done: nothing saved until a restart) */
@@ -959,12 +993,14 @@ static void km2_defaults(void)           /* (KICK 11..20 as they begin: a save f
     uint32_t k;
     km2.magic = KM2_MAGIC;
     for (k = KMEM_A; k < KICK_MEMS; k++) {
-        kick_preset(kmem_at(k), k % KICK_PRESETS_MEM);
+        kick_preset(kmem_at(k), k % KICK_PRESETS);
         kmem_at(k)->volume = set.kick.volume;
         memset(ksmem_at(k), 0, KS_N);
         kx_put(k);
     }
     km2_lab_clear();
+    for (k = KMEM_A; k < KICK_MEMS; k++)   /* (their PRESET, TERROR's and SPINE's rest: KICK 15, 16) */
+        kmem_extra(k);
 }
 static uint8_t *stepb(uint32_t pi, uint32_t d, uint32_t s)   /* pattern pi, drum d (DR_*), its step s */
 {
@@ -1523,6 +1559,7 @@ static const brk_break_t *break_load(uint32_t i)
 static int16_t rum_line[4096] PLAT_POOL;   /* LOAF BREAKER: the kick's RUMBLE, its line (93 ms) */
 void app_init(void)
 {
+    int fresh = 0;                       /* (0.9.33: no settings saved: a new FM-1) */
     kick_rumble_buf(rum_line, 4096u);
     brk_init();
     brk_fx_init();
@@ -1556,6 +1593,7 @@ void app_init(void)
     if (set.magic != SET_MAGIC || set.tempo_x10 < 400u || set.tempo_x10 > 3000u || set.swing < 50u ||
         set.swing > 75u) {
         settings_defaults();
+        fresh = 1;                       /* (0.9.33: a new FM-1: its kick memories' rest, below) */
         if (n_bank)
             set.brk = (uint8_t)n_synth;  /* the bank's first break */
     }
@@ -1581,6 +1619,8 @@ void app_init(void)
             km2_defaults();
         if (plat_store_load(OBJ_KFXM, &kfxm, sizeof kfxm) != (int)sizeof kfxm || kfxm.magic != KFXM_MAGIC)
             kfx_all();                   /* (0.9.26: each kick's FX section; before, the one they shared) */
+        if (fresh)
+            kmem_extras();               /* (0.9.33: KICK 1-20 as they begin, TERROR's and SPINE's whole) */
         dx_old = 0u;
         if (plat_store_load(OBJ_DX, &dx, sizeof dx) != (int)sizeof dx || dx.magic != DX_MAGIC) {
             memset(&dx, 0, sizeof dx);   /* (0.9.30: the drums' bars 3 and 4; a save before them: none) */

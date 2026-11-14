@@ -163,12 +163,7 @@ static void kpre_extra(uint32_t p)
 {
     if (p != KICK_PRESET_TERROR && p != KICK_PRESET_SPINE)   /* (SPINE: TERROR's too) */
         return;
-    set.ksyn[KS_DROP] = 20;
-    set.ksyn[KS_TIME] = 12;              /* (120 ms x 2^0.48: 167 ms) */
-    set.ksyn[KS_SHAPE] = -50;
-    klab.cur.drive = 100u;
-    set.keq[0] = 0.76f;                  /* (+6.2 dB: (0.76 - 0.5) x 24) */
-    set.keq[1] = set.keq[2] = 0.5f;
+    kt_extra(set.ksyn, &klab.cur, set.keq);   /* (app.c) */
     changed_fx();
 }
 /* LOAF BREAKER: OUT's K4 PRESET: the built-in kicks (909 .. DISTORTO, TERROR, SPINE), then COPY KICK 1..10: that memory's kick, its

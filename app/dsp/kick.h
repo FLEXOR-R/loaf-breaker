@@ -66,7 +66,9 @@ typedef struct {
                                           * ui/kick.c kpre_extra: SYNTH DROP +20, TIME 167 ms, SHAPE -50, TAIL + DRIVE 100,
                                           * EQ LOW +6.2 dB) */
 #define KICK_PRESET_SPINE 7u            /* (0.9.32, FLEXOR: SPINE, TERROR's variant: DRIVE 50, D+ TYPE RECT, SUB 766 ms) */
-#define KICK_PRESETS_MEM 6u              /* (the kick memories begin as the first six, round, as before TERROR) */
+#define KICK_PRESETS_MEM 6u              /* (a kick memory whose PRESET was never stored (kick_lab_t.pre 0): a save from
+                                          * before TERROR, its memories begun as the first six, round; since, every memory
+                                          * begins as the eight in order, its PRESET stored: kmem_extra) */
 extern const char *const KICK_PRESET_NAME[KICK_PRESETS];
 void kick_preset(kick_t *k, uint32_t i);   /* the sound of a built-in kick (the volume kept) */
 void kick_defaults(kick_t *k);           /* ROTTERDAM, volume 0.8 */

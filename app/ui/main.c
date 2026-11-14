@@ -218,6 +218,7 @@ static void reset_all(void)
     settings_defaults();
     klab_defaults();                     /* (LOAF BREAKER: the KICK LAB off on every kick) */
     kfx_all();                           /* (0.9.26: every kick's FX section as the defaults left it) */
+    kmem_extras();                       /* (0.9.33: KICK 7 TERROR, KICK 8 SPINE, whole) */
     kx_all();                            /* (every kick's knobs as they start) */
     if (n_bank)
         set.brk = (uint8_t)n_synth;      /* the bank's first break */

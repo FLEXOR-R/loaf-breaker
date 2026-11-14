@@ -27,7 +27,7 @@ static const char *const RST_WHAT[NRST] = {"BUILD 4 BARS, NEXT PATTERN, SAME BRE
                                           "THIS KICK'S: K1 DRIVE, K2 SCREAM, K3 D+ SCREECH, K4 DISTO",
                                           "THE KICK SELECTED (ITS MEMORY): ROTTERDAM, SYNTH, BASS, C SUB, MORPH AT 0, VOLUME KEPT",
                                           "THE KICK'S EQ FLAT, ITS TWO FX SLOTS EMPTY",
-                                          "KICK 1-20 AS THEY CAME (909 .. DISTORTO), SYNTH AT 0, THEIR KNOBS AS THEY START",
+                                          "KICK 1-20 AS THEY CAME (909 .. SPINE), SYNTH AT 0, THEIR KNOBS AS THEY START",
                                           "SNARE, HAT, CLAP: THE MEMORY PLAYING AS IT CAME",
                                           "THE MIXER: LEVELS, SWING, COMP AND DUCK OFF, MAX OUT -3 DB",
                                           "THE FOUR SLOTS AS THEY CAME, EACH EFFECT'S MEMORY FORGOTTEN",
@@ -148,7 +148,7 @@ static void reset_do(uint32_t w)
         float vol = set.kick.volume;
         uint32_t k, j;
         for (k = 0; k < KICK_MEMS; k++) {
-            kick_preset(kmem_at(k), k % KICK_PRESETS_MEM);
+            kick_preset(kmem_at(k), k % KICK_PRESETS);
             (*kmem_at(k)).volume = vol;
             for (j = 0; j < KS_N; j++)
                 ksmem_at(k)[j] = 0;
@@ -161,6 +161,9 @@ static void reset_do(uint32_t w)
         set.kbass[2] = set.kbass[3] = 50u;
         kx_all();
         klab_defaults();                 /* (LOAF BREAKER: their KICK LAB off) */
+        kmem_extras();                   /* (0.9.33: KICK 7 TERROR, KICK 8 SPINE, whole; the one selected's EQ too) */
+        kfx_get(set.kslot);
+        changed_fx();
     } else if (w == RST_DRUMS) {         /* DRUMS: each drum's memory playing as it came (its preset) */
         uint32_t v;
         for (v = 0; v < PERC_VOICES; v++) {

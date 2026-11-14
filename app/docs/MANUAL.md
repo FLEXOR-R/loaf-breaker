@@ -818,7 +818,7 @@ shows; 0: nothing), K3 **AT THE DROP** (how hard the drop shows; 0: nothing), K4
 **RESET** (SYSTEM's last part): puts one part back as it starts, the rest kept. **K4** picks what, in a list that scrolls (ALGORITHM goes to SYSTEM's other parts, as on its other pages; each says
 on the right what it puts back): DROP, BUILD, KNOB; **KICK** (the kick selected, KICK 1–20: ROTTERDAM again, its
 SYNTH, BASS, CLEAN SUB and MORPH at 0, its volume kept, its memory with it); **KICK TONE** (its EQ flat, its two FX slots empty);
-**ALL KICKS** (KICK 1–20 as they came, their knobs as they start); **DRUMS** (the snare's, hat's and clap's memory playing as it
+**ALL KICKS** (KICK 1–20 as they came: the eight built-in kicks in order, KICK 7 TERROR, KICK 8 SPINE, then round again; their knobs as they start); **DRUMS** (the snare's, hat's and clap's memory playing as it
 came); **MIX** (the MIXER: levels, swing, the drums' route, COMP and DUCK off with their timing, MAX OUT −3 dB);
 **FX CHAIN** (the four slots as they came, each effect's memory forgotten, the FX level kept); **STEPS** (this
 pattern's drum steps: 1 hit, ALWAYS, on time; the steps themselves kept); **PADS** (the black keys' settings:
