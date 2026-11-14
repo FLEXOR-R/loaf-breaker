@@ -2403,6 +2403,55 @@ int app_host_cmd(const char *cmd, const char *a, const char *b, const char *c, c
         printf("  kick SUB decay %d ms\n", (int)(kick_decay_ms(KL_SUB, lo) + 0.5f));
         return 1;
     }
+    if (!strcmp(cmd, "kset")) {          /* kset NAME VALUE: one of the kick's settings exactly as its knob shows it (the
+                                          * listening pages of kicks FLEXOR makes presets from): disto, disto2 0..100;
+                                          * dtype 0..8 (FOLD ..); drive, grit, punch, click, sub (levels) %; subdrv %
+                                          * (0: the SUB's effect off); tdrive (TAIL +'s DRIVE) 0..100; tmode 0 CLASSIC,
+                                          * 1 CLEAN; eqlow, eqmid, eqhigh dB; drop, dshape, hold -50..50; dtime MS */
+        kick_t *k = &set.kick;
+        float v = strtof(b, 0);
+        int32_t n = atoi(b);
+        if (!strcmp(a, "disto"))
+            KICK_TERROR(k) = (uint8_t)clamp(n, 0, 100);
+        else if (!strcmp(a, "disto2"))
+            KICK_TERROR2(k) = (uint8_t)clamp(n, 0, 100);
+        else if (!strcmp(a, "dtype"))
+            KICK_T_TYPE(k) = (uint8_t)clamp(n, 0, (int32_t)KICK_T_TYPES - 1);
+        else if (!strcmp(a, "drive"))
+            k->intensity = v * 0.01f;
+        else if (!strcmp(a, "sub") || !strcmp(a, "punch") || !strcmp(a, "grit") || !strcmp(a, "click"))
+            k->l[!strcmp(a, "sub") ? KL_SUB : !strcmp(a, "punch") ? KL_PUNCH : !strcmp(a, "grit") ? KL_GRIT : KL_CLICK]
+                .level = v * 0.01f;
+        else if (!strcmp(a, "subdrv")) {
+            kick_layer_t *s = &k->l[KL_SUB];
+            s->fx = n > 0 ? KFX_DRIVE : KFX_OFF;
+            s->fa = v * 0.01f;
+            if (n > 0 && s->wet < 0.05f)
+                s->wet = 1.0f;
+        } else if (!strcmp(a, "tdrive"))
+            klab.cur.drive = (uint8_t)clamp(n, 0, 100);
+        else if (!strcmp(a, "tmode"))
+            klab.cur.mode = (uint8_t)(n ? 1u : 0u);
+        else if (!strcmp(a, "eqlow") || !strcmp(a, "eqmid") || !strcmp(a, "eqhigh"))
+            set.keq[!strcmp(a, "eqlow") ? 0 : !strcmp(a, "eqmid") ? 1 : 2] = 0.5f + v / 24.0f;
+        else if (!strcmp(a, "drop") || !strcmp(a, "dshape") || !strcmp(a, "hold"))
+            set.ksyn[!strcmp(a, "drop") ? KS_DROP : !strcmp(a, "dshape") ? KS_SHAPE : KS_HOLD] = (int8_t)clamp(n, -50, 50);
+        else if (!strcmp(a, "dtime")) {  /* (ks_text: 120 ms x 2^(v x 0.04)) */
+            int32_t j, best = 0;
+            for (j = -50; j <= 50; j++)
+                if (brk_absf(120.0f * brk_exp2f_c((float)j * 0.04f) - v) <
+                    brk_absf(120.0f * brk_exp2f_c((float)best * 0.04f) - v))
+                    best = j;
+            set.ksyn[KS_TIME] = (int8_t)best;
+        } else {
+            printf("  kset: no setting %s\n", a);
+            host_fails++;
+            return 1;
+        }
+        settings_apply();
+        printf("  kick %s %s\n", a, b);
+        return 1;
+    }
     if (!strcmp(cmd, "scope_dump")) {    /* scope_dump FILE: the CDJ view's ring (r g b peak a column), the newest's
                                           * index, the step and its phase now (tools: PRESS PLAY's picture) */
         FILE *f = fopen(a, "w");
