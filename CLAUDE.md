@@ -140,7 +140,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   MELODY's old place, `perc_x()`, `set.pxv` = PX_OK), FLEXOR's presets PP_SN / PP_CP in ui/perc.c with their FX,
   pages SOUND / SHAPE (K4 DIRT) / MORE, BEGINNER's PRESET / FX / LEVEL / TUNE.
 - BLACK KEYS (11 Nov 2026, 0.244, FLEXOR): each black key a function (app.c `BKF_*`: PAD_* 0-10, FREEZE and DUB
-  back from CHOPPAH, then BKF_ARP, KIL, DST, SUB); `bk_fn(j)`, `bkf_mask(f)` (= `PAD_BIT`) follow the layout in use:
+  back from CHOPPAH, then BKF_ARP, KIL, DST, SUB, DRV: 0.9.44, FLEXOR, the kick's DRIVE switch, selk_hi bit 5, `drive_off`, as DST; in no preset layout, CUSTOM only); `bk_fn(j)`, `bkf_mask(f)` (= `PAD_BIT`) follow the layout in use:
   presets CHOPPAH (a new FM-1's and RESET ALL's; BEGINNER keeps the layout in use since 0.9.23, FLEXOR: `bk_preset` no longer forces it; DST's
   switch (`terror_off`: selk_hi bit 4 and a DST key in the layout, `bk_has`) and SUB DRIVE are each kick's own, FLEXOR 0.9.24), FLEXOR LAYOUT (FLEXOR's, 0.9.26:
   R8 R16 R32 RND HLF FLT ARP VNL KIL DST SUB; keep it exactly; on BLACK KEYS ALGORITHM moves along the keys as K2), CUSTOM; stored in `set.bkeys.bk` (the STAB's old 24 bytes: BK_TAG, preset, eleven functions; bk[15]

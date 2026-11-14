@@ -69,10 +69,11 @@ static const char *const PAD_KNOB[BKF_N][4] = {   /* (LOAF BREAKER: by function,
     {"TIME", "FEEDBACK", "TONE", "MIX"},   /* (DUB: CHOPPAH's; a DELAY in the chain: its own, fx_param_name) */
     {"EFFECT", "AMOUNT", "TIME", "LATCH"},   /* (the ARP key's; FX while held: MORE, pad_knob_name; K2 what goes
                                           * through the ARP effects: the kick, the break, or both) */
-    {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}};   /* (KIL: its LATCH, main.c; DST, SUB: a press each) */
+    {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}};   /* (KIL: its LATCH, main.c; DST, SUB, DRV: a press
+                                          * each) */
 static const char *const PAD_TITLE[BKF_N] = {"ROLL", "ROLL", "ROLL", "REVERSE", "FREEZE", "HALF SPEED",
                                               "VINYL BREAK", "GATE", "RANDOM", "FILTER", "DUB", "OVERLAY", "KICKS OFF",
-                                              "DISTO", "SUB DRIVE"};
+                                              "DISTO", "SUB DRIVE", "DRIVE"};
 static const char *const FRZ_LEN_NAME[4] = {"SLICE", "1/2", "1/4", "1/8"};
 
 /* LOAF BREAKER: the ARP key's knobs (the OVERLAY page gone, its settings here). MAIN: K1 EFFECT, K2 its AMOUNT, K3
@@ -753,5 +754,7 @@ static int bkf_lit(uint32_t f, const brk_status_t *st)
         return kick_hold != 0u;
     if (f == BKF_DST)                    /* (the switch on, even with the DISTO at 0 %: 0.268, FLEXOR) */
         return !terror_off;
+    if (f == BKF_DRV)                    /* (0.9.44: the DRIVE switch on, even at 0 %) */
+        return !drive_off;
     return sub_drive_on();
 }

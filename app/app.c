@@ -182,7 +182,7 @@ typedef struct {
                                           * one playing, n KICK n (a track's DROP item: its own, TRACKS K1); back at the drop */
     uint8_t selk_hi;                     /* (appended) each SEL + knob's function code's fifth bit (bit 0 K1 .. bit 3 K4:
                                           * selk_asg2, selk_asg hold the four below; codes past 15); bit 4 the kick's
-                                          * TERROR off (TER) */
+                                          * TERROR off (TER); bit 5 its DRIVE off (DRV, 0.9.44) */
     uint8_t pgrp;                        /* (appended) LOAF BREAKER: the patterns' group in RAM, 0..3 (P1-16 .. P49-64);
                                           * pattern its slot there */
     uint8_t fill_cfg;                    /* (appended) LOAF BREAKER: FILL (ARP; SEL + ARP its page): bit 0 LATCH, bits
@@ -221,7 +221,7 @@ static settings_t set;
  * back), then ARP (an OVERLAY effect), KIL (the sequencer's kicks quiet), DST (the kick's DISTO), SUB (its SUB DRIVE).
  * A layout: the function of each key, left to right. Presets: CHOPPAH (CHOPPAH's keys; BEGINNER's only), FLEXOR LAYOUT
  * (LOAF BREAKER's until 0.244), CUSTOM (each key its own: ARP › BLACK KEYS) */
-enum { BKF_ARP = BRK_NPADS, BKF_KIL, BKF_DST, BKF_SUB, BKF_N };
+enum { BKF_ARP = BRK_NPADS, BKF_KIL, BKF_DST, BKF_SUB, BKF_DRV, BKF_N };   /* (BKF_DRV: the kick's DRIVE, 0.9.44) */
 enum { BKP_CHOPPAH, BKP_FLEXOR, BKP_CUSTOM, BKP_N };
 #define BK_TAG 0xB4u
 #define BK_VIEW 14u                      /* (bk[14]: HOME's VIEW, 0 the waveform, 1 the slices, 0.9.2) */
@@ -356,6 +356,8 @@ static int bk_has(uint32_t f)            /* (a black key of the layout in use do
 #define terror_off ((set.selk_hi & 16u) && bk_has(BKF_DST))   /* (the kick's own DST switch, each kick its own (kx_put);
                                           * 0.9.24: in either mode, where the layout has a DST key (BEGINNER keeps
                                           * EXPERT's layout since 0.9.23); with none, the DISTO always heard) */
+#define drive_off ((set.selk_hi & 32u) && bk_has(BKF_DRV))   /* (LOAF BREAKER 0.9.44, FLEXOR: DRV, the kick's DRIVE
+                                          * (INTENSITY) off, its amount kept; each kick its own, as DST) */
 static void kick_send(void)
 {
     uint32_t m = set.kmorph > 100u ? 100u : set.kmorph, i, j;
@@ -363,6 +365,8 @@ static void kick_send(void)
         kick_t k = set.kick;
         if (terror_off)
             KICK_TERROR(&k) = 0u;
+        if (drive_off)
+            k.intensity = 0.0f;
         kick_set(&k);
         kick_set_synth(set.ksyn);
     } else {
@@ -402,6 +406,8 @@ static void kick_send(void)
             sy[j] = (int8_t)morph_i(set.ksyn[j], ksmem_at(set.kmorph_to % KICK_MEMS)[j], m);
         if (terror_off)
             KICK_TERROR(&k) = 0u;
+        if (drive_off)
+            k.intensity = 0.0f;
         kick_set(&k);
         kick_set_synth(sy);
     }

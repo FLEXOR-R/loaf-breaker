@@ -472,7 +472,7 @@ slices you marked ring out, the classic dub throw. (Without a DELAY slot, ECHO g
 
 The black keys act while held and combine. Which key does what is a **layout** (ARP › BLACK KEYS, below): CHOPPAH's,
 left to right R8 R16 R32 REV FRZ HLF VNL GAT RND FLT DUB (a new FM-1's, after RESET ALL too; BEGINNER keeps the layout EXPERT left, 0.9.23),
-FLEXOR LAYOUT (R8 R16 R32 RND HLF FLT ARP VNL KIL DST SUB, 0.9.26) or CUSTOM, each key any of the fifteen below. (HOME's K1 is
+FLEXOR LAYOUT (R8 R16 R32 RND HLF FLT ARP VNL KIL DST SUB, 0.9.26) or CUSTOM, each key any of the sixteen below. (HOME's K1 is
 the gate and K2 the DJ filter as well.) While a pad is held, the slice blocks give way to an
 animation of what it does, and **K1–K4 tune that pad** (the foot shows its settings; SAVE keeps them):
 
@@ -492,6 +492,7 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 | KIL | While held, the sequencer's kicks are quiet; let go, they play again (a kick roll still plays) | LATCH: ON, a press quiets them and the next brings them back | | | |
 | DST | A switch: a press, the kick's DISTO off, the next on again; its amount is never touched (at 0 % it stays 0 %: turn DISTO up to hear it). Lit while it is ON, even at 0 % (0.268); the kick's own (KICK 1–20): another kick picked (PRESETS, a track's item, a build) brings its own ON or OFF, the key lit with it; saved with SAVE. In BEGINNER too when its layout has DST (0.9.24) | | | | |
 | SUB | A press: the kick's SUB DRIVE on, the next off (its drive is the SUB layer's DRIVE effect, EDIT); the kick's own, as DST: each kick brings its own ON or OFF, the key lit with it. A built-in kick picked on PRESET (0.9.40) sets both as it is made: DST on again if it has DISTO (TERROR, SPINE, EARLY HC, INDUSTRIAL, 909 DRIVE, GABBER, MILLENNIUM, DOOMCORE), SUB DRIVE on for TERROR and SPINE, off for the others | | | | |
+| DRV | A switch (0.9.44): a press, the kick's DRIVE off, the next on again; its amount is never touched. Lit while it is ON; the kick's own (KICK 1–20), as DST; a built-in kick picked with a DRIVE puts it on again. In no preset layout: put it on a key of CUSTOM (ARP › BLACK KEYS, K3) | | | | |
 
 ![ROLL held: the caught slice repeating, each copy quieter](img/pad-roll8.png "ROLL held")
 ![VINYL BREAK held: the platter slowing down](img/pad-stop.png "VINYL BREAK held")

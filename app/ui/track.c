@@ -132,7 +132,7 @@ static void reset_do(uint32_t w)
         set.drop_gap = 0u;
     } else if (w == RST_KNOB) {          /* KNOB: the knobs' functions */
         set.selk_asg = set.selk_asg2 = 0u;
-        set.selk_hi &= 16u;              /* (the knobs alone: TER's state kept) */
+        set.selk_hi &= 48u;              /* (the knobs alone: TER's and DRV's state kept) */
     } else if (w == RST_KTONE) {           /* KICK TONE: its EQ flat, its FX slots empty, their memory forgotten */
         uint32_t k;
         for (k = 0; k < 8u; k++)
@@ -247,7 +247,7 @@ static void reset_do(uint32_t w)
         set.kbass[0] = set.kbass[1] = 0u;
         set.kbass[2] = set.kbass[3] = 50u;
         set.csub = set.kmorph = set.kmorph_to = 0u;   /* (CLEAN SUB and MORPH off; ENV KNOB's choices: RESET KNOB) */
-        set.selk_hi &= (uint8_t)~16u;    /* (its TERROR on again, TER) */
+        set.selk_hi &= (uint8_t)~48u;    /* (its TERROR and its DRIVE on again, TER, DRV) */
         (*kmem_at(set.kslot % KICK_MEMS)) = set.kick;
         for (j = 0; j < KS_N; j++)
             ksmem_at(set.kslot % KICK_MEMS)[j] = 0;

@@ -262,10 +262,10 @@ enum { PG_HOME, PG_GEN, PG_FX, PG_GLOBAL, PG_KICK, PG_MIX, PG_SEQ, PG_PERC, PG_T
                                           * TRACKS, PLAY, DROP where TAP TEMPO was) */
 /* LOAF BREAKER (11 Nov 2026): the black keys' functions' names (app.c BKF_*), as the strip shows them */
 static const char *const BKF_NAME[BKF_N] = {"R8", "R16", "R32", "REV", "FRZ", "HLF", "VNL", "GAT", "RND", "FLT", "DUB",
-                                            "ARP", "KIL", "DST", "SUB"};
+                                            "ARP", "KIL", "DST", "SUB", "DRV"};
 static const char *const BKF_LONG[BKF_N] = {"ROLL 1/8", "ROLL 1/16", "ROLL 1/32", "REVERSE", "FREEZE", "HALF SPEED",
                                             "VINYL BREAK", "GATE", "RANDOM", "FILTER", "DUB", "ARP (OVERLAY)",
-                                            "KICKS OFF", "DISTO", "SUB DRIVE"};
+                                            "KICKS OFF", "DISTO", "SUB DRIVE", "DRIVE"};
 static const char *const BKP_NAME[BKP_N] = {"CHOPPAH", "FLEXOR LAYOUT", "CUSTOM"};
 static const uint8_t WK[16] = PLAT_WHITE_KEYS, BK[11] = PLAT_BLACK_KEYS;
 /* LOAF BREAKER: what the TUTORIAL (tutor.c) watches, counted where it happens: white keys pressed, black keys pressed
