@@ -1,7 +1,7 @@
 <!doctype html>
 <!-- SPDX-License-Identifier: MPL-2.0 -->
 <!-- LOAF BREAKER's BREAKS page (CHOPPAH 1.4's break manager, by Laurens Profittlich; LOAF BREAKER 0.9.32, PRD A-54h):
-     the repository's breaks to hear (lib/, tools/break_lib.py) and up to four of your own on the FM-1, beside the eight
+     the repository's breaks to hear (lib/, tools/break_lib.py) and yours on the FM-1 (two places, four in each), after the eight
      built in, from the library or from a sample. tools/site_style.py puts it at breaks/ on
      the site, with the site's style and header. A sample is made into a break here exactly as the built-in ones are
      (tools/prep_breaks.py: two bars, levelled to -16 dBFS with a look-ahead limiter, at most 22.05 kHz, sixteen slices
@@ -83,8 +83,8 @@
 <div class="page">
 <main id="main">
 <h1>Breaks</h1>
-<p class="lede">The FM-1 plays the eight breaks built into LOAF BREAKER, and up to four of your own beside them (they
-come after the eight on ALGORITHM). Hear the seventy breaks of the project's library, or a sample of yours chopped
+<p class="lede">The FM-1 plays the eight breaks built into LOAF BREAKER, and your own after them on ALGORITHM: 232 KB
+of room, five to seven breaks of the library's size (a break takes 29 to 47 KB). Hear the seventy breaks of the project's library, or a sample of yours chopped
 exactly as the FM-1 will play it, add the ones you want to your list, and send it over USB. Chrome or Edge, on a
 computer.</p>
 
@@ -101,7 +101,8 @@ computer.</p>
   <h3>Your breaks <span id="mineCount"></span></h3>
   <div class="list" id="mine" aria-live="polite"></div>
   <div class="row">
-    <div class="meter" aria-label="The room your breaks take"><i id="room"></i></div>
+    <div class="meter" aria-label="The room your breaks take in the first place (140 KB)"><i id="room0"></i></div>
+    <div class="meter" aria-label="The room your breaks take in the second place (92 KB)"><i id="room1"></i></div>
     <span class="facts" id="roomV"></span>
   </div>
   <div class="row">
@@ -110,7 +111,8 @@ computer.</p>
   </div>
   <p class="state" id="sendStatus" role="status"></p>
   <p class="hint">LOAF BREAKER must be stopped while it is written: writing the flash pauses the sound. Sending replaces
-  what is on the FM-1 with your list as it is here (an empty list deletes them).</p>
+  what is on the FM-1 with your list as it is here (an empty list deletes them). Your breaks go in two places of the
+  flash (the two bars: 140 KB and 92 KB); the page picks each one's and rewrites only a place that changes.</p>
 </section>
 
 <section class="card hidden" id="listen" aria-labelledby="h-listen">
@@ -177,7 +179,9 @@ computer.</p>
 <script>
 "use strict";
 /* ---------------------------------------------------------------- the break, as tools/prep_breaks.py makes it */
-const RATE = 22050, MAX_LEN = 106496, NSLICES = 16, CAP_DEFAULT = 31 * 4096, MAX_MINE = 4;
+const RATE = 22050, MAX_LEN = 106496, NSLICES = 16, MAX_ZONE = 4;
+/* LOAF BREAKER: two places on the FM-1 for yours (app.c CU_ZB): 140 KB at 0x93000, 92 KB at 0xE5000; four in each */
+const ZONE_AT = [0x93000, 0xE5000], ZONE_CAP = [35 * 4096, 23 * 4096], MAX_MINE = 2 * MAX_ZONE;
 const STEP = [7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21, 23, 25, 28, 31, 34, 37, 41, 45, 50, 55, 60, 66, 73, 80, 88, 97,
   107, 118, 130, 143, 157, 173, 190, 209, 230, 253, 279, 307, 337, 371, 408, 449, 494, 544, 598, 658, 724, 796,
   876, 963, 1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066, 2272, 2499, 2749, 3024, 3327, 3660, 4026, 4428,
@@ -349,6 +353,24 @@ function splitBank(img) {
   }
   return out;
 }
+/* the bytes a bank of these takes (mergeBanks' length, worked out) */
+function bankBytes(list) {
+  let d = 0;
+  for (const one of list) { d += (4 - d % 4) % 4; d += new DataView(one.buffer, one.byteOffset, one.byteLength).getUint32(16 + 28, true); }
+  return list.length ? 16 + 168 * list.length + d : 0;
+}
+/* in the FM-1's XDATA windows the update loader takes a sector whose bytes 0xF06..0xF07 read "AT" for an update
+   record: an 'A' there made 0x40 (an ADPCM nibble 1 -> 0, its step the same after), the CRC made again (cu_frames.py's
+   at_fix; the FM-1 refuses a bank that has one) */
+function atFix(img, z) {
+  const b = Uint8Array.from(img);
+  for (let s = ZONE_AT[z]; s < ZONE_AT[z] + b.length; s += 4096) {
+    const o = s + 0xF06 - ZONE_AT[z];
+    if ((s < 0x97000 || s >= 0xE0000) && b[o] === 0x41 && b[o + 1] === 0x54) b[o] = 0x40;
+  }
+  new DataView(b.buffer).setUint32(12, crc32(b.subarray(16)), true);
+  return b;
+}
 function mergeBanks(list) {
   const n = list.length, parts = [];
   let dlen = 0;
@@ -466,11 +488,27 @@ const lp = new Player($("lkeys"), $("lwave"), (on) => { $("lplay").textContent =
 let heard = null;                        /* what the Listening card holds: {name, one (a bank of one), b, from} */
 
 /* ---------------------------------------------------------------- your breaks: the list sent to the FM-1 */
-let mine = [], onDev = "";               /* [{name, bpm, one, b}]; the list as the FM-1 has it (its banks, joined) */
+let mine = [], onDev = ["", ""];         /* [{name, bpm, one, b, z}] in the FM-1's order; each place as the FM-1 has it */
 const sig = (l) => l.map((m) => m.name + ":" + m.one.length + ":" + crc32(m.one)).join("|");
-function mineBytes(l = mine) { return l.length ? mergeBanks(l.map((m) => m.one)).length : 0; }
+const inZone = (l, z) => l.filter((m) => m.z === z);
+/* each break's place: as few moved as can be (a place rewritten only when it changes), four and its room in each;
+   null: they don't fit. The FM-1 plays the first place's, then the second's: the list is kept in that order */
+function plan(l) {
+  let best = null, cost = 1e9;
+  for (let mask = 0; mask < 1 << l.length; mask++) {
+    const z = l.map((_, i) => (mask >> i) & 1), c = z.reduce((n, v, i) => n + (l[i].z !== undefined && l[i].z !== v), 0);
+    if (c >= cost) continue;
+    const ok = [0, 1].every((k) => { const p = l.filter((_, i) => z[i] === k); return p.length <= MAX_ZONE && bankBytes(p.map((m) => m.one)) <= ZONE_CAP[k]; });
+    if (ok) { best = z; cost = c; }
+  }
+  return best;
+}
+function placed(l, z) {                  /* l with its places, in the FM-1's order */
+  const o = l.map((m, i) => Object.assign({}, m, { z: z[i] }));
+  return inZone(o, 0).concat(inZone(o, 1));
+}
 function renderMine() {
-  const el = $("mine"), size = mineBytes(), changed = sig(mine) !== onDev;
+  const el = $("mine"), changed = [0, 1].some((z) => sig(inZone(mine, z)) !== onDev[z]);
   $("mineCount").textContent = `(${mine.length} of ${MAX_MINE})`;
   el.innerHTML = mine.length ? "" : '<p class="empty">None yet: add breaks from the library or a sample of yours.</p>';
   mine.forEach((m, k) => {
@@ -485,19 +523,28 @@ function renderMine() {
     row.querySelector(".acts button").onclick = () => { mine.splice(k, 1); renderMine(); };
     el.appendChild(row);
   });
-  $("room").style.width = Math.min(100, 100 * size / cap).toFixed(1) + "%";
-  $("roomV").innerHTML = `<b>${kb(size)}</b> of ${kb(cap)}` + (size > cap ? ' · <span style="color:#ff9b85">too much</span>' : "");
-  $("send").disabled = !(out && changed && size <= cap);
-  $("send").textContent = mine.length || !onDev ? "Send to the FM-1" : "Delete them from the FM-1";
+  const facts = [0, 1].map((z) => {
+    const size = bankBytes(inZone(mine, z).map((m) => m.one));
+    $("room" + z).style.width = Math.min(100, 100 * size / ZONE_CAP[z]).toFixed(1) + "%";
+    return size;
+  });
+  const used = facts[0] + facts[1], all = ZONE_CAP[0] + ZONE_CAP[1];
+  $("roomV").innerHTML = `<b>${kb(used)}</b> of ${kb(all)} · ${kb(all - used)} free`;
+  $("send").disabled = !(out && changed);
+  $("send").textContent = mine.length || !(onDev[0] || onDev[1]) ? "Send to the FM-1" : "Delete them from the FM-1";
   $("ladd").disabled = !heard || heard.built || mine.some((m) => m.one === heard.one);
   renderLib();
 }
 function add(name, one, b, st = $("sendStatus")) {   /* (the sample's own line under it: addStatus) */
-  if (mine.length >= MAX_MINE) { say(st, `Four is the most: remove one of yours first.`, true); return false; }
+  if (mine.length >= MAX_MINE) { say(st, `Eight is the most: remove one of yours first.`, true); return false; }
   if (mine.some((m) => crc32(m.one) === crc32(one) && m.one.length === one.length)) { say(st, `${esc(name)} is in your list already.`, true); return false; }
-  const after = mineBytes(mine.concat([{ one }]));
-  if (after > cap) { say(st, `${esc(name)} doesn't fit: ${kb(cap - mineBytes())} left, it needs ${kb(one.length)}. Remove one, or pick a shorter break.`, true); return false; }
-  mine.push({ name, bpm: b.bpm, one, b, sent: false });
+  const l = mine.concat([{ name, bpm: b.bpm, one, b, sent: false }]), z = plan(l);
+  if (!z) {
+    const free = [0, 1].map((k) => ZONE_CAP[k] - bankBytes(inZone(mine, k).map((m) => m.one)));
+    say(st, `${esc(name)} doesn't fit: it needs ${kb(one.length)}, the most left in one place is ${kb(Math.max(...free))}. Remove one, or pick a shorter break.`, true);
+    return false;
+  }
+  mine = placed(l, z);
   say(st, `<b>${esc(name)}</b> added to your breaks (send them to the FM-1 above).`);
   renderMine();
   return true;
@@ -626,7 +673,7 @@ async function make() {                  /* the sample -> the break, as prep_bre
 
 
 /* ---------------------------------------------------------------- the FM-1 over Web MIDI */
-let midi = null, out = null, inp = null, cap = CAP_DEFAULT, devInfo = null, waiting = null, playing = false;
+let midi = null, out = null, inp = null, devInfo = null, waiting = null, playing = false;
 function pack7(b) {
   const o = [];
   for (let i = 0; i < b.length; i += 7) {
@@ -661,49 +708,63 @@ function say(el, t, bad) { el.innerHTML = bad ? `<span class="bad">${t}</span>` 
 async function info() {
   const r = await ask(1);
   const d = r.data, dv = new DataView(d.buffer);
-  playing = !!d[1]; cap = dv.getUint32(4, true);
-  const n = d[2], size = dv.getUint32(8, true);
+  if (d[0] < 2) { say($("devStatus"), "This LOAF BREAKER is older than the page: update it (the site's installer) first.", true); out = null; return; }
+  playing = !!d[1];
+  const n = d[2], z = [0, 1].map((k) => ({ n: d[4 + 12 * k], size: dv.getUint32(12 + 12 * k, true) }));
   say($("devStatus"), `<b>${esc(out.name)}</b> connected · ${playing ? "playing" : "stopped"} · ` + (n ? `${n} break${n > 1 ? "s" : ""} of yours on it` : "none of yours on it yet"));
   $("connect").textContent = "Refresh";
-  mine = n ? await readBack(size) : [];
-  onDev = sig(mine);
+  mine = [];
+  for (const k of [0, 1]) {
+    const l = z[k].n ? await readBack(k, z[k].size) : [];
+    onDev[k] = sig(l);
+    mine = mine.concat(l);
+  }
   renderMine();
 }
-async function readBack(size) {
+async function readBack(z, size) {
   const img = new Uint8Array(size);
   for (let off = 0; off < size; off += 256) {
-    const n = Math.min(256, size - off), r = await ask(5, [...u32(off), ...u32(n)]);
+    const n = Math.min(256, size - off), r = await ask(z << 4 | 5, [...u32(off), ...u32(n)]);
     if (r.code) throw new Error("read " + r.code);
     img.set(r.data.subarray(4, 4 + n), off);
     say($("devStatus"), `Reading your breaks on the FM-1… ${Math.round(100 * (off + n) / size)}%`);
   }
   if (!readBank(img)) { say($("devStatus"), "Your breaks on the FM-1 don't check: send them again.", true); return []; }
-  return splitBank(img).map((one) => { const b = readBank(one); return { name: b.name, bpm: b.bpm, one, b, sent: true }; });
+  return splitBank(img).map((one) => { const b = readBank(one); return { name: b.name, bpm: b.bpm, one, b, sent: true, z }; });
 }
 $("send").onclick = async () => {
   const st = $("sendStatus"), bar = $("bar");
   $("send").disabled = true;
   try {
     lp.stop(); player.stop();
-    if (!mine.length) {                  /* none: the FM-1's deleted */
-      const r = await ask(6, [], 15000);
-      if (r.code) throw new Error(ERR[r.code] || "code " + r.code);
-      say(st, "Your breaks are deleted from the FM-1. The eight built in stay.");
-    } else {
-      const img = mergeBanks(mine.map((m) => m.one));
-      let r = await ask(2, u32(img.length), 20000);    /* the flash erased first: a moment */
+    const todo = [0, 1].filter((z) => sig(inZone(mine, z)) !== onDev[z]);
+    const imgs = todo.map((z) => inZone(mine, z).length ? atFix(mergeBanks(inZone(mine, z).map((m) => m.one)), z) : null);
+    const total = imgs.reduce((n, img) => n + (img ? img.length : 0), 0) || 1;
+    let done = 0;
+    for (let k = 0; k < todo.length; k++) {
+      const z = todo[k] << 4, img = imgs[k];
+      let r;
+      if (!img) {                        /* none left there: that place deleted */
+        r = await ask(z | 6, [], 15000);
+        if (r.code) throw new Error(ERR[r.code] || "code " + r.code);
+        continue;
+      }
+      r = await ask(z | 2, u32(img.length), 20000);   /* the flash erased first: a moment */
       if (r.code) throw new Error(ERR[r.code] || "code " + r.code);
       for (let off = 16; off < img.length; off += 512) {
-        r = await ask(3, [...u32(off), ...img.subarray(off, off + 512)]);
+        r = await ask(z | 3, [...u32(off), ...img.subarray(off, off + 512)]);
         if (r.code) throw new Error(ERR[r.code] || "code " + r.code);
-        bar.style.width = (100 * off / img.length).toFixed(1) + "%";
-        say(st, `Sending… ${Math.round(100 * off / img.length)}%`);
+        const pc = 100 * (done + off) / total;
+        bar.style.width = pc.toFixed(1) + "%";
+        say(st, `Sending… ${Math.round(pc)}%`);
       }
-      r = await ask(4, img.subarray(0, 16), 5000);     /* the header last: the breaks count once they check */
+      r = await ask(z | 4, img.subarray(0, 16), 5000);   /* the header last: the breaks count once they check */
       if (r.code) throw new Error(ERR[r.code] || "code " + r.code);
-      bar.style.width = "100%";
-      say(st, `On the FM-1: ${mine.map((m, k) => `<b>${esc(m.name)}</b> (break ${9 + k})`).join(", ")}. ALGORITHM reaches them after the eight built in.`);
+      done += img.length;
     }
+    bar.style.width = "100%";
+    say(st, mine.length ? `On the FM-1: ${mine.map((m, k) => `<b>${esc(m.name)}</b> (break ${9 + k})`).join(", ")}. ALGORITHM reaches them after the eight built in.`
+                        : "Your breaks are deleted from the FM-1. The eight built in stay.");
     await info();
   } catch (e) {
     say(st, "Not sent: " + e.message, true);

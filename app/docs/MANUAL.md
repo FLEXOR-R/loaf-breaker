@@ -404,7 +404,8 @@ all the way up: -3 dB to start with (headroom for the FM-1's output and your spe
 
 ### Your own breaks (BREAKS)
 
-Beside the eight built in, the FM-1 holds up to four breaks of your own (0.9.32, from CHOPPAH 1.4's break manager).
+Beside the eight built in, the FM-1 holds breaks of your own (0.9.32, from CHOPPAH 1.4's break manager): 232 KB of
+room, five to seven breaks of the library's size.
 The site's [Breaks](https://flexor-r.github.io/loaf-breaker/breaks/) page, in Chrome or Edge on a computer, does it:
 
 1. **The library**: the seventy breaks of the project (the Cyberworm Amens, the Huge Amen pack, the classics), each
@@ -413,12 +414,13 @@ The site's [Breaks](https://flexor-r.github.io/loaf-breaker/breaks/) page, in Ch
    your list. The eight built in are marked: they are on the FM-1 already.
 2. **A sample of your own**: a drum loop of whole bars in any format the browser plays; the page guesses its bars and
    tempo, makes it as the built-in ones and plays what the FM-1 will play; **+ Add to your breaks**.
-3. **Your breaks**: the list, up to four, as much as fits in 124 KB (two long breaks, three or four shorter; the meter
-   says the room left). Remove one, hear one. **Connect** the FM-1 by USB, **stop** LOAF BREAKER, **Send to the FM-1**:
+3. **Your breaks**: the list, as much as fits in the FM-1's two places for them, 140 KB and 92 KB (four breaks at most
+   in each; a library break takes 29 to 47 KB: five to seven in all). The page picks each one's place; the two meters say
+   the room taken, and a break that fits in neither is refused with the room left. Remove one, hear one. **Connect** the FM-1 by USB, **stop** LOAF BREAKER, **Send to the FM-1**:
    the list replaces what was on it (sending an empty list deletes them). Connected, the page reads back the ones on it.
 
-Your breaks come **after the eight built in** on ALGORITHM (breaks 9 to 12; your saved patterns and tracks keep their
-breaks). The FM-1 says RECEIVING A BREAK, then plays the first of them. They stay through updates of LOAF BREAKER;
+Your breaks come **after the eight built in** on ALGORITHM (break 9 on, in the list's order; your saved patterns and
+tracks keep their breaks). The FM-1 says RECEIVING A BREAK, then plays the first of them. They stay through updates of LOAF BREAKER;
 RESET ALL and WIPE MEMORY keep them.
 
 ### Key loops

@@ -1370,16 +1370,23 @@ static const bank_slot_t *bank_check(const uint8_t *bank, uint32_t size, uint32_
     return s;
 }
 
-/* LOAF BREAKER (0.9.32, from CHOPPAH 1.4, FLEXOR: the site's BREAKS page): the player's own breaks, up to CU_MAX, one
- * bank of them in the flash's data area below the store objects (0xB6000 on), written whole over USB from the site's
- * break manager (app_sysex, ui/main.c). Present, they come after the bank's (the breaks saved by number keep theirs);
- * a RESET ALL and WIPE MEMORY leave them (not in the store map) */
-#define CU_BASE 0x97000u                 /* the data area's start */
-#define CU_SECTORS 31u                   /* 124 KB, up to the KICK LAB's object (0xB6000): two breaks of CH_PCM_MAX, or
-                                          * three or four shorter */
-#define CU_MAX 4u
-#define CU_CAP (CU_SECTORS * 4096u)
-static uint32_t n_user, n_bank;          /* the player's breaks there (checked whole: cu_scan); the bank's */
+/* LOAF BREAKER (0.9.32, from CHOPPAH 1.4, FLEXOR: the site's BREAKS page): the player's own breaks, in two banks
+ * (zones) of up to CU_MAX each, outside the store's objects, written whole over USB from the site's break manager
+ * (app_sysex, ui/main.c). Present, they come after the bank's, zone 0's then zone 1's (the breaks saved by number
+ * keep theirs); a RESET ALL and WIPE MEMORY leave them (not in the store map).
+ * Zone 0: PLAT_XDATA0 (16 KB) and the data area's start up to the KICK LAB's object (0xB6000), one run of 140 KB;
+ * zone 1: PLAT_XDATA1 (92 KB, up to the settings). In the two XDATA windows the update loader takes a sector whose
+ * bytes 0xF06..0xF07 read "AT" for an update record (plat.h): the page never sends one so (it nudges a nibble), and a
+ * write that makes one is undone (cu_at_ok). A 0.9.32 TEST's zone 0 started at 0x97000 (CU_OLD, 124 KB): read there
+ * while zone 0 holds none, until zone 0 is written again */
+#define CU_MAX 4u                        /* breaks in a zone */
+#define CU_NZ 2u
+#define CU_OLD 0x97000u
+static const uint32_t CU_ZB[CU_NZ] = {0x93000u, 0xE5000u};   /* each zone's start */
+static const uint32_t CU_ZS[CU_NZ] = {35u, 23u};               /* and its sectors */
+#define CU_CAP(z) (CU_ZS[z] * 4096u)
+static uint32_t n_user, n_bank;          /* the player's breaks (each zone checked whole: cu_scan); the bank's */
+static uint32_t n_uz[CU_NZ], cu_at[CU_NZ], cu_cap[CU_NZ];   /* each zone's breaks, where its bank is read, its room */
 static uint32_t crc32_of(const uint8_t *p, uint32_t n)   /* zlib's */
 {
     uint32_t c = ~0u, k;
@@ -1390,23 +1397,49 @@ static uint32_t crc32_of(const uint8_t *p, uint32_t n)   /* zlib's */
     }
     return ~c;
 }
-static void cu_scan(void)
+static uint32_t cu_check(uint32_t at, uint32_t cap)   /* the breaks of a bank at at, every one sane, or 0 */
 {
-    const uint8_t *p = plat_data(CU_BASE);
+    const uint8_t *p = plat_data(at);
     const bank_header_t *h = (const bank_header_t *)p;
     uint32_t k;
-    n_user = 0u;
-    if (!p || !h->nslots || h->nslots > CU_MAX || h->data_size > CU_CAP - 16u ||
+    if (!p || h->magic != BANK_MAGIC || !h->nslots || h->nslots > CU_MAX || h->data_size > cap - 16u ||
         crc32_of(p + 16, h->data_size) != h->crc32)
-        return;
-    for (k = 0; k < h->nslots; k++)      /* (every one sane, or none) */
-        if (!bank_check(p, CU_CAP, k))
-            return;
-    n_user = h->nslots;
+        return 0u;
+    for (k = 0; k < h->nslots; k++)
+        if (!bank_check(p, cap, k))
+            return 0u;
+    return h->nslots;
+}
+static void cu_scan(void)
+{
+    uint32_t z;
+    n_user = 0u;
+    for (z = 0; z < CU_NZ; z++) {
+        cu_at[z] = CU_ZB[z];
+        cu_cap[z] = CU_CAP(z);
+        n_uz[z] = cu_check(cu_at[z], cu_cap[z]);
+        if (!z && !n_uz[z] && (n_uz[z] = cu_check(CU_OLD, 31u * 4096u)) != 0u) {   /* (a 0.9.32 TEST's) */
+            cu_at[z] = CU_OLD;
+            cu_cap[z] = 31u * 4096u;
+        }
+        n_user += n_uz[z];
+    }
+}
+/* bytes 0xF06..0xF07 of the sectors [at, at + n) that lie in an XDATA window: none "AT" (an update record's mark) */
+static int cu_at_ok(uint32_t at, uint32_t n)
+{
+    uint32_t s;
+    for (s = at & ~0xFFFu; s < at + n; s += 4096u) {
+        const uint8_t *q = plat_data(s + 0xF06u);
+        if ((s < PLAT_DATA_LO || s >= PLAT_DATA_HI) && q && q[0] == 'A' && q[1] == 'T')
+            return 0;
+    }
+    return 1;
 }
 /* break i's slot and its bank: the bank built into the image (or a synthesised Amen), then the player's */
 static const bank_slot_t *slot_of(uint32_t i, const uint8_t **bank)
 {
+    uint32_t z;
     *bank = 0;
 #if CH_HAVE_BANK
     if (i >= n_synth && i - n_synth < n_bank) {
@@ -1414,10 +1447,14 @@ static const bank_slot_t *slot_of(uint32_t i, const uint8_t **bank)
         return bank_check(CH_BANK, CH_BANK_SIZE, i - n_synth);
     }
 #endif
-    if (i >= n_synth + n_bank && i - n_synth - n_bank < n_user) {
-        *bank = plat_data(CU_BASE);
-        return bank_check(*bank, CU_CAP, i - n_synth - n_bank);
-    }
+    if (i < n_synth + n_bank)
+        return 0;
+    i -= n_synth + n_bank;
+    for (z = 0; z < CU_NZ; i -= n_uz[z++])
+        if (i < n_uz[z]) {
+            *bank = plat_data(cu_at[z]);
+            return bank_check(*bank, cu_cap[z], i);
+        }
     return 0;
 }
 static void breaks_count(void)

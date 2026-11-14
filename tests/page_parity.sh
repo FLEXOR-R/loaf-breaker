@@ -29,7 +29,7 @@ node - "$O" <<'N'
 const fs = require("fs"), o = process.argv[2];
 const page = fs.readFileSync("app/site/breaks.html", "utf8");
 const code = page.split("the break, as tools/prep_breaks.py makes it */")[1].split("/* ----------------------------------------------------------------")[0];
-const api = new Function(code + "; return {level, slicePoints, buildBank, readBank, adpcmDecode, mergeBanks, splitBank};")();
+const api = new Function(code + "; return {level, slicePoints, buildBank, readBank, adpcmDecode, mergeBanks, splitBank, bankBytes, atFix};")();
 const py = JSON.parse(fs.readFileSync(o + "/py.json"));
 let worst = 0;
 const lv = api.level(Float32Array.from(py.x), py.rate);
@@ -57,7 +57,18 @@ if (Buffer.from(both).toString("hex") !== py.both) throw new Error("two banks me
 const parts = api.splitBank(both);
 if (parts.length !== 2 || Buffer.from(parts[0]).toString("hex") !== py.hex || Buffer.from(parts[1]).toString("hex") !== py.hex2)
   throw new Error("split back differs");
+if (api.bankBytes([hx(py.hex), hx(py.hex2)]) !== both.length) throw new Error("bankBytes differs from mergeBanks' length");
+for (const z of [0, 1]) {                /* an "AT" put at 0xF06 of the bank's first sector (an XDATA window in both
+                                          * places) and of its sixth (zone 0's data area: kept), nudged as cu_frames.py */
+  const t = Uint8Array.from(both);
+  t.set([0x41, 0x54], 0xF06); t.set([0x41, 0x54], 5 * 4096 + 0xF06);
+  fs.writeFileSync(o + "/at.bin", t);
+  const want = execSync(`python3 -c "import sys; sys.path.insert(0,'tools'); import cu_frames as c; print(c.at_fix(open('${o}/at.bin','rb').read(), ${z}).hex())"`).toString().trim();
+  const got = api.atFix(t, z);
+  if (Buffer.from(got).toString("hex") !== want) throw new Error("atFix differs from cu_frames.py's, zone " + z);
+  if (got[0xF06] !== 0x40 || got[5 * 4096 + 0xF06] !== (z ? 0x40 : 0x41)) throw new Error("atFix in the wrong places, zone " + z);
+}
 const back = api.readBank(img);
 if (!back || back.name !== "LIFE COULD" || back.slices.length !== 17) throw new Error("readBank");
-console.log(`page_parity: level within ${worst.toExponential(1)}, slices the same, the bank the same (${img.length} B), read back; two merged as build_bank and split back; the frames packed as cu_frames.py`);
+console.log(`page_parity: level within ${worst.toExponential(1)}, slices the same, the bank the same (${img.length} B), read back; two merged as build_bank and split back, their size worked out, an update record's mark nudged as cu_frames.py; the frames packed as cu_frames.py`);
 N
