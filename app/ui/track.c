@@ -148,7 +148,7 @@ static void reset_do(uint32_t w)
         float vol = set.kick.volume;
         uint32_t k, j;
         for (k = 0; k < KICK_MEMS; k++) {
-            kick_preset(kmem_at(k), k % KICK_PRESETS);
+            kick_preset(kmem_at(k), kmem_pre(k));
             (*kmem_at(k)).volume = vol;
             for (j = 0; j < KS_N; j++)
                 ksmem_at(k)[j] = 0;

@@ -408,6 +408,10 @@ static void kick_send(void)
     kick_set_clean_sub((float)(set.csub > 100u ? 100u : set.csub) * 0.01f);
     klab_send();
 }
+/* (0.9.39: the kick memories' first eleven, KICK 1-11, then again: PRESET's round with ROTTERDAM kept KICK 4, the start,
+ * EARLY HC KICK 5; KICK 7 TERROR, KICK 8 SPINE as FLEXOR wanted them, 0.9.33) */
+static const uint8_t KMEM_ORD[KICK_PRESETS_ON] = {0u, 8u, 1u, 3u, 2u, 4u, 6u, 7u, 9u, 10u, 11u};
+static uint32_t kmem_pre(uint32_t k) { return KMEM_ORD[k % KICK_PRESETS_ON]; }
 static void settings_defaults(void)
 {
     uint32_t k;
@@ -454,7 +458,7 @@ static void settings_defaults(void)
     kick_defaults(&set.kick);
     for (k = 0; k < KICK_MEMS; k++) {    /* LOAF BREAKER: the kick memories begin as the built-in kicks (0.9.33: the eight in order, round; the
                                           * first four again) */
-        kick_preset(kmem_at(k), k % KICK_PRESETS);   /* (0.9.33, FLEXOR: KICK 7 TERROR, KICK 8 SPINE) */
+        kick_preset(kmem_at(k), kmem_pre(k));   /* (0.9.33, FLEXOR: KICK 7 TERROR, KICK 8 SPINE; 0.9.39 the eleven) */
         (*kmem_at(k)).volume = set.kick.volume;
     }
     set.kslot = 3u;                      /* (ROTTERDAM's, set.kick's) */
@@ -917,29 +921,60 @@ static void kfx_all(void)                /* every kick with the FX section playi
 /* LOAF BREAKER (0.9.32, FLEXOR): TERROR's and SPINE's part outside kick_t: their SYNTH (DROP +20, TIME 167 ms, SHAPE
  * -50: a pure sine), TAIL + DRIVE 100 and the KICK EQ's gains (LOW +6.2 dB, MID and HIGH flat); ui/kick.c kpre_extra
  * on the kick playing, kmem_extra on a kick memory as it begins */
-static void kt_extra(uint32_t p, int8_t *syn, kick_lab_t *lab, float *eq)
+/* LOAF BREAKER: a built-in kick's part outside kick_t (0.9.32 TERROR and SPINE; 0.9.39 every preset but ROTTERDAM and
+ * DISTORTO, FLEXOR): its SYNTH (KS_*), its LAB (TAIL MODE, NOTE, CURVE, TAIL FILTER, its time, TAIL + DRIVE) and its
+ * KICK EQ (LOW, MID, HIGH: 0.5 + dB / 24); 0: none, the SYNTH and the LAB cleared, the EQ as it was */
+typedef struct {
+    uint8_t on;
+    int8_t syn[KS_N];
+    uint8_t mode, note, curve, filt, ftime, drive;
+    float eq[3];
+} kt_x_t;
+#define KT_DB(d) (0.5f + (d) / 24.0f)
+static const kt_x_t KT_X[KICK_PRESETS] = {
+    {1, {10, 0, -50, 0, 0, 0, 0, 0}, 1, 0, 0, 0, 0, 0, {KT_DB(2.0f), 0.5f, 0.5f}},           /* 909 */
+    {1, {0, 0, -30, 0, 25, 10, 0, 0}, 1, 0, 0, 0, 0, 0, {KT_DB(2.0f), 0.5f, 0.5f}},          /* TECHNO */
+    {1, {15, 0, 0, 0, 0, 0, 30, 0}, 1, 0, 0, 20, 60, 0, {KT_DB(2.0f), KT_DB(1.0f), 0.5f}},   /* EARLY HC */
+    {0, {0}, 0, 0, 0, 0, 0, 0, {0.5f, 0.5f, 0.5f}},                                          /* ROTTERDAM */
+    {1, {0}, 1, 0, 0, 35, 60, 0, {KT_DB(2.0f), 0.5f, KT_DB(-3.0f)}},                         /* INDUSTRIAL */
+    {0, {0}, 0, 0, 0, 0, 0, 0, {0.5f, 0.5f, 0.5f}},                                          /* DISTORTO */
+    {1, {20, 12, -50, 0, 0, 0, 0, 0}, 1, 0, 0, 0, 0, 100, {0.76f, 0.5f, 0.5f}},              /* TERROR (TIME 12:
+                                          * 120 ms x 2^0.48, 167 ms; EQ LOW +6.2 dB) */
+    {1, {20, 12, -50, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 100, {0.76f, 0.5f, 0.5f}},              /* SPINE (CLASSIC) */
+    {1, {10, 0, -40, 0, 0, 0, 0, 0}, 1, 0, 0, 20, 60, 40, {KT_DB(3.0f), 0.5f, KT_DB(-2.0f)}},   /* 909 DRIVE */
+    {1, {0}, 1, 0, 0, 15, 60, 70, {KT_DB(3.0f), 0.5f, KT_DB(-2.0f)}},                        /* GABBER */
+    {1, {15, 10, -40, 0, 0, 0, 0, 0}, 1, 8, 0, 15, 60, 85, {KT_DB(4.0f), 0.5f, KT_DB(-2.0f)}},   /* MILLENNIUM */
+    {1, {0, 0, 0, 0, 20, 0, 0, 0}, 1, 0, 0, 45, 55, 0, {KT_DB(5.0f), 0.5f, KT_DB(-4.0f)}},   /* DOOMCORE */
+};
+static int kt_extra(uint32_t p, int8_t *syn, kick_lab_t *lab, float *eq)   /* (after the SYNTH and the LAB cleared;
+                                          * 1: it has its own, the EQ set) */
 {
-    if (p == KICK_PRESET_TERROR)         /* (0.9.35, FLEXOR: TERROR's TAIL MODE CLEAN; SPINE's CLASSIC) */
-        lab->mode = 1u;
-    syn[KS_DROP] = 20;
-    syn[KS_TIME] = 12;                   /* (120 ms x 2^0.48: 167 ms) */
-    syn[KS_SHAPE] = -50;
-    lab->drive = 100u;
-    eq[0] = 0.76f;                       /* (+6.2 dB: (0.76 - 0.5) x 24) */
-    eq[1] = eq[2] = 0.5f;
+    const kt_x_t *x = &KT_X[p % KICK_PRESETS];
+    uint32_t j;
+    if (!x->on)
+        return 0;
+    for (j = 0; j < KS_N; j++)
+        syn[j] = x->syn[j];
+    lab->mode = x->mode;
+    lab->note = x->note;
+    lab->curve = x->curve;
+    lab->filt = x->filt;
+    lab->ftime = x->ftime;
+    lab->drive = x->drive;
+    for (j = 0; j < 3u; j++)
+        eq[j] = x->eq[j];
+    return 1;
 }
-static void kmem_extra(uint32_t k)       /* (0.9.33, FLEXOR: kick memory k as it begins, the built-in k % 8 (KICK 7
-                                          * TERROR, KICK 8 SPINE): its PRESET stored, TERROR's and SPINE's rest; after
+static void kmem_extra(uint32_t k)       /* (0.9.33, FLEXOR: kick memory k as it begins, its built-in (kmem_pre: KICK 7
+                                          * TERROR, KICK 8 SPINE): its PRESET stored, its rest (kt_extra); after
                                           * the LAB cleared and the FX sections set) */
 {
-    uint32_t p = k % KICK_PRESETS, i;
+    uint32_t p = kmem_pre(k), i;
+    float e[3];
     klmem_at(k)->pre = (uint8_t)(p + 1u);
-    if (p == KICK_PRESET_TERROR || p == KICK_PRESET_SPINE) {
-        float e[3];
-        kt_extra(p, ksmem_at(k), klmem_at(k), e);
+    if (kt_extra(p, ksmem_at(k), klmem_at(k), e))
         for (i = 0; i < 3u; i++)
             kfxm.k[k % KICK_MEMS].eq[i] = kfx_q(e[i]);
-    }
 }
 static void kmem_extras(void)            /* (every memory: a new FM-1, RESET ALL, RESET's ALL KICKS) */
 {
@@ -995,7 +1030,7 @@ static void km2_defaults(void)           /* (KICK 11..20 as they begin: a save f
     uint32_t k;
     km2.magic = KM2_MAGIC;
     for (k = KMEM_A; k < KICK_MEMS; k++) {
-        kick_preset(kmem_at(k), k % KICK_PRESETS);
+        kick_preset(kmem_at(k), kmem_pre(k));
         kmem_at(k)->volume = set.kick.volume;
         memset(ksmem_at(k), 0, KS_N);
         kx_put(k);

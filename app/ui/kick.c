@@ -156,28 +156,41 @@ static void kick_mem_go(uint32_t n)      /* (LOAF BREAKER: KICK n, 0..9, as abov
     ui.redraw |= RG_BLOCKS | RG_FOOT;
     changed_kick();
 }
-/* LOAF BREAKER (0.9.32, FLEXOR): a built-in kick's part outside kick_t, after the SYNTH and the LAB zeroed: TERROR's and SPINE's
- * SYNTH (DROP +20, TIME 167 ms, SHAPE -50: a pure sine), TAIL + DRIVE 100 (TERROR its TAIL MODE CLEAN too, 0.9.35) and its KICK EQ (LOW +6.2 dB, MID and HIGH
- * flat). The others leave the EQ as it was, as always */
+/* LOAF BREAKER (0.9.32, FLEXOR): a built-in kick's part outside kick_t, after the SYNTH and the LAB zeroed (app.c
+ * kt_extra: its SYNTH, LAB, KICK EQ; 0.9.39 every preset's but ROTTERDAM's and DISTORTO's, which leave the EQ as it was) */
 static void kpre_extra(uint32_t p)
 {
-    if (p != KICK_PRESET_TERROR && p != KICK_PRESET_SPINE)   /* (SPINE: TERROR's too) */
-        return;
-    kt_extra(p, set.ksyn, &klab.cur, set.keq);   /* (app.c) */
-    changed_fx();
+    if (kt_extra(p, set.ksyn, &klab.cur, set.keq))
+        changed_fx();
 }
-/* LOAF BREAKER: OUT's K4 PRESET: the built-in kicks (909 .. DISTORTO, TERROR, SPINE), then COPY KICK 1..10: that memory's kick, its
- * SYNTH and its knobs (KNOBS, CLEAN SUB, BASS, MORPH) onto the kick selected, its volume kept */
-#define KPRE_N (KICK_PRESETS + KICK_MEMS)
+/* LOAF BREAKER: OUT's K4 PRESET: the built-in kicks (KICK_PRESET_ORD's round, 0.9.39), then COPY KICK 1..20: that
+ * memory's kick, its SYNTH and its knobs (KNOBS, CLEAN SUB, BASS, MORPH) onto the kick selected, its volume kept.
+ * ui.kpreset: a built-in's table index (< KICK_PRESETS: what kick_lab_t.pre stores, + 1), or KICK_PRESETS + n, COPY K n */
+#define KPRE_N (KICK_PRESETS_ON + KICK_MEMS)   /* (the round's length) */
+static uint32_t kpre_pos(uint32_t v)     /* (ui.kpreset's place in the round; DISTORTO, out of it: INDUSTRIAL's) */
+{
+    uint32_t j;
+    if (v >= KICK_PRESETS)
+        return KICK_PRESETS_ON + (v - KICK_PRESETS) % KICK_MEMS;
+    for (j = 0; j < KICK_PRESETS_ON; j++)
+        if (KICK_PRESET_ORD[j] == (v == KICK_PRESET_DISTORTO ? 4u : v))
+            return j;
+    return 0;
+}
+static uint32_t kpre_at(uint32_t pos)
+{
+    pos %= KPRE_N;
+    return pos < KICK_PRESETS_ON ? KICK_PRESET_ORD[pos] : KICK_PRESETS + pos - KICK_PRESETS_ON;
+}
 static void kpre_text(char *t)
 {
-    uint32_t p = ui.kpreset % KPRE_N;
+    uint32_t p = ui.kpreset;
     if (p < KICK_PRESETS) {
         text_cat(t, KICK_PRESET_NAME[p]);
         return;
     }
     text_cat(t, "COPY K");
-    int_text((int32_t)(p - KICK_PRESETS) + 1, t + 6);
+    int_text((int32_t)((p - KICK_PRESETS) % KICK_MEMS) + 1, t + 6);
 }
 static void kick_copy_from(uint32_t n)    /* (0.9.26: kick memory n's everything onto the kick playing, its volume kept: COPY
                                           * K n, SEL + ARP's paste) */
@@ -459,7 +472,7 @@ static float kick_macro_value(int m)
     return v * (1.0f / (float)KM_N);
 }
 /* LOAF BREAKER: a layer's FX page, K3 empty (no effect, or RING's one setting): PRESET, the kick back to a built-in
- * one (909 .. DISTORTO, its volume kept) */
+ * one (KICK_PRESET_ORD's round, its volume kept) */
 static int kick_preset_knob(int i)
 {
     return (ui.kpage == KP_PRESET && i == 0) || (ui.kpage == KP_FX && i == 2 && !KFX_PARAM[set.kick.l[ui.klayer % KICK_LAYERS].fx % KICK_FX][1][0]) ||
@@ -741,7 +754,10 @@ static void kick_knob_turn(int i, int32_t d)
     }
     if (kick_preset_knob(i)) {           /* the whole kick: every layer, its effects, INTENSITY (the kick selected,
                                           * KICK 1-10: its memory takes it); the volume and the steps kept */
-        ui.kpreset = (uint8_t)((ui.kpreset % KPRE_N + (d > 0 ? 1u : KPRE_N - 1u)) % KPRE_N);
+        uint32_t pos = kpre_pos(ui.kpreset);
+        if (ui.kpreset == KICK_PRESET_DISTORTO && d < 0)   /* (a kick saved from DISTORTO: back to INDUSTRIAL) */
+            pos++;
+        ui.kpreset = (uint8_t)kpre_at(pos + (d > 0 ? 1u : KPRE_N - 1u));
         if (ui.kpreset < KICK_PRESETS) {
             uint32_t j;
             kick_preset(k, ui.kpreset);
@@ -752,7 +768,7 @@ static void kick_knob_turn(int i, int32_t d)
             klab.cur.pre = (uint8_t)(ui.kpreset + 1u);   /* (the PRESET it shows, as its memory's, 0.9.2) */
             kpre_extra(ui.kpreset);
         } else {                         /* (COPY KICK n: that memory's, if it is another) */
-            uint32_t n = ui.kpreset - KICK_PRESETS, j;
+            uint32_t n = (ui.kpreset - KICK_PRESETS) % KICK_MEMS, j;
             float vol = k->volume;
             kick_value(i, t);
             if (n == set.kslot % KICK_MEMS) {
@@ -953,7 +969,7 @@ static float kick_knob_f(int i)          /* the part's knob i, 0..1 (as its bar)
         return klab_norm(i);
     default:
         return i == 0 ? k->volume : i <= 2 ? (float)*kick_hc((kick_t *)k, i) * 0.01f :
-               (float)(ui.kpreset % KPRE_N) / (float)(KPRE_N - 1u);   /* (OUT K4: the preset, the copies) */
+               (float)kpre_pos(ui.kpreset) / (float)(KPRE_N - 1u);   /* (OUT K4: the preset, the copies) */
     }
 }
 /* LOAF BREAKER: the KICK menu's picture (y 44..143, no waveform of the break above it): the kick as it sounds, its

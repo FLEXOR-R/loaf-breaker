@@ -112,7 +112,8 @@ computer.</p>
   <p class="state" id="sendStatus" role="status"></p>
   <p class="hint">LOAF BREAKER must be stopped while it is written: writing the flash pauses the sound. Sending replaces
   what is on the FM-1 with your list as it is here (an empty list deletes them). Your breaks go in two places of the
-  flash (the two bars: 140 KB and 92 KB); the page picks each one's and rewrites only a place that changes.</p>
+  flash (the two bars: 140 KB and 92 KB); the page picks each one's and rewrites only a place that changes.
+  Remove only takes a break off the list here: the FM-1 keeps it until you send.</p>
 </section>
 
 <section class="card hidden" id="listen" aria-labelledby="h-listen">
@@ -520,7 +521,10 @@ function renderMine() {
       `<button aria-label="Remove ${esc(m.name)}">Remove</button></div>`;
     const [hear, , ] = row.querySelectorAll("button");
     hear.onclick = () => listen({ name: m.name, one: m.one, b: m.b, from: "mine" }, true);
-    row.querySelector(".acts button").onclick = () => { mine.splice(k, 1); renderMine(); };
+    row.querySelector(".acts button").onclick = () => {
+      mine.splice(k, 1); renderMine();
+      if (m.sent) say($("sendStatus"), `${esc(m.name)} is off the list. The FM-1 keeps it until you press <b>${esc($("send").textContent)}</b>.`);
+    };
     el.appendChild(row);
   });
   const facts = [0, 1].map((z) => {

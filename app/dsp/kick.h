@@ -60,7 +60,10 @@ typedef struct {
     float volume;                        /* 0..1 */
 } kick_t;                                /* 136 bytes (its steps are the pattern's: the app's) */
 
-#define KICK_PRESETS 8u
+#define KICK_PRESETS 12u                /* (0.9.39: the table's; K1's round KICK_PRESET_ORD) */
+#define KICK_PRESETS_ON 11u
+#define KICK_PRESET_DISTORTO 5u          /* (0.9.39, FLEXOR: out of the round, kept for the kicks saved from it) */
+#define KICK_PRESET_ROTTERDAM 3u
 #define KICK_PRESET_TERROR 6u            /* (LOAF BREAKER, 0.9.32, FLEXOR: TERROR, his kick made a preset: ROTTERDAM, GRIT
                                           * 0, DISTO 30 FOLD, DRIVE 69, SUB 1279 ms, SUB FX DRIVE 50; with the app's part,
                                           * ui/kick.c kpre_extra: SYNTH DROP +20, TIME 167 ms, SHAPE -50, TAIL + DRIVE 100,
@@ -70,6 +73,9 @@ typedef struct {
                                           * before TERROR, its memories begun as the first six, round; since, every memory
                                           * begins as the eight in order, its PRESET stored: kmem_extra) */
 extern const char *const KICK_PRESET_NAME[KICK_PRESETS];
+/* PRESET's round (K1, OUT K4) and the kick memories' first eleven, by table index: 909, 909 DRIVE, TECHNO, EARLY HC,
+ * ROTTERDAM, INDUSTRIAL, TERROR, SPINE, GABBER, MILLENNIUM, DOOMCORE (0.9.39, FLEXOR) */
+extern const uint8_t KICK_PRESET_ORD[KICK_PRESETS_ON];
 void kick_preset(kick_t *k, uint32_t i);   /* the sound of a built-in kick (the volume kept) */
 void kick_defaults(kick_t *k);           /* ROTTERDAM, volume 0.8 */
 float kick_pitch_hz(uint32_t layer, float pitch);   /* a layer's pitch knob (0..1) in Hz, for the screen */

@@ -9,7 +9,10 @@
 const char *const KICK_LAYER_NAME[KICK_LAYERS] = {"SUB", "PUNCH", "GRIT", "CLICK"};
 const char *const KICK_FX_NAME[KICK_FX] = {"OFF", "DRIVE", "CRUNCH", "FILTER", "RING MOD"};
 const char *const KICK_PRESET_NAME[KICK_PRESETS] = {"909", "TECHNO", "EARLY HC", "ROTTERDAM", "INDUSTRIAL", "DISTORTO",
-                                                     "TERROR", "SPINE"};
+                                                     "TERROR", "SPINE", "909 DRIVE", "GABBER", "MILLENNIUM",
+                                                     "DOOMCORE"};
+/* (0.9.39, FLEXOR: PRESET's round, K1 / OUT K4; DISTORTO out of it, its place kept for the kicks saved from it) */
+const uint8_t KICK_PRESET_ORD[KICK_PRESETS_ON] = {0u, 8u, 1u, 2u, 3u, 4u, 6u, 7u, 9u, 10u, 11u};
 
 static inline float soft(float x) { return x / (1.0f + brk_absf(x)); }
 
@@ -811,22 +814,36 @@ BRK_COLD void kick_wave(const kick_t *k, int8_t *px, uint32_t n, uint32_t ms, ui
 
 /* the built-in kicks: per layer level, pitch, decay, tone; then intensity */
 static const float PRESET[KICK_PRESETS][KICK_LAYERS * 4 + 1] = {
-    {0.80f, 0.35f, 0.45f, 0.10f, 0.70f, 0.50f, 0.30f, 0.40f, 0.00f, 0.30f, 0.20f, 0.30f, 0.35f, 0.50f, 0.25f, 0.30f,
-     0.00f},                             /* 909: clean, round */
-    {0.90f, 0.25f, 0.55f, 0.20f, 0.60f, 0.40f, 0.25f, 0.30f, 0.10f, 0.25f, 0.20f, 0.20f, 0.30f, 0.60f, 0.20f, 0.50f,
-     0.15f},                             /* TECHNO: deep, a touch of grit */
-    {0.75f, 0.45f, 0.40f, 0.40f, 0.80f, 0.55f, 0.35f, 0.60f, 0.35f, 0.35f, 0.30f, 0.50f, 0.40f, 0.55f, 0.20f, 0.40f,
-     0.45f},                             /* EARLY HC: punchy, driven */
+    {0.85f, 0.50f, 0.62f, 0.15f, 0.75f, 0.55f, 0.35f, 0.55f, 0.00f, 0.30f, 0.30f, 0.30f, 0.25f, 0.25f, 0.25f, 0.20f,
+     0.20f},                             /* 909 (0.9.39, FLEXOR: rounder, the SUB 614 ms, a pure sine: app.c kt_extra) */
+    {0.90f, 0.25f, 0.58f, 0.30f, 0.60f, 0.40f, 0.30f, 0.35f, 0.15f, 0.25f, 0.25f, 0.20f, 0.30f, 0.55f, 0.20f, 0.50f,
+     0.35f},                             /* TECHNO (0.9.39: deeper, 39 Hz, longer, the RUMBLE on) */
+    {0.90f, 0.55f, 0.52f, 0.85f, 0.85f, 0.60f, 0.50f, 0.75f, 0.20f, 0.40f, 0.30f, 0.40f, 0.40f, 0.55f, 0.20f, 0.30f,
+     0.80f},                             /* EARLY HC (0.9.39: more body, the SUB saturated, DISTO HALF 25, ASYM) */
     {0.90f, 0.30f, 0.60f, 0.60f, 0.70f, 0.45f, 0.45f, 0.70f, 0.55f, 0.30f, 0.55f, 0.70f, 0.35f, 0.60f, 0.20f, 0.50f,
      0.85f},                             /* ROTTERDAM: the long distorted tail */
-    {0.70f, 0.30f, 0.50f, 0.50f, 0.60f, 0.60f, 0.30f, 0.50f, 0.80f, 0.55f, 0.45f, 0.90f, 0.50f, 0.70f, 0.30f, 0.80f,
-     0.70f},                             /* INDUSTRIAL: metal and noise */
+    {0.85f, 0.25f, 0.70f, 0.55f, 0.60f, 0.50f, 0.35f, 0.50f, 0.55f, 0.45f, 0.55f, 0.55f, 0.40f, 0.45f, 0.25f, 0.70f,
+     0.75f},                             /* INDUSTRIAL (0.9.39: darker: GRIT through RING MOD, DISTO TUBE 25) */
     {0.85f, 0.35f, 0.55f, 0.80f, 0.85f, 0.50f, 0.40f, 0.80f, 0.70f, 0.40f, 0.50f, 0.80f, 0.40f, 0.55f, 0.25f, 0.45f,
-     1.00f},                             /* DISTORTO: everything into the clip */
+     1.00f},                             /* DISTORTO: everything into the clip (out of PRESET's round, 0.9.39) */
     {0.90f, 0.30f, 0.92f, 0.60f, 0.70f, 0.45f, 0.45f, 0.70f, 0.00f, 0.30f, 0.55f, 0.70f, 0.35f, 0.60f, 0.20f, 0.50f,
      0.69f},                             /* TERROR (FLEXOR): ROTTERDAM, the SUB to 1279 ms, no GRIT, DRIVE 69 % */
     {0.90f, 0.30f, 0.70f, 0.60f, 0.70f, 0.45f, 0.45f, 0.70f, 0.00f, 0.30f, 0.55f, 0.70f, 0.35f, 0.60f, 0.20f, 0.50f,
      0.50f},                             /* SPINE (FLEXOR): TERROR, the SUB to 766 ms, DRIVE 50 %, DISTO RECT below */
+    {0.85f, 0.50f, 0.65f, 0.35f, 0.80f, 0.55f, 0.40f, 0.65f, 0.10f, 0.30f, 0.30f, 0.30f, 0.30f, 0.30f, 0.25f, 0.25f,
+     0.75f},                             /* 909 DRIVE (0.9.39, FLEXOR): the 909 driven, DISTO TUBE 15 */
+    {0.90f, 0.45f, 0.66f, 0.70f, 0.80f, 0.50f, 0.45f, 0.75f, 0.25f, 0.30f, 0.40f, 0.40f, 0.35f, 0.50f, 0.20f, 0.40f,
+     0.95f},                             /* GABBER (0.9.39, FLEXOR): DRIVE 95 %, DISTO FOLD 25, the SUB 690 ms */
+    {0.90f, 0.35f, 0.85f, 0.55f, 0.75f, 0.50f, 0.40f, 0.70f, 0.15f, 0.30f, 0.50f, 0.40f, 0.30f, 0.55f, 0.20f, 0.40f,
+     0.85f},                             /* MILLENNIUM (0.9.39, FLEXOR): a long tuned tail, the SUB 1100 ms */
+    {0.95f, 0.12f, 0.95f, 0.60f, 0.65f, 0.35f, 0.50f, 0.50f, 0.20f, 0.20f, 0.60f, 0.30f, 0.25f, 0.30f, 0.20f, 0.30f,
+     0.80f},                             /* DOOMCORE (0.9.39, FLEXOR): 34 Hz, the SUB 1360 ms, DISTO TUBE 20 */
+};
+/* (their DISTO: amount, D+ TYPE; the SUB through DRIVE (fa 0.5); GRIT's effect, its fa and mix in %) */
+static const uint8_t PRESET_X[KICK_PRESETS][6] = {
+    {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {25, 5, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0}, {25, 4, 0, KFX_RING, 35, 50},
+    {0, 0, 0, 0, 0, 0}, {30, 0, 1, 0, 0, 0}, {30, 3, 1, 0, 0, 0}, {15, 4, 0, 0, 0, 0}, {25, 0, 0, 0, 0, 0},
+    {20, 0, 0, 0, 0, 0}, {20, 4, 0, 0, 0, 0},
 };
 
 BRK_COLD void kick_preset(kick_t *k, uint32_t i)
@@ -845,16 +862,22 @@ BRK_COLD void kick_preset(kick_t *k, uint32_t i)
         k->l[l].wet = 1.0f;
     }
     k->intensity = p[KICK_LAYERS * 4u];
-    if (i % KICK_PRESETS == KICK_PRESET_TERROR || i % KICK_PRESETS == KICK_PRESET_SPINE) {   /* (their SUB through
-                                          * DRIVE at 50 %, DISTO 30 %: TERROR's FOLD, SPINE's RECT) */
-        k->l[KL_SUB].fx = KFX_DRIVE;
-        KICK_TERROR(k) = 30u;
-        KICK_T_TYPE(k) = i % KICK_PRESETS == KICK_PRESET_SPINE ? 3u : 0u;
+    {                                    /* (their DISTO, the SUB's DRIVE (TERROR, SPINE), GRIT's effect) */
+        const uint8_t *x = PRESET_X[i % KICK_PRESETS];
+        KICK_TERROR(k) = x[0];
+        KICK_T_TYPE(k) = x[1];
+        if (x[2])
+            k->l[KL_SUB].fx = KFX_DRIVE;
+        if (x[3]) {
+            k->l[KL_GRIT].fx = x[3];
+            k->l[KL_GRIT].fa = (float)x[4] * 0.01f;
+            k->l[KL_GRIT].wet = (float)x[5] * 0.01f;
+        }
     }
 }
 
 BRK_COLD void kick_defaults(kick_t *k)
 {
-    kick_preset(k, 3u);                  /* ROTTERDAM: CHOPPAH is for the hard stuff */
+    kick_preset(k, KICK_PRESET_ROTTERDAM);   /* ROTTERDAM: CHOPPAH is for the hard stuff */
     k->volume = 0.8f;
 }

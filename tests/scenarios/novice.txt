@@ -29,9 +29,9 @@ tap EDIT
 wait 300
 expect kpage 4
 expect keasy 0
-turn K1 2 60
+turn K1 1 60
 wait 200
-expect kpreset 5
+expect kpreset 4
 turn K3 -40 60
 wait 200
 expect subdrv -1

@@ -94,10 +94,18 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - TERROR and SPINE, the seventh and eighth built-in kicks (0.9.32, FLEXOR, chosen by ear: PRD A-54i; SPINE TERROR with DRIVE 50,
   D+ TYPE RECT, SUB 766 ms): `KICK_PRESET_TERROR`, `KICK_PRESET_SPINE`, their kick_t part in
   kick.c PRESET / kick_preset, the rest (SYNTH, TAIL + DRIVE, KICK EQ LOW; TERROR's TAIL MODE CLEAN, 0.9.35) in app.c `kt_extra` (ui/kick.c `kpre_extra`); the kick memories
-  begin as the eight in order, round (0.9.33, FLEXOR: KICK 7 TERROR, KICK 8 SPINE; `kmem_extra` / `kmem_extras` their rest and
+  begin as the eight in order, round (0.9.33, FLEXOR: KICK 7 TERROR, KICK 8 SPINE; 0.9.39: the eleven, `KMEM_ORD`; `kmem_extra` / `kmem_extras` their rest and
   their PRESET stored, on a new FM-1, RESET ALL, ALL KICKS; a saved memory never changed: a PRESET never stored is read as
   the first six, round, `KICK_PRESETS_MEM`). Kick listening pages: the host's
   `kset NAME VALUE` (ui/main.c) sets a kick exactly as its knobs show it.
+- Built-in kicks remade (14 Nov 2026, 0.9.39, FLEXOR, by ear on https://claude.ai/artifact/GrjudTKC9s5nDRimcGXYEx, store `choix`;
+  PRD A-54k): K1's round `KICK_PRESET_ORD` 909, 909 DRIVE, TECHNO, EARLY HC, ROTTERDAM, INDUSTRIAL, TERROR, SPINE, GABBER,
+  MILLENNIUM, DOOMCORE; DISTORTO out of it (table index 5 kept, `KICK_PRESET_DISTORTO`: a kick saved from it keeps its name);
+  the table's indices never move (`kick_lab_t.pre` stores them): append new kicks at the end. Each preset: kick.c PRESET +
+  PRESET_X, app.c `KT_X` (SYNTH, LAB, KICK EQ; `on` 0: ROTTERDAM, DISTORTO, the EQ left as it was). The memories `KMEM_ORD`
+  (ROTTERDAM KICK 4, the start's `kslot` 3; EARLY HC KICK 5). His taste for new ones: drive and distortion, SUB and tails
+  medium to long, TAIL MODE CLEAN, tails not shrill (a page measures above 3 kHz in the tail: TERROR's -40 dB the mark).
+  The host's `kset LAYER.level|pitch|decay|tone|fx|fa|fb|wet`, `syn.*`, `lab.*`, `t.*`, `t2.*`, `csub` set any of a kick raw.
 - WAVE TYPE (`set.wstyle`: REKORDBOX / SERATO; HOME › SETTINGS K2 alone since 0.9.25, GLO EFFECTS' K3 before; SYSTEM shows
   none of HOME's SETTINGS any more, FLEXOR; common.c serato_col; the kick's RGB and cdj.c) and EDIT
   VIEW (KICK › KNOBS › TOOLS K3 since 0.9.29, SYSTEM › EFFECTS K4 before; `set.kfocus`: the whole kick / the part edited: kick.c kv_ms, kv_kick) (10 Nov 2026, 0.206).
@@ -181,7 +189,7 @@ files before it define. `app/dsp/*.c` are separate `o2` units (brk, brk_fx, kick
   were true: ~40 KB and ~37 KB of flash). Their app hooks (`APP_BLE_AT_BOOT`, `BP_MQ_ATTR` in app.h) stay as
   CHOPPAH's, inert; never turn either back on.
 - Flash: the app slot is 581,564 B (`APP_SLOT` 0x8DFBC in base/tools/fm1pkg_make.py: not 581 KiB); 577,288 B used at
-  0.192 with a 357 KB bank; 561,424 B at 0.220 (9 breaks); 568,492 B at 0.225 (the drums' extras): **~13 KB left**. **580,660 B at 0.9.26 (the latches and FILTER's THRU): ~0.9 KB left; 581,312 B at 0.9.30 (GLO EFFECTS' cards): 252 B left; then AMEN15 174 out (FLEXOR): 554,144 B with the drums' 64 steps and VINYL BREAK's platter (its face 2 KB, app/face_data.h from tools/make_face.py): ~27 KB left; RAM 96,396 of 98,304; .ram_text 17,200 of 32,768. 556,928 B at 0.9.32 (the player's breaks in two zones, TERROR and SPINE): ~24.6 KB left; 557,160 B with KICK 7-8 TERROR, SPINE; 540,896 B at 0.9.34 with FLEXOR's five breaks (9, 282.3 KB): ~40 KB left; 573,120 B with his sixth, OBEDIENC165 (10, 313.8 KB): ~8.2 KB left; 560,368 B at 0.9.37 with THINK at 16 kHz (breaks.txt NAME `16000Hz`, a line's own rate; FLEXOR): ~20.7 KB left; 556,144 B at 0.9.38 with SHUFFLE 190 for OBEDIENC165: ~24.8 KB left; RAM 96,508; .ram_text 17,400.**
+  0.192 with a 357 KB bank; 561,424 B at 0.220 (9 breaks); 568,492 B at 0.225 (the drums' extras): **~13 KB left**. **580,660 B at 0.9.26 (the latches and FILTER's THRU): ~0.9 KB left; 581,312 B at 0.9.30 (GLO EFFECTS' cards): 252 B left; then AMEN15 174 out (FLEXOR): 554,144 B with the drums' 64 steps and VINYL BREAK's platter (its face 2 KB, app/face_data.h from tools/make_face.py): ~27 KB left; RAM 96,396 of 98,304; .ram_text 17,200 of 32,768. 556,928 B at 0.9.32 (the player's breaks in two zones, TERROR and SPINE): ~24.6 KB left; 557,160 B with KICK 7-8 TERROR, SPINE; 540,896 B at 0.9.34 with FLEXOR's five breaks (9, 282.3 KB): ~40 KB left; 573,120 B with his sixth, OBEDIENC165 (10, 313.8 KB): ~8.2 KB left; 560,368 B at 0.9.37 with THINK at 16 kHz (breaks.txt NAME `16000Hz`, a line's own rate; FLEXOR): ~20.7 KB left; 556,144 B at 0.9.38 with SHUFFLE 190 for OBEDIENC165: ~24.8 KB left; RAM 96,508; .ram_text 17,400. 557,312 B at 0.9.39 (the eleven built-in kicks): ~24.2 KB left.**
   RAM .data+.bss 93,292 of 98,304 B at 0.225 (the drums' room, 5.8 KB of 16-bit lines, is in RAM): ~5 KB left; the
   pool has ~10.8 KB (it could take the room's lines). The break bank (`CH_BANK`) is most of it.
   New features are welcome before 1.0 (FLEXOR, 11 Nov 2026: "not that close to 1.0, I want to perfect the firmware");

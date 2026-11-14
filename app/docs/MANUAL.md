@@ -237,7 +237,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
   classic view, its EQ and FX) and on the other drums' pages (big or classic), **white keys 1–4 play the KICK, SNARE,
   HAT, CLAP** once each, to hear them (the number on each drum's card; on the big views the strip names the
   drum played); playing, the keys play slices as ever. **A built-in kick on the kick selected:**
-  **OUT** (BODY's last part), **K4 PRESET**: 909, TECHNO, EARLY HC, ROTTERDAM, INDUSTRIAL, DISTORTO, TERROR, SPINE (FLEXOR's), on the kick
+  **OUT** (BODY's last part), **K4 PRESET**: 909, 909 DRIVE, TECHNO, EARLY HC, ROTTERDAM, INDUSTRIAL, TERROR, SPINE, GABBER, MILLENNIUM, DOOMCORE (FLEXOR's, 0.9.39), on the kick
   selected (PRESETS: KICK 1–20), its volume, steps and DISTO and SCREAM kept. **A kick copied onto another:** K4 PRESET past
   them, **COPY K1 … COPY K10**: that memory's kick, its SYNTH and its knobs (KNOBS, CLEAN SUB, BASS, MORPH) onto the
   kick selected, its volume kept (pick the kick to fill with PRESETS, then the one to copy with K4). Quicker (0.9.26),
@@ -820,7 +820,7 @@ shows; 0: nothing), K3 **AT THE DROP** (how hard the drop shows; 0: nothing), K4
 **RESET** (SYSTEM's last part): puts one part back as it starts, the rest kept. **K4** picks what, in a list that scrolls (ALGORITHM goes to SYSTEM's other parts, as on its other pages; each says
 on the right what it puts back): DROP, BUILD, KNOB; **KICK** (the kick selected, KICK 1–20: ROTTERDAM again, its
 SYNTH, BASS, CLEAN SUB and MORPH at 0, its volume kept, its memory with it); **KICK TONE** (its EQ flat, its two FX slots empty);
-**ALL KICKS** (KICK 1–20 as they came: the eight built-in kicks in order, KICK 7 TERROR, KICK 8 SPINE, then round again; their knobs as they start); **DRUMS** (the snare's, hat's and clap's memory playing as it
+**ALL KICKS** (KICK 1–20 as they came: the eleven built-in kicks, KICK 1 909, KICK 2 909 DRIVE, KICK 3 TECHNO, KICK 4 ROTTERDAM (the start), KICK 5 EARLY HC, KICK 6 INDUSTRIAL, KICK 7 TERROR, KICK 8 SPINE, KICK 9 GABBER, KICK 10 MILLENNIUM, KICK 11 DOOMCORE, then round again; their knobs as they start); **DRUMS** (the snare's, hat's and clap's memory playing as it
 came); **MIX** (the MIXER: levels, swing, the drums' route, COMP and DUCK off with their timing, MAX OUT −3 dB);
 **FX CHAIN** (the four slots as they came, each effect's memory forgotten, the FX level kept); **STEPS** (this
 pattern's drum steps: 1 hit, ALWAYS, on time; the steps themselves kept); **PADS** (the black keys' settings:
@@ -866,7 +866,7 @@ The kick is four layers summed and pushed into a clipper:
 | --- | --- |
 | ALGORITHM | The part: MIX, a layer (SUB, PUNCH, GRIT, CLICK), its FX, MACRO, OUT |
 | PRESETS | The kick selected: KICK 1–20, each its own memory |
-| OUT K4 PRESET | A built-in kick on the kick selected: 909, TECHNO, EARLY HC, ROTTERDAM (the start), INDUSTRIAL, DISTORTO, TERROR (FLEXOR's: ROTTERDAM with DISTO 30 % FOLD, DRIVE 69 %, no GRIT, the SUB to 1279 ms through DRIVE 50 %, TAIL MODE CLEAN, TAIL + DRIVE 100 %, EQ LOW +6.2 dB, DROP +20 in 167 ms, a pure sine), SPINE (TERROR with DRIVE 50 %, D+ TYPE RECT, the SUB to 766 ms, TAIL MODE CLASSIC). The steps, routing, volume and DISTO and SCREAM stay (TERROR and SPINE set their own DISTO) |
+| OUT K4 PRESET | A built-in kick on the kick selected (0.9.39, FLEXOR's choice by ear): 909 (round: a pure sine at 52 Hz, the SUB 614 ms), 909 DRIVE (the 909 driven 75 %, DISTO TUBE 15), TECHNO (39 Hz, the RUMBLE), EARLY HC (more body: the SUB saturated, ASYM, DISTO HALF 25), ROTTERDAM (the start), INDUSTRIAL (darker: GRIT through RING MOD, DISTO TUBE 25), TERROR (FLEXOR's: ROTTERDAM with DISTO 30 % FOLD, DRIVE 69 %, no GRIT, the SUB to 1279 ms through DRIVE 50 %, TAIL MODE CLEAN, TAIL + DRIVE 100 %, EQ LOW +6.2 dB, DROP +20 in 167 ms, a pure sine), SPINE (TERROR with DRIVE 50 %, D+ TYPE RECT, the SUB to 766 ms, TAIL MODE CLASSIC), GABBER (DRIVE 95 %, DISTO FOLD 25, TAIL + DRIVE 70), MILLENNIUM (a long tuned tail: NOTE set, the SUB 1100 ms, TAIL + DRIVE 85), DOOMCORE (34 Hz, the SUB 1360 ms, DISTO TUBE 20, the RUMBLE). All but ROTTERDAM have TAIL MODE CLEAN (SPINE CLASSIC) and set their own SYNTH, LAB and KICK EQ; ROTTERDAM leaves the EQ as it was. DISTORTO is gone (a kick saved from it keeps its sound and its name). The steps, routing and volume stay |
 | MIDI note 36 (C1) | Plays the kick, from any channel, also while stopped |
 
 | Part | K1 | K2 | K3 | K4 |
