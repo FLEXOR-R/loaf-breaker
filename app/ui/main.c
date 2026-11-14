@@ -2269,10 +2269,13 @@ void app_redraw(void)                    /* (LOAF BREAKER 0.9.44: the mirror los
  * and of the drums' pages, knob by knob, headless: the screen's place kept, EXPERT's knobs, the FM-1's own names, texts
  * and turns (kick_knob_turn, perc_turn, keq_turn: the same clamps and steps). Commands (zone 0): 7 ED_INFO -> {1, kick
  * slot, playing, sections, each {name 8, parts, each {part, name 12, 1 editable}}}; 8 ED_KNOB {sound 0 kick / 1..3
- * SN HH CP, part (the drums: their page 0..2), knob, delta int8 (0: read)} -> {sound, part, 4 x {name 12, text 16,
- * bar 0..200}}; 9 ED_ACT {1 KICK n, 2 hit (sound), 3 SAVE, 4 PLAY / STOP} -> ED_INFO's head; 10 ED_WAVE {ms u16} ->
+ * SN HH CP, part (the drums: their page 0..2), knob, delta int8 (0: read), FX1/FX2's part (MAIN MORE MOD, an MB
+ * COMP's)} -> {sound, part, 4 x {name 12, text 16, bar 0..200}; FX1/FX2: then its effect 12, on, part, parts, each
+ * name 8} (FX1/FX2's knob 4: PRESETS, the effect; 5: on (delta > 0) / off); 9 ED_ACT {1 KICK n, 2 hit (sound),
+ * 3 SAVE, 4 PLAY / STOP} -> ED_INFO's head; 10 ED_WAVE {ms u16} ->
  * 240 columns of the kick's hit, -60..60 */
-typedef struct { uint8_t page, kpage, klayer, kks, keq, novice, pvoice, ppage, ksect, kpos; } ed_ctx_t;
+typedef struct { uint8_t page, kpage, klayer, kks, keq, novice, pvoice, ppage, ksect, kpos, fxf, fxp, fxm; } ed_ctx_t;
+static uint8_t ed_fxpage;               /* (FX1, FX2: the part asked, MAIN MORE MOD or an MB COMP's) */
 static int ed_kpart(uint32_t p)          /* (kick_part_set's KICK menu, no message; 0: a part not here, FX1 / FX2) */
 {
     if (p == KP_PART_PRESET) {
@@ -2284,8 +2287,13 @@ static int ed_kpart(uint32_t p)          /* (kick_part_set's KICK menu, no messa
         if (q < 2u) {
             ui.page = PG_KEQ;
             ui.keq_part = (uint8_t)q;
-        } else if (q < 4u)
-            return 0;
+        } else if (q < 4u) {             /* (FX1, FX2: the kick's slots on the FX page, its part) */
+            uint32_t n;
+            ui.page = PG_FX;
+            ui.fx_focus = (uint8_t)(BRK_FX_SLOTS + q - 2u);
+            n = fx_npages(fx_sl(fx_foc())->type);
+            ui.fx_page = (uint8_t)(ed_fxpage < n ? ed_fxpage : 0u);
+        }
         else if (q >= 17u)
             ui.kpage = (uint8_t)(KP_TAIL + q - 17u);
         else if (q == 15u)
@@ -2314,6 +2322,7 @@ static int ed_enter(ed_ctx_t *c, uint32_t snd, uint32_t part)
     c->page = ui.page; c->kpage = ui.kpage; c->klayer = ui.klayer; c->kks = ui.kks; c->keq = ui.keq_part;
     c->novice = set.novice; c->pvoice = ui.pvoice; c->ppage = ui.ppage; c->ksect = ui.ksect;
     c->kpos = ui.kpos[ui.ksect % KSECTS];
+    c->fxf = ui.fx_focus; c->fxp = ui.fx_page; c->fxm = ui.fx_main;
     set.novice = 0u;
     if (snd) {
         ui.page = PG_PERC;
@@ -2329,6 +2338,7 @@ static void ed_leave(const ed_ctx_t *c)
     ui.page = c->page; ui.kpage = c->kpage; ui.klayer = c->klayer; ui.kks = c->kks; ui.keq_part = c->keq;
     set.novice = c->novice; ui.pvoice = c->pvoice; ui.ppage = c->ppage; ui.ksect = c->ksect;
     ui.kpos[ui.ksect % KSECTS] = c->kpos;
+    ui.fx_focus = c->fxf; ui.fx_page = c->fxp; ui.fx_main = c->fxm;
     ui.redraw |= RG_ALL;
 }
 static uint32_t ed_str(uint8_t *o, const char *t, uint32_t n)   /* t in n bytes, 0-padded (no libc on the FM-1) */
@@ -2356,6 +2366,19 @@ static void ed_knob(uint32_t snd, int i, uint8_t *o)   /* {name 12, text 16, bar
         nm = KEQ_NAME[ui.keq_part & 1u][i & 3];
         keq_value(i, t);
         f = set.keq[(ui.keq_part & 1u) * 4u + (uint32_t)(i & 3)];
+    } else if (ui.page == PG_FX) {      /* (FX1, FX2: the FX page's own names, texts, amounts) */
+        uint32_t sl = fx_foc();
+        const brk_fxslot_t *x = fx_sl(sl);
+        nm = fx_param_name(sl, i);
+        if (nm && nm[0])
+            fx_value(sl, i, t);
+        if (mb_detail(sl))
+            f = ui.fx_page == MBP_GAIN && (i & 3) == 3 ? (float)mbc_at(sl)->solo / (float)MB_BANDS
+                                                       : *mb_knob_val(mbc_at(sl), i);
+        else if (x_detail(sl))
+            f = fxx_of(sl)->x[(uint32_t)(i & 3) + (ui.fx_page == XP_MOD ? 4u : 0u)];
+        else
+            f = (i & 3) == 3 ? x->mix : x->p[i & 3];
     } else {
         nm = kick_knob_name(i);
         kick_value(i, t);
@@ -2415,12 +2438,27 @@ static int ed_sysex(uint32_t cmd, const uint8_t *u, uint32_t len)
     if (cmd == 8u && len >= 4u) {        /* ED_KNOB */
         ed_ctx_t x;
         uint32_t snd = u[0] % 4u;
-        int ok = ed_enter(&x, snd, u[1]);
+        int ok;
+        ed_fxpage = len >= 5u ? u[4] : 0u;
+        ok = ed_enter(&x, snd, u[1]);
         if (ok && u[3]) {
             int32_t d = (int8_t)u[3];
             if (snd)
                 perc_turn(u[2] & 3, d);
-            else if (ui.page == PG_KEQ)
+            else if (ui.page == PG_FX) {
+                if (u[2] == 4u) {        /* (K5: PRESETS, the effect) */
+                    fx_type_turn(d);
+                    ui.fx_page = 0u;
+                } else if (u[2] == 5u) { /* (K6: on / off, as SEL + FX) */
+                    brk_fxslot_t *sl = fx_sl(fx_foc());
+                    if (sl->type != FXT_EMPTY && sl->on != (d > 0)) {
+                        sl->on = (uint8_t)(d > 0);
+                        app_say(BRK_FXT_NAME[sl->type], sl->on ? "ON" : "BYPASS");
+                        changed();
+                    }
+                } else
+                    fx_knob_turn(fx_foc(), u[2] & 3, d);
+            } else if (ui.page == PG_KEQ)
                 keq_turn(u[2] & 3, d);
             else
                 kick_knob_turn(u[2] & 3, d);
@@ -2432,6 +2470,15 @@ static int ed_sysex(uint32_t cmd, const uint8_t *u, uint32_t len)
                 ed_knob(snd, (int)j, o + k);
             else
                 memset(o + k, 0, 29u);
+        if (ok && ui.page == PG_FX) {    /* (FX1, FX2: the effect, on, its part, its parts' names) */
+            uint32_t n = fx_npages(fx_sl(fx_foc())->type), m;
+            k += ed_str(o + k, fx_name(fx_foc()), 12u);
+            o[k++] = (uint8_t)fx_sl(fx_foc())->on;
+            o[k++] = ui.fx_page;
+            o[k++] = (uint8_t)n;
+            for (m = 0; m < n; m++)
+                k += ed_str(o + k, fx_sl(fx_foc())->type == FXT_MBCOMP ? MBP_NAME[m % NMBP] : XP_NAME[m % NXP], 8u);
+        }
         ed_leave(&x);
         cu_reply(8u, ok ? 0u : 2u, o, k);
         return 1;

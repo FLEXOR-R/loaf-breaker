@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 # The sound editor's link (LOAF BREAKER 0.9.45, the site's editor/ page; ui/main.c ed_sysex) end to end in the host
 # simulator: ED_INFO's sections and parts; a kick part, a drum page and the kick EQ read and turned (their texts change,
-# the FM-1's screen stays where it was); FX1 refused (the FX page's); the kick's wave; KICK n; the sequencer (ED_SEQ,
+# the FM-1's screen stays where it was); FX1's effect and a knob of it; the kick's wave; KICK n; the sequencer (ED_SEQ,
 # ED_STEP): a kick step, a snare step's HITS, the hat's LENGTH, a break step's SLICE, a FILL undone.
 # Needs ./build.sh --host first.
 #   tests/editor_link.sh
@@ -28,7 +28,11 @@ fr 8 "1, 0, 1, 250"                        # its TUNE, 6 clicks left
 echo "wait 50"
 fr 8 "0, 11, 0, 4"                         # the kick EQ (EQ B), LOW 4 clicks right
 echo "wait 50"
-fr 8 "0, 13, 0, 0"                         # FX1: not the editor's
+fr 8 "0, 13, 0, 0"                         # FX1, read
+echo "wait 50"
+fr 8 "0, 13, 4, 2"                         # FX1: PRESETS, the effect two on
+echo "wait 50"
+fr 8 "0, 13, 0, 5, 0"                      # FX1: its K1 five clicks right, MAIN
 echo "wait 50"
 fr 10 "244, 1"                             # the kick's wave over 500 ms
 echo "wait 50"
@@ -82,25 +86,30 @@ for s in range(info[3]):
         parts.append((info[k], info[k + 1:k + 13].rstrip(b"\0").decode(), info[k + 13])); k += 14
     secs.append((name, parts))
 print("editor_link: sections " + ", ".join(f"{n} ({len(p)})" for n, p in secs))
-sub0, sub1, sn0, sn1, eq, fx1, wave = rep[1:8]
+sub0, sub1, sn0, sn1, eq, fx0, fx1, fx2, wave = rep[1:10]
 a, b = knobs(sub0[2]), knobs(sub1[2])
 assert a[0][0] == "LEVEL" and a[0][1] != b[0][1] and b[0][2] > a[0][2], f"kick SUB LEVEL {a[0]} -> {b[0]}"
 c, d = knobs(sn0[2]), knobs(sn1[2])
 assert c[1][0] == "TUNE" and c[1][1] != d[1][1], f"snare TUNE {c[1]} -> {d[1]}"
 e = knobs(eq[2])
 assert e[0][0] == "LOW" and e[0][1] != "0 DB", f"kick EQ LOW {e[0]}"
-assert fx1[1] == 2, "FX1 refused"
+def fx(r):
+    d = r[2]; k = 2 + 4 * 29
+    return knobs(d), d[k:k + 12].rstrip(b"\0").decode(), d[k + 12], d[k + 14]
+f0, f1, f2 = fx(fx0), fx(fx1), fx(fx2)
+assert fx0[1] == 0 and f1[1] != f0[1] and f1[2] == 1 and f1[3] >= 1, f"FX1's effect {f0[1:]} -> {f1[1:]}"
+assert f2[0][0][0] and f2[0][0][1] != f1[0][0][1], f"FX1's K1 {f1[0][0]} -> {f2[0][0]}"
 assert wave[0] == 10 and len(wave[2]) == 240 and max(abs((v ^ 0x80) - 0x80) for v in wave[2]) > 20, "the kick's wave"
 def sq(d):
     return dict(pat=d[1], bars=list(d[7:11]), mask=[[d[18 + 8 * r + 2 * c] | d[19 + 8 * r + 2 * c] << 8 for c in range(4)] for r in range(4)],
                 sb=list(d[50:210]), brk=[tuple(d[274 + 3 * i:277 + 3 * i]) for i in range(32)], n=len(d))
-s0, s1, s2, s3, s4, s5, s6 = (sq(r[2]) for r in rep[9:16])
-assert all(r[0] == 11 for r in rep[9:16]) and s0["n"] == 370, f"ED_SEQ {s0['n']}"
+s0, s1, s2, s3, s4, s5, s6 = (sq(r[2]) for r in rep[11:18])
+assert all(r[0] == 11 for r in rep[11:18]) and s0["n"] == 370, f"ED_SEQ {s0['n']}"
 assert (s1["mask"][0][0] ^ s0["mask"][0][0]) == 2, "the kick's step 2"
 assert (s2["sb"][64 + 4] & 3) == (s1["sb"][64 + 4] & 3) + 1, "the snare's step 5 HITS"
 assert s3["bars"][2] > s2["bars"][2], f"the hat's LENGTH {s2['bars']} -> {s3['bars']}"
 assert s4["brk"][3][0] == s3["brk"][3][0] + 2, f"the break's step 4 {s3['brk'][3]} -> {s4['brk'][3]}"
 assert bin(s5["mask"][3][0]).count("1") > bin(s4["mask"][3][0]).count("1") and s6["mask"][3][0] == s4["mask"][3][0], "FILL, undone"
 print(f"editor_link: the sequencer: a kick step, a snare step's HITS, the hat {16 * s2['bars'][2]} -> {16 * s3['bars'][2]} steps, a break step's slice, the clap's FILL undone")
-print(f"editor_link: kick SUB LEVEL {a[0][1]} -> {b[0][1]}, snare TUNE {c[1][1]} -> {d[1][1]}, kick EQ LOW {e[0][1]}; FX1 refused; the wave; KICK 5; the screen kept")
+print(f"editor_link: kick SUB LEVEL {a[0][1]} -> {b[0][1]}, snare TUNE {c[1][1]} -> {d[1][1]}, kick EQ LOW {e[0][1]}; FX1 {f0[1]} -> {f1[1]}, its {f2[0][0][0]} {f1[0][0][1]} -> {f2[0][0][1]}; the wave; KICK 5; the screen kept")
 P

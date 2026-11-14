@@ -96,6 +96,10 @@
 .edt .ctl .n { font: 600 11px/1 var(--f-mono); letter-spacing: .06em; color: var(--faint); }
 .edt .ctl .v { font: 600 15px/1 var(--f-mono); color: var(--fg); text-align: center; }
 .edt .ctl button { padding: 7px 0; }
+.edt .fxhead { display: grid; gap: 8px; margin-bottom: 8px; }
+.edt .fxhead .row button { padding: 6px 9px; }
+.edt .fxhead .fxn { font: 600 15px/1 var(--f-mono); color: var(--fg); min-width: 110px; text-align: center; }
+.edt .fxhead .fxtabs button { padding: 6px 9px; font-size: 11px; }
 @media (max-width: 760px) { .edt .top { grid-template-columns: 1fr; } .edt .knobs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>
 </head>
@@ -137,7 +141,8 @@ FM-1. Chrome or Edge, on a computer.</p>
   </div>
   <div class="sects" id="sects"></div>
   <details class="more" id="moreBox"><summary>MORE: the SEL + knobs, their functions, tools, EQ</summary><div class="sects" id="moreSects"></div></details>
-  <p class="hint">FX1 and FX2 (the kick's own effect slots) are edited on the FM-1 for now. <kbd>↑</kbd> <kbd>↓</kbd> one
+  <p class="hint">FX1 and FX2 are the kick's own effect slots: ◀ ▶ picks the effect (as PRESETS there), On bypasses it,
+  its tabs its parts. <kbd>↑</kbd> <kbd>↓</kbd> one
   step, <kbd>Shift</kbd> five; <kbd>Space</kbd> plays the kick, <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> the snare, hat, clap.</p>
 </section>
 
@@ -223,8 +228,13 @@ function readInfo(d) {
 function readKnobs(d) {
   const ks = [];
   for (let i = 0; i < 4; i++) { const o = 2 + 29 * i; ks.push({ name: str(d, o, 12), text: str(d, o + 12, 16), bar: d[o + 28] / 200 }); }
+  if (d.length > 118) {                     /* (FX1, FX2: the effect, on, its part, its parts' names) */
+    const n = d[132];
+    ks.fx = { name: str(d, 118, 12), on: !!d[130], page: d[131], pages: Array.from({ length: n }, (_, m) => str(d, 133 + 8 * m, 8)) };
+  }
   return ks;
 }
+const fxPage = {};                          /* FX1, FX2 (parts 13, 14): the part shown, MAIN MORE MOD */
 
 /* ---------------------------------------------------------------- the knobs */
 function knobEl(snd, part, i) {
@@ -272,6 +282,7 @@ function partEl(snd, part, title, ok) {
 function show(snd, part, ks) {
   const P = parts[snd + ":" + part];
   if (!P) return;
+  if (ks.fx && P.fx) showFx(P, part, ks.fx);
   ks.forEach((k, i) => {
     const el = P.knobs[i];
     const hide = !k.name || (snd === 0 && k.name === "PRESET" && part !== 32);   /* (the kick's PRESET knob: its own box) */
@@ -303,7 +314,7 @@ async function flush() {
       if (!key) break;
       const [snd, part, i] = key.split(":").map(Number), d = Math.max(-60, Math.min(60, pending[key]));
       pending[key] -= d;
-      const r = await ask(8, [snd, part, i, d & 255]);
+      const r = await ask(8, [snd, part, i, d & 255, fxPage[part] || 0]);
       show(snd, part, readKnobs(r.data));
       const el = parts[snd + ":" + part].knobs[i];
       if (!pending[key]) el.classList.remove("busy");
@@ -311,6 +322,45 @@ async function flush() {
     }
   } catch (e) { say("Lost the FM-1: " + e.message + ". Connect again.", true); }
   busy = false;
+}
+
+/* ---------------------------------------------------------------- FX1, FX2: the kick's own effect slots */
+function fxPartEl(part, title) {
+  const el = partEl(0, part, title, true);
+  el.querySelector("h3").remove();
+  const head = document.createElement("div");
+  head.className = "fxhead";
+  head.innerHTML = `<div class="row"><button data-d="-1" aria-label="${title} previous effect">◀</button><b class="fxn">—</b>` +
+    `<button data-d="1" aria-label="${title} next effect">▶</button><button class="fxon" aria-pressed="false">On</button></div>` +
+    `<div class="tabs fxtabs" role="group" aria-label="${title} parts"></div>`;
+  head.querySelectorAll("button[data-d]").forEach((b) => { b.onclick = () => fxSend(part, 4, +b.dataset.d); });
+  head.querySelector(".fxon").onclick = (e) => fxSend(part, 5, e.currentTarget.getAttribute("aria-pressed") === "true" ? -1 : 1);
+  el.insertBefore(head, el.querySelector(".knobs"));
+  parts["0:" + part].fx = head;
+  return el;
+}
+function showFx(P, part, f) {
+  P.fx.querySelector(".fxn").textContent = f.name;
+  const on = P.fx.querySelector(".fxon");
+  on.setAttribute("aria-pressed", String(f.on && f.name !== "EMPTY")); on.textContent = f.name === "EMPTY" ? "Empty" : f.on ? "On" : "Bypassed";
+  on.disabled = f.name === "EMPTY";
+  fxPage[part] = f.page;
+  const tabs = P.fx.querySelector(".fxtabs");
+  if (tabs.dataset.sig !== f.pages.join(",")) {
+    tabs.dataset.sig = f.pages.join(",");
+    tabs.innerHTML = f.pages.map((n, m) => `<button data-m="${m}">${esc(n)}</button>`).join("");
+    tabs.querySelectorAll("button").forEach((b) => { b.onclick = () => { fxPage[part] = +b.dataset.m; fxSend(part, 0, 0); }; });
+  }
+  tabs.querySelectorAll("button").forEach((b, m) => b.setAttribute("aria-pressed", String(m === f.page)));
+  tabs.classList.toggle("hidden", f.pages.length < 2);
+}
+async function fxSend(part, knob, d) {
+  if (!out) return;
+  try {
+    const r = await ask(8, [0, part, knob, d & 255, fxPage[part] || 0]);
+    if (!r.code) show(0, part, readKnobs(r.data));
+    lastTurn = Date.now(); changed = true;
+  } catch (e) { say("Lost the FM-1: " + e.message, true); }
 }
 
 /* ---------------------------------------------------------------- building the screen from ED_INFO */
@@ -321,11 +371,11 @@ function build() {
   for (const s of info.sects) {
     const box = document.createElement("div"); box.className = "sect";
     box.innerHTML = `<h2>${esc(s.name)}</h2>`;
+    const isFx = s.name === "FX1" || s.name === "FX2";
     for (const p of s.parts) {
       if (s.name === "ATTACK" && p.p === 32) continue;   /* (the PRESET: its own box) */
-      box.appendChild(partEl(0, p.p, p.name, p.ok));
+      box.appendChild(isFx ? fxPartEl(p.p, s.name) : partEl(0, p.p, p.name, p.ok));
     }
-    if (s.name === "FX1" || s.name === "FX2") continue;
     (s.name === "MORE" ? more : sects).appendChild(box);
   }
   const pb = $("presetBox");
@@ -361,7 +411,7 @@ async function readAll() {
   for (const k of keys) {
     if (Object.keys(pending).some((p) => pending[p])) return;
     const [snd, part] = k.split(":").map(Number);
-    const r = await ask(8, [snd, part, 0, 0]);
+    const r = await ask(8, [snd, part, 0, 0, fxPage[part] || 0]);
     if (!r.code) show(snd, part, readKnobs(r.data));
   }
   if (view === "kick") await drawWave();
