@@ -941,7 +941,7 @@ static void input(void)
         changed();
         app_say("FX FADER", set.fx.wet > 0.0f ? "100%" : "0%");
         ui.fx_turned = 1u;               /* (no slot, no page at its release) */
-        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        ui.redraw |= RG_BLOCKS | RG_FOOT | RG_HEAD;
     }
     if (ui.fx_hold && !(btn & 1u << B_FX)) {   /* FX let go: alone, the page or the slot's next part; with ALGORITHM turned, a
                                           * move */
@@ -1065,18 +1065,18 @@ static void input(void)
             continue;
         }
         if (k >= EN_K1 && k <= EN_K4 && btn & 1u << B_LFO) {   /* LOAF BREAKER: LFO + K1 the break's level, K2 the
-                                          * kick's, K3 the drums', on any page (the MIXER's LEVELS: the page
+                                          * kick's, K3 the drums', K4 (0.9.50, FLEXOR) the FX fader, on any page (the MIXER's LEVELS: the page
                                           * stays), 5 % a detent */
             uint8_t pg = ui.page, mp = ui.mpage;
             ui.page = PG_MIX;
-            ui.mpage = 0u;
+            ui.mpage = k == EN_K4 ? 1u : 0u;   /* (0.9.50, FLEXOR: K4 the FX fader, SENDS' K1) */
             lvl_fast = 1u;
-            knob_turn(k, d);
+            knob_turn(k == EN_K4 ? EN_K1 : k, d);
             lvl_fast = 0u;
             ui.page = pg;
             ui.mpage = mp;
             ui.lfo_hold = 2u;
-            ui.redraw |= RG_FOOT | RG_BLOCKS;
+            ui.redraw |= RG_FOOT | RG_BLOCKS | RG_HEAD;
             continue;
         }
         if (k == EN_K1 && ui.page == PG_SEQ && btn & 1u << B_SEQ) {   /* LOAF BREAKER: SEQ held + K1: the lane a
@@ -1532,11 +1532,18 @@ static void draw_tabs(void)
     } else if (ui.page == PG_FX && !IS_KFX()) {
         for (i = 0; i < fx_nslots(); i++)   /* (LOAF BREAKER: BEGINNER's two) */
             x = tab(x, SLOT_NUM[i], i == fx_foc());
+        {                                /* (0.9.50, FLEXOR: the FX fader, MIX › SENDS K1 / LFO + K4, beside the slots) */
+            char m[16] = "FX MIX ";
+            pct_text(set.fx.wet, m + 7);
+            x = cv_text(x + 2, 1, &FONT_T, m, set.fx.wet > 0.005f ? C_WHITE : C_AMB) + 6;
+        }
         text_cat(part, fx_name(fx_foc()));
         if (ui.fx_page) {                /* "< MB COMP X-OVER >", "< FILTER MOD >" */
             text_cat(part, " ");
             text_cat(part, fx_part_name());
         }
+        if (x + text_w(&FONT_T, part) + 16 > 236)
+            part[0] = 0;
     } else if (ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX()) {   /* LOAF BREAKER: the KICK menu: its sections,
                                           * the part (if it fits) */
         if (kick_easy()) {               /* (LOAF BREAKER: BEGINNER's KICK: the sounds, SELECT going round them; its
@@ -3517,8 +3524,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15", "broll", "stut"};
-    int v[157];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15", "broll", "stut", "fxwet"};
+    int v[158];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -3687,6 +3694,7 @@ int app_expect(const char *what, int *got)
     v[154] = set.keys[15].start >> 4;
     v[155] = (int)bk_broll();            /* (0.9.50: SONG › BREAK, bit 0 ROLL, bits 2-3 from) */
     v[156] = build_stut;                 /* (the roll pad a build holds, -1 none) */
+    v[157] = (int)(set.fx.wet * 100.0f + 0.5f);   /* (0.9.50: the FX fader, %) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */
     v[141] = kx2_at(set.kslot)->gate;    /* (its TAIL GATE's division) */
     for (i = 0; i < sizeof W / sizeof W[0]; i++)

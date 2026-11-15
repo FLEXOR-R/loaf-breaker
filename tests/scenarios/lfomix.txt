@@ -25,3 +25,25 @@ expect page 5
 turn K1 1 10
 wait 100
 expect brk_lvl 92
+# (0.9.50, FLEXOR) LFO + K4 the FX fader (SENDS' K1), any page; the FX page shows it beside its slots: FX MIX nn%
+tap HOME
+wait 200
+tap FX
+wait 300
+expect fxwet 100
+press LFO
+turn K4 -6 10
+wait 100
+release LFO
+wait 300
+expect page 2
+expect fxwet 70
+shot fx_mix.png
+press LFO
+turn K4 6 10
+wait 100
+release LFO
+wait 200
+expect fxwet 100
+tap HOME
+wait 200

@@ -13,7 +13,7 @@ library shows (0.9.40, FLEXOR: `Artist – Track (kind)`, the FM-1's short name 
 | File | Artist, track | BPM | Bars | In the firmware |
 | --- | --- | --- | --- | --- |
 | `akira_custom_grind.wav` | Akira, "Custom Grind" (drop break) | 190 | 2 | AKIRA 190 (0.9.34-0.9.39; the library since 0.9.40) |
-| `detest_tripped_hardcore_to_the_penis.wav` | Detest & Tripped, "Hardcore To The Penis" (intro break) | 175 | 2 | DETEST 175 (0.9.34) |
+| `detest_tripped_hardcore_to_the_penis.wav` | Detest & Tripped, "Hardcore To The Penis" (intro break) | 175 | 2 | the library (DETEST 175: the firmware's 0.9.34-0.9.49) |
 | `lil_texas_louder.wav` | Lil Texas, "LOUDER" (break) | 175 | 2 | LOUDER 175 (0.9.34) |
 | `the_satan_gangzta_cash.wav` | The Satan, "Gangzta Cash" (intro break) | 200 | 2 | SATAN 200 (0.9.34) |
 | `tripped_matt_green_underground_panther_jacket.wav` | Tripped & Matt Green, "Underground Panther Jacket" (break) | 170 | 2 | PANTHER 170 (0.9.34) |
@@ -29,10 +29,10 @@ library shows (0.9.40, FLEXOR: `Artist – Track (kind)`, the FM-1's short name 
 | `dj_hidden_the_nightmare_connector_vip.wav` | DJ Hidden, "The Nightmare Connector VIP" (break) | 175 | 2 | the library (NIGHT 175, 0.9.40) |
 | `dj_hidden_the_nightmare_connector_vip_outro_break.wav` | DJ Hidden, "The Nightmare Connector VIP" (outro break) | 175 | 2 | the library (NIGHT2 175, 0.9.40) |
 | `dj_hidden_times_like_these_vip_break_2.wav` | DJ Hidden, "Times Like These VIP" (break 2) | 175 | 2 | the library (TIMES2 175, 0.9.40) |
-| `dj_hidden_times_like_these_vip.wav` | DJ Hidden, "Times Like These VIP" (break) | 175 | 2 | TIMES 175 (the library in 0.9.40; the firmware since 0.9.43) |
+| `dj_hidden_times_like_these_vip.wav` | DJ Hidden, "Times Like These VIP" (break) | 175 | 2 | the library (TIMES 175: the firmware's 0.9.43-0.9.49) |
 | `dngn_drgns_focuz_dngn_drgns_remix_break_2.wav` | DNGN DRGNS, "Focuz (DNGN DRGNS Remix)" (break 2) | 175 | 2 | the library (FOCUZ2 175, 0.9.40) |
 | `dngn_drgns_focuz_dngn_drgns_remix.wav` | DNGN DRGNS, "Focuz (DNGN DRGNS Remix)" (break) | 175 | 2 | FOCUZ 175 (the library in 0.9.40; the firmware since 0.9.43) |
-| `dolphin_bangphase.wav` | Dolphin, "Bangphase" (break) | 155 | 2 | the library (BANGPHS 155, 0.9.40) |
+| `dolphin_bangphase.wav` | Dolphin, "Bangphase" (break) | 155 | 2 | BANGPHS 155 (the library in 0.9.40; the firmware since 0.9.50) |
 | `poley_tight_facecracker_break_2.wav` | Poley Tight, "Facecracker" (break 2) | 170 | 2 | the library (FACECR2 170, 0.9.40) |
 | `poley_tight_facecracker.wav` | Poley Tight, "Facecracker" (break) | 170 | 2 | the library (FACECR 170, 0.9.40) |
 | `tripped_krtm_fcking_zutsu.wav` | Tripped & [KRTM], "Fcking Zutsu" (intro break) | 160 | 2 | the library (ZUTSU 160, 0.9.40) |
