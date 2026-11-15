@@ -1,4 +1,4 @@
-# LOAF BREAKER (0.9.46, FLEXOR): every black key set to ARP is its own: its effect (ARP › BLACK KEYS K4, or K1 while
+# LOAF BREAKER (0.9.45, FLEXOR): every black key set to ARP is its own: its effect (ARP › BLACK KEYS K4, or K1 while
 # the key is held) and its LATCH (K4 held), several at once. Here key 1 made a second ARP beside FLEXOR LAYOUT's (key 7).
 #   app/build/host/loaf-breaker_host tests/scenarios/arpkeys.txt app/build/scenarios
 wait 4200

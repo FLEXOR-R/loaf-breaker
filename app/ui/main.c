@@ -504,7 +504,7 @@ static void input(void)
         if ((kup & PAD_BIT(i)) && !(keys & PAD_BIT(i)) && !(i == PAD_HALF && half_lat))
             brk_pad((int)i, 0);
     }
-    for (i = 0; i < 11u; i++) {          /* GLOUPI BREAKS: the ARP key, an OVERLAY effect (ovl.c); 0.9.46, FLEXOR:
+    for (i = 0; i < 11u; i++) {          /* GLOUPI BREAKS: the ARP key, an OVERLAY effect (ovl.c); 0.9.45, FLEXOR:
                                           * each ARP key its own, several at once */
         uint32_t kb = 1u << BK[i];
         if (bk_fn(i) != BKF_ARP)
@@ -1263,7 +1263,7 @@ static void leds(void)
     for (i = 0; i < BKF_N; i++)          /* (LOAF BREAKER: each function lit on its keys) */
         if (i != BKF_ARP && bkf_lit(i, &st))
             k |= PAD_BIT(i);
-    for (i = 0; i < 11u; i++)            /* (0.9.46: each ARP key lit on its own) */
+    for (i = 0; i < 11u; i++)            /* (0.9.45: each ARP key lit on its own) */
         if (arpk_on(i))
             k |= 1u << BK[i];
     if (build_p >= 0.0f) {               /* LOAF BREAKER: the build: the white keys fill up left to right (TEST: the next
@@ -1618,7 +1618,7 @@ static const char *knob_name(int i)
                        ? KN_PITCH[i] : ui.page == PG_MIX && ui.mpage
                        ? KN_GROOVE[ui.mpage >= 3u ? 2u : ui.mpage == 2u][i] : KN[ui.page][i];
     if (ui.page == PG_OVL && ui.opage == 1u && i == 3 && bk_fn(ui.bk_sel) == BKF_ARP)
-        name = "ARP FX";                 /* (0.9.46: BLACK KEYS, an ARP key's own effect) */
+        name = "ARP FX";                 /* (0.9.45: BLACK KEYS, an ARP key's own effect) */
     if (ui.page == PG_TRACK && !ui.tpage && !RST_ON && i >= 2 && trk_now()->it[ui.trk_cur % TRK_ITEMS] == TI_DROP)
         name = i == 2 ? "STUTTER" : "GAP KEEPS";   /* (0.9.26: a DROP item's K3, K4) */
     if (ui.page == PG_FX)            /* the focused slot's effect: its settings, then MIX */
@@ -3455,7 +3455,7 @@ int app_expect(const char *what, int *got)
     v[137] = (int)(set.pads.rsv[0] % 3u);   /* (the rolls' THRU: SENDS' K4) */
     v[138] = drive_off ? 1 : 0;          /* (0.9.43: the kick's DRV switch) */
     v[139] = subfx_off ? 1 : 0;          /* (0.9.43: the kick's SUB FX switch) */
-    v[142] = (int)ovl_pad_bits();        /* (0.9.46: the ARP keys' effects sounding, a bit each OV_*) */
+    v[142] = (int)ovl_pad_bits();        /* (0.9.45: the ARP keys' effects sounding, a bit each OV_*) */
     v[143] = (int)arpk_fx(ui.bk_sel);    /* (the BLACK KEYS page's key: its ARP effect) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */
     v[141] = kx2_at(set.kslot)->gate;    /* (its TAIL GATE's division) */

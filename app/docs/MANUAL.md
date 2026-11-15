@@ -482,13 +482,13 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 | REV | Reverse | Speed | | | LATCH: ON, a press turns it on and the next off (0.9.26) |
 | FRZ | FREEZE: the slice playing loops while held | LENGTH: the slice, 1/2, 1/4, 1/8 | PITCH (±12 semitones) | | LATCH: ON, a press turns it on and the next off (0.9.26) |
 | HLF | Half speed | Speed | MASTER TEMPO: the pitch kept (ON) or dropped | LATCH: ON, a press turns it on and the next off | |
-| VNL | VINYL BREAK: the record slowing to a stop, spinning back up when let go (the screen: a Technics platter over the wave, its strobe dots racing back as it slows, the LOAF BREAKER face turning on its label, the speed and its semitones on the right; 0.9.30) | THRU: the break, the kick or both | BRK FLT (HOME's break filter: stop and filter at once, 0.9.46) | STOP (beats) | SPIN UP |
+| VNL | VINYL BREAK: the record slowing to a stop, spinning back up when let go (the screen: a Technics platter over the wave, its strobe dots racing back as it slows, the LOAF BREAKER face turning on its label, the speed and its semitones on the right; 0.9.30) | THRU: the break, the kick or both | BRK FLT (HOME's break filter: stop and filter at once, 0.9.45) | STOP (beats) | SPIN UP |
 | GAT | Gate: the break chopped on the beat | RATE | LENGTH (how much of each gate sounds) | | LATCH: ON, a press turns it on and the next off (0.9.26) |
 | RND | Random slices | Amount | Random pitch | | LATCH: ON, a press turns it on and the next off (0.9.26) |
 | FLT | Filter throw: the DJ filter sweeps to its target while held, back when let go | TARGET (low-pass left, high-pass right) | RESO | SPEED | THRU: BREAK (the break, as ever), DRUMS (the kick, the snare, the hat, the clap), BOTH (0.9.26) |
 | DUB | Dub throw: the break into an echo while held, its tail ringing out | TIME (1/8, 3/16, 1/4, 3/8) | FEEDBACK | TONE | MIX (with a DELAY in the FX chain: that slot's own four) |
 | ARP | Its OVERLAY effect over the mix, while held (or latched): DIVE, RISE, RADIO, WAH, CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, WOBBLE, JET, REESE | EFFECT | AMOUNT (that effect's) | TIME: RATE for CHOP, GATE, WAH, PAN; SWEEP for DIVE, RISE | LATCH |
-| Several ARP keys (0.9.46) | Put ARP on more than one key (CUSTOM, ARP › BLACK KEYS): each is its own, with its own EFFECT and its own LATCH, and they play together (hold two, latch one and hold another…). The knobs tune the ARP key pressed last (its number shows under FX: MORE). Shared by all: THRU, ON / OFF, RATE, SWEEP and each effect's AMOUNT | | | | |
+| Several ARP keys (0.9.45) | Put ARP on more than one key (CUSTOM, ARP › BLACK KEYS): each is its own, with its own EFFECT and its own LATCH, and they play together (hold two, latch one and hold another…). The knobs tune the ARP key pressed last (its number shows under FX: MORE). Shared by all: THRU, ON / OFF, RATE, SWEEP and each effect's AMOUNT | | | | |
 | ARP, FX while held (MORE) | | THRU: BREAK, KICK or THRU (everything; LFO's ARP the same) | ON / OFF (OFF: K1 browses silent) | RATE (1/4 … 1/32) | SWEEP (1/4 bar … 2 bars) |
 | KIL | While held, the sequencer's kicks are quiet; let go, they play again (a kick roll still plays) | LATCH: ON, a press quiets them and the next brings them back | | | |
 | DST | A switch: a press, the kick's DISTO off, the next on again; its amount is never touched (at 0 % it stays 0 %: turn DISTO up to hear it). Lit while it is ON, even at 0 % (0.268); the kick's own (KICK 1–20): another kick picked (PRESETS, a track's item, a build) brings its own ON or OFF, the key lit with it; saved with SAVE. In BEGINNER too when its layout has DST (0.9.24) | | | | |
@@ -550,14 +550,14 @@ all 16.
 WAH, CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, WOBBLE, JET, REESE), on while the key is held, any
 together. **K1** the amount of the one touched last, **K2** the rate of the ones on the beat (CHOP, GATE, WAH, PAN),
 **K3** the sweeps' length (DIVE, RISE), **K4** LATCH: on, a key switches its effect on and off (and what is latched
-stays on on the other pages). The page and the ARP black key share one effect (0.9.27; with several ARP keys, the one pressed last, 0.9.46): a white key touched here is the ARP key's effect, and the one K1 tunes; the ARP key's K1 turns it, the page follows; AMOUNT, RATE and SWEEP are the same on both. The white keys of the effects on are lit (held, latched, the ARP key's). (The FILL that ARP held
+stays on on the other pages). The page and the ARP black key share one effect (0.9.27; with several ARP keys, the one pressed last, 0.9.45): a white key touched here is the ARP key's effect, and the one K1 tunes; the ARP key's K1 turns it, the page follows; AMOUNT, RATE and SWEEP are the same on both. The white keys of the effects on are lit (held, latched, the ARP key's). (The FILL that ARP held
 played from 0.1xx to 0.243 is gone, LOAF BREAKER 0.244.)
 
 In EXPERT the page has two tabs (**SELECT** goes to the other, 0.9.2; **ARP** again goes back to HOME): **ARP EFFECTS** (the above)
 and **BLACK KEYS**. **BLACK KEYS** lays out the black keys: **K1 PRESET**, CHOPPAH (CHOPPAH's eleven, the ARP
 key not among them), FLEXOR LAYOUT (R8 R16 R32 RND HLF FLT ARP VNL KIL DST SUB since 0.9.26) or CUSTOM; **K2 KEY** (or **ALGORITHM**, 0.9.26), the key you edit (or press it:
 here a black key picks itself and plays nothing); **K3 EFFECT**, what it does: any of R8, R16, R32, REV, FRZ, HLF, VNL,
-GAT, RND, FLT, DUB, ARP, KIL, DST, SUB; on an ARP key, **K4 ARP FX** its own effect (0.9.46: several ARP keys, each with its own, play at once). Turned on a preset, K3 makes a CUSTOM of it first, that key changed (keys
+GAT, RND, FLT, DUB, ARP, KIL, DST, SUB; on an ARP key, **K4 ARP FX** its own effect (0.9.45: several ARP keys, each with its own, play at once). Turned on a preset, K3 makes a CUSTOM of it first, that key changed (keys
 outlined amber differ from CHOPPAH's). SAVE keeps the layout. BEGINNER always plays CHOPPAH's (turning BEGINNER on
 sets it back to CHOPPAH, and EXPERT keeps it until you change it).
 
