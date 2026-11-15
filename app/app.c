@@ -947,32 +947,32 @@ static void kfx_all(void)                /* every kick with the FX section playi
         kfx_put(k);
 }
 /* LOAF BREAKER (0.9.32, FLEXOR): TERROR's and SPINE's part outside kick_t: their SYNTH (DROP +20, TIME 167 ms, SHAPE
- * -50: a pure sine), TAIL + DRIVE 100 and the KICK EQ's gains (LOW +6.2 dB, MID and HIGH flat); ui/kick.c kpre_extra
+ * -50: a pure sine), TAIL + DRIVE 100 and the KICK EQ's gains (LOW +6.2 dB until 0.9.47: flat since); ui/kick.c kpre_extra
  * on the kick playing, kmem_extra on a kick memory as it begins */
 /* LOAF BREAKER: a built-in kick's part outside kick_t (0.9.32 TERROR and SPINE; 0.9.39 every preset but ROTTERDAM and
  * DISTORTO, FLEXOR): its SYNTH (KS_*), its LAB (TAIL MODE, NOTE, CURVE, TAIL FILTER, its time, TAIL + DRIVE) and its
- * KICK EQ (LOW, MID, HIGH: 0.5 + dB / 24); 0: none, the SYNTH and the LAB cleared, the EQ as it was */
+ * KICK EQ (LOW, MID, HIGH: 0.5 + dB / 24; 0.9.47, FLEXOR: every one flat, 0.5); 0: none, the SYNTH and the LAB
+ * cleared, the EQ as it was */
 typedef struct {
     uint8_t on;
     int8_t syn[KS_N];
     uint8_t mode, note, curve, filt, ftime, drive;
     float eq[3];
 } kt_x_t;
-#define KT_DB(d) (0.5f + (d) / 24.0f)
 static const kt_x_t KT_X[KICK_PRESETS] = {
-    {1, {10, 0, -50, 0, 0, 0, 0, 0}, 1, 0, 0, 0, 0, 0, {KT_DB(2.0f), 0.5f, 0.5f}},           /* 909 */
-    {1, {0, 0, -30, 0, 25, 10, 0, 0}, 1, 0, 0, 0, 0, 0, {KT_DB(2.0f), 0.5f, 0.5f}},          /* TECHNO */
-    {1, {15, 0, 0, 0, 0, 0, 30, 0}, 1, 0, 0, 20, 60, 0, {KT_DB(2.0f), KT_DB(1.0f), 0.5f}},   /* EARLY HC */
+    {1, {10, 0, -50, 0, 0, 0, 0, 0}, 1, 0, 0, 0, 0, 0, {0.5f, 0.5f, 0.5f}},           /* 909 */
+    {1, {0, 0, -30, 0, 25, 10, 0, 0}, 1, 0, 0, 0, 0, 0, {0.5f, 0.5f, 0.5f}},          /* TECHNO */
+    {1, {15, 0, 0, 0, 0, 0, 30, 0}, 1, 0, 0, 20, 60, 0, {0.5f, 0.5f, 0.5f}},   /* EARLY HC */
     {0, {0}, 0, 0, 0, 0, 0, 0, {0.5f, 0.5f, 0.5f}},                                          /* ROTTERDAM */
-    {1, {0}, 1, 0, 0, 35, 60, 0, {KT_DB(2.0f), 0.5f, KT_DB(-3.0f)}},                         /* INDUSTRIAL */
+    {1, {0}, 1, 0, 0, 35, 60, 0, {0.5f, 0.5f, 0.5f}},                         /* INDUSTRIAL */
     {0, {0}, 0, 0, 0, 0, 0, 0, {0.5f, 0.5f, 0.5f}},                                          /* DISTORTO */
-    {1, {20, 12, -50, 0, 0, 0, 0, 0}, 1, 0, 0, 0, 0, 100, {0.76f, 0.5f, 0.5f}},              /* TERROR (TIME 12:
-                                          * 120 ms x 2^0.48, 167 ms; EQ LOW +6.2 dB) */
-    {1, {20, 12, -50, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 100, {0.76f, 0.5f, 0.5f}},              /* SPINE (CLASSIC) */
-    {1, {10, 0, -40, 0, 0, 0, 0, 0}, 1, 0, 0, 20, 60, 40, {KT_DB(3.0f), 0.5f, KT_DB(-2.0f)}},   /* 909 DRIVE */
-    {1, {0}, 1, 0, 0, 15, 60, 70, {KT_DB(3.0f), 0.5f, KT_DB(-2.0f)}},                        /* GABBER */
-    {1, {15, 10, -40, 0, 0, 0, 0, 0}, 1, 8, 0, 15, 60, 85, {KT_DB(4.0f), 0.5f, KT_DB(-2.0f)}},   /* MILLENNIUM */
-    {1, {0, 0, 0, 0, 20, 0, 0, 0}, 1, 0, 0, 45, 55, 0, {KT_DB(5.0f), 0.5f, KT_DB(-4.0f)}},   /* DOOMCORE */
+    {1, {20, 12, -50, 0, 0, 0, 0, 0}, 1, 0, 0, 0, 0, 100, {0.5f, 0.5f, 0.5f}},              /* TERROR (TIME 12:
+                                          * 120 ms x 2^0.48, 167 ms) */
+    {1, {20, 12, -50, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 100, {0.5f, 0.5f, 0.5f}},              /* SPINE (CLASSIC) */
+    {1, {10, 0, -40, 0, 0, 0, 0, 0}, 1, 0, 0, 20, 60, 40, {0.5f, 0.5f, 0.5f}},   /* 909 DRIVE */
+    {1, {0}, 1, 0, 0, 15, 60, 70, {0.5f, 0.5f, 0.5f}},                        /* GABBER */
+    {1, {15, 10, -40, 0, 0, 0, 0, 0}, 1, 8, 0, 15, 60, 85, {0.5f, 0.5f, 0.5f}},   /* MILLENNIUM */
+    {1, {0, 0, 0, 0, 20, 0, 0, 0}, 1, 0, 0, 45, 55, 0, {0.5f, 0.5f, 0.5f}},   /* DOOMCORE */
 };
 static int kt_extra(uint32_t p, int8_t *syn, kick_lab_t *lab, float *eq)   /* (after the SYNTH and the LAB cleared;
                                           * 1: it has its own, the EQ set) */
