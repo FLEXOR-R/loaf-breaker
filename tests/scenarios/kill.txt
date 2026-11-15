@@ -92,3 +92,14 @@ wait 100
 key b8 up
 wait 1500
 expect khits 4
+# (0.9.50, FLEXOR) the kicks back with KIL: the drums' filter OFF at once (never a drop filtered by mistake)
+key b8 down
+wait 50
+press SEL
+turn SELECT -1 10
+release SEL
+wait 100
+expect kick_dj -16
+key b8 up
+wait 100
+expect kick_dj 0

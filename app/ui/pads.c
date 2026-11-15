@@ -245,6 +245,16 @@ static void kick_flt_turn(int32_t d)
     app_say("DRUM FILTER", t);
 }
 
+/* (0.9.50, FLEXOR: the kicks back on with KIL, the drums' filter OFF at once: never a drop filtered by mistake) */
+static void kil_back_flt(void)
+{
+    if (!set.kick_dj)
+        return;
+    set.kick_dj = 0;
+    lock_drum.dir = 0;
+    changed();
+}
+
 /* the break's (set.fx.dj, -1 low-pass .. 1 high-pass): left the low-pass from 7.6 kHz, right the high-pass from
  * 110 Hz (as the drums': low-pass left, high-pass right) */
 static void brk_flt_text(char *t)

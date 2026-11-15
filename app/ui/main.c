@@ -629,6 +629,8 @@ static void input(void)
                                           * LATCH (K1 while held): a press quiet, the next back */
         ui.kil_focus = 1u;
         kick_hold = set.half_mt_off & 4u ? (uint8_t)!kick_hold : 1u;
+        if (!kick_hold)
+            kil_back_flt();
         app_say("KICKS", kick_hold ? (set.half_mt_off & 4u ? "QUIET (KIL LATCHED)" : "QUIET (KIL)") : "BACK");
         ui.redraw |= RG_FOOT;
     } else if (!(keys & PAD_BIT(BKF_KIL))) {
@@ -638,6 +640,7 @@ static void input(void)
         }
         if (kick_hold && !(set.half_mt_off & 4u)) {   /* (let go, no LATCH: back) */
             kick_hold = 0u;
+            kil_back_flt();
             app_say("KICKS", "BACK");
             ui.redraw |= RG_FOOT;
         }
