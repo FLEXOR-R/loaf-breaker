@@ -71,3 +71,15 @@ wait 300
 shot a_flexor_arp.png
 key b6 up
 wait 300
+# (0.9.52, FLEXOR) SELECT on ARP goes both ways: left from ARP to SETTINGS, right back to ARP
+tap ARP
+wait 300
+expect opage 0
+turn SELECT -1 10
+wait 200
+expect opage 4
+turn SELECT 1 10
+wait 200
+expect opage 0
+tap HOME
+wait 200

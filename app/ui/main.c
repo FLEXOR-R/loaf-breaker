@@ -1155,7 +1155,7 @@ static void input(void)
             continue;
         }
         if (k == EN_SELECT && ui.page == PG_OVL && !set.novice) {   /* (0.9.2, FLEXOR: OVERLAY, SELECT its tabs) */
-            ui.opage = (uint8_t)((ui.opage + 1u) % 5u);
+            ui.opage = (uint8_t)((ui.opage + (d > 0 ? 1u : 4u)) % 5u);   /* (0.9.52, FLEXOR: both ways) */
             page_say();
             ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
             continue;
