@@ -137,7 +137,7 @@ typedef struct {
     perc_voice_t smem[PERC_MEMS];        /* its memories */
     /* (appended: LOAF BREAKER's DROP and TRACK, ENV's parts; an older save's: a 4-bar build into the next pattern) */
     uint8_t drop_bars;                   /* the build: DROP_BARS's index (0: none, the drop at the bar's end) */
-    uint8_t drop_after;                  /* the pattern the drop brings in: 0 the next one, 1.. that one */
+    uint8_t drop_after;                  /* the pattern the drop brings in: 0 the next one, 1.. that one, DROP_SAME (0.9.55) the one playing */
     uint8_t drop_crash;                  /* the drop's crash, 0 off .. 100 */
     uint8_t trk;                         /* the track TRACKS edits and PLAY plays, 0..NTRACKS-1 */
     /* (appended: LOAF BREAKER's KICK FX, HOME's fourth part; an older save's: both empty) */
@@ -210,6 +210,7 @@ typedef struct {
 #define BRKV_TAG 0xB0u
 static uint32_t brk_view(void);          /* (below: set is declared after) */
 /* (LOAF BREAKER, 0.244: FILL gone, set.fill_cfg unused) */
+#define DROP_SAME 0xFFu                  /* (0.9.55, FLEXOR: AFTER DROP SAME, the pattern playing again) */
 enum { DS_SNARE, DS_KICK, DS_BOTH, DS_STUTTER, DS_SWEEP, DS_RANDOM, DS_N };
 static const uint8_t DROP_GAP[5] = {0u, 1u, 2u, 4u, 8u};   /* its steps: none, a 16th, an 8th, a beat, half a bar */
 static const float COMP_RATIO[8] = {1.5f, 2.0f, 3.0f, 4.0f, 6.0f, 8.0f, 12.0f, 20.0f};

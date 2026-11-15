@@ -467,7 +467,8 @@ static void build_click(void)
             return;
         }
     }
-    drop_start(set.drop_after ? set.drop_after - 1u : (pat_cur() + 1u) % NPAT_ALL);
+    drop_start(set.drop_after == DROP_SAME ? pat_cur() : set.drop_after ? (set.drop_after - 1u) % NPAT_ALL
+               : (pat_cur() + 1u) % NPAT_ALL);   /* (0.9.55, FLEXOR: SAME, the pattern playing again) */
 }
 
 /* PLAY: the track from its first item (TRK_FROM; a DROP there: the pattern after it), from bar 1; HOME (home: 0, from
@@ -1111,7 +1112,9 @@ static void track_value(int i, char *t)
                 text_cat(t, b > 1u ? " BARS" : " BAR");
             }
         } else if (i == 1) {
-            if (!set.drop_after)
+            if (set.drop_after == DROP_SAME)
+                text_cat(t, "SAME");
+            else if (!set.drop_after)
                 text_cat(t, "NEXT");
             else {
                 t[0] = 'P';
@@ -1257,7 +1260,11 @@ static void track_turn(int i, int32_t d)
         if (i == 0)
             set.drop_bars = (uint8_t)clamp((int32_t)set.drop_bars + dir, 0, 4);
         else if (i == 1)
-            set.drop_after = (uint8_t)clamp((int32_t)set.drop_after + dir, 0, (int32_t)NPAT_ALL);
+        {                                /* (0.9.55, FLEXOR: SAME left of NEXT, then P1..P64) */
+            int32_t p = set.drop_after == DROP_SAME ? -1 : (int32_t)set.drop_after;
+            p = clamp(p + dir, -1, (int32_t)NPAT_ALL);
+            set.drop_after = (uint8_t)(p < 0 ? DROP_SAME : p);
+        }
         else if (i == 2)
             set.drop_brk = (uint8_t)clamp((int32_t)set.drop_brk + dir, 0, (int32_t)n_breaks);
         else
