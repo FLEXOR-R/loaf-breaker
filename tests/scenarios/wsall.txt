@@ -1,0 +1,37 @@
+# LOAF BREAKER (0.9.50, FLEXOR): ARP's fifth tab, SETTINGS (EXPERT): one setting for every white key at once, K1-K4 as a
+# key held (LENGTH, PITCH, MODE, DECAY), ALGORITHM the SLICE FX (EFFECT, AMOUNT, TONE, LEVEL); MIXED where they differ.
+#   app/build/host/loaf-breaker_host tests/scenarios/wsall.txt app/build/scenarios
+wait 4200
+tap ARP
+wait 300
+turn SELECT 4 10
+wait 300
+expect opage 4
+expect wslayer 0
+turn K1 1 10
+turn K4 3 10
+wait 200
+expect klen0 8
+expect klen15 8
+expect kdec15 3
+shot ws_loop.png
+turn ALGO 1 10
+wait 200
+expect wslayer 1
+turn K1 2 10
+wait 200
+shot ws_slx.png
+turn K1 -2 10
+turn ALGO 1 10
+wait 200
+expect wslayer 0
+turn K1 -1 10
+turn K4 -3 10
+wait 200
+expect klen15 3
+expect kdec15 0
+turn SELECT 1 10
+wait 200
+expect opage 0
+tap HOME
+wait 200

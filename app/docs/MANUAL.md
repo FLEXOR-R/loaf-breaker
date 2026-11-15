@@ -554,9 +554,9 @@ together. **K1** the amount of the one touched last, **K2** the rate of the ones
 stays on on the other pages). The page and the ARP black key share one effect (0.9.27; with several ARP keys, the one pressed last, 0.9.45): a white key touched here is the ARP key's effect, and the one K1 tunes; the ARP key's K1 turns it, the page follows; AMOUNT, RATE and SWEEP are the same on both. The white keys of the effects on are lit (held, latched, the ARP key's). (The FILL that ARP held
 played from 0.1xx to 0.243 is gone, LOAF BREAKER 0.244.)
 
-In EXPERT the page has four tabs (**SELECT** goes to the next, 0.9.2; **ARP** again goes back to HOME; their names short
+In EXPERT the page has five tabs (**SELECT** goes to the next, 0.9.2; **ARP** again goes back to HOME; their names short
 since 0.9.50, FLEXOR): **ARP** (the effects above), **BLK** (the black keys), **SEL BLK** (the black keys with SEL) and
-**SEL WHITE** (the white keys with SEL). **BLK** lays out the black keys: **K1 PRESET**, CHOPPAH (CHOPPAH's eleven, the ARP
+**SEL WHITE** (the white keys with SEL) and **SETTINGS** (every white key at once). **BLK** lays out the black keys: **K1 PRESET**, CHOPPAH (CHOPPAH's eleven, the ARP
 key not among them), FLEXOR LAYOUT (R8 R16 R32 RND HLF FLT ARP VNL KIL DST SUB since 0.9.26) or CUSTOM; **K2 KEY** (or **ALGORITHM**, 0.9.26), the key you edit (or press it:
 here a black key picks itself and plays nothing); **K3 EFFECT**, what it does: any of R8, R16, R32, REV, FRZ, HLF, VNL,
 GAT, RND, FLT, DUB, ARP, KIL, DST, SUB, DRV, X2; on an ARP key, **K4 ARP FX** its own effect (0.9.45: several ARP keys, each with its own, play at once). Turned on a preset, K3 makes a CUSTOM of it first, that key changed (keys
@@ -582,6 +582,14 @@ any kind on any key: **K2 KEY** (or **ALGORITHM**, or press the white key: it pi
 | BREAK | That break (at the next bar, as ALGORITHM) | any break, the firmware's and yours |
 | EFFECT | That OVERLAY effect while you hold the key | DIVE … REESE |
 | DROP | A build, then the drop | AUTO (as SEL + ENV: the next pattern or DROP's AFTER), or into P1–P64 |
+
+**SETTINGS** (0.9.50, FLEXOR, EXPERT, the fifth tab) sets **one setting for all sixteen white keys at once**: K1-K4
+as on a key held, **LENGTH, PITCH, MODE, DECAY** (LOOP); **ALGORITHM** turns them to the **SLICE FX** (EFFECT, AMOUNT,
+TONE, LEVEL) and back. A knob turned gives every key the same value (key 1's, moved); **MIXED** says the keys differ
+(then the first turn sets them all alike). Under the four settings the sixteen keys, lit where a key is not as the
+defaults. A key held elsewhere still tunes that key alone.
+
+![ARP › SETTINGS: every white key's LENGTH 3/16 and DECAY 47 ms at once](img/screen-wsall.png "SETTINGS")
 
 The page shows the sixteen keys as two rows of cards, each with its shortcut in brief (K3 kick 3, P5, a break's
 name, an effect, DROP or D12 for a drop into P12; a dash: none), the one edited lit. A key used as a shortcut does

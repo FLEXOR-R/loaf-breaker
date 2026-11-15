@@ -228,6 +228,107 @@ static void draw_sw(void)
         cv_blit(0, 88u + band * 52u);
     }
 }
+/* LOAF BREAKER (0.9.50, FLEXOR): SETTINGS, ARP's fifth tab (EXPERT): one setting for every white key at once, K1-K4 as
+ * a key held: its LOOP (LENGTH, PITCH, MODE, DECAY) or, ALGORITHM, its SLICE FX (EFFECT, AMOUNT, TONE, LEVEL); key 1's
+ * value moved, then given to all sixteen; MIXED when they differ */
+static uint8_t ws_layer;                 /* (0 LOOP, 1 SLICE FX) */
+static uint32_t ws_field(uint32_t key, int k)
+{
+    const brk_keyset_t *ks = &set.keys[key & 15u];
+    const brk_slicefx_t *f = &set.slx[key & 15u];
+    if (ws_layer)
+        return k == 0 ? f->type : k == 1 ? f->amount : k == 2 ? f->tone : f->level;
+    return k == 0 ? ks->len : k == 1 ? (uint32_t)(uint8_t)ks->pitch : k == 2 ? ks->mode : (uint32_t)ks->start >> 4;
+}
+static int ws_mixed(int k)
+{
+    uint32_t i;
+    for (i = 1; i < 16u; i++)
+        if (ws_field(i, k) != ws_field(0, k))
+            return 1;
+    return 0;
+}
+static void ws_value(int k, char *t)
+{
+    t[0] = 0;
+    if (ws_mixed(k))
+        text_cat(t, "MIXED");
+    else if (ws_layer)
+        slx_knob_value(0, k, t);
+    else
+        key_knob_value(0, k, t);
+}
+static void ws_turn(int k, int32_t d)
+{
+    uint32_t i;
+    uint8_t lay = ui.key_layer;
+    char t[16], n[20] = "ALL ";
+    if (set.novice || k < 0 || k > 3)
+        return;
+    ui.key_layer = ws_layer;
+    key_knob_turn(0, k, d);              /* (key 1's, moved: its value then everyone's) */
+    ui.key_layer = lay;
+    for (i = 1; i < 16u; i++) {
+        brk_keyset_t *ks = &set.keys[i];
+        brk_slicefx_t *f = &set.slx[i];
+        if (ws_layer) {
+            if (k == 0) f->type = set.slx[0].type;
+            else if (k == 1) f->amount = set.slx[0].amount;
+            else if (k == 2) f->tone = set.slx[0].tone;
+            else f->level = set.slx[0].level;
+        } else if (k == 0) ks->len = set.keys[0].len;
+        else if (k == 1) ks->pitch = set.keys[0].pitch;
+        else if (k == 2) ks->mode = set.keys[0].mode;
+        else ks->start = set.keys[0].start;
+    }
+    changed();
+    ws_value(k, t);
+    text_cat(n, ws_layer ? SLX_KNOB[k] : KEY_KNOB[k]);
+    app_say(n, t);
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
+static void ws_flip(void)                /* (ALGORITHM: LOOP <-> SLICE FX) */
+{
+    ws_layer ^= 1u;
+    app_say("ALL WHITE KEYS", ws_layer ? "SLICE FX" : "LOOP");
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
+/* SETTINGS' page: the layer, its four settings as the knobs, and the sixteen keys, each lit where it differs from
+ * the defaults (the dot a key's block shows) */
+static void draw_ws(void)
+{
+    uint32_t band, i;
+    int k;
+    char t[24];
+    for (band = 0; band < 2u; band++) {
+        cv_begin(240, 52, C_BLACK);
+        cv_oy = -(int32_t)band * 52;
+        cv_text(6, 2, &FONT_XS, "ALL 16 WHITE KEYS AT ONCE", C_GRAY);
+        cv_text(6, 12, &FONT_B, ws_layer ? "SLICE FX" : "LOOP", C_HI);
+        cv_text(234 - text_w(&FONT_XS, ws_layer ? "ALGORITHM: LOOP" : "ALGORITHM: SLICE FX"), 16, &FONT_XS,
+                ws_layer ? "ALGORITHM: LOOP" : "ALGORITHM: SLICE FX", C_DIM);
+        for (k = 0; k < 4; k++) {
+            int32_t x = 1 + k * 60, mx = ws_mixed(k);
+            cv_rect(x, 34, 57, 28, mx ? C_AMB : C_LINE);
+            cv_rect(x + 1, 35, 55, 26, C_BLOCK);
+            cv_text(x + 4, 37, &FONT_T, ws_layer ? SLX_KNOB[k] : KEY_KNOB[k], C_GRAY);
+            ws_value(k, t);
+            cv_text(x + 4, 48, &FONT_XS, t, mx ? C_AMB : C_WHITE);
+        }
+        for (i = 0; i < 16u; i++) {
+            int32_t x = 1 + (int32_t)i * 15;
+            int own = ws_layer ? set.slx[i].type != SLX_OFF : key_custom((int)i);
+            cv_rect(x, 68, 13, 14, own ? C_AMB : C_LINE);
+            cv_rect(x + 1, 69, 11, 12, own ? C_AMB : C_BLOCK);
+            t[0] = 0;
+            int_text((int32_t)i + 1, t);
+            cv_text(x + (13 - text_w(&FONT_T, t)) / 2, 70, &FONT_T, t, own ? C_BLACK : C_DIM);
+        }
+        cv_text(6, 90, &FONT_XS, "LIT: A KEY NOT AS THE DEFAULTS", C_DIM);
+        cv_oy = 0;
+        cv_blit(0, 88u + band * 52u);
+    }
+}
 static void bk_value(int i, char *t)
 {
     t[0] = 0;
@@ -357,6 +458,10 @@ static void draw_bk(void)
 static void ovl_value(int i, char *t)
 {
     t[0] = 0;
+    if (ui.opage == 4u) {                /* (0.9.50: SETTINGS, every white key) */
+        ws_value(i, t);
+        return;
+    }
     if (ui.opage == 3u) {                /* (0.9.50: SEL WHITE) */
         sw_value(i, t);
         return;
@@ -382,6 +487,10 @@ static void ovl_value(int i, char *t)
 static void ovl_turn(int i, int32_t d)
 {
     char t[16];
+    if (ui.opage == 4u) {
+        ws_turn(i, d);
+        return;
+    }
     if (ui.opage == 3u) {
         sw_turn(i, d);
         return;
@@ -417,6 +526,10 @@ static void draw_ovl(void)
 {
     uint32_t band, i, on = ovl_sounding() | ovl_held | ovl_latched | ovl_pad_bits();
     char t[4];
+    if (ui.opage == 4u) {                /* (0.9.50: SETTINGS) */
+        draw_ws();
+        return;
+    }
     if (ui.opage == 3u) {                /* (0.9.50: SEL WHITE) */
         draw_sw();
         return;

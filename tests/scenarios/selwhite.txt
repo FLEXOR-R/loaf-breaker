@@ -106,7 +106,7 @@ tapkey w4
 turn K3 -5 10
 wait 200
 expect swcat 0
-turn SELECT 1 10
+turn SELECT 2 10
 wait 200
 tap HOME
 wait 200
