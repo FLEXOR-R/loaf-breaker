@@ -315,8 +315,8 @@ static void kit_apply(uint32_t k)        /* (0.9.54, FLEXOR: a KIT: its kick, br
         kick_mem_go((kx2.kit[k].kick - 1u) % KICK_MEMS);
     if (kx2.kit[k].brk && kx2.kit[k].brk <= n_breaks)
         break_ask(kx2.kit[k].brk - 1u);
-    if (kx2.kit[k].bpm_x10 && !ext_active()) {
-        set.tempo_x10 = (uint16_t)clamp(kx2.kit[k].bpm_x10, 400, 3000);
+    if (kit_bpm(k) && !ext_active()) {
+        set.tempo_x10 = (uint16_t)clamp((int32_t)kit_bpm(k), 400, 3000);
         changed();
     }
     if (kx2.kit[k].pat && !grp_blocked(kx2.kit[k].pat - 1u)) {   /* (as PRESETS: playing, at the loop's end) */

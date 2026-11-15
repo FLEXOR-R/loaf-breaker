@@ -379,9 +379,11 @@ typedef struct {
     uint8_t selk[11];
     uint8_t rsv[53];
     /* (appended, 0.9.54, FLEXOR: the 16 KITS, ARP › KITS, SEL + a white key KIT n: each a kick, a break, a tempo and a
-     * pattern to go to at once; 0 in a field: KEEP, as it is. A shorter save: all KEEP) */
-    struct { uint8_t kick, brk; uint16_t bpm_x10; uint8_t pat, rsv; } kit[16];
+     * pattern to go to at once; 0 in a field: KEEP, as it is. A shorter save: all KEEP. Their tempo in rsv[32 + n], a
+     * whole BPM - 49 (50..300), for the pool's margin) */
+    struct { uint8_t kick, brk, pat; } kit[16];
 } kx2_t;
+#define KIT_BPM0 32u                     /* (rsv[32..47]: the kits' tempo; rsv[0..31] SEL WHITE's) */
 static kx2_t kx2 PLAT_POOL;
 static kick_x2_t *kx2_at(uint32_t k) { return &kx2.m[k % KICK_MEMS]; }
 static void kx2_defaults(void)           /* (the kicks' TOK and TAIL GATE; the SEL layer kept) */
@@ -389,11 +391,20 @@ static void kx2_defaults(void)           /* (the kicks' TOK and TAIL GATE; the S
     memset(&kx2.m, 0, sizeof kx2.m);
     kx2.magic = KX2_MAGIC;
 }
-static void kits_clear(void) { memset(kx2.kit, 0, sizeof kx2.kit); }   /* (0.9.54: every KIT empty, KEEP) */
+static void kits_clear(void)             /* (0.9.54: every KIT empty, KEEP) */
+{
+    memset(kx2.kit, 0, sizeof kx2.kit);
+    memset(kx2.rsv + KIT_BPM0, 0, 16u);
+}
+static uint32_t kit_bpm(uint32_t k)      /* (its tempo, tenths of a BPM; 0 KEEP) */
+{
+    uint32_t v = kx2.rsv[KIT_BPM0 + k % 16u];
+    return v ? (v + 49u > 300u ? 300u : v + 49u) * 10u : 0u;
+}
 static void selk_clear(void)             /* (0.9.49: the SEL layer, none: RESET ALL, RESET's PADS) */
 {
     memset(kx2.selk, 0, sizeof kx2.selk);
-    memset(kx2.rsv, 0, sizeof kx2.rsv);
+    memset(kx2.rsv, 0, KIT_BPM0);        /* (SEL WHITE's 32 bytes; the kits' tempo kept, 0.9.54) */
 }
 static uint32_t selb_fn(uint32_t j)      /* (black key j's SEL function, 1 + BKF_*; 0: none) */
 {

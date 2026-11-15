@@ -239,7 +239,7 @@ static uint8_t kit_sel;
 static int kit_empty(uint32_t k)
 {
     k %= 16u;
-    return !kx2.kit[k].kick && !kx2.kit[k].brk && !kx2.kit[k].bpm_x10 && !kx2.kit[k].pat;
+    return !kx2.kit[k].kick && !kx2.kit[k].brk && !kit_bpm(k) && !kx2.kit[k].pat;
 }
 static void kit_value(int i, char *t)
 {
@@ -250,8 +250,8 @@ static void kit_value(int i, char *t)
         int_text(kx2.kit[k].kick, t + 5);
     } else if (i == 1 && kx2.kit[k].brk && kx2.kit[k].brk <= n_breaks)
         text_cat(t, break_name(kx2.kit[k].brk - 1u));
-    else if (i == 2 && kx2.kit[k].bpm_x10)
-        tenths_text(kx2.kit[k].bpm_x10, t);
+    else if (i == 2 && kit_bpm(k))
+        tenths_text(kit_bpm(k), t);
     else if (i == 3 && kx2.kit[k].pat) {
         t[0] = 'P';
         int_text(kx2.kit[k].pat, t + 1);
@@ -286,9 +286,9 @@ static void kit_turn(int i, int32_t d)
     else if (i == 1)
         kx2.kit[k].brk = (uint8_t)(!kx2.kit[k].brk && dir > 0 ? set.brk % n_breaks + 1u
                                    : (uint32_t)clamp((int32_t)kx2.kit[k].brk + dir, 0, (int32_t)n_breaks));
-    else if (i == 2) {                   /* (1 BPM a detent, 5 turned fast; under 40: KEEP) */
-        int32_t v = kx2.kit[k].bpm_x10 ? kx2.kit[k].bpm_x10 + d * 10 : dir > 0 ? set.tempo_x10 : 0;
-        kx2.kit[k].bpm_x10 = (uint16_t)(v < 400 ? 0 : v > 3000 ? 3000 : v);
+    else if (i == 2) {                   /* (1 BPM a detent; 50 .. 300, under 50: KEEP) */
+        int32_t b = kit_bpm(k) ? (int32_t)kit_bpm(k) / 10 + d : dir > 0 ? (set.tempo_x10 + 5) / 10 : 0;
+        kx2.rsv[KIT_BPM0 + k] = (uint8_t)(b < 50 ? 0 : (b > 300 ? 300 : b) - 49);
     } else if (i == 3)
         kx2.kit[k].pat = (uint8_t)(!kx2.kit[k].pat && dir > 0 ? pat_cur() + 1u
                                    : (uint32_t)clamp((int32_t)kx2.kit[k].pat + dir, 0, (int32_t)NPAT_ALL));
@@ -337,8 +337,8 @@ static void draw_kits(void)
                     text_cat(t, u);
                     text_cat(t, " ");
                 }
-                if (kx2.kit[i].bpm_x10) {
-                    int_text((int32_t)(kx2.kit[i].bpm_x10 + 5u) / 10, u);
+                if (kit_bpm(i)) {
+                    int_text((int32_t)kit_bpm(i) / 10, u);
                     text_cat(t, u);
                 }
             }
