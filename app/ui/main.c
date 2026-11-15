@@ -140,11 +140,8 @@ static void knob_turn(int k, int32_t d)
             } else if (k == EN_K2) {
                 set.drums_chain = d > 0 ? 0u : 1u;   /* right: around the chain, left: through it */
                 app_say("DRUMS", set.drums_chain ? "THRU FX" : "AROUND FX");
-            } else if (k == EN_K3) {     /* (0.9.54, FLEXOR: VINYL BREAK's THRU: BREAK, KICK, BOTH, as its K1 held) */
-                static const uint8_t AT[3] = {1u, 2u, 0u}, POS[4] = {2u, 0u, 1u, 2u};
-                set.vinyl = AT[clamp((int32_t)POS[set.vinyl & 3u] + (d > 0 ? 1 : -1), 0, 2)];
-                app_say("VINYL", THRU_NAME[set.vinyl & 3u]);
-            }
+            } else if (k == EN_K3)
+                ;                        /* (nothing: the ARP's THRU each effect's since 0.9.51) */
             else
                 roll_thru_turn(d);       /* (0.9.40, FLEXOR: K4 the three rolls' THRU, their K2 the break's filter) */
         } else if (k == EN_K1) {
@@ -1757,7 +1754,7 @@ static const char *knob_name(int i)
                                               {"LOW", "MID", "HIGH", "MID FREQ"},
                                               {"VIEW", "WAVE TYPE", "WAVE ZOOM", "BREAK TIME"}};
     static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "LEVEL"};   /* (SOUNDS' BREAK) */
-    static const char *const KN_GROOVE[3][4] = {{"FX", "DRUMS", "VINYL", "ROLL"}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
+    static const char *const KN_GROOVE[3][4] = {{"FX", "DRUMS", "", "ROLL"}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
                                                 {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
     static const char *const KN_MORE[3][4] = {{"SKIN", "", "MODE", "AUTO SAVE"},   /* SETUP (K2 WAVE ZOOM: HOME's
                                       * SETTINGS, 0.9.2) */

@@ -28,9 +28,9 @@ static void mix_value(uint32_t h, int i, char *t)
             pct_text(set.fx.wet, t);
         else if (i == 1)
             text_cat(t, set.drums_chain ? "THRU FX" : "AROUND FX");
-        else if (i == 2)                 /* (0.9.54, FLEXOR: VINYL BREAK's THRU; the ARP's, each effect's, on the ARP
-                                          * page since 0.9.51) */
-            text_cat(t, THRU_NAME[set.vinyl & 3u]);
+        else if (i == 2)
+            ;                            /* (nothing: the ARP's THRU each effect's since 0.9.51; VINYL's was here in a
+                                          * 0.9.54 TEST, FLEXOR took it back) */
         else
             text_cat(t, ROLL_THRU_NAME[set.pads.rsv[0] % 3u]);   /* (0.9.40: the rolls' THRU) */
         return;
@@ -70,7 +70,7 @@ static void mix_fader(int32_t x, float v, int on)   /* 0..1 from the bottom */
 }
 static void mix_picture(int32_t top)
 {
-    static const char *const NAME[4][4] = {{"BREAK", "KICK", "PERC", ""}, {"FX", "DRUMS", "VINYL", "ROLL"},
+    static const char *const NAME[4][4] = {{"BREAK", "KICK", "PERC", ""}, {"FX", "DRUMS", "", "ROLL"},
                                            {"COMP", "RATIO", "DUCK", "MAX OUT"},
                                            {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
     uint32_t c;
@@ -115,15 +115,6 @@ static void mix_picture(int32_t top)
             cv_text(70, 31, &FONT_XS, "THRU FX", thru ? C_BLACK : C_GRAY);
             cv_rect(66, 62, 48, 26, thru ? C_BLOCK : C_BLOCK_HI);
             cv_text(70, 67, &FONT_XS, "AROUND", thru ? C_GRAY : C_BLACK);
-        }
-        {                                /* (0.9.54, FLEXOR: VINYL BREAK's THRU, BREAK, KICK, BOTH, the one taken lit) */
-            static const uint8_t CODE[3] = {1u, 2u, 0u};
-            uint32_t j;
-            for (j = 0; j < 3u; j++) {
-                int on = (set.vinyl & 3u) % 3u == CODE[j];
-                cv_rect(126, 22 + (int32_t)j * 26, 48, 22, on ? C_BLOCK_HI : C_BLOCK);
-                cv_text(130, 27 + (int32_t)j * 26, &FONT_XS, THRU_NAME[CODE[j]], on ? C_BLACK : C_GRAY);
-            }
         }
         {                                /* (0.9.40, FLEXOR: the three rolls' THRU, the one taken lit) */
             uint32_t j;

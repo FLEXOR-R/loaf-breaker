@@ -1031,7 +1031,7 @@ MEMORY erases them.
 ## 9. The mixer
 
 **LFO** opens the MIXER: three channels side by side, each a fader (BREAK, KICK and PERC with a level meter).
-**SELECT** turns to SENDS, MASTER and DYNAMICS (0.9.2; **LFO again** goes back to HOME): SENDS (the FX fader, the chain's four slots beside it, lit: on; DRUMS, their route; VINYL (0.9.54, FLEXOR: what the VINYL BREAK key slows: BREAK, KICK or BOTH, as its K1 held); ROLL, what the three roll keys roll: BREAK, KICK (the kick hit at the roll's rate instead of its pattern; the break plays on) or BOTH, 0.9.40). **LFO held +
+**SELECT** turns to SENDS, MASTER and DYNAMICS (0.9.2; **LFO again** goes back to HOME): SENDS (the FX fader, the chain's four slots beside it, lit: on; DRUMS, their route; ROLL, what the three roll keys roll: BREAK, KICK (the kick hit at the roll's rate instead of its pattern; the break plays on) or BOTH, 0.9.40). **LFO held +
 K1–K4**, on any page: the break's, the kick's and the drums' level, and (K4, 0.9.50, FLEXOR) the FX fader, 5 % a detent (the MIXER's own page: 2 %), the page staying where it is (LFO let go after a turn opens nothing): the mix moved without
 going into the MIXER.
 
