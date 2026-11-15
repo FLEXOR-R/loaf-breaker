@@ -1,0 +1,112 @@
+# LOAF BREAKER (0.9.50, FLEXOR): ARP's fourth tab, SEL WHITE (EXPERT): each white key a shortcut pressed with SEL held
+# or locked, any kind on any key: here key 1 KICK 3, key 2 PATTERN 5, key 3 a break, key 4 the EFFECT RISE (while
+# held), key 5 a DROP (AUTO). On the page a white key picks itself (K2 too, ALGORITHM), K3 the kind, K4 its value.
+#   app/build/host/loaf-breaker_host tests/scenarios/selwhite.txt app/build/scenarios
+wait 4200
+tap ARP
+wait 300
+turn SELECT 3 10
+wait 300
+expect opage 3
+tapkey w0
+wait 100
+turn K3 1 10
+turn K4 2 10
+wait 200
+expect swcat 1
+expect swval 2
+tapkey w1
+wait 100
+turn K3 2 10
+turn K4 4 10
+wait 200
+expect swcat 2
+expect swval 4
+tapkey w2
+wait 100
+turn K3 3 10
+turn K4 1 10
+wait 200
+expect swcat 3
+expect swval 1
+tapkey w3
+wait 100
+turn K3 4 10
+turn K4 1 10
+wait 200
+expect swcat 4
+expect swval 1
+tapkey w4
+wait 100
+turn K3 5 10
+wait 300
+expect swcat 5
+expect swval 0
+shot sw_page.png
+tap HOME
+wait 300
+expect kslot 3
+press SEL
+wait 50
+tapkey w0
+wait 100
+release SEL
+wait 200
+expect kslot 2
+press SEL
+wait 50
+tapkey w2
+wait 100
+release SEL
+wait 600
+expect brk 1
+press SEL
+wait 50
+tapkey w1
+wait 100
+release SEL
+wait 300
+expect pattern 4
+press SEL
+wait 50
+key w3 down
+wait 200
+expect swfx 2
+shot sw_fx.png
+key w3 up
+wait 100
+release SEL
+wait 100
+expect swfx 0
+tap PLAY
+wait 500
+press SEL
+wait 50
+tapkey w4
+wait 100
+release SEL
+wait 300
+expect building 1
+tap PLAY
+wait 300
+tap ARP
+wait 200
+turn SELECT 3 10
+wait 200
+expect opage 3
+tapkey w0
+turn K3 -1 10
+tapkey w1
+turn K3 -2 10
+tapkey w2
+turn K3 -3 10
+tapkey w3
+turn K3 -4 10
+tapkey w4
+turn K3 -5 10
+wait 200
+expect swcat 0
+turn SELECT 1 10
+wait 200
+tap HOME
+wait 200
