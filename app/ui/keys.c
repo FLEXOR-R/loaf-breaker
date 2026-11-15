@@ -3,7 +3,7 @@
  * app.c's unity: included there in order.) */
 
 /* ------------------------------------------------- the white keys' own loops --- */
-static const char *const KEY_KNOB[4] = {"LENGTH", "PITCH", "START", "MODE"};
+static const char *const KEY_KNOB[4] = {"LENGTH", "PITCH", "MODE", "DECAY"};   /* (0.9.50, FLEXOR: DECAY for START, K3 MODE) */
 static const char *const SLX_KNOB[4] = {"EFFECT", "AMOUNT", "TONE", "LEVEL"};
 static const char *const SLX_TAG[BRK_SLX] = {"", "LP", "HP", "CR", "DR", "RM", "EC", "VB"};
 
@@ -101,9 +101,13 @@ static void key_knob_value(int key, int k, char *t)
         int_text(ks->pitch, t + (ks->pitch > 0));
         text_cat(t, " ST");
     } else if (k == 2)
-        pct_text((float)ks->start / 16.0f, t);
-    else
         text_cat(t, BRK_KEY_MODE_NAME[ks->mode % BRK_KEY_MODES]);
+    else if (!(ks->start >> 4))          /* (0.9.50: DECAY, OFF or its time) */
+        text_cat(t, "OFF");
+    else {
+        int_text((int32_t)(brk_key_decay_ms(ks->start >> 4u) + 0.5f), t);
+        text_cat(t, " MS");
+    }
 }
 
 static void key_knob_turn(int key, int k, int32_t d)
@@ -123,9 +127,9 @@ static void key_knob_turn(int key, int k, int32_t d)
     else if (k == 1)
         ks->pitch = (int8_t)clamp((int32_t)ks->pitch + d, -12, 12);
     else if (k == 2)
-        ks->start = (uint8_t)clamp((int32_t)ks->start + d, 0, 15);
-    else if (k == 3)
         ks->mode = (uint8_t)clamp((int32_t)ks->mode + d, 0, BRK_KEY_MODES - 1);
+    else if (k == 3)                     /* (0.9.50: DECAY, its old START sixteenths cleared) */
+        ks->start = (uint8_t)(clamp((int32_t)(ks->start >> 4) + d, 0, 15) << 4);
     else
         return;
     ui.key_turned = 1u;
@@ -139,7 +143,7 @@ static void key_knob_turn(int key, int k, int32_t d)
 static int key_custom(int key)           /* the key has settings of its own (a dot on its block) */
 {
     const brk_keyset_t *ks = &set.keys[key & 15];
-    return ks->len != 3u || ks->pitch || ks->start || ks->mode != KEY_LOOP;
+    return ks->len != 3u || ks->pitch || ks->start >> 4 || ks->mode != KEY_LOOP;
 }
 
 /* the held key's view: its loop window zoomed to the strip's width, the part this repeat has played lit, the
@@ -153,7 +157,7 @@ static void key_window(const brk_break_t *b, int key, float *lo, float *w)   /* 
 {
     const brk_keyset_t *ks = &set.keys[key & 15];
     uint32_t s = (uint32_t)key < b->nslices ? (uint32_t)key : 0u;
-    *lo = (float)b->slice[s] + (float)(ks->start & 15u) / 16.0f * (float)(b->slice[s + 1] - b->slice[s]);
+    *lo = (float)b->slice[s];            /* (0.9.50: START gone) */
     *w = BRK_KEY_SLICES[ks->len % BRK_KEY_LENS] * key_sps(b) * (float)b->len / (float)(b->bars * BRK_STEPS_PER_BAR);
     if (*w < 32.0f)
         *w = 32.0f;

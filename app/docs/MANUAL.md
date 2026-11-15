@@ -440,10 +440,10 @@ dot on its block):
 | --- | --- | --- |
 | K1 LENGTH | How long the window is, shown as music for this break | 1/8 of a slice … 16 slices (2-bar breaks: 1/64 … 2 BAR), with the jungle chops between: **3/32** after 1/16 (0.9.30), **3/16** after 1/8 and **3/8** after 1/4 (0.75, 1.5 and 3 slices; 0.9.29, from CHOPPAH 1.3.1) |
 | K2 PITCH | The key's own pitch, on top of OCT | −12 … +12 semitones |
-| K3 START | Where in the slice the window starts | 0 … 94 % of the slice |
-| K4 MODE | LOOP · PING-PONG (every other repeat backwards) · REVERSE · ONE SHOT (once, then quiet while held) | |
+| K3 MODE | LOOP · PING-PONG (every other repeat backwards) · REVERSE · ONE SHOT (once, then quiet while held) | |
+| K4 DECAY | Each repeat fades from full (0.9.50, FLEXOR: in START's place; the window starts on the slice) | OFF, then 25 ms … 2 s (to −40 dB) |
 
-SEL while a key is held puts its loop back to one slice, no pitch, from the start, LOOP. With several keys held the
+SEL while a key is held puts its loop back to one slice, no pitch, LOOP, no DECAY. With several keys held the
 last one pressed loops; let it go and the lowest still held takes over. Pads still work on top: REV turns the loop
 round, ROLL and FREEZE take it over while held.
 

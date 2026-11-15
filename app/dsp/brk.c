@@ -57,6 +57,7 @@ typedef struct {
     float pos, dir;                      /* dir +1 / -1 */
     float lo, hi;                        /* bounds: it stops (or loops) there */
     float amp, amp_to, amp_step;
+    float env, env_k;                    /* (0.9.50: a key's DECAY, from 1 down a sample at a time; env_k 1: none) */
     int32_t slice;
     uint8_t active, loop;
     uint8_t wrap;                        /* runs on round the whole loop (playing, forwards) */
@@ -237,6 +238,10 @@ static inline float voice_fx_run(voice_t *o, float x)
     return x * o->lvl;
 }
 
+BRK_COLD float brk_key_decay_ms(uint32_t d)
+{
+    return d ? 25.0f * brk_exp2f_c((float)((d > 15u ? 15u : d) - 1u) * 0.45f) : 0.0f;
+}
 static void voice_start(const brk_break_t *b, int32_t s, int rev, float at, float gain)
 {
     voice_t *o = &v[cur], *n;
@@ -259,6 +264,7 @@ static void voice_start(const brk_break_t *b, int32_t s, int rev, float at, floa
     n->amp = 0.0f;
     n->amp_to = gain;
     n->amp_step = gain / FADE_IN;
+    n->env = n->env_k = 1.0f;
     n->loop = 0;
     n->wrap = (uint8_t)(p_playing && !rev);
     n->g_pos[0] = n->g_pos[1] = n->pos;  /* the grains start on the hit (the second at full: the attack whole) */
@@ -312,7 +318,7 @@ static void key_begin(const brk_break_t *b, int32_t s)
     if (s < 0 || (uint32_t)s >= b->nslices)
         return;
     key_refresh(b, s);
-    key_lo = (float)b->slice[s] + (float)(key_set.start & 15u) * (1.0f / 16.0f) * (float)(b->slice[s + 1] - b->slice[s]);
+    key_lo = (float)b->slice[s];         /* (0.9.50: from the slice's start; START gone for DECAY) */
     key_w = key_steps * ns;
     if (key_w < 32.0f)
         key_w = 32.0f;
@@ -322,6 +328,8 @@ static void key_begin(const brk_break_t *b, int32_t s)
     voice_start(b, s, rev, rev ? hi - 1.0f : key_lo, 1.0f);
     n = &v[cur];
     n->lo = key_lo;
+    if (key_set.start >> 4)              /* (0.9.50, FLEXOR: DECAY, each repeat from full to -40 dB in its time) */
+        n->env_k = brk_exp2f(-6.644f / (brk_key_decay_ms(key_set.start >> 4) * 0.001f * (float)BRK_SR));
     if (rev) {                           /* backwards: round the window until the next repeat */
         n->hi = hi;
         n->loop = (uint8_t)(key_set.mode != KEY_ONESHOT);
@@ -623,7 +631,9 @@ static void voice_tick(const brk_break_t *b, voice_t *o, float inc, float pf, fl
         }
         o->g_age = age;
     }
-    x = voice_fx_run(o, x) * o->amp;     /* the slice's own effect and level, then the voice's fade */
+    x = voice_fx_run(o, x) * o->amp * o->env;   /* the slice's own effect and level, then the voice's fade (0.9.50:
+                                          * and a key's DECAY) */
+    o->env *= o->env_k;
     *acc += x;
     *ea += x * o->echo;
     *va += x * o->verb;

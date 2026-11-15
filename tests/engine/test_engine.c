@@ -176,6 +176,36 @@ static void test_hold_loops(void)
     brk_key(3, 0);
 }
 
+/* LOAF BREAKER (0.9.50, FLEXOR): a white key's DECAY (brk_keyset_t.start bits 4-7, START gone): each repeat of the held
+ * key fades from full; without it the slice keeps its level to the end of the repeat */
+static void test_key_decay(void)
+{
+    float e[2];
+    uint32_t n = brk_step_len_samples(), t, i;
+    for (t = 0; t < 2u; t++) {
+        brk_keyset_t ks;
+        double a = 0.0, z = 0.0;
+        fresh(1);
+        brk_keyset_defaults(&ks);
+        ks.len = 6u;                     /* (8 slices: one long repeat) */
+        ks.start = (uint8_t)(t ? 4u << 4 : 0u);   /* (DECAY 4: ~64 ms) */
+        brk_keyset(3u, &ks);
+        brk_play(1);
+        brk_key(3, 1);
+        render(buf, n * 2u, 0, 0, 0u);   /* (to the repeat's start) */
+        render(buf, n * 6u, 0, 0, 0u);
+        for (i = 0; i < n; i++)
+            a += (double)buf[i] * buf[i];
+        for (i = n * 4u; i < n * 5u; i++)
+            z += (double)buf[i] * buf[i];
+        e[t] = (float)(z / (a + 1e-12));
+        brk_key(3, 0);
+    }
+    CHECK(e[1] < e[0] * 0.05f, "DECAY: a held key's repeat fades (late/early energy %.4f against %.4f without)", e[1], e[0]);
+    CHECK(brk_key_decay_ms(1u) > 20.0f && brk_key_decay_ms(15u) > 1500.0f && brk_key_decay_ms(0u) == 0.0f,
+          "DECAY's times: %.0f .. %.0f ms", brk_key_decay_ms(1u), brk_key_decay_ms(15u));
+}
+
 static void test_generator(void)
 {
     int32_t seen, a[64], b[64], i, same = 1, differ = 0;
@@ -2457,6 +2487,7 @@ int main(int argc, char **argv)
     test_pads();
     test_fx();
     test_adpcm();
+    test_key_decay();
     test_perc_sample();
     test_pad_settings();
     test_dub();

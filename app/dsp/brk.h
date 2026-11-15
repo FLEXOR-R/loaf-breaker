@@ -86,10 +86,12 @@ enum { KEY_LOOP, KEY_PINGPONG, KEY_REVERSE, KEY_ONESHOT, BRK_KEY_MODES };
 typedef struct {
     uint8_t len;                         /* 0..BRK_KEY_LENS-1: 3 = one slice */
     int8_t pitch;                        /* -12..+12 semitones */
-    uint8_t start;                       /* 0..15: sixteenths of the slice in */
+    uint8_t start;                       /* 0.9.50, FLEXOR: bits 4-7 DECAY (0 none, 1..15: each repeat fades, BRK_KEY_DECAY_MS;
+                                          * START gone: bits 0-3, an older save's sixteenths in, read as 0) */
     uint8_t mode;                        /* KEY_* */
 } brk_keyset_t;                          /* 4 bytes: written to the render as one word */
 extern const float BRK_KEY_SLICES[BRK_KEY_LENS];
+float brk_key_decay_ms(uint32_t d);     /* (0.9.50: DECAY d, 1..15: each repeat to -40 dB in 25 .. 1970 ms; 0: none) */
 extern const uint8_t BRK_KEY_ORDER[BRK_KEY_LENS];   /* the lengths shortest first: 0 1 2 10 3 8 4 9 5 6 7 */
 
 /* each slice's own effect (PRD B-32), whenever that slice plays (the loop, a key, a roll): a filter, crunch, drive or
