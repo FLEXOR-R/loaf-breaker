@@ -1453,7 +1453,7 @@ static void knob_value(int i, char *t)  /* the page's knob i (0..3), as shown un
 /* the tab bar under the header: the button's name, then the page's parts as tabs (the one you are on lit: the
  * button again, or ALGORITHM, goes to the next); EDIT and FX also name the part edited, "< SUB FX >" */
 static int8_t build_stut = -1;          /* (a build's break roll: the roll pad it holds, -1 none) */
-static const char *const OPAGE_NAME[4] = {"ARP", "BLK", "SEL BLK", "SEL WHITE"};   /* (SETTINGS 0.9.50-0.9.51) */   /* (LOAF BREAKER: ARP's tabs) */
+static const char *const OPAGE_NAME[4] = {"ARP", "BLACK", "SEL BLACK", "SEL WHITE"};   /* (0.9.53, FLEXOR: BLACK, there is room) */   /* (SETTINGS 0.9.50-0.9.51) */   /* (LOAF BREAKER: ARP's tabs) */
 static int32_t tab(int32_t x, const char *s, int on)
 {
     int32_t w = text_w(&FONT_T, s) + 8;

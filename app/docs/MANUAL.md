@@ -47,7 +47,7 @@ Play two or three in turn and you are already chopping.
 The black keys act while held and can be combined. A new FM-1 has CHOPPAH's, left to right: **R8 · R16 · R32** roll
 the break, **REV** plays it backwards, **FRZ** freezes the slice playing, **HLF** halves the speed, **VNL** stops it like
 a record, **GAT** gates it, **RND** shuffles the slices, **FLT** sweeps a filter, **DUB** throws it into an echo. While
-one is held, K1–K4 tune it. In EXPERT, **ARP › BLK** gives them another layout (FLEXOR LAYOUT: the ARP key, KIL,
+one is held, K1–K4 tune it. In EXPERT, **ARP › BLACK** gives them another layout (FLEXOR LAYOUT: the ARP key, KIL,
 DST, SUB) or your own.
 
 ### 4. EDIT: shape the kick
@@ -474,9 +474,9 @@ slices you marked ring out, the classic dub throw. (Without a DELAY slot, ECHO g
 
 ## 4. The pads
 
-The black keys act while held and combine. Which key does what is a **layout** (ARP › BLK, below): CHOPPAH's,
+The black keys act while held and combine. Which key does what is a **layout** (ARP › BLACK, below): CHOPPAH's,
 left to right R8 R16 R32 REV FRZ HLF VNL GAT RND FLT DUB (a new FM-1's, after RESET ALL too; BEGINNER keeps the layout EXPERT left, 0.9.23),
-FLEXOR LAYOUT (R8 R16 R32 RND HLF FLT ARP VNL KIL DST SUB, 0.9.26) or CUSTOM, each key any of the sixteen below. (HOME's K1 is
+FLEXOR LAYOUT (R8 R16 R32 VNL GAT FLT ARP ARP KIL DST SUB since 0.9.53, FLEXOR: two ARP keys, each its own effect; RND HLF FLT ARP VNL from key 4 in 0.9.26-0.9.52) or CUSTOM, each key any of the sixteen below. (HOME's K1 is
 the gate and K2 the DJ filter as well.) While a pad is held, the slice blocks give way to an
 animation of what it does, and **K1–K4 tune that pad** (the foot shows its settings; SAVE keeps them):
 
@@ -492,13 +492,13 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 | FLT | Filter throw: the DJ filter sweeps to its target while held, back when let go | TARGET (low-pass left, high-pass right) | RESO | SPEED | THRU: BREAK (the break, as ever), DRUMS (the kick, the snare, the hat, the clap), BOTH (0.9.26) |
 | DUB | Dub throw: the break into an echo while held, its tail ringing out | TIME (1/8, 3/16, 1/4, 3/8) | FEEDBACK | TONE | MIX (with a DELAY in the FX chain: that slot's own four) |
 | ARP | Its OVERLAY effect over the mix, while held (or latched): DIVE, RISE, RADIO, WAH, CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, WOBBLE, JET, REESE | EFFECT | AMOUNT (that effect's) | TIME: RATE for CHOP, GATE, WAH, PAN; SWEEP for DIVE, RISE | LATCH |
-| Several ARP keys (0.9.45) | Put ARP on more than one key (CUSTOM, ARP › BLK): each is its own, with its own EFFECT and its own LATCH, and they play together (hold two, latch one and hold another…). The knobs tune the ARP key pressed last (its number shows under FX: MORE). Shared by all: ON / OFF, RATE, SWEEP, and each effect's AMOUNT and THRU (0.9.50: THRU each effect's own) | | | | |
+| Several ARP keys (0.9.45) | Put ARP on more than one key (CUSTOM, ARP › BLACK): each is its own, with its own EFFECT and its own LATCH, and they play together (hold two, latch one and hold another…). The knobs tune the ARP key pressed last (its number shows under FX: MORE). Shared by all: ON / OFF, RATE, SWEEP, and each effect's AMOUNT and THRU (0.9.50: THRU each effect's own) | | | | |
 | ARP, FX while held (MORE) | | THRU: BREAK, KICK or THRU (everything; LFO's ARP the same) | ON / OFF (OFF: K1 browses silent) | RATE (1/4 … 1/32) | SWEEP (1/4 bar … 2 bars) |
 | KIL | While held, the sequencer's kicks are quiet; let go, they play again (a kick roll still plays). When the kicks come back, the drums' filter (SEL + SELECT) goes back to OFF at once, so a drop is never filtered by mistake (0.9.50, FLEXOR) | LATCH: ON, a press quiets them and the next brings them back | | | |
-| X2 | KICKS X2 (0.9.48): the kicks doubled, for a beat twice as violent. Every odd step (1, 3, 5 … 15) of a bar that has kicks plays one, with the last kick's note: four to the floor becomes eight; the even steps play as programmed. KIL still silences them. In no preset layout: put it on a key of CUSTOM (ARP › BLK, K3) | LATCH: ON at first, a press doubles them and the next brings them back; OFF, doubled while held | | | |
+| X2 | KICKS X2 (0.9.48): the kicks doubled, for a beat twice as violent. Every odd step (1, 3, 5 … 15) of a bar that has kicks plays one, with the last kick's note: four to the floor becomes eight; the even steps play as programmed. KIL still silences them. In no preset layout: put it on a key of CUSTOM (ARP › BLACK, K3) | LATCH: ON at first, a press doubles them and the next brings them back; OFF, doubled while held | | | |
 | DST | A switch: a press, the kick's DISTO off, the next on again; its amount is never touched (at 0 % it stays 0 %: turn DISTO up to hear it). Lit while it is ON, even at 0 % (0.268); the kick's own (KICK 1–20): another kick picked (PRESETS, a track's item, a build) brings its own ON or OFF, the key lit with it; saved with SAVE. In BEGINNER too when its layout has DST (0.9.24) | | | | |
 | SUB | A switch (0.9.43): a press turns the kick's **SUB FX** off (the SUB layer's effect, whichever is set in EDIT: DRIVE, CRUNCH, FILTER, RING), the next on again; the effect and its settings are never touched (it adds no effect of its own any more: SUB DRIVE is EDIT's). The kick's own, as DST: each kick brings its own ON or OFF, the key lit while ON. A built-in kick picked on PRESET sets DST and SUB as it is made: DST on again if it has DISTO (TERROR, SPINE, EARLY HC, INDUSTRIAL, 909 DRIVE, GABBER, MILLENNIUM, DOOMCORE), SUB on again if it has a SUB FX (TERROR, SPINE) | | | | |
-| DRV | A switch (0.9.43): a press, the kick's DRIVE off, the next on again; its amount is never touched. Lit while it is ON; the kick's own (KICK 1–20), as DST; a built-in kick picked with a DRIVE puts it on again. In no preset layout: put it on a key of CUSTOM (ARP › BLK, K3) | | | | |
+| DRV | A switch (0.9.43): a press, the kick's DRIVE off, the next on again; its amount is never touched. Lit while it is ON; the kick's own (KICK 1–20), as DST; a built-in kick picked with a DRIVE puts it on again. In no preset layout: put it on a key of CUSTOM (ARP › BLACK, K3) | | | | |
 
 ![ROLL held: the caught slice repeating, each copy quieter](img/pad-roll8.png "ROLL held")
 ![VINYL BREAK held: the platter slowing down](img/pad-stop.png "VINYL BREAK held")
@@ -561,17 +561,17 @@ stays on on the other pages). The page and the ARP black key share one effect (0
 played from 0.1xx to 0.243 is gone, LOAF BREAKER 0.244.)
 
 In EXPERT the page has four tabs (**SELECT** goes to the next, or back to the left, 0.9.52; **ARP** again goes back to HOME; their names short
-since 0.9.50, FLEXOR): **ARP** (the effects above), **BLK** (the black keys), **SEL BLK** (the black keys with SEL) and
-**SEL WHITE** (the white keys with SEL). **BLK** lays out the black keys: **K1 PRESET**, CHOPPAH (CHOPPAH's eleven, the ARP
-key not among them), FLEXOR LAYOUT (R8 R16 R32 RND HLF FLT ARP VNL KIL DST SUB since 0.9.26) or CUSTOM; **K2 KEY** (or **ALGORITHM**, 0.9.26), the key you edit (or press it:
+since 0.9.50, FLEXOR; BLACK and SEL BLACK in full since 0.9.53): **ARP** (the effects above), **BLACK** (the black keys), **SEL BLACK** (the black keys with SEL) and
+**SEL WHITE** (the white keys with SEL). **BLACK** lays out the black keys: **K1 PRESET**, CHOPPAH (CHOPPAH's eleven, the ARP
+key not among them), FLEXOR LAYOUT (R8 R16 R32 VNL GAT FLT ARP ARP KIL DST SUB since 0.9.53) or CUSTOM; **K2 KEY** (or **ALGORITHM**, 0.9.26), the key you edit (or press it:
 here a black key picks itself and plays nothing); **K3 EFFECT**, what it does: any of R8, R16, R32, REV, FRZ, HLF, VNL,
 GAT, RND, FLT, DUB, ARP, KIL, DST, SUB, DRV, X2; on an ARP key, **K4 ARP FX** its own effect (0.9.45: several ARP keys, each with its own, play at once). Turned on a preset, K3 makes a CUSTOM of it first, that key changed (keys
 outlined amber differ from CHOPPAH's). SAVE keeps the layout. BEGINNER always plays CHOPPAH's (turning BEGINNER on
 sets it back to CHOPPAH, and EXPERT keeps it until you change it).
 
-![ARP › BLK: the FLEXOR LAYOUT, key 1 edited](img/screen-blackkeys.png "BLK")
+![ARP › BLACK: the FLEXOR LAYOUT, key 1 edited](img/screen-blackkeys.png "BLACK")
 
-**SEL BLK** (0.9.49, EXPERT, the third tab; SEL KEYS in 0.9.49) gives every black key a **second function, pressed with SEL** held or
+**SEL BLACK** (0.9.49, EXPERT, the third tab; SEL KEYS in 0.9.49) gives every black key a **second function, pressed with SEL** held or
 locked (SEL twice): **K2 KEY** (or **ALGORITHM**, or press the key: it picks itself), **K3 SEL +**, what that key does
 with SEL: **ITS OWN** (the same as without SEL, as before: SEL + R8 / R16 / R32 still rolls the kick alone) or any
 function of the list. While SEL is held or locked the strip and the lights show the SEL functions. A key pressed with
@@ -814,7 +814,7 @@ the MIXER has LEVELS and SENDS; on SEQ, ALGORITHM goes round the lanes and SELEC
 the kick's alone (16, 32 or 64 steps; turning BEGINNER on
 sets every kick and drum of the group to 32 (0.9.32, FLEXOR); a drum lane's LENGTH stays as it is, "LONGER: EXPERT MODE"), and a step held has no menu (the key just
 turns the step on or off); SONG is whole, as in EXPERT (0.9.22: every knob, ALGORITHM the items, PRESETS' BUILD KICK and TEMPO RISE); a white key held plays its loop with no knobs; the black keys keep the layout EXPERT left (0.9.23; a new FM-1
-starts on CHOPPAH's: R8 R16 R32 REV FRZ HLF VNL GAT RND FLT DUB; ARP › BLK, to change it, is EXPERT's), each with its knobs as in EXPERT; a knob BEGINNER leaves out is drawn blank
+starts on CHOPPAH's: R8 R16 R32 REV FRZ HLF VNL GAT RND FLT DUB; ARP › BLACK, to change it, is EXPERT's), each with its knobs as in EXPERT; a knob BEGINNER leaves out is drawn blank
 and says "EXPERT MODE" when turned; SOUNDS › BREAK keeps
 its LEVEL (K4; the pitch is OCT's) and PATTERN › SETTINGS its SWING.
 Nothing is lost: EXPERT shows everything again, as it was left, and what BEGINNER sets is there to refine. A
