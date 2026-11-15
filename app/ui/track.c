@@ -20,22 +20,25 @@ static const char *const BFROM_NAME[3] = {"BUILD START", "HALF WAY", "LAST QUART
 #define RST_ON (ui.page == PG_GLOBAL && ui.gpage == 5u)   /* (GLO RESET: drawn and turned by ENV's code here) */
 /* RESET (ENV's last part): K1 what (a list: more to come), K4 turned right twice within 3 s: back to the start */
 enum { RST_DROP, RST_BUILD, RST_KNOB, RST_KICK, RST_KTONE, RST_KICKS, RST_DRUMS, RST_MIX, RST_FX, RST_STEPS, RST_PADS,
-       RST_KEYS, RST_TRACK, RST_SCREEN, RST_WIPE, RST_ALL, NRST };   /* (RST_WIPE: 0.263, FLEXOR; EVERYTHING last) */   /* (LOAF BREAKER: ALL, RESET ALL, was the PITCH part's K4) */
+       RST_ARP, RST_KEYS, RST_SELK, RST_TRACK, RST_SCREEN, RST_WIPE, RST_ALL, NRST };   /* (0.9.52, FLEXOR: PADS BLACK
+                                          * KEYS, KEYS WHITE KEYS; ARP and SEL KEYS their own) */   /* (RST_WIPE: 0.263, FLEXOR; EVERYTHING last) */   /* (LOAF BREAKER: ALL, RESET ALL, was the PITCH part's K4) */
 static const char *const RST_NAME[NRST] = {"DROP", "BUILD", "KNOB", "KICK", "KICK TONE", "ALL KICKS", "DRUMS", "MIX",
-                                           "FX CHAIN", "STEPS", "PADS", "KEYS", "TRACK", "SCREEN", "WIPE MEMORY",
-                                           "EVERYTHING"};
+                                           "FX CHAIN", "STEPS", "BLACK KEYS", "ARP", "WHITE KEYS", "SEL KEYS", "TRACK",
+                                           "SCREEN", "WIPE MEMORY", "EVERYTHING"};
 static const char *const RST_WHAT[NRST] = {"BUILD 4 BARS, NEXT PATTERN, SAME BREAK, CRASH 100%",
-                                          "SNARE ROLL, HIGH-PASS, RISER 100%, NO GAP",
+                                          "SNARE ROLL, HIGH-PASS, RISER 100%, NO GAP, THE BREAK STILL",
                                           "THIS KICK'S: K1 DRIVE, K2 SCREAM, K3 D+ SCREECH, K4 DISTO",
                                           "THE KICK SELECTED (ITS MEMORY): ROTTERDAM, SYNTH, BASS, C SUB, MORPH AT 0, VOLUME KEPT",
                                           "THE KICK'S EQ FLAT, ITS TWO FX SLOTS EMPTY",
                                           "KICK 1-20 AS THEY CAME (909 .. SPINE), SYNTH AT 0, THEIR KNOBS AS THEY START",
                                           "SNARE, HAT, CLAP: THE MEMORY PLAYING AS IT CAME",
-                                          "THE MIXER: LEVELS, SWING, COMP AND DUCK OFF, MAX OUT -3 DB",
+                                          "THE MIXER: LEVELS, FX FADER, SWING, COMP AND DUCK OFF, MAX OUT -3 DB",
                                           "THE FOUR SLOTS AS THEY CAME, EACH EFFECT'S MEMORY FORGOTTEN",
                                           "THIS PATTERN'S DRUM STEPS: 1 HIT, ALWAYS, ON TIME",
-                                          "THE BLACK KEYS: ROLLS, THRU, FILTER, GATE, LATCH, THE ARP KEY",
-                                          "THE WHITE KEYS' LOOPS AND SLICE EFFECTS",
+                                          "ROLLS, THRU, FILTER, GATE, VINYL, THEIR LATCHES (KIL AND X2 TOO); THE LAYOUT KEPT",
+                                          "THE 16 EFFECTS: AMOUNT, THRU, RATE, SWEEP, LATCH OFF; EACH ARP KEY ONE EFFECT",
+                                          "EACH: ONE SLICE, PITCH 0, LOOP, NO DECAY, ITS SLICE EFFECT OFF",
+                                          "SEL + A BLACK KEY: ITS OWN; SEL + A WHITE KEY: NONE",
                                           "THIS TRACK: FROM ITEM 1, EVERY ITEM'S BREAK SAME",
                                           "SKIN RED, SCREEN EFFECTS OFF, THEIR SETTINGS 50%, WAVE ZOOM 1 BAR, DRUM VIEW ZOOM AUTO",
                                           "ALL LOAF BREAKER SAVES ERASED, FOR ANOTHER FIRMWARE: INSTALL IT NEXT",
@@ -208,20 +211,34 @@ static void reset_do(uint32_t w)
             steps.b[set.pattern % NPAT][k] = 0u;
         for (k = 0; k < NDRUMS; k++)
             pats.hits[set.pattern % NPAT][k] = 0u;
-    } else if (w == RST_PADS) {          /* PADS: the black keys' settings as they came */
-        uint32_t k;
+    } else if (w == RST_PADS) {          /* BLACK KEYS: their settings as they came (their layout kept; 0.9.52: the ARP
+                                          * and the SEL layer their own) */
         brk_padset_defaults(&set.pads);
         set.half_mt_off = 0u;
+        set.vinyl = 0u;                  /* (VINYL BREAK's THRU BOTH) */
+        set.bkeys.bk[BK_PLAT] = 0xA0u;   /* (REVERSE, FREEZE, GATE, RANDOM: held, no LATCH) */
+        set.bkeys.bk[BK_FTHRU] = 0xC0u;  /* (FILTER: THRU BREAK) */
+    } else if (w == RST_ARP) {           /* (0.9.52, FLEXOR) ARP: the 16 effects' amounts, each one's THRU, RATE, SWEEP,
+                                          * LATCH off, every ARP key one effect again */
+        uint32_t k;
         set.ovl_pad = 0u;
         set.rsv2[0] = 0u;                /* (0.9.45: every ARP key back to one effect, ovl_pad's) */
-        selk_clear();                    /* (0.9.49: no SEL layer) */
+        for (k = 19u; k < 23u; k++)
+            set.bkeys.bk[k] = 0u;        /* (0.9.51: every effect THRU) */
+        set.bkeys.bk[BK_ARPR_TAG] = ARPR_TAG;
         arp_held = arp_lat = 0u;
+        ovl_latched = 0u;
         for (k = 0; k < 16u; k++)
             set.ovl_amt[k] = k == OV_DIVE || k == OV_RISE || k == OV_CRUSH || k == OV_DIST || k == OV_BOOM ? 70u : 100u;
         set.ovl_rate = 2u;
         set.ovl_sweep = 2u;
         set.ovl_latch = 0u;
-    } else if (w == RST_KEYS) {          /* KEYS: each white key's loop and slice effect as they came */
+        ovl_push();
+    } else if (w == RST_SELK) {          /* (0.9.52, FLEXOR) SEL KEYS: SEL BLK's and SEL WHITE's, none */
+        selk_clear();
+        set_dirty = 1u;
+    } else if (w == RST_KEYS) {          /* WHITE KEYS: each one's loop (LENGTH, PITCH, MODE, DECAY) and slice effect as
+                                          * they came */
         uint32_t k;
         for (k = 0; k < BRK_KEYS; k++) {
             brk_keyset_defaults(&set.keys[k]);

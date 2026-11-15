@@ -34,7 +34,7 @@ turn K2 6 10
 wait 200
 expect bk_key 10
 expect bk_fn 10
-turn SELECT 4 10
+turn SELECT 3 10
 wait 300
 expect opage 0
 # CUSTOM is CHOPPAH's again: FREEZE on the fifth key, its LENGTH on K1; DUB on the last
@@ -71,13 +71,13 @@ wait 300
 shot a_flexor_arp.png
 key b6 up
 wait 300
-# (0.9.52, FLEXOR) SELECT on ARP goes both ways: left from ARP to SETTINGS, right back to ARP
+# (0.9.52, FLEXOR) SELECT on ARP goes both ways: left from ARP to SEL WHITE, right back to ARP
 tap ARP
 wait 300
 expect opage 0
 turn SELECT -1 10
 wait 200
-expect opage 4
+expect opage 3
 turn SELECT 1 10
 wait 200
 expect opage 0

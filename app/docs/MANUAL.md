@@ -560,9 +560,9 @@ PAN) or SWEEP (DIVE, RISE), the one it has, **K4** LATCH: on, a key switches its
 stays on on the other pages). The page and the ARP black key share one effect (0.9.27; with several ARP keys, the one pressed last, 0.9.45): a white key touched here is the ARP key's effect, and the one K1 tunes; the ARP key's K1 turns it, the page follows; AMOUNT, THRU, RATE and SWEEP are the same on both (the ARP key's THRU, FX: MORE K1, is its effect's). The white keys of the effects on are lit (held, latched, the ARP key's). (The FILL that ARP held
 played from 0.1xx to 0.243 is gone, LOAF BREAKER 0.244.)
 
-In EXPERT the page has five tabs (**SELECT** goes to the next, 0.9.2; **ARP** again goes back to HOME; their names short
+In EXPERT the page has four tabs (**SELECT** goes to the next, or back to the left, 0.9.52; **ARP** again goes back to HOME; their names short
 since 0.9.50, FLEXOR): **ARP** (the effects above), **BLK** (the black keys), **SEL BLK** (the black keys with SEL) and
-**SEL WHITE** (the white keys with SEL) and **SETTINGS** (every white key at once). **BLK** lays out the black keys: **K1 PRESET**, CHOPPAH (CHOPPAH's eleven, the ARP
+**SEL WHITE** (the white keys with SEL). **BLK** lays out the black keys: **K1 PRESET**, CHOPPAH (CHOPPAH's eleven, the ARP
 key not among them), FLEXOR LAYOUT (R8 R16 R32 RND HLF FLT ARP VNL KIL DST SUB since 0.9.26) or CUSTOM; **K2 KEY** (or **ALGORITHM**, 0.9.26), the key you edit (or press it:
 here a black key picks itself and plays nothing); **K3 EFFECT**, what it does: any of R8, R16, R32, REV, FRZ, HLF, VNL,
 GAT, RND, FLT, DUB, ARP, KIL, DST, SUB, DRV, X2; on an ARP key, **K4 ARP FX** its own effect (0.9.45: several ARP keys, each with its own, play at once). Turned on a preset, K3 makes a CUSTOM of it first, that key changed (keys
@@ -575,7 +575,7 @@ sets it back to CHOPPAH, and EXPERT keeps it until you change it).
 locked (SEL twice): **K2 KEY** (or **ALGORITHM**, or press the key: it picks itself), **K3 SEL +**, what that key does
 with SEL: **ITS OWN** (the same as without SEL, as before: SEL + R8 / R16 / R32 still rolls the kick alone) or any
 function of the list. While SEL is held or locked the strip and the lights show the SEL functions. A key pressed with
-SEL keeps that function until you let it go. SAVE keeps them; RESET's PADS and RESET ALL clear them.
+SEL keeps that function until you let it go. SAVE keeps them; RESET's SEL KEYS and RESET ALL clear them.
 
 **SEL WHITE** (0.9.50, EXPERT, the fourth tab) makes each white key a **shortcut, pressed with SEL** held or locked,
 any kind on any key: **K2 KEY** (or **ALGORITHM**, or press the white key: it picks itself), **K3 KIND**, **K4 VALUE**:
@@ -589,17 +589,12 @@ any kind on any key: **K2 KEY** (or **ALGORITHM**, or press the white key: it pi
 | EFFECT | That OVERLAY effect while you hold the key | DIVE … REESE |
 | DROP | A build, then the drop | AUTO (as SEL + ENV: the next pattern or DROP's AFTER), or into P1–P64 |
 
-**SETTINGS** (0.9.50, FLEXOR, EXPERT, the fifth tab) sets **one setting for all sixteen white keys at once**: K1-K4
-as on a key held, **LENGTH, PITCH, MODE, DECAY** (LOOP); **ALGORITHM** turns them to the **SLICE FX** (EFFECT, AMOUNT,
-TONE, LEVEL) and back. A knob turned gives every key the same value (key 1's, moved); **MIXED** says the keys differ
-(then the first turn sets them all alike). Under the four settings the sixteen keys, lit where a key is not as the
-defaults. A key held elsewhere still tunes that key alone.
-
-![ARP › SETTINGS: every white key's LENGTH 3/16 and DECAY 47 ms at once](img/screen-wsall.png "SETTINGS")
+(**SETTINGS**, a fifth tab setting every white key at once, came and went in 0.9.50-0.9.51, FLEXOR: a white key is set
+held, as ever, and RESET's WHITE KEYS puts them all back.)
 
 The page shows the sixteen keys as two rows of cards, each with its shortcut in brief (K3 kick 3, P5, a break's
 name, an effect, DROP or D12 for a drop into P12; a dash: none), the one edited lit. A key used as a shortcut does
-nothing else while held. SAVE keeps them; RESET's PADS and RESET ALL clear them.
+nothing else while held. SAVE keeps them; RESET's SEL KEYS and RESET ALL clear them.
 
 **PATTERN › SETTINGS** (SEQ's third view on SELECT, GROOVE until 0.9.30; also **SEL + ARP**), saved with the rest:
 **K1 SWING**, 50–75 % (was the MIXER's), every second 16th later (the page shows the bar's 16ths as it lays them out);
@@ -863,8 +858,10 @@ SYNTH, BASS, CLEAN SUB and MORPH at 0, its volume kept, its memory with it); **K
 **ALL KICKS** (KICK 1–20 as they came: the eleven built-in kicks, KICK 1 909, KICK 2 909 DRIVE, KICK 3 TECHNO, KICK 4 ROTTERDAM (the start), KICK 5 EARLY HC, KICK 6 INDUSTRIAL, KICK 7 TERROR, KICK 8 SPINE, KICK 9 GABBER, KICK 10 MILLENNIUM, KICK 11 DOOMCORE, then round again; their knobs as they start); **DRUMS** (the snare's, hat's and clap's memory playing as it
 came); **MIX** (the MIXER: levels, swing, the drums' route, COMP and DUCK off with their timing, MAX OUT −3 dB);
 **FX CHAIN** (the four slots as they came, each effect's memory forgotten, the FX level kept); **STEPS** (this
-pattern's drum steps: 1 hit, ALWAYS, on time; the steps themselves kept); **PADS** (the black keys' settings:
-rolls, THRU, filter, gate, HALF's and KIL's LATCH, the ARP key's effect); **KEYS** (the white keys' loops and slice effects);
+pattern's drum steps: 1 hit, ALWAYS, on time; the steps themselves kept); **BLACK KEYS** (their settings: rolls,
+THRU, filter, gate, VINYL, the LATCHES, KIL's and X2's too; the layout kept); **ARP** (0.9.52: the sixteen effects'
+AMOUNT, each one's THRU, RATE, SWEEP, LATCH off, every ARP key one effect); **WHITE KEYS** (each: one slice, pitch 0,
+LOOP, no DECAY, its slice effect off); **SEL KEYS** (0.9.52: SEL + a black key its own again, SEL + a white key NONE);
 **TRACK** (this track: from its first item, every item's break SAME; its items kept); **SCREEN** (the skin RED, the
 screen effects off, their settings at 50 %, WAVE ZOOM one bar); **WIPE MEMORY** (before installing another firmware: every save LOAF BREAKER keeps in the FM-1's memory erased, a sector at a time while the screen counts to 40, playing stopped first; then MEMORY WIPED, and nothing is saved again until the FM-1 restarts: install the other firmware next, and it finds that memory blank); and last **EVERYTHING**: RESET ALL, everything back
 to how it came (tempo, generator, FX chain, the drums, mixer, keys, slices, SYSTEM, the tracks and all 64 patterns; the

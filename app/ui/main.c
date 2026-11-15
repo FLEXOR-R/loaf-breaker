@@ -1155,7 +1155,7 @@ static void input(void)
             continue;
         }
         if (k == EN_SELECT && ui.page == PG_OVL && !set.novice) {   /* (0.9.2, FLEXOR: OVERLAY, SELECT its tabs) */
-            ui.opage = (uint8_t)((ui.opage + (d > 0 ? 1u : 4u)) % 5u);   /* (0.9.52, FLEXOR: both ways) */
+            ui.opage = (uint8_t)((ui.opage + (d > 0 ? 1u : 3u)) % 4u);   /* (0.9.52, FLEXOR: both ways) */
             page_say();
             ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
             continue;
@@ -1181,8 +1181,6 @@ static void input(void)
             else if (ui.page == PG_OVL && !ui.opage)
                 ovl_step(d);             /* (0.9.52, FLEXOR: ARP, ALGORITHM the 16 effects in order; SEL + ALGORITHM
                                           * the break there) */
-            else if (ui.page == PG_OVL && ui.opage == 4u)
-                ws_flip();               /* (0.9.50: SETTINGS, ALGORITHM LOOP / SLICE FX) */
             else if (ui.page == PG_OVL && ui.opage == 3u)
                 sw_turn(1, d);           /* (0.9.50: SEL WHITE, ALGORITHM the key, as K2) */
             else if (ui.page == PG_OVL && ui.opage >= 1u)
@@ -1455,7 +1453,7 @@ static void knob_value(int i, char *t)  /* the page's knob i (0..3), as shown un
 /* the tab bar under the header: the button's name, then the page's parts as tabs (the one you are on lit: the
  * button again, or ALGORITHM, goes to the next); EDIT and FX also name the part edited, "< SUB FX >" */
 static int8_t build_stut = -1;          /* (a build's break roll: the roll pad it holds, -1 none) */
-static const char *const OPAGE_NAME[5] = {"ARP", "BLK", "SEL BLK", "SEL WHITE", "SETTINGS"};   /* (LOAF BREAKER: ARP's tabs) */
+static const char *const OPAGE_NAME[4] = {"ARP", "BLK", "SEL BLK", "SEL WHITE"};   /* (SETTINGS 0.9.50-0.9.51) */   /* (LOAF BREAKER: ARP's tabs) */
 static int32_t tab(int32_t x, const char *s, int on)
 {
     int32_t w = text_w(&FONT_T, s) + 8;
@@ -1505,7 +1503,7 @@ static void draw_tabs(void)
     }
     else if (ui.page == PG_OVL) {        /* (LOAF BREAKER: EXPERT, its three tabs; BEGINNER, ARP EFFECTS alone: no tab) */
         if (!set.novice)
-            for (i = 0; i < 5u; i++)     /* (0.259, FLEXOR: MORE gone for now; 0.9.49 SEL KEYS; 0.9.50 SEL WHITE, SETTINGS) */
+            for (i = 0; i < 4u; i++)     /* (0.259, FLEXOR: MORE gone for now; 0.9.49 SEL KEYS; 0.9.50 SEL WHITE) */
                 x = tab(x, OPAGE_NAME[i], i == ui.opage);
     }
     else if (ui.page == PG_TRACK)        /* LOAF BREAKER: ENV: TRACKS, PLAY, DROP */
@@ -1595,7 +1593,7 @@ static void page_say(void)
     case PG_MIX: text_cat(t, ui.mpage == 3u ? "DYNAMICS" : ui.mpage == 2u ? "MASTER" : ui.mpage ? "SENDS" : "LEVELS"); break;
     case PG_SEQ: text_cat(t, SEQ_BRK ? "BREAK" : SEQ_LANE_NAME[ui.seq_lane % NSEQL]); break;
     case PG_TRACK: text_cat(t, TPART[ui.tpage % NTPART]); break;
-    case PG_OVL: text_cat(t, OPAGE_NAME[ui.opage % 5u]); break;   /* (LOAF BREAKER: its tabs) */
+    case PG_OVL: text_cat(t, OPAGE_NAME[ui.opage % 4u]); break;   /* (LOAF BREAKER: its tabs) */
     case PG_FX:
         text_cat(t, IS_KFX() ? "KICK FX " : "SLOT ");
         int_text((int32_t)(fx_foc() % BRK_FX_SLOTS) + 1, t + (IS_KFX() ? 8 : 5));
@@ -1729,8 +1727,7 @@ static const char *knob_name(int i)
     static const char *const KN_BK[3][4] = {{"PRESET", "KEY", "EFFECT", ""}, {"", "KEY", "SEL +", ""},
                                               {"", "KEY", "KIND", "VALUE"}};   /* (ARP's
                                       * BLACK KEYS, MORE) */
-    const char *name = ui.page == PG_OVL && ui.opage == 4u ? (ws_layer ? SLX_KNOB[i] : KEY_KNOB[i]) :
-                       ui.page == PG_OVL && ui.opage ? KN_BK[(ui.opage - 1u) % 3u][i] :
+    const char *name = ui.page == PG_OVL && ui.opage ? KN_BK[(ui.opage - 1u) % 3u][i] :
                        ui.page == PG_GLOBAL && ui.gpage == GP_FILL ? KN_FILL[i] : RST_ON ? KN_TRK[3][i] : ui.page == PG_TRACK &&
                        ui.tpage ? KN_TRK[ui.tpage == 6u ? 4u : ui.tpage == 4u ? 2u : (ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
                        ui.gpage >= 2u ? KN_MORE[(ui.gpage - 2u) % 3u][i] : ui.page == PG_GLOBAL && ui.gpage
@@ -2845,7 +2842,7 @@ static int edx_page(const uint8_t *u, uint32_t len, uint8_t *o, uint32_t *n)
     } else if (pg == PG_GLOBAL)
         ok = a < 7u && a != 5u ? (ui.gpage = (uint8_t)a, 1) : 0;   /* (never RESET) */
     else if (pg == PG_OVL) {
-        ui.opage = (uint8_t)(a % 5u);
+        ui.opage = (uint8_t)(a % 4u);
         ui.bk_sel = (uint8_t)(b % 11u);
     } else if (pg == PG_FX) {
         if (a < BRK_FX_ALL) {
@@ -3694,7 +3691,7 @@ int app_expect(const char *what, int *got)
     v[149] = (int)sw_val(sw_sel);
     v[150] = (int)sw_fx_on;              /* (its EFFECT keys held, a bit each OV_*) */
     v[151] = build_p >= 0.0f || build_wait;   /* (a build on its way to the drop) */
-    v[152] = ws_layer;                   /* (0.9.50: ARP › SETTINGS, 0 LOOP 1 SLICE FX) */
+    v[152] = 0;                          /* (ARP › SETTINGS' layer, 0.9.50-0.9.51: gone) */
     v[153] = set.keys[15].len;           /* (the last white key's LENGTH, its DECAY) */
     v[154] = set.keys[15].start >> 4;
     v[155] = (int)bk_broll();            /* (0.9.50: SONG › BREAK, bit 0 ROLL, bits 2-3 from) */
