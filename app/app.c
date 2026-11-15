@@ -242,6 +242,37 @@ static const uint8_t BK_LAY[2][11] = {{PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, PAD_RE
 #define BK_BROLL 18u                     /* (bk[18]: 0xE0 | the break in a build, 0.9.50, FLEXOR: bit 0 ROLL (0 STILL),
                                           * bits 2-3 the roll's start: 0 the build's, 1 its half, 2 its last quarter) */
 static uint32_t bk_broll(void) { return (set.bkeys.bk[BK_BROLL] & 0xF0u) == 0xE0u ? set.bkeys.bk[BK_BROLL] & 15u : 0u; }
+#define BK_ARPR_TAG 23u                  /* (0.9.50, FLEXOR: each ARP effect its own THRU, 2 bits an effect in bk[19..22]
+                                          * (effect k: bk[19 + k / 4], bits 2 * (k % 4)): 0 THRU (the whole mix), 1 the
+                                          * BREAK, 2 the KICK; bk[23] ARPR_TAG; untagged (an older save): every effect the
+                                          * ARP's THRU of before, ovl_pad bits 6-7) */
+#define ARPR_TAG 0x7Cu
+static uint32_t arp_route(uint32_t k)
+{
+    if (set.bkeys.bk[BK_ARPR_TAG] != ARPR_TAG)
+        return ((set.ovl_pad >> 6) & 3u) % 3u;
+    return (set.bkeys.bk[19u + (k & 15u) / 4u] >> (2u * (k & 3u)) & 3u) % 3u;
+}
+static void arp_route_set(uint32_t k, uint32_t r)
+{
+    uint32_t j;
+    if (set.bkeys.bk[BK_ARPR_TAG] != ARPR_TAG) {   /* (first set: every effect as the THRU of before) */
+        uint32_t o = arp_route(0u);
+        for (j = 0; j < 4u; j++)
+            set.bkeys.bk[19u + j] = (uint8_t)(o * 0x55u);
+        set.bkeys.bk[BK_ARPR_TAG] = ARPR_TAG;
+    }
+    j = 19u + (k & 15u) / 4u;
+    set.bkeys.bk[j] = (uint8_t)((set.bkeys.bk[j] & ~(3u << (2u * (k & 3u)))) | (r % 3u) << (2u * (k & 3u)));
+}
+static uint32_t arp_mask(uint32_t r)     /* (the effects THRU r: bit OV_*) */
+{
+    uint32_t k, m = 0u;
+    for (k = 0; k < OVL_N; k++)
+        if (arp_route(k) == r)
+            m |= 1u << k;
+    return m;
+}
 static uint32_t bk_seq(void) { return (set.bkeys.bk[BK_SEQ] & 0xF0u) == 0xD0u ? set.bkeys.bk[BK_SEQ] & 15u : 0u; }
 static uint32_t bk_lat(void) { return (set.bkeys.bk[BK_PLAT] & 0xF0u) == 0xA0u ? set.bkeys.bk[BK_PLAT] & 15u : 0u; }
 static uint32_t bk_fthru(void)
@@ -289,6 +320,9 @@ static void bk_defaults(void)
     set.bkeys.bk[BK_PLAT] = 0xA0u;
     set.bkeys.bk[BK_FTHRU] = 0xC0u;
     set.bkeys.bk[BK_BROLL] = 0xE0u;
+    for (j = 19u; j < 23u; j++)
+        set.bkeys.bk[j] = 0u;            /* (0.9.50: every ARP effect THRU) */
+    set.bkeys.bk[BK_ARPR_TAG] = ARPR_TAG;
 }
 static uint32_t brk_view(void) { return (set.brkv & 0xF0u) == BRKV_TAG && (set.brkv & 15u) <= 2u ? set.brkv & 15u : 2u; }
 static uint32_t max_out_db(void) { return set.max_out ? (set.max_out - 1u > 12u ? 12u : set.max_out - 1u) : 3u; }
@@ -2001,8 +2035,9 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
     static float crash;                  /* the drop's crash, its level */
     static uint8_t gap_now;              /* LOAF BREAKER: the GAP before the drop: silent now */
     int vin = (set.vinyl & 3u) != 1u;    /* (THRU BOTH or KICK: the drums slow too) */
-    uint32_t thru = (set.ovl_pad >> 6) & 3u;   /* the ARP key's THRU: 0 BOTH, 1 BREAK, 2 KICK */
-    int kick_dry = thru != 0u;           /* the kick apart from the chain (BREAK: around the overlays too) */
+    uint32_t mb = arp_mask(1u), mk = arp_mask(2u);   /* (0.9.50, FLEXOR: each ARP effect its own THRU: the
+                                          * break's, the kick's, the rest on the whole mix) */
+    int kick_dry = (mb | mk) != 0u;      /* the kick apart from the chain (as the ARP's THRU BREAK or KICK was) */
     float gain = muted ? 0.0f : (float)master_q12 * (1.0f / 4096.0f) * 8300000.0f *
                  brk_exp2f(-(float)max_out_db() * 0.16610f);   /* (LOAF BREAKER: MAX OUT's headroom) */
     brk_status_t st;
@@ -2343,16 +2378,16 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             float spb = (float)BRK_SR * 600.0f / (float)(set.tempo_x10 ? set.tempo_x10 : 1700u);
             if (st.playing)
                 beat = (float)(st.bar % 64u) * 4.0f + ((float)(st.bar16 < 0 ? 0 : st.bar16) + st.phase) * 0.25f;
-            if (thru == 2u) {            /* LOAF BREAKER: THRU KICK, the overlays on the kick alone, the rest clean */
+            if (kick_dry) {              /* (0.9.50: the break's effects on the break and the drums, the kick's on the
+                                          * kick alone, the kick joining, then the THRU ones on the whole mix) */
+                ovl_process(l, r, m, beat, spb, mb);
                 for (i = 0; i < m; i++)
                     kl[i] = kr[i] = kick[i];
-                ovl_process(kl, kr, m, beat, spb);
+                ovl_process(kl, kr, m, beat, spb, mk);
                 brk_fx_add_dry(l, r, kl, kr, m);
-            } else {
-                ovl_process(l, r, m, beat, spb);
-                if (kick_dry)            /* THRU BREAK: the kick around the chain and the overlays, clean */
-                    brk_fx_add_dry(l, r, kick, kick, m);
-            }
+                ovl_process(l, r, m, beat, spb, 0xFFFFu & ~(mb | mk));
+            } else
+                ovl_process(l, r, m, beat, spb, 0xFFFFu);
             if (!st.playing) {
                 beat += (float)m / spb;
                 if (beat >= 256.0f)

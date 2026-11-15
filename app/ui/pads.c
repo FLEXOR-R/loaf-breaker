@@ -7,12 +7,14 @@ static void ovl_push(void);              /* (ovl.c) */
 static const char *const THRU_NAME[4] = {"BOTH", "BREAK", "KICK", "BOTH"};   /* VINYL's THRU */
 static const char *const ARP_THRU[4] = {"THRU", "BREAK", "KICK", "THRU"};   /* (0.9.29, FLEXOR: what the ARP's effects take,
                                           * ovl_pad 6-7: 0 the whole mix, 1 the break, 2 the kick; also LFO's LEVELS K4, SENDS K3) */
-static void arp_thru_turn(int32_t d)     /* BREAK, KICK, THRU in that order (FLEXOR) */
+static void arp_thru_turn(uint32_t e, int32_t d)   /* BREAK, KICK, THRU in that order (FLEXOR); 0.9.50, FLEXOR: each
+                                          * effect its own (app.c arp_route), saved */
 {
-    static const uint8_t AT[3] = {1u, 2u, 0u}, POS[4] = {2u, 0u, 1u, 2u};
-    uint32_t c = AT[clamp((int32_t)POS[(set.ovl_pad >> 6) & 3u] + (d > 0 ? 1 : -1), 0, 2)];
-    set.ovl_pad = (uint8_t)((set.ovl_pad & 0x3Fu) | c << 6);
-    app_say("ARP", ARP_THRU[c]);
+    static const uint8_t AT[3] = {1u, 2u, 0u}, POS[3] = {2u, 0u, 1u};
+    uint32_t c = AT[clamp((int32_t)POS[arp_route(e)] + (d > 0 ? 1 : -1), 0, 2)];
+    arp_route_set(e, c);
+    set_dirty = 1u;
+    app_say(OVL_NAME[e & 15u], ARP_THRU[c]);
 }
 /* LOAF BREAKER (0.9.45, FLEXOR): every black key set to ARP is its own: its effect and its LATCH, several sounding at
  * once (THRU, ON / OFF, RATE, SWEEP and each effect's amount shared). Kept in rsv2 (v0.52's fills' bytes), tagged
@@ -346,7 +348,7 @@ static void pad_knob_value(int pad, int k, char *t)
         uint32_t e = arpk_fx(arpk_focus());
         int tk = ovl_time_kind(e);
         if (ui.pad_more) {
-            if (k == 0) text_cat(t, ARP_THRU[(set.ovl_pad >> 6) & 3u]);
+            if (k == 0) text_cat(t, ARP_THRU[arp_route(e)]);
             else if (k == 1) text_cat(t, set.ovl_pad & 32u ? "OFF" : "ON");
             else if (k == 2) text_cat(t, OVL_RATE_NAME[set.ovl_rate & 3u]);
             else text_cat(t, OVL_SWEEP_NAME[set.ovl_sweep & 3u]);
@@ -461,8 +463,8 @@ static void pad_knob_turn(int pad, int k, int32_t d)
             uint32_t e = arpk_fx(arpk_focus());  /* (0.9.45: the ARP key held last's own) */
             int tk = ovl_time_kind(e), dir = d > 0 ? 1 : -1;
             if (ui.pad_more) {    /* MORE: THRU, ON / OFF, RATE, SWEEP */
-                if (k == 0)              /* (THRU: app.c's render) */
-                    arp_thru_turn(d);
+                if (k == 0)              /* (THRU: this effect's, app.c's render) */
+                    arp_thru_turn(e, d);
                 else if (k == 1)         /* (ON: the key sounds its effect; OFF: K1 browses them silent) */
                     set.ovl_pad = (uint8_t)(d > 0 ? set.ovl_pad & ~32u : set.ovl_pad | 32u);
                 else if (k == 2)

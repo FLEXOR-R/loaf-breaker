@@ -141,7 +141,7 @@ static void knob_turn(int k, int32_t d)
                 set.drums_chain = d > 0 ? 0u : 1u;   /* right: around the chain, left: through it */
                 app_say("DRUMS", set.drums_chain ? "THRU FX" : "AROUND FX");
             } else if (k == EN_K3)
-                arp_thru_turn(d);        /* (0.9.29, FLEXOR: the ARP's effects on BREAK, KICK, THRU) */
+                ;                        /* (0.9.29-0.9.49 the ARP's THRU: 0.9.50, FLEXOR, each effect's, ARP K2) */
             else
                 roll_thru_turn(d);       /* (0.9.40, FLEXOR: K4 the three rolls' THRU, their K2 the break's filter) */
         } else if (k == EN_K1) {
@@ -1709,11 +1709,11 @@ static const char *knob_name(int i)
                                               {"SLICE", "PITCH", "HITS", "REVERSE"},
                                               {"", "", "", ""},
                                               {"KICK", "PUT", "LOOPS", "BREAK"},
-                                              {"AMOUNT", "RATE", "SWEEP", "LATCH"},
+                                              {"AMOUNT", "THRU", "", "LATCH"},   /* (0.9.50: K2 the effect's THRU, K3 RATE or SWEEP: below) */
                                               {"LOW", "MID", "HIGH", "MID FREQ"},
                                               {"VIEW", "WAVE TYPE", "WAVE ZOOM", "BREAK TIME"}};
     static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "LEVEL"};   /* (SOUNDS' BREAK) */
-    static const char *const KN_GROOVE[3][4] = {{"FX", "DRUMS", "ARP", "ROLL"}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
+    static const char *const KN_GROOVE[3][4] = {{"FX", "DRUMS", "", "ROLL"}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
                                                 {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
     static const char *const KN_MORE[3][4] = {{"SKIN", "", "MODE", "AUTO SAVE"},   /* SETUP (K2 WAVE ZOOM: HOME's
                                       * SETTINGS, 0.9.2) */
@@ -1733,6 +1733,8 @@ static const char *knob_name(int i)
                        ui.gpage >= 2u ? KN_MORE[(ui.gpage - 2u) % 3u][i] : ui.page == PG_GLOBAL && ui.gpage
                        ? KN_PITCH[i] : ui.page == PG_MIX && ui.mpage
                        ? KN_GROOVE[ui.mpage >= 3u ? 2u : ui.mpage == 2u][i] : KN[ui.page][i];
+    if (ui.page == PG_OVL && !ui.opage && i == 2)
+        name = ovl_time_kind(ovl_last) == 1 ? "RATE" : ovl_time_kind(ovl_last) == 2 ? "SWEEP" : "";
     if (ui.page == PG_OVL && ui.opage == 1u && i == 3 && bk_fn(ui.bk_sel) == BKF_ARP)
         name = "ARP FX";                 /* (0.9.45: BLACK KEYS, an ARP key's own effect) */
     if (ui.page == PG_TRACK && !ui.tpage && !RST_ON && i >= 2 && trk_now()->it[ui.trk_cur % TRK_ITEMS] == TI_DROP)
@@ -3589,7 +3591,7 @@ int app_expect(const char *what, int *got)
     v[49] = set.ovl_pad & 15u;
     v[50] = set.ovl_amt[set.ovl_pad & 15u];
     v[51] = ui.pad_more;
-    v[52] = (set.ovl_pad >> 6) & 3u;
+    v[52] = (int)arp_route(ovl_last);   /* (0.9.50: the effect touched last's THRU) */
     v[53] = set.ovl_rate;
     v[54] = ui.kpreset;
     v[55] = ui.aud_t ? ui.aud_d : -1;

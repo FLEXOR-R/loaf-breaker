@@ -23,7 +23,9 @@ void ovl_init(int16_t *line);            /* the line: 2 * OVL_LINE (the pool); e
 void ovl_set(uint32_t on, const uint8_t *amount, uint32_t rate, uint32_t sweep);
 /* the render: l and r in place. beat: where the block starts, in beats (playing: the engine's; stopped: a clock of
  * its own); spb: samples a beat */
-void ovl_process(float *l, float *r, uint32_t n, float beat, float spb);
+void ovl_process(float *l, float *r, uint32_t n, float beat, float spb, uint32_t mask);
+/* (LOAF BREAKER 0.9.50: mask, the effects (bit OV_*) this pass runs: each effect in one pass a block (the break's, the
+ * kick's, the whole mix's: each its own THRU); all 16 bits, one pass on the whole mix as before) */
 uint32_t ovl_sounding(void);             /* bit OV_*: sounding now (fading out too) */
 /* LOAF BREAKER: REESE, a fat bass added under the mix while it's on: three saws detuned against each other and a sine
  * an octave down, through a low-pass that opens and closes once a bar, driven (AMOUNT: louder, brighter, dirtier).

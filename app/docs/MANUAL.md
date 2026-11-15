@@ -492,7 +492,7 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 | FLT | Filter throw: the DJ filter sweeps to its target while held, back when let go | TARGET (low-pass left, high-pass right) | RESO | SPEED | THRU: BREAK (the break, as ever), DRUMS (the kick, the snare, the hat, the clap), BOTH (0.9.26) |
 | DUB | Dub throw: the break into an echo while held, its tail ringing out | TIME (1/8, 3/16, 1/4, 3/8) | FEEDBACK | TONE | MIX (with a DELAY in the FX chain: that slot's own four) |
 | ARP | Its OVERLAY effect over the mix, while held (or latched): DIVE, RISE, RADIO, WAH, CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, WOBBLE, JET, REESE | EFFECT | AMOUNT (that effect's) | TIME: RATE for CHOP, GATE, WAH, PAN; SWEEP for DIVE, RISE | LATCH |
-| Several ARP keys (0.9.45) | Put ARP on more than one key (CUSTOM, ARP › BLK): each is its own, with its own EFFECT and its own LATCH, and they play together (hold two, latch one and hold another…). The knobs tune the ARP key pressed last (its number shows under FX: MORE). Shared by all: THRU, ON / OFF, RATE, SWEEP and each effect's AMOUNT | | | | |
+| Several ARP keys (0.9.45) | Put ARP on more than one key (CUSTOM, ARP › BLK): each is its own, with its own EFFECT and its own LATCH, and they play together (hold two, latch one and hold another…). The knobs tune the ARP key pressed last (its number shows under FX: MORE). Shared by all: ON / OFF, RATE, SWEEP, and each effect's AMOUNT and THRU (0.9.50: THRU each effect's own) | | | | |
 | ARP, FX while held (MORE) | | THRU: BREAK, KICK or THRU (everything; LFO's ARP the same) | ON / OFF (OFF: K1 browses silent) | RATE (1/4 … 1/32) | SWEEP (1/4 bar … 2 bars) |
 | KIL | While held, the sequencer's kicks are quiet; let go, they play again (a kick roll still plays). When the kicks come back, the drums' filter (SEL + SELECT) goes back to OFF at once, so a drop is never filtered by mistake (0.9.50, FLEXOR) | LATCH: ON, a press quiets them and the next brings them back | | | |
 | X2 | KICKS X2 (0.9.48): the kicks doubled, for a beat twice as violent. Every odd step (1, 3, 5 … 15) of a bar that has kicks plays one, with the last kick's note: four to the floor becomes eight; the even steps play as programmed. KIL still silences them. In no preset layout: put it on a key of CUSTOM (ARP › BLK, K3) | LATCH: ON at first, a press doubles them and the next brings them back; OFF, doubled while held | | | |
@@ -553,9 +553,11 @@ all 16.
 
 **ARP** opens the OVERLAY page: sixteen effects over everything that plays, one on each white key (DIVE, RISE, RADIO,
 WAH, CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, WOBBLE, JET, REESE), on while the key is held, any
-together. **K1** the amount of the one touched last, **K2** the rate of the ones on the beat (CHOP, GATE, WAH, PAN),
-**K3** the sweeps' length (DIVE, RISE), **K4** LATCH: on, a key switches its effect on and off (and what is latched
-stays on on the other pages). The page and the ARP black key share one effect (0.9.27; with several ARP keys, the one pressed last, 0.9.45): a white key touched here is the ARP key's effect, and the one K1 tunes; the ARP key's K1 turns it, the page follows; AMOUNT, RATE and SWEEP are the same on both. The white keys of the effects on are lit (held, latched, the ARP key's). (The FILL that ARP held
+together. **K1** the amount of the one touched last, **K2 THRU** what that effect takes (0.9.50, FLEXOR: each effect its
+own, kept by SAVE): BREAK (the break and the drums), KICK (the kick alone) or THRU (the whole mix); its card says BREAK or
+KICK, so some effects can work on the break while others work on the kick, together. **K3** its RATE (CHOP, GATE, WAH,
+PAN) or SWEEP (DIVE, RISE), the one it has, **K4** LATCH: on, a key switches its effect on and off (and what is latched
+stays on on the other pages). The page and the ARP black key share one effect (0.9.27; with several ARP keys, the one pressed last, 0.9.45): a white key touched here is the ARP key's effect, and the one K1 tunes; the ARP key's K1 turns it, the page follows; AMOUNT, THRU, RATE and SWEEP are the same on both (the ARP key's THRU, FX: MORE K1, is its effect's). The white keys of the effects on are lit (held, latched, the ARP key's). (The FILL that ARP held
 played from 0.1xx to 0.243 is gone, LOAF BREAKER 0.244.)
 
 In EXPERT the page has five tabs (**SELECT** goes to the next, 0.9.2; **ARP** again goes back to HOME; their names short
@@ -1022,7 +1024,7 @@ MEMORY erases them.
 ## 9. The mixer
 
 **LFO** opens the MIXER: three channels side by side, each a fader (BREAK, KICK and PERC with a level meter).
-**SELECT** turns to SENDS, MASTER and DYNAMICS (0.9.2; **LFO again** goes back to HOME): SENDS (the FX fader, the chain's four slots beside it, lit: on; DRUMS, their route; ARP, the ARP's effects on the BREAK, the KICK or THRU, everything: the same as the ARP key's THRU; ROLL, what the three roll keys roll: BREAK, KICK (the kick hit at the roll's rate instead of its pattern; the break plays on) or BOTH, 0.9.40). **LFO held +
+**SELECT** turns to SENDS, MASTER and DYNAMICS (0.9.2; **LFO again** goes back to HOME): SENDS (the FX fader, the chain's four slots beside it, lit: on; DRUMS, their route; ROLL, what the three roll keys roll: BREAK, KICK (the kick hit at the roll's rate instead of its pattern; the break plays on) or BOTH, 0.9.40). **LFO held +
 K1–K4**, on any page: the break's, the kick's and the drums' level, and (K4, 0.9.50, FLEXOR) the FX fader, 5 % a detent (the MIXER's own page: 2 %), the page staying where it is (LFO let go after a turn opens nothing): the mix moved without
 going into the MIXER.
 

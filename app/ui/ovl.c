@@ -477,11 +477,13 @@ static void ovl_value(int i, char *t)
     if (i == 0) {
         int_text(set.ovl_amt[ovl_last & 15u], t);
         text_cat(t, " %");
-    } else if (i == 1)
-        text_cat(t, OVL_RATE_NAME[set.ovl_rate & 3u]);
-    else if (i == 2)
-        text_cat(t, OVL_SWEEP_NAME[set.ovl_sweep & 3u]);
-    else
+    } else if (i == 1)                   /* (0.9.50, FLEXOR: K2 this effect's THRU: BREAK, KICK, THRU; K3 its RATE or
+                                          * SWEEP, the one it has) */
+        text_cat(t, ARP_THRU[arp_route(ovl_last)]);
+    else if (i == 2) {
+        int tk = ovl_time_kind(ovl_last);
+        text_cat(t, tk == 1 ? OVL_RATE_NAME[set.ovl_rate & 3u] : tk == 2 ? OVL_SWEEP_NAME[set.ovl_sweep & 3u] : "-");
+    } else
         text_cat(t, set.ovl_latch ? "ON" : "OFF");
 }
 static void ovl_turn(int i, int32_t d)
@@ -504,10 +506,16 @@ static void ovl_turn(int i, int32_t d)
     if (i == 0) {
         uint8_t *a = &set.ovl_amt[ovl_last & 15u];
         *a = (uint8_t)clamp((int32_t)*a + d * 2, 0, 100);
-    } else if (i == 1)
+    } else if (i == 1) {
+        arp_thru_turn(ovl_last, d);
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        return;
+    } else if (i == 2 && ovl_time_kind(ovl_last) == 1)
         set.ovl_rate = (uint8_t)clamp((int32_t)set.ovl_rate + (d > 0 ? 1 : -1), 0, 3);
-    else if (i == 2)
+    else if (i == 2 && ovl_time_kind(ovl_last) == 2)
         set.ovl_sweep = (uint8_t)clamp((int32_t)set.ovl_sweep + (d > 0 ? 1 : -1), 0, 3);
+    else if (i == 2)
+        return;
     else {
         set.ovl_latch = d > 0 ? 1u : 0u;
         if (!set.ovl_latch)
@@ -516,7 +524,7 @@ static void ovl_turn(int i, int32_t d)
     changed();
     ovl_push();
     ovl_value(i, t);
-    app_say(i == 0 ? OVL_NAME[ovl_last & 15u] : i == 1 ? "RATE" : i == 2 ? "SWEEP" : "LATCH", t);
+    app_say(i == 0 ? OVL_NAME[ovl_last & 15u] : i == 2 ? (ovl_time_kind(ovl_last) == 1 ? "RATE" : "SWEEP") : "LATCH", t);
     ui.redraw |= RG_BLOCKS;
 }
 
@@ -549,6 +557,8 @@ static void draw_ovl(void)
             int_text((int32_t)i + 1, t);
             cv_text(x + 4, y + 1, &FONT_XS, OVL_NAME[i], lit ? C_BLACK : sel ? C_HI : C_GRAY);
             cv_text(x + 54 - text_w(&FONT_T, t), y + 12, &FONT_T, t, lit ? C_BLACK : C_DIM);   /* its key */
+            if (arp_route(i))            /* (0.9.50: its THRU, BREAK or KICK alone) */
+                cv_text(x + 4, y + 12, &FONT_T, arp_route(i) == 1u ? "BREAK" : "KICK", lit ? C_BLACK : C_AMB);
             cv_rect(x + 4, y + 18, 34, 2, lit ? C_BLOCK_HI : C_LINE);                         /* its amount */
             cv_rect(x + 4, y + 18, (int32_t)set.ovl_amt[i] * 34 / 100, 2, lit ? C_BLACK : lat ? C_AMB : C_GRAY);
         }

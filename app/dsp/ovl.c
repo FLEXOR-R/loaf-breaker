@@ -16,7 +16,7 @@ static volatile uint32_t p_on, p_rate, p_sweep;
 static volatile uint8_t p_amt[OVL_N];
 static float env[OVL_N];                 /* each one's fade, 0..1 */
 static uint32_t held[OVL_N];             /* samples since it came on (the sweeps) */
-static int16_t *line;
+static int16_t *line, *line_buf;          /* (line: this pass's, the buffer or none; 0.9.50) */
 static uint32_t wpos;
 typedef struct { float ic1, ic2; } svf_t;   /* a state-variable filter's state (TPT) */
 static svf_t sv[4][2];                   /* DIVE, RISE, RADIO, WAH; left, right */
@@ -53,7 +53,7 @@ static inline float frac(float x) { return x - (float)(int32_t)x; }
 BRK_COLD void ovl_init(int16_t *buf)
 {
     uint32_t i;
-    line = buf;
+    line = line_buf = buf;
     for (i = 0; line && i < 2u * OVL_LINE; i++)
         line[i] = 0;
     for (i = 0; i < OVL_N; i++) {
@@ -84,19 +84,27 @@ static float tap(uint32_t ch, float d)   /* the delay line, d samples back (line
     return (x0 + (x1 - x0) * f) * (1.0f / 16384.0f);
 }
 
-void ovl_process(float *l, float *r, uint32_t n, float beat, float spb)
+void ovl_process(float *l, float *r, uint32_t n, float beat, float spb, uint32_t mask)
 {
-    uint32_t on = p_on, i, k, act = 0u, rate = p_rate;
+    uint32_t on = p_on & mask, i, k, act = 0u, rate = p_rate, own;
     float amt[OVL_N], div = (float)(1u << rate), sweep_n = (float)(1u << p_sweep) * spb, inv = spb > 1.0f ? 1.0f / spb : 0.0f;
     svc_t c_dive, c_rise, c_radio, c_wah, c_reese;
+    {                                    /* (LOAF BREAKER 0.9.50: the line is this pass's if WOBBLE is in it and on, or
+                                          * JET is and on while WOBBLE is not; else, both off, the pass with WOBBLE) */
+        uint32_t w = (p_on >> OV_WOBBLE & 1u) || env[OV_WOBBLE] > 0.0f, j = (p_on >> OV_JET & 1u) || env[OV_JET] > 0.0f;
+        own = (mask >> OV_WOBBLE & 1u) ? (w || !j || (mask >> OV_JET & 1u)) : (mask >> OV_JET & 1u) && j && !w;
+    }
     for (k = 0; k < OVL_N; k++) {
         amt[k] = (float)p_amt[k] * 0.01f;
+        if (!(mask >> k & 1u))
+            continue;
         if ((on >> k) & 1u || env[k] > 0.0f)
             act |= 1u << k;
         if (!((on >> k) & 1u) && env[k] <= 0.0f)
             held[k] = 0u;
     }
-    sounding = act;
+    sounding = (sounding & ~mask) | act;
+    line = own ? line_buf : 0;           /* (another pass has it: this one leaves it alone) */
     if (!act) {                          /* nothing on: the line still listens (a clean start for WOBBLE and JET) */
         for (i = 0; line && i < n; i++) {
             line[wpos] = (int16_t)(brk_clampf(l[i], -1.99f, 1.99f) * 16384.0f);

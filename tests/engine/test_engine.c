@@ -2061,7 +2061,7 @@ static void ovl_run(uint32_t on, uint32_t from, uint32_t n, float hz, float *pea
     for (i = from; i < from + n; i += BLOCK) {
         for (j = 0; j < BLOCK; j++)
             l[j] = r[j] = ovl_tone(i + j, hz) + 0.2f * ovl_tone(i + j, 97.0f);
-        ovl_process(l, r, BLOCK, (float)i / spb, spb);
+        ovl_process(l, r, BLOCK, (float)i / spb, spb, 0xFFFFu);
         for (j = 0; j < BLOCK; j++) {
             float d = ovl_tone(i + j, hz) + 0.2f * ovl_tone(i + j, 97.0f);
             if (i + j >= from + n / 2u) {    /* the second half: past the fade and the sweep */
