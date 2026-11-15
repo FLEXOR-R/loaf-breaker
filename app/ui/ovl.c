@@ -11,20 +11,32 @@ static uint32_t ovl_held, ovl_latched;   /* bit OV_*: held down on this page; sw
                                           * effect for both: touched on the page, the key plays it; turned on the key's K1,
                                           * the page tunes it) */
 
-static uint32_t ovl_pad_bits(void) { return ovl_pad_on() ? 1u << (set.ovl_pad & 15u) : 0u; }   /* the ARP key's */
+static uint32_t ovl_pad_bits(void)       /* the ARP keys' effects on (0.9.46: each key its own) */
+{
+    uint32_t j, m = 0u;
+    for (j = 0; j < 11u; j++)
+        if (arpk_on(j))
+            m |= 1u << arpk_fx(j);
+    return m;
+}
 static void ovl_push(void)
 {
     ovl_set(ovl_held | ovl_latched | ovl_pad_bits(), set.ovl_amt, set.ovl_rate, set.ovl_sweep);
 }
-static void ovl_pad_key(int down)        /* GLOUPI BREAKS: the ARP black key down or up */
+static void ovl_pad_key(uint32_t j, int down)   /* GLOUPI BREAKS: the ARP black key j (0..10) down or up */
 {
-    if (set.ovl_pad & 16u) {             /* LOAF BREAKER: K4 LATCH on: each press turns it on, or off */
+    uint16_t b = (uint16_t)(1u << (j % 11u));
+    if (down) {                          /* (0.9.46: the key touched last: its knobs; the OVERLAY page's K1 its effect) */
+        arp_foc = (uint8_t)(j % 11u);
+        set.ovl_pad = (uint8_t)((set.ovl_pad & ~15u) | arpk_fx(j));
+    }
+    if (arpk_latch(j)) {                 /* LOAF BREAKER: K4 LATCH on: each press turns it on, or off */
         if (down)
-            ovlpad_lat ^= 1u;
-        ovlpad_held = 0u;
+            arp_lat ^= b;
+        arp_held &= (uint16_t)~b;
     } else {                             /* (off: on while held) */
-        ovlpad_held = (uint8_t)(down != 0);
-        ovlpad_lat = 0u;
+        arp_held = (uint16_t)(down ? arp_held | b : arp_held & ~b);
+        arp_lat &= (uint16_t)~b;
     }
     ovl_push();
     ui.redraw |= RG_BLOCKS | RG_FOOT;
@@ -36,6 +48,7 @@ static void ovl_keys(uint32_t keys, uint32_t kdn)   /* every input: the white ke
     if (ui.page == PG_OVL && ui.opage == 0u)   /* (ARP EFFECTS: the keys; BLACK KEYS, MORE: none) */
         for (i = 0; i < 16u; i++) {
             if (kdn >> WK[i] & 1u) {
+                arpk_set_fx(arpk_focus(), i);   /* (0.9.46: the ARP key touched last plays it) */
                 set.ovl_pad = (uint8_t)((set.ovl_pad & ~15u) | i);
                 set_dirty = 1u;
                 tut_ovl++;               /* (LOAF BREAKER: the TUTORIAL's count) */
@@ -67,7 +80,7 @@ static void bk_release_all(void)         /* (the layout changes: whatever a key 
     kroll = 0u;
     half_lat = 0u;
     pad_latched = 0u;
-    ovlpad_held = ovlpad_lat = 0u;
+    arp_held = arp_lat = 0u;
     ovl_push();
     kick_hold = 0u;
     ui.pad_focus = -1;
@@ -94,6 +107,8 @@ static void bk_value(int i, char *t)
         int_text((int32_t)ui.bk_sel % 11 + 1, t);
     else if (i == 2)
         text_cat(t, BKF_LONG[bk_fn(ui.bk_sel)]);
+    else if (bk_fn(ui.bk_sel) == BKF_ARP)  /* (0.9.46: K4, an ARP key's own effect) */
+        text_cat(t, OVL_NAME[arpk_fx(ui.bk_sel)]);
 }
 static void bk_turn(int i, int32_t d)
 {
@@ -123,6 +138,14 @@ static void bk_turn(int i, int32_t d)
         bk_release_all();
         set.bkeys.bk[2u + ui.bk_sel % 11u] = (uint8_t)f;
         bk_say();
+    } else if (bk_fn(ui.bk_sel) == BKF_ARP) {   /* K4 (0.9.46, FLEXOR): an ARP key's own effect, several ARP keys at
+                                          * once each with its own */
+        uint32_t e = (arpk_fx(ui.bk_sel) + (dir > 0 ? 1u : 15u)) & 15u;
+        arpk_set_fx(ui.bk_sel, e);
+        if (arpk_focus() == ui.bk_sel % 11u)
+            set.ovl_pad = (uint8_t)((set.ovl_pad & ~15u) | e);
+        ovl_push();
+        app_say("ARP FX", OVL_NAME[e]);
     } else
         return;
     set_dirty = 1u;
@@ -153,7 +176,11 @@ static void draw_bk(void)
         text_cat(t, "KEY ");
         int_text((int32_t)ui.bk_sel % 11 + 1, t + 4);
         cv_text(6, 40, &FONT_XS, t, C_GRAY);
-        cv_text(6, 50, &FONT_B, BKF_LONG[bk_fn(ui.bk_sel)], C_HI);
+        if (bk_fn(ui.bk_sel) == BKF_ARP) {   /* (0.9.46: an ARP key with its own effect, K4) */
+            cv_text(6, 50, &FONT_B, "ARP", C_HI);
+            cv_text(6 + text_w(&FONT_B, "ARP "), 50, &FONT_B, OVL_NAME[arpk_fx(ui.bk_sel)], C_WHITE);
+        } else
+            cv_text(6, 50, &FONT_B, BKF_LONG[bk_fn(ui.bk_sel)], C_HI);
         cv_text(6, 72, &FONT_XS, "PRESET", C_GRAY);
         cv_text(234 - text_w(&FONT_B, BKP_NAME[p]), 68, &FONT_B, BKP_NAME[p], p == BKP_CUSTOM ? C_AMB : C_WHITE);
         cv_text(6, 86, &FONT_XS, p == BKP_CUSTOM ? "A BLACK KEY PICKS ITSELF" : "K3: A CUSTOM COPY, THAT KEY CHANGED",

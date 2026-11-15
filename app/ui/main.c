@@ -504,13 +504,18 @@ static void input(void)
         if ((kup & PAD_BIT(i)) && !(keys & PAD_BIT(i)) && !(i == PAD_HALF && half_lat))
             brk_pad((int)i, 0);
     }
-    if ((kdn & PAD_BIT(BKF_ARP))) {      /* GLOUPI BREAKS: the ARP key, an OVERLAY effect (ovl.c) */
-        ovl_pad_key(1);
-        ui.pad_focus = (int8_t)BKF_ARP;
-        ui.pad_since = now;
+    for (i = 0; i < 11u; i++) {          /* GLOUPI BREAKS: the ARP key, an OVERLAY effect (ovl.c); 0.9.46, FLEXOR:
+                                          * each ARP key its own, several at once */
+        uint32_t kb = 1u << BK[i];
+        if (bk_fn(i) != BKF_ARP)
+            continue;
+        if (kdn & kb) {
+            ovl_pad_key(i, 1);
+            ui.pad_focus = (int8_t)BKF_ARP;
+            ui.pad_since = now;
+        } else if ((kup & kb) && !(keys & kb))
+            ovl_pad_key(i, 0);
     }
-    if ((kup & PAD_BIT(BKF_ARP)) && !(keys & PAD_BIT(BKF_ARP)))
-        ovl_pad_key(0);
     if (kdn & PAD_BIT(BKF_SUB)) {        /* LOAF BREAKER (0.9.43, FLEXOR): SUB, a switch: the kick's SUB FX (the SUB
                                           * layer's effect, whichever EDIT set) used or not, its settings never touched
                                           * (as DST, DRV; GLOUPI BREAKS to 0.9.43: SUB DRIVE itself on and off) */
@@ -1256,8 +1261,11 @@ static void leds(void)
     } else if (st.slice >= 0 && st.slice < 16)
         k |= 1u << WK[st.slice];
     for (i = 0; i < BKF_N; i++)          /* (LOAF BREAKER: each function lit on its keys) */
-        if (bkf_lit(i, &st))
+        if (i != BKF_ARP && bkf_lit(i, &st))
             k |= PAD_BIT(i);
+    for (i = 0; i < 11u; i++)            /* (0.9.46: each ARP key lit on its own) */
+        if (arpk_on(i))
+            k |= 1u << BK[i];
     if (build_p >= 0.0f) {               /* LOAF BREAKER: the build: the white keys fill up left to right (TEST: the next
                                           * one blinking, faster as it builds) */
         uint32_t n = 1u + (uint32_t)(build_p * 15.0f), per = 220u - (uint32_t)(build_p * 180.0f);
@@ -1609,6 +1617,8 @@ static const char *knob_name(int i)
                        ui.gpage >= 2u ? KN_MORE[(ui.gpage - 2u) % 3u][i] : ui.page == PG_GLOBAL && ui.gpage
                        ? KN_PITCH[i] : ui.page == PG_MIX && ui.mpage
                        ? KN_GROOVE[ui.mpage >= 3u ? 2u : ui.mpage == 2u][i] : KN[ui.page][i];
+    if (ui.page == PG_OVL && ui.opage == 1u && i == 3 && bk_fn(ui.bk_sel) == BKF_ARP)
+        name = "ARP FX";                 /* (0.9.46: BLACK KEYS, an ARP key's own effect) */
     if (ui.page == PG_TRACK && !ui.tpage && !RST_ON && i >= 2 && trk_now()->it[ui.trk_cur % TRK_ITEMS] == TI_DROP)
         name = i == 2 ? "STUTTER" : "GAP KEEPS";   /* (0.9.26: a DROP item's K3, K4) */
     if (ui.page == PG_FX)            /* the focused slot's effect: its settings, then MIX */
@@ -1646,7 +1656,7 @@ static void draw_foot(const brk_status_t *st)
     cv_begin(240, 48, C_BLACK);
     for (i = 0; i < 11u; i++) {          /* (LOAF BREAKER: each key's function, the layout's) */
         uint32_t f = bk_fn(i);
-        int on = bkf_lit(f, st);
+        int on = f == BKF_ARP ? arpk_on(i) : bkf_lit(f, st);
         int32_t x = 2 + (int32_t)i * 21;
         cv_rect(x, 0, 20, 14, on ? C_HI : C_BLOCK);
         cv_text(x + (20 - text_w(&FONT_T, BKF_NAME[f])) / 2, 1, &FONT_T, BKF_NAME[f], on ? C_BLACK : C_GRAY);
@@ -3290,8 +3300,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate"};
-    int v[142];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx"};
+    int v[144];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -3445,6 +3455,8 @@ int app_expect(const char *what, int *got)
     v[137] = (int)(set.pads.rsv[0] % 3u);   /* (the rolls' THRU: SENDS' K4) */
     v[138] = drive_off ? 1 : 0;          /* (0.9.43: the kick's DRV switch) */
     v[139] = subfx_off ? 1 : 0;          /* (0.9.43: the kick's SUB FX switch) */
+    v[142] = (int)ovl_pad_bits();        /* (0.9.46: the ARP keys' effects sounding, a bit each OV_*) */
+    v[143] = (int)arpk_fx(ui.bk_sel);    /* (the BLACK KEYS page's key: its ARP effect) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */
     v[141] = kx2_at(set.kslot)->gate;    /* (its TAIL GATE's division) */
     for (i = 0; i < sizeof W / sizeof W[0]; i++)

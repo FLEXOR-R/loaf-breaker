@@ -58,7 +58,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   ARP itself is the OVERLAY page again (0.244, FLEXOR: ovl.c, PG_OVL; 0.9.27: its effect touched last is the ARP key's, `ovl_last` = set.ovl_pad & 15, and its keys of the effects on lit);
   LEDs light EDIT / SEQ for those two. EXPERT's SEQ (0.234): BREAK above the first lane (`ui.seq_brk`, `SEQ_BRK`), K4
   the break's rows shown (`brk_view()`, settings' `brkv`: the old mel_ver byte, tagged 0xB0, since settings_t is at
-  3840 bytes: no field can be appended any more without a new magic or freeing one). SYSTEM's parts `GLO_ORD` (MIDI, SETUP, EFFECTS, FX SET, RESET); RESET ALL is
+  3840 bytes: no field can be appended any more without a new magic or freeing one; `rsv2`'s 8 bytes hold the ARP keys since 0.9.46). SYSTEM's parts `GLO_ORD` (MIDI, SETUP, EFFECTS, FX SET, RESET); RESET ALL is
   RESET's last item, EVERYTHING. RESET (0.239, FLEXOR): K4 picks, K2 five clicks, then GLO within 5 s (`ui.rst_ask`,
   `rst_confirm`); ALGORITHM (and SELECT, 0.9.2) there goes to SYSTEM's parts. MIX's second part is SENDS (FX, DRUMS, ARP K3: the ARP key's THRU, ovl_pad bits 6-7, BREAK KICK THRU, `arp_thru_turn`, 0.9.29; K4 ROLL, the three rolls' THRU BREAK KICK BOTH, `roll_thru_turn`, set.pads.rsv[0], 0.9.40, FLEXOR: the rolls' K2 is HOME's break filter, to roll and filter at once; LEVELS' K4 too until 0.9.30. Its BREAK / KICK route the kick around the chain: the limiter then after it joins, `brk_fx_late_limit` + `brk_fx_add_dry`, 0.9.31, FLEXOR: it sounded fatter, unlimited).
 - Knob presets (10 Nov 2026, 0.203): STYLE's PRESETS goes on past the eight styles to PRESET 1-4 (track.c, `KPRESETS`):
@@ -143,7 +143,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   back from CHOPPAH, then BKF_ARP, KIL, DST, SUB (0.9.43, FLEXOR: a switch, the kick's SUB FX off / on whichever effect, selk_hi bit 6, `subfx_off`, its name SUB FX; never SUB DRIVE itself any more), DRV: 0.9.43, FLEXOR, the kick's DRIVE switch, selk_hi bit 5, `drive_off`, as DST; in no preset layout, CUSTOM only); `bk_fn(j)`, `bkf_mask(f)` (= `PAD_BIT`) follow the layout in use:
   presets CHOPPAH (a new FM-1's and RESET ALL's; BEGINNER keeps the layout in use since 0.9.23, FLEXOR: `bk_preset` no longer forces it; DST's
   switch (`terror_off`: selk_hi bit 4 and a DST key in the layout, `bk_has`) and SUB's are each kick's own, FLEXOR 0.9.24), FLEXOR LAYOUT (FLEXOR's, 0.9.26:
-  R8 R16 R32 RND HLF FLT ARP VNL KIL DST SUB; keep it exactly; on BLACK KEYS ALGORITHM moves along the keys as K2), CUSTOM; stored in `set.bkeys.bk` (the STAB's old 24 bytes: BK_TAG, preset, eleven functions; bk[15]
+  R8 R16 R32 RND HLF FLT ARP VNL KIL DST SUB; keep it exactly; on BLACK KEYS ALGORITHM moves along the keys as K2), CUSTOM (0.9.46, FLEXOR: several ARP keys, each its own effect and LATCH, together: pads.c `arpk_*` in settings' `rsv2`, tagged 0xA7; BLACK KEYS K4 ARP FX; the knobs and the OVERLAY page the one pressed last, `arpk_focus`); stored in `set.bkeys.bk` (the STAB's old 24 bytes: BK_TAG, preset, eleven functions; bk[15]
   BK_PLAT 0xA0 | the K4 LATCH bits of REVERSE, FREEZE, GATE, RANDOM, bk[16] BK_FTHRU 0xC0 | FILTER's K4 THRU BREAK / DRUMS /
   BOTH, 0.9.26, FLEXOR: no LATCH on FILTER; bk[17..23] free, tag new bytes: older saves hold the STAB's leftovers there). ARP's
   tabs in EXPERT (`ui.opage`, ovl.c): ARP EFFECTS, BLACK KEYS (bk_turn, draw_bk); MORE gone for now (0.259, FLEXOR; its idea: new black-key

@@ -14,7 +14,79 @@ static void arp_thru_turn(int32_t d)     /* BREAK, KICK, THRU in that order (FLE
     set.ovl_pad = (uint8_t)((set.ovl_pad & 0x3Fu) | c << 6);
     app_say("ARP", ARP_THRU[c]);
 }
-static uint8_t ovlpad_held, ovlpad_lat;  /* (the ARP key's: below) */
+/* LOAF BREAKER (0.9.46, FLEXOR): every black key set to ARP is its own: its effect and its LATCH, several sounding at
+ * once (THRU, ON / OFF, RATE, SWEEP and each effect's amount shared). Kept in rsv2 (v0.52's fills' bytes), tagged
+ * ARPK_TAG in rsv2[0]: rsv2[1..6] an effect a nibble, key j's at 1 + j / 2 (even j the low nibble), the LATCH bits of
+ * keys 0-7 in rsv2[7], of keys 8-10 in rsv2[6]'s bits 4-6. Untagged (an older save, a reset): every key ovl_pad's
+ * (bits 0-3 the effect, bit 4 LATCH), as when there was one ARP for all */
+#define ARPK_TAG 0xA7u
+static uint16_t arp_held, arp_lat;       /* (bit j: ARP key j held; switched on, LATCH) */
+static uint8_t arp_foc;                  /* the ARP key touched last: its knobs, the OVERLAY page's touches */
+static uint32_t arpk_fx(uint32_t j)
+{
+    j %= 11u;
+    if (set.rsv2[0] != ARPK_TAG)
+        return set.ovl_pad & 15u;
+    return (uint32_t)(set.rsv2[1u + j / 2u] >> (j & 1u ? 4 : 0)) & 15u;
+}
+static uint32_t arpk_latch(uint32_t j)
+{
+    j %= 11u;
+    if (set.rsv2[0] != ARPK_TAG)
+        return (uint32_t)(set.ovl_pad >> 4) & 1u;
+    return j < 8u ? (uint32_t)(set.rsv2[7] >> j) & 1u : (uint32_t)(set.rsv2[6] >> (j - 4u)) & 1u;
+}
+static void arpk_own(void)               /* (untagged: each key takes ovl_pad's, then its own) */
+{
+    uint32_t e = set.ovl_pad & 15u, l = (uint32_t)(set.ovl_pad >> 4) & 1u, i;
+    if (set.rsv2[0] == ARPK_TAG)
+        return;
+    set.rsv2[0] = ARPK_TAG;
+    for (i = 1u; i <= 5u; i++)
+        set.rsv2[i] = (uint8_t)(e | e << 4);
+    set.rsv2[6] = (uint8_t)(e | (l ? 0x70u : 0u));
+    set.rsv2[7] = l ? 0xFFu : 0u;
+}
+static void arpk_set_fx(uint32_t j, uint32_t e)
+{
+    uint8_t *b;
+    j %= 11u;
+    arpk_own();
+    b = &set.rsv2[1u + j / 2u];
+    *b = (uint8_t)(j & 1u ? (*b & 0x0Fu) | (e & 15u) << 4 : (*b & 0xF0u) | (e & 15u));
+}
+static void arpk_set_latch(uint32_t j, int on)
+{
+    uint8_t *b, m;
+    j %= 11u;
+    arpk_own();
+    b = j < 8u ? &set.rsv2[7] : &set.rsv2[6];
+    m = (uint8_t)(1u << (j < 8u ? j : j - 4u));
+    *b = (uint8_t)(on ? *b | m : *b & ~m);
+}
+static int arpk_on(uint32_t j)           /* (ARP key j sounding its effect) */
+{
+    j %= 11u;
+    return ((arp_held | arp_lat) >> j & 1u) && !(set.ovl_pad & 32u) && bk_fn(j) == BKF_ARP;   /* (bit 5: K3 OFF) */
+}
+static uint32_t arpk_count(void)         /* (the ARP keys in the layout) */
+{
+    uint32_t j, n = 0u;
+    for (j = 0; j < 11u; j++)
+        n += bk_fn(j) == BKF_ARP;
+    return n;
+}
+static uint32_t arpk_focus(void)         /* (the ARP key touched last; none yet, or no longer ARP: the layout's first) */
+{
+    uint32_t j;
+    if (bk_fn(arp_foc % 11u) != BKF_ARP)
+        for (j = 0; j < 11u; j++)
+            if (bk_fn(j) == BKF_ARP) {
+                arp_foc = (uint8_t)j;
+                break;
+            }
+    return arp_foc % 11u;
+}
 static int ovl_pad_on(void);
 /* LOAF BREAKER: the three roll pads' THRU (MIX › SENDS K4 since 0.9.40, FLEXOR: their K2 the break's filter, to roll
  * and filter at once; K2 0.245-0.9.39; set.pads.rsv[0]): 0 BREAK (the roll as ever), 1 KICK (the kick rolled
@@ -97,7 +169,7 @@ static const char *pad_knob_name(int pad, int k)
         if (ui.pad_more)
             return MORE[k & 3];
         if (k == 2) {
-            int tk = ovl_time_kind(set.ovl_pad & 15u);
+            int tk = ovl_time_kind(arpk_fx(arpk_focus()));
             return tk == 1 ? "RATE" : tk == 2 ? "SWEEP" : "TIME";
         }
     }
@@ -252,8 +324,8 @@ static void pad_knob_value(int pad, int k, char *t)
         else if (k == 0) text_cat(t, BRK_DUB_DIV_NAME[f->dub_div % BRK_DUB_DIVS]);
         else pct_text(k == 1 ? f->dub_fb : k == 2 ? f->dub_tone : f->dub_mix, t);
         break;
-    case BKF_ARP: {                      /* the ARP key: MAIN or MORE (pad_knob_name) */
-        uint32_t e = set.ovl_pad & 15u;
+    case BKF_ARP: {                      /* the ARP key: MAIN or MORE (pad_knob_name); the one held last's */
+        uint32_t e = arpk_fx(arpk_focus());
         int tk = ovl_time_kind(e);
         if (ui.pad_more) {
             if (k == 0) text_cat(t, ARP_THRU[(set.ovl_pad >> 6) & 3u]);
@@ -268,7 +340,7 @@ static void pad_knob_value(int pad, int k, char *t)
         } else if (k == 2)
             text_cat(t, tk == 1 ? OVL_RATE_NAME[set.ovl_rate & 3u] : tk == 2 ? OVL_SWEEP_NAME[set.ovl_sweep & 3u] : "-");
         else
-            text_cat(t, set.ovl_pad & 16u ? "ON" : "OFF");
+            text_cat(t, arpk_latch(arpk_focus()) ? "ON" : "OFF");
         break;
     }
     default: break;
@@ -364,7 +436,7 @@ static void pad_knob_turn(int pad, int k, int32_t d)
     case BKF_ARP:                        /* GLOUPI BREAKS: the ARP key. K1 which OVERLAY effect (the ARP page's
                                           * settings: amount, rate, sweep), K2 THRU, K3 ON / OFF, K4 LATCH */
         {
-            uint32_t e = set.ovl_pad & 15u;
+            uint32_t e = arpk_fx(arpk_focus());  /* (0.9.46: the ARP key held last's own) */
             int tk = ovl_time_kind(e), dir = d > 0 ? 1 : -1;
             if (ui.pad_more) {    /* MORE: THRU, ON / OFF, RATE, SWEEP */
                 if (k == 0)              /* (THRU: app.c's render) */
@@ -375,8 +447,11 @@ static void pad_knob_turn(int pad, int k, int32_t d)
                     set.ovl_rate = (uint8_t)clamp((int32_t)set.ovl_rate + dir, 0, 3);
                 else
                     set.ovl_sweep = (uint8_t)clamp((int32_t)set.ovl_sweep + dir, 0, 3);
-            } else if (k == 0)           /* MAIN: K1 the effect */
-                set.ovl_pad = (uint8_t)((set.ovl_pad & ~15u) | ((set.ovl_pad + (d > 0 ? 1u : 15u)) & 15u));
+            } else if (k == 0) {         /* MAIN: K1 the effect (the OVERLAY page's K1 follows it: ovl_last) */
+                e = (e + (d > 0 ? 1u : 15u)) & 15u;
+                arpk_set_fx(arpk_focus(), e);
+                set.ovl_pad = (uint8_t)((set.ovl_pad & ~15u) | e);
+            }
             else if (k == 1)             /* K2 its amount */
                 set.ovl_amt[e] = (uint8_t)clamp((int32_t)set.ovl_amt[e] + d * 2, 0, 100);
             else if (k == 2) {           /* K3 its time: RATE or SWEEP, as the effect has */
@@ -387,9 +462,9 @@ static void pad_knob_turn(int pad, int k, int32_t d)
                 else
                     return;
             } else {                     /* K4 LATCH, right on (each press on or off), left off */
-                set.ovl_pad = (uint8_t)(d > 0 ? set.ovl_pad | 16u : set.ovl_pad & ~16u);
-                if (!(set.ovl_pad & 16u))
-                    ovlpad_lat = 0u;     /* (latched on: off with it) */
+                arpk_set_latch(arpk_focus(), d > 0);
+                if (d < 0)
+                    arp_lat &= (uint16_t)~(1u << arpk_focus());   /* (latched on: off with it) */
             }
             set_dirty = 1u;
         }
@@ -600,14 +675,20 @@ static void draw_fx_band(int pad, const brk_status_t *st, uint32_t now, int32_t 
         break;
     }
     case BKF_ARP: {                      /* GLOUPI BREAKS: the ARP key: its effect, big, lit while on */
-        int on = ovl_pad_on();
-        const char *n = OVL_NAME[set.ovl_pad & 15u];
+        uint32_t e = arpk_fx(arpk_focus());
+        int on = arpk_on(arpk_focus());
+        const char *n = OVL_NAME[e];
         cv_rect(6, 30, 228, 40, on ? C_HI : C_BLOCK);
         cv_text((240 - text_w(&FONT_B, n)) / 2, 38, &FONT_B, n, on ? C_BLACK : C_GRAY);
         cv_rect(6, 72, 228, 3, C_BLOCK); /* (LOAF BREAKER: its amount) */
-        cv_rect(6, 72, (int32_t)set.ovl_amt[set.ovl_pad & 15u] * 228 / 100, 3, on ? C_HI : C_GRAY);
+        cv_rect(6, 72, (int32_t)set.ovl_amt[e] * 228 / 100, 3, on ? C_HI : C_GRAY);
         cv_text(6, 78, &FONT_XS, set.ovl_pad & 32u ? "OFF (FX: MORE, K2): K1 BROWSES, SILENT"
-                                 : set.ovl_pad & 16u ? "LATCH: EACH PRESS ON OR OFF" : "ON WHILE HELD", C_DIM);
+                                 : arpk_latch(arpk_focus()) ? "LATCH: EACH PRESS ON OR OFF" : "ON WHILE HELD", C_DIM);
+        if (arpk_count() > 1u) {         /* (0.9.46: several ARP keys: which one, each its own effect) */
+            char k[12] = "KEY ";
+            int_text((int32_t)arpk_focus() + 1, k + 4);
+            cv_text(234 - text_w(&FONT_XS, k), 16, &FONT_XS, k, C_HI);   /* (under FX: MORE, the title left) */
+        }
         cv_text(234 - text_w(&FONT_XS, ui.pad_more ? "MORE (FX: MAIN)" : "FX: MORE"), 4, &FONT_XS,
                 ui.pad_more ? "MORE (FX: MAIN)" : "FX: MORE", ui.pad_more ? C_HI : C_DIM);
         (void)held;
@@ -719,10 +800,17 @@ static void draw_fx(int pad, const brk_status_t *st, uint32_t now)
     draw_fx_band(pad, st, now, FX_BAND);
 }
 
-/* GLOUPI BREAKS: the ARP black key (BKF_ARP; LOAF BREAKER, 11 Nov 2026: DUB back beside it): one OVERLAY effect (set.ovl_pad: bits 0-3 which,
- * bit 4 LATCH), held or switched on, over what the ARP page has on, with the ARP page's settings (ovl.c) */
-static uint8_t ovlpad_held, ovlpad_lat;
-static int ovl_pad_on(void) { return (ovlpad_held || ovlpad_lat) && !(set.ovl_pad & 32u); }   /* (bit 5: K3 OFF) */
+/* GLOUPI BREAKS: the ARP black key (BKF_ARP; LOAF BREAKER, 11 Nov 2026: DUB back beside it): an OVERLAY effect, held
+ * or switched on, over what the ARP page has on, with the ARP page's settings (ovl.c); 0.9.46: each ARP key its own
+ * (arpk_*, above). On: any of them */
+static int ovl_pad_on(void)
+{
+    uint32_t j;
+    for (j = 0; j < 11u; j++)
+        if (arpk_on(j))
+            return 1;
+    return 0;
+}
 
 
 /* LOAF BREAKER (11 Nov 2026): a black key's function lit: a pad on (or rolling the kick), the ARP key's effect on,
