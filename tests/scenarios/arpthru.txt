@@ -10,6 +10,18 @@ tap ARP
 wait 300
 expect page 9
 expect opage 0
+# (0.9.52, FLEXOR) ALGORITHM: the 16 effects in order, round (nothing played)
+tapkey w0
+wait 100
+turn ALGO 3 30
+wait 100
+expect arp_fx 3
+turn ALGO -5 50
+wait 100
+expect arp_fx 14
+turn ALGO 2 20
+wait 100
+expect arp_fx 0
 tapkey w6
 wait 100
 expect arp_thru 0

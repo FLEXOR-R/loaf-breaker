@@ -180,7 +180,7 @@ table (tap SEL alone to see it):
 in (an effect, a kick, a snare or hat sound); elsewhere it is the pattern. **SEQ is where everything is sequenced**
 (the break's steps and the kick, snare and hat lanes), **EDIT where the drums' sounds are made** (kick, snare, hat);
 the white keys play slices everywhere but SEQ and ENV (tracks). **ARP opens the OVERLAY page** (§5). **SEL + ALGORITHM is the break and SEL +
-PRESETS the pattern on every page.** **Where ALGORITHM alone is already the break** (HOME, SOUNDS › BREAK, SONG's PLAY / DROP / BUILD, MIX, OVERLAY), **SEL + ALGORITHM is BREAK TIME** (right HALF, left NORMAL), **and SEL + PRESETS the kick** on HOME, PATTERN, MIX, OVERLAY and SYSTEM's MIDI, FX SET, RESET (0.9.26, FLEXOR). A page's button pressed again is its next part. **Press SEL** alone and the strip
+PRESETS the pattern on every page.** **Where ALGORITHM alone is already the break** (HOME, SOUNDS › BREAK, SONG's PLAY / DROP / BUILD, MIX, OVERLAY's tabs but ARP), **SEL + ALGORITHM is BREAK TIME** (right HALF, left NORMAL), **and SEL + PRESETS the kick** on HOME, PATTERN, MIX, OVERLAY and SYSTEM's MIDI, FX SET, RESET (0.9.26, FLEXOR). A page's button pressed again is its next part. **Press SEL** alone and the strip
 shows a card: above, the four SEL combinations that work on any page; below, this page's own shortcuts (on HOME and
 the pages without any: what SEL + K1–K4 turn). SEL again, or any other button, key or knob, closes it. The control map (§11) shows all of it at once.
 
@@ -195,7 +195,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 | SELECT | Tempo, 1 BPM a detent · **SEL + SELECT**, on any page: the drums' filter (DRUM FLT, as HOME's K3) |
 | ENV | **TRACK**: tracks of patterns and drops, playing them, the drop's settings (below) |
 | SEL (pressed alone) | The combinations card: every SEL combination on the strip. SEL used with something else (SEL + a knob, SEL + ALGORITHM, SEL + REC…) does that instead |
-| SEL + ALGORITHM | The break, from any page; **BREAK TIME** (right HALF, left NORMAL) where ALGORITHM alone is already the break: HOME, SOUNDS › BREAK, SONG's PLAY / DROP / BUILD, MIX, OVERLAY (0.9.26) |
+| SEL + ALGORITHM | The break, from any page; **BREAK TIME** (right HALF, left NORMAL) where ALGORITHM alone is already the break: HOME, SOUNDS › BREAK, SONG's PLAY / DROP / BUILD, MIX, OVERLAY's tabs but ARP (0.9.26) |
 | SEL + PRESETS | The pattern, from any page; **the kick** (KICK 1–20) on HOME, PATTERN (SEQ, SETTINGS), MIX, OVERLAY and SYSTEM's MIDI, FX SET, RESET; in the KICK menu the KICK FX effect, a knob's function, a style (0.9.26) |
 | SEL + ARP | PATTERN › SETTINGS; **in the KICK menu: copy the kick, then, on another kick (PRESETS), paste it** (its sound, LAB, KNOBS and FX; its volume kept); on a drum's page the same for that drum's memories (0.9.26) |
 | SEL + SAVE | **Undo** the last pattern wipe (SEL + REC, a drum lane's FILL, CLR / 4X4 or COPY); again: redo |
@@ -553,7 +553,7 @@ all 16.
 
 **ARP** opens the OVERLAY page: sixteen effects over everything that plays, one on each white key (DIVE, RISE, RADIO,
 WAH, CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, WOBBLE, JET, REESE), on while the key is held, any
-together. **K1** the amount of the one touched last, **K2 THRU** what that effect takes (0.9.50, FLEXOR: each effect its
+together. **ALGORITHM** goes through the sixteen in order, round, without playing them (0.9.52, FLEXOR; SEL + ALGORITHM the break here); the one it lands on is the one the knobs tune. **K1** the amount of the one touched last, **K2 THRU** what that effect takes (0.9.50, FLEXOR: each effect its
 own, kept by SAVE): BREAK (the break and the drums), KICK (the kick alone) or THRU (the whole mix); its card says BREAK or
 KICK, so some effects can work on the break while others work on the kick, together. **K3** its RATE (CHOP, GATE, WAH,
 PAN) or SWEEP (DIVE, RISE), the one it has, **K4** LATCH: on, a key switches its effect on and off (and what is latched

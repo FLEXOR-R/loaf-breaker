@@ -65,7 +65,7 @@ static void perc_clip(void)
 }
 static int sel_bt_page(void)             /* (0.9.26, FLEXOR: the pages where SEL + ALGORITHM is BREAK TIME) */
 {
-    return ui.page <= PG_GEN || ui.page == PG_HSET || ui.page == PG_MIX || ui.page == PG_OVL ||
+    return ui.page <= PG_GEN || ui.page == PG_HSET || ui.page == PG_MIX || (ui.page == PG_OVL && ui.opage) ||
            (ui.page == PG_TRACK && ui.tpage) || (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK);
 }
 static void kfx_open(int on)             /* to KICK FX (on), or the FX page back on the chain */
@@ -1178,6 +1178,9 @@ static void input(void)
                                           * BREAK TIME, right HALF, left NORMAL) */
             else if (btn & 1u << B_SEL)
                 break_ask((set.brk + (d > 0 ? 1u : n_breaks - 1u)) % n_breaks);
+            else if (ui.page == PG_OVL && !ui.opage)
+                ovl_step(d);             /* (0.9.52, FLEXOR: ARP, ALGORITHM the 16 effects in order; SEL + ALGORITHM
+                                          * the break there) */
             else if (ui.page == PG_OVL && ui.opage == 4u)
                 ws_flip();               /* (0.9.50: SETTINGS, ALGORITHM LOOP / SLICE FX) */
             else if (ui.page == PG_OVL && ui.opage == 3u)

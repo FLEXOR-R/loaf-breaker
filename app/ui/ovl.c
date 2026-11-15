@@ -455,6 +455,20 @@ static void draw_bk(void)
     }
 }
 
+static void ovl_value(int i, char *t);
+static void ovl_step(int32_t d)          /* (0.9.52, FLEXOR: ALGORITHM, the effect K1-K3 tune: the next or the one before,
+                                          * round, nothing played; the ARP key's too, as a key touched here) */
+{
+    uint32_t e = (ovl_last + (d > 0 ? 1u : 15u)) & 15u;
+    char t[16];
+    arpk_set_fx(arpk_focus(), e);
+    set.ovl_pad = (uint8_t)((set.ovl_pad & ~15u) | e);
+    set_dirty = 1u;
+    ovl_push();
+    ovl_value(0, t);
+    app_say(OVL_NAME[e], t);
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
 static void ovl_value(int i, char *t)
 {
     t[0] = 0;
