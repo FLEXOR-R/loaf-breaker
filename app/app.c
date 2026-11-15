@@ -947,18 +947,20 @@ static void kfx_all(void)                /* every kick with the FX section playi
         kfx_put(k);
 }
 /* LOAF BREAKER (0.9.32, FLEXOR): TERROR's and SPINE's part outside kick_t: their SYNTH (DROP +20, TIME 167 ms, SHAPE
- * -50: a pure sine), TAIL + DRIVE 100 and the KICK EQ's gains (LOW +6.2 dB until 0.9.47: flat since); ui/kick.c kpre_extra
+ * -50: a pure sine), TAIL + DRIVE 100 and the KICK EQ's gains (LOW +6.2 dB until 0.9.46, +5 dB since); ui/kick.c kpre_extra
  * on the kick playing, kmem_extra on a kick memory as it begins */
 /* LOAF BREAKER: a built-in kick's part outside kick_t (0.9.32 TERROR and SPINE; 0.9.39 every preset but ROTTERDAM and
  * DISTORTO, FLEXOR): its SYNTH (KS_*), its LAB (TAIL MODE, NOTE, CURVE, TAIL FILTER, its time, TAIL + DRIVE) and its
- * KICK EQ (LOW, MID, HIGH: 0.5 + dB / 24; 0.9.47, FLEXOR: every one flat, 0.5); 0: none, the SYNTH and the LAB
- * cleared, the EQ as it was */
+ * KICK EQ (LOW, MID, HIGH: 0.5 + dB / 24; 0.9.47, FLEXOR: flat but TERROR's and SPINE's LOW +5 dB, and never a band
+ * above +5 dB, KT_EQ_MAX); 0: none, the SYNTH and the LAB cleared, the EQ as it was */
 typedef struct {
     uint8_t on;
     int8_t syn[KS_N];
     uint8_t mode, note, curve, filt, ftime, drive;
     float eq[3];
 } kt_x_t;
+#define KT_DB(d) (0.5f + (d) / 24.0f)
+#define KT_EQ_MAX KT_DB(5.0f)            /* (0.9.47, FLEXOR: no built-in kick's EQ band above +5 dB, now or later) */
 static const kt_x_t KT_X[KICK_PRESETS] = {
     {1, {10, 0, -50, 0, 0, 0, 0, 0}, 1, 0, 0, 0, 0, 0, {0.5f, 0.5f, 0.5f}},           /* 909 */
     {1, {0, 0, -30, 0, 25, 10, 0, 0}, 1, 0, 0, 0, 0, 0, {0.5f, 0.5f, 0.5f}},          /* TECHNO */
@@ -966,9 +968,9 @@ static const kt_x_t KT_X[KICK_PRESETS] = {
     {0, {0}, 0, 0, 0, 0, 0, 0, {0.5f, 0.5f, 0.5f}},                                          /* ROTTERDAM */
     {1, {0}, 1, 0, 0, 35, 60, 0, {0.5f, 0.5f, 0.5f}},                         /* INDUSTRIAL */
     {0, {0}, 0, 0, 0, 0, 0, 0, {0.5f, 0.5f, 0.5f}},                                          /* DISTORTO */
-    {1, {20, 12, -50, 0, 0, 0, 0, 0}, 1, 0, 0, 0, 0, 100, {0.5f, 0.5f, 0.5f}},              /* TERROR (TIME 12:
+    {1, {20, 12, -50, 0, 0, 0, 0, 0}, 1, 0, 0, 0, 0, 100, {KT_DB(5.0f), 0.5f, 0.5f}},              /* TERROR (TIME 12:
                                           * 120 ms x 2^0.48, 167 ms) */
-    {1, {20, 12, -50, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 100, {0.5f, 0.5f, 0.5f}},              /* SPINE (CLASSIC) */
+    {1, {20, 12, -50, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 100, {KT_DB(5.0f), 0.5f, 0.5f}},              /* SPINE (CLASSIC) */
     {1, {10, 0, -40, 0, 0, 0, 0, 0}, 1, 0, 0, 20, 60, 40, {0.5f, 0.5f, 0.5f}},   /* 909 DRIVE */
     {1, {0}, 1, 0, 0, 15, 60, 70, {0.5f, 0.5f, 0.5f}},                        /* GABBER */
     {1, {15, 10, -40, 0, 0, 0, 0, 0}, 1, 8, 0, 15, 60, 85, {0.5f, 0.5f, 0.5f}},   /* MILLENNIUM */
@@ -990,7 +992,7 @@ static int kt_extra(uint32_t p, int8_t *syn, kick_lab_t *lab, float *eq)   /* (a
     lab->ftime = x->ftime;
     lab->drive = x->drive;
     for (j = 0; j < 3u; j++)
-        eq[j] = x->eq[j];
+        eq[j] = x->eq[j] > KT_EQ_MAX ? KT_EQ_MAX : x->eq[j];   /* (never above +5 dB) */
     return 1;
 }
 static void kmem_extra(uint32_t k)       /* (0.9.33, FLEXOR: kick memory k as it begins, its built-in (kmem_pre: KICK 7

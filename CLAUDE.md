@@ -102,7 +102,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   PRD A-54k): K1's round `KICK_PRESET_ORD` 909, 909 DRIVE, TECHNO, EARLY HC, ROTTERDAM, INDUSTRIAL, TERROR, SPINE, GABBER,
   MILLENNIUM, DOOMCORE; DISTORTO out of it (table index 5 kept, `KICK_PRESET_DISTORTO`: a kick saved from it keeps its name);
   the table's indices never move (`kick_lab_t.pre` stores them): append new kicks at the end. Each preset: kick.c PRESET +
-  PRESET_X, app.c `KT_X` (SYNTH, LAB, KICK EQ: flat on every one since 0.9.47, FLEXOR; `on` 0: ROTTERDAM, DISTORTO, the EQ left as it was). The memories `KMEM_ORD`
+  PRESET_X, app.c `KT_X` (SYNTH, LAB, KICK EQ: flat since 0.9.47 but TERROR's and SPINE's LOW +5 dB, FLEXOR: never a band above +5 dB on a built-in, now or later, `KT_EQ_MAX`; `on` 0: ROTTERDAM, DISTORTO, the EQ left as it was). The memories `KMEM_ORD`
   (ROTTERDAM KICK 4, the start's `kslot` 3; EARLY HC KICK 5). His taste for new ones: drive and distortion, SUB and tails
   medium to long, TAIL MODE CLEAN, tails not shrill (a page measures above 3 kHz in the tail: TERROR's -40 dB the mark).
   A built-in picked (K1 / OUT K4) turns DST back on when it has DISTO (selk_hi bit 4, 0.9.40, FLEXOR), DRV with a DRIVE,
