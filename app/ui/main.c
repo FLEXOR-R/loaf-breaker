@@ -140,8 +140,11 @@ static void knob_turn(int k, int32_t d)
             } else if (k == EN_K2) {
                 set.drums_chain = d > 0 ? 0u : 1u;   /* right: around the chain, left: through it */
                 app_say("DRUMS", set.drums_chain ? "THRU FX" : "AROUND FX");
-            } else if (k == EN_K3)
-                ;                        /* (0.9.29-0.9.49 the ARP's THRU: 0.9.50, FLEXOR, each effect's, ARP K2) */
+            } else if (k == EN_K3) {     /* (0.9.54, FLEXOR: VINYL BREAK's THRU: BREAK, KICK, BOTH, as its K1 held) */
+                static const uint8_t AT[3] = {1u, 2u, 0u}, POS[4] = {2u, 0u, 1u, 2u};
+                set.vinyl = AT[clamp((int32_t)POS[set.vinyl & 3u] + (d > 0 ? 1 : -1), 0, 2)];
+                app_say("VINYL", THRU_NAME[set.vinyl & 3u]);
+            }
             else
                 roll_thru_turn(d);       /* (0.9.40, FLEXOR: K4 the three rolls' THRU, their K2 the break's filter) */
         } else if (k == EN_K1) {
@@ -220,6 +223,7 @@ static void reset_all(void)
     klab_defaults();                     /* (LOAF BREAKER: the KICK LAB off on every kick) */
     kx2_defaults();                      /* (0.9.45: TOK and the TAIL GATE off on every kick) */
     selk_clear();                        /* (0.9.49: no SEL layer) */
+    kits_clear();                        /* (0.9.54: the KITS empty) */
     kfx_all();                           /* (0.9.26: every kick's FX section as the defaults left it) */
     kmem_extras();                       /* (0.9.33: KICK 7 TERROR, KICK 8 SPINE, whole) */
     kx_all();                            /* (every kick's knobs as they start) */
@@ -298,6 +302,36 @@ static void rec_toggle(void)
 
 /* LOAF BREAKER (0.9.50): SEL WHITE's shortcut of white key i, down (1) or up (0) (ovl.c sw_*) */
 static uint32_t sw_held;                 /* (the white keys pressed with SEL for their shortcut, still down: bit i) */
+static void kit_apply(uint32_t k)        /* (0.9.54, FLEXOR: a KIT: its kick, break, tempo, pattern; KEEP left as is) */
+{
+    char t[16] = "KIT ";
+    k %= 16u;
+    if (kit_empty(k)) {
+        int_text((int32_t)k + 1, t + 4);
+        app_say(t, "EMPTY: ARP > KITS");
+        return;
+    }
+    if (kx2.kit[k].kick)
+        kick_mem_go((kx2.kit[k].kick - 1u) % KICK_MEMS);
+    if (kx2.kit[k].brk && kx2.kit[k].brk <= n_breaks)
+        break_ask(kx2.kit[k].brk - 1u);
+    if (kx2.kit[k].bpm_x10 && !ext_active()) {
+        set.tempo_x10 = (uint16_t)clamp(kx2.kit[k].bpm_x10, 400, 3000);
+        changed();
+    }
+    if (kx2.kit[k].pat && !grp_blocked(kx2.kit[k].pat - 1u)) {   /* (as PRESETS: playing, at the loop's end) */
+        uint32_t v = (kx2.kit[k].pat - 1u) % NPAT_ALL;
+        if (playing_now())
+            pat_next = (int8_t)v;
+        else if (pat_go(v)) {
+            pat_apply();
+            set_dirty = 1u;
+        }
+    }
+    int_text((int32_t)k + 1, t + 4);
+    app_say(t, "LOADED");
+    ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
+}
 static void sw_do(uint32_t i, int down)
 {
     uint32_t c = sw_cat(i), v = sw_val(i);
@@ -311,7 +345,9 @@ static void sw_do(uint32_t i, int down)
     }
     if (!down)
         return;
-    if (c == SW_KICK)
+    if (c == SW_KIT)
+        kit_apply(v);
+    else if (c == SW_KICK)
         kick_mem_go(v);
     else if (c == SW_BRK && v < n_breaks)
         break_ask(v);
@@ -390,10 +426,15 @@ static void input(void)
         app_say("TUTORIAL", "FOLLOW THE STEP");
     }
     raw = keys;
-    if (ui.page == PG_OVL && ui.opage == 3u) {   /* (0.9.50: SEL WHITE: a white key picks itself, nothing played) */
+    if (ui.page == PG_OVL && ui.opage >= 3u) {   /* (0.9.50: SEL WHITE, 0.9.54 KITS: a white key picks itself (its
+                                          * kit), nothing played) */
         for (i = 0; i < 16u; i++)
-            if (kdn >> WK[i] & 1u)
-                sw_pick(i);
+            if (kdn >> WK[i] & 1u) {
+                if (ui.opage == 4u)
+                    kit_pick(i);
+                else
+                    sw_pick(i);
+            }
         for (i = 0; i < 16u; i++)
             kdn &= ~(1u << WK[i]);
     }
@@ -1155,7 +1196,7 @@ static void input(void)
             continue;
         }
         if (k == EN_SELECT && ui.page == PG_OVL && !set.novice) {   /* (0.9.2, FLEXOR: OVERLAY, SELECT its tabs) */
-            ui.opage = (uint8_t)((ui.opage + (d > 0 ? 1u : 3u)) % 4u);   /* (0.9.52, FLEXOR: both ways) */
+            ui.opage = (uint8_t)((ui.opage + (d > 0 ? 1u : 4u)) % 5u);   /* (0.9.52, FLEXOR: both ways) */
             page_say();
             ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
             continue;
@@ -1181,6 +1222,8 @@ static void input(void)
             else if (ui.page == PG_OVL && !ui.opage)
                 ovl_step(d);             /* (0.9.52, FLEXOR: ARP, ALGORITHM the 16 effects in order; SEL + ALGORITHM
                                           * the break there) */
+            else if (ui.page == PG_OVL && ui.opage == 4u)
+                kit_turn(-1, d);         /* (0.9.54: KITS, ALGORITHM the kit) */
             else if (ui.page == PG_OVL && ui.opage == 3u)
                 sw_turn(1, d);           /* (0.9.50: SEL WHITE, ALGORITHM the key, as K2) */
             else if (ui.page == PG_OVL && ui.opage >= 1u)
@@ -1453,7 +1496,7 @@ static void knob_value(int i, char *t)  /* the page's knob i (0..3), as shown un
 /* the tab bar under the header: the button's name, then the page's parts as tabs (the one you are on lit: the
  * button again, or ALGORITHM, goes to the next); EDIT and FX also name the part edited, "< SUB FX >" */
 static int8_t build_stut = -1;          /* (a build's break roll: the roll pad it holds, -1 none) */
-static const char *const OPAGE_NAME[4] = {"ARP", "BLACK", "SEL BLACK", "SEL WHITE"};   /* (0.9.53, FLEXOR: BLACK, there is room) */   /* (SETTINGS 0.9.50-0.9.51) */   /* (LOAF BREAKER: ARP's tabs) */
+static const char *const OPAGE_NAME[5] = {"ARP", "BLACK", "SEL BLACK", "SEL WHITE", "KITS"};   /* (0.9.53, FLEXOR: BLACK, there is room) */   /* (SETTINGS 0.9.50-0.9.51) */   /* (LOAF BREAKER: ARP's tabs) */
 static int32_t tab(int32_t x, const char *s, int on)
 {
     int32_t w = text_w(&FONT_T, s) + 8;
@@ -1503,7 +1546,7 @@ static void draw_tabs(void)
     }
     else if (ui.page == PG_OVL) {        /* (LOAF BREAKER: EXPERT, its three tabs; BEGINNER, ARP EFFECTS alone: no tab) */
         if (!set.novice)
-            for (i = 0; i < 4u; i++)     /* (0.259, FLEXOR: MORE gone for now; 0.9.49 SEL KEYS; 0.9.50 SEL WHITE) */
+            for (i = 0; i < 5u; i++)     /* (0.259, FLEXOR: MORE gone for now; 0.9.49 SEL KEYS; 0.9.50 SEL WHITE; 0.9.54 KITS) */
                 x = tab(x, OPAGE_NAME[i], i == ui.opage);
     }
     else if (ui.page == PG_TRACK)        /* LOAF BREAKER: ENV: TRACKS, PLAY, DROP */
@@ -1593,7 +1636,7 @@ static void page_say(void)
     case PG_MIX: text_cat(t, ui.mpage == 3u ? "DYNAMICS" : ui.mpage == 2u ? "MASTER" : ui.mpage ? "SENDS" : "LEVELS"); break;
     case PG_SEQ: text_cat(t, SEQ_BRK ? "BREAK" : SEQ_LANE_NAME[ui.seq_lane % NSEQL]); break;
     case PG_TRACK: text_cat(t, TPART[ui.tpage % NTPART]); break;
-    case PG_OVL: text_cat(t, OPAGE_NAME[ui.opage % 4u]); break;   /* (LOAF BREAKER: its tabs) */
+    case PG_OVL: text_cat(t, OPAGE_NAME[ui.opage % 5u]); break;   /* (LOAF BREAKER: its tabs) */
     case PG_FX:
         text_cat(t, IS_KFX() ? "KICK FX " : "SLOT ");
         int_text((int32_t)(fx_foc() % BRK_FX_SLOTS) + 1, t + (IS_KFX() ? 8 : 5));
@@ -1714,7 +1757,7 @@ static const char *knob_name(int i)
                                               {"LOW", "MID", "HIGH", "MID FREQ"},
                                               {"VIEW", "WAVE TYPE", "WAVE ZOOM", "BREAK TIME"}};
     static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "LEVEL"};   /* (SOUNDS' BREAK) */
-    static const char *const KN_GROOVE[3][4] = {{"FX", "DRUMS", "", "ROLL"}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
+    static const char *const KN_GROOVE[3][4] = {{"FX", "DRUMS", "VINYL", "ROLL"}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
                                                 {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
     static const char *const KN_MORE[3][4] = {{"SKIN", "", "MODE", "AUTO SAVE"},   /* SETUP (K2 WAVE ZOOM: HOME's
                                       * SETTINGS, 0.9.2) */
@@ -1727,7 +1770,8 @@ static const char *knob_name(int i)
     static const char *const KN_BK[3][4] = {{"PRESET", "KEY", "EFFECT", ""}, {"", "KEY", "SEL +", ""},
                                               {"", "KEY", "KIND", "VALUE"}};   /* (ARP's
                                       * BLACK KEYS, MORE) */
-    const char *name = ui.page == PG_OVL && ui.opage ? KN_BK[(ui.opage - 1u) % 3u][i] :
+    static const char *const KN_KIT[4] = {"KICK", "BREAK", "BPM", "PATTERN"};   /* (0.9.54: ARP › KITS) */
+    const char *name = ui.page == PG_OVL && ui.opage == 4u ? KN_KIT[i] : ui.page == PG_OVL && ui.opage ? KN_BK[(ui.opage - 1u) % 3u][i] :
                        ui.page == PG_GLOBAL && ui.gpage == GP_FILL ? KN_FILL[i] : RST_ON ? KN_TRK[3][i] : ui.page == PG_TRACK &&
                        ui.tpage ? KN_TRK[ui.tpage == 6u ? 4u : ui.tpage == 4u ? 2u : (ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
                        ui.gpage >= 2u ? KN_MORE[(ui.gpage - 2u) % 3u][i] : ui.page == PG_GLOBAL && ui.gpage
@@ -2842,7 +2886,7 @@ static int edx_page(const uint8_t *u, uint32_t len, uint8_t *o, uint32_t *n)
     } else if (pg == PG_GLOBAL)
         ok = a < 7u && a != 5u ? (ui.gpage = (uint8_t)a, 1) : 0;   /* (never RESET) */
     else if (pg == PG_OVL) {
-        ui.opage = (uint8_t)(a % 4u);
+        ui.opage = (uint8_t)(a % 5u);
         ui.bk_sel = (uint8_t)(b % 11u);
     } else if (pg == PG_FX) {
         if (a < BRK_FX_ALL) {
@@ -3526,8 +3570,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15", "broll", "stut", "fxwet"};
-    int v[158];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15", "broll", "stut", "fxwet", "tempo10", "kitsel", "kit0kick", "vthru"};
+    int v[162];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -3697,6 +3741,10 @@ int app_expect(const char *what, int *got)
     v[155] = (int)bk_broll();            /* (0.9.50: SONG › BREAK, bit 0 ROLL, bits 2-3 from) */
     v[156] = build_stut;                 /* (the roll pad a build holds, -1 none) */
     v[157] = (int)(set.fx.wet * 100.0f + 0.5f);   /* (0.9.50: the FX fader, %) */
+    v[158] = set.tempo_x10;              /* (0.9.54: the tempo, tenths of a BPM) */
+    v[159] = kit_sel;                    /* (ARP › KITS: the kit edited) */
+    v[160] = kx2.kit[0].kick;            /* (KIT 1's kick, 0 KEEP) */
+    v[161] = set.vinyl & 3u;             /* (0.9.54: VINYL BREAK's THRU, 0 BOTH 1 BREAK 2 KICK) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */
     v[141] = kx2_at(set.kslot)->gate;    /* (its TAIL GATE's division) */
     for (i = 0; i < sizeof W / sizeof W[0]; i++)

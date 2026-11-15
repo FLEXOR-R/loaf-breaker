@@ -108,7 +108,7 @@ wait 150
 turn SELECT 1 10
 wait 300
 expect gpage 5
-turn K4 13 10
+turn K4 14 10
 wait 200
 shot rs_screen.png
 turn K2 5 10

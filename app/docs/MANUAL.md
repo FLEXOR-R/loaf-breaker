@@ -560,9 +560,9 @@ PAN) or SWEEP (DIVE, RISE), the one it has, **K4** LATCH: on, a key switches its
 stays on on the other pages). The page and the ARP black key share one effect (0.9.27; with several ARP keys, the one pressed last, 0.9.45): a white key touched here is the ARP key's effect, and the one K1 tunes; the ARP key's K1 turns it, the page follows; AMOUNT, THRU, RATE and SWEEP are the same on both (the ARP key's THRU, FX: MORE K1, is its effect's). The white keys of the effects on are lit (held, latched, the ARP key's). (The FILL that ARP held
 played from 0.1xx to 0.243 is gone, LOAF BREAKER 0.244.)
 
-In EXPERT the page has four tabs (**SELECT** goes to the next, or back to the left, 0.9.52; **ARP** again goes back to HOME; their names short
+In EXPERT the page has five tabs (**SELECT** goes to the next, or back to the left, 0.9.52; **ARP** again goes back to HOME; their names short
 since 0.9.50, FLEXOR; BLACK and SEL BLACK in full since 0.9.53): **ARP** (the effects above), **BLACK** (the black keys), **SEL BLACK** (the black keys with SEL) and
-**SEL WHITE** (the white keys with SEL). **BLACK** lays out the black keys: **K1 PRESET**, CHOPPAH (CHOPPAH's eleven, the ARP
+**SEL WHITE** (the white keys with SEL) and **KITS** (0.9.54). **BLACK** lays out the black keys: **K1 PRESET**, CHOPPAH (CHOPPAH's eleven, the ARP
 key not among them), FLEXOR LAYOUT (R8 R16 R32 VNL GAT FLT ARP ARP KIL DST SUB since 0.9.53) or CUSTOM; **K2 KEY** (or **ALGORITHM**, 0.9.26), the key you edit (or press it:
 here a black key picks itself and plays nothing); **K3 EFFECT**, what it does: any of R8, R16, R32, REV, FRZ, HLF, VNL,
 GAT, RND, FLT, DUB, ARP, KIL, DST, SUB, DRV, X2; on an ARP key, **K4 ARP FX** its own effect (0.9.45: several ARP keys, each with its own, play at once). Turned on a preset, K3 makes a CUSTOM of it first, that key changed (keys
@@ -588,6 +588,16 @@ any kind on any key: **K2 KEY** (or **ALGORITHM**, or press the white key: it pi
 | BREAK | That break (at the next bar, as ALGORITHM) | any break, the firmware's and yours |
 | EFFECT | That OVERLAY effect while you hold the key | DIVE … REESE |
 | DROP | A build, then the drop | AUTO (as SEL + ENV: the next pattern or DROP's AFTER), or into P1–P64 |
+| KIT | That KIT (ARP › KITS, 0.9.54): its kick, break, tempo and pattern at once | KIT 1–16 |
+
+**KITS** (0.9.54, FLEXOR, EXPERT, the fifth tab): sixteen kits, shown as the ARP effects' cards, each a **kick, a break,
+a tempo and a pattern** to go to at once. A white key (or **ALGORITHM**) picks the kit; **K1 KICK** (KICK 1–20),
+**K2 BREAK**, **K3 BPM**, **K4 PATTERN** (P1–P64); each starts at KEEP (left as it is when the kit loads), and the first
+turn right from KEEP takes what plays now. A card shows its kit in brief (K3 P5 170) or EMPTY. To play one, give a white
+key the kind **KIT** in SEL WHITE: SEL + that key loads it (the pattern, playing, at the loop's end; the tempo not while
+following a MIDI clock). SAVE keeps them; RESET's KITS and RESET ALL empty them.
+
+![ARP › KITS: KIT 1, KICK 3, UPDOWN 165, P5](img/screen-kits.png "KITS")
 
 (**SETTINGS**, a fifth tab setting every white key at once, came and went in 0.9.50-0.9.51, FLEXOR: a white key is set
 held, as ever, and RESET's WHITE KEYS puts them all back.)
@@ -861,7 +871,7 @@ came); **MIX** (the MIXER: levels, swing, the drums' route, COMP and DUCK off wi
 pattern's drum steps: 1 hit, ALWAYS, on time; the steps themselves kept); **BLACK KEYS** (their settings: rolls,
 THRU, filter, gate, VINYL, the LATCHES, KIL's and X2's too; the layout kept); **ARP** (0.9.52: the sixteen effects'
 AMOUNT, each one's THRU, RATE, SWEEP, LATCH off, every ARP key one effect); **WHITE KEYS** (each: one slice, pitch 0,
-LOOP, no DECAY, its slice effect off); **SEL KEYS** (0.9.52: SEL + a black key its own again, SEL + a white key NONE);
+LOOP, no DECAY, its slice effect off); **SEL KEYS** (0.9.52: SEL + a black key its own again, SEL + a white key NONE); **KITS** (0.9.54: all sixteen EMPTY);
 **TRACK** (this track: from its first item, every item's break SAME; its items kept); **SCREEN** (the skin RED, the
 screen effects off, their settings at 50 %, WAVE ZOOM one bar); **WIPE MEMORY** (before installing another firmware: every save LOAF BREAKER keeps in the FM-1's memory erased, a sector at a time while the screen counts to 40, playing stopped first; then MEMORY WIPED, and nothing is saved again until the FM-1 restarts: install the other firmware next, and it finds that memory blank); and last **EVERYTHING**: RESET ALL, everything back
 to how it came (tempo, generator, FX chain, the drums, mixer, keys, slices, SYSTEM, the tracks and all 64 patterns; the
@@ -1021,7 +1031,7 @@ MEMORY erases them.
 ## 9. The mixer
 
 **LFO** opens the MIXER: three channels side by side, each a fader (BREAK, KICK and PERC with a level meter).
-**SELECT** turns to SENDS, MASTER and DYNAMICS (0.9.2; **LFO again** goes back to HOME): SENDS (the FX fader, the chain's four slots beside it, lit: on; DRUMS, their route; ROLL, what the three roll keys roll: BREAK, KICK (the kick hit at the roll's rate instead of its pattern; the break plays on) or BOTH, 0.9.40). **LFO held +
+**SELECT** turns to SENDS, MASTER and DYNAMICS (0.9.2; **LFO again** goes back to HOME): SENDS (the FX fader, the chain's four slots beside it, lit: on; DRUMS, their route; VINYL (0.9.54, FLEXOR: what the VINYL BREAK key slows: BREAK, KICK or BOTH, as its K1 held); ROLL, what the three roll keys roll: BREAK, KICK (the kick hit at the roll's rate instead of its pattern; the break plays on) or BOTH, 0.9.40). **LFO held +
 K1–K4**, on any page: the break's, the kick's and the drums' level, and (K4, 0.9.50, FLEXOR) the FX fader, 5 % a detent (the MIXER's own page: 2 %), the page staying where it is (LFO let go after a turn opens nothing): the mix moved without
 going into the MIXER.
 

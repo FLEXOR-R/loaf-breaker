@@ -47,3 +47,22 @@ wait 200
 expect fxwet 100
 tap HOME
 wait 200
+# (0.9.54, FLEXOR) LFO › SENDS K3: VINYL BREAK's THRU, BREAK / KICK / BOTH (BOTH to start)
+tap LFO
+wait 200
+turn SELECT 1 10
+wait 200
+expect mpage 1
+expect vthru 0
+turn K3 -2 10
+wait 100
+expect vthru 1
+turn K3 1 10
+wait 100
+expect vthru 2
+shot ma_sends.png
+turn K3 1 10
+wait 100
+expect vthru 0
+tap HOME
+wait 200

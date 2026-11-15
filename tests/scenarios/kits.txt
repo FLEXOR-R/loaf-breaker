@@ -1,0 +1,56 @@
+# LOAF BREAKER (0.9.54, FLEXOR): ARP's fifth tab, KITS (EXPERT): sixteen kits as the ARP effects' cards, each a kick, a
+# break, a tempo and a pattern (KEEP: as it is); a white key or ALGORITHM picks the kit, K1 KICK, K2 BREAK, K3 BPM,
+# K4 PATTERN (from KEEP the first turn right takes what plays). SEL WHITE's new kind KIT: SEL + that white key loads it.
+# Here KIT 1: KICK 3, the third break, 180 BPM, P5; white key 1 given KIT 1; HOME, SEL + key 1: all four at once.
+#   app/build/host/loaf-breaker_host tests/scenarios/kits.txt app/build/scenarios
+wait 4200
+tap ARP
+wait 300
+turn SELECT -1 10
+wait 300
+expect opage 4
+tapkey w0
+wait 100
+expect kitsel 0
+expect kit0kick 0
+turn K1 1 10
+turn K1 -2 10
+wait 100
+expect kit0kick 2
+turn K1 1 10
+turn K2 3 10
+turn K3 1 10
+turn K4 5 10
+wait 200
+expect kit0kick 3
+shot kits_page.png
+turn K3 50 60
+wait 100
+turn ALGO 1 10
+wait 100
+expect kitsel 1
+turn ALGO -1 10
+wait 100
+turn SELECT -1 10
+wait 300
+expect opage 3
+tapkey w0
+wait 100
+turn K3 6 10
+wait 200
+expect swcat 6
+expect swval 0
+tap HOME
+wait 300
+press SEL
+wait 50
+tapkey w0
+wait 100
+release SEL
+wait 800
+expect kslot 2
+expect brk 2
+expect pattern 4
+shot kits_loaded.png
+tap HOME
+wait 200

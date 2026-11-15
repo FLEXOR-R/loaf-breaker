@@ -378,6 +378,9 @@ typedef struct {
      * rsv: the room kept for SEL + the white keys, later) */
     uint8_t selk[11];
     uint8_t rsv[53];
+    /* (appended, 0.9.54, FLEXOR: the 16 KITS, ARP › KITS, SEL + a white key KIT n: each a kick, a break, a tempo and a
+     * pattern to go to at once; 0 in a field: KEEP, as it is. A shorter save: all KEEP) */
+    struct { uint8_t kick, brk; uint16_t bpm_x10; uint8_t pat, rsv; } kit[16];
 } kx2_t;
 static kx2_t kx2 PLAT_POOL;
 static kick_x2_t *kx2_at(uint32_t k) { return &kx2.m[k % KICK_MEMS]; }
@@ -386,6 +389,7 @@ static void kx2_defaults(void)           /* (the kicks' TOK and TAIL GATE; the S
     memset(&kx2.m, 0, sizeof kx2.m);
     kx2.magic = KX2_MAGIC;
 }
+static void kits_clear(void) { memset(kx2.kit, 0, sizeof kx2.kit); }   /* (0.9.54: every KIT empty, KEEP) */
 static void selk_clear(void)             /* (0.9.49: the SEL layer, none: RESET ALL, RESET's PADS) */
 {
     memset(kx2.selk, 0, sizeof kx2.selk);
@@ -1793,10 +1797,12 @@ void app_init(void)
                                           * shorter one, before the SEL layer: none) */
         int sz = plat_store_size(OBJ_KX2);
         selk_clear();
+        kits_clear();
         if (sz < (int)offsetof(kx2_t, selk) || sz > (int)sizeof kx2 ||
             plat_store_load(OBJ_KX2, &kx2, (uint32_t)sz) != sz || kx2.magic != KX2_MAGIC) {
             kx2_defaults();
             selk_clear();
+            kits_clear();
         }
     }                 /* (LOAF BREAKER: a save before the KICK LAB: every kick as it sounded) */
     {                                    /* (LOAF BREAKER, 0.9.2: KICK 11..20; a save before them: as they begin; the
