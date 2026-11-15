@@ -46,10 +46,16 @@ key b5 up
 wait 250
 key b7 down
 wait 250
-turn K1 2 10
+turn K3 2 10
 wait 300
-wait 350
+expect brk_dj 48
+turn K2 3 10
+wait 300
 shot p_stop.png
+expect brk_dj 54
+turn K2 -3 10
+wait 300
+expect brk_dj 42
 key b7 up
 wait 250
 key b6 down
