@@ -958,6 +958,29 @@ crossbreed, industrial: the drop, the dirt, the lift and the room); each comes w
 BEGINNER the FX changes on the same preset (its LEVEL and TUNE kept). Each memory (SNARE 1-10 ..) keeps its own.
 
 MIDI notes 38 (D1) play the snare, 42, 44 and 46 the hat, also while stopped. SAVE keeps the drums with the rest.
+
+### Your own snare, hat and clap (IMPORT)
+
+Each drum can play a sample of yours in place of its synthesis (0.9.45). The site's
+[Import](https://flexor-r.github.io/loaf-breaker/import/) page, in Chrome or Edge on a computer, puts them on the FM-1:
+
+1. **Connect** (LOAF BREAKER stopped): the page reads the samples already on the FM-1, so you can change one and keep
+   the others.
+2. **Drop a sample on the SNARE, the HAT or the CLAP** (any format the browser plays). The silence before the hit and
+   its quiet end are cut, a second at most is kept, its peak brought to −0.3 dBFS. **Play** (or click its wave) hears it
+   as the FM-1 will play it; **Length** shortens it; **Name** is what the FM-1 shows.
+3. The FM-1 keeps **8 KB** for the three, compressed as the breaks: the page plays them at the highest rate that fits,
+   22.05 kHz (about 0.7 s for the three together), 16 kHz (about 1 s), then 11.025 kHz (about 1.4 s), and shortens
+   them only past that. The meter says the room and the rate.
+4. **Send to the FM-1**. **Delete them from the FM-1** gives every drum its synthesis back.
+
+On the FM-1, each drum's **PRESET** (EXPERT: SHAPE's K3; BEGINNER: K1) has one more, the last: your sample, under its
+name (the picture on EDIT draws it). On a sample, **TUNE** repitches it (±12 semitones, 0 as recorded), **DECAY** fades it
+(FULL: as recorded, then 30 ms to 1.5 s), **TONE** darkens it to the left (a low-pass, 18 kHz to 400 Hz) or thins it to
+the right (a high-pass, 20 Hz to 3 kHz), OPEN in the middle; **DRIVE**, **DIRT**, **LIFT**, **ROOM** and BEGINNER's
+**FX** work as on the synthesised drums (SNAP, CUT, SPREAD, DROP and TIME are the synthesis's: "-"). Each drum memory
+keeps its choice (SAVE); another PRESET gives the synthesised drum back. The samples stay through RESET ALL; WIPE
+MEMORY erases them.
 (ENV, which used to open SNARE / HAT, is TRACK now: §3.)
 
 ## 9. The mixer

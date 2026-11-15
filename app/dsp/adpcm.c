@@ -31,3 +31,8 @@ void adpcm_decode(adpcm_state_t *st, const uint8_t *src, int16_t *dst, uint32_t 
     for (i = 0; i < n; i++)
         dst[i] = nibble(st, (i & 1u) ? (uint32_t)(src[i >> 1] >> 4) : (uint32_t)(src[i >> 1] & 15u));
 }
+
+int16_t adpcm_at(adpcm_state_t *st, const uint8_t *src, uint32_t i)
+{
+    return nibble(st, (i & 1u) ? (uint32_t)(src[i >> 1] >> 4) : (uint32_t)(src[i >> 1] & 15u));
+}

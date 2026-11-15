@@ -1538,6 +1538,52 @@ static int cu_at_ok(uint32_t at, uint32_t n)
     }
     return 1;
 }
+/* LOAF BREAKER (0.9.45, FLEXOR: the site's IMPORT page): the player's drum samples, a kit of three (the snare, the hat,
+ * the clap), IMA ADPCM, in the two sectors of OBJ_BLE (0xDE000, 8 KB: no Bluetooth in LOAF BREAKER, nothing else
+ * writes there), written whole over USB SysEx (zone 2, ui/main.c kit_sysex) and read where they lie as they play
+ * (perc_set_sample). A 16-byte header {KIT_MAGIC, the crc32 of what follows it, its size, 0}, then for each drum
+ * {offset from the kit's start, its samples, its rate, its name (12)}, 24 bytes, then the data. WIPE MEMORY erases it
+ * (the store map's), RESET ALL leaves it */
+#define KIT_AT 0xDE000u
+#define KIT_CAP 8192u
+#define KIT_MAGIC 0x314B5244u               /* "DRK1" */
+#define KIT_HEAD (16u + 3u * 24u)
+typedef struct {
+    uint32_t off, len, rate;
+    char name[12];
+} kit_ent_t;
+static uint8_t kit_has;                  /* (bit v: drum v has its sample) */
+static const kit_ent_t *kit_ent(uint32_t v)   /* (drum v's, or 0) */
+{
+    const uint8_t *p = plat_data(KIT_AT);
+    return p && kit_has >> (v % 3u) & 1u ? (const kit_ent_t *)(const void *)(p + 16u + (v % 3u) * 24u) : 0;
+}
+static void kit_scan(void)
+{
+    const uint8_t *p = plat_data(KIT_AT);
+    const uint32_t *h = (const uint32_t *)(const void *)p;
+    uint32_t v;
+    kit_has = 0u;
+    if (p && h[0] == KIT_MAGIC && h[2] >= KIT_HEAD - 16u && h[2] <= KIT_CAP - 16u && crc32_of(p + 16, h[2]) == h[1])
+        for (v = 0; v < 3u; v++) {
+            const kit_ent_t *e = (const kit_ent_t *)(const void *)(p + 16u + v * 24u);
+            if (e->len && e->off >= KIT_HEAD && e->rate >= 8000u && e->rate <= 48000u && e->len <= 2u * KIT_CAP &&
+                e->off + (e->len + 1u) / 2u <= 16u + h[2])
+                kit_has |= (uint8_t)(1u << v);
+        }
+    for (v = 0; v < 3u; v++) {
+        const kit_ent_t *e = kit_ent(v);
+        perc_set_sample(v, e ? p + e->off : 0, e ? e->len : 0u, e ? e->rate : 0u);
+    }
+}
+static void kit_name(uint32_t v, char *t)  /* (drum v's sample, its name; "" none) */
+{
+    const kit_ent_t *e = kit_ent(v);
+    uint32_t k;
+    for (k = 0; k < 12u; k++)
+        t[k] = e && e->name[k] >= ' ' && e->name[k] <= 'z' ? e->name[k] : 0;
+    t[12] = 0;
+}
 /* break i's slot and its bank: the bank built into the image (or a synthesised Amen), then the player's */
 static const bank_slot_t *slot_of(uint32_t i, const uint8_t **bank)
 {
@@ -1634,6 +1680,7 @@ void app_init(void)
     perc_init();
     ovl_init(ovl_line);
     breaks_count();                      /* the bank's (breaks/breaks.txt), then the player's own (0.9.32) */
+    kit_scan();                          /* (0.9.45: the player's drum samples) */
     settings_defaults();                 /* (what a shorter, older save doesn't reach keeps these) */
     {
         int sz = plat_store_size(OBJ_SETTINGS);

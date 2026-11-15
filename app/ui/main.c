@@ -2984,6 +2984,100 @@ static int edx_sysex(const uint8_t *u, uint32_t len)
     ed_reply(13u, ok ? 0u : 2u, o, n);
     return 1;
 }
+/* LOAF BREAKER (0.9.45, FLEXOR: the site's IMPORT page): the drum kit (app.c KIT_AT), zone 2 of the break manager's
+ * commands: 1 INFO -> {capacity u32, size u32 (0: none), then each drum {samples u32, rate u32, name 12}}; 2 BEGIN
+ * {size u32}: its sectors erased, the samples silent; 3 DATA {offset u32 (16 on), bytes}; 4 COMMIT {the 16-byte
+ * header}: written last, the kit checked; 5 READ {offset u32, count u32 (256 at most)} -> {offset u32, bytes}; 6 DELETE.
+ * The same answers (CODE 1 playing, 2 size, 3 flash, 4 doesn't
+ * check); writes only while stopped */
+static uint32_t kit_size;
+static int kit_sysex(uint32_t cmd, const uint8_t *u, uint32_t len)
+{
+    uint32_t code = 0u, i;
+    if (cmd == 1u) {
+        uint8_t r[8u + 3u * 20u];
+        const uint32_t *h = (const uint32_t *)(const void *)plat_data(KIT_AT);
+        uint32_t v, w[2];
+        w[0] = KIT_CAP;
+        w[1] = kit_has ? 16u + h[2] : 0u;
+        memcpy(r, w, 8u);
+        for (v = 0; v < 3u; v++) {
+            const kit_ent_t *e = kit_ent(v);
+            uint32_t q[2];
+            char t[13];
+            q[0] = e ? e->len : 0u;
+            q[1] = e ? e->rate : 0u;
+            kit_name(v, t);
+            memcpy(r + 8u + v * 20u, q, 8u);
+            memcpy(r + 16u + v * 20u, t, 12u);
+        }
+        cu_reply(0x21u, 0u, r, sizeof r);
+        return 1;
+    }
+    if (cmd == 5u) {                     /* READ {offset u32, count u32 (256 at most)} -> {offset u32, bytes}: any time */
+        uint8_t r[4u + 256u];
+        uint32_t off = rd32(u), k = rd32(u + 4);
+        if (len < 8u || k > 256u || off > KIT_CAP || k > KIT_CAP - off) {
+            cu_reply(0x25u, 2u, 0, 0u);
+            return 1;
+        }
+        memcpy(r, u, 4u);
+        memcpy(r + 4, plat_data(KIT_AT + off), k);
+        cu_reply(0x25u, 0u, r, 4u + k);
+        return 1;
+    }
+    if (playing_now()) {
+        app_say("STOP FIRST", "TO LOAD SAMPLES");
+        cu_reply(0x20u | cmd, 1u, 0, 0u);
+        return 1;
+    }
+    if (cmd == 2u || cmd == 6u) {        /* BEGIN, DELETE: the samples silent first (the render reads them) */
+        for (i = 0; i < 3u; i++)
+            perc_set_sample(i, 0, 0u, 0u);
+        kit_has = 0u;
+        kit_size = cmd == 2u ? rd32(u) : 1u;
+        if (cmd == 2u && (kit_size < KIT_HEAD || kit_size > KIT_CAP))
+            code = 2u;
+        for (i = 0; !code && i < (kit_size + 4095u) / 4096u; i++)
+            if (plat_data_erase(KIT_AT + i * 4096u))
+                code = 3u;
+        if (cmd == 6u)
+            kit_scan();
+        if (cmd == 2u && !code)
+            app_say("RECEIVING", "DRUM SAMPLES");
+        if (code)
+            kit_size = 0u;
+    } else if (cmd == 3u) {              /* DATA: after the header, into what BEGIN erased */
+        uint32_t off = rd32(u), at, k;
+        len -= 4u;
+        if (!kit_size || len > 600u || off < 16u || off > kit_size || len > kit_size - off)
+            code = 2u;
+        for (i = 0; !code && i < len; i += k) {
+            at = KIT_AT + off + i;
+            k = 4096u - (at & 0xFFFu);
+            k = k < len - i ? k : len - i;
+            if (plat_data_write(at, u + 4 + i, k))
+                code = 3u;
+        }
+        if (code)
+            kit_size = 0u;
+    } else if (cmd == 4u) {              /* COMMIT: the header last, then the whole checked */
+        if (!kit_size || len < 16u || plat_data_write(KIT_AT, u, 16u))
+            code = 3u;
+        kit_size = 0u;
+        kit_scan();
+        if (!code && !kit_has)
+            code = 4u;
+        if (!code)
+            app_say("DRUM SAMPLES", "LOADED: PRESETS");
+        changed();
+    } else
+        return 0;
+    if (code > 1u)
+        app_say("SAMPLES NOT LOADED", code == 4u ? "THEY DON'T CHECK" : "FLASH OR SIZE");
+    cu_reply(0x20u | cmd, code, 0, 0u);
+    return 1;
+}
 int app_sysex(const uint8_t *p, uint32_t n)
 {
     uint8_t *u = (uint8_t *)(void *)cv_px, a[16];   /* (the canvas, its last blit done: lcd_sync) */
@@ -2992,6 +3086,13 @@ int app_sysex(const uint8_t *p, uint32_t n)
         return 0;
     cmd = p[3] & 15u;
     z = p[3] >> 4 & 7u;
+    if (z == 2u && cmd <= 6u) {          /* (0.9.45: the drum kit, IMPORT) */
+        lcd_sync();
+        ui.idle_t = plat_ms();
+        ui.redraw |= RG_ALL;
+        len = unpack7(p + 4, n - 4u > 700u ? 700u : n - 4u, u);
+        return kit_sysex(cmd, u, len);
+    }
     if (z >= CU_NZ)
         return 0;
     if (!z && cmd == 13u && n >= 6u && n <= 20u) {   /* (the editor's STATUS: small, often; the canvas left alone) */
@@ -3300,8 +3401,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx"};
-    int v[144];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp"};
+    int v[146];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -3457,6 +3558,8 @@ int app_expect(const char *what, int *got)
     v[139] = subfx_off ? 1 : 0;          /* (0.9.43: the kick's SUB FX switch) */
     v[142] = (int)ovl_pad_bits();        /* (0.9.45: the ARP keys' effects sounding, a bit each OV_*) */
     v[143] = (int)arpk_fx(ui.bk_sel);    /* (the BLACK KEYS page's key: its ARP effect) */
+    v[144] = (int)kit_has;               /* (0.9.45: the drum samples, a bit each: SN HH CP) */
+    v[145] = perc_smp(PV_SNARE);         /* (the snare playing its sample) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */
     v[141] = kx2_at(set.kslot)->gate;    /* (its TAIL GATE's division) */
     for (i = 0; i < sizeof W / sizeof W[0]; i++)

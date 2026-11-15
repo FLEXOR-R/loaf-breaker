@@ -57,7 +57,7 @@ def restyle(path, cls, controls_href, extra=""):
     if nav:                                          # "Controls" after "Manual"
         breaks = "breaks/" if controls_href.startswith("manual/") else "../breaks/"   # (the front page, the manual)
         links = re.sub(r'(<a href="[^"]*manual/"[^>]*>Manual</a>)',
-                       r'\1<a href="' + controls_href + '">Controls</a><a href="' + breaks + '">Breaks</a><a href="' + breaks.replace("breaks", "editor") + '">Studio</a>',
+                       r'\1<a href="' + controls_href + '">Controls</a><a href="' + breaks + '">Breaks</a><a href="' + breaks.replace("breaks", "import") + '">Import</a><a href="' + breaks.replace("breaks", "editor") + '">Studio</a>',
                        nav.group(2), count=1)
         s = s[:nav.start(2)] + links + s[nav.end(2):]
     return s
@@ -68,7 +68,7 @@ def header(current):
     name = re.search(r'^title\s*=\s*"([^"]+)"', conf, re.M) or re.search(r'^name\s*=\s*"([^"]+)"', conf, re.M)
     repo = re.search(r'^repo\s*=\s*"([^"]+)"', conf, re.M)
     links = [("../emu/", "Emulator"), ("../install/", "Install"), ("../manual/", "Manual"), ("../manual/#controls", "Controls"),
-             ("../breaks/", "Breaks"), ("../editor/", "Studio")]
+             ("../breaks/", "Breaks"), ("../import/", "Import"), ("../editor/", "Studio")]
     if repo:
         links.append((repo.group(1), "Source"))
     return ('<div class="page"><header class="site"><a class="home" href="../">' + (name.group(1) if name else "CHOPPAH") +
@@ -174,6 +174,18 @@ def breaks(site):
     break_lib.main(site / "breaks" / "lib")
 
 
+def imp(site):
+    """the IMPORT page (app/site/import.html, LOAF BREAKER 0.9.45, FLEXOR: your own snare, hat and clap on the FM-1 over
+    Web MIDI): the site's style and header, at import/"""
+    page = (APP / "site" / "import.html").read_text(encoding="utf-8")
+    css = (APP / "site" / "site.css").read_text(encoding="utf-8")
+    if "/*SITE_CSS*/" not in page or "<!--HEADER-->" not in page:
+        raise SystemExit("app/site/import.html: no /*SITE_CSS*/ or <!--HEADER--> to fill")
+    page = page.replace("<style>/*SITE_CSS*/", FONTS + "<style>" + css, 1).replace("<!--HEADER-->", header("Import"), 1)
+    (site / "import").mkdir(parents=True, exist_ok=True)
+    (site / "import" / "index.html").write_text(page, encoding="utf-8")
+
+
 def editor(site):
     """the Studio (app/site/editor.html and editor.js, LOAF BREAKER 0.9.43: the whole FM-1 from a computer over Web MIDI,
     as a DAW): the site's style, header and the script inlined, at editor/"""
@@ -194,6 +206,7 @@ def main(site):
     install(site)
     emu(site)
     breaks(site)
+    imp(site)
     editor(site)
     home = site / "index.html"
     if home.exists():

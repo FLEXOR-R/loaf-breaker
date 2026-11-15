@@ -45,7 +45,20 @@ static const ppre_t PP_CP[] = {
     {"FURNACE CLAP", {80, 30, 60, 35, 60, 45}, {0, 0, DIRT_FOLD, 50, 0}, PFX_SMASH}};
 #define N_SN (sizeof PP_SN / sizeof PP_SN[0])
 #define N_CP (sizeof PP_CP / sizeof PP_CP[0])
-static uint32_t pp_n(uint32_t v) { return PERC_PRESETS + (v == PV_SNARE ? N_SN : v == PV_CLAP ? N_CP : 0u); }
+static uint32_t pp_nb(uint32_t v) { return PERC_PRESETS + (v == PV_SNARE ? N_SN : v == PV_CLAP ? N_CP : 0u); }
+/* LOAF BREAKER (0.9.45, FLEXOR: the site's IMPORT page): a drum with its own sample has one PRESET more, the last, its
+ * name: the sample (PX_RSV PX_SAMPLE) in place of the synthesis */
+static uint32_t pp_n(uint32_t v) { return pp_nb(v) + (kit_has >> (v % 3u) & 1u); }
+static int perc_smp(uint32_t v) { return perc_x(v)[PX_RSV] == PX_SAMPLE && kit_has >> (v % 3u) & 1u; }
+static float perc_dms(uint32_t v, const perc_voice_t *pv)   /* (its decay, ms: the sample's fade, or its length) */
+{
+    const kit_ent_t *e = kit_ent(v);
+    float f;
+    if (!perc_smp(v) || !e)
+        return perc_decay_ms(v, pv->decay);
+    f = perc_sample_ms(pv->decay);
+    return f > 0.0f ? f : (float)e->len * 1000.0f / (float)e->rate / brk_exp2f_c((pv->tune - 0.5f) * 2.0f);
+}
 static const ppre_t *pp_ext(uint32_t v, uint32_t i)   /* (i past the built-in four) */
 {
     i -= PERC_PRESETS;
@@ -53,6 +66,11 @@ static const ppre_t *pp_ext(uint32_t v, uint32_t i)   /* (i past the built-in fo
 }
 static const char *pp_name(uint32_t v, uint32_t i)
 {
+    static char t[13];
+    if (i >= pp_nb(v) || perc_x(v)[PX_RSV] == PX_SAMPLE) {   /* (its sample: its name) */
+        kit_name(v, t);
+        return t[0] ? t : "NO SAMPLE";
+    }
     i %= pp_n(v);
     return i < PERC_PRESETS ? PERC_PRESET_NAME[v % PERC_VOICES][i] : pp_ext(v, i)->name;
 }
@@ -62,7 +80,16 @@ static void pp_apply(uint32_t v, uint32_t i, int fx)   /* the drum's memory play
     uint8_t *x = perc_x(v);
     uint32_t j, own = PFX_DRY;
     i %= pp_n(v);
-    if (i < PERC_PRESETS) {
+    x[PX_RSV] = 0u;
+    if (i >= pp_nb(v)) {                 /* (0.9.45: its sample, as recorded: level, no fade, the tone open, dry) */
+        static const float SP[6] = {0.85f, 0.5f, 1.0f, 0.5f, 0.5f, 0.0f};
+        float *P[6] = {&pv->level, &pv->tune, &pv->decay, &pv->tone, &pv->snap, &pv->drive};
+        for (j = 0; j < 6u; j++)
+            *P[j] = SP[j];
+        for (j = 0; j <= PX_ROOM; j++)
+            x[j] = 0u;
+        x[PX_RSV] = PX_SAMPLE;
+    } else if (i < PERC_PRESETS) {
         perc_preset(pv, v, i);
         for (j = 0; j <= PX_ROOM; j++)
             x[j] = 0u;
@@ -146,6 +173,10 @@ static void perc_value(int i, char *t)
         text_cat(t, DIRT_NAME[x[PX_DIRT] % DIRT_N]);
         return;
     }
+    if (xk && perc_smp(v) && i < 2) {    /* (0.9.45: DROP, TIME: the snare's synthesis, nothing on a sample) */
+        text_cat(t, "-");
+        return;
+    }
     if (xk) {                            /* (MORE: OFF, or its value) */
         if (!*xk)
             text_cat(t, "OFF");
@@ -159,6 +190,42 @@ static void perc_value(int i, char *t)
             int_text(*xk, t);
             text_cat(t, "%");
         }
+        return;
+    }
+    if (perc_smp(v) && (pg == 0u || pg == 3u) && p) {   /* (0.9.45: the sample's TUNE, DECAY, TONE) */
+        if (pg == 0u && i == 1) {        /* (semitones, +-12) */
+            int32_t st = (int32_t)((*p - 0.5f) * 24.0f + (*p < 0.5f ? -0.5f : 0.5f));
+            if (st > 0)
+                text_cat(t, "+");
+            int_text(st, t + (st > 0));
+            text_cat(t, " ST");
+            return;
+        }
+        if ((pg == 0u && i == 2) || (pg == 3u && i == 3)) {
+            float ms = perc_sample_ms(*p);
+            if (ms <= 0.0f)
+                text_cat(t, "FULL");
+            else {
+                int_text((int32_t)(ms + 0.5f), t);
+                text_cat(t, " MS");
+            }
+            return;
+        }
+        if (pg == 0u && i == 3) {        /* (left a low-pass, right a high-pass) */
+            if (*p < 0.48f) {
+                text_cat(t, "LP ");
+                hz_text(400.0f * brk_exp2f_c(*p * 11.4f), t + 3);
+            } else if (*p > 0.52f) {
+                text_cat(t, "HP ");
+                hz_text(20.0f * brk_exp2f_c((*p - 0.52f) * 15.0f), t + 3);
+            } else
+                text_cat(t, "OPEN");
+            return;
+        }
+    }
+    if (perc_smp(v) && ((pg == 1u && i == 0) || (pg == 2u && i < 2))) {   /* (SNAP, CUT, SPREAD, DROP, TIME: the
+                                          * synthesis's, nothing on a sample) */
+        text_cat(t, "-");
         return;
     }
     if (!p)
@@ -248,7 +315,7 @@ static void perc_picture(const brk_status_t *st, int32_t top)
 {
     const perc_voice_t *v = perc_voice(ui.pvoice);
     uint32_t i;
-    float dms = perc_decay_ms(ui.pvoice, v->decay);
+    float dms = perc_dms(ui.pvoice, v);
     int32_t dx = 4 + (int32_t)(dms / (float)pw_ms * (float)PW_W);
     char t[24], u[8];
     cv_oy = -top;
@@ -299,7 +366,10 @@ static void perc_picture(const brk_status_t *st, int32_t top)
     text_cat(t, u);
     cv_text(6, 2, &FONT_B, t, C_WHITE);
     t[0] = 0;
-    hz_text(perc_tune_hz(ui.pvoice, v->tune), t);
+    if (perc_smp(ui.pvoice))             /* (0.9.45: a sample: its name) */
+        text_cat(t, pp_name(ui.pvoice, 99u));
+    else
+        hz_text(perc_tune_hz(ui.pvoice, v->tune), t);
     cv_text(234 - text_w(&FONT_XS, t), 4, &FONT_XS, t, C_AMB);
     for (i = 0; i < NDRUMS; i++) {       /* the four drums, the one edited lit (stopped: key i + 1 plays it) */
         int32_t x = 4 + (int32_t)i * 59;
@@ -335,12 +405,13 @@ static void perc_cards(void)             /* the part's knobs: its name, its valu
 static void draw_perc_big(const brk_status_t *st)
 {
     const perc_voice_t *v = perc_voice(ui.pvoice);
-    uint32_t sig = sig_of(v, sizeof *v) ^ (ui.pvoice * 2654435761u) ^ ez_idx() * 40503u ^ (ui.kview + 1u) * 97u, top;
+    uint32_t sig = sig_of(v, sizeof *v) ^ (ui.pvoice * 2654435761u) ^ ez_idx() * 40503u ^ (ui.kview + 1u) * 97u ^
+                   (uint32_t)perc_smp(ui.pvoice) * 7919u ^ kit_has * 131u, top;
     if (ui.kview == 0u && kv_sig)        /* (the kick's picture in kv_rgb since: this one again) */
         pw_sig = sig + 1u;
     if (sig != pw_sig) {                 /* (its hit again, only when it changed) */
         uint32_t pk = 0u;
-        float d = perc_decay_ms(ui.pvoice, v->decay) * 1.4f;
+        float d = perc_dms(ui.pvoice, v) * 1.4f;
         pw_sig = sig;
         pw_ms = ez_idx() ? EZ_MS[ez_idx()] : (uint32_t)brk_clampf(d, 60.0f, 900.0f);   /* (EDIT ZOOM) */
         if (ui.kview == 0u) {            /* (LOAF BREAKER: the RGB view into the kick's buffer, the kick's picture

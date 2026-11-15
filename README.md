@@ -15,6 +15,7 @@
 <a href="https://flexor-r.github.io/loaf-breaker/manual/">Manual</a> ·
 <a href="https://flexor-r.github.io/loaf-breaker/manual/#controls">Controls</a> ·
 <a href="https://flexor-r.github.io/loaf-breaker/breaks/">Breaks</a> ·
+<a href="https://flexor-r.github.io/loaf-breaker/import/">Import</a> ·
 <a href="../../releases">Releases</a><br>
 <a href="https://flexor-r.github.io/loaf-breaker/manual/#start-in-five-minutes"><b>Start in five minutes</b></a>
 </p>
@@ -90,6 +91,9 @@ are built in, and your own go after them, five to seven in 232 KB (0.9.32, from 
 [Breaks](https://flexor-r.github.io/loaf-breaker/breaks/) page (`app/site/breaks.html`) plays the breaks of
 `breaks/` (made by `tools/break_lib.py`) or a sample of yours as the FM-1 will, and writes your list over USB into two
 places of the flash (140 KB and 92 KB, outside the saves), after the ten built in.
+Your own snare, hat and clap too (0.9.45): the site's [Import](https://flexor-r.github.io/loaf-breaker/import/) page
+(`app/site/import.html`) trims them, fits the three in the FM-1's 8 KB for them (22.05, 16 or 11.025 kHz, IMA ADPCM)
+and writes them over USB; each drum's PRESET then has one more, the last: your sample.
 
 ## Building
 

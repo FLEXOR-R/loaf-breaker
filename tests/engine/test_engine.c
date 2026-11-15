@@ -357,6 +357,62 @@ static void enc(const int16_t *in, uint8_t *out, uint32_t n)
     }
 }
 
+/* LOAF BREAKER (0.9.45): a drum's imported sample (perc_set_sample): it plays instead of the synthesis while the voice's
+ * PX_RSV is PX_SAMPLE, from flash as ADPCM, as long as it is at TUNE 0.5, half as long an octave up, then quiet; its
+ * fade (DECAY) shortens it; without PX_SAMPLE the synthesis again */
+static void test_perc_sample(void)
+{
+    static int16_t src[4410];
+    static uint8_t a[2205];
+    static float o[44100];
+    perc_t p;
+    uint8_t x[PX_N] = {0};
+    uint32_t i, n = 4410u, rate = 22050u, last[3];
+    for (i = 0; i < n; i++)              /* 200 ms of a 300 Hz tone, fading */
+        src[i] = (int16_t)(20000.0f * sinf(6.2831853f * 300.0f * (float)i / (float)rate) * (1.0f - (float)i / (float)n));
+    memset(a, 0, sizeof a);
+    enc(src, a, n);
+    for (int t = 0; t < 3; t++) {
+        perc_defaults(&p);
+        p.v[PV_SNARE].tune = t == 1 ? 1.0f : 0.5f;
+        p.v[PV_SNARE].decay = t == 2 ? 0.2f : 1.0f;
+        p.v[PV_SNARE].tone = 0.5f;
+        p.v[PV_SNARE].drive = 0.0f;
+        perc_set(&p);
+        x[PX_RSV] = PX_SAMPLE;
+        perc_set_x(PV_SNARE, x);
+        perc_set_sample(PV_SNARE, a, n, rate);
+        perc_init();
+        perc_hit(PV_SNARE);
+        for (i = 0; i < 44100u; i += BLOCK)
+            perc_render(o + i, BLOCK, 0, 0, 0u);
+        last[t] = 0u;
+        for (i = 0; i < 44100u; i++)
+            if (fabsf(o[i]) > 0.003f)
+                last[t] = i;
+        if (t == 0)
+            wav("perc_sample", o, o, 22050u);
+    }
+    CHECK(last[0] > 7600u && last[0] < 8900u, "a 200 ms sample plays 200 ms (last sound at %u)", last[0]);
+    CHECK(last[1] > 3600u && last[1] < 4600u, "an octave up (TUNE right): half as long (%u)", last[1]);
+    CHECK(last[2] < last[0] * 0.8f, "DECAY: a fade shortens it (%u)", last[2]);
+    x[PX_RSV] = 0u;                      /* (not the sample: the synthesis, which rings on past it) */
+    perc_set_x(PV_SNARE, x);
+    perc_defaults(&p);
+    perc_set(&p);
+    perc_init();
+    perc_hit(PV_SNARE);
+    for (i = 0; i < 44100u; i += BLOCK)
+        perc_render(o + i, BLOCK, 0, 0, 0u);
+    {
+        float pk = 0.0f;
+        for (i = 2000u; i < 4000u; i++)
+            pk = fabsf(o[i]) > pk ? fabsf(o[i]) : pk;
+        CHECK(pk > 0.01f && last[0] > 0u, "PX_RSV 0: the synthesised snare (peak %.3f at 50-90 ms)", pk);
+    }
+    perc_set_sample(PV_SNARE, 0, 0u, 0u);
+}
+
 static void test_adpcm(void)
 {
     static int16_t dec[40000];
@@ -2401,6 +2457,7 @@ int main(int argc, char **argv)
     test_pads();
     test_fx();
     test_adpcm();
+    test_perc_sample();
     test_pad_settings();
     test_dub();
     test_styles();

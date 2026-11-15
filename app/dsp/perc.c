@@ -4,6 +4,7 @@
 #include "perc.h"
 #include "brk.h"
 #include "brk_math.h"
+#include "adpcm.h"
 
 const char *const PERC_VOICE_NAME[PERC_VOICES] = {"SNARE", "HAT", "CLAP", ""};   /* (LOAF BREAKER, 0.209: the fourth,
                                           * the MELODY's, gone: kicks and drums only; its place kept, the saves' layout) */
@@ -37,12 +38,35 @@ typedef struct {                         /* a voice sounding */
     float env, env2, pe, ph[6], hp1, hp2, lp, last, declick;
     float lenv, lg, bits;                /* (LOAF BREAKER: LIFT's level followed and its gain; BITS' sample held) */
     uint32_t ln;
+    adpcm_state_t sst;                   /* (LOAF BREAKER 0.9.45: its sample: the decoder, the next sample to decode, */
+    uint32_t spos;                       /* the two read between, how far between; playing) */
+    float sa, sb, sf;
+    uint8_t sact;
 } pv_t;
 typedef struct {                         /* a voice's settings, mapped for the block */
     float f, dec, dec2, lvl, hpk, lpk, body, noise, crack, g, make;
     float depth, kpe, lift, room;        /* (LOAF BREAKER: the drop, its fall a sample, LIFT, the room's send) */
     uint32_t dirt, gate;                 /* (the saturation; the room's length in samples) */
+    const uint8_t *sdat;                 /* (0.9.45: its sample, or 0: the synthesis; its length; its step a sample at */
+    uint32_t slen;                       /* the pitch; its tone, a low-pass or a high-pass) */
+    float sstep;
+    uint8_t shp;
 } pc_t;
+static const uint8_t *volatile p_sd[PERC_VOICES];   /* (LOAF BREAKER 0.9.45: each drum's sample, perc_set_sample) */
+static volatile uint32_t p_sl[PERC_VOICES], p_sr[PERC_VOICES];
+BRK_COLD void perc_set_sample(uint32_t voice, const uint8_t *adpcm, uint32_t len, uint32_t rate)
+{
+    voice %= PERC_VOICES;
+    p_sd[voice] = 0;                     /* (the render sees none, or all of the new one: the pointer last) */
+    p_sl[voice] = len;
+    p_sr[voice] = rate;
+    p_sd[voice] = len && rate ? adpcm : 0;
+}
+BRK_COLD float perc_sample_ms(float d)
+{
+    d = brk_clampf(d, 0.0f, 1.0f);
+    return d >= 0.99f ? 0.0f : 30.0f + 1500.0f * d * d;
+}
 static volatile uint8_t p_x[PERC_VOICES][PX_N];   /* (LOAF BREAKER: the extras, perc_set_x) */
 void perc_set_x(uint32_t voice, const uint8_t *x)
 {
@@ -83,6 +107,19 @@ BRK_COLD static void pc_make(uint32_t voice, const perc_voice_t *s, float volume
         c->room = (float)x[PX_ROOM] * 0.01f;
         c->gate = (uint32_t)((40.0f + 5.0f * (float)x[PX_ROOM]) * 0.001f * (float)BRK_SR);
     }
+    c->sdat = 0;
+    if (p_x[voice % PERC_VOICES][PX_RSV] == PX_SAMPLE && p_sd[voice % PERC_VOICES]) {   /* (0.9.45: its sample) */
+        float sms = perc_sample_ms(s->decay);
+        c->sdat = p_sd[voice % PERC_VOICES];
+        c->slen = p_sl[voice % PERC_VOICES];
+        c->sstep = (float)p_sr[voice % PERC_VOICES] * (1.0f / (float)BRK_SR) *
+                   brk_exp2f_c((brk_clampf(s->tune, 0.0f, 1.0f) - 0.5f) * 2.0f);
+        c->dec = sms > 0.0f ? decay_factor(sms) : 1.0f;
+        c->shp = tone > 0.52f;           /* TONE: left a low-pass 18 kHz .. 400 Hz, right a high-pass 20 Hz .. 3 kHz */
+        c->hpk = tone > 0.52f ? onepole(20.0f * brk_exp2f_c((tone - 0.52f) * 15.0f)) : 0.0f;
+        c->lpk = tone < 0.48f ? onepole(400.0f * brk_exp2f_c(tone * 11.4f)) : 1.0f;
+        return;
+    }
     if (voice == PV_SNARE) {
         c->dec = decay_factor(ms * 0.55f);           /* the body: shorter than the noise */
         c->dec2 = decay_factor(ms);
@@ -117,6 +154,44 @@ static void pv_hit(pv_t *v)
     v->env = v->env2 = v->pe = 1.0f;
     for (k = 0; k < 6u; k++)
         v->ph[k] = 0.0f;
+    v->sst.pred = 0;                     /* (0.9.45: its sample from the start) */
+    v->sst.index = 0u;
+    v->spos = 0u;
+    v->sa = v->sb = 0.0f;
+    v->sf = 1.0f;
+    v->sact = 1u;
+}
+
+/* LOAF BREAKER (0.9.45): the voice's sample, decoded a sample at a time as the pitch asks, read between two; the fade,
+ * the tone */
+static inline float sample_tick(pv_t *v, const pc_t *c)
+{
+    float x;
+    if (!v->sact)
+        return 0.0f;
+    v->sf += c->sstep;
+    while (v->sf >= 1.0f) {
+        v->sf -= 1.0f;
+        v->sa = v->sb;
+        if (v->spos < c->slen)
+            v->sb = (float)adpcm_at(&v->sst, c->sdat, v->spos++) * (1.0f / 32768.0f);
+        else if (v->sb == 0.0f && v->sa == 0.0f) {
+            v->sact = 0u;                /* (its end: quiet) */
+            return 0.0f;
+        } else
+            v->sb = 0.0f;
+    }
+    x = (v->sa + (v->sb - v->sa) * v->sf) * v->env;
+    v->env *= c->dec;
+    if (v->env < 1e-5f)
+        v->sact = 0u;
+    v->lp += (x - v->lp) * c->lpk;       /* (TONE: the low-pass, open at the middle) */
+    x = v->lp;
+    if (c->shp) {
+        v->hp1 += (x - v->hp1) * c->hpk;
+        x -= v->hp1;
+    }
+    return x;
 }
 
 static inline float snare_tick(pv_t *v, const pc_t *c)
@@ -182,6 +257,8 @@ static inline float clap_tick(pv_t *v, const pc_t *c)
 
 static inline float voice_tick(uint32_t k, pv_t *v, const pc_t *c)
 {
+    if (c->sdat)
+        return sample_tick(v, c);
     return k == PV_SNARE ? snare_tick(v, c) : k == PV_CLAP ? clap_tick(v, c) : hat_tick(v, c);
 }
 /* LOAF BREAKER: a voice's sample out: its saturation (SOFT as ever, HARD, FOLD, BITS: 5 bits held 3 samples), LIFT
@@ -283,7 +360,7 @@ void perc_render(float *out, uint32_t n, const uint16_t *at, const uint8_t *who,
             hit = 1u;
             mh |= 1u << k;
         }
-    if (!hit && !rm_open && rm_g < 1e-4f && pv[0].env < 3e-5f && pv[0].env2 < 3e-5f && pv[1].env < 3e-5f && pv[2].env < 3e-5f &&
+    if (!hit && !rm_open && rm_g < 1e-4f && !(pv[0].sact | pv[1].sact | pv[2].sact) && pv[0].env < 3e-5f && pv[0].env2 < 3e-5f && pv[1].env < 3e-5f && pv[2].env < 3e-5f &&
         pv[2].pe < 3e-5f && brk_absf(pv[0].declick) + brk_absf(pv[1].declick) + brk_absf(pv[2].declick) < 1e-5f) {
         for (i = 0; i < n; i++)          /* quiet, nothing coming: no work */
             out[i] = 0.0f;
@@ -326,7 +403,7 @@ void perc_render(float *out, uint32_t n, const uint16_t *at, const uint8_t *who,
             for (k = 0; k < PV_STAB; k++) {
                 pv_t *v = &pv[k];
                 float x = 0.0f;
-                if (v->env > 1e-5f || (k == PV_SNARE && (v->env2 > 1e-5f)) ||
+                if (c[k].sdat ? v->sact : v->env > 1e-5f || (k == PV_SNARE && (v->env2 > 1e-5f)) ||
                     (k == PV_CLAP && (v->pe > 1e-5f || v->ph[1] < 3.0f)))   /* (LOAF BREAKER, 0.226: a voice gone
                                           * quiet costs nothing) */
                     x = voice_out(v, &c[k], voice_tick(k, v, &c[k]));

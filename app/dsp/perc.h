@@ -42,6 +42,13 @@ enum { PX_DROP, PX_DTIME, PX_DIRT, PX_LIFT, PX_ROOM, PX_FX, PX_PRE, PX_RSV, PX_N
 enum { DIRT_SOFT, DIRT_HARD, DIRT_FOLD, DIRT_BITS, DIRT_N };
 extern const char *const DIRT_NAME[DIRT_N];
 void perc_set_x(uint32_t voice, const uint8_t *x);   /* main loop: read at the next render */
+/* LOAF BREAKER (0.9.45, FLEXOR: the site's IMPORT page): a drum's own sample, IMA ADPCM (adpcm.h) of len samples at
+ * rate Hz, read where it lies (flash) as it plays; 0: none. It sounds instead of the synthesis while the voice's
+ * PX_RSV is PX_SAMPLE: TUNE its pitch (+-12 semitones, 0.5 as recorded), DECAY a fade (all the way up: none), TONE a
+ * low-pass (left) or a high-pass (right), then DRIVE, DIRT, LIFT, ROOM and LEVEL as the synthesised */
+#define PX_SAMPLE 0xA1u
+void perc_set_sample(uint32_t voice, const uint8_t *adpcm, uint32_t len, uint32_t rate);
+float perc_sample_ms(float decay);       /* (the sample's fade, to -40 dB: 30 .. 1530 ms; 0: none) */
 void perc_hit(uint32_t voice);           /* main loop (a MIDI note): at the next render */
 /* render: n samples into out (overwritten); hits at the sample offsets at[0..nat-1] (rising), who[k] the voices
  * (bit PV_*) hit there */

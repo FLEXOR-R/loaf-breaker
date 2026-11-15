@@ -12,3 +12,6 @@ typedef struct {
 
 /* decodes n samples from src (n / 2 bytes, rounded up) into dst, carrying the state */
 void adpcm_decode(adpcm_state_t *st, const uint8_t *src, int16_t *dst, uint32_t n);
+/* LOAF BREAKER (0.9.45): sample i of src decoded, the state carried (i rising one at a time from 0, the state {0, 0}):
+ * the imported drum samples, read from flash as they play */
+int16_t adpcm_at(adpcm_state_t *st, const uint8_t *src, uint32_t i);
