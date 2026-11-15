@@ -20,6 +20,12 @@
 <a href="https://flexor-r.github.io/loaf-breaker/manual/#start-in-five-minutes"><b>Start in five minutes</b></a>
 </p>
 
+> **A work in progress, on purpose.** LOAF BREAKER changes all the time: new versions come out often, and each can
+> move things. The built-in breaks are not final: they will be swapped for better ones as they are sampled (the breaks
+> you send from the site's Breaks page stay yours). Pages of the firmware and of the site may still change their layout
+> or their look, and some sections will be redesigned. The aim is a machine that is quick to play live, easy to find
+> your way in, and yours to shape: if you are here, you are early, and the best is still to come.
+
 LOAF BREAKER is FLEXOR's firmware for the [M-VAVE FM-1](https://www.m-vave.com/), built on
 **[CHOPPAH](https://github.com/profikid/fm1-break-choppah)**, Laurens Profittlich's Amen chopper. It keeps CHOPPAH's
 heart (a break cut into sixteen slices on the white keys, effect pads on the black keys, a generator, a master effects
