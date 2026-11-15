@@ -1451,6 +1451,7 @@ static void knob_value(int i, char *t)  /* the page's knob i (0..3), as shown un
 
 /* the tab bar under the header: the button's name, then the page's parts as tabs (the one you are on lit: the
  * button again, or ALGORITHM, goes to the next); EDIT and FX also name the part edited, "< SUB FX >" */
+static int8_t build_stut = -1;          /* (a build's break roll: the roll pad it holds, -1 none) */
 static const char *const OPAGE_NAME[5] = {"ARP", "BLK", "SEL BLK", "SEL WHITE", "SETTINGS"};   /* (LOAF BREAKER: ARP's tabs) */
 static int32_t tab(int32_t x, const char *s, int on)
 {
@@ -1711,8 +1712,9 @@ static const char *knob_name(int i)
                                       * SETTINGS, 0.9.2) */
                                               {"EFFECT", "ON / OFF", "", ""},   /* (LOAF BREAKER: EFFECTS, */
                                               {"AMOUNT", "KICK", "DROP", "LENGTH"}};   /* FX SET) */
-    static const char *const KN_TRK[4][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
-                                             {"STYLE", "SWEEP", "RISER", "GAP"}, {"", "RESET", "", "WHAT"}};
+    static const char *const KN_TRK[5][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
+                                             {"STYLE", "SWEEP", "RISER", "GAP"}, {"", "RESET", "", "WHAT"},
+                                             {"BREAK", "ROLL FROM", "", ""}};   /* (0.9.50: SONG › BREAK) */
     static const char *const KN_FILL[4] = {"SWING", "BREAK ROWS", "FOLLOW", ""};   /* (LOAF BREAKER: GROOVE; 0.244 FILL gone) */
     static const char *const KN_BK[3][4] = {{"PRESET", "KEY", "EFFECT", ""}, {"", "KEY", "SEL +", ""},
                                               {"", "KEY", "KIND", "VALUE"}};   /* (ARP's
@@ -1720,7 +1722,7 @@ static const char *knob_name(int i)
     const char *name = ui.page == PG_OVL && ui.opage == 4u ? (ws_layer ? SLX_KNOB[i] : KEY_KNOB[i]) :
                        ui.page == PG_OVL && ui.opage ? KN_BK[(ui.opage - 1u) % 3u][i] :
                        ui.page == PG_GLOBAL && ui.gpage == GP_FILL ? KN_FILL[i] : RST_ON ? KN_TRK[3][i] : ui.page == PG_TRACK &&
-                       ui.tpage ? KN_TRK[ui.tpage == 4u ? 2u : (ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
+                       ui.tpage ? KN_TRK[ui.tpage == 6u ? 4u : ui.tpage == 4u ? 2u : (ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
                        ui.gpage >= 2u ? KN_MORE[(ui.gpage - 2u) % 3u][i] : ui.page == PG_GLOBAL && ui.gpage
                        ? KN_PITCH[i] : ui.page == PG_MIX && ui.mpage
                        ? KN_GROOVE[ui.mpage >= 3u ? 2u : ui.mpage == 2u][i] : KN[ui.page][i];
@@ -2077,15 +2079,17 @@ void app_frame(void)
     track_poll(&st);                     /* LOAF BREAKER: a track playing: its next item */
     {                                    /* LOAF BREAKER: a STUTTER build: the break rolled, 8ths, 16ths, then 32nds,
                                           * let go at the drop */
-        static int8_t stut = -1;
-        int want = build_p >= 0.0f && build_len && (b_style == DS_STUTTER || b_stut)
-                   ? (build_p < 0.5f ? PAD_ROLL8 : build_p < 0.8f ? PAD_ROLL16 : PAD_ROLL32) : -1;
-        if (want != stut) {
-            if (stut >= 0)
-                brk_pad(stut, 0);
+        static const float BF[3] = {0.0f, 0.5f, 0.75f};   /* (0.9.50, FLEXOR: SONG › BREAK, ROLL from) */
+        uint32_t br = bk_broll();
+        float f = br & 1u && b_style != DS_STUTTER && !b_stut ? BF[(br >> 2) % 3u] : 0.0f, q = (build_p - f) / (1.0f - f);
+        int want = build_p >= f && build_len && (b_style == DS_STUTTER || b_stut || br & 1u)
+                   ? (q < 0.5f ? PAD_ROLL8 : q < 0.8f ? PAD_ROLL16 : PAD_ROLL32) : -1;
+        if (want != build_stut) {
+            if (build_stut >= 0)
+                brk_pad(build_stut, 0);
             if (want >= 0)
                 brk_pad(want, 1);
-            stut = (int8_t)want;
+            build_stut = (int8_t)want;
         }
     }
     {                                    /* LOAF BREAKER: PERFORM and GENERATOR show the CDJ view (the default);
@@ -2824,7 +2828,7 @@ static int edx_page(const uint8_t *u, uint32_t len, uint8_t *o, uint32_t *n)
     if (pg == PG_MIX)
         ui.mpage = (uint8_t)(a % 4u);
     else if (pg == PG_TRACK) {
-        ui.tpage = (uint8_t)(a % 5u);
+        ui.tpage = (uint8_t)(a == 6u ? 6u : a % 5u);   /* (0.9.50: 6 BREAK) */
         ui.trk_cur = (uint8_t)(b % TRK_ITEMS);
     } else if (pg == PG_GLOBAL)
         ok = a < 7u && a != 5u ? (ui.gpage = (uint8_t)a, 1) : 0;   /* (never RESET) */
@@ -3513,8 +3517,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15"};
-    int v[155];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15", "broll", "stut"};
+    int v[157];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -3681,6 +3685,8 @@ int app_expect(const char *what, int *got)
     v[152] = ws_layer;                   /* (0.9.50: ARP › SETTINGS, 0 LOOP 1 SLICE FX) */
     v[153] = set.keys[15].len;           /* (the last white key's LENGTH, its DECAY) */
     v[154] = set.keys[15].start >> 4;
+    v[155] = (int)bk_broll();            /* (0.9.50: SONG › BREAK, bit 0 ROLL, bits 2-3 from) */
+    v[156] = build_stut;                 /* (the roll pad a build holds, -1 none) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */
     v[141] = kx2_at(set.kslot)->gate;    /* (its TAIL GATE's division) */
     for (i = 0; i < sizeof W / sizeof W[0]; i++)

@@ -337,6 +337,10 @@ hard turn deletes one item, not the ones moving into its place, 0.9.26),
   **K3 RISER**: the rising noise, OFF to 200 % (100 %: as it was). **K4 GAP**: silence just before the drop (none, a
   16th, an 8th, a beat, half a bar), so the drop hits out of nothing. **PRESETS: TEMPO RISE**, OFF to +30 %: the
   tempo climbs with the build and drops back to yours at the drop (not while following a MIDI clock).
+- **BREAK** (0.9.50, FLEXOR): what the break does in the build, over any BUILD STYLE (the drums' roll goes on under
+  it). **K1 BREAK**: STILL (it plays on, as before) or ROLL (it rolls on shorter and shorter, at the R8, R16 then R32
+  pads' rates, let go at the drop). **K2 ROLL FROM**: when the roll begins: the BUILD START, HALF WAY, or the LAST
+  QUARTER (still before it). RESET's BUILD sets it back to STILL.
 - **The live knobs** (EDIT › KNOBS): what SEL + each knob does, on any page. On the KICK menu's KNOBS section,
   **ALGORITHM** goes to K1 SET .. K4 SET, and **PRESETS** there gives that knob its function: SCREAM, DISTO, D+ DRIVE, D+ TYPE, D+ SCREECH, D+ TAIL (DISTO +'s settings, one each),
   DRIVE (the kick's INTENSITY), DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH, PITCH DROP, RUMBLE, PUNCH, DRUM FLT,

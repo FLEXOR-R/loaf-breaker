@@ -29,7 +29,7 @@ wait 300
 turn PRESET -7 10
 turn SELECT 1 10
 wait 150
-turn SELECT 1 10
+turn SELECT 2 10
 wait 300
 expect page 8
 turn PRESET 1 10

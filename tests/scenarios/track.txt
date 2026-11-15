@@ -31,7 +31,7 @@ turn SELECT 1 10
 wait 200
 turn SELECT 1 10
 wait 200
-turn SELECT 1 10
+turn SELECT 2 10
 wait 300
 tap PLAY
 wait 300
@@ -60,7 +60,7 @@ turn SELECT 1 10
 wait 200
 turn SELECT 1 10
 wait 200
-turn SELECT 1 10
+turn SELECT 2 10
 wait 200
 tap PLAY
 wait 300

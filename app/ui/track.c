@@ -8,10 +8,12 @@
 
 static void page_say(void);
 static void break_ask(uint32_t i);      /* (main.c) */
-#define NTPART 6u
-static const char *const TPART[NTPART] = {"TRACKS", "PLAY", "DROP", "KNOB", "BUILD", "RESET"};
-#define NTORD 4u
-static const uint8_t TORDER[NTORD] = {0u, 1u, 2u, 4u};   /* (ENV's parts in order: BUILD after DROP; LOAF BREAKER TEST:
+#define NTPART 7u
+static const char *const TPART[NTPART] = {"TRACKS", "PLAY", "DROP", "KNOB", "BUILD", "RESET", "BREAK"};
+#define NTORD 5u
+static const uint8_t TORDER[NTORD] = {0u, 1u, 2u, 4u, 6u};   /* (0.9.50, FLEXOR: BREAK after BUILD, the break in the build) */
+static const char *const BROLL_NAME[2] = {"STILL", "ROLL"};
+static const char *const BFROM_NAME[3] = {"BUILD START", "HALF WAY", "LAST QUARTER"};   /* (ENV's parts in order: BUILD after DROP; LOAF BREAKER TEST:
                                           * KNOB out (EDIT KICK's KNOBS has it all), RESET on GLO, its sixth part) */
 #define NGPART 6u                        /* (GLO's parts' code: MIDI, PITCH (SOUNDS' BREAK), SETUP, EFFECTS, FX SET,
                                           * RESET; SYSTEM shows GLO_ORD's) */
@@ -130,6 +132,7 @@ static void reset_do(uint32_t w)
         set.drop_sweep = 0u;
         set.drop_riser = 50u;
         set.drop_gap = 0u;
+        set.bkeys.bk[BK_BROLL] = 0xE0u;  /* (0.9.50: the break STILL) */
     } else if (w == RST_KNOB) {          /* KNOB: the knobs' functions */
         set.selk_asg = set.selk_asg2 = 0u;
         set.selk_hi &= 112u;             /* (the knobs alone: TER's, DRV's and SUB's state kept) */
@@ -1052,6 +1055,13 @@ static void track_value(int i, char *t)
             text_cat(t, rst_cool() ? "DONE" : rst_asking() ? "PRESS GLO" : rst_live() ? "MORE!" : "TURN x5");
         return;
     }
+    if (ui.tpage == 6u) {                /* (0.9.50, FLEXOR: BREAK, the break in the build: STILL or ROLL, and from when) */
+        if (i == 0)
+            text_cat(t, BROLL_NAME[bk_broll() & 1u]);
+        else if (i == 1)
+            text_cat(t, bk_broll() & 1u ? BFROM_NAME[(bk_broll() >> 2) % 3u] : "-");
+        return;
+    }
     if (ui.tpage == 4u) {                /* BUILD: its style, its filter, its noise, the gap before the drop */
         if (i == 0)
             text_cat(t, DS_NAME[set.drop_style % DS_N]);
@@ -1142,7 +1152,8 @@ static void track_say(int i)             /* the knob turned, on the strip */
 {
     static const char *const N[NTPART][4] = {{"KICK", "PUT", "LOOPS", "BREAK"}, {"PLAY", "FROM ITEM", "AT THE END", ""},
                                         {"BUILD", "AFTER DROP", "DROP BREAK", "CRASH"}, {"", "", "", ""},
-                                        {"BUILD STYLE", "SWEEP", "RISER", "GAP"}, {"RESET", "RESET", "RESET", "RESET"}};
+                                        {"BUILD STYLE", "SWEEP", "RISER", "GAP"}, {"RESET", "RESET", "RESET", "RESET"},
+                                        {"BREAK", "ROLL FROM", "", ""}};
     char t[20];
     track_value(i, t);
     int drp = !ui.tpage && trk_now()->it[ui.trk_cur % TRK_ITEMS] == TI_DROP;
@@ -1193,6 +1204,19 @@ static void track_turn(int i, int32_t d)
     }
     if (!trk_knob_ok(i)) {
         easy_no();                       /* (BEGINNER: not this one) */
+        return;
+    }
+    if (ui.tpage == 6u) {                /* BREAK */
+        uint32_t v = bk_broll();
+        if (i == 0)
+            v = (v & ~1u) | (dir > 0 ? 1u : 0u);
+        else if (i == 1 && v & 1u)
+            v = (v & ~12u) | (uint32_t)clamp((int32_t)(v >> 2 & 3u) + dir, 0, 2) << 2;
+        else
+            return;
+        set.bkeys.bk[BK_BROLL] = (uint8_t)(0xE0u | v);
+        set_dirty = 1u;
+        track_say(i);
         return;
     }
     if (ui.tpage == 4u) {                /* BUILD */
@@ -1578,6 +1602,24 @@ static void track_picture(int32_t top)
             for (i = 0; i < RST_TURNS; i++)  /* (the clicks so far: five boxes) */
                 cv_rect(160 + (int32_t)i * 15, 106, 12, 20, done || ask || i < on ? C_HI : C_BLOCK);
         }
+        cv_oy = 0;
+        return;
+    }
+    if (ui.tpage == 6u) {                /* BREAK: the break in the build, large */
+        cv_text(10, 6, &FONT_XS, "THE BREAK IN THE BUILD", C_GRAY);
+        track_value(0, s);
+        cv_text(10, 17, &FONT_B, s, bk_broll() & 1u ? C_HI : C_WHITE);
+        cv_text(10, 40, &FONT_XS, "ROLL FROM", C_GRAY);
+        track_value(1, s);
+        cv_text(10, 51, &FONT_B, s, C_WHITE);
+        cv_text(134, 12, &FONT_XS, "STILL: IT PLAYS ON", C_GRAY);
+        cv_text(134, 36, &FONT_XS, "ROLL: IT ROLLS ON", C_HI);
+        cv_text(134, 48, &FONT_XS, "SHORTER AND", C_HI);
+        cv_text(134, 60, &FONT_XS, "SHORTER, TO", C_HI);
+        cv_text(134, 72, &FONT_XS, "THE DROP", C_HI);
+        cv_text(134, 84, &FONT_XS, "(R8 R16 R32)", C_GRAY);
+        cv_text(10, 104, &FONT_XS, "OVER ANY BUILD STYLE: THE DRUMS' ROLL", C_DIM);
+        cv_text(10, 116, &FONT_XS, "GOES ON UNDER IT", C_DIM);
         cv_oy = 0;
         return;
     }

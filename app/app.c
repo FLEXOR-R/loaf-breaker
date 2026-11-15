@@ -239,6 +239,9 @@ static const uint8_t BK_LAY[2][11] = {{PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, PAD_RE
 #define BK_FTHRU 16u                     /* (bk[16]: 0xC0 | the FILTER key's THRU, its K4: 0 BREAK, 1 DRUMS, 2 BOTH) */
 #define BK_SEQ 17u                       /* (bk[17]: 0xD0 | SEQ's SETTINGS, 0.9.31, FLEXOR: bit 0 FOLLOW off, bit 1 the
                                           * break's rows 16 (else 32) in the FULL view) */
+#define BK_BROLL 18u                     /* (bk[18]: 0xE0 | the break in a build, 0.9.50, FLEXOR: bit 0 ROLL (0 STILL),
+                                          * bits 2-3 the roll's start: 0 the build's, 1 its half, 2 its last quarter) */
+static uint32_t bk_broll(void) { return (set.bkeys.bk[BK_BROLL] & 0xF0u) == 0xE0u ? set.bkeys.bk[BK_BROLL] & 15u : 0u; }
 static uint32_t bk_seq(void) { return (set.bkeys.bk[BK_SEQ] & 0xF0u) == 0xD0u ? set.bkeys.bk[BK_SEQ] & 15u : 0u; }
 static uint32_t bk_lat(void) { return (set.bkeys.bk[BK_PLAT] & 0xF0u) == 0xA0u ? set.bkeys.bk[BK_PLAT] & 15u : 0u; }
 static uint32_t bk_fthru(void)
@@ -285,6 +288,7 @@ static void bk_defaults(void)
     set.bkeys.bk[BK_BHALF] = 0u;
     set.bkeys.bk[BK_PLAT] = 0xA0u;
     set.bkeys.bk[BK_FTHRU] = 0xC0u;
+    set.bkeys.bk[BK_BROLL] = 0xE0u;
 }
 static uint32_t brk_view(void) { return (set.brkv & 0xF0u) == BRKV_TAG && (set.brkv & 15u) <= 2u ? set.brkv & 15u : 2u; }
 static uint32_t max_out_db(void) { return set.max_out ? (set.max_out - 1u > 12u ? 12u : set.max_out - 1u) : 3u; }
