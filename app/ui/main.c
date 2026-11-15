@@ -1241,7 +1241,7 @@ static void leds(void)
         plat_lights_mid(0u, 0u);
     }
     brk_status(&st);
-    if (ui.sel_lock)                     /* (LOAF BREAKER: SEL locked: lit) */
+    if (ui.sel_lock && (plat_ms() / 250u) & 1u)   /* (LOAF BREAKER: SEL locked (SEL x2): blinking, 0.9.46, FLEXOR) */
         b |= 1u << B_SEL;
     if (st.playing && plat_ms() - ui.kick_t >= 70u)   /* (LOAF BREAKER TEST: PLAY blinks off on each kick) */
         b |= 1u << B_PLAY;

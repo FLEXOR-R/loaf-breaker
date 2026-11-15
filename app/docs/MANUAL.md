@@ -82,7 +82,7 @@ to remember above all in EXPERT. Out of the box: **SEL + K1** DRIVE, **SEL + K2*
 K4** DISTO; their names and values show at the foot of the screen while SEL is held. Each kick (KICK 1–20) keeps its own
 four, chosen in **EDIT › KNOBS** (the four knobs one by one, or a whole style at once on **ASSIGN**).
 
-**SEL twice quickly locks it down: SEL stays lit** and counts as held, so both hands are free: K1–K4 move the kick, and
+**SEL twice quickly locks it down: SEL blinks** and counts as held, so both hands are free: K1–K4 move the kick, and
 every SEL combination works with one hand. **SEL once more frees it** (the light goes out). Lock it before a set: the
 four kick knobs are always under your fingers, whatever page is open.
 
@@ -393,7 +393,7 @@ it down at once, never clipping it square. And **MAX OUT** (the MIXER's MASTER, 
 all the way up: -3 dB to start with (headroom for the FM-1's output and your speaker), right to 0 dB, left down to
 -12 dB.
 
-**SEL held a moment, or locked, shows the SEL + K1–K4 functions at the foot of the screen** (their names in amber, their values: what EDIT KICK › KNOBS gave them), back to the page's knobs when SEL goes up or is freed (0.258). **SEL ×2 (two quick clicks) locks it down**: SEL lights and counts as held, so every SEL combination works with one hand
+**SEL held a moment, or locked, shows the SEL + K1–K4 functions at the foot of the screen** (their names in amber, their values: what EDIT KICK › KNOBS gave them), back to the page's knobs when SEL goes up or is freed (0.258). **SEL ×2 (two quick clicks) locks it down**: SEL blinks (0.9.46) and counts as held, so every SEL combination works with one hand
 (SEL + a knob, SELECT, PRESETS, ALGORITHM, ENV…); **SEL pressed again frees it**.
 
 **SEL + ENV** (playing) asks for the drop (SEL ×3 no longer does: too easy by mistake): the build starts at the next bar, so the drop always lands on a bar line.
