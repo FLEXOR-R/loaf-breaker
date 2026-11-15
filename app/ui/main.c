@@ -538,6 +538,24 @@ static void input(void)
         changed_kick();
         ui.redraw |= RG_FOOT | RG_BLOCKS;
     }
+    if (kdn & PAD_BIT(BKF_X2)) {         /* LOAF BREAKER (0.9.48, FLEXOR): X2, the kicks doubled (a kick on every odd step
+                                          * of a bar with kicks); LATCH (K1 while held, on at first: half_mt_off bit 3
+                                          * clear) a press on, the next off; without it, while held */
+        ui.x2_focus = 1u;
+        kick_x2 = set.half_mt_off & 8u ? 1u : (uint8_t)!kick_x2;
+        app_say("KICKS X2", kick_x2 ? (set.half_mt_off & 8u ? "ON (HELD)" : "ON (LATCHED)") : "OFF");
+        ui.redraw |= RG_FOOT;
+    } else if (!(keys & PAD_BIT(BKF_X2))) {
+        if (ui.x2_focus) {
+            ui.x2_focus = 0u;
+            ui.redraw |= RG_FOOT;
+        }
+        if (kick_x2 && set.half_mt_off & 8u) {   /* (let go, no LATCH: off) */
+            kick_x2 = 0u;
+            app_say("KICKS X2", "OFF");
+            ui.redraw |= RG_FOOT;
+        }
+    }
     if (kdn & PAD_BIT(BKF_KIL)) {        /* LOAF BREAKER: KIL held: the sequencer's kicks quiet; let go: back. Its
                                           * LATCH (K1 while held): a press quiet, the next back */
         ui.kil_focus = 1u;
@@ -1197,7 +1215,14 @@ static void input(void)
             global_turn(0, d);           /* (SETUP: PRESETS the skin, as K1; 0.9.26, FLEXOR: WAVE ZOOM before) */
         else if (k == EN_PRESET)
             pattern_pick(d);             /* elsewhere: the pattern */
-        else if (ui.kil_focus && k == EN_K1) {   /* LOAF BREAKER: KIL held, K1: its LATCH, right on (held now: it
+        else if (ui.x2_focus && k == EN_K1) {   /* (0.9.48: X2 held, K1: its LATCH, right on, left off) */
+            set.half_mt_off = (uint8_t)(d > 0 ? set.half_mt_off & ~8u : set.half_mt_off | 8u);
+            if (d > 0)
+                kick_x2 = 1u;
+            set_dirty = 1u;
+            app_say("X2 LATCH", d > 0 ? "ON" : "OFF");
+            ui.redraw |= RG_FOOT;
+        } else if (ui.kil_focus && k == EN_K1) {   /* LOAF BREAKER: KIL held, K1: its LATCH, right on (held now: it
                                           * stays quiet), left off */
             set.half_mt_off = (uint8_t)(d > 0 ? set.half_mt_off | 4u : set.half_mt_off & ~4u);
             if (d > 0)
@@ -1682,6 +1707,11 @@ static void draw_foot(const brk_status_t *st)
             else
                 key_knob_value(ui.shown - 100, (int)i, t);
             cv_text(4 + (int32_t)i * 60, 30, &FONT_XS, t, C_WHITE);
+            continue;
+        }
+        if (ui.x2_focus && i == 0u && ui.shown < 100) {   /* (0.9.48: X2 held: K1 its LATCH) */
+            cv_text(4, 18, &FONT_T, "LATCH", C_HI);
+            cv_text(4, 30, &FONT_XS, set.half_mt_off & 8u ? "OFF" : "ON", C_WHITE);
             continue;
         }
         if (ui.kil_focus && i == 0u && ui.shown < 100) {   /* LOAF BREAKER: KIL held: K1 its LATCH */
@@ -3401,8 +3431,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp"};
-    int v[146];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on"};
+    int v[147];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -3560,6 +3590,7 @@ int app_expect(const char *what, int *got)
     v[143] = (int)arpk_fx(ui.bk_sel);    /* (the BLACK KEYS page's key: its ARP effect) */
     v[144] = (int)kit_has;               /* (0.9.45: the drum samples, a bit each: SN HH CP) */
     v[145] = perc_smp(PV_SNARE);         /* (the snare playing its sample) */
+    v[146] = kick_x2;                    /* (0.9.48: X2, the kicks doubled) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */
     v[141] = kx2_at(set.kslot)->gate;    /* (its TAIL GATE's division) */
     for (i = 0; i < sizeof W / sizeof W[0]; i++)

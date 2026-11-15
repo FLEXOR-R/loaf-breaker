@@ -85,6 +85,8 @@ static void bk_release_all(void)         /* (the layout changes: whatever a key 
     kick_hold = 0u;
     ui.pad_focus = -1;
     ui.kil_focus = 0u;
+    ui.x2_focus = 0u;
+    kick_x2 = 0u;
 }
 static void bk_say(void)
 {

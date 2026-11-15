@@ -88,7 +88,8 @@ typedef struct {
                                           * high-pass (an older save's low-pass, below 0: off) */
     uint8_t half_mt_off;                 /* GLOUPI BREAKS: HALF SPEED's K2, bit 0 MASTER TEMPO off (0, older saves: on);
                                           * LOAF BREAKER: bit 1 its K3 LATCH (a press on, a press off); bit 2 KIL's
-                                          * LATCH (KIL held, K1) */
+                                          * LATCH (KIL held, K1); bit 3 X2's LATCH OFF (0.9.48: clear, as in older
+                                          * saves, its LATCH on) */
     uint8_t ovl_pad;                     /* GLOUPI BREAKS: the ARP black key, bits 0-3 its OVERLAY effect (OV_*),
                                           * bit 4 its LATCH (gone), bit 5 OFF (K3: the effects browsed silent),
                                           * bits 6-7 THRU (K2): 0 BOTH, 1 BREAK (the kick around the chain and
@@ -221,7 +222,8 @@ static settings_t set;
  * back), then ARP (an OVERLAY effect), KIL (the sequencer's kicks quiet), DST (the kick's DISTO), SUB (its SUB FX on / off: 0.9.43, FLEXOR).
  * A layout: the function of each key, left to right. Presets: CHOPPAH (CHOPPAH's keys; BEGINNER's only), FLEXOR LAYOUT
  * (LOAF BREAKER's until 0.244), CUSTOM (each key its own: ARP › BLACK KEYS) */
-enum { BKF_ARP = BRK_NPADS, BKF_KIL, BKF_DST, BKF_SUB, BKF_DRV, BKF_N };   /* (BKF_DRV: the kick's DRIVE, 0.9.43) */
+enum { BKF_ARP = BRK_NPADS, BKF_KIL, BKF_DST, BKF_SUB, BKF_DRV, BKF_X2, BKF_N };   /* (BKF_DRV: the kick's DRIVE, 0.9.43;
+                                          * BKF_X2: the kicks doubled, 0.9.48) */
 enum { BKP_CHOPPAH, BKP_FLEXOR, BKP_CUSTOM, BKP_N };
 #define BK_TAG 0xB4u
 #define BK_VIEW 14u                      /* (bk[14]: HOME's VIEW, 0 the waveform, 1 the slices, 0.9.2) */
@@ -1114,6 +1116,8 @@ static volatile uint8_t kroll;
 static volatile int16_t kscope[KSC_W];
 static volatile uint32_t kscope_hit;
 static volatile uint8_t kick_hold;       /* LOAF BREAKER: KIL (the tenth black key) held: the sequencer's kicks quiet */
+static volatile uint8_t kick_x2;         /* LOAF BREAKER (0.9.48, FLEXOR): X2 on: the kicks doubled, a kick on every odd step
+                                          * (1, 3, 5 .. 15) of a bar that has kicks: four to the floor becomes eight */
 #define LIM_LA 64u                       /* LOAF BREAKER: the output limiter's look-ahead, samples (1.5 ms) */
 static inline float lim_soft(float x)    /* over 0.95: rounded off, never reaching 1 */
 {
@@ -1957,6 +1961,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
     static float kl[APP_BLOCK] PLAT_POOL, kr[APP_BLOCK] PLAT_POOL;   /* LOAF BREAKER: the kick through the overlays
                                           * alone (THRU KICK) */
     static float spd[APP_BLOCK] PLAT_POOL, tape0 = 1.0f;   /* LOAF BREAKER: the VINYL BREAK's speed on the drums */
+    static float x2_pm = 1.0f;           /* (0.9.48: X2's kicks, the last kick's note) */
     static uint8_t b_on, b_drop, b_rew;  /* LOAF BREAKER: building; the drop asked; the drop armed for the next
                                           * step (the engine rewound to the pattern's first: brk_rewind) */
     static uint32_t b_steps;             /* steps built */
@@ -2122,12 +2127,17 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                     uint32_t ks = (bar % drum_bars(pp, DR_KICK)) * 16u + s;
                     int32_t kn = kick_note(pp, ks);
                     float f = kn ? brk_exp2f((float)kn * (1.0f / 12.0f)) : 1.0f;
+                    x2_pm = f;           /* (0.9.48: X2's added kicks take the last one's note) */
                     if (step_hit(set.pattern, DR_KICK, ks, (int32_t)off[k],   /* (LOAF BREAKER: the step's CHANCE,
                                           * NUDGE, HITS) */
                                  (int32_t)((float)BRK_SR * 15.0f / brk_get_tempo()), 1u, 0u, f) && nk < 8u) {
                         kpm[nk] = f;
                         ka[nk++] = off[k];
                     }
+                } else if (kick_x2 && !krp && !(s & 1u) && drum_now[DR_KICK][bar] && nk < 8u) {
+                    kpm[nk] = x2_pm;     /* (0.9.48, FLEXOR: X2, a kick on this odd step (1, 3 .. 15) of a bar with
+                                          * kicks: four to the floor, eight) */
+                    ka[nk++] = off[k];
                 }
                 if (w && np < 8u) {      /* (LOAF BREAKER: each drum's step, its CHANCE, NUDGE, HITS) */
                     uint32_t dd2, now = 0u;

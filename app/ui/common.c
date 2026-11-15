@@ -262,10 +262,10 @@ enum { PG_HOME, PG_GEN, PG_FX, PG_GLOBAL, PG_KICK, PG_MIX, PG_SEQ, PG_PERC, PG_T
                                           * TRACKS, PLAY, DROP where TAP TEMPO was) */
 /* LOAF BREAKER (11 Nov 2026): the black keys' functions' names (app.c BKF_*), as the strip shows them */
 static const char *const BKF_NAME[BKF_N] = {"R8", "R16", "R32", "REV", "FRZ", "HLF", "VNL", "GAT", "RND", "FLT", "DUB",
-                                            "ARP", "KIL", "DST", "SUB", "DRV"};
+                                            "ARP", "KIL", "DST", "SUB", "DRV", "X2"};
 static const char *const BKF_LONG[BKF_N] = {"ROLL 1/8", "ROLL 1/16", "ROLL 1/32", "REVERSE", "FREEZE", "HALF SPEED",
                                             "VINYL BREAK", "GATE", "RANDOM", "FILTER", "DUB", "ARP (OVERLAY)",
-                                            "KICKS OFF", "DISTO", "SUB FX", "DRIVE"};
+                                            "KICKS OFF", "DISTO", "SUB FX", "DRIVE", "KICKS X2"};
 static const char *const BKP_NAME[BKP_N] = {"CHOPPAH", "FLEXOR LAYOUT", "CUSTOM"};
 static const uint8_t WK[16] = PLAT_WHITE_KEYS, BK[11] = PLAT_BLACK_KEYS;
 /* LOAF BREAKER: what the TUTORIAL (tutor.c) watches, counted where it happens: white keys pressed, black keys pressed
@@ -365,6 +365,7 @@ static struct {
     uint8_t tpage;                       /* LOAF BREAKER: ENV's part: 0 TRACKS, 1 PLAY, 2 DROP, 3 KNOB */
     float radio;                         /* LOAF BREAKER: ENV PLAY's dial: where its needle is (eased to the track) */
     uint8_t kil_focus;                   /* LOAF BREAKER: KIL held (its K1: LATCH) */
+    uint8_t x2_focus;                    /* (0.9.48: X2 held, its K1: LATCH) */
     uint8_t seq_brk;                     /* LOAF BREAKER (0.234): EXPERT's SEQ on its BREAK entry (above the lanes): K4
                                           * the break's rows shown (set.brkv); SEQ_BRK */
     uint8_t seq_manual;                  /* LOAF BREAKER: SEQ's lane picked by hand while playing: the bar playing not
