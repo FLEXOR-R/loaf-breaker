@@ -211,6 +211,7 @@ static void reset_do(uint32_t w)
         set.half_mt_off = 0u;
         set.ovl_pad = 0u;
         set.rsv2[0] = 0u;                /* (0.9.45: every ARP key back to one effect, ovl_pad's) */
+        selk_clear();                    /* (0.9.49: no SEL layer) */
         arp_held = arp_lat = 0u;
         for (k = 0; k < 16u; k++)
             set.ovl_amt[k] = k == OV_DIVE || k == OV_RISE || k == OV_CRUSH || k == OV_DIST || k == OV_BOOM ? 70u : 100u;

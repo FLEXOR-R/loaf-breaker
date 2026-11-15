@@ -564,6 +564,12 @@ sets it back to CHOPPAH, and EXPERT keeps it until you change it).
 
 ![ARP › BLACK KEYS: the FLEXOR LAYOUT, key 1 edited](img/screen-blackkeys.png "BLACK KEYS")
 
+**SEL KEYS** (0.9.49, EXPERT, the third tab) gives every black key a **second function, pressed with SEL** held or
+locked (SEL twice): **K2 KEY** (or **ALGORITHM**, or press the key: it picks itself), **K3 SEL +**, what that key does
+with SEL: **ITS OWN** (the same as without SEL, as before: SEL + R8 / R16 / R32 still rolls the kick alone) or any
+function of the list. While SEL is held or locked the strip and the lights show the SEL functions. A key pressed with
+SEL keeps that function until you let it go. SAVE keeps them; RESET's PADS and RESET ALL clear them.
+
 **PATTERN › SETTINGS** (SEQ's third view on SELECT, GROOVE until 0.9.30; also **SEL + ARP**), saved with the rest:
 **K1 SWING**, 50–75 % (was the MIXER's), every second 16th later (the page shows the bar's 16ths as it lays them out);
 **K2 BREAK ROWS**, the break's rows the FULL view shows, 16 (BRK1) or 32 (both); **K3 FOLLOW**, ON: the lane shown

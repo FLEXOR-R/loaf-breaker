@@ -92,6 +92,11 @@ static void bk_say(void)
 {
     char t[24] = "KEY ";
     int_text((int32_t)ui.bk_sel % 11 + 1, t + 4);
+    if (ui.opage == 2u) {                /* (0.9.49: SEL KEYS, SEL + the key) */
+        text_cat(t, " + SEL");
+        app_say(t, selb_fn(ui.bk_sel) ? BKF_LONG[selb_fn(ui.bk_sel) - 1u] : "ITS OWN");
+        return;
+    }
     app_say(t, BKF_LONG[bk_fn(ui.bk_sel)]);
 }
 static void bk_pick(uint32_t j)          /* a black key pressed on BLACK KEYS */
@@ -103,6 +108,13 @@ static void bk_pick(uint32_t j)          /* a black key pressed on BLACK KEYS */
 static void bk_value(int i, char *t)
 {
     t[0] = 0;
+    if (ui.opage == 2u) {                /* (0.9.49: SEL KEYS: K2 the key, K3 its SEL function) */
+        if (i == 1)
+            int_text((int32_t)ui.bk_sel % 11 + 1, t);
+        else if (i == 2)
+            text_cat(t, selb_fn(ui.bk_sel) ? BKF_LONG[selb_fn(ui.bk_sel) - 1u] : "ITS OWN");
+        return;
+    }
     if (i == 0)
         text_cat(t, bk_preset() == BKP_FLEXOR ? "FLEXOR" : BKP_NAME[bk_preset()]);   /* (the foot's room) */
     else if (i == 1)
@@ -118,6 +130,18 @@ static void bk_turn(int i, int32_t d)
     uint32_t j;
     if (set.novice)
         return;
+    if (ui.opage == 2u && i != 1) {      /* (0.9.49, FLEXOR: SEL KEYS: K3 the key's function with SEL, ITS OWN (none)
+                                          * then every function, round) */
+        uint8_t *v = &kx2.selk[ui.bk_sel % 11u];
+        if (i != 2)
+            return;
+        bk_release_all();
+        *v = (uint8_t)((selb_fn(ui.bk_sel) + (uint32_t)(dir > 0 ? 1 : BKF_N)) % (BKF_N + 1u));
+        bk_say();
+        set_dirty = 1u;
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        return;
+    }
     if (i == 0) {
         uint32_t p = (uint32_t)clamp((int32_t)bk_preset() + dir, 0, BKP_N - 1);
         if (p == bk_preset())
@@ -159,24 +183,39 @@ static void draw_bk(void)
 {
     static const uint8_t GRP[11] = {0, 0, 0, 1, 1, 2, 2, 2, 3, 3, 4};
     uint32_t band, j, p = bk_preset();
-    char t[24];
+    int sl = ui.opage == 2u;             /* (0.9.49: SEL KEYS) */
+    char t[40];
     for (band = 0; band < 2u; band++) {
         cv_begin(240, 52, C_BLACK);
         cv_oy = -(int32_t)band * 52;
         for (j = 0; j < 11u; j++) {
-            uint32_t f = bk_fn(j);
+            uint32_t f = bk_fn(j), sf = selb_fn(j);
             int32_t x = 4 + (int32_t)j * 19 + (int32_t)GRP[j] * 6;
-            int sel = j == ui.bk_sel % 11u, chop = f == BK_LAY[0][j];
+            int sel = j == ui.bk_sel % 11u, chop = sl ? !sf : f == BK_LAY[0][j];
+            const char *n = sl ? (sf ? BKF_NAME[sf - 1u] : "-") : BKF_NAME[f];
             cv_rect(x, 6, 17, 30, sel ? C_WHITE : chop ? C_LINE : C_AMB);
             cv_rect(x + 1, 7, 15, 28, sel ? C_HI : C_BLOCK);
             t[0] = 0;
             int_text((int32_t)j + 1, t);
             cv_text(x + (17 - text_w(&FONT_T, t)) / 2, 9, &FONT_T, t, sel ? C_BLACK : C_DIM);
-            cv_text(x + (17 - text_w(&FONT_T, BKF_NAME[f])) / 2, 23, &FONT_T, BKF_NAME[f], sel ? C_BLACK : C_WHITE);
+            cv_text(x + (17 - text_w(&FONT_T, n)) / 2, 23, &FONT_T, n, sel ? C_BLACK : sl && !sf ? C_DIM : C_WHITE);
         }
         t[0] = 0;
         text_cat(t, "KEY ");
         int_text((int32_t)ui.bk_sel % 11 + 1, t + 4);
+        if (sl) {                        /* (0.9.49, FLEXOR: SEL KEYS: what each key does pressed with SEL) */
+            text_cat(t, " WITH SEL");
+            cv_text(6, 40, &FONT_XS, t, C_GRAY);
+            cv_text(6, 50, &FONT_B, selb_fn(ui.bk_sel) ? BKF_LONG[selb_fn(ui.bk_sel) - 1u] : "ITS OWN", C_HI);
+            t[0] = 0;
+            text_cat(t, "WITHOUT: ");
+            text_cat(t, BKF_LONG[bk_fn(ui.bk_sel)]);
+            cv_text(6, 72, &FONT_XS, t, C_GRAY);
+            cv_text(6, 86, &FONT_XS, "SEL + THIS KEY PLAYS THE ONE ABOVE", C_DIM);
+            cv_oy = 0;
+            cv_blit(0, 88u + band * 52u);
+            continue;
+        }
         cv_text(6, 40, &FONT_XS, t, C_GRAY);
         if (bk_fn(ui.bk_sel) == BKF_ARP) {   /* (0.9.45: an ARP key with its own effect, K4) */
             cv_text(6, 50, &FONT_B, "ARP", C_HI);
@@ -195,7 +234,7 @@ static void draw_bk(void)
 static void ovl_value(int i, char *t)
 {
     t[0] = 0;
-    if (ui.opage == 1u) {
+    if (ui.opage >= 1u) {                /* (BLACK KEYS; 0.9.49 SEL KEYS) */
         bk_value(i, t);
         return;
     }
@@ -216,7 +255,7 @@ static void ovl_value(int i, char *t)
 static void ovl_turn(int i, int32_t d)
 {
     char t[16];
-    if (ui.opage == 1u) {
+    if (ui.opage >= 1u) {
         bk_turn(i, d);
         return;
     }
@@ -247,7 +286,7 @@ static void draw_ovl(void)
 {
     uint32_t band, i, on = ovl_sounding() | ovl_held | ovl_latched | ovl_pad_bits();
     char t[4];
-    if (ui.opage == 1u) {
+    if (ui.opage >= 1u) {                /* (BLACK KEYS; 0.9.49 SEL KEYS) */
         draw_bk();
         return;
     }

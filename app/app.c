@@ -257,10 +257,15 @@ static uint32_t bk_preset(void)          /* the preset in use (0.9.23, FLEXOR: B
         return BKP_CHOPPAH;
     return set.bkeys.bk[1];
 }
-static uint32_t bk_fn(uint32_t j)        /* black key j's (0..10) function */
+static uint32_t selb_fn(uint32_t j);     /* (0.9.49: its SEL layer's, below) */
+static uint16_t bk_sel_dn;               /* (0.9.49: the black keys pressed with SEL, their SEL function: bit j) */
+static uint32_t bk_fn(uint32_t j)        /* black key j's (0..10) function (0.9.49: pressed with SEL, its SEL KEYS
+                                          * function, when it has one) */
 {
     uint32_t p = bk_preset(), f;
     j %= 11u;
+    if (bk_sel_dn >> j & 1u && selb_fn(j))
+        return selb_fn(j) - 1u;
     if (p != BKP_CUSTOM)
         return BK_LAY[p][j];
     f = set.bkeys.bk[2u + j];
@@ -330,13 +335,28 @@ static uint8_t klab_solo;                /* STACK's SOLO (not saved): 0 both, 1 
 typedef struct {
     uint32_t magic;
     kick_x2_t m[KICK_MEMS];
+    /* (appended, 0.9.49, FLEXOR: the SEL layer, in this object for the room the settings no longer have; a 0.9.45-48
+     * save, shorter: none. selk: each black key's function pressed with SEL held or locked, 1 + BKF_*, 0 its own;
+     * rsv: the room kept for SEL + the white keys, later) */
+    uint8_t selk[11];
+    uint8_t rsv[53];
 } kx2_t;
 static kx2_t kx2 PLAT_POOL;
 static kick_x2_t *kx2_at(uint32_t k) { return &kx2.m[k % KICK_MEMS]; }
-static void kx2_defaults(void)
+static void kx2_defaults(void)           /* (the kicks' TOK and TAIL GATE; the SEL layer kept) */
 {
-    memset(&kx2, 0, sizeof kx2);
+    memset(&kx2.m, 0, sizeof kx2.m);
     kx2.magic = KX2_MAGIC;
+}
+static void selk_clear(void)             /* (0.9.49: the SEL layer, none: RESET ALL, RESET's PADS) */
+{
+    memset(kx2.selk, 0, sizeof kx2.selk);
+    memset(kx2.rsv, 0, sizeof kx2.rsv);
+}
+static uint32_t selb_fn(uint32_t j)      /* (black key j's SEL function, 1 + BKF_*; 0: none) */
+{
+    uint32_t f = kx2.selk[j % 11u];
+    return f <= BKF_N ? f : 0u;
 }
 static void klab_defaults(void)
 {
@@ -1731,8 +1751,16 @@ void app_init(void)
         pat_defaults();
     if (plat_store_load(OBJ_KLAB, &klab, sizeof klab) != (int)sizeof klab || klab.magic != KLAB_MAGIC)
         klab_defaults();
-    if (plat_store_load(OBJ_KX2, &kx2, sizeof kx2) != (int)sizeof kx2 || kx2.magic != KX2_MAGIC)
-        kx2_defaults();                  /* (0.9.45: a save before TOK and the TAIL GATE: none on any kick) */                 /* (LOAF BREAKER: a save before the KICK LAB: every kick as it sounded) */
+    {                                    /* (0.9.45: a save before TOK and the TAIL GATE: none on any kick; 0.9.49: a
+                                          * shorter one, before the SEL layer: none) */
+        int sz = plat_store_size(OBJ_KX2);
+        selk_clear();
+        if (sz < (int)offsetof(kx2_t, selk) || sz > (int)sizeof kx2 ||
+            plat_store_load(OBJ_KX2, &kx2, (uint32_t)sz) != sz || kx2.magic != KX2_MAGIC) {
+            kx2_defaults();
+            selk_clear();
+        }
+    }                 /* (LOAF BREAKER: a save before the KICK LAB: every kick as it sounded) */
     {                                    /* (LOAF BREAKER, 0.9.2: KICK 11..20; a save before them: as they begin; the
                                           * KICK LAB's line above may have cleared their LAB: theirs read after) */
         km2_lab_clear();

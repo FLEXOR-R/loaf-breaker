@@ -128,6 +128,12 @@ static void roll_key(uint32_t pad, int down, int sel)   /* a roll pad down or up
     }
 }
 static int roll_lit(uint32_t pad) { return roll_held == pad && kroll; }   /* (its light, rolling the kick alone) */
+/* (0.9.49) black key j's function as the lights and the strip show it: SEL held or locked, its SEL KEYS function
+ * where it has one */
+static uint32_t bk_fn_shown(uint32_t j)
+{
+    return (ui.sel_raw || ui.sel_lock) && selb_fn(j) ? selb_fn(j) - 1u : bk_fn(j);
+}
 static uint8_t half_lat;                 /* LOAF BREAKER: HALF SPEED latched on (its LATCH: K3) */
 static uint16_t pad_latched;             /* (0.9.26: REVERSE, FREEZE, GATE, RANDOM latched on, bit by pad) */
 static const char *const FTHRU_NAME[3] = {"BREAK", "DRUMS", "BOTH"};

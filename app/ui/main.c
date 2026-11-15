@@ -219,6 +219,7 @@ static void reset_all(void)
     settings_defaults();
     klab_defaults();                     /* (LOAF BREAKER: the KICK LAB off on every kick) */
     kx2_defaults();                      /* (0.9.45: TOK and the TAIL GATE off on every kick) */
+    selk_clear();                        /* (0.9.49: no SEL layer) */
     kfx_all();                           /* (0.9.26: every kick's FX section as the defaults left it) */
     kmem_extras();                       /* (0.9.33: KICK 7 TERROR, KICK 8 SPINE, whole) */
     kx_all();                            /* (every kick's knobs as they start) */
@@ -442,14 +443,23 @@ static void input(void)
                     ui.key_since = now;
                 }
     }
-    if (ui.page == PG_OVL && ui.opage == 1u) {   /* LOAF BREAKER: ARP › BLACK KEYS: a black key picks itself (what
-                                          * was held lets go as ever; nothing new starts) */
+    if (ui.page == PG_OVL && ui.opage >= 1u) {   /* LOAF BREAKER: ARP › BLACK KEYS (0.9.49: and SEL KEYS): a black key
+                                          * picks itself (what was held lets go as ever; nothing new starts) */
         for (i = 0; i < 11u; i++)
             if (kdn >> BK[i] & 1u)
                 bk_pick(i);
         for (i = 0; i < 11u; i++)
             kdn &= ~(1u << BK[i]);
     }
+    for (i = 0; i < 11u; i++)            /* (0.9.49, FLEXOR: a black key pressed with SEL held or locked: its SEL KEYS
+                                          * function until it is let go, when it has one) */
+        if (kdn >> BK[i] & 1u) {
+            if (btn & 1u << B_SEL && selb_fn(i)) {
+                bk_sel_dn |= (uint16_t)(1u << i);
+                ui.tap_combo = 1u;       /* (no SEL click) */
+            } else
+                bk_sel_dn &= (uint16_t)~(1u << i);
+        }
     for (i = 0; i < BRK_NPADS; i++) {    /* black keys: the pads, held; the last one pressed has the screen (LOAF
                                           * BREAKER: on the keys the layout gives them, app.c bk_fn) */
         if (i <= PAD_ROLL32) {           /* LOAF BREAKER: the rolls, through their THRU (the break, the kick, both) */
@@ -579,6 +589,9 @@ static void input(void)
             if ((keys & PAD_BIT(i)))
                 ui.pad_focus = (int8_t)i;
     }
+    for (i = 0; i < 11u; i++)            /* (0.9.49: let go: its own function again) */
+        if (!(keys >> BK[i] & 1u))
+            bk_sel_dn &= (uint16_t)~(1u << i);
     if (bdn & 1u << B_PLAY) {
         brk_status_t st;
         brk_status(&st);
@@ -1080,7 +1093,7 @@ static void input(void)
             continue;
         }
         if (k == EN_SELECT && ui.page == PG_OVL && !set.novice) {   /* (0.9.2, FLEXOR: OVERLAY, SELECT its tabs) */
-            ui.opage = (uint8_t)((ui.opage + 1u) % 2u);
+            ui.opage = (uint8_t)((ui.opage + 1u) % 3u);
             page_say();
             ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
             continue;
@@ -1103,7 +1116,7 @@ static void input(void)
                                           * BREAK TIME, right HALF, left NORMAL) */
             else if (btn & 1u << B_SEL)
                 break_ask((set.brk + (d > 0 ? 1u : n_breaks - 1u)) % n_breaks);
-            else if (ui.page == PG_OVL && ui.opage == 1u)
+            else if (ui.page == PG_OVL && ui.opage >= 1u)
                 bk_turn(1, d);           /* (0.9.26, FLEXOR: ARP › BLACK KEYS, ALGORITHM the key, as K2) */
             else if (ui.page == PG_TRACK && ui.tpage == 0u)
                 track_turn(-1, d);       /* LOAF BREAKER: ENV's TRACKS: the item (the break: SEL + ALGORITHM; K1 the
@@ -1285,12 +1298,12 @@ static void leds(void)
                 k |= 1u << WK[i];
     } else if (st.slice >= 0 && st.slice < 16)
         k |= 1u << WK[st.slice];
-    for (i = 0; i < BKF_N; i++)          /* (LOAF BREAKER: each function lit on its keys) */
-        if (i != BKF_ARP && bkf_lit(i, &st))
-            k |= PAD_BIT(i);
-    for (i = 0; i < 11u; i++)            /* (0.9.45: each ARP key lit on its own) */
-        if (arpk_on(i))
+    for (i = 0; i < 11u; i++) {          /* (LOAF BREAKER: each key lit as its function is on; 0.9.45 an ARP key as its
+                                          * own effect; 0.9.49 SEL held or locked: its SEL KEYS function's) */
+        uint32_t f = bk_fn_shown(i);
+        if (f == BKF_ARP ? arpk_on(i) : bkf_lit(f, &st))
             k |= 1u << BK[i];
+    }
     if (build_p >= 0.0f) {               /* LOAF BREAKER: the build: the white keys fill up left to right (TEST: the next
                                           * one blinking, faster as it builds) */
         uint32_t n = 1u + (uint32_t)(build_p * 15.0f), per = 220u - (uint32_t)(build_p * 180.0f);
@@ -1372,7 +1385,7 @@ static void knob_value(int i, char *t)  /* the page's knob i (0..3), as shown un
 
 /* the tab bar under the header: the button's name, then the page's parts as tabs (the one you are on lit: the
  * button again, or ALGORITHM, goes to the next); EDIT and FX also name the part edited, "< SUB FX >" */
-static const char *const OPAGE_NAME[3] = {"ARP EFFECTS", "BLACK KEYS", "MORE"};   /* (LOAF BREAKER: ARP's tabs) */
+static const char *const OPAGE_NAME[3] = {"ARP EFFECTS", "BLACK KEYS", "SEL KEYS"};   /* (LOAF BREAKER: ARP's tabs) */
 static int32_t tab(int32_t x, const char *s, int on)
 {
     int32_t w = text_w(&FONT_T, s) + 8;
@@ -1421,7 +1434,7 @@ static void draw_tabs(void)
     }
     else if (ui.page == PG_OVL) {        /* (LOAF BREAKER: EXPERT, its three tabs; BEGINNER, ARP EFFECTS alone: no tab) */
         if (!set.novice)
-            for (i = 0; i < 2u; i++)     /* (0.259, FLEXOR: MORE gone for now) */
+            for (i = 0; i < 3u; i++)     /* (0.259, FLEXOR: MORE gone for now; 0.9.49 SEL KEYS) */
                 x = tab(x, OPAGE_NAME[i], i == ui.opage);
     }
     else if (ui.page == PG_TRACK)        /* LOAF BREAKER: ENV: TRACKS, PLAY, DROP */
@@ -1634,7 +1647,7 @@ static const char *knob_name(int i)
     static const char *const KN_TRK[4][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
                                              {"STYLE", "SWEEP", "RISER", "GAP"}, {"", "RESET", "", "WHAT"}};
     static const char *const KN_FILL[4] = {"SWING", "BREAK ROWS", "FOLLOW", ""};   /* (LOAF BREAKER: GROOVE; 0.244 FILL gone) */
-    static const char *const KN_BK[2][4] = {{"PRESET", "KEY", "EFFECT", ""}, {"", "", "", ""}};   /* (ARP's
+    static const char *const KN_BK[2][4] = {{"PRESET", "KEY", "EFFECT", ""}, {"", "KEY", "SEL +", ""}};   /* (ARP's
                                       * BLACK KEYS, MORE) */
     const char *name = ui.page == PG_OVL && ui.opage ? KN_BK[(ui.opage - 1u) & 1u][i] :
                        ui.page == PG_GLOBAL && ui.gpage == GP_FILL ? KN_FILL[i] : RST_ON ? KN_TRK[3][i] : ui.page == PG_TRACK &&
@@ -1680,7 +1693,7 @@ static void draw_foot(const brk_status_t *st)
     draw_tabs();
     cv_begin(240, 48, C_BLACK);
     for (i = 0; i < 11u; i++) {          /* (LOAF BREAKER: each key's function, the layout's) */
-        uint32_t f = bk_fn(i);
+        uint32_t f = bk_fn_shown(i);
         int on = f == BKF_ARP ? arpk_on(i) : bkf_lit(f, st);
         int32_t x = 2 + (int32_t)i * 21;
         cv_rect(x, 0, 20, 14, on ? C_HI : C_BLOCK);
@@ -2747,7 +2760,7 @@ static int edx_page(const uint8_t *u, uint32_t len, uint8_t *o, uint32_t *n)
     } else if (pg == PG_GLOBAL)
         ok = a < 7u && a != 5u ? (ui.gpage = (uint8_t)a, 1) : 0;   /* (never RESET) */
     else if (pg == PG_OVL) {
-        ui.opage = (uint8_t)(a % 2u);
+        ui.opage = (uint8_t)(a % 3u);
         ui.bk_sel = (uint8_t)(b % 11u);
     } else if (pg == PG_FX) {
         if (a < BRK_FX_ALL) {
@@ -3431,8 +3444,8 @@ int app_expect(const char *what, int *got)
     static const char *const W[] = {"page", "gpage", "kpage", "seq_lane", "fx_focus", "fx_on", "lane_kick",
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
-                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on"};
-    int v[147];
+                                    "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk"};
+    int v[148];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -3591,6 +3604,7 @@ int app_expect(const char *what, int *got)
     v[144] = (int)kit_has;               /* (0.9.45: the drum samples, a bit each: SN HH CP) */
     v[145] = perc_smp(PV_SNARE);         /* (the snare playing its sample) */
     v[146] = kick_x2;                    /* (0.9.48: X2, the kicks doubled) */
+    v[147] = (int)selb_fn(ui.bk_sel);    /* (0.9.49: the key's SEL function, 1 + BKF_*, 0 none) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */
     v[141] = kx2_at(set.kslot)->gate;    /* (its TAIL GATE's division) */
     for (i = 0; i < sizeof W / sizeof W[0]; i++)
