@@ -154,13 +154,13 @@ sources, the pattern, the song, the mix, the effects, the system.
 
 | Button | Domain | Its parts |
 | --- | --- | --- |
-| HOME | LIVE | PERFORM, GENERATOR, SETTINGS (K1 VIEW, K2 WAVE TYPE, K3 WAVE ZOOM, K4 BREAK TIME); HOME again: the next tab. HOME is the main page: FX, ENV, LFO, GLO or ARP pressed again come back to it, SELECT turning their tabs |
+| HOME | LIVE | PERFORM, GENERATOR; HOME again: the other tab (its SETTINGS are SYSTEM's since 0.9.56). HOME is the main page: FX, ENV, LFO, GLO or ARP pressed again come back to it, SELECT turning their tabs |
 | EDIT | SOUNDS | Three sources, **SEL + EDIT** the next: **KICK** (its menu, by the kick's anatomy: ATTACK, BODY, TAIL, DIRT, FX1, FX2, MORE; SELECT its next section; EDIT again the next sound, EXPERT: SNARE, HAT, CLAP, then the KICK), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
 | SEQ | PATTERN | The lanes (ALGORITHM); the views FULL, DRUMS and **SETTINGS** (SWING, BREAK ROWS, FOLLOW; also SEL + ARP) on SELECT |
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD |
 | LFO | MIX | LEVELS (BREAK, KICK, PERC), SENDS (FX, the drums' route, ARP), MASTER, DYNAMICS |
 | FX | EFFECTS | The four slots: MAIN, MORE, MOD |
-| GLO | SYSTEM | MIDI (EXPERT: K3 METER), SETUP (K1 SKIN, also PRESETS; K3 MODE, K4 AUTO SAVE), EFFECTS (the screen's), FX SET, RESET |
+| GLO | SYSTEM | MIDI (EXPERT: K3 METER), SETUP (K1 SKIN, also PRESETS; K3 MODE, K4 AUTO SAVE), SETTINGS (K1 VIEW, K2 WAVE TYPE, K3 WAVE ZOOM, K4 BREAK TIME; HOME's until 0.9.55), EFFECTS (the screen's), FX SET, RESET |
 
 The same gestures everywhere: **the button again** is the next part; **ALGORITHM** the element in the part (a slot, a
 lane, a drum's part; where there is nothing to pick, the break); **PRESETS** the pattern, but on SOUNDS the source's
@@ -404,6 +404,7 @@ all the way up: -3 dB to start with (headroom for the FM-1's output and your spe
 **SEL + ENV** (playing) asks for the drop (SEL ×3 no longer does: too easy by mistake): the build starts at the next bar, so the drop always lands on a bar line.
 
 ![TRACKS: track 1's items, P1 ×4, P2 ×4, a DROP, P3 ×8](img/t_tracks.png "TRACKS") ![PLAY: the radio, track 2 tuned in](img/t_play.png "PLAY") ![A build on its way to the drop](img/t_build.png "BUILD")
+![DROP: AFTER DROP SAME, the pattern playing again from its start](img/screen-drop-same.png "DROP") ![SONG › BREAK: the break rolling in the build, from half way](img/screen-song-break.png "BREAK")
 
 ![A key held: its slice looping](img/screen-held.png "Key 6 held")
 
@@ -564,6 +565,8 @@ PAN) or SWEEP (DIVE, RISE), the one it has, **K4** LATCH: on, a key switches its
 stays on on the other pages). The page and the ARP black key share one effect (0.9.27; with several ARP keys, the one pressed last, 0.9.45): a white key touched here is the ARP key's effect, and the one K1 tunes; the ARP key's K1 turns it, the page follows; AMOUNT, THRU, RATE and SWEEP are the same on both (the ARP key's THRU, FX: MORE K1, is its effect's). The white keys of the effects on are lit (held, latched, the ARP key's). (The FILL that ARP held
 played from 0.1xx to 0.243 is gone, LOAF BREAKER 0.244.)
 
+![ARP: the sixteen effects, RING on the break, JET on the kick (THRU KICK), KICK X2, X4 and TRI last](img/screen-arp.png "ARP")
+
 In EXPERT the page has five tabs (**SELECT** goes to the next, or back to the left, 0.9.52; **ARP** again goes back to HOME; their names short
 since 0.9.50, FLEXOR; BLACK and SEL BLACK in full since 0.9.53): **ARP** (the effects above), **BLACK** (the black keys), **SEL BLACK** (the black keys with SEL) and
 **SEL WHITE** (the white keys with SEL) and **KITS** (0.9.54). **BLACK** lays out the black keys: **K1 PRESET**, CHOPPAH (CHOPPAH's eleven, the ARP
@@ -581,6 +584,8 @@ with SEL: **ITS OWN** (the same as without SEL, exactly: 0.9.56, FLEXOR; SEL + R
 function of the list. While SEL is held or locked the strip and the lights show the SEL functions. A key pressed with
 SEL keeps that function until you let it go. SAVE keeps them; RESET's SEL KEYS and RESET ALL clear them.
 
+![SEL BLACK: key 11 with SEL, KICKS X2 (without SEL: SUB FX)](img/screen-selblack.png "SEL BLACK")
+
 **SEL WHITE** (0.9.50, EXPERT, the fourth tab) makes each white key a **shortcut, pressed with SEL** held or locked,
 any kind on any key: **K2 KEY** (or **ALGORITHM**, or press the white key: it picks itself), **K3 KIND**, **K4 VALUE**:
 
@@ -593,6 +598,8 @@ any kind on any key: **K2 KEY** (or **ALGORITHM**, or press the white key: it pi
 | EFFECT | That OVERLAY effect while you hold the key | DIVE … KICK TRI |
 | DROP | A build, then the drop | AUTO (as SEL + ENV: the next pattern or DROP's AFTER), or into P1–P64 |
 | KIT | That KIT (ARP › KITS, 0.9.54): its kick, break, tempo and pattern at once | KIT 1–16 |
+
+![SEL WHITE: key 5 with SEL, a DROP (AUTO); key 1 KICK 3, key 2 P5, key 3 a break, key 4 an effect](img/screen-selwhite.png "SEL WHITE")
 
 **KITS** (0.9.54, FLEXOR, EXPERT, the fifth tab): sixteen kits, shown as the ARP effects' cards, each a **kick, a break,
 a tempo and a pattern** to go to at once. A white key (or **ALGORITHM**) picks the kit; **K1 KICK** (KICK 1–20),
@@ -638,6 +645,8 @@ its level in and out.
 after its EQ and before everything else (the break's chain never sees them). Every effect of the library but REVERB
 and DELAY; **PRESETS** the effect (remembered as left, apart from the chain's; 0.9.29: in the FX section PRESETS goes through the effects alone, nothing on EQ B and EQ S, and SEL + PRESETS changes the kick), ALGORITHM the next part of the effect (MAIN, MORE, MOD, or
 the MB COMP's), SELECT the kick's next section, FX the next part of the effect too, FX held + ALGORITHM moves the slot, SEL + FX bypasses, SEL + REC resets.
+![The kick's FX1: DRIVE, its curve, on](img/screen-kick-fx.png "KICK FX1")
+
 FX from another page: the chain. **Each kick has its own FX section** (EQ B, EQ S, FX1, FX2: KICK 1–20 each its own,
 0.9.26): another kick picked brings its own EQ and effects.
 
@@ -655,7 +664,9 @@ MB COMP.
 | K1–K3 · K4 | Its settings · its mix |
 | SEL + FX | That slot on / bypassed |
 | FX held + ALGORITHM | Moves that slot along the chain (the order is the sound: DRIVE before a FILTER is not a FILTER before DRIVE) |
-| MIX SENDS K1 FX | The whole chain against the dry sound: fade every effect in or out at once (the FX page shows it, bottom right) |
+| MIX SENDS K1 FX | The whole chain against the dry sound: fade every effect in or out at once (the FX page shows it beside the slots' tabs, FX MIX 70 %; LFO held + K4 turns it on any page, 0.9.50) |
+
+![The FX page: FX MIX 70 % beside the slots' tabs, CRUNCH in slot 1](img/screen-fx-mix.png "FX MIX")
 
 | Effect | K1 | K2 | K3 |
 | --- | --- | --- | --- |
@@ -864,7 +875,7 @@ knob less smoothly (the sound is never touched). RESET's SCREEN puts it back on 
 shows; 0: nothing), K3 **AT THE DROP** (how hard the drop shows; 0: nothing), K4 **LENGTH** (how long those moments last:
 50 % as given, 0 half, 100 % half as long again). 5 % a detent; 50 % each to start.
 
-![SYSTEM's SETUP: the skins](img/screen-glomore.png "SETUP")
+![SYSTEM's SETUP: the skins](img/screen-glomore.png "SETUP") ![SYSTEM › SETTINGS: VIEW, WAVE TYPE, WAVE ZOOM, BREAK TIME (HOME's until 0.9.55)](img/screen-settings.png "SETTINGS")
 
 **RESET** (SYSTEM's last part): puts one part back as it starts, the rest kept. **K4** picks what, in a list that scrolls (ALGORITHM goes to SYSTEM's other parts, as on its other pages; each says
 on the right what it puts back): DROP, BUILD, KNOB; **KICK** (the kick selected, KICK 1–20: ROTTERDAM again, its
@@ -884,6 +895,8 @@ within 2 s of the last (five boxes fill as you turn; a pause starts them again f
 seconds to confirm (the page says PRESS GLO TO RESET; not pressed, or the page left: nothing is reset). Once done, the page shows **DONE (WAIT 3 S)** and **every knob there does nothing for 3 seconds**: the clicks
 you turn past the last one are lost instead of starting a new count, and DONE stays to read.
 
+![RESET: DROP picked, what it puts back on the right, TURN K2 X5, THEN GLO](img/screen-reset.png "RESET")
+
 ## 8. The drums: kick, snare, hat
 
 Three synthesised drums play under the break, in time with it (swing included), on the pattern's drum lanes (§5):
@@ -902,7 +915,7 @@ A synthesised kick for gabber, hardcore and techno. ALGORITHM turns through its 
 PUNCH FX → GRIT → GRIT FX → CLICK → CLICK FX → MACRO → OUT (each layer's part is its LAYER knobs, its FX part its
 LAYER FX knobs).
 
-![The KICK menu: the kick in RGB, its parts in a row, its settings as cards](img/screen-kick.png "The KICK menu") ![EDIT held: the WAVE view](img/screen-kick-wave.png "WAVE view") ![EDIT held: the classic view, every drum's shape](img/screen-kick-classic.png "Classic view") ![The kick's SYNTH section](img/screen-kick-synth.png "SYNTH")
+![The KICK menu: the kick in RGB, its parts in a row, its settings as cards](img/screen-kick.png "The KICK menu") ![EDIT held: the WAVE view](img/screen-kick-wave.png "WAVE view") ![EDIT held: the classic view, every drum's shape](img/screen-kick-classic.png "Classic view") ![The kick's SYNTH section](img/screen-kick-synth.png "SYNTH") ![ATTACK's PRESET: K1 the built-in kicks, INDUSTRIAL](img/screen-kick-preset.png "PRESET")
 
 The kick is four layers summed and pushed into a clipper:
 
@@ -956,6 +969,8 @@ nothing set there sounds exactly as it always did.
 - **GATE** chops the kick in time from its second 16th on: at 1/16 it rolls in sixteenths, at 1/32 it stutters, at
   1/12 it rolls in triplets; LENGTH is the part of each chop that sounds (short: dry and choppy), FADE IN lets the chop
   come in little by little. It follows the tempo, and the next kick cuts it as it cuts the tail.
+
+![ATTACK's TOK: a NOISE burst at 1.4 kHz, 15 ms](img/screen-kick-tok.png "TOK") ![TAIL's GATE: the tail chopped in sixteenths](img/screen-kick-gate.png "GATE")
 
 - **MODE CLEAN** fixes the "goofy" tail. In CLASSIC the kick fades *before* its distortion, so DISTO's fold and SCREAM
   change colour as it falls (the tail "talks": wah, yoy), and PUNCH and GRIT sit on notes of their own that rub
@@ -1039,12 +1054,12 @@ MEMORY erases them.
 K1–K4**, on any page: the break's, the kick's and the drums' level, and (K4, 0.9.50, FLEXOR) the FX fader, 5 % a detent (the MIXER's own page: 2 %), the page staying where it is (LFO let go after a turn opens nothing): the mix moved without
 going into the MIXER.
 
-![The MIXER: the break, the kick, the drums, the FX chain](img/screen-mixer.png "The MIXER") ![MASTER: COMP, RATIO, DUCK, MAX OUT](img/screen-master.png "MASTER")
+![The MIXER: the break, the kick, the drums, the FX chain](img/screen-mixer.png "The MIXER") ![SENDS: the FX fader, the drums AROUND the chain, the rolls on the BREAK](img/screen-sends.png "SENDS") ![MASTER: COMP, RATIO, DUCK, MAX OUT](img/screen-master.png "MASTER")
 
 | Half | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- |
 | LEVELS | BREAK: the break's level (its throws into the delay and the reverb too) | KICK: the kick's level (the KICK page's VOLUME) | PERC: the snare, the hat and the clap together | |
-| SENDS | FX: the master FX chain against the dry sound | DRUMS: through the FX chain or around it | ARP: what the ARP's effects take, BREAK, KICK or THRU (the whole mix); the ARP key's THRU (0.9.29; the kick sounds the same whichever, 0.9.31) | ROLL: what R8 · R16 · R32 roll, BREAK, KICK or BOTH (0.9.40; their K2 before) |
+| SENDS | FX: the master FX chain against the dry sound | DRUMS: through the FX chain or around it | (nothing since 0.9.51: each ARP effect has its own THRU, on the OVERLAY page's K2) | ROLL: what R8 · R16 · R32 roll, BREAK, KICK or BOTH (0.9.40; their K2 before) |
 
 FX is how much of the chain you hear (the drums routed around it stay dry). Bring BREAK down to drop the break and
 let the drums run alone, then up again for the drop. HOME keeps the gate, FX and COMPLEXITY to ride (K1, K3, K4) and the **DJ filter** (K2), which filters the

@@ -48,11 +48,13 @@ Built on [fm1-base](https://github.com/charlesvestal/fm1-base) (MPL-2.0). No Blu
 
 ![LOAF BREAKER's screens: the splash, the start screen, playing (the CDJ view), the slices, a key held, the KICK menu's RGB view](docs/img/screens.png)
 
-![Holding a pad shows its effect and puts its settings on K1-K4: roll, reverse, freeze, half speed, vinyl break, dub, the ARP key's overlay; ARP › BLACK, the keys' layout](docs/img/pads.png)
+![Holding a pad shows its effect and puts its settings on K1-K4: roll, gate, freeze, filter throw, vinyl break, the ARP key's overlay, kick triplets; ARP › BLACK, the keys' layout](docs/img/pads.png)
 
-![The kick: its TAIL, DIRT (DISTO), KICK LAB's clean tail, the classic view, the snare, the kick EQ](docs/img/kick.png)
+![The kick: the built-in kicks (PRESET), the TOK attack, DIRT (DISTO), the clean tail, the snare, the kick's FX1](docs/img/kick.png)
 
 ![Live: TRACKS, PLAY (the radio), a build before the drop, a step's HITS, the MASTER (COMP, DUCK, MAX OUT), the pattern](docs/img/live.png)
+
+![The newest menus: ARP's sixteen effects (each on the break or the kick), SEL BLACK, SEL WHITE, KITS, SONG › BREAK, AFTER DROP SAME, MIX › SENDS, the FX page's FX MIX, SYSTEM › SETTINGS, RESET, the kick's tail GATE, KICKS X4 on a black key](docs/img/menus.png)
 
 - **The manual**: [online](https://flexor-r.github.io/loaf-breaker/manual/), or [app/docs/MANUAL.md](app/docs/MANUAL.md)
 - **Download the firmware**: [releases](../../releases) (`loaf-breaker-X.YY.fwsc`), each release also carries the
