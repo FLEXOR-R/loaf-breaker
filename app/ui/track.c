@@ -1263,7 +1263,7 @@ static void track_turn(int i, int32_t d)
         {                                /* (0.9.55, FLEXOR: SAME left of NEXT, then P1..P64) */
             int32_t p = set.drop_after == DROP_SAME ? -1 : (int32_t)set.drop_after;
             p = clamp(p + dir, -1, (int32_t)NPAT_ALL);
-            set.drop_after = (uint8_t)(p < 0 ? DROP_SAME : p);
+            set.drop_after = (uint8_t)(p < 0 ? (int32_t)DROP_SAME : p);
         }
         else if (i == 2)
             set.drop_brk = (uint8_t)clamp((int32_t)set.drop_brk + dir, 0, (int32_t)n_breaks);

@@ -645,22 +645,32 @@ static void input(void)
         changed_kick();
         ui.redraw |= RG_FOOT | RG_BLOCKS;
     }
-    if (kdn & PAD_BIT(BKF_X2)) {         /* LOAF BREAKER (0.9.48, FLEXOR): X2, the kicks doubled (a kick on every odd step
-                                          * of a bar with kicks); LATCH (K1 while held, on at first: half_mt_off bit 3
-                                          * clear) a press on, the next off; without it, while held */
-        ui.x2_focus = 1u;
-        kick_x2 = set.half_mt_off & 8u ? 1u : (uint8_t)!kick_x2;
-        app_say("KICKS X2", kick_x2 ? (set.half_mt_off & 8u ? "ON (HELD)" : "ON (LATCHED)") : "OFF");
-        ui.redraw |= RG_FOOT;
-    } else if (!(keys & PAD_BIT(BKF_X2))) {
-        if (ui.x2_focus) {
-            ui.x2_focus = 0u;
-            ui.redraw |= RG_FOOT;
-        }
-        if (kick_x2 && set.half_mt_off & 8u) {   /* (let go, no LATCH: off) */
-            kick_x2 = 0u;
-            app_say("KICKS X2", "OFF");
-            ui.redraw |= RG_FOOT;
+    {                                    /* LOAF BREAKER (0.9.48, FLEXOR): X2, the kicks doubled (a kick on every odd step
+                                          * of a bar with kicks); 0.9.55, FLEXOR: X4 (every step) and TRI (8th-note
+                                          * triplets, the pattern's kicks out meanwhile). Each its LATCH (K1 while held, on
+                                          * at first: half_mt_off bit 3, 4, 5 clear) a press on, the next off; without it,
+                                          * while held */
+        static const uint8_t F[3] = {BKF_X2, BKF_X4, BKF_TRI}, LB[3] = {8u, 16u, 32u};
+        static const char *const N[3] = {"KICKS X2", "KICKS X4", "KICK TRIPLETS"};
+        uint32_t q;
+        for (q = 0; q < 3u; q++) {
+            uint8_t b = (uint8_t)(1u << q);
+            if (kdn & PAD_BIT(F[q])) {
+                ui.x2_focus = (uint8_t)(q + 1u);
+                kick_x2 = set.half_mt_off & LB[q] ? (uint8_t)(kick_x2 | b) : (uint8_t)(kick_x2 ^ b);
+                app_say(N[q], kick_x2 & b ? (set.half_mt_off & LB[q] ? "ON (HELD)" : "ON (LATCHED)") : "OFF");
+                ui.redraw |= RG_FOOT;
+            } else if (!(keys & PAD_BIT(F[q]))) {
+                if (ui.x2_focus == q + 1u) {
+                    ui.x2_focus = 0u;
+                    ui.redraw |= RG_FOOT;
+                }
+                if (kick_x2 & b && set.half_mt_off & LB[q]) {   /* (let go, no LATCH: off) */
+                    kick_x2 = (uint8_t)(kick_x2 & ~b);
+                    app_say(N[q], "OFF");
+                    ui.redraw |= RG_FOOT;
+                }
+            }
         }
     }
     if (kdn & PAD_BIT(BKF_KIL)) {        /* LOAF BREAKER: KIL held: the sequencer's kicks quiet; let go: back. Its
@@ -1335,12 +1345,13 @@ static void input(void)
             global_turn(0, d);           /* (SETUP: PRESETS the skin, as K1; 0.9.26, FLEXOR: WAVE ZOOM before) */
         else if (k == EN_PRESET)
             pattern_pick(d);             /* elsewhere: the pattern */
-        else if (ui.x2_focus && k == EN_K1) {   /* (0.9.48: X2 held, K1: its LATCH, right on, left off) */
-            set.half_mt_off = (uint8_t)(d > 0 ? set.half_mt_off & ~8u : set.half_mt_off | 8u);
+        else if (ui.x2_focus && k == EN_K1) {   /* (0.9.48: X2 held, K1: its LATCH, right on, left off; 0.9.55 X4, TRI) */
+            uint8_t lb = (uint8_t)(8u << ((ui.x2_focus - 1u) % 3u));
+            set.half_mt_off = (uint8_t)(d > 0 ? set.half_mt_off & ~lb : set.half_mt_off | lb);
             if (d > 0)
-                kick_x2 = 1u;
+                kick_x2 = (uint8_t)(kick_x2 | 1u << ((ui.x2_focus - 1u) % 3u));
             set_dirty = 1u;
-            app_say("X2 LATCH", d > 0 ? "ON" : "OFF");
+            app_say(ui.x2_focus == 1u ? "X2 LATCH" : ui.x2_focus == 2u ? "X4 LATCH" : "TRI LATCH", d > 0 ? "ON" : "OFF");
             ui.redraw |= RG_FOOT;
         } else if (ui.kil_focus && k == EN_K1) {   /* LOAF BREAKER: KIL held, K1: its LATCH, right on (held now: it
                                           * stays quiet), left off */
@@ -1845,7 +1856,7 @@ static void draw_foot(const brk_status_t *st)
         }
         if (ui.x2_focus && i == 0u && ui.shown < 100) {   /* (0.9.48: X2 held: K1 its LATCH) */
             cv_text(4, 18, &FONT_T, "LATCH", C_HI);
-            cv_text(4, 30, &FONT_XS, set.half_mt_off & 8u ? "OFF" : "ON", C_WHITE);
+            cv_text(4, 30, &FONT_XS, set.half_mt_off & (8u << ((ui.x2_focus - 1u) % 3u)) ? "OFF" : "ON", C_WHITE);
             continue;
         }
         if (ui.kil_focus && i == 0u && ui.shown < 100) {   /* LOAF BREAKER: KIL held: K1 its LATCH */

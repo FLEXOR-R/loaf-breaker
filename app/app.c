@@ -223,7 +223,7 @@ static settings_t set;
  * back), then ARP (an OVERLAY effect), KIL (the sequencer's kicks quiet), DST (the kick's DISTO), SUB (its SUB FX on / off: 0.9.43, FLEXOR).
  * A layout: the function of each key, left to right. Presets: CHOPPAH (CHOPPAH's keys; BEGINNER's only), FLEXOR LAYOUT
  * (LOAF BREAKER's until 0.244), CUSTOM (each key its own: ARP › BLACK KEYS) */
-enum { BKF_ARP = BRK_NPADS, BKF_KIL, BKF_DST, BKF_SUB, BKF_DRV, BKF_X2, BKF_N };   /* (BKF_DRV: the kick's DRIVE, 0.9.43;
+enum { BKF_ARP = BRK_NPADS, BKF_KIL, BKF_DST, BKF_SUB, BKF_DRV, BKF_X2, BKF_X4, BKF_TRI, BKF_N };   /* (0.9.55: X4, TRI) */   /* (BKF_DRV: the kick's DRIVE, 0.9.43;
                                           * BKF_X2: the kicks doubled, 0.9.48) */
 enum { BKP_CHOPPAH, BKP_FLEXOR, BKP_CUSTOM, BKP_N };
 #define BK_TAG 0xB4u
@@ -1190,8 +1190,10 @@ static volatile uint8_t kroll;
 static volatile int16_t kscope[KSC_W];
 static volatile uint32_t kscope_hit;
 static volatile uint8_t kick_hold;       /* LOAF BREAKER: KIL (the tenth black key) held: the sequencer's kicks quiet */
-static volatile uint8_t kick_x2;         /* LOAF BREAKER (0.9.48, FLEXOR): X2 on: the kicks doubled, a kick on every odd step
-                                          * (1, 3, 5 .. 15) of a bar that has kicks: four to the floor becomes eight */
+static volatile uint8_t kick_x2;         /* LOAF BREAKER (0.9.48, FLEXOR): bit 0 X2 on: the kicks doubled, a kick on every odd
+                                          * step (1, 3, 5 .. 15) of a bar that has kicks: four to the floor becomes eight;
+                                          * 0.9.55, FLEXOR: bit 1 X4, a kick on every step of such a bar; bit 2 TRI, the
+                                          * kicks in 8th-note triplets (three a beat, from the next beat) instead */
 #define LIM_LA 64u                       /* LOAF BREAKER: the output limiter's look-ahead, samples (1.5 ms) */
 static inline float lim_soft(float x)    /* over 0.95: rounded off, never reaching 1 */
 {
@@ -2101,7 +2103,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             static int32_t kr_next = -1;     /* (the KICK ROLL's next hit, samples from this block's start; -1:
                                           * waiting for a step) */
             static uint8_t kr_seen;
-            uint32_t krp = kroll;
+            uint32_t krp = kroll ? kroll : kick_x2 & 4u ? 4u : 0u;   /* (0.9.55: TRI, a roll of its own, 4) */
             {                            /* LOAF BREAKER: three clicks: a build from the next bar (none: the drop
                                           * at this bar's end), or (building) the drop at the bar */
                 static uint8_t seen;
@@ -2202,7 +2204,8 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                         for (q = 0; q < PAT_STEPS; q++)
                             pat_step_of(drop_to, q);
                 }
-                if (krp && kr_next < 0)  /* (the KICK ROLL: from this step) */
+                if (krp && kr_next < 0 && (krp < 4u || !(s & 3u)))   /* (the KICK ROLL: from this step; TRI's
+                                          * from the next beat) */
                     kr_next = (int32_t)off[k];
                 uint32_t w = 0u, d, bar = idx[k] >> 4 & 3u;
                 for (d = DR_SNARE; d < NDRUMS; d++)   /* (LOAF BREAKER: every drum, its bar) */
@@ -2219,9 +2222,9 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                         kpm[nk] = f;
                         ka[nk++] = off[k];
                     }
-                } else if (kick_x2 && !krp && !(s & 1u) && drum_now[DR_KICK][bar] && nk < 8u) {
+                } else if ((kick_x2 & 2u || (kick_x2 & 1u && !(s & 1u))) && !krp && drum_now[DR_KICK][bar] && nk < 8u) {
                     kpm[nk] = x2_pm;     /* (0.9.48, FLEXOR: X2, a kick on this odd step (1, 3 .. 15) of a bar with
-                                          * kicks: four to the floor, eight) */
+                                          * kicks: four to the floor, eight; 0.9.55 X4: on every step, sixteen) */
                     ka[nk++] = off[k];
                 }
                 if (w && np < 8u) {      /* (LOAF BREAKER: each drum's step, its CHANCE, NUDGE, HITS) */
@@ -2282,11 +2285,11 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             if (krp && st.playing) {     /* the KICK ROLL's hits in this block, at its pad's rate */
                 static const float RS[BRK_ROLL_DIVS] = {4.0f, 2.0f, 1.0f, 0.5f, 0.25f, 4.0f / 3.0f, 2.0f / 3.0f,
                                                         1.0f / 3.0f, 6.0f, 3.0f, 1.5f};   /* (16ths: brk.c's ROLL_STEPS) */
-                int32_t per = (int32_t)(RS[set.pads.roll_div[(krp - 1u) % 3u] % BRK_ROLL_DIVS] * (float)BRK_SR * 15.0f /
-                                        brk_get_tempo());
+                int32_t per = (int32_t)((krp >= 4u ? 4.0f / 3.0f : RS[set.pads.roll_div[(krp - 1u) % 3u] % BRK_ROLL_DIVS]) *
+                                        (float)BRK_SR * 15.0f / brk_get_tempo());   /* (0.9.55: TRI, 1/8T) */
                 nk = 0u;                 /* (the roll, alone, in order) */
                 while (kr_next >= 0 && kr_next < (int32_t)m && nk < 8u && per > 0) {
-                    kpm[nk] = 1.0f;
+                    kpm[nk] = krp >= 4u ? x2_pm : 1.0f;   /* (TRI: the last kick's note) */
                     ka[nk++] = (uint16_t)kr_next;
                     kr_next += per;
                 }
