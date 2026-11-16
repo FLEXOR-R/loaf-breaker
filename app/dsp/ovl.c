@@ -4,8 +4,8 @@
 #include "brk.h"
 #include "brk_math.h"
 
-const char *const OVL_NAME[OVL_N] = {"DIVE", "RISE", "RADIO", "WAH", "CRUSH", "LO-FI", "DIST", "RING",
-                                     "CHOP", "GATE", "DUCK", "PAN", "BOOM", "WOBBLE", "JET", "REESE"};
+const char *const OVL_NAME[OVL_N] = {"DIVE", "RISE", "RADIO", "CRUSH", "LO-FI", "DIST", "RING", "CHOP",
+                                     "GATE", "DUCK", "PAN", "BOOM", "JET", "KICK X2", "KICK X4", "KICK TRI"};
 const char *const OVL_RATE_NAME[4] = {"1/4", "1/8", "1/16", "1/32"};
 const char *const OVL_SWEEP_NAME[4] = {"1/4 BAR", "1/2 BAR", "1 BAR", "2 BARS"};
 
@@ -19,15 +19,11 @@ static uint32_t held[OVL_N];             /* samples since it came on (the sweeps
 static int16_t *line, *line_buf;          /* (line: this pass's, the buffer or none; 0.9.50) */
 static uint32_t wpos;
 typedef struct { float ic1, ic2; } svf_t;   /* a state-variable filter's state (TPT) */
-static svf_t sv[4][2];                   /* DIVE, RISE, RADIO, WAH; left, right */
+static svf_t sv[3][2];                   /* DIVE, RISE, RADIO; left, right */
 static float boom_lp[2], hold_v[2], chop_g = 1.0f, gate_g = 1.0f;
 static uint32_t hold_n;
-static float ring_ph, wob_ph, jet_ph;
+static float ring_ph, jet_ph;
 static uint32_t sounding;
-static volatile float p_reese_hz = 55.0f;   /* LOAF BREAKER: REESE's note */
-static float rs_ph[4];                   /* its three saws and its sub */
-static svf_t rs_sv;
-BRK_COLD void ovl_reese_hz(float hz) { p_reese_hz = brk_clampf(hz, 25.0f, 200.0f); }
 
 typedef struct { float a1, a2, a3, k; } svc_t;
 static void svc(svc_t *c, float hz, float q)
@@ -88,12 +84,8 @@ void ovl_process(float *l, float *r, uint32_t n, float beat, float spb, uint32_t
 {
     uint32_t on = p_on & mask, i, k, act = 0u, rate = p_rate, own;
     float amt[OVL_N], div = (float)(1u << rate), sweep_n = (float)(1u << p_sweep) * spb, inv = spb > 1.0f ? 1.0f / spb : 0.0f;
-    svc_t c_dive, c_rise, c_radio, c_wah, c_reese;
-    {                                    /* (LOAF BREAKER 0.9.50: the line is this pass's if WOBBLE is in it and on, or
-                                          * JET is and on while WOBBLE is not; else, both off, the pass with WOBBLE) */
-        uint32_t w = (p_on >> OV_WOBBLE & 1u) || env[OV_WOBBLE] > 0.0f, j = (p_on >> OV_JET & 1u) || env[OV_JET] > 0.0f;
-        own = (mask >> OV_WOBBLE & 1u) ? (w || !j || (mask >> OV_JET & 1u)) : (mask >> OV_JET & 1u) && j && !w;
-    }
+    svc_t c_dive, c_rise, c_radio;
+    own = (mask >> OV_JET & 1u) != 0u;   /* (the line JET's pass's; 0.9.55: WOBBLE gone, JET its only reader) */
     for (k = 0; k < OVL_N; k++) {
         amt[k] = (float)p_amt[k] * 0.01f;
         if (!(mask >> k & 1u))
@@ -105,7 +97,7 @@ void ovl_process(float *l, float *r, uint32_t n, float beat, float spb, uint32_t
     }
     sounding = (sounding & ~mask) | act;
     line = own ? line_buf : 0;           /* (another pass has it: this one leaves it alone) */
-    if (!act) {                          /* nothing on: the line still listens (a clean start for WOBBLE and JET) */
+    if (!act) {                          /* nothing on: the line still listens (a clean start for JET) */
         for (i = 0; line && i < n; i++) {
             line[wpos] = (int16_t)(brk_clampf(l[i], -1.99f, 1.99f) * 16384.0f);
             line[OVL_LINE + wpos] = (int16_t)(brk_clampf(r[i], -1.99f, 1.99f) * 16384.0f);
@@ -116,19 +108,15 @@ void ovl_process(float *l, float *r, uint32_t n, float beat, float spb, uint32_t
     {                                    /* the filters' coefficients, for this block */
         float td = brk_clampf((float)held[OV_DIVE] / (sweep_n > 1.0f ? sweep_n : 1.0f), 0.0f, 1.0f);
         float tr = brk_clampf((float)held[OV_RISE] / (sweep_n > 1.0f ? sweep_n : 1.0f), 0.0f, 1.0f);
-        float wah = 0.5f + 0.5f * brk_sin_turns(beat * div * 0.5f);
         svc(&c_dive, 18000.0f * brk_exp2f(-td * (2.0f + 5.5f * amt[OV_DIVE])), 0.8f + 0.9f * amt[OV_DIVE]);
         svc(&c_rise, 20.0f * brk_exp2f(tr * (3.0f + 5.5f * amt[OV_RISE])), 0.8f + 0.9f * amt[OV_RISE]);
         svc(&c_radio, 1300.0f, 1.2f + 3.0f * amt[OV_RADIO]);
-        svc(&c_wah, 350.0f * brk_exp2f(wah * 2.8f), 2.0f + 4.0f * amt[OV_WAH]);
-        svc(&c_reese, (160.0f + 500.0f * amt[OV_REESE]) * brk_exp2f(1.6f * (0.5f + 0.5f * brk_sin_turns(beat * 0.25f))),
-            1.4f);                       /* (REESE's filter: opening and closing once a bar) */
     }
     for (i = 0; i < n; i++) {
         float x[2], bp_ = beat + (float)i * inv, ph;
         x[0] = l[i];
         x[1] = r[i];
-        if (line) {                      /* the line: what comes in (WOBBLE and JET read it) */
+        if (line) {                      /* the line: what comes in (JET reads it) */
             line[wpos] = (int16_t)(brk_clampf(x[0], -1.99f, 1.99f) * 16384.0f);
             line[OVL_LINE + wpos] = (int16_t)(brk_clampf(x[1], -1.99f, 1.99f) * 16384.0f);
         }
@@ -143,10 +131,10 @@ void ovl_process(float *l, float *r, uint32_t n, float beat, float spb, uint32_t
             if (e <= 0.0f)
                 continue;
             switch (k) {
-            case OV_DIVE: case OV_RISE: case OV_RADIO: case OV_WAH:
+            case OV_DIVE: case OV_RISE: case OV_RADIO:
                 for (c = 0; c < 2u; c++) {
                     float lp, bp, hp, y;
-                    const svc_t *cc = k == OV_DIVE ? &c_dive : k == OV_RISE ? &c_rise : k == OV_RADIO ? &c_radio : &c_wah;
+                    const svc_t *cc = k == OV_DIVE ? &c_dive : k == OV_RISE ? &c_rise : &c_radio;
                     svf(&sv[k][c], cc, x[c], &lp, &bp, &hp);
                     y = k == OV_DIVE ? lp : k == OV_RISE ? hp : k == OV_RADIO ? soft(bp * cc->k * 3.0f) : bp * cc->k * 1.4f;
                     x[c] += (y - x[c]) * (k <= OV_RISE ? e : w);   /* (the sweeps: AMOUNT is how far) */
@@ -208,34 +196,14 @@ void ovl_process(float *l, float *r, uint32_t n, float beat, float spb, uint32_t
                     x[c] += (soft((x[c] + boom_lp[c] * 3.0f * amt[k]) * 1.2f) - x[c]) * e;
                 }
                 break;
-            case OV_WOBBLE:                  /* tape wow (0.8 Hz) and flutter (7 Hz) */
-                ph = brk_sin_turns(wob_ph) + 0.25f * brk_sin_turns(wob_ph * 8.75f);
-                wob_ph = frac(wob_ph + 0.8f / SR);
-                if (line)
-                    for (c = 0; c < 2u; c++)
-                        x[c] += (tap(c, 340.0f + (40.0f + 220.0f * amt[k]) * ph) - x[c]) * e;
-                break;
             case OV_JET:                     /* a flanger, sweeping once a bar */
                 ph = 0.5f + 0.5f * brk_sin_turns(bp_ * 0.25f + jet_ph);
                 if (line)
                     for (c = 0; c < 2u; c++)
                         x[c] += ((x[c] + tap(c, 8.0f + 200.0f * ph)) * 0.6f - x[c]) * w;
                 break;
-            default: {                       /* REESE (LOAF BREAKER, was CUT): saws at 1, 1.007, 0.993 and a sine an
-                                              * octave down, low-passed (once a bar), driven, under the mix */
-                float f = p_reese_hz / SR, s, lp, bp, hp, g = 2.0f + 10.0f * amt[k];
-                rs_ph[0] = frac(rs_ph[0] + f);
-                rs_ph[1] = frac(rs_ph[1] + f * 1.007f);
-                rs_ph[2] = frac(rs_ph[2] + f * 0.993f);
-                rs_ph[3] = frac(rs_ph[3] + f * 0.5f);
-                s = (rs_ph[0] + rs_ph[1] + rs_ph[2]) * (2.0f / 3.0f) - 1.0f;
-                svf(&rs_sv, &c_reese, s, &lp, &bp, &hp);
-                s = soft(lp * g) * (1.0f + g) / g * 0.4f + 0.3f * brk_sin_turns(rs_ph[3]);
-                s *= e * (0.5f + 0.5f * amt[k]);
-                for (c = 0; c < 2u; c++)
-                    x[c] += s;
+            default:                         /* (0.9.55: KICK X2, X4, TRI: the app's render, no sound here) */
                 break;
-            }
             }
         }
         if (line)

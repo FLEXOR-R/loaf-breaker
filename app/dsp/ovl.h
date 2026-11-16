@@ -8,14 +8,16 @@
 #include <stdint.h>
 
 enum {
-    OV_DIVE, OV_RISE, OV_RADIO, OV_WAH, OV_CRUSH, OV_LOFI, OV_DIST, OV_RING,
-    OV_CHOP, OV_GATE, OV_DUCK, OV_PAN, OV_BOOM, OV_WOBBLE, OV_JET, OV_REESE, OVL_N   /* (LOAF BREAKER: REESE, was CUT) */
+    OV_DIVE, OV_RISE, OV_RADIO, OV_CRUSH, OV_LOFI, OV_DIST, OV_RING, OV_CHOP,
+    OV_GATE, OV_DUCK, OV_PAN, OV_BOOM, OV_JET, OV_KX2, OV_KX4, OV_KTRI, OVL_N
+    /* (LOAF BREAKER 0.9.55, FLEXOR: WAH, WOBBLE and REESE gone; the last three are the kicks' (KICK X2, X4, TRI: the app's
+     * render, as the black keys; nothing here)) */
 };
 extern const char *const OVL_NAME[OVL_N];
 extern const char *const OVL_RATE_NAME[4];   /* 1/4 1/8 1/16 1/32 */
 extern const char *const OVL_SWEEP_NAME[4];  /* 1/4 BAR .. 2 BARS */
 
-#define OVL_LINE 1024u                   /* WOBBLE's and JET's delay line: samples a side */
+#define OVL_LINE 1024u                   /* JET's delay line: samples a side */
 
 void ovl_init(int16_t *line);            /* the line: 2 * OVL_LINE (the pool); everything off */
 /* main loop: on (bit OV_*), each one's amount (0..100), the rate of the ones on the beat (0..3: 1/4 .. 1/32: CHOP;
@@ -27,9 +29,5 @@ void ovl_process(float *l, float *r, uint32_t n, float beat, float spb, uint32_t
 /* (LOAF BREAKER 0.9.50: mask, the effects (bit OV_*) this pass runs: each effect in one pass a block (the break's, the
  * kick's, the whole mix's: each its own THRU); all 16 bits, one pass on the whole mix as before) */
 uint32_t ovl_sounding(void);             /* bit OV_*: sounding now (fading out too) */
-/* LOAF BREAKER: REESE, a fat bass added under the mix while it's on: three saws detuned against each other and a sine
- * an octave down, through a low-pass that opens and closes once a bar, driven (AMOUNT: louder, brighter, dirtier).
- * Its note: hz (the app gives the kick's SUB pitch, so it sits in the kick's key; 55 Hz at the start) */
-void ovl_reese_hz(float hz);
 
 #endif

@@ -492,7 +492,7 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 | RND | Random slices | Amount | Random pitch | | LATCH: ON, a press turns it on and the next off (0.9.26) |
 | FLT | Filter throw: the DJ filter sweeps to its target while held, back when let go | TARGET (low-pass left, high-pass right) | RESO | SPEED | THRU: BREAK (the break, as ever), DRUMS (the kick, the snare, the hat, the clap), BOTH (0.9.26) |
 | DUB | Dub throw: the break into an echo while held, its tail ringing out | TIME (1/8, 3/16, 1/4, 3/8) | FEEDBACK | TONE | MIX (with a DELAY in the FX chain: that slot's own four) |
-| ARP | Its OVERLAY effect over the mix, while held (or latched): DIVE, RISE, RADIO, WAH, CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, WOBBLE, JET, REESE | EFFECT | AMOUNT (that effect's) | TIME: RATE for CHOP, GATE, WAH, PAN; SWEEP for DIVE, RISE | LATCH |
+| ARP | Its OVERLAY effect over the mix, while held (or latched): DIVE, RISE, RADIO, CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, JET, KICK X2, KICK X4, KICK TRI | EFFECT | AMOUNT (that effect's) | TIME: RATE for CHOP, GATE, PAN; SWEEP for DIVE, RISE | LATCH |
 | Several ARP keys (0.9.45) | Put ARP on more than one key (CUSTOM, ARP › BLACK): each is its own, with its own EFFECT and its own LATCH, and they play together (hold two, latch one and hold another…). The knobs tune the ARP key pressed last (its number shows under FX: MORE). Shared by all: ON / OFF, RATE, SWEEP, and each effect's AMOUNT and THRU (0.9.50: THRU each effect's own) | | | | |
 | ARP, FX while held (MORE) | | THRU: BREAK, KICK or THRU (everything; LFO's ARP the same) | ON / OFF (OFF: K1 browses silent) | RATE (1/4 … 1/32) | SWEEP (1/4 bar … 2 bars) |
 | KIL | While held, the sequencer's kicks are quiet; let go, they play again (a kick roll still plays). When the kicks come back, the drums' filter (SEL + SELECT) goes back to OFF at once, so a drop is never filtered by mistake (0.9.50, FLEXOR) | LATCH: ON, a press quiets them and the next brings them back | | | |
@@ -555,10 +555,11 @@ all 16.
 ### OVERLAY (ARP)
 
 **ARP** opens the OVERLAY page: sixteen effects over everything that plays, one on each white key (DIVE, RISE, RADIO,
-WAH, CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, WOBBLE, JET, REESE), on while the key is held, any
+CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, JET, then the kicks' three: KICK X2, KICK X4, KICK TRI, as the
+black keys X2, X4, TRI; 0.9.55, FLEXOR: WAH, WOBBLE and REESE gone), on while the key is held, any
 together. **ALGORITHM** goes through the sixteen in order, round, without playing them (0.9.52, FLEXOR; SEL + ALGORITHM the break here); the one it lands on is the one the knobs tune. **K1** the amount of the one touched last, **K2 THRU** what that effect takes (0.9.50, FLEXOR: each effect its
 own, kept by SAVE): BREAK (the break and the drums), KICK (the kick alone) or THRU (the whole mix); its card says BREAK or
-KICK, so some effects can work on the break while others work on the kick, together. **K3** its RATE (CHOP, GATE, WAH,
+KICK, so some effects can work on the break while others work on the kick, together. **K3** its RATE (CHOP, GATE,
 PAN) or SWEEP (DIVE, RISE), the one it has, **K4** LATCH: on, a key switches its effect on and off (and what is latched
 stays on on the other pages). The page and the ARP black key share one effect (0.9.27; with several ARP keys, the one pressed last, 0.9.45): a white key touched here is the ARP key's effect, and the one K1 tunes; the ARP key's K1 turns it, the page follows; AMOUNT, THRU, RATE and SWEEP are the same on both (the ARP key's THRU, FX: MORE K1, is its effect's). The white keys of the effects on are lit (held, latched, the ARP key's). (The FILL that ARP held
 played from 0.1xx to 0.243 is gone, LOAF BREAKER 0.244.)
@@ -589,7 +590,7 @@ any kind on any key: **K2 KEY** (or **ALGORITHM**, or press the white key: it pi
 | KICK | That kick memory plays, as PRESETS on the kick | KICK 1–20 |
 | PATTERN | That pattern (playing: at the loop's end, as PRESETS; another group's: SAVE first, as ever) | P1–P64 |
 | BREAK | That break (at the next bar, as ALGORITHM) | any break, the firmware's and yours |
-| EFFECT | That OVERLAY effect while you hold the key | DIVE … REESE |
+| EFFECT | That OVERLAY effect while you hold the key | DIVE … KICK TRI |
 | DROP | A build, then the drop | AUTO (as SEL + ENV: the next pattern or DROP's AFTER), or into P1–P64 |
 | KIT | That KIT (ARP › KITS, 0.9.54): its kick, break, tempo and pattern at once | KIT 1–16 |
 

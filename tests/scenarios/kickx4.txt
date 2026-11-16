@@ -121,5 +121,33 @@ wait 200
 turn K1 -1 10
 wait 200
 expect bk_pre 1
+# (0.9.55, FLEXOR) the same three as ARP effects, the last of the sixteen: KICK X2, X4, TRI on white keys 14-16 (LATCH on)
+tap HOME
+wait 200
+tap ARP
+wait 300
+expect opage 0
+turn K4 1 10
+wait 100
+tapkey w14
+wait 100
+tap PLAY
+wait 1300
+expect khits 16
+tap PLAY
+wait 300
+tapkey w14
+wait 100
+tapkey w15
+wait 100
+tap PLAY
+wait 1300
+expect khits 12
+tap PLAY
+wait 300
+tapkey w15
+wait 100
+turn K4 -1 10
+wait 100
 tap HOME
 wait 200

@@ -162,7 +162,7 @@ static const char *const FRZ_LEN_NAME[4] = {"SLICE", "1/2", "1/4", "1/8"};
  * RATE, K4 SWEEP. ui.pad_more */
 static int ovl_time_kind(uint32_t e)     /* 1 RATE, 2 SWEEP, 0 none */
 {
-    return e == OV_CHOP || e == OV_GATE || e == OV_WAH || e == OV_PAN ? 1 : e == OV_DIVE || e == OV_RISE ? 2 : 0;
+    return e == OV_CHOP || e == OV_GATE || e == OV_PAN ? 1 : e == OV_DIVE || e == OV_RISE ? 2 : 0;
 }
 /* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's pads have their knobs as EXPERT's (0.232; 0.224-0.231 none but the
  * ARP key's K1, K2); the DST and SUB keys do nothing there (main.c) */

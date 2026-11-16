@@ -22,7 +22,9 @@ static uint32_t ovl_pad_bits(void)       /* the ARP keys' effects on (0.9.45: ea
 static uint32_t sw_fx_on;                /* (0.9.50: SEL WHITE's EFFECT keys held, their effects, a bit each OV_*) */
 static void ovl_push(void)
 {
-    ovl_set(ovl_held | ovl_latched | ovl_pad_bits() | sw_fx_on, set.ovl_amt, set.ovl_rate, set.ovl_sweep);
+    uint32_t on = ovl_held | ovl_latched | ovl_pad_bits() | sw_fx_on;
+    ovl_set(on, set.ovl_amt, set.ovl_rate, set.ovl_sweep);
+    kick_ovl = (uint8_t)(on >> OV_KX2 & 7u);   /* (0.9.55, FLEXOR: KICK X2, X4, TRI: the render's, as the black keys) */
 }
 static void ovl_pad_key(uint32_t j, int down)   /* GLOUPI BREAKS: the ARP black key j (0..10) down or up */
 {

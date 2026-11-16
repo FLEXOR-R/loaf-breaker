@@ -2082,15 +2082,15 @@ static void test_ovl(void)
     ovl_init(ovl_buf);
     ovl_run(0u, 0u, 22050u, 2000.0f, &dry, &df);
     CHECK(df < 1e-6f && ovl_sounding() == 0u, "OVERLAY: nothing on, the sound passes as it is (%.6f off)", df);
-    for (k = 0; k < OVL_N; k++) {
+    for (k = 0; k < OV_KX2; k++) {     /* (0.9.55: KICK X2, X4, TRI no sound here: the app's render) */
         ovl_init(ovl_buf);
         ovl_run(1u << k, 0u, 44100u, 2000.0f, &pk, &df);
         CHECK(pk < 1.5f, "OVERLAY %s: bounded (peak %.2f)", OVL_NAME[k], pk);
         CHECK(df > 0.01f, "OVERLAY %s: audible (%.4f off the dry sound)", OVL_NAME[k], df);
     }
     ovl_init(ovl_buf);
-    ovl_run(1u << OV_REESE, 0u, 22050u, 2000.0f, &pk, &df);
-    CHECK(df > 0.1f && pk < 1.5f, "OVERLAY REESE: a bass under the tone (%.3f off it, peak %.2f)", df, pk);
+    ovl_run(7u << OV_KX2, 0u, 22050u, 2000.0f, &pk, &df);
+    CHECK(df < 1e-6f, "OVERLAY KICK X2, X4, TRI: the sound as it is (%.6f off)", df);
     ovl_init(ovl_buf);
     ovl_run(1u << OV_DIVE, 0u, 88200u, 8000.0f, &pk, &df);
     CHECK(pk < 0.15f, "OVERLAY DIVE: an 8 kHz tone down past the sweep (peak %.3f of ~0.6)", pk);

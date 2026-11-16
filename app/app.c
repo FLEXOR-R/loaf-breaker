@@ -247,7 +247,7 @@ static uint32_t bk_broll(void) { return (set.bkeys.bk[BK_BROLL] & 0xF0u) == 0xE0
                                           * (effect k: bk[19 + k / 4], bits 2 * (k % 4)): 0 THRU (the whole mix), 1 the
                                           * BREAK, 2 the KICK; bk[23] ARPR_TAG; untagged (an older save): every effect the
                                           * ARP's THRU of before, ovl_pad bits 6-7) */
-#define ARPR_TAG 0x7Cu
+#define ARPR_TAG 0x7Du                   /* (0.9.55: the effects' new order; 0x7C the order before, read once by ovl_order_fix) */
 static uint32_t arp_route(uint32_t k)
 {
     if (set.bkeys.bk[BK_ARPR_TAG] != ARPR_TAG)
@@ -406,6 +406,44 @@ static void selk_clear(void)             /* (0.9.49: the SEL layer, none: RESET 
 {
     memset(kx2.selk, 0, sizeof kx2.selk);
     memset(kx2.rsv, 0, KIT_BPM0);        /* (SEL WHITE's 32 bytes; the kits' tempo kept, 0.9.54) */
+}
+/* LOAF BREAKER (0.9.55, FLEXOR): the ARP's 16 effects in a new order, WAH, WOBBLE and REESE gone, KICK X2, X4, TRI last.
+ * A save from before (bk[23] untagged or 0x7C): each effect's AMOUNT and THRU, the ARP keys' effects and SEL WHITE's
+ * EFFECT keys read into the new places (the gone ones: WAH as RADIO, WOBBLE as JET, REESE as BOOM), once a boot until
+ * SAVE writes them so */
+static void ovl_order_fix(void)
+{
+    static const uint8_t MAP[16] = {0u, 1u, 2u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 12u, 11u};
+    const uint32_t GONE = 1u << 3 | 1u << 13 | 1u << 15;
+    uint8_t amt[16], rt[16], nrt[16];
+    uint32_t k, j;
+    if (set.bkeys.bk[BK_ARPR_TAG] == ARPR_TAG)
+        return;
+    for (k = 0; k < 16u; k++) {
+        amt[k] = set.ovl_amt[k];
+        rt[k] = (uint8_t)(set.bkeys.bk[BK_ARPR_TAG] == 0x7Cu ? (set.bkeys.bk[19u + k / 4u] >> (2u * (k & 3u)) & 3u) % 3u
+                          : ((set.ovl_pad >> 6) & 3u) % 3u);
+        set.ovl_amt[k] = 100u;
+        nrt[k] = 0u;
+    }
+    for (k = 0; k < 16u; k++)
+        if (!(GONE >> k & 1u)) {
+            set.ovl_amt[MAP[k]] = amt[k];
+            nrt[MAP[k]] = rt[k];
+        }
+    for (j = 0; j < 4u; j++)
+        set.bkeys.bk[19u + j] = (uint8_t)(nrt[4u * j] | nrt[4u * j + 1u] << 2 | nrt[4u * j + 2u] << 4 | nrt[4u * j + 3u] << 6);
+    set.bkeys.bk[BK_ARPR_TAG] = ARPR_TAG;
+    set.ovl_pad = (uint8_t)((set.ovl_pad & ~15u) | MAP[set.ovl_pad & 15u]);
+    if (set.rsv2[0] == 0xA7u) {          /* (the ARP keys' effects, a nibble each: pads.c ARPK_TAG; rsv2[6]'s high
+                                          * nibble the LATCH bits of keys 8-10) */
+        for (j = 1u; j < 6u; j++)
+            set.rsv2[j] = (uint8_t)(MAP[set.rsv2[j] & 15u] | MAP[set.rsv2[j] >> 4] << 4);
+        set.rsv2[6] = (uint8_t)((set.rsv2[6] & 0xF0u) | MAP[set.rsv2[6] & 15u]);
+    }
+    for (k = 0; k < 16u; k++)            /* (SEL WHITE's EFFECT keys: kind 4, ovl.c SW_FX) */
+        if (kx2.rsv[2u * k] == 4u)
+            kx2.rsv[2u * k + 1u] = MAP[kx2.rsv[2u * k + 1u] & 15u];
 }
 static uint32_t selb_fn(uint32_t j)      /* (black key j's SEL function, 1 + BKF_*; 0: none) */
 {
@@ -644,7 +682,6 @@ static void fx_apply(void)
 }
 static void kick_apply(void)
 {
-    ovl_reese_hz(kick_pitch_hz(KL_SUB, set.kick.l[KL_SUB].pitch));   /* (the ARP's REESE in the kick's key) */
     brk_fx_set_kick_eq(set.keq);
     kick_send();                         /* (LOAF BREAKER: the kick, its SYNTH, MORPH and CLEAN SUB) */
     kick_set_bass((float)set.kbass[0] * (float)set.kbass[0] * 0.04f, (float)set.kbass[1] * 0.01f,
@@ -1194,6 +1231,8 @@ static volatile uint8_t kick_x2;         /* LOAF BREAKER (0.9.48, FLEXOR): bit 0
                                           * step (1, 3, 5 .. 15) of a bar that has kicks: four to the floor becomes eight;
                                           * 0.9.55, FLEXOR: bit 1 X4, a kick on every step of such a bar; bit 2 TRI, the
                                           * kicks in 8th-note triplets (three a beat, from the next beat) instead */
+static volatile uint8_t kick_ovl;        /* (0.9.55, FLEXOR: the same three as ARP effects, KICK X2 X4 TRI: their bits, ovl.c's
+                                          * ovl_push; the render takes kick_x2 | kick_ovl) */
 #define LIM_LA 64u                       /* LOAF BREAKER: the output limiter's look-ahead, samples (1.5 ms) */
 static inline float lim_soft(float x)    /* over 0.95: rounded off, never reaching 1 */
 {
@@ -1873,6 +1912,7 @@ void app_init(void)
         if (grp_new)
             (void)grp_save();
     }
+    ovl_order_fix();                     /* (0.9.55: an older save's ARP effects in their new places) */
     brk_set_break(break_load(set.brk));  /* boot: the audio isn't running yet */
     settings_apply();
     pat_apply();
@@ -2103,7 +2143,8 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             static int32_t kr_next = -1;     /* (the KICK ROLL's next hit, samples from this block's start; -1:
                                           * waiting for a step) */
             static uint8_t kr_seen;
-            uint32_t krp = kroll ? kroll : kick_x2 & 4u ? 4u : 0u;   /* (0.9.55: TRI, a roll of its own, 4) */
+            uint32_t kxm = (uint32_t)kick_x2 | kick_ovl;   /* (0.9.55: the black keys' and the ARP's) */
+            uint32_t krp = kroll ? kroll : kxm & 4u ? 4u : 0u;   /* (0.9.55: TRI, a roll of its own, 4) */
             {                            /* LOAF BREAKER: three clicks: a build from the next bar (none: the drop
                                           * at this bar's end), or (building) the drop at the bar */
                 static uint8_t seen;
@@ -2222,7 +2263,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                         kpm[nk] = f;
                         ka[nk++] = off[k];
                     }
-                } else if ((kick_x2 & 2u || (kick_x2 & 1u && !(s & 1u))) && !krp && drum_now[DR_KICK][bar] && nk < 8u) {
+                } else if ((kxm & 2u || (kxm & 1u && !(s & 1u))) && !krp && drum_now[DR_KICK][bar] && nk < 8u) {
                     kpm[nk] = x2_pm;     /* (0.9.48, FLEXOR: X2, a kick on this odd step (1, 3 .. 15) of a bar with
                                           * kicks: four to the floor, eight; 0.9.55 X4: on every step, sixteen) */
                     ka[nk++] = off[k];
