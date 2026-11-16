@@ -438,6 +438,9 @@ static void input(void)
     for (i = 0; i < 16u; i++) {          /* (0.9.50, FLEXOR: SEL WHITE, a white key pressed with SEL held or locked: its
                                           * shortcut; the key, until let go, nothing else's) */
         uint32_t wb = 1u << WK[i];
+        if (kdn & wb && btn & 1u << B_SEL && sw_cat(i) == SW_NONE)
+            ui.tap_combo = 1u;           /* (0.9.56, FLEXOR: SEL + a white key without a shortcut: the key as without
+                                          * SEL, and SEL let go after it no click, no card) */
         if (kdn & wb && btn & 1u << B_SEL && sw_cat(i) != SW_NONE) {
             sw_held |= 1u << i;
             ui.tap_combo = 1u;           /* (no SEL click) */

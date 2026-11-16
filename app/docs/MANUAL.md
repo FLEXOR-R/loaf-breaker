@@ -586,7 +586,7 @@ any kind on any key: **K2 KEY** (or **ALGORITHM**, or press the white key: it pi
 
 | Kind | SEL + the key | K4 |
 | --- | --- | --- |
-| NONE | What it did before (nothing new) | |
+| NONE | The key as without SEL: its slice, its page's own (0.9.56, FLEXOR: and SEL let go after it opens no card) | |
 | KICK | That kick memory plays, as PRESETS on the kick | KICK 1–20 |
 | PATTERN | That pattern (playing: at the loop's end, as PRESETS; another group's: SAVE first, as ever) | P1–P64 |
 | BREAK | That break (at the next bar, as ALGORITHM) | any break, the firmware's and yours |

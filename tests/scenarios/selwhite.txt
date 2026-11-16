@@ -78,6 +78,21 @@ wait 100
 release SEL
 wait 100
 expect swfx 0
+# (0.9.56, FLEXOR) SEL + a white key with nothing assigned: as the key alone (its slice), and SEL let go: no card
+tap PLAY
+wait 500
+press SEL
+wait 50
+key w8 down
+wait 300
+expect key 8
+key w8 up
+wait 50
+release SEL
+wait 300
+expect help 0
+tap PLAY
+wait 300
 tap PLAY
 wait 500
 press SEL
