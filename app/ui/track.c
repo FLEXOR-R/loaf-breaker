@@ -653,15 +653,15 @@ static void track_dropped(void)
 /* LOAF BREAKER (10 Nov 2026, early next gen): 15 PITCH DROP (SYNTH's DROP, its TIME), 16 RUMBLE (its amount, its
  * time), 17 PUNCH (MACRO's), 18 DRUM FLT (the drums' filter, SEL + SELECT's), 19 HOLD (SYNTH's), 20 KICK FX (the
  * kick's two FX slots' mix) */
-#define SK_N 21u
+#define SK_N 22u                         /* (0.9.62, FLEXOR: 21 SUB DRV, the SUB layer's DRIVE gain) */
 /* (LOAF BREAKER, 10 Nov 2026: on the screen TERROR is DISTO, TERROR 2 SCREAM, TERROR + DISTO +, its settings D+ ..: names
  * a newcomer reads; the code keeps TERROR's) */
 static const char *const SK_NAME[SK_N] = {"DUCK", "SCREAM", "COMP", "DISTO", "DISTO +", "DRIVE", "D+ TYPE",
                                           "D+ SCREECH", "D+ TAIL", "TUNE", "DECAY", "REV BASS", "GLIDE", "CLEAN SUB",
-                                          "MORPH", "PITCH DROP", "RUMBLE", "PUNCH", "DRUM FLT", "HOLD", "KICK FX"};
+                                          "MORPH", "PITCH DROP", "RUMBLE", "PUNCH", "DRUM FLT", "HOLD", "KICK FX", "SUB DRIVE"};
 static const char *const SK_SHORT[SK_N] = {"DUCK", "SCREAM", "COMP", "DISTO", "D+ DRIVE", "DRIVE", "D+ TYPE", "SCRCH",
                                            "D+ TAIL", "TUNE", "DECAY", "REV B", "GLIDE", "C SUB", "MORPH", "P DROP",
-                                           "RUMBLE", "PUNCH", "D FLT", "HOLD", "K FX"};
+                                           "RUMBLE", "PUNCH", "D FLT", "HOLD", "K FX", "SUB DRV"};
 static const char *const SK_KNOB[SK_N][4] = {{"AMOUNT", "ATTACK", "RELEASE", "DUCKS"}, {"AMOUNT", "SUB", "SCREAM", "PUSH"},
                                              {"AMOUNT", "RATIO", "ATTACK", "RELEASE"}, {"AMOUNT", "SUB", "FIZZ", "SUSTAIN"},
                                              {"DRIVE", "TYPE", "SCREECH", "TAIL"}, {"AMOUNT", "", "", ""},
@@ -670,25 +670,27 @@ static const char *const SK_KNOB[SK_N][4] = {{"AMOUNT", "ATTACK", "RELEASE", "DU
                                              {"AMOUNT", "START", "CURVE", ""}, {"TIME", "", "", ""}, {"AMOUNT", "", "", ""},
                                              {"AMOUNT", "TO KICK", "", ""}, {"AMOUNT", "TIME", "", ""},
                                              {"AMOUNT", "TIME", "", ""}, {"AMOUNT", "", "", ""}, {"FILTER", "", "", ""},
-                                             {"HOLD", "", "", ""}, {"FX 1 MIX", "FX 2 MIX", "", ""}};
+                                             {"HOLD", "", "", ""}, {"FX 1 MIX", "FX 2 MIX", "", ""}, {"GAIN", "", "", ""}};
 static const char *const T_TYPE_NAME[KICK_T_TYPES] = {"FOLD", "CLIP", "CRUSH", "RECT", "TUBE", "HALF", "SINE",
                                                       "WRAP", "FUZZ"};   /* (0.255: four more, FLEXOR) */
 /* what a SEL + knob can be given (KNOB, PRESETS), in that order: its code 1..15 is its place + 1 (0: the knob's own) */
-#define SK_CODES 21u                     /* (codes past 15: selk_hi's fifth bit) */
+#define SK_CODES 22u                     /* (codes past 15: selk_hi's fifth bit; 0.9.62 SUB DRIVE, 22) */
 static const uint8_t SK_CODE[SK_CODES] = {0u, 1u, 2u, 3u, 4u, 6u, 7u, 8u, 5u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u,
-                                          17u, 18u, 19u, 20u};
+                                          17u, 18u, 19u, 20u, 21u};
 static const uint8_t SK_OWN[4] = {5u, 1u, 7u, 3u};   /* K1 DRIVE, K2 TERROR 2, K3 T+ SCREECH, K4 TERROR (LOAF BREAKER:
                                           * DUCK and COMP no more: the MIXER's MASTER has them) */
 static const char *sk_short(uint32_t f) { return SK_SHORT[f % SK_N]; }   /* (EDIT KICK's KNOBS) */
 static const char *sk_kname(uint32_t f, int i) { return SK_KNOB[f % SK_N][i & 3]; }
 /* LOAF BREAKER: KNOBS' STYLE: the four functions a style gives SEL + K1..K4 (SK_* indexes) */
-#define KSTYLES 8u
+#define KSTYLES 9u
 static const char *const KSTYLE_NAME[KSTYLES] = {"TERROR", "EARLY NEXT GEN", "HARDCORE", "NEW SCHOOL", "RAWSTYLE",
-                                                 "INDUSTRIAL", "FRENCHCORE", "LIVE BUILD"};
+                                                 "INDUSTRIAL", "FRENCHCORE", "LIVE BUILD", "FLEXOR"};   /* (0.9.62:
+                                          * FLEXOR's, last before PRESET 1-4: DRIVE, D+ TYPE, SUB DRIVE, DISTO) */
 /* (FLEXOR's rule: a style with DRIVE has it on K1, one with TERROR has it on K4) */
 static const uint8_t KSTYLE[KSTYLES][4] = {{5u, 1u, 7u, 3u}, {15u, 16u, 17u, 18u}, {5u, 17u, 10u, 3u}, {5u, 13u, 6u, 3u},
                                            {11u, 12u, 15u, 8u}, {7u, 6u, 10u, 20u}, {5u, 10u, 1u, 15u},
-                                           {18u, 14u, 16u, 19u}};   /* (no TUNE: not a knob's) */
+                                           {18u, 14u, 16u, 19u}, {5u, 6u, 21u, 3u}};   /* (no TUNE: not a knob's; FLEXOR
+                                          * last) */
 static uint8_t kstyle_at;                /* (the style picked last: where turning goes on from) */
 static int sk_live(uint32_t f) { return f != 0u && f != 2u && f != 9u; }   /* (a function a SEL + knob may have;
                                           * LOAF BREAKER: TUNE no more, SYNTH +'s K4 has it; a knob given it before: its
@@ -749,6 +751,12 @@ static void selk_value(uint32_t f, int i, char *t)
             ks_text(KS_HOLD, t);
         else if (f == 20u && i < 2)
             pct_text(set.kfx[i].mix, t);
+        else if (f == 21u && i == 0) {   /* (0.9.62: SUB DRIVE's gain, OFF while the SUB's effect isn't DRIVE) */
+            if (set.kick.l[KL_SUB].fx != KFX_DRIVE || subfx_off)
+                text_cat(t, "OFF");
+            else
+                pct_text(set.kick.l[KL_SUB].fa, t);
+        }
         return;
     }
     if (f >= 9u) {                       /* LOAF BREAKER: TUNE, DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH */
@@ -842,7 +850,9 @@ static float sk_norm(uint32_t f, int i)  /* a setting 0..1, as its bar */
                f == 16u ? (i < 2 ? ks_normj(i ? KS_RTIME : KS_RUMBLE) : 0.0f) :
                f == 17u ? (i ? 0.0f : kick_macro_value(1)) :
                f == 18u ? (i ? 0.0f : ((float)set.kick_dj + 100.0f) * 0.005f) :
-               f == 19u ? (i ? 0.0f : ks_normj(KS_HOLD)) : (i < 2 ? set.kfx[i].mix : 0.0f);
+               f == 19u ? (i ? 0.0f : ks_normj(KS_HOLD)) :
+               f == 21u ? (i || set.kick.l[KL_SUB].fx != KFX_DRIVE ? 0.0f : set.kick.l[KL_SUB].fa) :
+               (i < 2 ? set.kfx[i].mix : 0.0f);
     if (f >= 9u)                         /* (LOAF BREAKER: TUNE .. MORPH) */
         return f == 9u ? (i ? 0.0f : ((float)set.ksyn[KS_TUNE] + 12.0f) * (1.0f / 24.0f)) :
                f == 10u ? (i ? 0.0f : set.kick.l[KL_SUB].decay) :
@@ -887,7 +897,17 @@ static void selk_turn(uint32_t f, int i, int32_t d)
             ks_add(KS_HOLD, d);
         else if (f == 20u && i < 2)
             set.kfx[i].mix = knob_f(set.kfx[i].mix, d, 0.02f, 0.0f, 1.0f);
-        else
+        else if (f == 21u && i == 0) {   /* (0.9.62, FLEXOR: SUB DRIVE's gain; the SUB's effect made DRIVE, heard, at
+                                          * the first turn) */
+            kick_layer_t *l = &set.kick.l[KL_SUB];
+            if (l->fx != KFX_DRIVE) {
+                l->fx = KFX_DRIVE;
+                if (l->wet < 0.05f)
+                    l->wet = 1.0f;
+            }
+            set.selk_hi &= (uint8_t)~64u;
+            l->fa = knob_f(l->fa, d, 0.02f, 0.0f, 1.0f);
+        } else
             return;
     } else if (f >= 9u) {                /* LOAF BREAKER: TUNE, DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH */
         if (f == 9u && i == 0)

@@ -34,7 +34,7 @@ release SEL
 wait 200
 expect kdrop 10
 press SEL
-turn PRESET 7 60
+turn PRESET 8 60   # (0.9.62: past FLEXOR)
 release SEL
 wait 200
 expect selk1_fn 15
@@ -44,7 +44,7 @@ wait 300
 expect kpre 1
 shot kp_stored.png
 press SEL
-turn PRESET -7 60
+turn PRESET -8 60   # (0.9.62: past FLEXOR)
 release SEL
 wait 200
 press SEL

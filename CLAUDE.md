@@ -64,6 +64,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - Knob presets (10 Nov 2026, 0.203): STYLE's PRESETS goes on past the eight styles to PRESET 1-4 (track.c, `KPRESETS`):
   `steps.kpre[4][9]` (appended to steps_t: four codes, four values 0..200, stored), the same for every kick; an empty
   one gives back `kcust` (the knobs before PRESETS turned); SAVE on STYLE with one picked stores them (`kpre_store`).
+- Knob style FLEXOR (16 Nov 2026, 0.9.62, FLEXOR): ASSIGN's ninth, last before PRESET 1-4 (track.c KSTYLE, KSTYLES 9): DRIVE, D+ TYPE, SUB DRIVE, DISTO; SUB DRIVE a knob function of its own (SK 21, code 22: the SUB layer's DRIVE gain `fa`, its effect made DRIVE and heard at the first turn).
 - KICK LAB (10 Nov 2026, 0.204): the KICK menu's sixth section LAB (TAIL, TAIL +, STACK, TOOLS; kick.c klab_*),
   `kick_lab_t` (kick.h) per kick in its own object `klab` (OBJ_KLAB 0xB6000: cur + mem[10], swapped with the kick in
   kick_mem_go, copied with COPY K n, off with a built-in PRESET / RESET); engine `kick_set_lab`, `kick_set_stack`
