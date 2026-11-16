@@ -35,8 +35,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - Screen and knobs (0.178): the screen's rows are remembered as hashes (`rows_send` in common.c): a full-width strip
   sends only its changed rows. Anything drawing on the screen other than through `cv_blit` must forget its rows
   (`rows_forget`; `lcd_fill` is wrapped). `changed()` applies once a pass (`apply_flush`); a kick-only or FX-only change
-  uses `changed_kick()` / `changed_fx()`. SYSTEM › MIDI K3 METER (EXPERT only, 0.213) shows CPU / IMG / FR on the device. CI runs a 30-minute
-  random soak (`tools/soak.py`, seed = run number) at every release.
+  uses `changed_kick()` / `changed_fx()`. SYSTEM › MIDI K3 METER (EXPERT only, 0.213) shows CPU / IMG / FR on the device. CI's 30-minute
+  random soak (`tools/soak.py`, seed = run number) at every release is off since 16 Nov 2026 (FLEXOR: "pas besoin des soak test, juste publie"; loaf.yml `if: false`).
 - Names (10 Nov 2026, 0.191): what the code calls TERROR, TERROR 2, TERROR + the screen and the docs call DISTO,
   SCREAM, DISTO + (D+ TYPE: FOLD CLIP CRUSH RECT TUBE, 0.255 HALF SINE WRAP FUZZ, `KICK_T_TYPES`; D+ SCREECH ..); the black key DST. Keep newcomers' names on the screen; TERROR stays the
   genre (README's tagline: HARDCORE - GABBER - BREAKCORE - TERROR - SPEEDCORE, FLEXOR 11 Nov 2026) and a STYLE.

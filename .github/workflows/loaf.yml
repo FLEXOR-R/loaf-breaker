@@ -176,7 +176,7 @@ jobs:
           path: site
 
       - name: Soak (30 minutes of random play in the simulator)   # (a crash, a hang or silence at the end fails the run)
-        if: env.TEST != '1'
+        if: false                        # (16 Nov 2026, FLEXOR: "pas besoin des soak test, juste publie": off; was env.TEST != '1')
         run: |
           S=$(( ${{ github.run_number }} % 1000 ))
           echo "soak seed $S (again: python3 tools/soak.py --minutes 30 --seed $S)"
