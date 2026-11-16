@@ -218,6 +218,7 @@ void brk_fx_tempo(float bpm);
 float brk_fx_dj_now(void);               /* where the DJ filter is right now, -1..1 (for the screen) */
 void brk_fx_add_dry(float *l, float *r, const float *xl, const float *xr, uint32_t n);   /* LOAF BREAKER: xl, xr
                                           * into l and r after it all, then the limiter (brk_fx_late_limit's) */
+void brk_fx_tail(uint32_t on);           /* LOAF BREAKER (0.9.58): 1: KILL BREAK's reverb tail rings (the plate alone, no REVERB in the chain) */
 void brk_fx_late_limit(uint32_t on);     /* LOAF BREAKER (0.9.31): 1: brk_fx_process leaves its limiter to brk_fx_add_dry */
 void brk_fx_kick_dj(float *x, uint32_t n, float pos);   /* GLOUPI BREAKS: the kick's filter, in place (render).
                                           * LOAF BREAKER: high-pass alone, 0 off .. 1 (below 0: off) */

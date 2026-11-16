@@ -225,7 +225,8 @@ static settings_t set;
  * back), then ARP (an OVERLAY effect), KIL (the sequencer's kicks quiet), DST (the kick's DISTO), SUB (its SUB FX on / off: 0.9.43, FLEXOR).
  * A layout: the function of each key, left to right. Presets: CHOPPAH (CHOPPAH's keys; BEGINNER's only), FLEXOR LAYOUT
  * (LOAF BREAKER's until 0.244), CUSTOM (each key its own: ARP › BLACK KEYS) */
-enum { BKF_ARP = BRK_NPADS, BKF_KIL, BKF_DST, BKF_SUB, BKF_DRV, BKF_X2, BKF_X4, BKF_TRI, BKF_SDR, BKF_N };   /* (0.9.55: X4, TRI; 0.9.57 SDR, SUB DRIVE on / off again) */   /* (BKF_DRV: the kick's DRIVE, 0.9.43;
+enum { BKF_ARP = BRK_NPADS, BKF_KIL, BKF_DST, BKF_SUB, BKF_DRV, BKF_X2, BKF_X4, BKF_TRI, BKF_SDR, BKF_KBR, BKF_N };   /* (0.9.55: X4, TRI; 0.9.57 SDR, SUB DRIVE on / off again;
+                                          * 0.9.58 KBR, KILL BREAK) */   /* (BKF_DRV: the kick's DRIVE, 0.9.43;
                                           * BKF_X2: the kicks doubled, 0.9.48) */
 enum { BKP_CHOPPAH, BKP_FLEXOR, BKP_CUSTOM, BKP_N };
 #define BK_TAG 0xB4u
@@ -435,6 +436,26 @@ static void kits_clear(void)             /* (0.9.54: every KIT empty, KEEP) */
 {
     memset(kx2.kit, 0, sizeof kx2.kit);
     memset(kx2.rsv + KIT_BPM0, 0, 16u);
+}
+/* LOAF BREAKER (0.9.58, FLEXOR): KILL BREAK, a black key: the break out, as K1 MODE says: FADE (over K2 TIME), CUT (at
+ * once), BAR END (at the bar's end, its last 8th thrown into the reverb, K3 REVERB: the chain's REVERB, or the plate
+ * alone); back when let go, or (K4 LATCH) at the next press. kx2.rsv[48]: KB_TAG | MODE (bits 0-1) | LATCH (bit 2) |
+ * TIME (bits 3-5: 1/16, 1/8, 1/4, 1/2, 1 BAR, 2 BARS); rsv[49] REVERB 0..100. Untagged (a shorter save): FADE, 1/4,
+ * no LATCH, 60 % */
+#define KB_RSV 48u
+#define KB_TAG 0xC0u
+enum { KB_FADE, KB_CUT, KB_BAR, KB_N };
+#define KB_TIMES 6u
+static const uint8_t KB_T16[KB_TIMES] = {1u, 2u, 4u, 8u, 16u, 32u};
+static uint32_t kb_cfg(void) { return (kx2.rsv[KB_RSV] & 0xC0u) == KB_TAG ? kx2.rsv[KB_RSV] & 0x3Fu : 2u << 3; }
+static uint32_t kb_mode(void) { return kb_cfg() & 3u ? (kb_cfg() & 3u) % KB_N : KB_FADE; }
+static uint32_t kb_latch(void) { return kb_cfg() >> 2 & 1u; }
+static uint32_t kb_time(void) { return (kb_cfg() >> 3 & 7u) % KB_TIMES; }
+static uint32_t kb_rev(void) { return (kx2.rsv[KB_RSV] & 0xC0u) == KB_TAG && kx2.rsv[KB_RSV + 1u] <= 100u ? kx2.rsv[KB_RSV + 1u] : 60u; }
+static void kb_put(uint32_t mode, uint32_t latch, uint32_t time, uint32_t rev)
+{
+    kx2.rsv[KB_RSV] = (uint8_t)(KB_TAG | (mode % KB_N) | (latch & 1u) << 2 | (time % KB_TIMES) << 3);
+    kx2.rsv[KB_RSV + 1u] = (uint8_t)(rev > 100u ? 100u : rev);
 }
 static uint32_t kit_bpm(uint32_t k)      /* (its tempo, tenths of a BPM; 0 KEEP) */
 {
@@ -1306,6 +1327,9 @@ static volatile uint8_t kroll;
 static volatile int16_t kscope[KSC_W];
 static volatile uint32_t kscope_hit;
 static volatile uint8_t kick_hold;       /* LOAF BREAKER: KIL (the tenth black key) held: the sequencer's kicks quiet */
+static volatile float kbrk_g = 1.0f;     /* (0.9.58: KILL BREAK's gain on the break now, the render's) */
+static volatile uint8_t kbrk_hold, kbrk_mode, kbrk_t16, kbrk_rev;   /* (0.9.58: KILL BREAK on, its MODE, its fade in
+                                          * 16ths, its REVERB %: the main loop's, for the render) */
 static volatile uint8_t kick_x2;         /* LOAF BREAKER (0.9.48, FLEXOR): bit 0 X2 on: the kicks doubled, a kick on every odd
                                           * step (1, 3, 5 .. 15) of a bar that has kicks: four to the floor becomes eight;
                                           * 0.9.55, FLEXOR: bit 1 X4, a kick on every step of such a bar; bit 2 TRI, the
@@ -2206,6 +2230,48 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                 echo[i] *= lvl;
                 verb[i] *= lvl;
             }
+        }
+        {                                /* LOAF BREAKER (0.9.58, FLEXOR): KILL BREAK: the break (and its throws) out,
+                                          * faded, cut, or cut at the bar's end with its last 8th into the reverb */
+            float kg = kbrk_g;
+            static int32_t kcut = -1;    /* (BAR END: where in this block the bar ends, -1 not in it) */
+            static uint8_t kdone;        /* (BAR END: cut) */
+            static uint32_t ktail;       /* (blocks the reverb's tail still rings, the plate alone) */
+            float sp16 = (float)BRK_SR * 15.0f / brk_get_tempo(), fstep = 1.0f / ((float)(kbrk_t16 ? kbrk_t16 : 1u) * sp16);
+            uint32_t mode = kbrk_mode;
+            int send = kbrk_hold && mode == KB_BAR && !kdone && st.playing && st.bar16 >= 14;
+            if (!kbrk_hold)
+                kdone = 0u;
+            if (kbrk_hold && mode == KB_BAR && !st.playing)
+                kdone = 1u;
+            if (send)
+                ktail = (uint32_t)(8.0f * (float)BRK_SR / (float)APP_BLOCK);   /* (8 s) */
+            for (i = 0; i < m; i++) {
+                if (send)                /* (its last 8th thrown into the reverb before the cut) */
+                    verb[i] += mono[i] * (float)kbrk_rev * 0.015f;
+                if (kcut >= 0 && (int32_t)i == kcut && kbrk_hold && mode == KB_BAR)
+                    kdone = 1u;
+                if (!kbrk_hold)
+                    kg += (1.0f - kg) * 0.01f;   /* (back: in ~2 ms) */
+                else if (mode == KB_FADE)
+                    kg = kg > fstep ? kg - fstep : 0.0f;
+                else if (mode == KB_CUT || kdone)
+                    kg *= 0.97f;         /* (out in ~1.5 ms: no click) */
+                mono[i] *= kg;
+                echo[i] *= kg;
+                if (!send)
+                    verb[i] *= kg;
+            }
+            kbrk_g = kg;
+            kcut = -1;                   /* (the next block: where its bar ends, if it does) */
+            if (kbrk_hold && mode == KB_BAR && !kdone && st.playing && st.bar16 == 15) {
+                float rem = (1.0f - st.phase) * sp16;
+                if (rem < (float)APP_BLOCK)
+                    kcut = (int32_t)rem;
+            }
+            brk_fx_tail(ktail > 0u);
+            if (ktail)
+                ktail--;
             meter_brk = meter(mono, m, meter_brk);
         }
         if (set.clk_out) {               /* clock out: each tick due as its sample plays (a block from now) */

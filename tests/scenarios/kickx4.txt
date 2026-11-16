@@ -68,7 +68,7 @@ key b0 down
 wait 100
 key b0 up
 wait 200
-turn K3 -3 10   # (left of R8: SDR, TRI, X4; 0.9.57)
+turn K3 -4 10   # (left of R8: KBR, SDR, TRI, X4; 0.9.58)
 wait 300
 expect bk_fn 17
 shot x4_key.png

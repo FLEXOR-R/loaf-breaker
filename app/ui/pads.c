@@ -149,12 +149,13 @@ static const char *const PAD_KNOB[BKF_N][4] = {   /* (LOAF BREAKER: by function,
     {"TIME", "FEEDBACK", "TONE", "MIX"},   /* (DUB: CHOPPAH's; a DELAY in the chain: its own, fx_param_name) */
     {"EFFECT", "AMOUNT", "TIME", "LATCH"},   /* (the ARP key's; FX while held: MORE, pad_knob_name; K2 what goes
                                           * through the ARP effects: the kick, the break, or both) */
-    {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}};   /* (KIL, X2: their LATCH, main.c; DST,
+    {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0},
+    {"MODE", "TIME", "REVERB", "LATCH"}};   /* (0.9.58: KILL BREAK) */   /* (KIL, X2: their LATCH, main.c; DST,
                                           * SUB, DRV: a press each) */
 static const char *const PAD_TITLE[BKF_N] = {"ROLL", "ROLL", "ROLL", "REVERSE", "FREEZE", "HALF SPEED",
                                               "VINYL BREAK", "GATE", "RANDOM", "FILTER", "DUB", "OVERLAY", "KICKS OFF",
                                               "DISTO", "SUB FX", "DRIVE", "KICKS X2", "KICKS X4", "KICK TRIPLETS",
-                                              "SUB DRIVE"};
+                                              "SUB DRIVE", "KILL BREAK"};
 static const char *const FRZ_LEN_NAME[4] = {"SLICE", "1/2", "1/4", "1/8"};
 
 /* LOAF BREAKER: the ARP key's knobs (the OVERLAY page gone, its settings here). MAIN: K1 EFFECT, K2 its AMOUNT, K3
@@ -306,6 +307,22 @@ static void pad_knob_value(int pad, int k, char *t)
         else if (k == 2) kick_flt_text(t);
         else roll_decay_text(p->roll_decay, t);
         break;
+    case BKF_KBR: {                      /* (0.9.58: KILL BREAK: MODE, its fade's TIME, BAR END's REVERB, LATCH) */
+        static const char *const KM[KB_N] = {"FADE", "CUT", "BAR END"}, *const KT[KB_TIMES] = {"1/16", "1/8", "1/4",
+                                                                                               "1/2", "1 BAR", "2 BARS"};
+        if (k == 0)
+            text_cat(t, KM[kb_mode()]);
+        else if (k == 1)
+            text_cat(t, kb_mode() == KB_FADE ? KT[kb_time()] : "-");
+        else if (k == 2) {
+            if (kb_mode() != KB_BAR)
+                text_cat(t, "-");
+            else
+                pct_text((float)kb_rev() * 0.01f, t);
+        } else
+            text_cat(t, kb_latch() ? "ON" : "OFF");
+        break;
+    }
     case PAD_REVERSE: if (k == 3) goto lat; times_text(p->rev_speed, t); break;
     case PAD_HALF:                       /* (GLOUPI BREAKS: K2 its master tempo) */
         if (k == 0) times_text(p->half_speed, t);
@@ -401,6 +418,19 @@ static void pad_knob_turn(int pad, int k, int32_t d)
             return;
         }
         else p->roll_decay = knob_f(p->roll_decay, d, 0.02f, -0.9f, 0.9f);
+        break;
+    case BKF_KBR:                        /* (0.9.58: KILL BREAK) */
+        if (k == 0)
+            kb_put((uint32_t)clamp((int32_t)kb_mode() + (d > 0 ? 1 : -1), 0, KB_N - 1), kb_latch(), kb_time(), kb_rev());
+        else if (k == 1)
+            kb_put(kb_mode(), kb_latch(), (uint32_t)clamp((int32_t)kb_time() + (d > 0 ? 1 : -1), 0, KB_TIMES - 1), kb_rev());
+        else if (k == 2)
+            kb_put(kb_mode(), kb_latch(), kb_time(), (uint32_t)clamp((int32_t)kb_rev() + d * 5, 0, 100));
+        else
+            kb_put(kb_mode(), d > 0 ? 1u : 0u, kb_time(), kb_rev());
+        kbrk_mode = (uint8_t)kb_mode();
+        kbrk_t16 = KB_T16[kb_time()];
+        kbrk_rev = (uint8_t)kb_rev();
         break;
     case PAD_REVERSE:
         if (k == 3) goto lat;
@@ -601,6 +631,23 @@ static void draw_fx_band(int pad, const brk_status_t *st, uint32_t now, int32_t 
         int_text((int32_t)st->roll_n, t);
         text_cat(t, " HITS");
         cv_text(234 - text_w(&FONT_XS, t), 2, &FONT_XS, t, C_GRAY);
+        break;
+    }
+    case BKF_KBR: {                      /* (0.9.58: KILL BREAK: its shape, the break's level falling as its MODE says) */
+        static const char *const KD[KB_N] = {"THE BREAK FADES OUT", "THE BREAK CUT AT ONCE", "OUT AT THE BAR'S END,"};
+        uint32_t mo = kb_mode();
+        for (i = 0; i < 200; i++) {      /* (its level over time: down the ramp, the step, or at the bar's end) */
+            int32_t h = mo == KB_FADE ? 24 - i * 24 / 200 : mo == KB_CUT ? (i < 20 ? 24 : 0) : (i < 150 ? 24 : 0);
+            cv_rect(20 + i, FX_MID + 6 - h, 1, h > 0 ? h : 1, h > 0 ? C_HI : C_LINE);
+        }
+        if (mo == KB_BAR)                /* (the reverb's tail after it) */
+            for (i = 150; i < 220; i++)
+                cv_rect(20 + i, FX_MID + 6 - (220 - i) / 7, 1, (220 - i) / 7 + 1, C_DIM);
+        cv_text(20, FX_MID + 11, &FONT_XS, KD[mo], C_GRAY);
+        if (mo == KB_BAR)
+            cv_text(20, FX_MID + 22, &FONT_XS, "ITS LAST 8TH INTO THE REVERB", C_GRAY);
+        cv_text(234 - text_w(&FONT_XS, kbrk_hold ? "OUT" : "BACK"), 2, &FONT_XS, kbrk_hold ? "OUT" : "BACK",
+                kbrk_hold ? C_HI : C_GRAY);
         break;
     }
     case PAD_REVERSE: {                  /* REVERSE: the break running backwards past a fixed playhead, chevrons */
@@ -858,6 +905,8 @@ static int bkf_lit(uint32_t f, const brk_status_t *st)
         return (kick_x2 & 2u) != 0u;
     if (f == BKF_TRI)                    /* (0.9.55: in triplets) */
         return (kick_x2 & 4u) != 0u;
+    if (f == BKF_KBR)                    /* (0.9.58: KILL BREAK, the break out) */
+        return kbrk_hold != 0u;
     if (f == BKF_SDR)                    /* (0.9.57: SUB DRIVE, the SUB layer's effect DRIVE, heard) */
         return set.kick.l[KL_SUB].fx == KFX_DRIVE && !subfx_off;
     return !subfx_off;                   /* (0.9.43: SUB, the SUB FX switch on, even with no effect set) */

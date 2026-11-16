@@ -243,6 +243,8 @@ static void reset_all(void)
     kx2_defaults();                      /* (0.9.45: TOK and the TAIL GATE off on every kick) */
     selk_clear();                        /* (0.9.49: no SEL layer) */
     kits_clear();                        /* (0.9.54: the KITS empty) */
+    kx2.rsv[KB_RSV] = kx2.rsv[KB_RSV + 1u] = 0u;   /* (0.9.58: KILL BREAK as it starts) */
+    kbrk_hold = 0u;
     kfx_all();                           /* (0.9.26: every kick's FX section as the defaults left it) */
     kmem_extras();                       /* (0.9.33: KICK 7 TERROR, KICK 8 SPINE, whole) */
     kx_all();                            /* (every kick's knobs as they start) */
@@ -676,6 +678,21 @@ static void input(void)
         app_say("SUB DRIVE", l->fx == KFX_DRIVE ? "ON" : "OFF");
         changed_kick();
         ui.redraw |= RG_FOOT | RG_BLOCKS;
+    }
+    if (kdn & PAD_BIT(BKF_KBR)) {        /* LOAF BREAKER (0.9.58, FLEXOR): KILL BREAK: the break out (FADE, CUT, or at the
+                                          * bar's end into the reverb), back when let go; LATCH: a press out, the next back */
+        kbrk_mode = (uint8_t)kb_mode();
+        kbrk_t16 = KB_T16[kb_time()];
+        kbrk_rev = (uint8_t)kb_rev();
+        kbrk_hold = kb_latch() ? (uint8_t)!kbrk_hold : 1u;
+        ui.pad_focus = (int8_t)BKF_KBR;
+        ui.pad_since = plat_ms();
+        app_say("KILL BREAK", kbrk_hold ? (kb_mode() == KB_BAR ? "AT THE BAR'S END" : "OUT") : "BACK");
+        ui.redraw |= RG_FOOT;
+    } else if (!(keys & PAD_BIT(BKF_KBR)) && kbrk_hold && !kb_latch()) {
+        kbrk_hold = 0u;                  /* (let go, no LATCH: back) */
+        app_say("KILL BREAK", "BACK");
+        ui.redraw |= RG_FOOT;
     }
     if (kdn & PAD_BIT(BKF_DST)) {        /* LOAF BREAKER: DST, a switch: the kick's DISTO used or not, its amount never
                                           * touched (0.265, FLEXOR: no more 50 % from nothing) */
@@ -3757,8 +3774,8 @@ int app_expect(const char *what, int *got)
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
                                     "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15", "broll", "stut", "fxwet", "tempo10", "kitsel", "kit0kick", "vthru", "dafter",
-                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage"};
-    int v[177];
+                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain"};
+    int v[180];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -3948,6 +3965,9 @@ int app_expect(const char *what, int *got)
     v[174] = (int)drop_sel();            /* (0.9.58: the drop selected, 0..7; its build's index) */
     v[175] = set.drop_bars;
     v[176] = ui.tpage;
+    v[177] = kbrk_hold;                  /* (0.9.58: KILL BREAK out, its MODE, the break's level now, %) */
+    v[178] = (int)kb_mode();
+    v[179] = (int)(kbrk_g * 100.0f + 0.5f);   /* (KILL BREAK's gain on the break, %) */
     v[161] = set.vinyl & 3u;             /* (0.9.54: VINYL BREAK's THRU, 0 BOTH 1 BREAK 2 KICK) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */
     v[141] = kx2_at(set.kslot)->gate;    /* (its TAIL GATE's division) */

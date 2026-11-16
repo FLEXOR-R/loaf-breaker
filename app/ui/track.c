@@ -220,6 +220,8 @@ static void reset_do(uint32_t w)
         set.vinyl = 0u;                  /* (VINYL BREAK's THRU BOTH) */
         set.bkeys.bk[BK_PLAT] = 0xA0u;   /* (REVERSE, FREEZE, GATE, RANDOM: held, no LATCH) */
         set.bkeys.bk[BK_FTHRU] = 0xC0u;  /* (FILTER: THRU BREAK) */
+        kx2.rsv[KB_RSV] = kx2.rsv[KB_RSV + 1u] = 0u;   /* (0.9.58: KILL BREAK: FADE 1/4, no LATCH, REVERB 60 %) */
+        kbrk_hold = 0u;
     } else if (w == RST_ARP) {           /* (0.9.52, FLEXOR) ARP: the 16 effects' amounts, each one's THRU, RATE, SWEEP,
                                           * LATCH off, every ARP key one effect again */
         uint32_t k;

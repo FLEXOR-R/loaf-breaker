@@ -34,6 +34,9 @@ void brk_fx_flt_thru(uint32_t m) { p_fthru = m <= 2u ? m : 0u; }
 static volatile uint32_t p_late;         /* (0.9.31: the limiter left to brk_fx_add_dry, after the ARP's overlays and the
                                           * kick joining: the kick limited with the rest as ever, FLEXOR) */
 void brk_fx_late_limit(uint32_t on) { p_late = on; }
+static volatile uint32_t p_tail;         /* LOAF BREAKER (0.9.58): KILL BREAK's tail ringing: the plate after the chain
+                                          * when no REVERB in it has it, fed by the throws into the reverb */
+void brk_fx_tail(uint32_t on) { p_tail = on; }
 static float djk_s;                      /* its smoothed position */
 const char *const BRK_FXT_NAME[BRK_NFXT] = {"EMPTY", "FILTER", "CRUNCH", "DRIVE", "PUNCH", "FLANGER", "RING MOD",
                                             "TREMOLO", "REVERB", "DELAY", "EQ", "TAPE", "MB COMP", "CLIP"};
@@ -1138,7 +1141,7 @@ BRK_COLD void brk_fx_mb_meter(uint32_t slot, float *gr, float *lvl)
 }
 
 /* the block's samples, all four slots: from RAM on the FM-1 (BRK_RAM, one call a block: nothing in it calls out) */
-typedef struct { svf_c djc; dl_c_t dub_c; float wet; int dj_hp, dub_on; uint32_t k0, k1, kick, fmode, late; } fx_q_t;
+typedef struct { svf_c djc; dl_c_t dub_c; float wet; int dj_hp, dub_on; uint32_t k0, k1, kick, fmode, late, tail; } fx_q_t;
 BRK_RAM static void fx_samples(const fx_q_t *q, const float *in, const float *thru, const float *echo, const float *verb,
                                const float *post, float *l, float *r, uint32_t n)
 {
@@ -1207,6 +1210,23 @@ BRK_RAM static void fx_samples(const fx_q_t *q, const float *in, const float *th
             dub_idle = cur_throw != 0.0f || brk_absf(el) + brk_absf(er) > 1e-5f ? 0u : dub_idle + 1u;
             xl += el * q->dub_c.ret;
             xr += er * q->dub_c.ret;
+        }
+        if (q->tail) {                   /* (0.9.58: KILL BREAK's tail, the plate alone at half the rate, as REVERB's) */
+            float in = cur_verb, ol, or_;
+            if (rv.odd) {
+                rv.yo_l = rv.y_l;
+                rv.yo_r = rv.y_r;
+                rv_tick(0.5f * (in + rv.in_prev), 0.84f, 0.3f, 0u, &rv.y_l, &rv.y_r);
+                ol = 0.5f * (rv.yo_l + rv.y_l);
+                or_ = 0.5f * (rv.yo_r + rv.y_r);
+            } else {
+                ol = rv.y_l;
+                or_ = rv.y_r;
+            }
+            rv.in_prev = in;
+            rv.odd ^= 1u;
+            xl += ol;
+            xr += or_;
         }
         if (q->late) {                   /* (0.9.31: limited later, the kick in: brk_fx_add_dry) */
             l[i] = xl;
@@ -1285,6 +1305,7 @@ void brk_fx_process(const float *in, const float *thru, const float *echo, const
         q.k1 = BRK_FX_SLOTS;
         q.kick = 0u;
         q.late = p_late;
+        q.tail = p_tail && !rv_taken;
         {                                /* (the THRU while the pad throws, or the filter on its way back from it) */
             float home = brk_clampf(fx.dj, -1.0f, 1.0f);
             q.fmode = throw || dj_s - home > 0.01f || dj_s - home < -0.01f ? p_fthru : 0u;
@@ -1314,6 +1335,7 @@ void brk_fx_kick(float *x, uint32_t n)
         q.k0 = BRK_FX_SLOTS;
         q.k1 = BRK_FX_ALL;
         q.kick = 1u;
+        q.tail = 0u;
         q.fmode = 0u;
         q.wet = 1.0f;
         q.dj_hp = q.dub_on = 0;
