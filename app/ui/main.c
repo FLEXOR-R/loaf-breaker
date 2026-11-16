@@ -554,19 +554,19 @@ static void input(void)
     for (i = 0; i < 11u; i++)            /* (0.9.49, FLEXOR: a black key pressed with SEL held or locked: its SEL KEYS
                                           * function until it is let go, when it has one) */
         if (kdn >> BK[i] & 1u) {
-            if (btn & 1u << B_SEL && selb_fn(i)) {
+            if (btn & 1u << B_SEL)
+                ui.tap_combo = 1u;       /* (no SEL click; 0.9.56, FLEXOR: nothing assigned, the key as without SEL) */
+            if (btn & 1u << B_SEL && selb_fn(i))
                 bk_sel_dn |= (uint16_t)(1u << i);
-                ui.tap_combo = 1u;       /* (no SEL click) */
-            } else
+            else
                 bk_sel_dn &= (uint16_t)~(1u << i);
         }
     for (i = 0; i < BRK_NPADS; i++) {    /* black keys: the pads, held; the last one pressed has the screen (LOAF
                                           * BREAKER: on the keys the layout gives them, app.c bk_fn) */
         if (i <= PAD_ROLL32) {           /* LOAF BREAKER: the rolls, through their THRU (the break, the kick, both) */
             if ((kdn & PAD_BIT(i))) {
-                roll_key(i, 1, (btn & 1u << B_SEL) != 0u);   /* (SEL + the pad: the kick alone, this press) */
-                if (btn & 1u << B_SEL)
-                    ui.tap_combo = 1u;   /* (no SEL click) */
+                roll_key(i, 1, 0);       /* (0.9.56, FLEXOR: SEL + a roll with nothing assigned: the roll as without SEL;
+                                          * the kick alone with SEL until 0.9.55) */
                 ui.pad_focus = (int8_t)i;
                 ui.pad_since = now;
             }

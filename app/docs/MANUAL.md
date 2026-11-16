@@ -483,7 +483,7 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 
 | Pad | Does | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- | --- |
-| R8 · R16 · R32 | Roll from the next 16th | RATE (3/8, 1/4, 3/16, 1/8, 3/32, 1/16, 1/32, 1/64, then the triplets; the dotted ones since 0.9.30) | BRK FLT (HOME's break filter: roll and filter at once, 0.9.40; what the roll takes, BREAK, KICK or BOTH, is MIX › SENDS K4 ROLL; **SEL + the pad**: the kick alone, for that press, whatever ROLL says) | DRUM FLT (HOME's drums' filter) | DECAY: DOWN (each repeat quieter) or UP (a swell up to full) |
+| R8 · R16 · R32 | Roll from the next 16th | RATE (3/8, 1/4, 3/16, 1/8, 3/32, 1/16, 1/32, 1/64, then the triplets; the dotted ones since 0.9.30) | BRK FLT (HOME's break filter: roll and filter at once, 0.9.40; what the roll takes, BREAK, KICK or BOTH, is MIX › SENDS K4 ROLL) | DRUM FLT (HOME's drums' filter) | DECAY: DOWN (each repeat quieter) or UP (a swell up to full) |
 | REV | Reverse | Speed | | | LATCH: ON, a press turns it on and the next off (0.9.26) |
 | FRZ | FREEZE: the slice playing loops while held | LENGTH: the slice, 1/2, 1/4, 1/8 | PITCH (±12 semitones) | | LATCH: ON, a press turns it on and the next off (0.9.26) |
 | HLF | Half speed | Speed | MASTER TEMPO: the pitch kept (ON) or dropped | LATCH: ON, a press turns it on and the next off | |
@@ -577,7 +577,7 @@ sets it back to CHOPPAH, and EXPERT keeps it until you change it).
 
 **SEL BLACK** (0.9.49, EXPERT, the third tab; SEL KEYS in 0.9.49) gives every black key a **second function, pressed with SEL** held or
 locked (SEL twice): **K2 KEY** (or **ALGORITHM**, or press the key: it picks itself), **K3 SEL +**, what that key does
-with SEL: **ITS OWN** (the same as without SEL, as before: SEL + R8 / R16 / R32 still rolls the kick alone) or any
+with SEL: **ITS OWN** (the same as without SEL, exactly: 0.9.56, FLEXOR; SEL + R8 / R16 / R32 rolled the kick alone until 0.9.55) or any
 function of the list. While SEL is held or locked the strip and the lights show the SEL functions. A key pressed with
 SEL keeps that function until you let it go. SAVE keeps them; RESET's SEL KEYS and RESET ALL clear them.
 
