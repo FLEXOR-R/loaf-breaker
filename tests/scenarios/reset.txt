@@ -49,6 +49,8 @@ wait 100
 turn SELECT 1 10
 wait 100
 turn SELECT 1 10
+wait 100
+turn SELECT 1 10
 wait 300
 expect page 3
 expect gpage 5
@@ -96,7 +98,7 @@ wait 100
 turn SELECT 1 10
 wait 100
 turn K4 13 10
-turn SELECT 1 10
+turn SELECT 2 10
 wait 200
 key w1 down
 wait 30

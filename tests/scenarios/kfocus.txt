@@ -6,7 +6,9 @@
 wait 4200
 tap HOME
 wait 200
-tap HOME
+tap GLO
+wait 200
+turn SELECT 2 10
 wait 200
 expect page 11
 turn K2 1 60
@@ -70,7 +72,9 @@ tap HOME
 wait 200
 tap HOME
 wait 200
-tap HOME
+tap GLO
+wait 200
+turn SELECT 2 10
 wait 200
 expect page 11
 turn K2 -1 60

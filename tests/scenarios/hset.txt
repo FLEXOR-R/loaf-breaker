@@ -5,7 +5,9 @@ wait 4200
 tap HOME
 wait 300
 expect page 1
-tap HOME
+tap GLO
+wait 200
+turn SELECT 2 10
 wait 300
 expect page 11
 shot hset.png

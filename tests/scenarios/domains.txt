@@ -69,7 +69,7 @@ turn SELECT 1 10
 wait 100
 turn SELECT 1 10
 wait 100
-turn SELECT 1 10
+turn SELECT 2 10
 wait 200
 expect gpage 5
 turn K1 20 10

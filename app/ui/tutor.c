@@ -30,9 +30,8 @@ static const struct {
     {0u, TC_SLICES, TK_WHITE, 1u, 0u, "PLAY THE WHITE KEYS: ITS SLICES"},
     {0u, TC_BRK, 0u, 1u, 0u, "TURN ALGORITHM: ANOTHER BREAK"},
     {9u, TC_HGEN, 0u, 0u, 1u << B_HOME, "PRESS HOME AGAIN: GENERATOR"},   /* (0.9.2, FLEXOR: HOME's tabs) */
-    {9u, TC_HSET, 0u, 0u, 1u << B_HOME, "PRESS HOME AGAIN: SETTINGS"},
-    {9u, TC_HVIEW, 0u, 0u, 0u, "TURN KNOB 1 RIGHT: THE SLICES"},
-    {9u, TC_HBACK, 0u, 1u, 1u << B_HOME, "PRESS HOME: PERFORM, IN SLICES"},
+    {9u, TC_HBACK, 0u, 0u, 1u << B_HOME, "PRESS HOME AGAIN: PERFORM"},   /* (0.9.56: SETTINGS in SYSTEM) */
+    {9u, TC_HVIEW, 0u, 1u, 1u << B_HOME, "HOLD HOME: THE SLICES"},
     {9u, TC_HHOLD, 0u, 1u, 1u << B_HOME, "HOLD HOME: THE WAVEFORM AGAIN"},
     {1u, TC_PAD, TK_BLACK, 1u, 0u, "HOLD A BLACK KEY: AN EFFECT"},
     {1u, TC_OVLPG, 0u, 0u, 1u << B_ARP, "PRESS ARP: ALL THE EFFECTS"},   /* (0.244: the OVERLAY page back) */
@@ -199,10 +198,10 @@ static int tut_done(uint32_t c, const brk_status_t *st)
     switch (c) {
     case TC_HGEN:                        /* (0.9.2: HOME's tabs, PERFORM, GENERATOR, SETTINGS, the VIEW) */
         return ui.page == PG_GEN;
-    case TC_HSET:
+    case TC_HSET:                        /* (0.9.2-0.9.55: HOME's SETTINGS; no step since) */
         return ui.page == PG_HSET;
-    case TC_HVIEW:
-        return ui.page == PG_HSET && ui.blocks;
+    case TC_HVIEW:                       /* (0.9.56: HOME held, the slices) */
+        return ui.page == PG_HOME && ui.blocks;
     case TC_HBACK:
         return ui.page == PG_HOME;
     case TC_HHOLD:
@@ -269,10 +268,10 @@ static const char *tut_away(uint32_t c, uint16_t *btn)
     int home = ui.page == PG_HOME || ui.page == PG_GEN, kick = ui.page == PG_KICK;
     *btn = 0u;
     switch (c) {
-    case TC_HVIEW:                       /* (0.9.2: off HOME's SETTINGS) */
-        if (ui.page != PG_HSET) {
+    case TC_HVIEW:                       /* (0.9.56: off PERFORM) */
+        if (ui.page != PG_HOME) {
             *btn = 1u << B_HOME;
-            return "PRESS HOME: BACK TO SETTINGS";
+            return "PRESS HOME: BACK TO PERFORM";
         }
         return 0;
     case TC_HHOLD:

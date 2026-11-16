@@ -208,8 +208,9 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 
 ### Where things are
 
-- **HOME**: playing, the main page. PERFORM, GENERATOR and SETTINGS (HOME again: the next tab), the CDJ waveform on the
-  first two; **SEL + PRESETS** there changes the kick (KICK 1–20, 0.9.26). **SETTINGS** (0.9.2): K1 **VIEW** (WAVEFORM or SLICES: what PERFORM and GENERATOR show; HOME held still flips
+- **HOME**: playing, the main page. PERFORM and GENERATOR (HOME again: the other tab), the CDJ waveform on both;
+  **SEL + PRESETS** there changes the kick (KICK 1–20, 0.9.26). The waveform's settings are **SYSTEM › SETTINGS** (GLO,
+  then SELECT; HOME's third tab from 0.9.2 to 0.9.55, FLEXOR moved it): K1 **VIEW** (WAVEFORM or SLICES: what PERFORM and GENERATOR show; HOME held still flips
   it), K2 **WAVE TYPE** (REKORDBOX or SERATO colours), K3 **WAVE ZOOM** (how much of the past the wave holds), K4 **BREAK
   TIME** (NORMAL, or HALF: the break at half the tempo, at its own speed, its steps every other 16th, while the kick,
   the drums and the clock stay at the tempo: a 115 break under a 230 kick); SELECT stays the tempo. (0.9.25: these four
@@ -277,7 +278,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 - **LFO** (MIX): LEVELS, SENDS, MASTER (K1 COMP, K2 its RATIO, K3 DUCK, K4 MAX OUT; COMP's reduction metered),
   DYNAMICS (COMP's ATTACK and RELEASE, DUCK's RELEASE, DUCKS: the break, or the break and the drums).
 - **ENV**: the song. TRACKS, PLAY, DROP, BUILD. (What SEL + each knob does: EDIT › KNOBS; RESET: GLO.)
-- **GLO** (SYSTEM): MIDI (EXPERT: the METER), SETUP (SKIN, MODE, AUTO SAVE: K1, K3, K4, top to bottom; PRESETS turns the skin too; WAVE ZOOM is HOME › SETTINGS since 0.9.2), EFFECTS (several at once, keys 1–7; each effect's card a small picture with that effect done to it, lit when on, since 0.9.30; the waves' colours are HOME › SETTINGS' WAVE TYPE since 0.9.25; EDIT VIEW and DRUM VIEW ZOOM are KICK › MORE › TOOLS since 0.9.29), FX SET, RESET.
+- **GLO** (SYSTEM): MIDI (EXPERT: the METER), SETUP (SKIN, MODE, AUTO SAVE: K1, K3, K4, top to bottom; PRESETS turns the skin too), SETTINGS (0.9.56: VIEW, WAVE TYPE, WAVE ZOOM, BREAK TIME, HOME's before), EFFECTS (several at once, keys 1–7; each effect's card a small picture with that effect done to it, lit when on, since 0.9.30; the waves' colours are SYSTEM › SETTINGS' WAVE TYPE since 0.9.25; EDIT VIEW and DRUM VIEW ZOOM are KICK › MORE › TOOLS since 0.9.29), FX SET, RESET.
   The break's PITCH, GRAIN and SNAP are SOUNDS › BREAK; SWING is PATTERN › SETTINGS.
 
 ### The CDJ view (HOME)
@@ -812,7 +813,7 @@ tempo's own repitch, HALF, REVERSE's speed and the tape stop stay speed effects.
 **SETUP (GLO, then SELECT):** its four settings top to bottom, K1 to K4. K1 **SKIN**, the screen's colours (RED to start; the
 whole screen changes at once), 24 chosen by FLEXOR, two rows of twelve swatches: CHROME, FIRE&ICE, CHOPPAH, GLOUPI,
 TESS, OUTRUN, THUNDER, CYBERPUNK, MC SALO, ACID, RED, GARRY, PIP-BOY, NEON, BLACKLIGHT, PATINA, SYNTHWAVE, MIAMI, ELECTRIC,
-ARCTIC, BREADCRUMBZ, IRIS, GLUCKSMAN, MAXENCE (an FM-1 updated from before keeps its colour, or the nearest left). **WAVE ZOOM** (K2 here until 0.9.1: HOME › SETTINGS K3 now, PRESETS on HOME too), how much of the past HOME's scrolling wave (the
+ARCTIC, BREADCRUMBZ, IRIS, GLUCKSMAN, MAXENCE (an FM-1 updated from before keeps its colour, or the nearest left). **WAVE ZOOM** (K2 here until 0.9.1: SYSTEM › SETTINGS K3 now, PRESETS on HOME too), how much of the past HOME's scrolling wave (the
 CDJ view) holds across the screen: 1/2, 2/3, 5/6 of a bar (zoomed in), 1 BAR (as it was), 1 1/4, 1 1/2, 2 BARS (zoomed
 out). K3 **MODE**: TUTORIAL (left of BEGINNER: the tutorial, above), BEGINNER or EXPERT (right). **BEGINNER** keeps
 each thing to its essentials, to play the machine before learning it: the **KICK** is three pages, EDIT again (or
@@ -846,7 +847,7 @@ quicker it answers). For telling what slows it down.
 while on), K1 points at one and K2 turns it on (right) or off (left). **CRT** (every other line dimmed, as an old
 tube), **VHS** (bands that slip sideways), **GRAIN** (specks that move), **RGB** (the red a few pixels off the rest), **SHAKE** (the screen jolts on the kicks and at the drop), **STROBE** (the colours turn over
 at the drop, and on the kicks when ON A KICK is past 50 %), **8-BIT** (fewer colours). VHS and RGB together, for one.
-The waves' colours are HOME › SETTINGS' WAVE TYPE: **REKORDBOX** (the three bands mixed, white where they all are) or
+The waves' colours are SYSTEM › SETTINGS' WAVE TYPE: **REKORDBOX** (the three bands mixed, white where they all are) or
 **SERATO** (the bands as one hue from red through yellow and green to blue, never white). **EDIT VIEW** (KICK › KNOBS ›
 TOOLS, **K3**, since 0.9.29; on this page before):
 what the KICK menu's picture shows, **THE WHOLE KICK** (left) or **THE PART EDITED** (right): on a layer's page (SUB,

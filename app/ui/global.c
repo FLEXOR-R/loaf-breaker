@@ -23,13 +23,14 @@ static void sfx_toggle(uint32_t e, int on)   /* LOAF BREAKER: GLO EFFECTS: effec
  * ALGORITHM past KEYS, SEL + ARP). SYSTEM (GLO) itself: MIDI, SETUP, EFFECTS, FX SET, RESET */
 #define GP_BREAK 1u
 #define GP_FILL 6u
-#define NGLO 5u
-static const uint8_t GLO_ORD[NGLO] = {0u, 2u, 3u, 4u, 5u};
+#define NGLO 6u
+#define GLO_HSET 0xF0u                   /* (0.9.56, FLEXOR: HOME's SETTINGS, its page PG_HSET, now SYSTEM's, after SETUP) */
+static const uint8_t GLO_ORD[NGLO] = {0u, 2u, GLO_HSET, 3u, 4u, 5u};
 static uint32_t glo_next(int32_t d)      /* SYSTEM's next or previous part (from the break's or GROOVE: MIDI) */
 {
-    uint32_t i;
+    uint32_t i, cur = ui.page == PG_HSET ? GLO_HSET : ui.gpage;
     for (i = 0; i < NGLO; i++)
-        if (GLO_ORD[i] == ui.gpage && ui.page == PG_GLOBAL)
+        if (GLO_ORD[i] == cur && (ui.page == PG_GLOBAL || ui.page == PG_HSET))
             return GLO_ORD[(i + (d > 0 ? 1u : NGLO - 1u)) % NGLO];
     return 0u;
 }
@@ -469,6 +470,12 @@ static void draw_global(const brk_status_t *st)
 static void global_part(uint32_t g)      /* GLO (again: the next part) and ALGORITHM on GLOBAL (LOAF BREAKER: and the
                                           * break's page, GROOVE) */
 {
+    if (g == GLO_HSET) {                 /* (0.9.56: SYSTEM's SETTINGS, HOME's before) */
+        ui.page = PG_HSET;
+        ui.redraw |= RG_FOOT | RG_BLOCKS;
+        page_say();
+        return;
+    }
     ui.gpage = (uint8_t)g;
     ui.page = PG_GLOBAL;
     ui.redraw |= RG_FOOT | RG_BLOCKS;
@@ -535,6 +542,6 @@ static void draw_hset(void)
     cv_text(6, 2, &FONT_XS, "HOME HELD: WAVEFORM / SLICES", C_DIM);
     cv_text(6, 14, &FONT_XS, set.wstyle ? "WAVE COLOURS AS SERATO'S" : "WAVE COLOURS AS REKORDBOX'S", C_DIM);
     cv_text(6, 26, &FONT_XS, t, C_DIM);
-    cv_text(6, 38, &FONT_XS, "SELECT: TEMPO", C_DIM);
+    cv_text(6, 38, &FONT_XS, "SELECT: SYSTEM'S PARTS", C_DIM);
     cv_blit(0, 140);
 }

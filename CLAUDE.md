@@ -76,7 +76,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   bottom, its parts; EXPERT's drums: SELECT round SN HH CP, the KICK by SEL + EDIT; 0.266: EXPERT's EDIT goes round the sounds, KICK SN HH CP) (kick_chip; 0.207: a full-width bar of tabs, FONT_T if it fits, the wave up: its middle y 45, 29
   px each way). Views (ui.kview, EDIT held): RGB (kick_rgb, 500 ms), WAVE, then CLASSIC (ui.kclassic); 0.231 the drums'
   big view too (perc_rgb into kv_rgb, shared: kv_sig / pw_sig say whose), one state for all.
-- HOME (0.9.2, FLEXOR: the main page): PERFORM, GENERATOR, SETTINGS (PG_HSET, global.c hset_*: K1 VIEW `ui.blocks` kept in
+- HOME (0.9.2, FLEXOR: the main page): PERFORM, GENERATOR (SETTINGS its third tab until 0.9.55; 0.9.56, FLEXOR: SYSTEM's part after SETUP, global.c `GLO_HSET` in GLO_ORD, PG_HSET still its page, SYSTEM's tabs drawn on it, no SYSTEM label so the six fit; the TUTORIAL's HOME lesson GENERATOR, PERFORM, HOME held twice: 30 steps) (PG_HSET, global.c hset_*: K1 VIEW `ui.blocks` kept in
   `bkeys.bk[BK_VIEW]`, K2 WAVE TYPE `wstyle`, K3 WAVE ZOOM `wzoom` (SETUP's K2 before), K4 BREAK TIME (MIDI's K4 before)).
   Navigation (0.9.2): on pages with tabs SELECT the top ones, ALGORITHM those below (EFFECTS: the slot / MAIN MORE MOD;
   SONG, MIX, SYSTEM, OVERLAY: their tabs; PATTERN: SELECT the lanes as ALGORITHM, 0.9.3); where those two move everywhere,

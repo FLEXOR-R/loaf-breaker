@@ -24,12 +24,16 @@ wait 100
 turn SELECT 1 10
 wait 100
 turn SELECT 1 10
+wait 100
+turn SELECT 1 10
 wait 300
 expect gpage 3
 expect sfx_on 0
 tap HOME
 wait 200
 tap GLO
+wait 100
+turn SELECT 1 10
 wait 100
 turn SELECT 1 10
 wait 100
@@ -44,6 +48,8 @@ tap HOME
 wait 600
 shot fx_crt.png
 tap GLO
+wait 100
+turn SELECT 1 10
 wait 100
 turn SELECT 1 10
 wait 100
@@ -64,6 +70,8 @@ wait 100
 turn SELECT 1 10
 wait 100
 turn SELECT 1 10
+wait 100
+turn SELECT 1 10
 wait 300
 key w1 down
 wait 30
@@ -76,6 +84,8 @@ tap HOME
 wait 600
 shot fx_grain.png
 tap GLO
+wait 100
+turn SELECT 1 10
 wait 100
 turn SELECT 1 10
 wait 100
@@ -96,6 +106,8 @@ wait 100
 turn SELECT 1 10
 wait 100
 turn SELECT 1 10
+wait 100
+turn SELECT 1 10
 wait 300
 key w3 down
 wait 30
@@ -108,6 +120,8 @@ tap HOME
 wait 600
 shot fx_shake.png
 tap GLO
+wait 100
+turn SELECT 1 10
 wait 100
 turn SELECT 1 10
 wait 100
@@ -128,6 +142,8 @@ wait 100
 turn SELECT 1 10
 wait 100
 turn SELECT 1 10
+wait 100
+turn SELECT 1 10
 wait 300
 key w5 down
 wait 30
@@ -140,6 +156,8 @@ tap HOME
 wait 600
 shot fx_8bit.png
 tap GLO
+wait 100
+turn SELECT 1 10
 wait 100
 turn SELECT 1 10
 wait 100
@@ -161,6 +179,8 @@ tap HOME
 wait 600
 shot fx_vhs_rgb.png
 tap GLO
+wait 100
+turn SELECT 1 10
 wait 100
 turn SELECT 1 10
 wait 100

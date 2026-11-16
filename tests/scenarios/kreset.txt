@@ -20,6 +20,8 @@ wait 150
 turn SELECT 1 10
 wait 150
 turn SELECT 1 10
+wait 100
+turn SELECT 1 10
 wait 150
 turn SELECT 1 10
 wait 150
@@ -47,6 +49,8 @@ tap GLO
 wait 150
 turn SELECT 1 10
 wait 150
+turn SELECT 1 10
+wait 100
 turn SELECT 1 10
 wait 150
 turn SELECT 1 10

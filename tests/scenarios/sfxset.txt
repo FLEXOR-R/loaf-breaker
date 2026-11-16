@@ -10,6 +10,8 @@ wait 100
 turn SELECT 1 10
 wait 100
 turn SELECT 1 10
+wait 100
+turn SELECT 1 10
 wait 300
 expect gpage 4
 turn K2 -10 10

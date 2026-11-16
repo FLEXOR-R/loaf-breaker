@@ -65,7 +65,7 @@ static void perc_clip(void)
 }
 static int sel_bt_page(void)             /* (0.9.26, FLEXOR: the pages where SEL + ALGORITHM is BREAK TIME) */
 {
-    return ui.page <= PG_GEN || ui.page == PG_HSET || ui.page == PG_MIX || (ui.page == PG_OVL && ui.opage) ||
+    return ui.page <= PG_GEN || ui.page == PG_MIX || (ui.page == PG_OVL && ui.opage) ||
            (ui.page == PG_TRACK && ui.tpage) || (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK);
 }
 static void kfx_open(int on)             /* to KICK FX (on), or the FX page back on the chain */
@@ -723,8 +723,8 @@ static void input(void)
         ui.home_t = now;                 /* (LOAF BREAKER: held 0.35 s on PERFORM / GENERATOR: the CDJ view) */
     if (bdn & 1u << B_HOME) {            /* HOME: PERFORM; again (let go alone), GENERATOR, and back */
         tut_home++;                      /* (the TUTORIAL's count; its HOME step on PERFORM: it stays) */
-        if (ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_HSET) {   /* (TEST: HOME is PERFORM and
-                                          * GENERATOR; 0.9.2 SETTINGS) */
+        if (ui.page == PG_HOME || ui.page == PG_GEN) {   /* (TEST: HOME is PERFORM and GENERATOR; SETTINGS 0.9.2-0.9.55,
+                                          * SYSTEM's since) */
             ui.home_hold = 1u;
             ui.home_combo = (uint8_t)(ui.page == PG_HOME && tut_home_stay());
         } else {
@@ -735,8 +735,8 @@ static void input(void)
     }
     if (ui.home_hold && !(btn & 1u << B_HOME)) {
         ui.home_hold = 0u;
-        if (!ui.home_combo && (ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_HSET)) {
-            ui.page = ui.page == PG_HOME ? PG_GEN : ui.page == PG_GEN ? PG_HSET : PG_HOME;   /* (0.9.2: SETTINGS third) */
+        if (!ui.home_combo && (ui.page == PG_HOME || ui.page == PG_GEN)) {
+            ui.page = ui.page == PG_HOME ? PG_GEN : PG_HOME;   /* (0.9.56, FLEXOR: two tabs, SETTINGS in SYSTEM) */
             ui.redraw |= RG_FOOT | RG_BLOCKS;
             page_say();
         }
@@ -748,7 +748,8 @@ static void input(void)
             tut_quit();
     } else if (bdn & 1u << B_GLO && rst_confirm())
         ;                                /* (LOAF BREAKER, 0.239: RESET's five clicks done: GLO resets) */
-    else if (bdn & 1u << B_GLO && ui.page == PG_GLOBAL && ui.gpage != GP_FILL && ui.gpage != GP_BREAK)
+    else if (bdn & 1u << B_GLO && ((ui.page == PG_GLOBAL && ui.gpage != GP_FILL && ui.gpage != GP_BREAK) ||
+                                   ui.page == PG_HSET))
         home_back();                     /* (LOAF BREAKER, 0.9.2, FLEXOR: SYSTEM, GLO again: HOME; SELECT its parts) */
     else if (bdn & 1u << B_GLO)          /* GLOBAL: MIDI clock and Bluetooth; again, the pitch; again, BT audio */
         global_part(glo_next(1));        /* (LOAF BREAKER: SYSTEM's parts: MIDI, SETUP, EFFECTS, FX SET, RESET) */
@@ -1197,7 +1198,8 @@ static void input(void)
             page_say();
             continue;
         }
-        if (k == EN_SELECT && ui.page == PG_GLOBAL && ui.gpage != GP_FILL && ui.gpage != GP_BREAK) {   /* (0.9.2,
+        if (k == EN_SELECT && ((ui.page == PG_GLOBAL && ui.gpage != GP_FILL && ui.gpage != GP_BREAK) ||
+                               ui.page == PG_HSET)) {   /* (0.9.2,
                                           * FLEXOR: SYSTEM, SELECT its parts: MIDI, SETUP, EFFECTS, FX SET, RESET) */
             global_part(glo_next(d));
             continue;
@@ -1250,7 +1252,8 @@ static void input(void)
                     seq_lane_step(1);
                 page_say();
                 ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
-            } else if (ui.page == PG_GLOBAL)   /* GLOBAL: its part (LOAF BREAKER: SYSTEM's) */
+            } else if (ui.page == PG_GLOBAL || ui.page == PG_HSET)   /* GLOBAL: its part (LOAF BREAKER: SYSTEM's;
+                                          * 0.9.56 its SETTINGS) */
                 global_part(glo_next(d));
             else if (ui.page == PG_KICK) {    /* LOAF BREAKER: the KICK menu: the next part of its section */
                 kick_sect_step(d);
@@ -1402,7 +1405,7 @@ static void leds(void)
     if (st.playing && plat_ms() - ui.kick_t >= 70u)   /* (LOAF BREAKER TEST: PLAY blinks off on each kick) */
         b |= 1u << B_PLAY;
     static const uint8_t PAGE_BTN[NPAGES] = {B_HOME, B_HOME, B_FX, B_GLO, B_EDIT, B_LFO, B_SEQ, B_EDIT, B_ENV, B_ARP,
-                                             B_EDIT, B_HOME};   /* (TEST: KICK EQ under EDIT) */
+                                             B_EDIT, B_GLO};   /* (TEST: KICK EQ under EDIT; 0.9.56 SETTINGS under GLO) */
     b |= 1u << (IS_KFX() || (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK) ? B_EDIT : ui.page == PG_GLOBAL &&
                 ui.gpage == GP_FILL ? B_SEQ : PAGE_BTN[ui.page]);   /* (LOAF BREAKER: SOUNDS' BREAK, PATTERN's GROOVE) */
     if (ui.rec)
@@ -1514,12 +1517,12 @@ static int32_t tab(int32_t x, const char *s, int on)
 }
 /* the pages' buttons as printed, GLOBAL's parts, SEQ's lanes: for the tabs and the header (page_say) */
 static const char *const BTN[NPAGES] = {"HOME", "HOME", "FX", "GLO", "EDIT", "LFO", "SEQ", "EDIT", "ENV", "ARP",
-                                        "EDIT", "HOME"};
+                                        "EDIT", "GLO"};   /* (0.9.56: SETTINGS, SYSTEM's) */
 static const char *const GPART[NGPART] = {"MIDI", "PITCH", "SETUP", "EFFECTS", "FX SET", "RESET"};
 /* LOAF BREAKER (0.201): each button a domain, its name on the screen (the button keeps its print): LIVE (HOME), SOUNDS
  * (EDIT: the kick, the drums, the melody, the break), PATTERN (SEQ), SONG (ENV), MIX (LFO), EFFECTS (FX), SYSTEM (GLO) */
 static const char *const DOM[NPAGES] = {"LIVE", "LIVE", "EFFECTS", "SYSTEM", "SOUNDS", "MIX", "PATTERN", "SOUNDS", "SONG",
-                                        "OVERLAY", "SOUNDS", "LIVE"};
+                                        "OVERLAY", "SOUNDS", "SYSTEM"};
 static const char *dom_name(void)
 {
     if (IS_KFX() || (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK))
@@ -1543,15 +1546,18 @@ static void draw_tabs(void)
                           ? "DRUMS" : ui.page == PG_GLOBAL && ui.gpage == GP_BREAK
                           ? "BREAK" : dom_name();
         x = ui.page == PG_TRACK || ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX() ||
-            (ui.page == PG_OVL && !set.novice) ? 2   /* (0.9.50: ARP's four tabs want the room too) */   /* (LOAF BREAKER: the
+            (ui.page == PG_OVL && !set.novice) || ui.page == PG_HSET ||
+            (ui.page == PG_GLOBAL && ui.gpage != GP_FILL && ui.gpage != GP_BREAK) ? 2   /* (0.9.50: ARP's four tabs want the room too) */   /* (LOAF BREAKER: the
                                           * KICK menu's six sections want the room; its picture says KICK n) */
             : cv_text(4, 1, &FONT_T, lab, C_WHITE) + 6;
     }
-    if (ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_HSET) {   /* HOME: PERFORM, GENERATOR, SETTINGS */
+    if (ui.page == PG_HOME || ui.page == PG_GEN) {   /* HOME: PERFORM, GENERATOR (0.9.56, FLEXOR: SETTINGS in SYSTEM) */
         x = tab(x, "PERFORM", ui.page == PG_HOME);
-        x = tab(x, "GENERATOR", ui.page == PG_GEN);
-        tab(x, "SETTINGS", ui.page == PG_HSET);
+        tab(x, "GENERATOR", ui.page == PG_GEN);
     }
+    else if (ui.page == PG_HSET)         /* (0.9.56: SYSTEM's tabs, SETTINGS lit) */
+        for (i = 0; i < NGLO; i++)
+            x = tab(x, GLO_ORD[i] == GLO_HSET ? "SETTINGS" : GPART[GLO_ORD[i]], GLO_ORD[i] == GLO_HSET);
     else if (ui.page == PG_OVL) {        /* (LOAF BREAKER: EXPERT, its three tabs; BEGINNER, ARP EFFECTS alone: no tab) */
         if (!set.novice)
             for (i = 0; i < 5u; i++)     /* (0.259, FLEXOR: MORE gone for now; 0.9.49 SEL KEYS; 0.9.50 SEL WHITE; 0.9.54 KITS) */
@@ -1564,7 +1570,7 @@ static void draw_tabs(void)
         tab(x, break_name(set.brk), 1);
     else if (ui.page == PG_GLOBAL && ui.gpage != GP_FILL)   /* (SEQ's SETTINGS: SEQ's tabs, below) */
         for (i = 0; i < NGLO; i++)
-            x = tab(x, GPART[GLO_ORD[i]], GLO_ORD[i] == ui.gpage);
+            x = tab(x, GLO_ORD[i] == GLO_HSET ? "SETTINGS" : GPART[GLO_ORD[i]], GLO_ORD[i] == ui.gpage);
     else if (ui.page == PG_MIX) {
         x = tab(x, "LEVELS", !ui.mpage);
         x = tab(x, "SENDS", ui.mpage == 1u);
@@ -2156,7 +2162,7 @@ void app_frame(void)
     {                                    /* LOAF BREAKER: PERFORM and GENERATOR show the CDJ view (the default);
                                           * HOME held 0.35 s there: the slice blocks instead, held again: the CDJ
                                           * view (HOME's next part not taken); ~30 times a second (0.254) */
-        int home = ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_HSET;
+        int home = ui.page == PG_HOME || ui.page == PG_GEN;
         if (!(ui.btn & 1u << B_HOME))
             ui.cdj_skip = 0u;
         if (!ui.cdj_skip && home && ui.btn & 1u << B_HOME && now - ui.home_t >= 350u) {
