@@ -37,6 +37,9 @@ void brk_fx_late_limit(uint32_t on) { p_late = on; }
 static volatile uint32_t p_tail;         /* LOAF BREAKER (0.9.58): KILL BREAK's tail ringing: the plate after the chain
                                           * when no REVERB in it has it, fed by the throws into the reverb */
 void brk_fx_tail(uint32_t on) { p_tail = on; }
+static volatile uint32_t p_kecho;        /* LOAF BREAKER (0.9.60): KILL BREAK's echo ringing: 1 + its time (DUB's 1/8 3/16
+                                          * 1/4 3/8), the delay after the chain set for it while the DUB pad isn't held */
+void brk_fx_kill_echo(uint32_t t) { p_kecho = t; }
 static float djk_s;                      /* its smoothed position */
 const char *const BRK_FXT_NAME[BRK_NFXT] = {"EMPTY", "FILTER", "CRUNCH", "DRIVE", "PUNCH", "FLANGER", "RING MOD",
                                             "TREMOLO", "REVERB", "DELAY", "EQ", "TAPE", "MB COMP", "CLIP"};
@@ -1262,7 +1265,9 @@ void brk_fx_process(const float *in, const float *thru, const float *echo, const
     /* -1 .. 0: low-pass 18 kHz down to 80 Hz; 0 .. 1: high-pass 20 Hz up to 6 kHz (exponential sweeps) */
     dj_hz = dj_hp ? 20.0f * brk_exp2f(dj_s * 8.2f) : 18000.0f * brk_exp2f(dj_s * 7.8f);
     djc = svf_coef(dj_hz, throw ? brk_clampf(fx.flt_res, 0.0f, 0.95f) : 0.35f);
-    if (dub_n)                           /* the delay after the chain (no DELAY slot): the DUB pad's settings */
+    if (dub_n && p_kecho && !dub_on)     /* (0.9.60: KILL BREAK's echo: its time, a fading repeat, at a good level) */
+        dl_settings(&dub_c, DUB_DIV_DLY[(p_kecho - 1u) % BRK_DUB_DIVS], 0.55f, 0.45f, 0.8f);
+    else if (dub_n)                      /* the delay after the chain (no DELAY slot): the DUB pad's settings */
         dl_settings(&dub_c, DUB_DIV_DLY[fx.dub_div % BRK_DUB_DIVS], fx.dub_fb, fx.dub_tone,
                     brk_clampf(fx.dub_mix, 0.0f, 1.0f));
     rv_taken = dl_taken = 0;

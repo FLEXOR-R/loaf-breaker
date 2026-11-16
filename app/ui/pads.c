@@ -183,6 +183,8 @@ static const char *pad_knob_name(int pad, int k)
             return tk == 1 ? "RATE" : tk == 2 ? "SWEEP" : "TIME";
         }
     }
+    if (pad == BKF_KBR && k == 1 && kb_mode() == KB_BAR)
+        return "ECHO";                   /* (0.9.60: BAR END's K2, its echo) */
     return PAD_KNOB[pad][k & 3];
 }
 /* -1..1 as the DJ filter's frequency: "LP 340HZ" / "HP 1.2K" */
@@ -312,7 +314,10 @@ static void pad_knob_value(int pad, int k, char *t)
                                                                                                "1/2", "1 BAR", "2 BARS"};
         if (k == 0)
             text_cat(t, KM[kb_mode()]);
-        else if (k == 1)
+        else if (k == 1 && kb_mode() == KB_BAR) {   /* (0.9.60: ECHO, its time) */
+            static const char *const KE[KB_ECHOS] = {"OFF", "1/8", "3/16", "1/4", "3/8"};
+            text_cat(t, KE[kb_echo()]);
+        } else if (k == 1)
             text_cat(t, kb_mode() == KB_FADE || kb_mode() == KB_ENDF ? KT[kb_time()] : "-");
         else if (k == 2) {
             if (kb_mode() != KB_BAR)
@@ -422,6 +427,8 @@ static void pad_knob_turn(int pad, int k, int32_t d)
     case BKF_KBR:                        /* (0.9.58: KILL BREAK) */
         if (k == 0)
             kb_put((uint32_t)clamp((int32_t)kb_mode() + (d > 0 ? 1 : -1), 0, KB_N - 1), kb_latch(), kb_time(), kb_rev());
+        else if (k == 1 && kb_mode() == KB_BAR)   /* (0.9.60: BAR END's ECHO) */
+            kb_echo_put((uint32_t)clamp((int32_t)kb_echo() + (d > 0 ? 1 : -1), 0, KB_ECHOS - 1));
         else if (k == 1)
             kb_put(kb_mode(), kb_latch(), (uint32_t)clamp((int32_t)kb_time() + (d > 0 ? 1 : -1), 0, KB_TIMES - 1), kb_rev());
         else if (k == 2)
@@ -431,6 +438,7 @@ static void pad_knob_turn(int pad, int k, int32_t d)
         kbrk_mode = (uint8_t)kb_mode();
         kbrk_t16 = KB_T16[kb_time()];
         kbrk_rev = (uint8_t)kb_rev();
+        kbrk_echo = (uint8_t)(kb_mode() == KB_BAR ? kb_echo() : 0u);
         break;
     case PAD_REVERSE:
         if (k == 3) goto lat;
@@ -647,7 +655,7 @@ static void draw_fx_band(int pad, const brk_status_t *st, uint32_t now, int32_t 
                 cv_rect(20 + i, FX_MID + 6 - (220 - i) / 7, 1, (220 - i) / 7 + 1, C_DIM);
         cv_text(20, FX_MID + 11, &FONT_XS, KD[mo], C_GRAY);
         if (mo == KB_BAR)
-            cv_text(20, FX_MID + 22, &FONT_XS, "ITS LAST 8TH INTO THE REVERB", C_GRAY);
+            cv_text(20, FX_MID + 22, &FONT_XS, kb_echo() ? "ITS LAST 8TH INTO THE ECHO AND REVERB" : "ITS LAST 8TH INTO THE REVERB", C_GRAY);
         cv_text(234 - text_w(&FONT_XS, kbrk_hold ? "OUT" : "BACK"), 2, &FONT_XS, kbrk_hold ? "OUT" : "BACK",
                 kbrk_hold ? C_HI : C_GRAY);
         break;

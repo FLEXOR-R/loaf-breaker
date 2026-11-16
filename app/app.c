@@ -458,6 +458,10 @@ static uint32_t kb_cfg(void) { return (kx2.rsv[KB_RSV] & 0xC0u) == KB_TAG ? kx2.
 static uint32_t kb_mode(void) { return kb_cfg() & 3u ? (kb_cfg() & 3u) % KB_N : KB_FADE; }
 static uint32_t kb_latch(void) { return kb_cfg() >> 2 & 1u; }
 static uint32_t kb_time(void) { return (kb_cfg() >> 3 & 7u) % KB_TIMES; }
+#define KB_ECHOS 5u                      /* (0.9.60, FLEXOR: BAR END's ECHO, K2: OFF, 1/8, 3/16, 1/4, 3/8; set.rsv6[0] 0xE5,
+                                          * rsv6[1] it; untagged 3/16) */
+static uint32_t kb_echo(void) { return set.rsv6[0] == 0xE5u && set.rsv6[1] < KB_ECHOS ? set.rsv6[1] : 2u; }
+static void kb_echo_put(uint32_t e) { set.rsv6[0] = 0xE5u; set.rsv6[1] = (uint8_t)(e % KB_ECHOS); }
 static uint32_t kb_rev(void) { return (kx2.rsv[KB_RSV] & 0xC0u) == KB_TAG && kx2.rsv[KB_RSV + 1u] <= 100u ? kx2.rsv[KB_RSV + 1u] : 60u; }
 static void kb_put(uint32_t mode, uint32_t latch, uint32_t time, uint32_t rev)
 {
@@ -1348,7 +1352,7 @@ static volatile int16_t kscope[KSC_W];
 static volatile uint32_t kscope_hit;
 static volatile uint8_t kick_hold;       /* LOAF BREAKER: KIL (the tenth black key) held: the sequencer's kicks quiet */
 static volatile float kbrk_g = 1.0f;     /* (0.9.58: KILL BREAK's gain on the break now, the render's) */
-static volatile uint8_t kbrk_hold, kbrk_mode, kbrk_t16, kbrk_rev;   /* (0.9.58: KILL BREAK on, its MODE, its fade in
+static volatile uint8_t kbrk_hold, kbrk_mode, kbrk_t16, kbrk_rev, kbrk_echo;   /* (0.9.58: KILL BREAK on, its MODE, its fade in
                                           * 16ths, its REVERB %: the main loop's, for the render) */
 static volatile uint8_t kick_x2;         /* LOAF BREAKER (0.9.48, FLEXOR): bit 0 X2 on: the kicks doubled, a kick on every odd
                                           * step (1, 3, 5 .. 15) of a bar that has kicks: four to the floor becomes eight;
@@ -2273,8 +2277,11 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             if (send)
                 ktail = (uint32_t)(8.0f * (float)BRK_SR / (float)APP_BLOCK);   /* (8 s) */
             for (i = 0; i < m; i++) {
-                if (send)                /* (its last 8th thrown into the reverb before the cut) */
+                if (send) {              /* (its last 8th thrown into the reverb before the cut, and the echo, 0.9.60) */
                     verb[i] += mono[i] * (float)kbrk_rev * 0.015f;
+                    if (kbrk_echo)
+                        echo[i] += mono[i] * 0.9f;
+                }
                 if (kcut >= 0 && (int32_t)i == kcut && kbrk_hold && mode == KB_BAR)
                     kdone = 1u;
                 if (!kbrk_hold)
@@ -2284,9 +2291,10 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                 else if (mode == KB_CUT || kdone)
                     kg *= 0.97f;         /* (out in ~1.5 ms: no click) */
                 mono[i] *= kg;
-                echo[i] *= kg;
-                if (!send)
+                if (!send) {
+                    echo[i] *= kg;
                     verb[i] *= kg;
+                }
             }
             kbrk_g = kg;
             kcut = -1;                   /* (the next block: where its bar ends, if it does) */
@@ -2296,6 +2304,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                     kcut = (int32_t)rem;
             }
             brk_fx_tail(ktail > 0u);
+            brk_fx_kill_echo(ktail && kbrk_echo ? kbrk_echo : 0u);
             if (ktail)
                 ktail--;
             meter_brk = meter(mono, m, meter_brk);

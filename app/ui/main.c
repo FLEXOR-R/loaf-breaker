@@ -693,6 +693,7 @@ static void input(void)
         kbrk_mode = (uint8_t)kb_mode();
         kbrk_t16 = KB_T16[kb_time()];
         kbrk_rev = (uint8_t)kb_rev();
+        kbrk_echo = (uint8_t)(kb_mode() == KB_BAR ? kb_echo() : 0u);
         kbrk_hold = kb_latch() ? (uint8_t)!kbrk_hold : 1u;
         ui.pad_focus = (int8_t)BKF_KBR;
         ui.pad_since = plat_ms();
