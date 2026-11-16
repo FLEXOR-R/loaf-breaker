@@ -15,9 +15,9 @@ expect fx_focus 2
 turn PRESET 1 80
 wait 300
 expect fx_type 6
-key b10 down
+key b8 down
 wait 100
-key b10 up
+key b8 up
 wait 300
 expect sub_off 1
 expect subdrv -1
@@ -54,9 +54,9 @@ key b9 up
 wait 300
 expect terror 0
 shot fe_dst.png
-key b10 down
+key b8 down
 wait 100
-key b10 up
+key b8 up
 wait 300
 expect sub_off 0
 shot fe_sub.png

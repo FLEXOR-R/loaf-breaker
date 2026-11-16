@@ -25,7 +25,7 @@ expect kx2on 4
 wait 1300
 expect khits >8
 # KIL held: the triplets off and quiet
-key b8 down
+key b10 down
 wait 100
 expect kx2on 0
 wait 1300
@@ -39,7 +39,7 @@ expect kx2on 0
 shot kil_tri.png
 wait 1000
 expect khits 0
-key b8 up
+key b10 up
 wait 200
 # KIL let go: TRI again
 key b0 down

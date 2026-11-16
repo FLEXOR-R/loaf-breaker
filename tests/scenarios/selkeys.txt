@@ -65,11 +65,11 @@ wait 300
 turn SELECT 2 10
 wait 300
 expect opage 2
-key b10 down
+key b8 down
 wait 100
-key b10 up
+key b8 up
 wait 200
-expect bk_key 10
+expect bk_key 8
 expect selk 0
 turn K3 17 10
 wait 300
@@ -77,18 +77,18 @@ expect selk 17
 shot sk_page.png
 tap HOME
 wait 200
-key b10 down
+key b8 down
 wait 100
-key b10 up
+key b8 up
 wait 200
 expect sub_off 1
 expect kx2on 0
 press SEL
 wait 400
 shot sk_selheld.png
-key b10 down
+key b8 down
 wait 100
-key b10 up
+key b8 up
 wait 100
 release SEL
 wait 200
@@ -99,17 +99,17 @@ wait 1300
 expect khits 8
 tap PLAY
 wait 300
-key b10 down
+key b8 down
 wait 100
-key b10 up
+key b8 up
 wait 200
 expect sub_off 0
 expect kx2on 1
 press SEL
 wait 100
-key b10 down
+key b8 down
 wait 100
-key b10 up
+key b8 up
 wait 100
 release SEL
 wait 200
@@ -119,9 +119,9 @@ wait 200
 turn SELECT 2 10
 wait 200
 expect opage 2
-key b10 down
+key b8 down
 wait 100
-key b10 up
+key b8 up
 wait 200
 turn K3 -17 10
 wait 300

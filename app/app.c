@@ -235,7 +235,8 @@ enum { BKP_CHOPPAH, BKP_FLEXOR, BKP_CUSTOM, BKP_N };
 static const uint8_t BK_LAY[2][11] = {{PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, PAD_REVERSE, PAD_FREEZE, PAD_HALF,
                                        PAD_TAPESTOP, PAD_GATE, PAD_RANDOM, PAD_FILTER, PAD_DUB},
                                       {PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, BKF_ARP, BKF_ARP, BKF_TRI,
-                                       BKF_X4, BKF_X2, BKF_KIL, BKF_DST, BKF_SUB}};   /* (FLEXOR LAYOUT, 0.9.58, FLEXOR:
+                                       BKF_X4, BKF_X2, BKF_SUB, BKF_DST, BKF_KIL}};   /* (FLEXOR LAYOUT, 0.9.58, FLEXOR (0.9.61:
+                                          * SUB key 9, KIL key 11, swapped):
                                           * key 4 ARP, 5 ARP RISE (its own effect, flexor_lay_fix), 6 KICK TRIPLETS, 7
                                           * KICKS X4, 8 KICKS X2; REC KILL BREAK; 0.9.53-0.9.57: VNL GAT FLT ARP ARP from key
                                           * 4; 0.9.26-0.9.52: RND HLF FLT ARP VNL) */

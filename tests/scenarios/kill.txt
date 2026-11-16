@@ -62,44 +62,44 @@ tap HOME
 tap PLAY
 wait 1300
 expect khits 4
-key b8 down
+key b10 down
 wait 100
 expect khits 0
 wait 1500
 expect khits 0
 shot kil_held.png
-key b8 up
+key b10 up
 wait 1500
 expect khits 4
 # KIL's LATCH (K1 while it is held, right): let go, the kicks stay quiet; KIL again: back. K1 left: held only again
-key b8 down
+key b10 down
 wait 50
 turn K1 1 10
 wait 100
 shot kil_latch.png
-key b8 up
+key b10 up
 wait 1500
 expect khits 0
-key b8 down
+key b10 down
 wait 30
-key b8 up
+key b10 up
 wait 1500
 expect khits 4
-key b8 down
+key b10 down
 wait 50
 turn K1 -1 10
 wait 100
-key b8 up
+key b10 up
 wait 1500
 expect khits 4
 # (0.9.50, FLEXOR) the kicks back with KIL: the drums' filter OFF at once (never a drop filtered by mistake)
-key b8 down
+key b10 down
 wait 50
 press SEL
 turn SELECT -1 10
 release SEL
 wait 100
 expect kick_dj -16
-key b8 up
+key b10 up
 wait 100
 expect kick_dj 0

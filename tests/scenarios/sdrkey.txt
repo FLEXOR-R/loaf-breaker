@@ -8,11 +8,11 @@ wait 300
 turn SELECT 1 10
 wait 300
 expect opage 1
-key b10 down
+key b8 down
 wait 100
-key b10 up
+key b8 up
 wait 200
-expect bk_key 10
+expect bk_key 8
 expect bk_fn 14
 turn K3 5 10
 wait 200
@@ -22,16 +22,16 @@ shot a_blackkeys_sdr.png
 tap HOME
 wait 300
 expect subdrv -1
-key b10 down
+key b8 down
 wait 100
-key b10 up
+key b8 up
 wait 200
 expect subdrv >0
 expect sub_off 0
 shot sdr_on.png
-key b10 down
+key b8 down
 wait 100
-key b10 up
+key b8 up
 wait 200
 expect subdrv -1
 # the SUB FX switch off (SUB, key 9 turned to SUB): SDR on turns it on again
@@ -54,9 +54,9 @@ wait 100
 key b9 up
 wait 200
 expect sub_off 1
-key b10 down
+key b8 down
 wait 100
-key b10 up
+key b8 up
 wait 200
 expect sub_off 0
 expect subdrv >0
