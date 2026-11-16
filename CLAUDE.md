@@ -129,7 +129,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   BREADCRUMBZ, 11 letters, is the widest that fits); set.skin
   carries SKIN_NEW (bit 7), an older save's 0..17 mapped by SKIN_OLD; read it with `skin_idx()`. SETUP shows two rows
   of twelve swatches.
-- SETUP (0.213, FLEXOR): the knobs in the screen's order, K1 SKIN, K2 (WAVE ZOOM until 0.9.1: HOME SETTINGS), K3 MODE, K4 AUTO SAVE
+- SETUP (0.213, FLEXOR): the knobs in the screen's order, K1 SKIN, K2 KICK EQ (0.9.57, FLEXOR, EXPERT: OFF leaves every kick's EQ out, flat, the EQs untouched; app.c `keq_flat`, never saved, ON at every start: app_init; WAVE ZOOM until 0.9.1: HOME SETTINGS), K3 MODE, K4 AUTO SAVE
   (0.9.26, FLEXOR, asked several times: never while PLAY runs, once PLAY has been stopped 20 s, `AS_REST`; touching the
   FM-1 stopped holds nothing, his choice; never make it sooner);
   the METER moved to MIDI's K3, EXPERT only (BEGINNER turns it off).

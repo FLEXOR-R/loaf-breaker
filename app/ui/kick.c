@@ -1528,6 +1528,8 @@ static void draw_keq(void)
             cv_line(x - 1, py, x, y, MB_COL[1]);
         py = y;
     }
+    if (keq_flat)                        /* (0.9.57: left out, SYSTEM › SETUP K2) */
+        cv_text(4, 1, &FONT_XS, "OFF: SYSTEM > SETUP K2 (FLAT)", C_AMB);
     ksect_row(36);
     cv_blit(0, 88);
     cv_begin(240, 52, C_BLACK);

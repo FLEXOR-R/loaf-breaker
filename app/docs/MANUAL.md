@@ -828,7 +828,7 @@ whole screen changes at once), 24 chosen by FLEXOR, two rows of twelve swatches:
 TESS, OUTRUN, THUNDER, CYBERPUNK, MC SALO, ACID, RED, GARRY, PIP-BOY, NEON, BLACKLIGHT, PATINA, SYNTHWAVE, MIAMI, ELECTRIC,
 ARCTIC, BREADCRUMBZ, IRIS, GLUCKSMAN, MAXENCE (an FM-1 updated from before keeps its colour, or the nearest left). **WAVE ZOOM** (K2 here until 0.9.1: SYSTEM › SETTINGS K3 now, PRESETS on HOME too), how much of the past HOME's scrolling wave (the
 CDJ view) holds across the screen: 1/2, 2/3, 5/6 of a bar (zoomed in), 1 BAR (as it was), 1 1/4, 1 1/2, 2 BARS (zoomed
-out). K3 **MODE**: TUTORIAL (left of BEGINNER: the tutorial, above), BEGINNER or EXPERT (right). **BEGINNER** keeps
+out). K2 **KICK EQ** (0.9.57, FLEXOR; EXPERT): right ON, left **OFF (FLAT)**: every kick's EQ (EQ B and EQ S, KICK 1–20) left out at once, the kicks heard flat, the EQs themselves untouched (the KICK EQ page says OFF); it is never saved: **ON again at every start**. K3 **MODE**: TUTORIAL (left of BEGINNER: the tutorial, above), BEGINNER or EXPERT (right). **BEGINNER** keeps
 each thing to its essentials, to play the machine before learning it: the **KICK** is three pages, EDIT again (or
 ALGORITHM) going round them: **KICK** (K1 **PRESET**, the built-in kicks; K2 **DISTO**; K3 **SUB DRIVE**, the SUB
 through its drive, OFF at the left; K4 **DRIVE**, the whole kick's), **SHAPE** (K1 **P DROP**, the pitch's fall at the

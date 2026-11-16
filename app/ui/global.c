@@ -102,8 +102,8 @@ static void global_value(int i, char *t)
                                           * K2 WAVE ZOOM, K3 MODE, K4 AUTO SAVE */
         if (i == 0)                      /* (LOAF BREAKER, 0.237: the names nine letters at most, to fit its column) */
             text_cat(t, SKIN_NAME[skin_idx()]);
-        else if (i == 1)                 /* (WAVE ZOOM: HOME's SETTINGS since 0.9.2) */
-            ;
+        else if (i == 1)                 /* (0.9.57, FLEXOR: KICK EQ, EXPERT's; WAVE ZOOM until 0.9.1) */
+            text_cat(t, keq_flat ? "OFF (FLAT)" : "ON");
         else if (i == 2)                 /* (TUTORIAL, left of BEGINNER) */
             text_cat(t, tut_on() ? "TUTORIAL" : set.novice ? "BEGINNER" : "EXPERT");
         else
@@ -134,7 +134,7 @@ static void global_value(int i, char *t)
 /* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's BREAK its LEVEL alone (K4; the pitch: OCT), GROOVE its SWING alone */
 static int glo_knob_ok(int i)
 {
-    return !set.novice || ui.page != PG_GLOBAL || (ui.gpage == GP_FILL ? i < 3 : ui.gpage == GP_BREAK ? i == 3 : 1);
+    return !set.novice || ui.page != PG_GLOBAL || (ui.gpage == GP_FILL ? i < 3 : ui.gpage == GP_BREAK ? i == 3 : ui.gpage == 2u ? i != 1 : 1);
 }
 static void global_turn(int i, int32_t d)
 {
@@ -195,8 +195,13 @@ static void global_turn(int i, int32_t d)
             changed();                   /* (settings_apply: skin_apply) */
             app_say("SKIN", SKIN_NAME[skin_idx()]);
             ui.redraw = RG_ALL;
-        } else if (i == 1) {             /* (K2 WAVE ZOOM until 0.9.1: HOME's SETTINGS, FLEXOR) */
-            app_say("WAVE ZOOM", "HOME > SETTINGS");
+        } else if (i == 1) {             /* (0.9.57, FLEXOR: K2 KICK EQ, every kick's EQ on (right) or left out, flat
+                                          * (left); the EQs untouched, nothing saved: ON at every start. K2 WAVE ZOOM
+                                          * until 0.9.1: HOME's SETTINGS) */
+            keq_flat = d < 0 ? 1u : 0u;
+            kick_apply();
+            app_say("KICK EQ", keq_flat ? "OFF (FLAT, ALL KICKS)" : "ON");
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
             return;
         } else if (i == 2) {             /* K3 MODE: right EXPERT, left BEGINNER (left again, the TUTORIAL; right from
                                           * it, BEGINNER) */
@@ -455,6 +460,9 @@ static void draw_global(const brk_status_t *st)
         }
         cv_blit(0, 44);
         cv_begin(240, 52, C_BLACK);
+        cv_text(6, 2, &FONT_T, "K2 KICK EQ", C_GRAY);   /* (0.9.57, FLEXOR: every kick's EQ, or none) */
+        cv_text(96, 2, &FONT_T, keq_flat ? "OFF (FLAT)" : "ON", keq_flat ? C_AMB : C_HI);
+        cv_text(96, 14, &FONT_XS, "ALL KICKS, ON AT START", C_DIM);
         cv_text(96, 26, &FONT_XS, "SCREEN EFFECTS: SELECT", C_DIM);   /* (WAVE ZOOM gone, 0.9.25: HOME's SETTINGS) */
         cv_text(6, 38, &FONT_T, "K3 MODE", C_GRAY);
         cv_text(96, 38, &FONT_T, tut_on() ? "TUTORIAL" : set.novice ? "BEGINNER" : "EXPERT", C_HI);

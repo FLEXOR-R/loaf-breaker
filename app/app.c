@@ -720,9 +720,12 @@ static void fx_apply(void)
     }
     brk_fx_tempo((float)set.tempo_x10 * 0.1f);
 }
+static uint8_t keq_flat;                 /* LOAF BREAKER (0.9.57, FLEXOR): SYSTEM › SETUP K2 KICK EQ OFF: every kick's EQ
+                                          * left out (flat), the EQs themselves untouched; never saved: ON at every start */
 static void kick_apply(void)
 {
-    brk_fx_set_kick_eq(set.keq);
+    static const float FLAT[8] = {0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f};
+    brk_fx_set_kick_eq(keq_flat ? FLAT : set.keq);
     kick_send();                         /* (LOAF BREAKER: the kick, its SYNTH, MORPH and CLEAN SUB) */
     kick_set_bass((float)set.kbass[0] * (float)set.kbass[0] * 0.04f, (float)set.kbass[1] * 0.01f,
                   (float)set.kbass[2] * 0.01f, (float)set.kbass[3] * 0.01f);   /* (TEST: its BASS) */
@@ -1833,6 +1836,7 @@ static int16_t rum_line[4096] PLAT_POOL;   /* LOAF BREAKER: the kick's RUMBLE, i
 void app_init(void)
 {
     int fresh = 0;                       /* (0.9.33: no settings saved: a new FM-1) */
+    keq_flat = 0u;                       /* (0.9.57: the KICK EQ on at every start, FLEXOR) */
     kick_rumble_buf(rum_line, 4096u);
     brk_init();
     brk_fx_init();
