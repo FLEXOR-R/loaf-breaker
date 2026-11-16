@@ -883,15 +883,50 @@ typedef struct {
     uint8_t kxh[KMEM_A];                 /* (appended) each kick memory's selk_hi (kx's, as kx_put) */
     uint8_t kpre[4][9];                  /* (appended) LOAF BREAKER: STYLE's PRESET 1-4, the same for every kick: the
                                           * four knobs' codes (sk_code's), their values (0..200, sk_norm's), 1 stored */
+#define NDROPS 8u
+#define DM_N 12u
+    uint8_t dm[NDROPS][DM_N];            /* (appended, 0.9.58, FLEXOR) DROP 1-8, each a whole drop: dm_put's order; the
+                                          * one selected's live in set (drop_*), here when another is picked */
+    uint8_t dsel;                        /* the drop selected (SEL + ENV's, SONG's pages'), 0..7 */
+    uint8_t dtag;                        /* DM_TAG: dm and dsel set (an older save: every drop as its settings) */
 } steps_t;
 #define STEPS_SIZE_OLD offsetof(steps_t, tb)
 #define STEPS_SIZE_TB offsetof(steps_t, kx)   /* (one before the kicks' own knobs) */
 #define STEPS_SIZE_KX offsetof(steps_t, tk)   /* (one before the track items' kicks) */
 #define STEPS_SIZE_TK offsetof(steps_t, kxh)  /* (one before the knobs' fifth bits) */
 #define STEPS_SIZE_KXH offsetof(steps_t, kpre)   /* (one before STYLE's presets) */
+#define STEPS_SIZE_KPRE offsetof(steps_t, dm)   /* (one before the drops, 0.9.58) */
 _Static_assert(sizeof(steps_t) <= 3840u, "a store object holds 3840 bytes");
 
 static steps_t steps PLAT_POOL;
+/* LOAF BREAKER (0.9.58, FLEXOR: "customiser des drops comme si j'avais des patterns de drop ... en assigner des
+ * différents dans les tracks"): DROP 1-8, each a whole drop: DROP's BUILD, AFTER, DROP BREAK, CRASH, BUILD KICK; BUILD's
+ * STYLE, SWEEP, RISER, GAP, TEMPO RISE; BREAK's STILL / ROLL and ROLL FROM, and (11) what its GAP keeps. The one selected
+ * plays SEL + ENV's drops and is what SONG's pages edit, in set; a track's DROP item may pick its own (TRACKS K2) */
+#define DM_TAG 0xD7u
+static void dm_put(uint8_t *m)           /* the drop set, into a memory (its GAP KEEPS, [11], is the memory's own) */
+{
+    m[0] = set.drop_bars, m[1] = set.drop_after, m[2] = set.drop_brk, m[3] = set.drop_crash, m[4] = set.drop_kick;
+    m[5] = set.drop_style, m[6] = set.drop_sweep, m[7] = set.drop_riser, m[8] = set.drop_gap, m[9] = set.drop_accel;
+    m[10] = set.bkeys.bk[BK_BROLL];
+}
+static void dm_get(const uint8_t *m)
+{
+    set.drop_bars = m[0], set.drop_after = m[1], set.drop_brk = m[2], set.drop_crash = m[3], set.drop_kick = m[4];
+    set.drop_style = m[5], set.drop_sweep = m[6], set.drop_riser = m[7], set.drop_gap = m[8], set.drop_accel = m[9];
+    set.bkeys.bk[BK_BROLL] = m[10];
+}
+static void drops_init(void)             /* every drop as the drop set, DROP 1 selected (an older save, RESET ALL) */
+{
+    uint32_t n;
+    for (n = 0; n < NDROPS; n++) {
+        dm_put(steps.dm[n]);
+        steps.dm[n][11] = 0u;
+    }
+    steps.dsel = 0u;
+    steps.dtag = DM_TAG;
+}
+static uint32_t drop_sel(void) { return steps.dsel % NDROPS; }
 
 /* LOAF BREAKER (0.9.2, FLEXOR): KICK 11..20, as KICK 1..10 are kept elsewhere: the kick, its SYNTH, its knobs (kx, kxh)
  * and its KICK LAB; their own store object (OBJ_KMEM2, the hoover notes' old room), saved with the rest. An older save
@@ -1175,6 +1210,7 @@ static int store_all(void)               /* SAVE: the settings, the patterns (th
 {
     if (wiped)                           /* (LOAF BREAKER, 0.263: WIPE MEMORY done: nothing saved until a restart) */
         return 0;
+    dm_put(steps.dm[drop_sel()]);        /* (0.9.58: the drop selected, as set, into its memory) */
     return plat_store_save(OBJ_SETTINGS, &set, sizeof set) == 0 && plat_store_save(OBJ_PAT, &pats, sizeof pats) == 0 &&
            plat_store_save(OBJ_STEP, &steps, sizeof steps) == 0 && grp_save() &&
            plat_store_save(OBJ_KLAB, &klab, sizeof klab) == 0 &&
@@ -1572,7 +1608,7 @@ static void pat_read_back(void)          /* the engine's steps into the pattern 
 static int16_t pcm_a[CH_PCM_MAX] PLAT_POOL;
 #define CH_DUB_LEN 30720u                /* the dub delay's line: 0.70 s a side, 3/8 down to 97 BPM, 1/2 to 172 */
 static int16_t dub_line[CH_DUB_LEN] PLAT_POOL;
-static int16_t ovl_line[2u * OVL_LINE] PLAT_POOL;   /* the overlays' WOBBLE and JET (4 KB) */
+static int16_t ovl_line[2u * OVL_LINE] PLAT_POOL;   /* the overlays' JET (1 KB; 4 KB with WOBBLE until 0.9.57) */
 static brk_break_t brk0;
 static brk_break_t brk_cur[2];           /* the bank's break playing (pcm_a holds it), and the next one's: the render
                                           * keeps its own while the next is written */
@@ -1920,7 +1956,7 @@ void app_init(void)
         }
     }
     int ssz = plat_store_load(OBJ_STEP, &steps, sizeof steps), sok;
-    sok = (ssz == (int)sizeof steps || ssz == (int)STEPS_SIZE_KXH || ssz == (int)STEPS_SIZE_TK || ssz == (int)STEPS_SIZE_KX ||
+    sok = (ssz == (int)sizeof steps || ssz == (int)STEPS_SIZE_KPRE || ssz == (int)STEPS_SIZE_KXH || ssz == (int)STEPS_SIZE_TK || ssz == (int)STEPS_SIZE_KX ||
            ssz == (int)STEPS_SIZE_TB ||
            ssz == (int)STEPS_SIZE_OLD) && steps.magic == STEPS_MAGIC;
     if (!sok)
@@ -1933,8 +1969,10 @@ void app_init(void)
         memset(steps.tk, 0, sizeof steps.tk);   /* (a save before the items' kicks: the one playing) */
     if (!sok || ssz < (int)STEPS_SIZE_KXH)
         memset(steps.kxh, 0, sizeof steps.kxh);   /* (a save before the knobs past 15: none) */
-    if (!sok || ssz != (int)sizeof steps)
+    if (!sok || ssz < (int)STEPS_SIZE_KPRE)
         memset(steps.kpre, 0, sizeof steps.kpre);   /* (a save before STYLE's presets: none stored) */
+    if (!sok || ssz != (int)sizeof steps || steps.dtag != DM_TAG)
+        drops_init();                    /* (0.9.58: a save before the drops: each of the eight as the drop set) */
     if (sok && pats.magic != PAT_MAGIC) {   /* an older save: its kick again over four bars, as it played */
         uint32_t i;
         for (i = 0; i < NPAT; i++) {

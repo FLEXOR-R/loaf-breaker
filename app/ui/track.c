@@ -8,10 +8,10 @@
 
 static void page_say(void);
 static void break_ask(uint32_t i);      /* (main.c) */
-#define NTPART 7u
-static const char *const TPART[NTPART] = {"TRACKS", "PLAY", "DROP", "KNOB", "BUILD", "RESET", "BREAK"};
-#define NTORD 5u
-static const uint8_t TORDER[NTORD] = {0u, 1u, 2u, 4u, 6u};   /* (0.9.50, FLEXOR: BREAK after BUILD, the break in the build) */
+#define NTPART 8u
+static const char *const TPART[NTPART] = {"TRACKS", "PLAY", "DROP", "KNOB", "BUILD", "RESET", "BREAK", "DROPS"};
+#define NTORD 6u
+static const uint8_t TORDER[NTORD] = {0u, 1u, 2u, 4u, 6u, 7u};   /* (0.9.58, FLEXOR: DROPS, DROP 1-8, last) */   /* (0.9.50, FLEXOR: BREAK after BUILD, the break in the build) */
 static const char *const BROLL_NAME[2] = {"STILL", "ROLL"};
 static const char *const BFROM_NAME[3] = {"BUILD START", "HALF WAY", "LAST QUARTER"};   /* (ENV's parts in order: BUILD after DROP; LOAF BREAKER TEST:
                                           * KNOB out (EDIT KICK's KNOBS has it all), RESET on GLO, its sixth part) */
@@ -26,7 +26,7 @@ static const char *const RST_NAME[NRST] = {"DROP", "BUILD", "KNOB", "KICK", "KIC
                                            "FX CHAIN", "STEPS", "BLACK KEYS", "ARP", "WHITE KEYS", "SEL KEYS", "KITS", "TRACK",
                                            "SCREEN", "WIPE MEMORY", "EVERYTHING"};
 static const char *const RST_WHAT[NRST] = {"BUILD 4 BARS, NEXT PATTERN, SAME BREAK, CRASH 100%",
-                                          "SNARE ROLL, HIGH-PASS, RISER 100%, NO GAP, THE BREAK STILL",
+                                          "SNARE ROLL, HIGH-PASS, RISER 100%, NO GAP, THE BREAK STILL, THE GAP KEEPS NOTHING",
                                           "THIS KICK'S: K1 DRIVE, K2 SCREAM, K3 D+ SCREECH, K4 DISTO",
                                           "THE KICK SELECTED (ITS MEMORY): ROTTERDAM, SYNTH, BASS, C SUB, MORPH AT 0, VOLUME KEPT",
                                           "THE KICK'S EQ FLAT, ITS TWO FX SLOTS EMPTY",
@@ -137,6 +137,7 @@ static void reset_do(uint32_t w)
         set.drop_riser = 50u;
         set.drop_gap = 0u;
         set.bkeys.bk[BK_BROLL] = 0xE0u;  /* (0.9.50: the break STILL) */
+        steps.dm[drop_sel()][11] = 0u;   /* (0.9.58: its GAP keeping nothing) */
     } else if (w == RST_KNOB) {          /* KNOB: the knobs' functions */
         set.selk_asg = set.selk_asg2 = 0u;
         set.selk_hi &= 112u;             /* (the knobs alone: TER's, DRV's and SUB's state kept) */
@@ -297,6 +298,25 @@ static uint32_t drop_rand(uint32_t n)    /* 0..n-1, by chance (the drops unlike 
 static const char *const TRK_END_NAME[3] = {"LOOP", "STOP", "HOLD"};
 
 static track_t *trk_now(void) { return &pats.trk[set.trk % NTRACKS]; }
+/* (0.9.58, FLEXOR) a track's DROP item: its drop, bits 3-6 of its byte (bits 0-2 its STUTTER, its GAP KEEPS): 0 the
+ * drop selected, 1..8 DROP n; and its build's length in bars */
+static uint32_t trk_dropn_of(uint32_t tr, uint32_t i) { return steps.tb[tr % NTRACKS][i % TRK_ITEMS] >> 3 & 15u; }
+static uint32_t drop_bars_of(uint32_t n)   /* (n: 0 the drop selected, 1..8 DROP n) */
+{
+    return DROP_BARS[(n && n - 1u != drop_sel() ? steps.dm[(n - 1u) % NDROPS][0] : set.drop_bars) % 5u];
+}
+static uint32_t trk_dbars(const track_t *t, uint32_t i) { return drop_bars_of(trk_dropn_of((uint32_t)(t - pats.trk), i)); }
+static void drop_go(uint32_t n)          /* DROP n+1 selected: the one set into its memory, the new one out of its own */
+{
+    n %= NDROPS;
+    if (n == drop_sel())
+        return;
+    dm_put(steps.dm[drop_sel()]);
+    steps.dsel = (uint8_t)n;
+    dm_get(steps.dm[n]);
+    changed();
+    ui.redraw |= RG_BLOCKS | RG_FOOT | RG_HEAD;
+}
 #define TRK_FROM (trk_now()->rsv[0])     /* LOAF BREAKER: the track's first item (TRACKS: SEL + PLAY; PLAY's FROM), saved
                                           * with it */
 static uint8_t *trk_brk(uint32_t i) { return &steps.tb[set.trk % NTRACKS][i % TRK_ITEMS]; }   /* (the item's break) */
@@ -337,7 +357,7 @@ static uint32_t trk_bars(const track_t *t)   /* how long it plays, in bars (the 
 {
     uint32_t i, b = 0u, n = trk_len(t), lb = pat_len() / 16u;
     for (i = 0; i < n; i++)
-        b += t->it[i] == TI_DROP ? DROP_BARS[set.drop_bars % 5u] : t->it[i] == TI_GAP ? 0u : (uint32_t)t->rep[i] * lb;
+        b += t->it[i] == TI_DROP ? trk_dbars(t, i) : t->it[i] == TI_GAP ? 0u : (uint32_t)t->rep[i] * lb;
     return b;
 }
 /* LOAF BREAKER TEST: a track playing, where it is in bars (done of total), and the bars left before its next DROP
@@ -351,8 +371,8 @@ static int trk_where(const brk_status_t *st, uint32_t *done, uint32_t *total, in
     if (!lb)
         lb = 1u;
     for (i = 0; i < pos && i < n; i++)
-        b += t->it[i] == TI_DROP ? DROP_BARS[set.drop_bars % 5u] : t->it[i] == TI_GAP ? 0u : (uint32_t)t->rep[i] * lb;
-    item = t->it[pos] == TI_DROP ? DROP_BARS[set.drop_bars % 5u] : (uint32_t)t->rep[pos] * lb;
+        b += t->it[i] == TI_DROP ? trk_dbars(t, i) : t->it[i] == TI_GAP ? 0u : (uint32_t)t->rep[i] * lb;
+    item = t->it[pos] == TI_DROP ? trk_dbars(t, pos) : (uint32_t)t->rep[pos] * lb;
     in = t->it[pos] == TI_DROP ? 0u : (uint32_t)ui.trk_loops * lb + (st->step >= 0 ? (uint32_t)st->step / 16u : 0u);
     if (in > item)
         in = item;
@@ -410,6 +430,9 @@ static void drop_start_k(uint32_t to, int item)   /* item: a track's DROP item (
         const pat_t *p;
         uint32_t d, b;
         char t[8] = "> P";
+        if (item >= 0 && trk_dropn_of(set.trk, (uint32_t)item))   /* (0.9.58: a DROP item's own drop, selected as it
+                                          * builds, as an item's kick) */
+            drop_go(trk_dropn_of(set.trk, (uint32_t)item) - 1u);
         ui.drop_pat = (uint8_t)(to % NPAT_ALL);   /* (LOAF BREAKER: 0..63; another group's: in at the drop) */
         drop_to = to / NPAT % NGRP == set.pgrp ? (uint8_t)(to % NPAT) : 0xFFu;
         if (drop_to == 0xFFu && grp_blocked(ui.drop_pat))
@@ -417,6 +440,8 @@ static void drop_start_k(uint32_t to, int item)   /* item: a track's DROP item (
         drop_kick_want = item >= 0 ? *trk_kick((uint32_t)item) : set.drop_kick;   /* (the build's kick) */
         b_stut = (uint8_t)(item >= 0 && *trk_brk((uint32_t)item) & 1u);
         b_gapm = (uint8_t)(item >= 0 ? *trk_brk((uint32_t)item) >> 1 & 3u : 0u);
+        if (!b_gapm)                     /* (0.9.58: the item's GAP KEEPS NOTHING, or a drop by hand: the drop's own) */
+            b_gapm = (uint8_t)(steps.dm[drop_sel()][11] & 3u);
         p = &pats.p[set.pattern % NPAT];
         if (drop_to < NPAT)
             p = &pats.p[drop_to];
@@ -1055,7 +1080,10 @@ static void trk_item_text(const track_t *t, uint32_t i, char *s, char *r)   /* "
     s[0] = r[0] = 0;
     if (v == TI_END)
         text_cat(s, "END");
-    else if (v == TI_DROP)
+    else if (v == TI_DROP && trk_dropn_of((uint32_t)(t - pats.trk), i)) {   /* (0.9.58: DROP 1-8) */
+        text_cat(s, "DROP ");
+        int_text((int32_t)trk_dropn_of((uint32_t)(t - pats.trk), i), s + 5);
+    } else if (v == TI_DROP)
         text_cat(s, "DROP");
     else if (v == TI_GAP)
         text_cat(s, "EMPTY");
@@ -1078,11 +1106,26 @@ static void track_value(int i, char *t)
             text_cat(t, rst_cool() ? "DONE" : rst_asking() ? "PRESS GLO" : rst_live() ? "MORE!" : "TURN x5");
         return;
     }
+    if (ui.tpage == 7u) {                /* (0.9.58, FLEXOR: DROPS: K1 the drop selected, K2-K4 its BUILD, STYLE and
+                                          * AFTER DROP, as DROP's and BUILD's knobs) */
+        static const uint8_t PG[4] = {7u, 2u, 4u, 2u}, KN[4] = {0u, 0u, 0u, 1u};
+        if (i == 0) {
+            text_cat(t, "DROP ");
+            int_text((int32_t)drop_sel() + 1, t + 5);
+            return;
+        }
+        ui.tpage = PG[i & 3];
+        track_value((int)KN[i & 3], t);
+        ui.tpage = 7u;
+        return;
+    }
     if (ui.tpage == 6u) {                /* (0.9.50, FLEXOR: BREAK, the break in the build: STILL or ROLL, and from when) */
         if (i == 0)
             text_cat(t, BROLL_NAME[bk_broll() & 1u]);
         else if (i == 1)
             text_cat(t, bk_broll() & 1u ? BFROM_NAME[(bk_broll() >> 2) % 3u] : "-");
+        else if (i == 2)                 /* (0.9.58: what the GAP keeps, this drop's) */
+            text_cat(t, GAPM_NAME[steps.dm[drop_sel()][11] & 3u]);
         return;
     }
     if (ui.tpage == 4u) {                /* BUILD: its style, its filter, its noise, the gap before the drop */
@@ -1178,7 +1221,7 @@ static void track_say(int i)             /* the knob turned, on the strip */
     static const char *const N[NTPART][4] = {{"KICK", "PUT", "LOOPS", "BREAK"}, {"PLAY", "FROM ITEM", "AT THE END", ""},
                                         {"BUILD", "AFTER DROP", "DROP BREAK", "CRASH"}, {"", "", "", ""},
                                         {"BUILD STYLE", "SWEEP", "RISER", "GAP"}, {"RESET", "RESET", "RESET", "RESET"},
-                                        {"BREAK", "ROLL FROM", "", ""}};
+                                        {"BREAK", "ROLL FROM", "GAP KEEPS", ""}, {"DROP", "BUILD", "BUILD STYLE", "AFTER DROP"}};
     char t[20];
     track_value(i, t);
     int drp = !ui.tpage && trk_now()->it[ui.trk_cur % TRK_ITEMS] == TI_DROP;
@@ -1229,6 +1272,28 @@ static void track_turn(int i, int32_t d)
     }
     if (!trk_knob_ok(i)) {
         easy_no();                       /* (BEGINNER: not this one) */
+        return;
+    }
+    if (ui.tpage == 7u) {                /* (0.9.58: DROPS: K1 the drop; K2-K4 its BUILD, STYLE, AFTER DROP) */
+        static const uint8_t PG[4] = {7u, 2u, 4u, 2u}, KN[4] = {0u, 0u, 0u, 1u};
+        if (i == 0) {
+            drop_go((uint32_t)clamp((int32_t)drop_sel() + dir, 0, (int32_t)NDROPS - 1));
+            set_dirty = 1u;
+            track_say(0);
+            return;
+        }
+        ui.tpage = PG[i & 3];
+        track_turn((int)KN[i & 3], d);
+        ui.tpage = 7u;
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        return;
+    }
+    if (ui.tpage == 6u && i == 2) {      /* (0.9.58: BREAK K3, what this drop's GAP keeps: NOTHING, BREAK, DRUMS, ECHOES;
+                                          * a track's DROP item's own K4 first) */
+        uint8_t *g = &steps.dm[drop_sel()][11];
+        *g = (uint8_t)clamp((int32_t)(*g & 3u) + dir, 0, 3);
+        set_dirty = 1u;
+        track_say(2);
         return;
     }
     if (ui.tpage == 6u) {                /* BREAK */
@@ -1308,9 +1373,11 @@ static void track_turn(int i, int32_t d)
                 del_t = plat_ms() | 1u;
                 return;
             }
-            int32_t v = t->it[c] == TI_DROP ? 2 : t->it[c] == TI_GAP ? 1 :
-                        t->it[c] == TI_END ? 0 : (int32_t)t->it[c] + 2;
-            v = clamp(v + (t->it[c] == TI_END && dir > 0 ? 3 : dir), 0, (int32_t)NPAT_ALL + 2);   /* (the END: P1 at once) */
+            uint32_t dn = *trk_brk(c) >> 3 & 15u;
+            int32_t v = t->it[c] == TI_DROP ? (dn ? 1 + (int32_t)dn : 2 + (int32_t)NDROPS) : t->it[c] == TI_GAP ? 1 :
+                        t->it[c] == TI_END ? 0 : (int32_t)t->it[c] + 2 + (int32_t)NDROPS;   /* (0.9.58: END, EMPTY, DROP
+                                          * 1-8, DROP (the one selected: just left of P1, as ever), the patterns) */
+            v = clamp(v + (t->it[c] == TI_END && dir > 0 ? 3 + (int32_t)NDROPS : dir), 0, (int32_t)NPAT_ALL + 2 + (int32_t)NDROPS);   /* (the END: P1 at once) */
             if (v == 0 && trk_len(t) > c + 1u) {   /* (an END inside: the items after it moved up, the item gone) */
                 uint32_t k;
                 for (k = c; k + 1u < TRK_ITEMS; k++) {
@@ -1331,9 +1398,12 @@ static void track_turn(int i, int32_t d)
             }
             if (t->it[c] == TI_END && v && c > trk_len(t))
                 return;
-            if ((v == 2) != (t->it[c] == TI_DROP))
+            if ((v >= 2 && v <= 2 + (int32_t)NDROPS) != (t->it[c] == TI_DROP))
                 *trk_brk(c) = 0u;        /* (a DROP's byte its STUTTER, a pattern's its break: neither carried over) */
-            t->it[c] = v == 2 ? TI_DROP : v == 1 ? TI_GAP : v == 0 ? TI_END : (uint8_t)(v - 2);
+            if (v >= 2 && v <= 2 + (int32_t)NDROPS)   /* (0.9.58: its drop, bits 3-6: 1..8, 0 the one selected) */
+                *trk_brk(c) = (uint8_t)((*trk_brk(c) & 7u) | (uint32_t)(v < 2 + (int32_t)NDROPS ? v - 1 : 0) << 3);
+            t->it[c] = v >= 2 && v <= 2 + (int32_t)NDROPS ? TI_DROP : v == 1 ? TI_GAP : v == 0 ? TI_END
+                       : (uint8_t)(v - 2 - (int32_t)NDROPS);
             if (!t->rep[c])
                 t->rep[c] = 1u;
         } else if (i == 2) {
@@ -1348,8 +1418,8 @@ static void track_turn(int i, int32_t d)
             t->rep[c] = (uint8_t)clamp((int32_t)t->rep[c] + dir, 1, 16);
         } else if (t->it[c] == TI_DROP) {   /* (0.9.26, FLEXOR: a DROP's K4, what its GAP keeps: NOTHING, BREAK,
                                           * DRUMS, ECHOES; the GAP's length BUILD's K4) */
-            *trk_brk(c) = (uint8_t)((*trk_brk(c) & 1u) |
-                                    (uint32_t)clamp((int32_t)(*trk_brk(c) >> 1 & 3u) + dir, 0, 3) << 1);
+            *trk_brk(c) = (uint8_t)((*trk_brk(c) & ~6u) |
+                                    (uint32_t)clamp((int32_t)(*trk_brk(c) >> 1 & 3u) + dir, 0, 3) << 1);   /* (its drop kept) */
             set_dirty = 1u;
             if (!set.drop_gap) {
                 app_say("NO GAP YET", "SONG > BUILD: K4 GAP");
@@ -1392,6 +1462,15 @@ static void track_from_here(void)
  * track played (keys 1-8) */
 static void track_key(uint32_t k)
 {
+    if (ui.tpage == 7u) {                /* (0.9.58: DROPS: keys 1-8 pick DROP 1-8) */
+        if (k < NDROPS) {
+            char s[8] = "DROP ";
+            drop_go(k);
+            int_text((int32_t)k + 1, s + 5);
+            app_say("SELECTED", s);
+        }
+        return;
+    }
     if (ui.tpage == 1u) {
         if (k < NTRACKS) {
             set.trk = (uint8_t)k;
@@ -1406,6 +1485,8 @@ static void track_key(uint32_t k)
         char s[8], r[6];
         if (c > trk_len(t))
             c = trk_len(t);
+        if (t->it[c] == TI_DROP)
+            *trk_brk(c) = 0u;            /* (a DROP's byte not read as a break) */
         if (t->it[c] == TI_END || t->it[c] == TI_DROP || t->it[c] == TI_GAP || !t->rep[c])
             t->rep[c] = 1u;
         t->it[c] = (uint8_t)(k + 1u);
@@ -1479,6 +1560,8 @@ static void track_gap(void)
 static uint32_t track_keys_lit(void)     /* TRACKS: the item's pattern; PLAY: the tracks there are; KNOB: its function */
 {
     uint32_t m = 0u, i;
+    if (ui.tpage == 7u)                  /* (0.9.58: DROPS: the one selected) */
+        return 1u << drop_sel();
     if (ui.tpage == 1u) {
         for (i = 0; i < NTRACKS; i++)
             if (trk_len(&pats.trk[i]))
@@ -1634,6 +1717,54 @@ static void track_picture(int32_t top)
         cv_oy = 0;
         return;
     }
+    if (ui.tpage == 7u) {                /* (0.9.58, FLEXOR: DROPS: the eight as cards, the one selected lit: its build,
+                                          * its style, what comes after) */
+        for (i = 0; i < NDROPS; i++) {
+            uint8_t m[DM_N];
+            static const char *const DS_SHORT[DS_N] = {"SNARE", "KICK", "KICK+SN", "STUTTER", "SWEEP", "RANDOM"};
+            int32_t x = 4 + (int32_t)(i % 4u) * 58, y = 2 + (int32_t)(i / 4u) * 56;
+            int on = i == drop_sel();
+            uint32_t bars;
+            memcpy(m, steps.dm[i], DM_N);
+            if (on)
+                dm_put(m);
+            bars = DROP_BARS[m[0] % 5u];
+            cv_rect(x, y, 55, 53, on ? C_HI : C_BLOCK);
+            s[0] = 0;
+            text_cat(s, "DROP ");
+            int_text((int32_t)i + 1, s + 5);
+            cv_text(x + 3, y + 2, &FONT_T, s, on ? C_BLACK : C_WHITE);
+            s[0] = 0;
+            if (bars) {
+                int_text((int32_t)bars, s);
+                text_cat(s, bars > 1u ? " BARS" : " BAR");
+            } else
+                text_cat(s, "NO BUILD");
+            cv_text(x + 3, y + 15, &FONT_XS, s, on ? C_BLACK : C_GRAY);
+            cv_text(x + 3, y + 26, &FONT_XS, DS_SHORT[m[5] % DS_N], on ? C_BLACK : C_GRAY);
+            s[0] = 0;
+            text_cat(s, "> ");
+            if (m[1] == DROP_SAME)
+                text_cat(s, "SAME");
+            else if (!m[1])
+                text_cat(s, "NEXT");
+            else {
+                text_cat(s, "P");
+                int_text((int32_t)m[1], s + 3);
+            }
+            cv_text(x + 3, y + 37, &FONT_XS, s, on ? C_BLACK : C_GRAY);
+        }
+        cv_text(6, 116, &FONT_XS, "KEYS 1-8: PICK. SEL + ARP: COPY, PASTE", C_DIM);
+        cv_text(6, 128, &FONT_XS, "TRACKS K2: A DROP ITEM'S DROP 1-8", C_DIM);
+        cv_oy = 0;
+        return;
+    }
+    if (ui.tpage == 2u || ui.tpage == 4u || ui.tpage == 6u) {   /* (0.9.58: whose these are: the drop selected) */
+        s[0] = 0;
+        text_cat(s, "DROP ");
+        int_text((int32_t)drop_sel() + 1, s + 5);
+        cv_text(236 - text_w(&FONT_T, s), 137, &FONT_T, s, C_AMB);
+    }
     if (ui.tpage == 6u) {                /* BREAK: the break in the build, large */
         cv_text(10, 6, &FONT_XS, "THE BREAK IN THE BUILD", C_GRAY);
         track_value(0, s);
@@ -1649,6 +1780,9 @@ static void track_picture(int32_t top)
         cv_text(134, 84, &FONT_XS, "(R8 R16 R32)", C_GRAY);
         cv_text(10, 104, &FONT_XS, "OVER ANY BUILD STYLE: THE DRUMS' ROLL", C_DIM);
         cv_text(10, 116, &FONT_XS, "GOES ON UNDER IT", C_DIM);
+        cv_text(10, 130, &FONT_XS, "K3 GAP KEEPS", C_GRAY);   /* (0.9.58) */
+        track_value(2, s);
+        cv_text(82, 130, &FONT_XS, s, steps.dm[drop_sel()][11] & 3u ? C_HI : C_WHITE);
         cv_oy = 0;
         return;
     }
@@ -1768,14 +1902,19 @@ static void track_picture(int32_t top)
                 kk[kn] = "BDE"[(*trk_brk(i) >> 1 & 3u) - 1u];
                 kk[kn + 1u] = 0;
             }
+            char dn[4] = "DRP";          /* (0.9.58: DROP n, "D2") */
+            if (t->it[i] == TI_DROP && *trk_brk(i) >> 3 & 15u) {
+                dn[0] = 'D';
+                int_text((int32_t)(*trk_brk(i) >> 3 & 15u), dn + 1);
+            }
             if (t->it[i] == TI_DROP && kk[0]) {   /* (LOAF BREAKER: its build's kick under it, S its STUTTER) */
-                cv_text(x + (28 - text_w(&FONT_XS, "DRP")) / 2, y + 3, &FONT_XS, "DRP", c);
+                cv_text(x + (28 - text_w(&FONT_XS, dn)) / 2, y + 3, &FONT_XS, dn, c);
                 {                        /* (too wide, "K20SE": the smaller face) */
                     const felucca_font_t *kf = text_w(&FONT_XS, kk) > 27 ? &FONT_T : &FONT_XS;
                     cv_text(x + (28 - text_w(kf, kk)) / 2, y + 16, kf, kk, c);
                 }
             } else if (t->it[i] == TI_DROP)
-                cv_text(x + (28 - text_w(&FONT_XS, "DRP")) / 2, y + 9, &FONT_XS, "DRP", c);
+                cv_text(x + (28 - text_w(&FONT_XS, dn)) / 2, y + 9, &FONT_XS, dn, c);
             else {
                 cv_text(x + (28 - text_w(&FONT_T, s)) / 2, y + 3, &FONT_T, s, c);
                 if (r[0]) {                  /* (its loops, its own break, its own kick: "X4 B3 K7", the first ones

@@ -295,7 +295,7 @@ instead, hold it again for the waveform; neither moves to HOME's next part.
 
 ### Tracks and drops (ENV)
 
-**ENV** opens TRACK; **SELECT** goes through its tabs: TRACKS, PLAY, DROP, BUILD (0.9.2: ALGORITHM still the items on
+**ENV** opens TRACK; **SELECT** goes through its tabs: TRACKS, PLAY, DROP, BUILD, BREAK, DROPS (0.9.2: ALGORITHM still the items on
 TRACKS); **ENV again** goes back to HOME (ENV held on TRACKS: a space after the item, as before). The tempo is SELECT's
 on HOME and the other pages (the metronome and tap tempo are gone).
 
@@ -303,7 +303,7 @@ on HOME and the other pages (the metronome and tap tempo are gone).
   played for its loops (×1–×16), a **DROP** (the build, then the drop into the pattern after it), and its END.
   **ALGORITHM** the item, **K1** its **kick**: SAME (the one playing goes on) or KICK 1–20, taken as the item's pattern
   comes in (playing from it: at once; a DROP into it: with the drop; its cell shows it, "K7"); on a DROP, the kick its
-  **build** plays (its kick roll, say), the one before back at the drop ("DRP K5"), **K2** what it is: END, EMPTY, DROP, P1–P64 (DROP just left of P1; EMPTY, left of DROP, empties the case and keeps its place: ENV held on it,
+  **build** plays (its kick roll, say), the one before back at the drop ("DRP K5"), **K2** what it is: END, EMPTY, DROP 1–8, DROP, P1–P64 (DROP just left of P1: the drop selected; further left DROP 8 … DROP 1, the item's own drop, picked as its build begins, the cell showing D3; 0.9.58; EMPTY, left of DROP, empties the case and keeps its place: ENV held on it,
 or K2 left once more, deletes it, the rest moving up; then K2 left does nothing until the knob has rested 0.7 s, so a
 hard turn deletes one item, not the ones moving into its place, 0.9.26),
   **K3** its loops (on a DROP: **STUTTER**, OFF / ON: its build rolls the break, 8ths, 16ths, then 32nds, over BUILD's
@@ -341,7 +341,15 @@ hard turn deletes one item, not the ones moving into its place, 0.9.26),
 - **BREAK** (0.9.50, FLEXOR): what the break does in the build, over any BUILD STYLE (the drums' roll goes on under
   it). **K1 BREAK**: STILL (it plays on, as before) or ROLL (it rolls on shorter and shorter, at the R8, R16 then R32
   pads' rates, let go at the drop). **K2 ROLL FROM**: when the roll begins: the BUILD START, HALF WAY, or the LAST
-  QUARTER (still before it). RESET's BUILD sets it back to STILL.
+  QUARTER (still before it). **K3 GAP KEEPS** (0.9.58): what plays in BUILD's GAP before this drop: NOTHING, BREAK, DRUMS or ECHOES (a track's DROP item's own K4 GAP KEEPS, when set, wins). RESET's BUILD sets them back to STILL and NOTHING.
+- **DROPS** (0.9.58, FLEXOR: drops made like patterns, a different one on each DROP of a track): **DROP 1–8**, each a whole
+  drop: DROP's BUILD, AFTER, DROP BREAK, CRASH and BUILD KICK, BUILD's STYLE, SWEEP, RISER, GAP and TEMPO RISE, BREAK's
+  STILL / ROLL, ROLL FROM and GAP KEEPS. The page (SONG's last tab) shows the eight as cards (their build, style and
+  what comes after), the one selected lit: **white keys 1–8** (or **K1**) pick it, **K2–K4** set its BUILD, STYLE and
+  AFTER DROP at once. The one selected is the one SEL + ENV plays and the one DROP, BUILD and BREAK edit (each says
+  DROP n, bottom right). **SEL + ARP** copies it; pick another, SEL + ARP again pastes it there. On TRACKS, a DROP
+  item's K2 gives it its own (DROP 1–8, left of DROP): as its build begins, that drop is selected (as an item's kick
+  is). SAVE keeps them; an FM-1 updated starts with all eight as its drop was; RESET ALL sets them as they start.
 - **The live knobs** (EDIT › KNOBS): what SEL + each knob does, on any page. On the KICK menu's KNOBS section,
   **ALGORITHM** goes to K1 SET .. K4 SET, and **PRESETS** there gives that knob its function: SCREAM, DISTO, D+ DRIVE, D+ TYPE, D+ SCREECH, D+ TAIL (DISTO +'s settings, one each),
   DRIVE (the kick's INTENSITY), DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH, PITCH DROP, RUMBLE, PUNCH, DRUM FLT,

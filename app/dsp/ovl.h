@@ -17,7 +17,7 @@ extern const char *const OVL_NAME[OVL_N];
 extern const char *const OVL_RATE_NAME[4];   /* 1/4 1/8 1/16 1/32 */
 extern const char *const OVL_SWEEP_NAME[4];  /* 1/4 BAR .. 2 BARS */
 
-#define OVL_LINE 1024u                   /* JET's delay line: samples a side */
+#define OVL_LINE 256u                    /* JET's delay line: samples a side (0.9.58: 1024 until WOBBLE went; JET reads 208 at most) */
 
 void ovl_init(int16_t *line);            /* the line: 2 * OVL_LINE (the pool); everything off */
 /* main loop: on (bit OV_*), each one's amount (0..100), the rate of the ones on the beat (0..3: 1/4 .. 1/32: CHOP;

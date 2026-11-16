@@ -37,6 +37,27 @@ static void kick_clip(void)
     clip_kick = -1;
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
+static int8_t clip_drop = -1;            /* (0.9.58: SEL + ARP on SONG › DROPS: the drop copied, -1 none) */
+static void drop_clip(void)
+{
+    char t[16] = "DROP ";
+    uint32_t cur = drop_sel();
+    if (clip_drop < 0 || (uint32_t)clip_drop == cur) {
+        clip_drop = (int8_t)cur;
+        int_text((int32_t)cur + 1, t + 5);
+        app_say("COPIED", t);
+        return;
+    }
+    memcpy(steps.dm[cur], steps.dm[clip_drop % NDROPS], DM_N);   /* (the copied one's memory is its own: not selected) */
+    dm_get(steps.dm[cur]);
+    int_text(clip_drop + 1, t + 5);
+    text_cat(t, " > ");
+    int_text((int32_t)cur + 1, t + text_n(t));
+    app_say("PASTED", t);
+    clip_drop = -1;
+    changed();
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
 static void perc_clip(void)
 {
     uint32_t v = ui.pvoice % PERC_VOICES, s = *perc_slot(v) % PERC_MEMS;
@@ -217,6 +238,7 @@ static void reset_all(void)
 {
     uint8_t ble_was_off = set.ble_off;
     settings_defaults();
+    drops_init();                        /* (0.9.58: DROP 1-8 all as the defaults, DROP 1 selected) */
     klab_defaults();                     /* (LOAF BREAKER: the KICK LAB off on every kick) */
     kx2_defaults();                      /* (0.9.45: TOK and the TAIL GATE off on every kick) */
     selk_clear();                        /* (0.9.49: no SEL layer) */
@@ -969,6 +991,8 @@ static void input(void)
     if (bdn & 1u << B_ARP && btn & 1u << B_SEL && (ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX()))
         kick_clip();                     /* (LOAF BREAKER, 0.9.26, FLEXOR: in the KICK LAB, SEL + ARP copies the kick, on
                                           * another kick pastes it) */
+    else if (bdn & 1u << B_ARP && btn & 1u << B_SEL && ui.page == PG_TRACK && ui.tpage == 7u)
+        drop_clip();                     /* (0.9.58: DROPS: copy the drop selected, then pick another: paste) */
     else if (bdn & 1u << B_ARP && btn & 1u << B_SEL && ui.page == PG_PERC)
         perc_clip();                     /* (the drums: the drum's sound, onto another memory of it) */
     else if (bdn & 1u << B_ARP && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + ARP: PATTERN's GROOVE (its SWING) */
@@ -1921,9 +1945,10 @@ static const char *knob_name(int i)
                                       * SETTINGS, 0.9.2) */
                                               {"EFFECT", "ON / OFF", "", ""},   /* (LOAF BREAKER: EFFECTS, */
                                               {"AMOUNT", "KICK", "DROP", "LENGTH"}};   /* FX SET) */
-    static const char *const KN_TRK[5][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
+    static const char *const KN_TRK[6][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
                                              {"STYLE", "SWEEP", "RISER", "GAP"}, {"", "RESET", "", "WHAT"},
-                                             {"BREAK", "ROLL FROM", "", ""}};   /* (0.9.50: SONG › BREAK) */
+                                             {"BREAK", "ROLL FROM", "GAP KEEPS", ""},   /* (0.9.58: K3 GAP KEEPS) */
+                                             {"DROP", "BUILD", "STYLE", "AFTER"}};   /* (0.9.58: DROPS) */   /* (0.9.50: SONG › BREAK) */
     static const char *const KN_FILL[4] = {"SWING", "BREAK ROWS", "FOLLOW", ""};   /* (LOAF BREAKER: GROOVE; 0.244 FILL gone) */
     static const char *const KN_BK[3][4] = {{"PRESET", "KEY", "EFFECT", ""}, {"", "KEY", "SEL +", ""},
                                               {"", "KEY", "KIND", "VALUE"}};   /* (ARP's
@@ -1933,7 +1958,7 @@ static const char *knob_name(int i)
     const char *name = ui.page == PG_OVL && ui.opage == 4u ? KN_KIT[i] : ui.page == PG_OVL && ui.opage ? KN_BK[(ui.opage - 1u) % 3u][i] :
                        ui.page == PG_GLOBAL && ui.gpage == GP_FILL ? KN_FILL[i] : ui.page == PG_GLOBAL &&
                        ui.gpage == GP_LIGHTS ? KN_LIGHTS[i] : RST_ON ? KN_TRK[3][i] : ui.page == PG_TRACK &&
-                       ui.tpage ? KN_TRK[ui.tpage == 6u ? 4u : ui.tpage == 4u ? 2u : (ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
+                       ui.tpage ? KN_TRK[ui.tpage == 7u ? 5u : ui.tpage == 6u ? 4u : ui.tpage == 4u ? 2u : (ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
                        ui.gpage >= 2u ? KN_MORE[(ui.gpage - 2u) % 3u][i] : ui.page == PG_GLOBAL && ui.gpage
                        ? KN_PITCH[i] : ui.page == PG_MIX && ui.mpage
                        ? KN_GROOVE[ui.mpage >= 3u ? 2u : ui.mpage == 2u][i] : KN[ui.page][i];
@@ -3157,7 +3182,7 @@ static void edx_track_write(const uint8_t *u, uint32_t len)   /* (the page's who
             n = i + 1u;
         t->it[i] = v;
         t->rep[i] = (uint8_t)(rp[i] >= 1u && rp[i] <= 16u ? rp[i] : 1u);
-        steps.tb[tn][i] = v == TI_DROP ? (uint8_t)(tb[i] & 7u) : pat && tb[i] <= n_breaks ? tb[i] : 0u;
+        steps.tb[tn][i] = v == TI_DROP ? (uint8_t)(tb[i] & ((tb[i] >> 3 & 15u) <= NDROPS ? 0x7Fu : 7u)) :   /* (0.9.58: its drop too) */ pat && tb[i] <= n_breaks ? tb[i] : 0u;
         steps.tk[tn][i] = pat || v == TI_DROP ? (uint8_t)(tk[i] <= KICK_MEMS ? tk[i] : 0u) : 0u;
     }
     t->end = (uint8_t)(u[2] <= 2u ? u[2] : 0u);
@@ -3732,8 +3757,8 @@ int app_expect(const char *what, int *got)
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
                                     "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15", "broll", "stut", "fxwet", "tempo10", "kitsel", "kit0kick", "vthru", "dafter",
-                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat"};
-    int v[174];
+                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage"};
+    int v[177];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -3920,6 +3945,9 @@ int app_expect(const char *what, int *got)
         }
     }
     v[173] = keq_flat;                   /* (0.9.57: SETUP K2 KICK EQ OFF) */
+    v[174] = (int)drop_sel();            /* (0.9.58: the drop selected, 0..7; its build's index) */
+    v[175] = set.drop_bars;
+    v[176] = ui.tpage;
     v[161] = set.vinyl & 3u;             /* (0.9.54: VINYL BREAK's THRU, 0 BOTH 1 BREAK 2 KICK) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */
     v[141] = kx2_at(set.kslot)->gate;    /* (its TAIL GATE's division) */
