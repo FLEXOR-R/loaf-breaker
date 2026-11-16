@@ -1,0 +1,50 @@
+# LOAF BREAKER (0.9.57, FLEXOR): KIL (FLEXOR LAYOUT's key 9) cuts the kick triplets too (TRI turned off, nothing heard),
+# and TRI cannot be turned on while KIL holds the kicks quiet. TRI here on key 1 of a CUSTOM layout.
+#   app/build/host/loaf-breaker_host tests/scenarios/kiltri.txt app/build/scenarios
+wait 4200
+tap ARP
+wait 300
+turn SELECT 1 10
+wait 300
+key b0 down
+wait 100
+key b0 up
+wait 200
+turn K3 -2 10
+wait 300
+expect bk_fn 18
+tap HOME
+wait 200
+tap PLAY
+wait 300
+key b0 down
+wait 100
+key b0 up
+wait 50
+expect kx2on 4
+wait 1300
+expect khits >8
+# KIL held: the triplets off and quiet
+key b8 down
+wait 100
+expect kx2on 0
+wait 1300
+expect khits 0
+# TRI pressed while KIL holds: not on
+key b0 down
+wait 100
+key b0 up
+wait 100
+expect kx2on 0
+shot kil_tri.png
+wait 1000
+expect khits 0
+key b8 up
+wait 200
+# KIL let go: TRI again
+key b0 down
+wait 100
+key b0 up
+wait 50
+expect kx2on 4
+tap PLAY

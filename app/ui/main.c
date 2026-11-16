@@ -679,7 +679,12 @@ static void input(void)
         uint32_t q;
         for (q = 0; q < 3u; q++) {
             uint8_t b = (uint8_t)(1u << q);
-            if (kdn & PAD_BIT(F[q])) {
+            if (kdn & PAD_BIT(F[q]) && q == 2u && kick_hold && !(kick_x2 & b)) {   /* (0.9.57, FLEXOR: TRI not
+                                          * turned on while KIL holds the kicks quiet) */
+                ui.x2_focus = (uint8_t)(q + 1u);
+                app_say(N[q], "KICKS KILLED");
+                ui.redraw |= RG_FOOT;
+            } else if (kdn & PAD_BIT(F[q])) {
                 ui.x2_focus = (uint8_t)(q + 1u);
                 kick_x2 = set.half_mt_off & LB[q] ? (uint8_t)(kick_x2 | b) : (uint8_t)(kick_x2 ^ b);
                 app_say(N[q], kick_x2 & b ? (set.half_mt_off & LB[q] ? "ON (HELD)" : "ON (LATCHED)") : "OFF");
@@ -703,6 +708,8 @@ static void input(void)
         kick_hold = set.half_mt_off & 4u ? (uint8_t)!kick_hold : 1u;
         if (!kick_hold)
             kil_back_flt();
+        else
+            kick_x2 = (uint8_t)(kick_x2 & ~4u);   /* (0.9.57, FLEXOR: KIL cuts the kick triplets too) */
         app_say("KICKS", kick_hold ? (set.half_mt_off & 4u ? "QUIET (KIL LATCHED)" : "QUIET (KIL)") : "BACK");
         ui.redraw |= RG_FOOT;
     } else if (!(keys & PAD_BIT(BKF_KIL))) {

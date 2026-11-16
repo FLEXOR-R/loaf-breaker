@@ -2380,6 +2380,9 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                 }
                 if (kr_next >= (int32_t)m)
                     kr_next -= (int32_t)m;
+                if (kick_hold && krp >= 4u)
+                    nk = 0u;             /* (0.9.57, FLEXOR: KIL quiets the triplets too, the ARP's KICK TRI as well;
+                                          * a roll pad's KICK ROLL still plays) */
             }
             if (vin && (st.pads >> PAD_TAPESTOP & 1u))
                 nk = np = 0u;            /* the vinyl held: the drums' steps quiet, as the break's */
