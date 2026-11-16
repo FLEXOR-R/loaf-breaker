@@ -467,9 +467,11 @@ static void kb_put(uint32_t mode, uint32_t latch, uint32_t time, uint32_t rev)
  * (untagged: KILL BREAK); rsv[51]: 0xA0 | on (untagged: off) */
 #define RK_RSV 50u
 static uint32_t rec_key_on(void) { return (kx2.rsv[RK_RSV + 1u] & 0xF0u) == 0xA0u && (kx2.rsv[RK_RSV + 1u] & 1u); }
-static uint32_t rec_fn(void)
+static uint32_t rec_fn(void)             /* (FLEXOR: on FLEXOR LAYOUT, and CHOPPAH's, KILL BREAK; CUSTOM its own) */
 {
     uint32_t f = kx2.rsv[RK_RSV] & 0x7Fu;
+    if (bk_preset() != BKP_CUSTOM)
+        return BKF_KBR;
     return kx2.rsv[RK_RSV] & 0x80u && f < BKF_N && f != BKF_ARP ? f : BKF_KBR;
 }
 static uint32_t nbk(void) { return rec_key_on() ? 12u : 11u; }   /* (the black keys, REC's with them) */

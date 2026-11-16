@@ -418,6 +418,11 @@ static void bk_turn(int i, int32_t d)
         uint32_t f = (rec_fn() + (uint32_t)(dir > 0 ? 1 : BKF_N - 1)) % BKF_N;
         if (f == BKF_ARP)
             f = (f + (uint32_t)(dir > 0 ? 1 : BKF_N - 1)) % BKF_N;
+        if (bk_preset() != BKP_CUSTOM) { /* (a preset: its copy, CUSTOM, then the REC key, as the others) */
+            for (j = 0; j < 11u; j++)
+                set.bkeys.bk[2u + j] = (uint8_t)bk_fn(j);
+            set.bkeys.bk[1] = BKP_CUSTOM;
+        }
         bk_release_all();
         kx2.rsv[RK_RSV] = (uint8_t)(0x80u | f);
         bk_say();
@@ -496,8 +501,8 @@ static void draw_bk(void)
             cv_text(6, 50, &FONT_B, BKF_LONG[bk_fn(ui.bk_sel)], C_HI);
         cv_text(6, 72, &FONT_XS, "PRESET", C_GRAY);
         cv_text(234 - text_w(&FONT_B, BKP_NAME[p]), 68, &FONT_B, BKP_NAME[p], p == BKP_CUSTOM ? C_AMB : C_WHITE);
-        cv_text(6, 86, &FONT_XS, ui.bk_sel == 11u ? "REC: ITS OWN, WHATEVER THE PRESET" : p == BKP_CUSTOM
-                ? "A BLACK KEY PICKS ITSELF" : "K3: A CUSTOM COPY, THAT KEY CHANGED", C_DIM);
+        cv_text(6, 86, &FONT_XS, p == BKP_CUSTOM ? "A BLACK KEY PICKS ITSELF" : "K3: A CUSTOM COPY, THAT KEY CHANGED",
+                C_DIM);
         cv_oy = 0;
         cv_blit(0, 88u + band * 52u);
     }
