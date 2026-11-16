@@ -398,7 +398,7 @@ it down at once, never clipping it square. And **MAX OUT** (the MIXER's MASTER, 
 all the way up: -3 dB to start with (headroom for the FM-1's output and your speaker), right to 0 dB, left down to
 -12 dB.
 
-**SEL held a moment, or locked, shows the SEL + K1–K4 functions at the foot of the screen** (their names in amber, their values: what EDIT KICK › KNOBS gave them), back to the page's knobs when SEL goes up or is freed (0.258). **SEL ×2 (two quick clicks) locks it down**: SEL blinks (0.9.46) and counts as held, so every SEL combination works with one hand
+**SEL held a moment, or locked, shows the SEL + K1–K4 functions at the foot of the screen** (their names in amber, their values: what EDIT KICK › KNOBS gave them), back to the page's knobs when SEL goes up or is freed (0.258). While a black key is held with SEL (held or locked), its own knobs win: the foot shows that effect's settings and K1–K4 tune them (a roll's RATE, BRK FLT…; KIL's and X2's LATCH), SEL + K1–K4 again once the key is let go (0.9.57, FLEXOR). **SEL ×2 (two quick clicks) locks it down**: SEL blinks (0.9.46) and counts as held, so every SEL combination works with one hand
 (SEL + a knob, SELECT, PRESETS, ALGORITHM, ENV…); **SEL pressed again frees it**.
 
 **SEL + ENV** (playing) asks for the drop (SEL ×3 no longer does: too easy by mistake): the build starts at the next bar, so the drop always lands on a bar line.

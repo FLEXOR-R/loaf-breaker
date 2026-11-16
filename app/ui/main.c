@@ -361,6 +361,11 @@ static void sw_do(uint32_t i, int down)
         ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
     }
 }
+static int bk_knobs_held(void)           /* (0.9.57, FLEXOR: a black key held whose effect has knobs: they win over
+                                          * SEL + K1-K4, on the foot and on the knobs) */
+{
+    return ui.pad_focus >= 0 || ui.x2_focus || ui.kil_focus;
+}
 static void input(void)
 {
     uint32_t keys = plat_keys(), btn = plat_buttons(), now = plat_ms(), i, sel_now = btn >> B_SEL & 1u;
@@ -1154,7 +1159,7 @@ static void input(void)
             clr_arm = 0u;
             continue;
         }
-        if (k >= EN_K1 && k <= EN_K4 && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + K1 DUCK, K2 TERROR 2, K3 COMP
+        if (k >= EN_K1 && k <= EN_K4 && btn & 1u << B_SEL && !bk_knobs_held()) {   /* LOAF BREAKER: SEL + K1 DUCK, K2 TERROR 2, K3 COMP
                                           * (was LIMIT), K4 TERROR, on any page: its amount (its settings: ENV's KNOB) */
             selk_turn(selk_fn((uint32_t)(k - EN_K1)), 0, d);
             ui.redraw |= RG_FOOT;        /* (the foot shows them: SEL held or locked) */
@@ -2406,7 +2411,8 @@ void app_frame(void)
     }
     {                                    /* LOAF BREAKER (0.258): SEL held a moment (not a click) or locked: the foot
                                           * shows SEL + K1-K4; let go, the page's again */
-        uint8_t sf = (uint8_t)(ui.sel_lock || (ui.sel_raw && now - ui.sel_t >= 300u));
+        uint8_t sf = (uint8_t)((ui.sel_lock || (ui.sel_raw && now - ui.sel_t >= 300u)) && !bk_knobs_held());   /* (0.9.57,
+                                          * FLEXOR: a black key held with SEL: its own knobs shown and turned) */
         if (sf != ui.sel_foot) {
             ui.sel_foot = sf;
             ui.redraw |= RG_FOOT;
