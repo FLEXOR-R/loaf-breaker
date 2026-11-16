@@ -133,14 +133,15 @@ static void bk_pick(uint32_t j)          /* a black key pressed on BLACK KEYS */
  * or locked, of one of six kinds, any key any kind: NONE (as without it), KICK 1-20, PATTERN 1-64 (playing: at the
  * loop's end), BREAK (any), EFFECT (an OVERLAY effect while held), DROP (AUTO as SEL + ENV, or into P1-64); kept in
  * OBJ_KX2's room (kx2.rsv: the kind, then the value, two bytes a key) */
-enum { SW_NONE, SW_KICK, SW_PAT, SW_BRK, SW_FX, SW_DROP, SW_KIT, SW_N };   /* (0.9.54: KIT) */
-static const char *const SW_NAME[SW_N] = {"NONE", "KICK", "PATTERN", "BREAK", "EFFECT", "DROP", "KIT"};
+enum { SW_NONE, SW_KICK, SW_PAT, SW_BRK, SW_FX, SW_DROP, SW_KIT, SW_TRACK, SW_N };   /* (0.9.54: KIT; 0.9.63,
+                                          * FLEXOR: TRACK 1-8, the whole track, from the break's loop end) */
+static const char *const SW_NAME[SW_N] = {"NONE", "KICK", "PATTERN", "BREAK", "EFFECT", "DROP", "KIT", "TRACK"};
 static uint8_t sw_sel;                   /* (the white key edited, 0..15) */
 static uint32_t sw_cat(uint32_t i) { uint32_t c = kx2.rsv[2u * (i % 16u)]; return c < SW_N ? c : SW_NONE; }
 static uint32_t sw_nval(uint32_t c)      /* (a kind's values) */
 {
     return c == SW_KICK ? KICK_MEMS : c == SW_PAT ? NPAT_ALL : c == SW_BRK ? n_breaks : c == SW_FX ? 16u
-           : c == SW_DROP ? 1u + NPAT_ALL : c == SW_KIT ? 16u : 1u;
+           : c == SW_DROP ? 1u + NPAT_ALL : c == SW_KIT ? 16u : c == SW_TRACK ? NTRACKS : 1u;
 }
 static uint32_t sw_val(uint32_t i) { uint32_t n = sw_nval(sw_cat(i)); return kx2.rsv[2u * (i % 16u) + 1u] % (n ? n : 1u); }
 static void sw_text(uint32_t i, char *t, int brief)   /* (its shortcut: in full, or in five letters for its card) */
@@ -164,6 +165,9 @@ static void sw_text(uint32_t i, char *t, int brief)   /* (its shortcut: in full,
     } else if (c == SW_KIT) {
         text_cat(t, brief ? "KIT" : "KIT ");
         int_text((int32_t)v + 1, t + (brief ? 3 : 4));
+    } else if (c == SW_TRACK) {
+        text_cat(t, brief ? "T" : "TRACK ");
+        int_text((int32_t)v + 1, t + (brief ? 1 : 6));
     } else if (c == SW_DROP) {
         if (!v)
             text_cat(t, brief ? "DROP" : "DROP AUTO");

@@ -367,7 +367,19 @@ static void sw_do(uint32_t i, int down)
     }
     if (!down)
         return;
-    if (c == SW_KIT)
+    if (c == SW_TRACK) {                 /* (0.9.63, FLEXOR: a whole track; playing, from the break's loop end) */
+        char t[8] = "TRACK ";
+        int_text((int32_t)v + 1, t + 6);
+        if (!playing_now()) {
+            set.trk = (uint8_t)(v % NTRACKS);
+            trk_want = 0u;
+            track_play(0);
+        } else {
+            trk_want = (uint8_t)(v % NTRACKS + 1u);
+            app_say(t, "AT THE LOOP'S END");
+        }
+        ui.redraw |= RG_HEAD | RG_BLOCKS;
+    } else if (c == SW_KIT)
         kit_apply(v);
     else if (c == SW_KICK)
         kick_mem_go(v);
@@ -2383,6 +2395,20 @@ void app_frame(void)
             ui.panel_drawn = now;
         }
     }
+    if (trk_want && !st.playing)         /* (SEL WHITE's TRACK waiting: stopped, forgotten) */
+        trk_want = 0u;
+    if (trk_want && st.step >= 0 && (uint32_t)st.step + 1u >= pat_len()) {   /* (its first item in for the loop's next
+                                          * round, as a pattern picked: the break's last step plays) */
+        set.trk = (uint8_t)((trk_want - 1u) % NTRACKS);
+        trk_want = 0u;
+        trk_seam = 1u;
+        track_play(0);
+        trk_seam = 0u;
+        if (ui.trk_on) {                 /* (this loop not counted: the track's first from the next) */
+            ui.trk_cnt = 1u;
+            ui.trk_prev = (int16_t)st.step;
+        }
+    }
     if (pat_next >= 0 && (!st.playing || (st.step >= 0 && (uint32_t)st.step + 1u >= pat_len()))) {
         int ok = pat_go((uint32_t)pat_next);   /* the pattern picked: in for the loop's next round (its last step
                                           * plays; LOAF BREAKER: another group's, read in now; refused: this one's
@@ -3798,8 +3824,8 @@ int app_expect(const char *what, int *got)
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
                                     "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15", "broll", "stut", "fxwet", "tempo10", "kitsel", "kit0kick", "vthru", "dafter",
-                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording"};
-    int v[183];
+                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk"};
+    int v[186];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -3995,6 +4021,13 @@ int app_expect(const char *what, int *got)
     v[180] = (int)rec_key_on();          /* (0.9.58: REC as a black key, its function; REC recording) */
     v[181] = (int)rec_fn();
     v[182] = ui.rec;
+    {                                    /* (0.9.63: SEL WHITE's TRACK waiting, + 1; the break's step; the track) */
+        brk_status_t bs;
+        brk_status(&bs);
+        v[183] = trk_want;
+        v[184] = bs.step;
+        v[185] = set.trk;
+    }
     v[161] = set.vinyl & 3u;             /* (0.9.54: VINYL BREAK's THRU, 0 BOTH 1 BREAK 2 KICK) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */
     v[141] = kx2_at(set.kslot)->gate;    /* (its TAIL GATE's division) */

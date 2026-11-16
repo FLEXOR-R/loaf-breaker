@@ -502,6 +502,8 @@ static void build_click(void)
 
 /* PLAY: the track from its first item (TRK_FROM; a DROP there: the pattern after it), from bar 1; HOME (home: 0, from
  * TRACKS: it stays) */
+static uint8_t trk_want;                 /* (0.9.63: SEL WHITE's TRACK n + 1 waiting for the break's loop end, 0 none) */
+static uint8_t trk_seam;                 /* (track_play at the loop's end: the pattern's first step next, no restart) */
 static void track_play(int home)
 {
     const track_t *t = trk_now();
@@ -517,7 +519,9 @@ static void track_play(int home)
     pat_apply();
     trk_brk_go((uint32_t)i);             /* (its break) */
     trk_kick_go((uint32_t)i, 1);         /* (LOAF BREAKER: its kick) */
-    if (playing_now())
+    if (playing_now() && trk_seam)
+        brk_rewind();                    /* (0.9.63: at the break's loop end, its step 1 next, no cut) */
+    else if (playing_now())
         transport(1, 1);                 /* (from bar 1) */
     else {
         brk_reset();

@@ -608,6 +608,7 @@ any kind on any key: **K2 KEY** (or **ALGORITHM**, or press the white key: it pi
 | EFFECT | That OVERLAY effect while you hold the key | DIVE … KICK TRI |
 | DROP | A build, then the drop | AUTO (as SEL + ENV: the next pattern or DROP's AFTER), or into P1–P64 |
 | KIT | That KIT (ARP › KITS, 0.9.54): its kick, break, tempo and pattern at once | KIT 1–16 |
+| TRACK | That whole track (0.9.63), as SONG › PLAY: stopped, at once; playing, at the break's loop end (the loop plays to its last step, then the track from its first item, with no cut). Stopped while it waits: forgotten | TRACK 1–8 |
 
 ![SEL WHITE: key 5 with SEL, a DROP (AUTO); key 1 KICK 3, key 2 P5, key 3 a break, key 4 an effect](img/screen-selwhite.png "SEL WHITE")
 
