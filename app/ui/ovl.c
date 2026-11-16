@@ -101,6 +101,15 @@ static void bk_key_name(uint32_t j, char *t)   /* ("KEY 3", the REC key "REC KEY
     text_cat(t, "KEY ");
     int_text((int32_t)j % 11 + 1, t + 4);
 }
+#define FLAY_TAG 0x5Bu                    /* (kx2.rsv[52]: FLEXOR LAYOUT's key 5 given RISE, 0.9.58) */
+static void flexor_lay_fix(int force)    /* (0.9.58, FLEXOR: FLEXOR LAYOUT's key 5, an ARP key, RISE: once on an FM-1 on
+                                          * it, and each time the preset is picked) */
+{
+    if (bk_preset() != BKP_FLEXOR || (!force && kx2.rsv[52] == FLAY_TAG))
+        return;
+    arpk_set_fx(4u, OV_RISE);
+    kx2.rsv[52] = FLAY_TAG;
+}
 static void bk_say(void)
 {
     char t[24];
@@ -408,6 +417,7 @@ static void bk_turn(int i, int32_t d)
             return;
         bk_release_all();
         set.bkeys.bk[1] = (uint8_t)p;
+        flexor_lay_fix(1);               /* (0.9.58: its key 5 RISE) */
         app_say("BLACK KEYS", BKP_NAME[p]);
     } else if (i == 1) {
         ui.bk_sel = (uint8_t)clamp((int32_t)ui.bk_sel + dir, 0, (int32_t)nbk() - 1);   /* (0.9.58: the REC key last) */

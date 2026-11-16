@@ -3,6 +3,7 @@
 # REVERSE, FREEZE, GATE and DUB have no key)
 #   app/build/host/loaf-breaker_host tests/scenarios/pads.txt app/build/scenarios
 wait 4200
+layout_0953   # (0.9.58: FLEXOR LAYOUT changed; this scenario was written on the one before, as CUSTOM)
 tap PLAY
 wait 800
 peakreset

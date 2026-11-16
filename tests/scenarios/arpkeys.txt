@@ -2,7 +2,8 @@
 # the key is held) and its LATCH (K4 held), several at once. Here key 1 made a second ARP beside FLEXOR LAYOUT's (key 7).
 #   app/build/host/loaf-breaker_host tests/scenarios/arpkeys.txt app/build/scenarios
 wait 4200
-expect bk_pre 1
+layout_0953   # (0.9.58: FLEXOR LAYOUT changed; this scenario was written on the one before, as CUSTOM)
+expect bk_pre 2   # (0.9.58: the layout before, as CUSTOM)
 tap ARP
 wait 300
 turn SELECT 1 10

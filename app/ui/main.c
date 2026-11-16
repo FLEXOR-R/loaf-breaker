@@ -2099,6 +2099,7 @@ static void draw_foot(const brk_status_t *st)
 
 void app_ui_init(void)
 {
+    flexor_lay_fix(0);                   /* (0.9.58: FLEXOR LAYOUT's key 5 RISE, once) */
     ab_take();                           /* (LOAF BREAKER: TOOLS' A/B: the kick as it was saved) */
     ui.kpreset = (uint8_t)kpre_mem(set.kslot);   /* (0.9.2: the PRESET page names the kick's own) */
     ui.blocks = (uint8_t)(set.bkeys.bk[BK_VIEW] & 1u);   /* (0.9.2: HOME's VIEW as it was left) */
@@ -3636,6 +3637,17 @@ int app_host_cmd(const char *cmd, const char *a, const char *b, const char *c, c
     }
     if (!strcmp(cmd, "splash")) {
         app_splash();
+        return 1;
+    }
+    if (!strcmp(cmd, "layout_0953")) {   /* layout_0953: the black keys as FLEXOR LAYOUT was 0.9.53-0.9.57 (R8 R16 R32 VNL
+                                          * GAT FLT ARP ARP KIL DST SUB), as CUSTOM: the scenarios written on it */
+        static const uint8_t L[11] = {PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, PAD_TAPESTOP, PAD_GATE, PAD_FILTER, BKF_ARP,
+                                      BKF_ARP, BKF_KIL, BKF_DST, BKF_SUB};
+        uint32_t j;
+        for (j = 0; j < 11u; j++)
+            set.bkeys.bk[2u + j] = L[j];
+        set.bkeys.bk[1] = BKP_CUSTOM;
+        set.rsv2[0] = 0u;                /* (the ARP keys: ovl_pad's effect, as then) */
         return 1;
     }
     if (!strcmp(cmd, "kick_sub_decay")) {   /* kick_sub_decay MS: the SUB layer's decay to that (the knob's 2 % steps miss
