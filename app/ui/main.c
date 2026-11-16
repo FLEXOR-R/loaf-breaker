@@ -354,6 +354,10 @@ static void kit_apply(uint32_t k)        /* (0.9.54, FLEXOR: a KIT: its kick, br
     app_say(t, "LOADED");
     ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
 }
+static int drum_hear_key(uint32_t i)    /* (white key i plays a drum to hear it: the KICK menu, the drums' pages, stopped) */
+{
+    return i < NDRUMS && (ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX() || ui.page == PG_PERC) && !playing_now();
+}
 static void sw_do(uint32_t i, int down)
 {
     uint32_t c = sw_cat(i), v = sw_val(i);
@@ -485,6 +489,9 @@ static void input(void)
     for (i = 0; i < 16u; i++) {          /* (0.9.50, FLEXOR: SEL WHITE, a white key pressed with SEL held or locked: its
                                           * shortcut; the key, until let go, nothing else's) */
         uint32_t wb = 1u << WK[i];
+        if (drum_hear_key(i))            /* (0.9.63, FLEXOR: keys 1-4 heard on the KICK and drum pages, stopped: that
+                                          * first, SEL held or not; their SEL WHITE shortcuts not there) */
+            continue;
         if (kdn & wb && btn & 1u << B_SEL && sw_cat(i) == SW_NONE)
             ui.tap_combo = 1u;           /* (0.9.56, FLEXOR: SEL + a white key without a shortcut: the key as without
                                           * SEL, and SEL let go after it no click, no card) */
@@ -507,8 +514,7 @@ static void input(void)
     for (i = 0; i < 16u; i++) {          /* white keys: slices, or a page's own */
         if (ui.page == PG_OVL)
             continue;
-        if (i < NDRUMS && (ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX() || ui.page == PG_PERC) &&
-            !playing_now()) {            /* LOAF BREAKER: the KICK menu (big or classic, its EQ and FX parts too) and the
+        if (drum_hear_key(i)) {          /* LOAF BREAKER: the KICK menu (big or classic, its EQ and FX parts too) and the
                                           * drums' pages (big or classic), stopped: keys 1-5 play the KICK, SNARE, HAT,
                                           * CLAP once each (to hear them); playing, they play slices as ever */
             if (kdn >> WK[i] & 1u) {

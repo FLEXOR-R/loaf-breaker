@@ -610,6 +610,8 @@ any kind on any key: **K2 KEY** (or **ALGORITHM**, or press the white key: it pi
 | KIT | That KIT (ARP › KITS, 0.9.54): its kick, break, tempo and pattern at once | KIT 1–16 |
 | TRACK | That whole track (0.9.63), as SONG › PLAY: stopped, at once; playing, at the break's loop end (the loop plays to its last step, then the track from its first item, with no cut). Stopped while it waits: forgotten | TRACK 1–8 |
 
+On the KICK menu and the drums' pages, stopped, keys 1–4 play the kick and the drums to hear them, SEL held or not: their shortcuts don't apply there (0.9.63).
+
 ![SEL WHITE: key 5 with SEL, a DROP (AUTO); key 1 KICK 3, key 2 P5, key 3 a break, key 4 an effect](img/screen-selwhite.png "SEL WHITE")
 
 **KITS** (0.9.54, FLEXOR, EXPERT, the fifth tab): sixteen kits, shown as the ARP effects' cards, each a **kick, a break,

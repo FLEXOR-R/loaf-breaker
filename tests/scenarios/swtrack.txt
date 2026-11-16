@@ -96,3 +96,29 @@ wait 300
 expect trkwant 0
 expect trk_on 0
 expect playing 0
+# (0.9.63, FLEXOR) on the KICK page, stopped, keys 1-4 play the drums to hear them, SEL held or not: key 2 given TRACK
+# 1 plays the snare, not the track
+tap ARP
+wait 300
+turn SELECT 3 10
+wait 300
+expect opage 3
+tapkey w1
+wait 100
+turn K3 7 10
+wait 200
+expect swcat 7
+tap EDIT
+wait 300
+press SEL
+wait 50
+key w1 down
+wait 30
+expect aud_d 1
+key w1 up
+wait 100
+release SEL
+wait 200
+expect trkwant 0
+expect trk_on 0
+expect playing 0
