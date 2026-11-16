@@ -814,6 +814,7 @@ the **METER** (below).
 | K1 CLOCK IN | OFF · FOLLOW | Following, MIDI clock from USB or the TRS jack sets the tempo (the header says EXT; SELECT waits), START plays from bar 1, STOP stops, and the loop eases onto the clock's beat every beat. The clock is stamped where it lands, so the tempo it reads is steady |
 | K2 CLOCK OUT | OFF · ON | While playing, 24 clocks a beat (straight, whatever the swing); PLAY sends START, stopping sends STOP, HOME + PLAY sends START again |
 | K3 METER | OFF · ON | (EXPERT) CPU, IMG, FR in the header: the audio's load, the screen's |
+| K4 REC KEY | OFF · ON | (EXPERT, 0.9.58) ON: the **REC** button becomes a twelfth black key, with any function but ARP (KILL BREAK to start). Set it on ARP › BLACK: its last key, right, REC (press REC there, or K2 to the end), K3 its function; it is its own, whatever the preset. It records no more (OFF: REC records again); lit as its function is on |
 
 The panel shows the clock coming in (its tempo, where from, running or stopped), the clock going out, and a light for
 MIDI in and out on each port. The FM-1 has no MIDI out jack: MIDI goes out over USB only.

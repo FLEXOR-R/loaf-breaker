@@ -244,6 +244,7 @@ static void reset_all(void)
     selk_clear();                        /* (0.9.49: no SEL layer) */
     kits_clear();                        /* (0.9.54: the KITS empty) */
     kx2.rsv[KB_RSV] = kx2.rsv[KB_RSV + 1u] = 0u;   /* (0.9.58: KILL BREAK as it starts) */
+    kx2.rsv[RK_RSV] = kx2.rsv[RK_RSV + 1u] = 0u;   /* (0.9.58: REC records, its key's function KILL BREAK) */
     kbrk_hold = 0u;
     kfx_all();                           /* (0.9.26: every kick's FX section as the defaults left it) */
     kmem_extras();                       /* (0.9.33: KICK 7 TERROR, KICK 8 SPINE, whole) */
@@ -404,6 +405,11 @@ static void input(void)
             app_say("SEL", "FREE");
         } else
             btn |= 1u << B_SEL;
+    }
+    if (rec_key_on()) {                  /* (0.9.58, FLEXOR: REC as a black key: its bit among the keys, no REC press) */
+        if (btn >> B_REC & 1u)
+            keys |= REC_KEY;
+        btn &= ~(1u << B_REC);
     }
     if (sel_now && !ui.sel_raw)
         ui.sel_t = now;                  /* (LOAF BREAKER: SEL down: held a moment, the foot shows its knobs) */
@@ -577,8 +583,11 @@ static void input(void)
         for (i = 0; i < 11u; i++)
             if (kdn >> BK[i] & 1u)
                 bk_pick(i);
+        if (kdn & REC_KEY)               /* (0.9.58: the REC key, the last) */
+            bk_pick(11u);
         for (i = 0; i < 11u; i++)
             kdn &= ~(1u << BK[i]);
+        kdn &= ~REC_KEY;
     }
     for (i = 0; i < 11u; i++)            /* (0.9.49, FLEXOR: a black key pressed with SEL held or locked: its SEL KEYS
                                           * function until it is let go, when it has one) */
@@ -1480,7 +1489,7 @@ static void leds(void)
                                              B_EDIT, B_GLO};   /* (TEST: KICK EQ under EDIT; 0.9.56 SETTINGS under GLO) */
     b |= 1u << (IS_KFX() || (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK) ? B_EDIT : ui.page == PG_GLOBAL &&
                 ui.gpage == GP_FILL ? B_SEQ : PAGE_BTN[ui.page]);   /* (LOAF BREAKER: SOUNDS' BREAK, PATTERN's GROOVE) */
-    if (ui.rec)
+    if (rec_key_on() ? bkf_lit(rec_fn(), &st) != 0 : ui.rec != 0u)   /* (0.9.58: the REC key lit as its function) */
         b |= 1u << B_REC;
     if (set_dirty)
         b |= 1u << B_SAVE;
@@ -2009,6 +2018,8 @@ static const char *knob_name(int i)
     }
     if (ui.page == PG_GLOBAL && !ui.gpage && i == 2 && !set.novice)
         name = "METER";              /* (LOAF BREAKER, 0.213: SYSTEM › MIDI K3, EXPERT only) */
+    if (ui.page == PG_GLOBAL && !ui.gpage && i == 3 && !set.novice)
+        name = "REC KEY";            /* (0.9.58: SYSTEM › MIDI K4, EXPERT only) */
     return name ? name : "";
 }
 /* the foot: the pads, then the page and its knobs with their values */
@@ -3774,8 +3785,8 @@ int app_expect(const char *what, int *got)
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
                                     "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15", "broll", "stut", "fxwet", "tempo10", "kitsel", "kit0kick", "vthru", "dafter",
-                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain"};
-    int v[180];
+                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording"};
+    int v[183];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -3968,6 +3979,9 @@ int app_expect(const char *what, int *got)
     v[177] = kbrk_hold;                  /* (0.9.58: KILL BREAK out, its MODE, the break's level now, %) */
     v[178] = (int)kb_mode();
     v[179] = (int)(kbrk_g * 100.0f + 0.5f);   /* (KILL BREAK's gain on the break, %) */
+    v[180] = (int)rec_key_on();          /* (0.9.58: REC as a black key, its function; REC recording) */
+    v[181] = (int)rec_fn();
+    v[182] = ui.rec;
     v[161] = set.vinyl & 3u;             /* (0.9.54: VINYL BREAK's THRU, 0 BOTH 1 BREAK 2 KICK) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */
     v[141] = kx2_at(set.kslot)->gate;    /* (its TAIL GATE's division) */

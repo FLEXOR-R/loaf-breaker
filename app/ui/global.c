@@ -3,6 +3,7 @@
  * there in order.) */
 
 static void reset_all(void);             /* (below, with the break's change) */
+static void bk_release_all(void);        /* (ovl.c: whatever a black key had on lets go) */
 /* the GLOBAL page's knobs: clock in, clock out, Bluetooth, where MIDI goes */
 static uint8_t *sfx_knob(int i)          /* LOAF BREAKER: GLO EFFECTS' K1-K4: AMOUNT, on a KICK, at the DROP, LENGTH */
 {
@@ -127,6 +128,7 @@ static void global_value(int i, char *t)
     }
     text_cat(t, i == 0 ? (set.clk_in ? "FOLLOW" : "OFF") : i == 1 ? (set.clk_out ? "ON" : "OFF")
                 : i == 2 && !set.novice ? (ui.meter_on ? "ON" : "OFF")
+                : i == 3 && !set.novice ? (rec_key_on() ? "ON" : "OFF")   /* (0.9.58: REC KEY) */
                 : "");                   /* (LOAF BREAKER: K3 the METER, EXPERT only; K4 BREAK TIME 0.256-0.9.1: HOME's
                                           * SETTINGS now) */
 }
@@ -263,10 +265,19 @@ static void global_turn(int i, int32_t d)
         app_say("METER", ui.meter_on ? "ON: CPU, IMG, FR" : "OFF");
         ui.redraw |= RG_HEAD | RG_FOOT;
         return;
-    } else {                             /* (K4 BREAK TIME, 0.256-0.9.1: HOME's SETTINGS now, FLEXOR) */
-        app_say("BREAK TIME", "HOME > SETTINGS");
+    } else if (i == 3 && !set.novice) {   /* (0.9.58, FLEXOR: K4 REC KEY, right ON: REC a twelfth black key, set on
+                                          * ARP › BLACK; left OFF: REC records again) */
+        kx2.rsv[RK_RSV + 1u] = (uint8_t)(0xA0u | (d > 0 ? 1u : 0u));
+        if (d > 0)
+            ui.rec = 0u;                 /* (recording no more) */
+        else
+            bk_release_all();
+        set_dirty = 1u;
+        app_say("REC KEY", rec_key_on() ? "ON: ARP > BLACK, LAST KEY" : "OFF: REC RECORDS");
+        ui.redraw |= RG_FOOT | RG_BLOCKS;
         return;
-    }
+    } else
+        return;
     global_value(i, t);
     app_say(NAME[i], t);
     changed();

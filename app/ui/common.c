@@ -296,6 +296,8 @@ static uint32_t bkf_mask(uint32_t f)
     for (j = 0; j < 11u; j++)
         if (bk_fn(j) == f)
             m |= 1u << BK[j];
+    if (rec_key_on() && rec_fn() == f)   /* (0.9.58: the REC key's) */
+        m |= REC_KEY;
     return m;
 }
 #define PAD_BIT(i) bkf_mask((uint32_t)(i))

@@ -297,10 +297,15 @@ static uint32_t bk_preset(void)          /* the preset in use (0.9.23, FLEXOR: B
 }
 static uint32_t selb_fn(uint32_t j);     /* (0.9.49: its SEL layer's, below) */
 static uint16_t bk_sel_dn;               /* (0.9.49: the black keys pressed with SEL, their SEL function: bit j) */
+#define REC_KEY (1u << 27)               /* (0.9.58, FLEXOR: REC as a twelfth black key: its bit among the keys, past the
+                                          * 27 keys) */
+static uint32_t rec_fn(void);            /* (its function: below, with OBJ_KX2) */
 static uint32_t bk_fn(uint32_t j)        /* black key j's (0..10) function (0.9.49: pressed with SEL, its SEL KEYS
-                                          * function, when it has one) */
+                                          * function, when it has one; 11 the REC key's, 0.9.58) */
 {
     uint32_t p = bk_preset(), f;
+    if (j == 11u)
+        return rec_fn();
     j %= 11u;
     if (bk_sel_dn >> j & 1u && selb_fn(j))
         return selb_fn(j) - 1u;
@@ -457,6 +462,17 @@ static void kb_put(uint32_t mode, uint32_t latch, uint32_t time, uint32_t rev)
     kx2.rsv[KB_RSV] = (uint8_t)(KB_TAG | (mode % KB_N) | (latch & 1u) << 2 | (time % KB_TIMES) << 3);
     kx2.rsv[KB_RSV + 1u] = (uint8_t)(rev > 100u ? 100u : rev);
 }
+/* LOAF BREAKER (0.9.58, FLEXOR): SYSTEM › MIDI K4 REC KEY (EXPERT): ON, the REC button is a twelfth black key (REC_KEY),
+ * any function but ARP, set on ARP › BLACK (its last key, right); REC records no more. kx2.rsv[50]: 0x80 | its function
+ * (untagged: KILL BREAK); rsv[51]: 0xA0 | on (untagged: off) */
+#define RK_RSV 50u
+static uint32_t rec_key_on(void) { return (kx2.rsv[RK_RSV + 1u] & 0xF0u) == 0xA0u && (kx2.rsv[RK_RSV + 1u] & 1u); }
+static uint32_t rec_fn(void)
+{
+    uint32_t f = kx2.rsv[RK_RSV] & 0x7Fu;
+    return kx2.rsv[RK_RSV] & 0x80u && f < BKF_N && f != BKF_ARP ? f : BKF_KBR;
+}
+static uint32_t nbk(void) { return rec_key_on() ? 12u : 11u; }   /* (the black keys, REC's with them) */
 static uint32_t kit_bpm(uint32_t k)      /* (its tempo, tenths of a BPM; 0 KEEP) */
 {
     uint32_t v = kx2.rsv[KIT_BPM0 + k % 16u];
@@ -507,7 +523,7 @@ static void ovl_order_fix(void)
 }
 static uint32_t selb_fn(uint32_t j)      /* (black key j's SEL function, 1 + BKF_*; 0: none) */
 {
-    uint32_t f = kx2.selk[j % 11u];
+    uint32_t f = j < 11u ? kx2.selk[j] : 0u;   /* (the REC key, 11: none, 0.9.58) */
     return f <= BKF_N ? f : 0u;
 }
 static void klab_defaults(void)
