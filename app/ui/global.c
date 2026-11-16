@@ -133,6 +133,16 @@ static void global_value(int i, char *t)
                                           * SETTINGS now) */
 }
 
+/* (0.9.64, FLEXOR: a TR-8S's notes cutting the break) SYSTEM › MIDI's PRESETS: NOTES IN, ALL (the slices 48-63 and
+ * the drums 36-46, as before), DRUMS (the drums alone), OFF (no notes: the clock, start, stop alone) */
+static void notes_in_turn(int32_t d)
+{
+    notes_in_put((uint32_t)clamp((int32_t)notes_in() + (d > 0 ? 1 : -1), 0, NI_N - 1));
+    set_dirty = 1u;
+    app_say("NOTES IN", notes_in() == NI_ALL ? "ALL: SLICES AND DRUMS" : notes_in() == NI_DRUMS
+            ? "DRUMS ONLY: 36-46" : "OFF: CLOCK ALONE");
+    ui.redraw |= RG_BLOCKS;
+}
 /* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's BREAK its LEVEL alone (K4; the pitch: OCT), GROOVE its SWING alone */
 static int glo_knob_ok(int i)
 {
@@ -522,6 +532,9 @@ static void draw_global(const brk_status_t *st)
     (void)bs;
     cv_text(6, 2, &FONT_T, "MIDI", C_GRAY);
     cv_text(96, 2, &FONT_T, "USB AND THE TRS JACK", C_WHITE);
+    cv_text(6, 16, &FONT_T, "NOTES IN", C_GRAY);   /* (0.9.64, FLEXOR: PRESETS, ALL / DRUMS / OFF) */
+    cv_text(96, 16, &FONT_T, notes_in() == NI_ALL ? "ALL  (PRESETS)" : notes_in() == NI_DRUMS ? "DRUMS ONLY  (PRESETS)"
+            : "OFF  (PRESETS)", notes_in() == NI_ALL ? C_WHITE : C_HI);
                                          /* (BREAK TIME gone, 0.9.25, FLEXOR: HOME's SETTINGS K4 alone) */
     cv_text(6, 30, &FONT_T, "CLOCK IN", C_GRAY);
     t[0] = 0;

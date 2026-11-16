@@ -202,7 +202,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 | OCT− / OCT+ | Pitch in semitones (hold to go faster). Both: back to 0 |
 | PRESETS | The pattern, P1–P64 (§5); while playing the new one starts at the end of the loop |
 | SEQ · REC | The sequencer; recording the keys into the pattern (§5). SEL + REC: clear the pattern (SEL + SAVE takes it back) |
-| MIDI notes | Notes 48–63 (C3–D#4) play slices 1–16, held like the white keys; 36 the kick, 38 the snare, 42 / 44 / 46 the hat (§8); any channel |
+| MIDI notes | Notes 48–63 (C3–D#4) play slices 1–16, held like the white keys; 36 the kick, 38 the snare, 39 the clap, 42 / 44 / 46 the hat (§8); any channel. SYSTEM › MIDI's PRESETS, NOTES IN: ALL, DRUMS (the drums alone), OFF |
 | ALGORITHM | (HOME, MIXER; SEL held: any page) The next or previous break: its name shows at once (amber in the header) and, while playing, it comes in at the next bar (the old one goes quiet for the bar's last 16th meanwhile); stopped, at once. NUSKOOL 140, AMEN20 164, AMEN19 172, UPDOWN 165, JUNGLE 175, THINK 114 (Lyn Collins), APACHE 115 (Incredible Bongo Band), THEWORM 110 (Jimmy McGriff) (the Amens: The Winstons, cut by Cyberworm): 2 bars each, played at the tempo you set; then **your own breaks**, if you sent some (below) |
 | MASTER | Volume |
 
@@ -496,7 +496,7 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 | REV | Reverse | Speed | | | LATCH: ON, a press turns it on and the next off (0.9.26) |
 | FRZ | FREEZE: the slice playing loops while held | LENGTH: the slice, 1/2, 1/4, 1/8 | PITCH (±12 semitones) | | LATCH: ON, a press turns it on and the next off (0.9.26) |
 | HLF | Half speed | Speed | MASTER TEMPO: the pitch kept (ON) or dropped | LATCH: ON, a press turns it on and the next off | |
-| VNL | VINYL BREAK: the record slowing to a stop, spinning back up when let go (the screen: a Technics platter over the wave, its strobe dots racing back as it slows, the LOAF BREAKER face turning on its label, the speed and its semitones on the right; 0.9.30) | THRU: the break, the kick or both | BRK FLT (HOME's break filter: stop and filter at once, 0.9.45) | STOP (beats) | SPIN UP |
+| VNL | VINYL BREAK: the record slowing to a stop, spinning back up when let go (the screen: a Technics platter over the wave, its strobe dots racing back as it slows, the LOAF BREAKER face turning on its label, the speed and its semitones on the right; 0.9.30) | THRU: the break, the kick or both | LATCH (0.9.64: ON, a press stops the record, the next spins it back up; HOME's break filter until 0.9.63) | STOP (beats) | SPIN UP |
 | GAT | Gate: the break chopped on the beat | RATE | LENGTH (how much of each gate sounds) | | LATCH: ON, a press turns it on and the next off (0.9.26) |
 | RND | Random slices | Amount | Random pitch | | LATCH: ON, a press turns it on and the next off (0.9.26) |
 | FLT | Filter throw: the DJ filter sweeps to its target while held, back when let go | TARGET (low-pass left, high-pass right) | RESO | SPEED | THRU: BREAK (the break, as ever), DRUMS (the kick, the snare, the hat, the clap), BOTH (0.9.26) |
@@ -817,6 +817,7 @@ the **METER** (below).
 | K1 CLOCK IN | OFF · FOLLOW | Following, MIDI clock from USB or the TRS jack sets the tempo (the header says EXT; SELECT waits), START plays from bar 1, STOP stops, and the loop eases onto the clock's beat every beat. The clock is stamped where it lands, so the tempo it reads is steady |
 | K2 CLOCK OUT | OFF · ON | While playing, 24 clocks a beat (straight, whatever the swing); PLAY sends START, stopping sends STOP, HOME + PLAY sends START again |
 | K3 METER | OFF · ON | (EXPERT) CPU, IMG, FR in the header: the audio's load, the screen's |
+| PRESETS NOTES IN | ALL · DRUMS · OFF | (0.9.64) The MIDI notes the FM-1 takes in: ALL (as before: 48–63 the slices, 36–46 the drums), DRUMS (36–46 the drums alone), OFF (none: the clock, START and STOP alone). With a drum machine such as a TR-8S sending its notes, DRUMS or OFF: its crash (49), high tom (50) and ride (51) would otherwise hold slices and cut the break |
 | K4 REC KEY | OFF · ON | (EXPERT, 0.9.58) ON: the **REC** button becomes a twelfth black key, with any function but ARP: KILL BREAK on FLEXOR LAYOUT (and CHOPPAH). Set it on ARP › BLACK: its last key, right, REC (press REC there, or K2 to the end), K3 its function (on a preset: a CUSTOM copy first, as for the other keys). It records no more (OFF: REC records again); lit as its function is on |
 
 The panel shows the clock coming in (its tempo, where from, running or stopped), the clock going out, and a light for

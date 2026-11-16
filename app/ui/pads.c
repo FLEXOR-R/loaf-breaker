@@ -143,7 +143,7 @@ static const char *const FTHRU_NAME[3] = {"BREAK", "DRUMS", "BOTH"};
 static const char *const PAD_KNOB[BKF_N][4] = {   /* (LOAF BREAKER: by function, app.c BKF_*) */
     {"RATE", "BRK FLT", "DRUM FLT", "DECAY"}, {"RATE", "BRK FLT", "DRUM FLT", "DECAY"}, {"RATE", "BRK FLT", "DRUM FLT", "DECAY"},
     {"SPEED", 0, 0, "LATCH"}, {"LENGTH", "PITCH", 0, "LATCH"}, {"SPEED", "M. TEMPO", "LATCH", 0},
-    {"THRU", "BRK FLT", "STOP", "SPIN UP"}, {"RATE", "LENGTH", 0, "LATCH"}, {"AMOUNT", "PITCH", 0, "LATCH"},
+    {"THRU", "LATCH", "STOP", "SPIN UP"}, {"RATE", "LENGTH", 0, "LATCH"}, {"AMOUNT", "PITCH", 0, "LATCH"},
     {"TARGET", "RESO", "SPEED", "THRU"},   /* (0.9.26, FLEXOR: K4 LATCH on the keys with a knob free; FILTER's K4
                                           * THRU: BREAK, DRUMS, BOTH) */
     {"TIME", "FEEDBACK", "TONE", "MIX"},   /* (DUB: CHOPPAH's; a DELAY in the chain: its own, fx_param_name) */
@@ -335,9 +335,10 @@ static void pad_knob_value(int pad, int k, char *t)
         else text_cat(t, set.half_mt_off & 2u ? "ON" : "OFF");   /* (LOAF BREAKER: K3 LATCH) */
         break;
     case PAD_TAPESTOP:                   /* (LOAF BREAKER: the VINYL BREAK; 0.9.45, FLEXOR: K1 THRU, K2 HOME's break
-                                          * filter (as the rolls'), K3 STOP, K4 SPIN UP) */
+                                          * filter (as the rolls') until 0.9.63, its LATCH since (FLEXOR), K3 STOP, K4
+                                          * SPIN UP) */
         if (k == 0) { text_cat(t, THRU_NAME[set.vinyl & 3u]); break; }
-        if (k == 1) { brk_flt_text(t); break; }
+        if (k == 1) goto lat;
         signed_tenths(k == 3 ? p->spin_steps : p->stop_beats, k == 3 ? " ST" : " BT", t);
         if (t[0] == '+') t[0] = ' ';
         break;
@@ -452,11 +453,10 @@ static void pad_knob_turn(int pad, int k, int32_t d)
             half_lat = (uint8_t)(d > 0 && ui.pad_focus == PAD_HALF);
         }
         break;
-    case PAD_TAPESTOP:                   /* (0.9.45, FLEXOR: K1 THRU, K2 the break's filter, K3 STOP, K4 SPIN UP) */
-        if (k == 1) {
-            brk_flt_turn(d);
-            return;
-        }
+    case PAD_TAPESTOP:                   /* (0.9.45, FLEXOR: K1 THRU, K2 the break's filter (0.9.64, FLEXOR: its LATCH),
+                                          * K3 STOP, K4 SPIN UP) */
+        if (k == 1)
+            goto lat;
         if (k == 2)                      /* (LOAF BREAKER: to 16 beats, a beat a detent past 4) */
             p->stop_beats = knob_f(p->stop_beats, d, p->stop_beats > 4.0f || (p->stop_beats > 3.9f && d > 0) ? 1.0f
                                                                                                              : 0.25f,
@@ -539,8 +539,7 @@ static void pad_knob_turn(int pad, int k, int32_t d)
     }
     if (0) {
 lat:                                     /* (0.9.26: K4 LATCH, right on (held now: it stays on), left off; as HALF's) */
-        set.bkeys.bk[BK_PLAT] = (uint8_t)(0xA0u | (d > 0 ? bk_lat() | 1u << lat_bit((uint32_t)pad)
-                                                         : bk_lat() & ~(1u << lat_bit((uint32_t)pad))));
+        bk_lat_put(d > 0 ? bk_lat() | 1u << lat_bit((uint32_t)pad) : bk_lat() & ~(1u << lat_bit((uint32_t)pad)));
         if (d > 0 && ui.pad_focus == pad)
             pad_latched |= (uint16_t)(1u << pad);
     }

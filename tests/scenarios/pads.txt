@@ -1,3 +1,4 @@
+# (0.9.64, FLEXOR: VINYL BREAK's K2 its LATCH, the break's filter before)
 # CHOPPAH: each pad held shows its animation; K1-K4 tune it while held (LOAF BREAKER, FLEXOR LAYOUT since 0.9.53: the 4th key VINYL BREAK,
 # the 5th GATE, the 6th FILTER, the 7th and 8th ARP keys, the 9th KIL: the sequencer's kicks quiet while held, the 10th TER, as SUB: the kick's TERROR on (an amount at nothing: 50 %), off (its amount kept), on;
 # REVERSE, FREEZE, GATE and DUB have no key)
@@ -42,15 +43,32 @@ wait 250
 turn K3 2 10
 wait 300
 expect brk_dj 48
-turn K2 3 10
+turn K2 1 10
 wait 300
 shot p_stop.png
-expect brk_dj 54
-turn K2 -3 10
-wait 300
-expect brk_dj 42
+expect padlat 64
+expect brk_dj 48
 key b3 up
 wait 250
+expect padlat 64
+expect pads 64
+key b3 down
+wait 100
+key b3 up
+wait 250
+expect padlat 0
+key b3 down
+wait 100
+turn K2 -1 10
+wait 100
+key b3 up
+wait 250
+expect padlat 0
+key b3 down
+wait 100
+key b3 up
+wait 250
+expect pads 0
 key b6 down
 wait 250
 turn K2 5 10

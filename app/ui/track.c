@@ -218,7 +218,7 @@ static void reset_do(uint32_t w)
         brk_padset_defaults(&set.pads);
         set.half_mt_off = 0u;
         set.vinyl = 0u;                  /* (VINYL BREAK's THRU BOTH) */
-        set.bkeys.bk[BK_PLAT] = 0xA0u;   /* (REVERSE, FREEZE, GATE, RANDOM: held, no LATCH) */
+        bk_lat_put(0u);                  /* (REVERSE, FREEZE, GATE, RANDOM, VINYL BREAK: held, no LATCH) */
         set.bkeys.bk[BK_FTHRU] = 0xC0u;  /* (FILTER: THRU BREAK) */
         kx2.rsv[KB_RSV] = kx2.rsv[KB_RSV + 1u] = 0u;   /* (0.9.58: KILL BREAK: FADE 1/4, no LATCH, REVERB 60 %) */
         set.rsv6[0] = 0u;                /* (0.9.60: its ECHO 3/16) */

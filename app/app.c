@@ -280,7 +280,17 @@ static uint32_t arp_mask(uint32_t r)     /* (the effects THRU r: bit OV_*) */
     return m;
 }
 static uint32_t bk_seq(void) { return (set.bkeys.bk[BK_SEQ] & 0xF0u) == 0xD0u ? set.bkeys.bk[BK_SEQ] & 15u : 0u; }
-static uint32_t bk_lat(void) { return (set.bkeys.bk[BK_PLAT] & 0xF0u) == 0xA0u ? set.bkeys.bk[BK_PLAT] & 15u : 0u; }
+static uint32_t notes_in(void);
+static uint32_t vnl_lat(void);
+static uint32_t bk_lat(void)             /* (bit 4 VINYL BREAK's, 0.9.64, FLEXOR: in set.rsv6[2] bit 2) */
+{
+    return ((set.bkeys.bk[BK_PLAT] & 0xF0u) == 0xA0u ? set.bkeys.bk[BK_PLAT] & 15u : 0u) | vnl_lat() << 4;
+}
+static void bk_lat_put(uint32_t m)
+{
+    set.bkeys.bk[BK_PLAT] = (uint8_t)(0xA0u | (m & 15u));
+    set.rsv6[2] = (uint8_t)(0xA0u | notes_in() | (m >> 4 & 1u) << 2);
+}
 static uint32_t bk_fthru(void)
 {
     uint32_t v = set.bkeys.bk[BK_FTHRU];
@@ -288,7 +298,8 @@ static uint32_t bk_fthru(void)
 }
 static int lat_bit(uint32_t pad)         /* (a pad's place in bk_lat, -1: none) */
 {
-    return pad == PAD_REVERSE ? 0 : pad == PAD_FREEZE ? 1 : pad == PAD_GATE ? 2 : pad == PAD_RANDOM ? 3 : -1;
+    return pad == PAD_REVERSE ? 0 : pad == PAD_FREEZE ? 1 : pad == PAD_GATE ? 2 : pad == PAD_RANDOM ? 3
+           : pad == PAD_TAPESTOP ? 4 : -1;
 }
 static uint32_t bk_preset(void)          /* the preset in use (0.9.23, FLEXOR: BEGINNER keeps the one EXPERT left; a new
                                           * FM-1 and RESET ALL: CHOPPAH) */
@@ -463,6 +474,14 @@ static uint32_t kb_time(void) { return (kb_cfg() >> 3 & 7u) % KB_TIMES; }
                                           * rsv6[1] it; untagged 3/16) */
 static uint32_t kb_echo(void) { return set.rsv6[0] == 0xE5u && set.rsv6[1] < KB_ECHOS ? set.rsv6[1] : 2u; }
 static void kb_echo_put(uint32_t e) { set.rsv6[0] = 0xE5u; set.rsv6[1] = (uint8_t)(e % KB_ECHOS); }
+/* (0.9.64, FLEXOR, a TR-8S's notes cutting the break: SYSTEM › MIDI's PRESETS, NOTES IN: ALL as before, DRUMS (36-46
+ * the drums, not the slices), OFF (none: the clock, start and stop alone); set.rsv6[2] 0xA0 | it, untagged ALL) */
+enum { NI_ALL, NI_DRUMS, NI_OFF, NI_N };
+static const char *const NI_NAME[NI_N] = {"ALL", "DRUMS", "OFF"};
+static uint32_t notes_in(void) { return (set.rsv6[2] & 0xF0u) == 0xA0u && (set.rsv6[2] & 3u) < NI_N ? set.rsv6[2] & 3u : NI_ALL; }
+static uint32_t vnl_lat(void) { return (set.rsv6[2] & 0xF0u) == 0xA0u ? set.rsv6[2] >> 2 & 1u : 0u; }   /* (0.9.64: bit 2,
+                                          * VINYL BREAK's LATCH, its K2) */
+static void notes_in_put(uint32_t m) { set.rsv6[2] = (uint8_t)(0xA0u | m % NI_N | vnl_lat() << 2); }
 static uint32_t kb_rev(void) { return (kx2.rsv[KB_RSV] & 0xC0u) == KB_TAG && kx2.rsv[KB_RSV + 1u] <= 100u ? kx2.rsv[KB_RSV + 1u] : 60u; }
 static void kb_put(uint32_t mode, uint32_t latch, uint32_t time, uint32_t rev)
 {
@@ -2132,10 +2151,18 @@ void app_loop(void)
         uint32_t st = pkt >> 8 & 0xFFu, t = plat_ms(), t24 = plat_midi_in_t24();   /* (t24: where it landed) */
         if ((st & 0xE0u) == 0x80u) {     /* notes, any channel: 48..63 (C3..D#4) the slices, held as the white keys;
                                           * 36 the kick, 38 the snare, 42 / 44 / 46 the hat (a drum machine's) */
-            uint32_t note = pkt >> 16 & 0x7Fu, on = (st & 0xF0u) == 0x90u && (pkt >> 24 & 0x7Fu);
-            if (note >= MIDI_SLICE0 && note < MIDI_SLICE0 + 16u)
-                midi_slice((int)(note - MIDI_SLICE0), (int)on);
-            else if (on && (note == 36u || note == 38u || note == 39u || note == 42u || note == 44u || note == 46u))
+            static uint16_t mid_held;    /* (the slices a note holds: their note-off whatever NOTES IN says now) */
+            uint32_t note = pkt >> 16 & 0x7Fu, on = (st & 0xF0u) == 0x90u && (pkt >> 24 & 0x7Fu), ni = notes_in();
+            if (note >= MIDI_SLICE0 && note < MIDI_SLICE0 + 16u) {
+                uint32_t b = 1u << (note - MIDI_SLICE0);
+                if (on && ni == NI_ALL) {
+                    mid_held = (uint16_t)(mid_held | b);
+                    midi_slice((int)(note - MIDI_SLICE0), 1);
+                } else if (!on && mid_held & b) {
+                    mid_held = (uint16_t)(mid_held & ~b);
+                    midi_slice((int)(note - MIDI_SLICE0), 0);
+                }
+            } else if (on && ni != NI_OFF && (note == 36u || note == 38u || note == 39u || note == 42u || note == 44u || note == 46u))
                 midi_drum(note == 36u ? DR_KICK : note == 38u ? DR_SNARE : note == 39u ? DR_CLAP : DR_HAT);   /* (LOAF
                                           * BREAKER: 39 the clap) */
             continue;
