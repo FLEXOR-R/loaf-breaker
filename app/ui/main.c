@@ -634,6 +634,22 @@ static void input(void)
         changed_kick();
         ui.redraw |= RG_FOOT | RG_BLOCKS;
     }
+    if (kdn & PAD_BIT(BKF_SDR)) {        /* LOAF BREAKER (0.9.57, FLEXOR: "refaire venir le sub drive on / off"): SDR,
+                                          * as GLOUPI BREAKS' SUB to 0.9.42: the SUB layer's effect DRIVE (its mix up
+                                          * from nothing, the SUB FX switch on so it is heard), the next press OFF */
+        kick_layer_t *l = &set.kick.l[KL_SUB];
+        if (l->fx == KFX_DRIVE && !subfx_off)
+            l->fx = KFX_OFF;
+        else {
+            l->fx = KFX_DRIVE;
+            if (l->wet < 0.05f)
+                l->wet = 1.0f;
+            set.selk_hi &= (uint8_t)~64u;
+        }
+        app_say("SUB DRIVE", l->fx == KFX_DRIVE ? "ON" : "OFF");
+        changed_kick();
+        ui.redraw |= RG_FOOT | RG_BLOCKS;
+    }
     if (kdn & PAD_BIT(BKF_DST)) {        /* LOAF BREAKER: DST, a switch: the kick's DISTO used or not, its amount never
                                           * touched (0.265, FLEXOR: no more 50 % from nothing) */
         set.selk_hi ^= 16u;

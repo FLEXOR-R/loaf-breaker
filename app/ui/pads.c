@@ -149,11 +149,12 @@ static const char *const PAD_KNOB[BKF_N][4] = {   /* (LOAF BREAKER: by function,
     {"TIME", "FEEDBACK", "TONE", "MIX"},   /* (DUB: CHOPPAH's; a DELAY in the chain: its own, fx_param_name) */
     {"EFFECT", "AMOUNT", "TIME", "LATCH"},   /* (the ARP key's; FX while held: MORE, pad_knob_name; K2 what goes
                                           * through the ARP effects: the kick, the break, or both) */
-    {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}};   /* (KIL, X2: their LATCH, main.c; DST,
+    {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}};   /* (KIL, X2: their LATCH, main.c; DST,
                                           * SUB, DRV: a press each) */
 static const char *const PAD_TITLE[BKF_N] = {"ROLL", "ROLL", "ROLL", "REVERSE", "FREEZE", "HALF SPEED",
                                               "VINYL BREAK", "GATE", "RANDOM", "FILTER", "DUB", "OVERLAY", "KICKS OFF",
-                                              "DISTO", "SUB FX", "DRIVE", "KICKS X2", "KICKS X4", "KICK TRIPLETS"};
+                                              "DISTO", "SUB FX", "DRIVE", "KICKS X2", "KICKS X4", "KICK TRIPLETS",
+                                              "SUB DRIVE"};
 static const char *const FRZ_LEN_NAME[4] = {"SLICE", "1/2", "1/4", "1/8"};
 
 /* LOAF BREAKER: the ARP key's knobs (the OVERLAY page gone, its settings here). MAIN: K1 EFFECT, K2 its AMOUNT, K3
@@ -857,5 +858,7 @@ static int bkf_lit(uint32_t f, const brk_status_t *st)
         return (kick_x2 & 2u) != 0u;
     if (f == BKF_TRI)                    /* (0.9.55: in triplets) */
         return (kick_x2 & 4u) != 0u;
+    if (f == BKF_SDR)                    /* (0.9.57: SUB DRIVE, the SUB layer's effect DRIVE, heard) */
+        return set.kick.l[KL_SUB].fx == KFX_DRIVE && !subfx_off;
     return !subfx_off;                   /* (0.9.43: SUB, the SUB FX switch on, even with no effect set) */
 }

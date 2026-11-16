@@ -478,7 +478,7 @@ slices you marked ring out, the classic dub throw. (Without a DELAY slot, ECHO g
 
 The black keys act while held and combine. Which key does what is a **layout** (ARP › BLACK, below): CHOPPAH's,
 left to right R8 R16 R32 REV FRZ HLF VNL GAT RND FLT DUB (a new FM-1's, after RESET ALL too; BEGINNER keeps the layout EXPERT left, 0.9.23),
-FLEXOR LAYOUT (R8 R16 R32 VNL GAT FLT ARP ARP KIL DST SUB since 0.9.53, FLEXOR: two ARP keys, each its own effect; RND HLF FLT ARP VNL from key 4 in 0.9.26-0.9.52) or CUSTOM, each key any of the sixteen below. (HOME's K1 is
+FLEXOR LAYOUT (R8 R16 R32 VNL GAT FLT ARP ARP KIL DST SUB since 0.9.53, FLEXOR: two ARP keys, each its own effect; RND HLF FLT ARP VNL from key 4 in 0.9.26-0.9.52) or CUSTOM, each key any of the functions below. (HOME's K1 is
 the gate and K2 the DJ filter as well.) While a pad is held, the slice blocks give way to an
 animation of what it does, and **K1–K4 tune that pad** (the foot shows its settings; SAVE keeps them):
 
@@ -503,6 +503,7 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 | DST | A switch: a press, the kick's DISTO off, the next on again; its amount is never touched (at 0 % it stays 0 %: turn DISTO up to hear it). Lit while it is ON, even at 0 % (0.268); the kick's own (KICK 1–20): another kick picked (PRESETS, a track's item, a build) brings its own ON or OFF, the key lit with it; saved with SAVE. In BEGINNER too when its layout has DST (0.9.24) | | | | |
 | SUB | A switch (0.9.43): a press turns the kick's **SUB FX** off (the SUB layer's effect, whichever is set in EDIT: DRIVE, CRUNCH, FILTER, RING), the next on again; the effect and its settings are never touched (it adds no effect of its own any more: SUB DRIVE is EDIT's). The kick's own, as DST: each kick brings its own ON or OFF, the key lit while ON. A built-in kick picked on PRESET sets DST and SUB as it is made: DST on again if it has DISTO (TERROR, SPINE, EARLY HC, INDUSTRIAL, 909 DRIVE, GABBER, MILLENNIUM, DOOMCORE), SUB on again if it has a SUB FX (TERROR, SPINE) | | | | |
 | DRV | A switch (0.9.43): a press, the kick's DRIVE off, the next on again; its amount is never touched. Lit while it is ON; the kick's own (KICK 1–20), as DST; a built-in kick picked with a DRIVE puts it on again. In no preset layout: put it on a key of CUSTOM (ARP › BLACK, K3) | | | | |
+| SDR | SUB DRIVE (0.9.57, FLEXOR: back, as the SUB key was until 0.9.42): a press puts the kick's SUB layer through its DRIVE (EDIT's SUB FX set to DRIVE; its mix up from nothing, the SUB FX switch on again so it is heard), the next press turns that effect OFF. Lit while on. Beside SUB, which stays the SUB FX switch (whichever effect, untouched). In no preset layout: put it on a key of CUSTOM (ARP › BLACK, K3) or as a SEL BLACK function | | | | |
 
 ![ROLL held: the caught slice repeating, each copy quieter](img/pad-roll8.png "ROLL held")
 ![VINYL BREAK held: the platter slowing down](img/pad-stop.png "VINYL BREAK held")
@@ -572,7 +573,7 @@ since 0.9.50, FLEXOR; BLACK and SEL BLACK in full since 0.9.53): **ARP** (the ef
 **SEL WHITE** (the white keys with SEL) and **KITS** (0.9.54). **BLACK** lays out the black keys: **K1 PRESET**, CHOPPAH (CHOPPAH's eleven, the ARP
 key not among them), FLEXOR LAYOUT (R8 R16 R32 VNL GAT FLT ARP ARP KIL DST SUB since 0.9.53) or CUSTOM; **K2 KEY** (or **ALGORITHM**, 0.9.26), the key you edit (or press it:
 here a black key picks itself and plays nothing); **K3 EFFECT**, what it does: any of R8, R16, R32, REV, FRZ, HLF, VNL,
-GAT, RND, FLT, DUB, ARP, KIL, DST, SUB, DRV, X2, X4, TRI; on an ARP key, **K4 ARP FX** its own effect (0.9.45: several ARP keys, each with its own, play at once). Turned on a preset, K3 makes a CUSTOM of it first, that key changed (keys
+GAT, RND, FLT, DUB, ARP, KIL, DST, SUB, DRV, X2, X4, TRI, SDR (SUB DRIVE, 0.9.57); on an ARP key, **K4 ARP FX** its own effect (0.9.45: several ARP keys, each with its own, play at once). Turned on a preset, K3 makes a CUSTOM of it first, that key changed (keys
 outlined amber differ from CHOPPAH's). SAVE keeps the layout. BEGINNER always plays CHOPPAH's (turning BEGINNER on
 sets it back to CHOPPAH, and EXPERT keeps it until you change it).
 
