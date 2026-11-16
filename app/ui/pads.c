@@ -308,12 +308,12 @@ static void pad_knob_value(int pad, int k, char *t)
         else roll_decay_text(p->roll_decay, t);
         break;
     case BKF_KBR: {                      /* (0.9.58: KILL BREAK: MODE, its fade's TIME, BAR END's REVERB, LATCH) */
-        static const char *const KM[KB_N] = {"FADE", "CUT", "BAR END"}, *const KT[KB_TIMES] = {"1/16", "1/8", "1/4",
+        static const char *const KM[KB_N] = {"FADE", "CUT", "BAR END", "END FADE"}, *const KT[KB_TIMES] = {"1/16", "1/8", "1/4",
                                                                                                "1/2", "1 BAR", "2 BARS"};
         if (k == 0)
             text_cat(t, KM[kb_mode()]);
         else if (k == 1)
-            text_cat(t, kb_mode() == KB_FADE ? KT[kb_time()] : "-");
+            text_cat(t, kb_mode() == KB_FADE || kb_mode() == KB_ENDF ? KT[kb_time()] : "-");
         else if (k == 2) {
             if (kb_mode() != KB_BAR)
                 text_cat(t, "-");
@@ -634,10 +634,12 @@ static void draw_fx_band(int pad, const brk_status_t *st, uint32_t now, int32_t 
         break;
     }
     case BKF_KBR: {                      /* (0.9.58: KILL BREAK: its shape, the break's level falling as its MODE says) */
-        static const char *const KD[KB_N] = {"THE BREAK FADES OUT", "THE BREAK CUT AT ONCE", "OUT AT THE BAR'S END,"};
+        static const char *const KD[KB_N] = {"THE BREAK FADES OUT", "THE BREAK CUT AT ONCE", "OUT AT THE BAR'S END,",
+                                             "TO ITS LOOP'S END, THEN FADES OUT"};
         uint32_t mo = kb_mode();
         for (i = 0; i < 200; i++) {      /* (its level over time: down the ramp, the step, or at the bar's end) */
-            int32_t h = mo == KB_FADE ? 24 - i * 24 / 200 : mo == KB_CUT ? (i < 20 ? 24 : 0) : (i < 150 ? 24 : 0);
+            int32_t h = mo == KB_FADE ? 24 - i * 24 / 200 : mo == KB_CUT ? (i < 20 ? 24 : 0) : mo == KB_ENDF
+                        ? (i < 100 ? 24 : 24 - (i - 100) * 24 / 100) : (i < 150 ? 24 : 0);
             cv_rect(20 + i, FX_MID + 6 - h, 1, h > 0 ? h : 1, h > 0 ? C_HI : C_LINE);
         }
         if (mo == KB_BAR)                /* (the reverb's tail after it) */

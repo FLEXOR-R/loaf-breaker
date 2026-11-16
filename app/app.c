@@ -450,7 +450,8 @@ static void kits_clear(void)             /* (0.9.54: every KIT empty, KEEP) */
  * no LATCH, 60 % */
 #define KB_RSV 48u
 #define KB_TAG 0xC0u
-enum { KB_FADE, KB_CUT, KB_BAR, KB_N };
+enum { KB_FADE, KB_CUT, KB_BAR, KB_ENDF, KB_N };   /* (0.9.60, FLEXOR: END FADE, the fade once the break's
+                                          * loop has ended) */
 #define KB_TIMES 6u
 static const uint8_t KB_T16[KB_TIMES] = {1u, 2u, 4u, 8u, 16u, 32u};
 static uint32_t kb_cfg(void) { return (kx2.rsv[KB_RSV] & 0xC0u) == KB_TAG ? kx2.rsv[KB_RSV] & 0x3Fu : 2u << 3; }
@@ -2256,13 +2257,19 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             static int32_t kcut = -1;    /* (BAR END: where in this block the bar ends, -1 not in it) */
             static uint8_t kdone;        /* (BAR END: cut) */
             static uint32_t ktail;       /* (blocks the reverb's tail still rings, the plate alone) */
+            static uint8_t kend;         /* (END FADE: the break's loop has ended, the fade begun) */
+            static int32_t kstep = -1;   /* (END FADE: the step the block before ended on) */
             float sp16 = (float)BRK_SR * 15.0f / brk_get_tempo(), fstep = 1.0f / ((float)(kbrk_t16 ? kbrk_t16 : 1u) * sp16);
             uint32_t mode = kbrk_mode;
             int send = kbrk_hold && mode == KB_BAR && !kdone && st.playing && st.bar16 >= 14;
             if (!kbrk_hold)
-                kdone = 0u;
+                kdone = kend = 0u;
             if (kbrk_hold && mode == KB_BAR && !st.playing)
                 kdone = 1u;
+            if (kbrk_hold && mode == KB_ENDF && (!st.playing || (kstep >= 0 && st.step >= 0 &&
+                                                                 st.step % 32 < kstep % 32)))
+                kend = 1u;               /* (END FADE: the break round to its start, or stopped: the fade from here) */
+            kstep = st.playing ? st.step : -1;
             if (send)
                 ktail = (uint32_t)(8.0f * (float)BRK_SR / (float)APP_BLOCK);   /* (8 s) */
             for (i = 0; i < m; i++) {
@@ -2272,7 +2279,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                     kdone = 1u;
                 if (!kbrk_hold)
                     kg += (1.0f - kg) * 0.01f;   /* (back: in ~2 ms) */
-                else if (mode == KB_FADE)
+                else if (mode == KB_FADE || (mode == KB_ENDF && kend))
                     kg = kg > fstep ? kg - fstep : 0.0f;
                 else if (mode == KB_CUT || kdone)
                     kg *= 0.97f;         /* (out in ~1.5 ms: no click) */

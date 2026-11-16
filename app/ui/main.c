@@ -696,7 +696,7 @@ static void input(void)
         kbrk_hold = kb_latch() ? (uint8_t)!kbrk_hold : 1u;
         ui.pad_focus = (int8_t)BKF_KBR;
         ui.pad_since = plat_ms();
-        app_say("KILL BREAK", kbrk_hold ? (kb_mode() == KB_BAR ? "AT THE BAR'S END" : "OUT") : "BACK");
+        app_say("KILL BREAK", kbrk_hold ? (kb_mode() == KB_BAR ? "AT THE BAR'S END" : kb_mode() == KB_ENDF ? "AT THE LOOP'S END" : "OUT") : "BACK");
         ui.redraw |= RG_FOOT;
     } else if (!(keys & PAD_BIT(BKF_KBR)) && kbrk_hold && !kb_latch()) {
         kbrk_hold = 0u;                  /* (let go, no LATCH: back) */
