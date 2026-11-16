@@ -42,15 +42,11 @@ wait 200
 expect selk1 8
 tap GLO
 wait 100
-turn SELECT 1 10
+turn SELECT -1 10   # (0.9.57: RESET, left of MIDI: LIGHTS before it)
 wait 100
-turn SELECT 1 10
 wait 100
-turn SELECT 1 10
 wait 100
-turn SELECT 1 10
 wait 100
-turn SELECT 1 10
 wait 300
 expect page 3
 expect gpage 5
@@ -107,7 +103,7 @@ wait 100
 expect sfx_on 2
 turn SELECT 1 10
 wait 150
-turn SELECT 1 10
+turn SELECT 2 10   # (0.9.57: past LIGHTS)
 wait 300
 expect gpage 5
 turn K4 14 10

@@ -160,7 +160,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD |
 | LFO | MIX | LEVELS (BREAK, KICK, PERC), SENDS (FX, the drums' route, ARP), MASTER, DYNAMICS |
 | FX | EFFECTS | The four slots: MAIN, MORE, MOD |
-| GLO | SYSTEM | MIDI (EXPERT: K3 METER), SETUP (K1 SKIN, also PRESETS; K3 MODE, K4 AUTO SAVE), SETTINGS (K1 VIEW, K2 WAVE TYPE, K3 WAVE ZOOM, K4 BREAK TIME; HOME's until 0.9.55), EFFECTS (the screen's), FX SET, RESET |
+| GLO | SYSTEM | MIDI (EXPERT: K3 METER), SETUP (K1 SKIN, also PRESETS; K3 MODE, K4 AUTO SAVE), SETTINGS (K1 VIEW, K2 WAVE TYPE, K3 WAVE ZOOM, K4 BREAK TIME; HOME's until 0.9.55), EFFECTS (the screen's), FX SET, LIGHTS (K1 GLOW, K2 PULSE, K3 PULSE ON, K4 STYLE; 0.9.57), RESET |
 
 The same gestures everywhere: **the button again** is the next part; **ALGORITHM** the element in the part (a slot, a
 lane, a drum's part; where there is nothing to pick, the break); **PRESETS** the pattern, but on SOUNDS the source's
@@ -795,7 +795,7 @@ whose part you are on.
 
 **GLO** opens SYSTEM: the slice blocks give way to the state of MIDI, and K1–K4 set it (SAVE keeps it); in EXPERT, K3 is
 the **METER** (below).
-**SELECT** (or ALGORITHM) turns to SETUP (0.9.2; GLO again goes back to HOME): the skins, the mode and AUTO SAVE; then EFFECTS, FX SET and RESET (below). LOAF BREAKER has no Bluetooth: MIDI goes over USB and the TRS jack. On a computer the FM-1 shows as **LOAF BREAKER FM-1** (a MIDI device and, for recording, an audio input). The site's **Mirror** page (0.9.43) shows its screen and panel live on the computer over USB (Chrome or Edge): large, to record, and the panel played from the computer's mouse and keyboard. Its **Studio** page (0.9.43) is the whole FM-1 on the computer, as a DAW (Chrome or Edge, over USB). At the top the transport: PLAY / STOP (or Space), the tempo (drag it, roll the wheel, double-click to type it), the break, the pattern playing and the next, the track and its next DROP, the bar, the kick, SAVE (lit while something is unsaved). At the bottom the mix as it leaves the FM-1, scrolling by in RGB as HOME's CDJ view, its beats ticked. On the left its views: **Live** (the break's waveform with its slices and where it plays, the macros, the track and its next drop, a launcher of the 64 patterns), **Kick** (every part of the KICK menu, FX1 and FX2 and the EQ at once, KICK 1–20, its RGB waveform drawn again as you turn), **Drums** (the snare, hat and clap side by side), **Sequencer** (the break's 32 steps over its own waveform, the kick, snare, hat and clap over four bars: click a step to turn it on or off, then its NOTE, HITS, COND, NUDGE; a bar's FILL, CLEAR or 4×4; each lane's sound and LENGTH; a break step's SLICE, PITCH, REPEAT, REVERSE; UNDO is SEL + SAVE's), **Patterns** (the 64 as cards with their pictures: a click plays one next, a double click opens it), **Tracks** (each track as blocks on a timeline: drag patterns, DROPs and gaps in, drag a block to move it, Delete removes it, Ctrl+D doubles it; each block's loops, kick and break, a DROP's STUTTER and GAP KEEPS; the DROP and BUILD settings; where it starts, what it does at its end), **FX** (the chain's four slots as a rack, the sends), **Mix** (the levels as faders, the sends, the master, the dynamics), **ARP · Keys** (the ARP's effects, what each black key does) and **System** (setup, MIDI, HOME's settings, the groove, the break's own, the generator). Every knob is the FM-1's own: drag it, roll the wheel over it or use the arrows (Shift: five steps); its names, values and limits are the FM-1's, you hear each change at once and its screen stays on its page. RESET stays on the FM-1. Three designs (DESIGN: Loaf, Nexus, Acid); the waveforms' colours follow WAVE TYPE (REKORDBOX or SERATO).
+**SELECT** (or ALGORITHM) turns to SETUP (0.9.2; GLO again goes back to HOME): the skins, the mode and AUTO SAVE; then SETTINGS, EFFECTS, FX SET, LIGHTS and RESET (below; left of MIDI: RESET). LOAF BREAKER has no Bluetooth: MIDI goes over USB and the TRS jack. On a computer the FM-1 shows as **LOAF BREAKER FM-1** (a MIDI device and, for recording, an audio input). The site's **Mirror** page (0.9.43) shows its screen and panel live on the computer over USB (Chrome or Edge): large, to record, and the panel played from the computer's mouse and keyboard. Its **Studio** page (0.9.43) is the whole FM-1 on the computer, as a DAW (Chrome or Edge, over USB). At the top the transport: PLAY / STOP (or Space), the tempo (drag it, roll the wheel, double-click to type it), the break, the pattern playing and the next, the track and its next DROP, the bar, the kick, SAVE (lit while something is unsaved). At the bottom the mix as it leaves the FM-1, scrolling by in RGB as HOME's CDJ view, its beats ticked. On the left its views: **Live** (the break's waveform with its slices and where it plays, the macros, the track and its next drop, a launcher of the 64 patterns), **Kick** (every part of the KICK menu, FX1 and FX2 and the EQ at once, KICK 1–20, its RGB waveform drawn again as you turn), **Drums** (the snare, hat and clap side by side), **Sequencer** (the break's 32 steps over its own waveform, the kick, snare, hat and clap over four bars: click a step to turn it on or off, then its NOTE, HITS, COND, NUDGE; a bar's FILL, CLEAR or 4×4; each lane's sound and LENGTH; a break step's SLICE, PITCH, REPEAT, REVERSE; UNDO is SEL + SAVE's), **Patterns** (the 64 as cards with their pictures: a click plays one next, a double click opens it), **Tracks** (each track as blocks on a timeline: drag patterns, DROPs and gaps in, drag a block to move it, Delete removes it, Ctrl+D doubles it; each block's loops, kick and break, a DROP's STUTTER and GAP KEEPS; the DROP and BUILD settings; where it starts, what it does at its end), **FX** (the chain's four slots as a rack, the sends), **Mix** (the levels as faders, the sends, the master, the dynamics), **ARP · Keys** (the ARP's effects, what each black key does) and **System** (setup, MIDI, HOME's settings, the groove, the break's own, the generator). Every knob is the FM-1's own: drag it, roll the wheel over it or use the arrows (Shift: five steps); its names, values and limits are the FM-1's, you hear each change at once and its screen stays on its page. RESET stays on the FM-1. Three designs (DESIGN: Loaf, Nexus, Acid); the waveforms' colours follow WAVE TYPE (REKORDBOX or SERATO).
 
 ![SYSTEM: MIDI in and out](img/screen-global.png "SYSTEM")
 
@@ -875,6 +875,28 @@ knob less smoothly (the sound is never touched). RESET's SCREEN puts it back on 
 shows; 0: nothing), K3 **AT THE DROP** (how hard the drop shows; 0: nothing), K4 **LENGTH** (how long those moments last:
 50 % as given, 0 half, 100 % half as long again). 5 % a detent; 50 % each to start.
 
+**LIGHTS** (0.9.57, FLEXOR; after FX SET): the FM-1's lights. They have four levels, each with a meaning: **off**,
+the **glow** (at rest: there, it does something), **mid** (assigned, or where the sequencer is) and **lit** (on,
+playing). Every button and key glows at rest (the keys too, since 0.9.57); a lit one is lit; on a lane's page (SEQ, a
+drum lane) the step playing is at mid (it was the step's light turned over); while SEL is held or locked the black keys
+with a SEL BLACK function, the white keys with a SEL WHITE shortcut and the buttons with a SEL combination (EDIT, SEQ,
+ENV, ARP, REC, SAVE) are at mid. The page shows the FM-1's lights as they are now, the buttons, the black keys and the
+white keys, live.
+- **K1 GLOW**: how bright the lights at rest are: **OFF** (only the lit and mid ones), **1** to **7** (6, as the
+  buttons glowed before, to start). The lit lights are always at full: the FM-1 has no other strength for them.
+- **K2 PULSE**: the lights at rest raised on the tempo while PLAY runs: **OFF** (to start), on each **KICK**, every
+  **1/8**, **1/4** (a beat), **1/2** or **BAR**. Stopped, nothing pulses; the build and the drop keep their own lights.
+- **K3 PULSE ON**: which: the **BUTTONS**, the **WHITE KEYS**, the **BLACK KEYS**, **ALL KEYS** (to start) or
+  **EVERYTHING**.
+- **K4 STYLE**: **FLASH** (lit a moment), **FADE** (lit, then mid, then back to rest), **BREATHE** (up through mid to lit
+  and down again), **BLINK** (lit half the time), **CHASE** (one light running along them, a step a pulse, the one
+  before it at mid).
+
+A lit light (a step on, a pad on) stays lit through the pulse. SAVE keeps them; RESET's SCREEN puts them back as they
+came.
+
+![SYSTEM › LIGHTS: GLOW 6, the pulse on every key, a beat, FADE; the FM-1's lights drawn live](img/screen-lights.png "LIGHTS")
+
 ![SYSTEM's SETUP: the skins](img/screen-glomore.png "SETUP") ![SYSTEM › SETTINGS: VIEW, WAVE TYPE, WAVE ZOOM, BREAK TIME (HOME's until 0.9.55)](img/screen-settings.png "SETTINGS")
 
 **RESET** (SYSTEM's last part): puts one part back as it starts, the rest kept. **K4** picks what, in a list that scrolls (ALGORITHM goes to SYSTEM's other parts, as on its other pages; each says
@@ -888,7 +910,7 @@ THRU, filter, gate, VINYL, the LATCHES, KIL's and X2's too; the layout kept); **
 AMOUNT, each one's THRU, RATE, SWEEP, LATCH off, every ARP key one effect); **WHITE KEYS** (each: one slice, pitch 0,
 LOOP, no DECAY, its slice effect off); **SEL KEYS** (0.9.52: SEL + a black key its own again, SEL + a white key NONE); **KITS** (0.9.54: all sixteen EMPTY);
 **TRACK** (this track: from its first item, every item's break SAME; its items kept); **SCREEN** (the skin RED, the
-screen effects off, their settings at 50 %, WAVE ZOOM one bar); **WIPE MEMORY** (before installing another firmware: every save LOAF BREAKER keeps in the FM-1's memory erased, a sector at a time while the screen counts to 40, playing stopped first; then MEMORY WIPED, and nothing is saved again until the FM-1 restarts: install the other firmware next, and it finds that memory blank); and last **EVERYTHING**: RESET ALL, everything back
+screen effects off, their settings at 50 %, WAVE ZOOM one bar; the LIGHTS as they came, 0.9.57); **WIPE MEMORY** (before installing another firmware: every save LOAF BREAKER keeps in the FM-1's memory erased, a sector at a time while the screen counts to 40, playing stopped first; then MEMORY WIPED, and nothing is saved again until the FM-1 restarts: install the other firmware next, and it finds that memory blank); and last **EVERYTHING**: RESET ALL, everything back
 to how it came (tempo, generator, FX chain, the drums, mixer, keys, slices, SYSTEM, the tracks and all 64 patterns; the
 first break, saved at once; the screen says so: LOBOTOMIZED, for 3 seconds). To reset it, **turn K2 five clicks**, each
 within 2 s of the last (five boxes fill as you turn; a pause starts them again from 0), then **press GLO** within 5

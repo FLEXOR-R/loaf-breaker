@@ -13,15 +13,11 @@ wait 400
 expect tut 254
 tap GLO
 wait 100
-turn SELECT 1 10
+turn SELECT -1 10   # (0.9.57: RESET, left of MIDI: LIGHTS before it)
 wait 100
-turn SELECT 1 10
 wait 100
-turn SELECT 1 10
 wait 100
-turn SELECT 1 10
 wait 100
-turn SELECT 1 10
 wait 200
 turn K4 20 10
 turn K2 5 10

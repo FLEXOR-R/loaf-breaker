@@ -23,9 +23,10 @@ static void sfx_toggle(uint32_t e, int on)   /* LOAF BREAKER: GLO EFFECTS: effec
  * ALGORITHM past KEYS, SEL + ARP). SYSTEM (GLO) itself: MIDI, SETUP, EFFECTS, FX SET, RESET */
 #define GP_BREAK 1u
 #define GP_FILL 6u
-#define NGLO 6u
+#define GP_LIGHTS 7u                     /* (0.9.57, FLEXOR: the LEDs: GLOW and the PULSE) */
+#define NGLO 7u
 #define GLO_HSET 0xF0u                   /* (0.9.56, FLEXOR: HOME's SETTINGS, its page PG_HSET, now SYSTEM's, after SETUP) */
-static const uint8_t GLO_ORD[NGLO] = {0u, 2u, GLO_HSET, 3u, 4u, 5u};
+static const uint8_t GLO_ORD[NGLO] = {0u, 2u, GLO_HSET, 3u, 4u, GP_LIGHTS, 5u};
 static uint32_t glo_next(int32_t d)      /* SYSTEM's next or previous part (from the break's or GROOVE: MIDI) */
 {
     uint32_t i, cur = ui.page == PG_HSET ? GLO_HSET : ui.gpage;
@@ -37,6 +38,37 @@ static uint32_t glo_next(int32_t d)      /* SYSTEM's next or previous part (from
 static int tut_on(void);                 /* (LOAF BREAKER: the TUTORIAL, tutor.c: further on) */
 static void tut_start(void);
 static void tut_quit(void);
+/* LOAF BREAKER (0.9.57, FLEXOR): SYSTEM › LIGHTS: K1 GLOW (the lights at rest), K2 PULSE (on the tempo while PLAY
+ * runs: OFF, each KICK, 1/8, 1/4, 1/2, a BAR), K3 PULSE ON (which lights), K4 STYLE; set.leds, app.c led_cfg */
+static const char *const LP_NAME[LP_N] = {"OFF", "KICK", "1/8", "1/4", "1/2", "BAR"};
+static const char *const LO_NAME[LO_N] = {"BUTTONS", "WHITE KEYS", "BLACK KEYS", "ALL KEYS", "EVERYTHING"};
+static const char *const LS_NAME[LS_N] = {"FLASH", "FADE", "BREATHE", "BLINK", "CHASE"};
+static uint32_t lt_lb, lt_lk, lt_mb, lt_mk, lt_db, lt_dk;   /* (the lights as main.c's leds() last set them: lit,
+                                          * mid, glowing; buttons B_*, keys; the page's picture) */
+static void lights_value(int i, char *t)
+{
+    uint32_t v = led_cfg((uint32_t)i);
+    t[0] = 0;
+    if (i == 0) {
+        if (v)
+            int_text((int32_t)v, t);
+        else
+            text_cat(t, "OFF");
+    } else
+        text_cat(t, i == 1 ? LP_NAME[v % LP_N] : i == 2 ? LO_NAME[v % LO_N] : LS_NAME[v % LS_N]);
+}
+static void lights_turn(int i, int32_t d)
+{
+    static const char *const LN[4] = {"GLOW", "PULSE", "PULSE ON", "PULSE STYLE"};
+    static const uint8_t N[4] = {LED_GLOWS, LP_N, LO_N, LS_N};
+    char t[16];
+    i &= 3;
+    led_put((uint32_t)i, (uint32_t)clamp((int32_t)led_cfg((uint32_t)i) + (d > 0 ? 1 : -1), 0, (int32_t)N[i] - 1));
+    set_dirty = 1u;
+    lights_value(i, t);
+    app_say(LN[i], t);
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
 static void global_value(int i, char *t)
 {
     t[0] = 0;
@@ -48,6 +80,10 @@ static void global_value(int i, char *t)
             text_cat(t, bk_seq() & 2u ? "16 STEPS" : "32 STEPS");
         else if (i == 2)
             text_cat(t, bk_seq() & 1u ? "OFF" : "ON");
+        return;
+    }
+    if (ui.gpage == GP_LIGHTS) {         /* (0.9.57: LIGHTS) */
+        lights_value(i, t);
         return;
     }
     if (ui.gpage == 4u) {                /* (FX SET: each 0..100 %) */
@@ -137,6 +173,10 @@ static void global_turn(int i, int32_t d)
             sfx_toggle(e, d > 0);
                                          /* (K3 WAVE until 0.9.24: HOME's SETTINGS K2 alone; K4 EDIT VIEW until 0.9.28:
                                           * KICK › MORE › TOOLS, FLEXOR; neither named here since 0.9.30) */
+        return;
+    }
+    if (ui.gpage == GP_LIGHTS) {         /* (0.9.57: LIGHTS) */
+        lights_turn(i, d);
         return;
     }
     if (ui.gpage == 4u) {                /* LOAF BREAKER: FX SET: K1 AMOUNT, K2 KICK, K3 DROP, K4 LENGTH, 5 % a detent */
@@ -324,6 +364,42 @@ static void draw_global(const brk_status_t *st)
         for (s = 0; s < 16u; s++) {      /* (the odd 16ths pushed later as the swing grows) */
             int32_t x = 6 + (int32_t)s * 14 + ((s & 1u) ? (int32_t)(set.swing - 50u) * 6 / 25 : 0);
             cv_rect(x, 18, 10, 22, (s & 3u) ? C_BLOCK : C_HI);
+        }
+        cv_blit(0, 140);
+        return;
+    }
+    if (ui.gpage == GP_LIGHTS) {         /* (0.9.57: LIGHTS: what they do, the FM-1's lights as they are now, the four
+                                          * settings) */
+        static const uint8_t BK_AFTER[11] = {0u, 1u, 2u, 4u, 5u, 7u, 8u, 9u, 11u, 12u, 14u};   /* (F3 up: the black keys
+                                          * between the white ones) */
+        static const char *const LN[4] = {"GLOW", "PULSE", "ON", "STYLE"};
+        uint32_t j;
+        char v[16];
+        cv_text(6, 1, &FONT_T, "LIGHTS", C_GRAY);
+        cv_text(6, 16, &FONT_XS, "K1 GLOW: THE LIGHTS AT REST (LIT: FULL)", C_DIM);
+        cv_text(6, 28, &FONT_XS, "K2-K4: THE PULSE, ON THE TEMPO, PLAYING", C_DIM);
+        cv_blit(0, 44);
+        cv_begin(240, 52, C_BLACK);
+        for (j = 0; j < NB; j++) {       /* (the buttons, then the keys: lit, mid, glowing, off) */
+            uint32_t m = 1u << j;
+            cv_rect(8 + (int32_t)j * 16, 2, 12, 6, lt_lb & m ? C_HI : lt_mb & m ? C_GRAY : lt_db & m ? C_DIM : C_LINE);
+        }
+        for (j = 0; j < 16u; j++) {
+            uint32_t m = 1u << WK[j];
+            cv_rect(8 + (int32_t)j * 14, 30, 12, 18, lt_lk & m ? C_HI : lt_mk & m ? C_GRAY : lt_dk & m ? C_DIM : C_LINE);
+        }
+        for (j = 0; j < 11u; j++) {
+            uint32_t m = 1u << BK[j];
+            cv_rect(15 + (int32_t)BK_AFTER[j] * 14, 12, 12, 14, lt_lk & m ? C_HI : lt_mk & m ? C_GRAY : lt_dk & m ? C_DIM : C_LINE);
+        }
+        cv_blit(0, 88);
+        cv_begin(240, 52, C_BLACK);
+        for (j = 0; j < 4u; j++) {       /* (each setting's box, its value large) */
+            lights_value((int)j, v);
+            cv_rect(4 + (int32_t)j * 59, 4, 55, 42, C_BLOCK);
+            cv_text(8 + (int32_t)j * 59, 6, &FONT_XS, LN[j], C_GRAY);
+            cv_text(8 + (int32_t)j * 59, 24, text_w(&FONT_B, v) <= 48 ? &FONT_B : &FONT_T, v,
+                    j && !led_cfg(1u) ? C_DIM : C_WHITE);
         }
         cv_blit(0, 140);
         return;

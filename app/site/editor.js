@@ -1393,13 +1393,14 @@ defView({ id: "arp", title: "ARP · Keys", icon: "arp", every: 6000,
 /* ================================================================== SYSTEM */
 defView({ id: "sys", title: "System", icon: "sys", every: 6000,
   render(root) {
-    vh(root, "System", "The FM-1's settings: setup, MIDI, HOME's settings, the generator, the groove, the break's own. RESET stays on the FM-1.");
+    vh(root, "System", "The FM-1's settings: setup, MIDI, HOME's settings, the lights, the generator, the groove, the break's own. RESET stays on the FM-1.");
     const g = h("div", "grid3");
     root.appendChild(g);
     const add = (title, addr) => { const c = h("div", "card", `<h2>${title}</h2>`); addPanel(c, new Panel(addr, "")); g.appendChild(c); };
     add("Setup", { t: "p", pg: PG.GLOBAL, a: 2 });
     add("MIDI", { t: "p", pg: PG.GLOBAL, a: 0 });
     add("Home settings", { t: "p", pg: PG.HSET });
+    add("Lights", { t: "p", pg: PG.GLOBAL, a: 7 });
     add("Groove", { t: "p", pg: PG.GLOBAL, a: 6 });
     add("Break", { t: "p", pg: PG.GLOBAL, a: 1 });
     add("Generator", { t: "p", pg: PG.GEN });

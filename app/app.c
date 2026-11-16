@@ -132,8 +132,10 @@ typedef struct {
         perc_voice_t pstab_was;
         uint8_t bk[24];
     } bkeys;
-    uint8_t sslot;                       /* its memory playing, 0..9 */
-    uint8_t rsv8[3];
+    uint8_t leds[4];                     /* (the STAB's sslot, its memory 0..9, and 3 spare bytes until 0.9.56) LOAF
+                                          * BREAKER (0.9.57, FLEXOR): SYSTEM › LIGHTS: [0] LED_TAG | GLOW (0 off .. 7),
+                                          * [1] PULSE (LP_*), [2] PULSE ON (LO_*), [3] STYLE (LS_*); untagged (an older
+                                          * save): the defaults, the lights as they were (led_cfg) */
     perc_voice_t smem[PERC_MEMS];        /* its memories */
     /* (appended: LOAF BREAKER's DROP and TRACK, ENV's parts; an older save's: a 4-bar build into the next pattern) */
     uint8_t drop_bars;                   /* the build: DROP_BARS's index (0: none, the drop at the bar's end) */
@@ -326,6 +328,42 @@ static void bk_defaults(void)
     set.bkeys.bk[BK_ARPR_TAG] = ARPR_TAG;
 }
 static uint32_t brk_view(void) { return (set.brkv & 0xF0u) == BRKV_TAG && (set.brkv & 15u) <= 2u ? set.brkv & 15u : 2u; }
+/* LOAF BREAKER (0.9.57, FLEXOR): SYSTEM › LIGHTS, in set.leds. GLOW: how bright the lights at rest are (the unlit
+ * buttons, as ever, and the keys), OFF, 1 .. 7 (6: the glow as it was); the lit ones are at full, the FM-1 has no other
+ * strength for them. PULSE: the lights at rest raised on the tempo while PLAY runs: its rate (LP_*), the lights it takes
+ * (LO_*), its style (LS_*) */
+#define LED_TAG 0xD0u
+enum { LP_OFF, LP_KICK, LP_8, LP_4, LP_2, LP_BAR, LP_N };
+enum { LO_BUTTONS, LO_WHITE, LO_BLACK, LO_KEYS, LO_ALL, LO_N };
+enum { LS_FLASH, LS_FADE, LS_BREATHE, LS_BLINK, LS_CHASE, LS_N };
+#define LED_GLOWS 8u
+static const uint8_t LED_DEF[4] = {6u, LP_OFF, LO_KEYS, LS_FLASH};
+static uint32_t led_cfg(uint32_t i)      /* 0 GLOW, 1 PULSE, 2 PULSE ON, 3 STYLE; an older save: the defaults */
+{
+    static const uint8_t N[4] = {LED_GLOWS, LP_N, LO_N, LS_N};
+    uint32_t v;
+    i &= 3u;
+    if ((set.leds[0] & 0xF0u) != LED_TAG)
+        return LED_DEF[i];
+    v = i ? set.leds[i] : set.leds[0] & 15u;
+    return v < N[i] ? v : LED_DEF[i];
+}
+static void led_put(uint32_t i, uint32_t v)
+{
+    uint32_t j, c[4];
+    for (j = 0; j < 4u; j++)
+        c[j] = led_cfg(j);
+    c[i & 3u] = v;
+    set.leds[0] = (uint8_t)(LED_TAG | (c[0] & 15u));
+    for (j = 1; j < 4u; j++)
+        set.leds[j] = (uint8_t)c[j];
+}
+static void led_defaults(void)
+{
+    uint32_t j;
+    for (j = 0; j < 4u; j++)
+        led_put(j, LED_DEF[j]);
+}
 static uint32_t max_out_db(void) { return set.max_out ? (set.max_out - 1u > 12u ? 12u : set.max_out - 1u) : 3u; }
 static perc_voice_t *perc_voice(uint32_t v)   /* LOAF BREAKER: a drum's sound, PV_* (the snare and the hat in perc,
                                           * the rest in pmore) */
@@ -342,7 +380,8 @@ static uint8_t *perc_x(uint32_t v) { return perc_xm(v, set.pslot[v % 3u]); }
 static uint8_t *perc_slot(uint32_t v)    /* its memory playing */
 {
     v %= PERC_VOICES;
-    return v == PV_STAB ? &set.sslot : &set.pslot[v];
+    static uint8_t none;                 /* (PV_STAB: an empty place; its byte SYSTEM › LIGHTS' since 0.9.57) */
+    return v == PV_STAB ? &none : &set.pslot[v];
 }
 static perc_voice_t *perc_mem(uint32_t v, uint32_t i)   /* its memory i */
 {
@@ -566,6 +605,7 @@ static void settings_defaults(void)
     set.sfx_on = 0u;                     /* (the screen effects: none at the start and after RESET ALL; the site's
                                           * screenshots clean) */
     set.wzoom = 3u;                      /* (the scrolling wave: a bar across, as it was) */
+    led_defaults();                      /* (0.9.57: SYSTEM › LIGHTS) */
     bk_defaults();                       /* (LOAF BREAKER: the black keys: CHOPPAH) */
     set.skin = 0x8Au;                    /* (LOAF BREAKER, 0.240: RED, common.c's SKIN_NEW | SKIN_DEFAULT) */
 #if defined(PLAT_HOST) && !defined(PLAT_WEB)

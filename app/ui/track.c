@@ -15,7 +15,7 @@ static const uint8_t TORDER[NTORD] = {0u, 1u, 2u, 4u, 6u};   /* (0.9.50, FLEXOR:
 static const char *const BROLL_NAME[2] = {"STILL", "ROLL"};
 static const char *const BFROM_NAME[3] = {"BUILD START", "HALF WAY", "LAST QUARTER"};   /* (ENV's parts in order: BUILD after DROP; LOAF BREAKER TEST:
                                           * KNOB out (EDIT KICK's KNOBS has it all), RESET on GLO, its sixth part) */
-#define NGPART 6u                        /* (GLO's parts' code: MIDI, PITCH (SOUNDS' BREAK), SETUP, EFFECTS, FX SET,
+#define NGPART 8u                        /* (GLO's parts' code: MIDI, PITCH (SOUNDS' BREAK), SETUP, EFFECTS, FX SET,
                                           * RESET; SYSTEM shows GLO_ORD's) */
 #define RST_ON (ui.page == PG_GLOBAL && ui.gpage == 5u)   /* (GLO RESET: drawn and turned by ENV's code here) */
 /* RESET (ENV's last part): K1 what (a list: more to come), K4 turned right twice within 3 s: back to the start */
@@ -41,7 +41,7 @@ static const char *const RST_WHAT[NRST] = {"BUILD 4 BARS, NEXT PATTERN, SAME BRE
                                           "SEL + A BLACK KEY: ITS OWN; SEL + A WHITE KEY: NONE",
                                           "THE 16 KITS EMPTY: KICK, BREAK, BPM, PATTERN ALL KEEP",
                                           "THIS TRACK: FROM ITEM 1, EVERY ITEM'S BREAK SAME",
-                                          "SKIN RED, SCREEN EFFECTS OFF, THEIR SETTINGS 50%, WAVE ZOOM 1 BAR, DRUM VIEW ZOOM AUTO",
+                                          "SKIN RED, SCREEN EFFECTS OFF, THEIR SETTINGS 50%, WAVE ZOOM 1 BAR, DRUM VIEW ZOOM AUTO, THE LIGHTS",
                                           "ALL LOAF BREAKER SAVES ERASED, FOR ANOTHER FIRMWARE: INSTALL IT NEXT",
                                           "EVERYTHING AS IT CAME, ALL 64 PATTERNS, SAVED AT ONCE: 15 TURNS"};
 /* LOAF BREAKER (0.263, FLEXOR): WIPE MEMORY, before installing another firmware: every sector LOAF BREAKER saves in
@@ -174,7 +174,7 @@ static void reset_do(uint32_t w)
         changed_fx();
     } else if (w == RST_DRUMS) {         /* DRUMS: each drum's memory playing as it came (its preset) */
         uint32_t v;
-        for (v = 0; v < PERC_VOICES; v++) {
+        for (v = 0; v < PV_STAB; v++) {  /* (0.9.57: not the STAB's empty place, whose memory is the drums' extras) */
             uint32_t m = *perc_slot(v) % PERC_MEMS;
             perc_preset(perc_mem(v, m), v, m % PERC_PRESETS);
             *perc_voice(v) = *perc_mem(v, m);
@@ -261,6 +261,7 @@ static void reset_do(uint32_t w)
         set.scrfx = set.sfx_kick = set.sfx_drop = set.sfx_len = 50u;
         set.wzoom = 3u;
         set.ezoom = 0u;                  /* (LOAF BREAKER: EDIT ZOOM AUTO) */
+        led_defaults();                  /* (0.9.57: SYSTEM › LIGHTS) */
         ui.redraw = RG_ALL;
     } else {                               /* LOAF BREAKER: KICK: the kick selected (KICK 1-10) as it starts: ROTTERDAM,
                                           * its TERRORs and effects with it, its SYNTH at 0, its BASS, CLEAN SUB

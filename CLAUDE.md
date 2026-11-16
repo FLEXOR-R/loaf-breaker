@@ -58,7 +58,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   ARP itself is the OVERLAY page again (0.244, FLEXOR: ovl.c, PG_OVL; its 16 effects since 0.9.55, FLEXOR: DIVE RISE RADIO CRUSH LO-FI DIST RING CHOP GATE DUCK PAN BOOM JET, then KICK X2 X4 TRI (OV_KX2..: the render's `kick_ovl`, as the black keys; no sound in dsp/ovl.c), WAH WOBBLE REESE gone; an older save remapped by app.c `ovl_order_fix` (bk[23] ARPR_TAG 0x7D, 0x7C the order before); 0.9.27: its effect touched last is the ARP key's, `ovl_last` = set.ovl_pad & 15, and its keys of the effects on lit);
   LEDs light EDIT / SEQ for those two. EXPERT's SEQ (0.234): BREAK above the first lane (`ui.seq_brk`, `SEQ_BRK`), K4
   the break's rows shown (`brk_view()`, settings' `brkv`: the old mel_ver byte, tagged 0xB0, since settings_t is at
-  3840 bytes: no field can be appended any more without a new magic or freeing one; `rsv2`'s 8 bytes hold the ARP keys since 0.9.45). SYSTEM's parts `GLO_ORD` (MIDI, SETUP, EFFECTS, FX SET, RESET); RESET ALL is
+  3840 bytes: no field can be appended any more without a new magic or freeing one; `rsv2`'s 8 bytes hold the ARP keys since 0.9.45). SYSTEM's parts `GLO_ORD` (MIDI, SETUP, SETTINGS, EFFECTS, FX SET, LIGHTS, RESET; their tabs narrower, `tab_glo`, so the seven fit); RESET ALL is
   RESET's last item, EVERYTHING. RESET (0.239, FLEXOR): K4 picks, K2 five clicks, then GLO within 5 s (`ui.rst_ask`,
   `rst_confirm`); ALGORITHM (and SELECT, 0.9.2) there goes to SYSTEM's parts. MIX's second part is SENDS (FX, DRUMS, K3 nothing since 0.9.51 (VINYL BREAK's THRU there in a 0.9.54 TEST: FLEXOR took it back; VINYL's THRU stays its K1 held) (0.9.29-0.9.50 the ARP's THRU for all; now each ARP effect its own, the OVERLAY page's K2: app.c `arp_route` / `arp_route_set`, bk[19..22] two bits an effect, bk[23] ARPR_TAG, untagged the old ovl_pad bits 6-7 for all; the render's `ovl_process(..., mask)` three passes: the break's, the kick's, the whole mix's),  K4 ROLL, the three rolls' THRU BREAK KICK BOTH, `roll_thru_turn`, set.pads.rsv[0], 0.9.40, FLEXOR: the rolls' K2 is HOME's break filter, to roll and filter at once; LEVELS' K4 too until 0.9.30. Its BREAK / KICK route the kick around the chain: the limiter then after it joins, `brk_fx_late_limit` + `brk_fx_add_dry`, 0.9.31, FLEXOR: it sounded fatter, unlimited).
 - Knob presets (10 Nov 2026, 0.203): STYLE's PRESETS goes on past the eight styles to PRESET 1-4 (track.c, `KPRESETS`):
@@ -133,6 +133,16 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   (0.9.26, FLEXOR, asked several times: never while PLAY runs, once PLAY has been stopped 20 s, `AS_REST`; touching the
   FM-1 stopped holds nothing, his choice; never make it sooner);
   the METER moved to MIDI's K3, EXPERT only (BEGINNER turns it off).
+- LIGHTS (16 Nov 2026, 0.9.57, FLEXOR: brightness, levels with a meaning, "pour les pulsations il faut que ce soit
+  réglable"): SYSTEM › LIGHTS (`GP_LIGHTS` 7, global.c `lights_*`), main.c `leds()`: four levels, off, the glow (every
+  button and key at rest; K1 GLOW OFF / 1-7, `plat_dim_ns` with app.h `APP_DIM_LEVELS`, 6 = 3,200 ns, plat_leds' glow
+  before), mid (`plat_lights_mid`: the step playing on a lane's page, seq.c `lit_head`; the SEL functions while SEL is
+  held or locked), lit (the FM-1 has no other strength for lit LEDs). K2 PULSE (LP_*: OFF, KICK, 1/8, 1/4, 1/2, BAR,
+  while playing, not in a build or a drop), K3 PULSE ON (LO_*), K4 STYLE (LS_*: FLASH FADE BREATHE BLINK CHASE). Stored
+  in `set.leds[4]` (the STAB's sslot and rsv8: LED_TAG 0xD0 | GLOW, untagged the defaults; app.c `led_cfg` / `led_put`);
+  RESET SCREEN puts them back. PLAY lights green through plat_lights (LED_PLAY_GREEN), as plat_leds did. The page draws
+  the lights live (`lt_*`, 20 a second). Probes lglow lpulse lon lstyle llitk lmidk ldimk llitb lmidb ldimb; scenario
+  lights.
 - Drum presets (11 Nov 2026, in progress): FLEXOR picks styled presets by ear on listening pages (rendered on the
   host); his picks, the prototype engine and the plan in `docs/sounds/PERC_PRESETS.md`. His aim: BEGINNER's drum pages
   only a PRESET and an FX, EXPERT every setting (accessibility: surf the machine first, the depth after).

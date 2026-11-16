@@ -17,15 +17,11 @@ wait 200
 expect kbass1 50
 tap GLO
 wait 150
-turn SELECT 1 10
+turn SELECT -1 10   # (0.9.57: RESET, left of MIDI: LIGHTS before it)
 wait 150
-turn SELECT 1 10
 wait 100
-turn SELECT 1 10
 wait 150
-turn SELECT 1 10
 wait 150
-turn SELECT 1 10
 wait 300
 turn K4 3 10
 wait 200
@@ -47,15 +43,11 @@ wait 200
 expect comp 20
 tap GLO
 wait 150
-turn SELECT 1 10
+turn SELECT -1 10   # (0.9.57: RESET, left of MIDI: LIGHTS before it)
 wait 150
-turn SELECT 1 10
 wait 100
-turn SELECT 1 10
 wait 150
-turn SELECT 1 10
 wait 150
-turn SELECT 1 10
 wait 300
 turn K4 4 10
 wait 200

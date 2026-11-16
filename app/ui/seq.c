@@ -737,8 +737,11 @@ static void pattern_pick(int32_t d)      /* PRESETS: the next or previous patter
     ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
 }
 static uint32_t track_keys_lit(void);
+static int8_t lit_head = -1;             /* (0.9.57: the step playing on a lane's page, 0..15, -1 none: leds() shows it
+                                          * at the middle level; it was the step's light turned over) */
 static uint32_t keys_lit(const brk_status_t *st)   /* the white keys' lights on a lane's page (ENV: its own) */
 {
+    lit_head = -1;
     if (ui.page == PG_TRACK)
         return track_keys_lit();
     if (ui.page == PG_OVL)               /* (0.9.27, FLEXOR: the OVERLAY page, its effects on lit: held, latched, the
@@ -751,14 +754,14 @@ static uint32_t keys_lit(const brk_status_t *st)   /* the white keys' lights on 
         int now = sl_now(st, ui.seq_lane);
         m = sl_get(pat_now(), ui.seq_lane);
         if (now >= 0)
-            m ^= 1u << now;
+            lit_head = (int8_t)now;
         return m;
     }
     for (i = 0; i < 16u; i++)            /* SEQ's break steps: the ones with a slice of their own */
         if (pat_now()->st[ui.seq_lane * 16u + i][0] >= 2u)
             m |= 1u << i;
     if (st->playing && st->step >= 0 && (uint32_t)st->step / 16u == ui.seq_lane)
-        m ^= 1u << (st->step % 16);
+        lit_head = (int8_t)(st->step % 16);
     return m;
 }
 /* LOAF BREAKER: the SEQ page, everything at once. Under the tabs (y 44..191, drawn in three bands), a row of 16 steps

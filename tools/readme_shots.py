@@ -17,7 +17,7 @@ GRIDS = {  # the picture: (columns, the scenarios' shots in order)
     "pads": (4, "p_roll8 p_gate a_freeze p_filter a_flt p_arp tri_on a_blackkeys"),
     "kick": (3, "km_preset kl2_tok km_dirt kl_tail km_snare k_fx1"),
     "live": (3, "t_tracks t_play t_build h_step m_maxout q_seq"),
-    "menus": (4, "a_thru_split sk_page sw_page kits_page t_break t_dropsame dm_sends fx_mix hset rs_reset kl2_gate x4_key"),
+    "menus": (4, "a_thru_split sk_page sw_page kits_page t_break t_dropsame dm_sends fx_mix hset rs_reset kl2_gate lights_pulse"),
 }
 
 miss = []
