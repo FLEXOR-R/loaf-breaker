@@ -186,7 +186,9 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   the FX chain's slots, HOME, GENERATOR, SETTINGS), 3/4/5 a track read, written whole (each item checked), played, 6 a
   group's 16 patterns' pictures (another group read into the canvas, `dx_tp` for its bars 3-4), 7 RGB waveforms
   (kick_rgb, perc_rgb, the break from pcm_a with its slices), 8 transport (tempo, break, PLAY as the button, the breaks'
-  names). tests/editor_link.sh in CI. A local test bench (not in the repository): the host simulator reading its
+  names). 0.9.65 (FLEXOR: "très laggy"): knobs and faders move at once in the page (`Panel.loc`, `paint`, `learn`: a
+  click's worth learned), the FM-1's value back `SETTLE` 450 ms after the hand stops; status, view reads and waves wait
+  while it turns (`busyNow`); `ready` and `ask1` (an older request fails, never hangs) keep connecting clean. tests/editor_link.sh in CI. A local test bench (not in the repository): the host simulator reading its
   scenario from a FIFO (sysex, wait, sysex_log, said_none as a marker) drives the page live in Playwright.
 - Drum samples (15 Nov 2026, 0.9.45, FLEXOR: "importer des samples type snare, hi-hat, clap", the site's IMPORT tab): a kit
   of three in OBJ_BLE's two sectors (0xDE000, 8 KB: no Bluetooth, nothing else writes there; app.c `KIT_AT`, `kit_scan`,

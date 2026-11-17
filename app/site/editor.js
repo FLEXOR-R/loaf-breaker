@@ -28,18 +28,22 @@ function unpack7(p) {
     for (let j = 1; j < 8 && i + j < p.length; j++) u.push(p[i + j] | ((p[i] >> (j - 1)) & 1) << 7);
   return Uint8Array.from(u);
 }
-let midi = null, out = null, waiting = null, chain = Promise.resolve(), inflight = 0, lost = false;
+let ready = false, midi = null, out = null, waiting = null, chain = Promise.resolve(), inflight = 0, lost = false;
 function onMsg(e) {
   const d = e.data;
   if (d[0] !== 0xF0 || d[1] !== 0x7D || d[2] !== 0x43 || d[3] !== 0x48) return;
-  if (waiting && (d[4] & 0x3F) === waiting.cmd) { const w = waiting; waiting = null; w.res({ code: d[5], data: unpack7(d.subarray(6, d.length - 1)) }); }
+  if (waiting && (d[4] & 0x3F) === waiting.cmd) { const w = waiting; waiting = null; w.done = true; w.res({ code: d[5], data: unpack7(d.subarray(6, d.length - 1)) }); }
 }
 const REPLY = { 9: 7, 12: 11 };              /* (ED_ACT answers as ED_INFO, ED_STEP as ED_SEQ) */
 function ask1(cmd, data, ms = 2500, port = out) {
   return new Promise((res, rej) => {
-    waiting = { cmd: REPLY[cmd] || cmd, res };
+    const me = { cmd: REPLY[cmd] || cmd, res, done: false };
+    if (waiting && !waiting.done) { waiting.done = true; waiting.rej(new Error("superseded")); }   /* (0.9.65: never a
+                                             * request left hanging: one waits at a time, an older one fails) */
+    me.rej = rej;
+    waiting = me;
     port.send([0xF0, 0x7D, 0x43, 0x48, cmd, ...pack7(Array.from(data)), 0xF7]);
-    setTimeout(() => { if (waiting && waiting.res === res) { waiting = null; rej(new Error("no answer")); } }, ms);
+    setTimeout(() => { if (waiting === me) waiting = null; if (!me.done) { me.done = true; rej(new Error("no answer")); } }, ms);
   });
 }
 let fails = 0;                              /* (answers missed in a row: the toast at the third, a hiccup is no loss) */
@@ -149,6 +153,9 @@ class Panel {
     this.el.appendChild(row);
     if (opt.color) this.el.style.setProperty("--kc", opt.color);
     this.ks = null;
+    this.loc = [null, null, null, null];    /* (0.9.65: what the knob shows while it turns, ahead of the FM-1's answer) */
+    this.step = [0.02, 0.02, 0.02, 0.02];   /* (a click's worth, learned from the answers) */
+    this.held = [0, 0, 0, 0];               /* (the last local move: the FM-1's own value back once quiet) */
   }
   knob(i) {
     const el = h("div", "kn blank", `<svg viewBox="0 0 46 38" aria-hidden="true"><path class="tr" d="${arcPath(23, 21, 16, ARC0, ARC1)}"/>` +
@@ -190,6 +197,17 @@ class Panel {
   }
   show(ks) {
     this.ks = ks;
+    this.paint();
+  }
+  local(i) {                                /* (a knob still turning, or its clicks not all answered: its local value) */
+    const p = pending.get(this);
+    return this.loc[i] !== null && ((p && p[i]) || performance.now() - this.held[i] < SETTLE);
+  }
+  paint() {
+    if (!this.ks) return;
+    const ks = this.ks.map((k, i) => (k.bar !== null && this.local(i) ? { ...k, bar: this.loc[i] } : k));
+    ks.fx = this.ks.fx;
+    for (let i = 0; i < 4; i++) if (!this.local(i)) this.loc[i] = null;
     ks.forEach((k, i) => {
       const el = this.knobs[i];
       const hide = !k.name || !!(this.opt.hide && this.opt.hide(k, i));
@@ -238,9 +256,26 @@ class Panel {
     p[i] += n; pending.set(this, p);
     lastTurn = Date.now(); turnedAny = true;
     if (this.knobs[i]) this.knobs[i].classList.add("busy");
+    const k = i < 4 && this.ks && this.ks[i];
+    if (k && k.bar !== null) {              /* (0.9.65, FLEXOR "fluide": the knob moves now; the FM-1 follows, and once
+                                             * quiet its own value is shown again: what it didn't take, undone) */
+      this.loc[i] = clamp((this.loc[i] !== null ? this.loc[i] : k.bar) + n * this.step[i], 0, 1);
+      this.held[i] = performance.now();
+      this.paint();
+      clearTimeout(this.settleT);
+      this.settleT = setTimeout(() => this.paint(), SETTLE + 30);
+    }
     flush();
   }
+  learn(i, before, d) {                     /* (a click's worth from what the FM-1 did with d clicks) */
+    const k = this.ks && this.ks[i];
+    if (!k || k.bar === null || before === null || !d) return;
+    const s = Math.abs(k.bar - before) / Math.abs(d);
+    if (s > 0.0005 && k.bar > 0.001 && k.bar < 0.999) this.step[i] = clamp(s, 0.002, 0.5);
+  }
 }
+const SETTLE = 450;                         /* (ms after the last move: the FM-1's own value shown again) */
+const busyNow = () => Date.now() - lastTurn < 600 || [...pending.values()].some((a) => a.some((x) => x));
 async function flush() {
   if (flushing) return;
   flushing = true;
@@ -251,14 +286,19 @@ async function flush() {
       if (!job) break;
       const [panel, p, i] = job, d = clamp(p[i], -60, 60);
       p[i] -= d;
+      const before = panel.ks && panel.ks[i] ? panel.ks[i].bar : null;
       const r = await knobReq(panel.addr, i, d);
-      if (!r.code) panel.show(r.ks);
+      if (!r.code) { panel.ks = r.ks; panel.learn(i, before, d); panel.paint(); }
       if (!p[i] && panel.knobs[i]) panel.knobs[i].classList.remove("busy");
       if (panel.opt.onTurn) panel.opt.onTurn(i, d);
       if (panel.opt.all) turnedAll = true;
-      if (performance.now() - lastPollT > 150) await poll(true);   /* (the live deck fed while a knob turns) */
+      if (performance.now() - lastPollT > 700) await poll(true);   /* (the live deck fed while a knob turns: now and
+                                             * then, 0.9.65: not between every click) */
     }
-  } catch (e) { pending.clear(); document.querySelectorAll(".kn.busy").forEach((k) => k.classList.remove("busy")); }
+  } catch (e) {                             /* (no answer: what moved here goes back to the FM-1's value) */
+    for (const pn of pending.keys()) { pn.loc = [null, null, null, null]; pn.paint(); }
+    pending.clear(); document.querySelectorAll(".kn.busy").forEach((k) => k.classList.remove("busy"));
+  }
   flushing = false;
 }
 
@@ -290,7 +330,7 @@ function readStatus(d) {
   return o;
 }
 async function poll(force) {               /* (force: between a view's own requests, which come first otherwise) */
-  if (!out || polling || (!force && (inflight || flushing))) return;
+  if (!out || !ready || polling || (!force && (inflight || flushing || busyNow()))) return;
   polling = true; lastPollT = performance.now();
   try {
     const since = scopeSince >>> 0;
@@ -374,9 +414,14 @@ $("wstyle").onclick = async () => {                /* (HOME › SETTINGS K2, WAV
 };
 
 /* ================================================================== the deck: the mix scrolling by, live, as the FM-1's CDJ view */
+let deckSig = "";
 function drawDeck() {
   const cv = $("deck"), dpr = window.devicePixelRatio || 1, W = Math.round(cv.clientWidth * dpr), H = Math.round(cv.clientHeight * dpr);
   if (!W || !H) return;
+  const sig = S.playing ? "" : [W, H, ringW, S.tempo, wstyle, !!out].join();   /* (0.9.65: stopped, drawn again only
+                                             * when something changed: the page's hand free for the knobs) */
+  if (sig && sig === deckSig) return;
+  deckSig = sig;
   if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
   const g = cv.getContext("2d");
   g.fillStyle = "#070706"; g.fillRect(0, 0, W, H);
@@ -463,17 +508,17 @@ function openView(id) {
 }
 function addPanel(parent, p) { parent.appendChild(p.el); view.panels.push(p); return p; }
 async function refreshView(first) {
-  if (!out || !view) return;
+  if (!out || !ready || !view) return;
   const v = view;
   for (const p of v.panels) {
-    if (view !== v || pending.size && [...pending.values()].some((a) => a.some((x) => x))) return;
+    if (view !== v || busyNow()) return;   /* (0.9.65: a knob in the hand first) */
     if (performance.now() - lastPollT > 150) await poll(true);   /* (the status between, the deck never starved) */
     await p.read();
   }
-  if (view === v && v.refresh) await v.refresh(first);
+  if (view === v && v.refresh && !busyNow()) await v.refresh(first);
 }
 setInterval(async () => {                    /* the status ~8 times a second; a turn quiet: the view again; idle: now and then */
-  if (!out || document.hidden) return;
+  if (!out || !ready || document.hidden) return;
   await poll();
   if (!view || flushing) return;
   const quiet = Date.now() - lastTurn;
@@ -716,7 +761,7 @@ defView({ id: "kick", title: "Kick", icon: "kick", every: 6000,
     $("kZoom").value = String(kickZoom);
     $("kZoom").onchange = () => { kickZoom = +$("kZoom").value; this.wave(); };
     top.querySelectorAll("[data-m]").forEach((b) => { b.onclick = () => { kickMode = b.dataset.m; this.wave(); }; });
-    const onTurn = () => { clearTimeout(this.wt); this.wt = setTimeout(() => this.wave(), 250); };
+    const onTurn = () => { clearTimeout(this.wt); this.wt = setTimeout(() => this.wave(), SETTLE); };
     addPanel($("kPre"), new Panel({ t: "k", snd: 0, part: 32 }, "", { big: true, onTurn, label: "Built-in kick", all: true }));
     $("kPre").insertAdjacentHTML("beforeend", '<p class="hint" style="margin:6px 0 0">Turn it to load a built-in kick on this memory.</p>');
     const main = h("div", "grid3");
@@ -755,6 +800,8 @@ defView({ id: "kick", title: "Kick", icon: "kick", every: 6000,
   redrawWaves() { this.paint(); },
   async wave() {
     if (!out) return;
+    if (busyNow()) { clearTimeout(this.wt); this.wt = setTimeout(() => this.wave(), SETTLE); return; }   /* (0.9.65: after
+                                             * the hand, never in its way: the picture costs the FM-1 the most) */
     document.querySelectorAll(".vh + .grid2 [data-m]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.m === kickMode)));
     try {
       if (kickMode === "rgb") { const r = await ask(13, [7, 0, kickZoom & 255, kickZoom >> 8]); this.cols = colsOf(r.data, 2, 240); this.db = null; }
@@ -798,7 +845,7 @@ defView({ id: "drums", title: "Drums", icon: "drums", every: 6000,
       c.querySelector("button").onclick = () => act(2, v + 1);
       const cv = c.querySelector("canvas");
       this.waves.push({ cv, cols: null });
-      const onTurn = () => { clearTimeout(this.wt); this.wt = setTimeout(() => this.wave(v), 250); };
+      const onTurn = () => { clearTimeout(this.wt); this.wt = setTimeout(() => this.wave(v), SETTLE); };
       DPAGE.forEach((pg, k) => addPanel(c, new Panel({ t: "k", snd: v + 1, part: k }, pg, { color: LANEC[v + 1], onTurn, label: name + " " + pg })));
       g.appendChild(c);
     });
@@ -806,6 +853,7 @@ defView({ id: "drums", title: "Drums", icon: "drums", every: 6000,
   async refresh() { for (let v = 0; v < 3; v++) await this.wave(v); },
   redrawWaves() { this.waves.forEach((w) => w.cols && drawRGB(w.cv, w.cols)); },
   async wave(v) {
+    if (busyNow()) { clearTimeout(this.wt); this.wt = setTimeout(() => this.wave(v), SETTLE); return; }
     try { const r = await ask(13, [7, v + 1, 400 & 255, 400 >> 8]); this.waves[v].cols = colsOf(r.data, 2, 240); drawRGB(this.waves[v].cv, this.waves[v].cols); } catch (e) { /* lost */ }
   },
 });
@@ -1420,6 +1468,8 @@ $("connect").onclick = async () => {
   try { midi = midi || await navigator.requestMIDIAccess({ sysex: true }); }
   catch (e) { toast("No MIDI with SysEx here: use Chrome or Edge, and allow it."); return; }
   $("connect").textContent = "Looking…";
+  ready = false;                             /* (0.9.65: no status asked while it looks: one request at a time) */
+  await chain;
   midi.inputs.forEach((i) => { i.onmidimessage = onMsg; });
   const outs = [...midi.outputs.values()].filter((o) => o.state !== "disconnected");
   const likely = outs.filter((o) => /loaf|choppah|fm-?1/i.test(o.name));
@@ -1432,7 +1482,7 @@ $("connect").onclick = async () => {
   }
   $("connect").textContent = out ? "Refresh" : "Connect";
   if (!out) { $("dot").className = "dot bad"; if (!$("toast").textContent.includes("old")) toast("No LOAF BREAKER found. Plug it in by USB, update it if needed, and connect again."); return; }
-  $("dot").className = "dot on"; lost = false;
+  $("dot").className = "dot on"; lost = false; ready = true;
   ["play", "brkPrev", "brkNext", "brkSel", "wstyle", "save"].forEach((id) => { $(id).disabled = false; });
   await readBreaks().catch(() => {});
   await poll();
