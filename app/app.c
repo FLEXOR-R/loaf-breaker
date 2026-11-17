@@ -64,7 +64,7 @@ typedef struct {
                                           * connected again */
     uint8_t bta_codec;                   /* its SBC coding: 0 joint stereo (fm1-base's), 1 plain stereo */
     uint8_t click_gone;                  /* (the metronome's click, gone with TAP TEMPO: its byte kept) */
-    uint8_t rsv;
+    uint8_t rsv;                         /* (0.9.64: KICK SWITCH, 0x50 | KS_*; untagged SMART: `ksw_mode`) */
     brk_padset_t pads;                   /* the pads' own settings (K1-K4 while a pad is held) */
     brk_keyset_t keys[BRK_KEYS];         /* each white key's loop: length, pitch, start, mode (K1-K4 while held) */
     brk_slicefx_t slx[BRK_KEYS];         /* each slice's own effect and level (a key held, FX: its other layer) */
@@ -477,6 +477,13 @@ static uint32_t kb_echo(void) { return set.rsv6[0] == 0xE5u && set.rsv6[1] < KB_
 static void kb_echo_put(uint32_t e) { set.rsv6[0] = 0xE5u; set.rsv6[1] = (uint8_t)(e % KB_ECHOS); }
 /* (0.9.64, FLEXOR, a TR-8S's notes cutting the break: SYSTEM › MIDI's PRESETS, NOTES IN: ALL as before, DRUMS (36-46
  * the drums, not the slices), OFF (none: the clock, start and stop alone); set.rsv6[2] 0xA0 | it, untagged ALL) */
+/* (0.9.64, FLEXOR) KICK SWITCH, SYSTEM › EFFECTS K4: the drums' filter when the kicks come back (KIL): SMART (it goes
+ * OFF, unless it was turned while the kicks were quiet: then they come back through it), FLT OFF (always OFF, as
+ * 0.9.50-0.9.63), FLT KEEP (never touched); set.rsv 0x50 | it, untagged SMART */
+enum { KSW_SMART, KSW_OFF, KSW_KEEP, KSW_N };
+static const char *const KSW_NAME[KSW_N] = {"SMART", "FLT OFF", "FLT KEEP"};
+static uint32_t ksw_mode(void) { return (set.rsv & 0xF0u) == 0x50u && (set.rsv & 15u) < KSW_N ? set.rsv & 15u : KSW_SMART; }
+static void ksw_put(uint32_t m) { set.rsv = (uint8_t)(0x50u | m % KSW_N); }
 enum { NI_ALL, NI_DRUMS, NI_OFF, NI_N };
 static const char *const NI_NAME[NI_N] = {"ALL", "DRUMS", "OFF"};
 static uint32_t notes_in(void) { return (set.rsv6[2] & 0xF0u) == 0xA0u && (set.rsv6[2] & 3u) < NI_N ? set.rsv6[2] & 3u : NI_ALL; }

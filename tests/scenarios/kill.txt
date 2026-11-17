@@ -92,7 +92,36 @@ wait 100
 key b10 up
 wait 1500
 expect khits 4
-# (0.9.50, FLEXOR) the kicks back with KIL: the drums' filter OFF at once (never a drop filtered by mistake)
+# (0.9.50, FLEXOR) the kicks back with KIL: the drums' filter OFF at once (never a drop filtered by mistake); 0.9.64,
+# FLEXOR, KICK SWITCH SMART (the default): unless it was turned while the kicks were quiet: then they come back into it
+expect kswitch 0
+key b10 down
+wait 50
+press SEL
+turn SELECT -1 10
+release SEL
+wait 100
+expect kick_dj -16
+key b10 up
+wait 100
+expect kickhold 0
+expect kick_dj -16
+key b10 down
+wait 100
+key b10 up
+wait 100
+expect kick_dj 0
+# FLT OFF (SYSTEM › EFFECTS K4): always OFF, as 0.9.50-0.9.63
+tap GLO
+wait 200
+turn SELECT 3 10
+wait 200
+turn K4 1 10
+wait 200
+expect kswitch 1
+shot kswitch.png
+tap HOME
+wait 200
 key b10 down
 wait 50
 press SEL
@@ -103,3 +132,23 @@ expect kick_dj -16
 key b10 up
 wait 100
 expect kick_dj 0
+# FLT KEEP: never touched
+tap GLO
+wait 200
+turn SELECT 3 10
+wait 200
+turn K4 1 10
+wait 200
+expect kswitch 2
+tap HOME
+wait 200
+press SEL
+turn SELECT -1 10
+release SEL
+wait 100
+expect kick_dj -16
+key b10 down
+wait 100
+key b10 up
+wait 100
+expect kick_dj -16

@@ -241,9 +241,12 @@ static void kick_flt_text(char *t)
                                 : BRK_DRUM_LP_HZ((float)set.kick_dj * 0.01f), t + 3);
 }
 
+static uint8_t kdj_quiet;                /* (0.9.64: the drums' filter turned while KIL had the kicks quiet) */
 static void kick_flt_turn(int32_t d)
 {
     char t[16];
+    if (kick_hold)
+        kdj_quiet = 1u;
     float v = flt_turn((float)set.kick_dj * 0.01f, d, 0.02f, 0.16f, &lock_drum);
     set.kick_dj = (int8_t)(int32_t)(v * 100.0f + (v < 0.0f ? -0.5f : 0.5f));
     changed();
@@ -251,10 +254,14 @@ static void kick_flt_turn(int32_t d)
     app_say("DRUM FILTER", t);
 }
 
-/* (0.9.50, FLEXOR: the kicks back on with KIL, the drums' filter OFF at once: never a drop filtered by mistake) */
+/* (0.9.50, FLEXOR: the kicks back on with KIL, the drums' filter OFF at once: never a drop filtered by mistake;
+ * 0.9.64, FLEXOR: SYSTEM › EFFECTS K4 KICK SWITCH: SMART keeps it when it was turned while the kicks were quiet, the
+ * kicks brought back into it; FLT OFF as before; FLT KEEP never) */
 static void kil_back_flt(void)
 {
-    if (!set.kick_dj)
+    uint32_t m = ksw_mode(), q = kdj_quiet;
+    kdj_quiet = 0u;
+    if (!set.kick_dj || m == KSW_KEEP || (m == KSW_SMART && q))
         return;
     set.kick_dj = 0;
     lock_drum.dir = 0;
