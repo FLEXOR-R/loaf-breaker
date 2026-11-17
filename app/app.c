@@ -148,7 +148,8 @@ typedef struct {
     brk_mbc_t kmbc[BRK_KFX_SLOTS];       /* an MB COMP's detail */
     /* (appended: LOAF BREAKER's KNOB part of ENV, the SEL + knob functions' settings; an older save's: as they were) */
     uint8_t duck_att, duck_rel;          /* DUCK: its attack 0.1 .. 30 ms, its release 20 .. 800 ms (0..100) */
-    uint8_t duck_what;                   /* 0 the break, 1 the break and the drums (not the kick) */
+    uint8_t duck_what;                   /* 0 the break, 1 the break and the drums (not the kick); 2 the drums alone
+                                          * (0.9.64, FLEXOR: PERC; the knob's order BREAK, PERC, BOTH: `duck_pos`) */
     uint8_t comp_ratio;                  /* COMP: COMP_RATIO's index */
     uint8_t comp_att, comp_rel;          /* its attack 0.1 .. 30 ms, its release 20 .. 800 ms (0..100) */
     uint8_t max_out;                     /* LOAF BREAKER: GLOBAL MORE's MAX OUT, the output's most at MASTER full: 0
@@ -2590,7 +2591,8 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                 static float dt, de;
                 float depth = (float)(set.duck > 100u ? 100u : set.duck) * 0.01f;
                 float da = 1.0f / (1.0f + att_ms(set.duck_att) * 44.1f), dr = 1.0f - 1.0f / (rel_ms(set.duck_rel) * 44.1f);
-                int dp = set.duck_what == 1u;
+                int dp = set.duck_what == 1u || set.duck_what == 2u, db = set.duck_what != 2u;   /* (0.9.64: PERC,
+                                          * the drums alone) */
                 uint32_t j = 0u;
                 for (i = 0; i < m; i++) {
                     float g;
@@ -2601,9 +2603,11 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                     de += (dt - de) * da;
                     dt *= dr;
                     g = 1.0f - depth * de;
-                    mono[i] *= g;
-                    echo[i] *= g;
-                    verb[i] *= g;
+                    if (db) {
+                        mono[i] *= g;
+                        echo[i] *= g;
+                        verb[i] *= g;
+                    }
                     if (dp)
                         perc[i] *= g;
                 }

@@ -162,7 +162,8 @@ static void knob_turn(int k, int32_t d)
                 set.drums_chain = d > 0 ? 0u : 1u;   /* right: around the chain, left: through it */
                 app_say("DRUMS", set.drums_chain ? "THRU FX" : "AROUND FX");
             } else if (k == EN_K3)
-                ;                        /* (nothing: the ARP's THRU each effect's since 0.9.51) */
+                selk_turn(0u, 3, d);     /* (0.9.64, FLEXOR: DUCKS, BREAK / PERC / BOTH, as DYNAMICS' K4; nothing in
+                                          * 0.9.51-0.9.63) */
             else
                 roll_thru_turn(d);       /* (0.9.40, FLEXOR: K4 the three rolls' THRU, their K2 the break's filter) */
         } else if (k == EN_K1) {
@@ -1986,7 +1987,7 @@ static const char *knob_name(int i)
                                               {"LOW", "MID", "HIGH", "MID FREQ"},
                                               {"VIEW", "WAVE TYPE", "WAVE ZOOM", "BREAK TIME"}};
     static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "LEVEL"};   /* (SOUNDS' BREAK) */
-    static const char *const KN_GROOVE[3][4] = {{"FX", "DRUMS", "", "ROLL"}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
+    static const char *const KN_GROOVE[3][4] = {{"FX", "DRUMS", "DUCKS", "ROLL"}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
                                                 {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
     static const char *const KN_MORE[3][4] = {{"SKIN", "KICK EQ", "MODE", "AUTO SAVE"},   /* SETUP (K2 WAVE ZOOM: HOME's
                                       * SETTINGS, 0.9.2) */
@@ -3832,8 +3833,8 @@ int app_expect(const char *what, int *got)
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
                                     "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15", "broll", "stut", "fxwet", "tempo10", "kitsel", "kit0kick", "vthru", "dafter",
-                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin"};
-    int v[187];
+                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat"};
+    int v[188];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -4036,6 +4037,7 @@ int app_expect(const char *what, int *got)
         v[184] = bs.step;
         v[185] = set.trk;
         v[186] = (int)notes_in();        /* (0.9.64: NOTES IN, 0 ALL 1 DRUMS 2 OFF) */
+        v[187] = set.duck_what;          /* (DUCKS: 0 BREAK, 1 BOTH, 2 PERC) */
     }
     v[161] = set.vinyl & 3u;             /* (0.9.54: VINYL BREAK's THRU, 0 BOTH 1 BREAK 2 KICK) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */

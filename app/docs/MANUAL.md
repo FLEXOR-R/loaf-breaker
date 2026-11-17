@@ -158,7 +158,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 | EDIT | SOUNDS | Three sources, **SEL + EDIT** the next: **KICK** (its menu, by the kick's anatomy: ATTACK, BODY, TAIL, DIRT, FX1, FX2, MORE; SELECT its next section; EDIT again the next sound, EXPERT: SNARE, HAT, CLAP, then the KICK), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
 | SEQ | PATTERN | The lanes (ALGORITHM); the views FULL, DRUMS and **SETTINGS** (SWING, BREAK ROWS, FOLLOW; also SEL + ARP) on SELECT |
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD |
-| LFO | MIX | LEVELS (BREAK, KICK, PERC), SENDS (FX, the drums' route, ARP), MASTER, DYNAMICS |
+| LFO | MIX | LEVELS (BREAK, KICK, PERC), SENDS (FX, the drums' route, DUCKS, ROLL), MASTER, DYNAMICS |
 | FX | EFFECTS | The four slots: MAIN, MORE, MOD |
 | GLO | SYSTEM | MIDI (EXPERT: K3 METER), SETUP (K1 SKIN, also PRESETS; K3 MODE, K4 AUTO SAVE), SETTINGS (K1 VIEW, K2 WAVE TYPE, K3 WAVE ZOOM, K4 BREAK TIME; HOME's until 0.9.55), EFFECTS (the screen's), FX SET, LIGHTS (K1 GLOW, K2 PULSE, K3 PULSE ON, K4 STYLE; 0.9.57), RESET |
 
@@ -276,7 +276,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
     (where in the beat it begins, 1/8 to 5/8), **CURVE** (how it swells: SLOW, SOFT, SHARP, SNAP).
   At 0 each sounds as the kick always did. They go with its memory (KICK 1–20); its PRESET puts them back to 0.
 - **LFO** (MIX): LEVELS, SENDS, MASTER (K1 COMP, K2 its RATIO, K3 DUCK, K4 MAX OUT; COMP's reduction metered),
-  DYNAMICS (COMP's ATTACK and RELEASE, DUCK's RELEASE, DUCKS: the break, or the break and the drums).
+  DYNAMICS (COMP's ATTACK and RELEASE, DUCK's RELEASE, DUCKS: BREAK, PERC or BOTH; SENDS' K3 too, 0.9.64).
 - **ENV**: the song. TRACKS, PLAY, DROP, BUILD. (What SEL + each knob does: EDIT › KNOBS; RESET: GLO.)
 - **GLO** (SYSTEM): MIDI (EXPERT: the METER), SETUP (SKIN, MODE, AUTO SAVE: K1, K3, K4, top to bottom; PRESETS turns the skin too), SETTINGS (0.9.56: VIEW, WAVE TYPE, WAVE ZOOM, BREAK TIME, HOME's before), EFFECTS (several at once, keys 1–7; each effect's card a small picture with that effect done to it, lit when on, since 0.9.30; the waves' colours are SYSTEM › SETTINGS' WAVE TYPE since 0.9.25; EDIT VIEW and DRUM VIEW ZOOM are KICK › MORE › TOOLS since 0.9.29), FX SET, RESET.
   The break's PITCH, GRAIN and SNAP are SOUNDS › BREAK; SWING is PATTERN › SETTINGS.
@@ -1087,7 +1087,7 @@ MEMORY erases them.
 ## 9. The mixer
 
 **LFO** opens the MIXER: three channels side by side, each a fader (BREAK, KICK and PERC with a level meter).
-**SELECT** turns to SENDS, MASTER and DYNAMICS (0.9.2; **LFO again** goes back to HOME): SENDS (the FX fader, the chain's four slots beside it, lit: on; DRUMS, their route; ROLL, what the three roll keys roll: BREAK, KICK (the kick hit at the roll's rate instead of its pattern; the break plays on) or BOTH, 0.9.40). **LFO held +
+**SELECT** turns to SENDS, MASTER and DYNAMICS (0.9.2; **LFO again** goes back to HOME): SENDS (the FX fader, the chain's four slots beside it, lit: on; DRUMS, their route; DUCKS, what DUCK pushes down under each kick: BREAK, PERC or BOTH, 0.9.64; ROLL, what the three roll keys roll: BREAK, KICK (the kick hit at the roll's rate instead of its pattern; the break plays on) or BOTH, 0.9.40). **LFO held +
 K1–K4**, on any page: the break's, the kick's and the drums' level, and (K4, 0.9.50, FLEXOR) the FX fader, 5 % a detent (the MIXER's own page: 2 %), the page staying where it is (LFO let go after a turn opens nothing): the mix moved without
 going into the MIXER.
 
@@ -1096,7 +1096,7 @@ going into the MIXER.
 | Half | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- |
 | LEVELS | BREAK: the break's level (its throws into the delay and the reverb too) | KICK: the kick's level (the KICK page's VOLUME) | PERC: the snare, the hat and the clap together | |
-| SENDS | FX: the master FX chain against the dry sound | DRUMS: through the FX chain or around it | (nothing since 0.9.51: each ARP effect has its own THRU, on the OVERLAY page's K2) | ROLL: what R8 · R16 · R32 roll, BREAK, KICK or BOTH (0.9.40; their K2 before) |
+| SENDS | FX: the master FX chain against the dry sound | DRUMS: through the FX chain or around it | DUCKS (0.9.64): what MASTER's DUCK pushes down at each kick: BREAK (the break and its echoes), PERC (the snare, hats and clap alone: the kick in front of the snare, the break untouched), BOTH. The same as DYNAMICS' K4 | ROLL: what R8 · R16 · R32 roll, BREAK, KICK or BOTH (0.9.40; their K2 before) |
 
 FX is how much of the chain you hear (the drums routed around it stay dry). Bring BREAK down to drop the break and
 let the drums run alone, then up again for the drop. HOME keeps the gate, FX and COMPLEXITY to ride (K1, K3, K4) and the **DJ filter** (K2), which filters the
@@ -1121,7 +1121,7 @@ break alone: sweep it down and the drums stay full on top.
 | LFO (mixer: levels; LFO held, any page: the same) | Break level | Kick level | Drums level | LFO held: the FX fader (SENDS' FX, 0.9.50; the FX page shows it as FX MIX nn %) |
 | LFO, SENDS (SELECT) | FX (the chain, dry to wet) | Drums: through the chain or around it | ARP: break, kick or thru | ROLL: break, kick or both |
 | LFO, MASTER | Comp | Ratio | Duck | Max out |
-| LFO, DYNAMICS | Comp attack | Comp release | Duck release | Ducks: the break, or the break and the drums |
+| LFO, DYNAMICS | Comp attack | Comp release | Duck release | Ducks: BREAK, PERC (the drums alone) or BOTH |
 | FX (the chain; SELECT the slot, ALGORITHM its part) | the focused slot's effect: its three settings (ALGORITHM: its MORE and MOD parts; an MB COMP its six, see §6) | | | Its mix |
 | GLO (MIDI) | Clock in | Clock out | | |
 | SOUNDS › BREAK (pitch, snap) | Keep length / speed | Grain | Snap | Reset all (fifteen turns) |

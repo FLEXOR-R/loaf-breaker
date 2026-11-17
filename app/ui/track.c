@@ -828,7 +828,8 @@ static void selk_value(uint32_t f, int i, char *t)
         }
     } else if (f == 0u)
         if (i == 3)
-            text_cat(t, v == 1u ? "+ DRUMS" : "BREAK");
+            text_cat(t, v == 1u ? "BOTH" : v == 2u ? "PERC" : "BREAK");   /* (0.9.64: PERC; "+ DRUMS" for BOTH
+                                          * before) */
         else
             ms_text(i == 1 ? att_ms(v) : rel_ms(v), t);
     else if (f == 2u) {
@@ -873,8 +874,8 @@ static float sk_norm(uint32_t f, int i)  /* a setting 0..1, as its bar */
         return ((float)(int8_t)v + 50.0f) * 0.01f;
     if (f == 4u && i == 1)
         return (float)v / (float)(KICK_T_TYPES - 1u);
-    if ((f == 0u && i == 3))
-        return (float)v;
+    if ((f == 0u && i == 3))             /* (BREAK, PERC, BOTH: left to right) */
+        return v == 1u ? 1.0f : v == 2u ? 0.5f : 0.0f;
     if (f == 2u && i == 1)
         return (float)(v & 7u) * (1.0f / 7.0f);
     return (float)v * 0.01f;
@@ -945,8 +946,11 @@ static void selk_turn(uint32_t f, int i, int32_t d)
         else if (f == 4u && i == 1)
             *b = (uint8_t)clamp((int32_t)*b + (d > 0 ? 1 : -1), 0, (int32_t)KICK_T_TYPES - 1);   /* (LOAF BREAKER: RECT,
                                           * TUBE too; 0.255 HALF, SINE, WRAP, FUZZ) */
-        else if (f == 0u && i == 3)
-            *b = (uint8_t)clamp((int32_t)*b + (d > 0 ? 1 : -1), 0, 1);
+        else if (f == 0u && i == 3) {    /* (0.9.64, FLEXOR: BREAK, PERC, BOTH; stored 0, 2, 1: an older save's 1
+                                          * stays BOTH) */
+            static const uint8_t POS[3] = {0u, 2u, 1u};   /* (its place from its code, and back: the same) */
+            *b = POS[clamp((int32_t)POS[*b % 3u] + (d > 0 ? 1 : -1), 0, 2)];
+        }
         else if (f == 2u && i == 1)
             *b = (uint8_t)clamp((int32_t)*b + (d > 0 ? 1 : -1), 0, 7);
         else
