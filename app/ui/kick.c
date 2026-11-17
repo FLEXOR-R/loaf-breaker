@@ -1329,7 +1329,7 @@ static void kick_picture(int32_t top)
         if (p >= KP_BASE + 11u && p <= KP_BASE + 14u)
             kick_part_name(p, t);
         else if (p == KP_BASE + 16u) {   /* (STYLE: the one the knobs have now; PRESETS picks one) */
-            text_cat(t, "SEL+PRESETS: ");
+            text_cat(t, "PRESETS: ");   /* (0.9.66: PRESETS alone there) */
             text_cat(t, kstyle_name());
         }
         else if (kick_easy())            /* (BEGINNER's pages) */

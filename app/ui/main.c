@@ -1386,14 +1386,18 @@ static void input(void)
                 kick_mem_turn(d);
             else if (ui.page == PG_KEQ)
                 ;                        /* (0.9.29, FLEXOR: EQ B, EQ S, PRESETS nothing, SEL + PRESETS the kick) */
-            else if (!(btn & 1u << B_SEL))   /* (LOAF BREAKER, 0.9.26, FLEXOR: in the KICK menu, PRESETS the kick on every
-                                          * page; SEL + PRESETS what PRESETS did there: K1-K4 SET a knob's function,
-                                          * ASSIGN a style; elsewhere the pattern) */
+            else if (ui.page == PG_KICK && (ui.kpage == KP_KNOBS || ui.kpage == KP_STYLE || ui.kpage == KP_KSET)) {
+                if (btn & 1u << B_SEL)   /* (0.9.66, FLEXOR: "dans KNOBS, PRESETS sert à défiler les presets de knobs":
+                                          * KNOBS and ASSIGN, PRESETS the knobs' styles and PRESET 1-4, K1-K4 SET that
+                                          * knob's function; SEL + PRESETS the kick there, as FX1 and FX2) */
+                    kick_mem_turn(d);
+                else if (ui.kpage == KP_KSET)
+                    selk_assign_k(ui.kks, d);
+                else
+                    kstyle_turn(d);
+            } else if (!(btn & 1u << B_SEL))   /* (LOAF BREAKER, 0.9.26, FLEXOR: in the KICK menu, PRESETS the kick on every
+                                          * other page) */
                 kick_mem_turn(d);
-            else if (ui.page == PG_KICK && ui.kpage == KP_KSET)
-                selk_assign_k(ui.kks, d);
-            else if (ui.page == PG_KICK && ui.kpage == KP_STYLE)
-                kstyle_turn(d);
             else
                 pattern_pick(d);
             ui.redraw |= RG_FOOT;
@@ -3833,8 +3837,8 @@ int app_expect(const char *what, int *got)
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
                                     "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15", "broll", "stut", "fxwet", "tempo10", "kitsel", "kit0kick", "vthru", "dafter",
-                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold"};
-    int v[190];
+                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold", "subfa"};
+    int v[191];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -4040,6 +4044,7 @@ int app_expect(const char *what, int *got)
         v[187] = set.duck_what;          /* (DUCKS: 0 BREAK, 1 BOTH, 2 PERC) */
         v[188] = (int)ksw_mode();        /* (0.9.64: KICK SWITCH; KIL holding the kicks) */
         v[189] = kick_hold;
+        v[190] = (int)(set.kick.l[KL_SUB].fa * 100.0f + 0.5f);   /* (0.9.66: SUB DRIVE's gain, on or off) */
     }
     v[161] = set.vinyl & 3u;             /* (0.9.54: VINYL BREAK's THRU, 0 BOTH 1 BREAK 2 KICK) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */

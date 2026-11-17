@@ -35,9 +35,8 @@ turn SELECT 1 10
 wait 200
 turn ALGO 2 10
 wait 100
-press SEL
-turn PRESET -1 10
-release SEL
+expect kpage 12
+turn PRESET -1 10   # (0.9.66: on K1 SET, PRESETS that knob's function)
 wait 200
 expect selk1 8
 tap GLO

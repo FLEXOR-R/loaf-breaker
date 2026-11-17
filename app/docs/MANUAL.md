@@ -196,7 +196,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 | ENV | **TRACK**: tracks of patterns and drops, playing them, the drop's settings (below) |
 | SEL (pressed alone) | The combinations card: every SEL combination on the strip. SEL used with something else (SEL + a knob, SEL + ALGORITHM, SEL + REC…) does that instead |
 | SEL + ALGORITHM | The break, from any page; **BREAK TIME** (right HALF, left NORMAL) where ALGORITHM alone is already the break: HOME, SOUNDS › BREAK, SONG's PLAY / DROP / BUILD, MIX, OVERLAY's tabs but ARP (0.9.26) |
-| SEL + PRESETS | The pattern, from any page; **the kick** (KICK 1–20) on HOME, PATTERN (SEQ, SETTINGS), MIX, OVERLAY and SYSTEM's MIDI, FX SET, RESET; in the KICK menu the KICK FX effect, a knob's function, a style (0.9.26) |
+| SEL + PRESETS | The pattern, from any page; **the kick** (KICK 1–20) on HOME, PATTERN (SEQ, SETTINGS), MIX, OVERLAY and SYSTEM's MIDI, FX SET, RESET; in the KICK menu the kick on KNOBS, ASSIGN, K1–K4 SET (PRESETS alone their knob presets, 0.9.66) and on FX1, FX2 |
 | SEL + ARP | PATTERN › SETTINGS; **in the KICK menu: copy the kick, then, on another kick (PRESETS), paste it** (its sound, LAB, KNOBS and FX; its volume kept); on a drum's page the same for that drum's memories (0.9.26) |
 | SEL + SAVE | **Undo** the last pattern wipe (SEL + REC, a drum lane's FILL, CLR / 4X4 or COPY); again: redo |
 | OCT− / OCT+ | Pitch in semitones (hold to go faster). Both: back to 0 |
@@ -227,8 +227,9 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
   turn (DRIVE, SCREAM, D+ SCREECH, DISTO to start: their first setting, their value large), so you hear and see the
   kick as you set them; then **K1 SET .. K4 SET**, each knob's function with all its settings (DISTO:
   AMOUNT, SUB, FIZZ, SUSTAIN; MORPH: AMOUNT, TO KICK…), the function's name by the kick's (KICK 4  K4 DISTO). They
-  are the kick playing's (PRESETS on KNOBS: KICK 1–20, each its own). **On K1 SET .. K4 SET, SEL + PRESETS gives that knob
-  another function** (0.9.26: PRESETS alone changes the kick, on every page of the KICK menu) (the DISTO and SCREAM, DRIVE, DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH and the rest), for
+  are the kick playing's (KICK 1–20, each its own). **On KNOBS and ASSIGN, PRESETS goes through the knobs' presets** (the
+  styles, then PRESET 1–4); **on K1 SET .. K4 SET, PRESETS gives that knob another function**; SEL + PRESETS changes the
+  kick there (0.9.66, FLEXOR; the other way round in 0.9.26–0.9.65) (the DISTO and SCREAM, DRIVE, DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH and the rest), for
   the kick playing. **The picture has three views, EDIT held (half a second) the next:** **RGB** (to start: the
   kick's hit over half a second as rekordbox draws a track, each instant as tall as it is loud, its lows red, its mids
   green, its highs blue: a distorted kick white at the hit, orange in its body, red as its tail darkens, a SCREAM
@@ -353,7 +354,7 @@ hard turn deletes one item, not the ones moving into its place, 0.9.26),
 - **The live knobs** (EDIT › KNOBS): what SEL + each knob does, on any page. On the KICK menu's KNOBS section,
   **ALGORITHM** goes to K1 SET .. K4 SET, and **PRESETS** there gives that knob its function: SCREAM, DISTO, D+ DRIVE, D+ TYPE, D+ SCREECH, D+ TAIL (DISTO +'s settings, one each),
   DRIVE (the kick's INTENSITY), DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH, PITCH DROP, RUMBLE, PUNCH, DRUM FLT,
-  HOLD, KICK FX or SUB DRIVE (0.9.62: the SUB layer's DRIVE gain; turned the first time, the SUB's effect becomes DRIVE). They start as K1 DRIVE, K2 SCREAM, K3 D+ SCREECH, K4 DISTO. K1–K4 then set the
+  HOLD, KICK FX or SUB DRIVE (0.9.62: the SUB layer's DRIVE gain; 0.9.66, FLEXOR: the gain alone, it never turns the drive on: the SDR key does, and it says OFF beside the gain while off). They start as K1 DRIVE, K2 SCREAM, K3 D+ SCREECH, K4 DISTO. K1–K4 then set the
   function's settings (K1 is what SEL + its knob turns). DUCK and COMP are not here: the MIXER (LFO) has them, MASTER and
   DYNAMICS.
   - **SCREAM**: AMOUNT, SUB (what stays clean under it, ~48–250 Hz), SCREAM (the mids it pushes, ~150 Hz–2.4 kHz),
@@ -380,7 +381,7 @@ hard turn deletes one item, not the ones moving into its place, 0.9.26),
     HOLD, the kick square for longer before it falls. **KICK FX**: FX 1 MIX, FX 2 MIX, the kick's own two FX slots
     more or less.
   - **ASSIGN** (STYLE until 0.9.1; KNOBS' last part, ALGORITHM back from KNOBS): **K1–K4** each give their own knob its function, one at a
-    time (the cards show them); **SEL + PRESETS** turns through eight styles (PRESETS alone: the kick, 0.9.26), each giving the four at once (the kick
+    time (the cards show them); **PRESETS** turns through the styles (0.9.66; SEL + PRESETS the kick there), each giving the four at once (the kick
     playing's): **TERROR** (DRIVE, SCREAM, D+ SCREECH, DISTO, as they
     start), **EARLY NEXT GEN** (PITCH DROP, RUMBLE, PUNCH, DRUM FLT), **HARDCORE** (DRIVE, PUNCH, DECAY, DISTO), **NEW
     SCHOOL** (DRIVE, CLEAN SUB, D+ TYPE, DISTO), **RAWSTYLE** (REV BASS, GLIDE, PITCH DROP, D+ TAIL), **INDUSTRIAL** (T+
@@ -1121,7 +1122,7 @@ break alone: sweep it down and the drums stay full on top.
 | ENV PLAY (PLAY: the track) | Track | From item | At the end | |
 | ENV DROP | Build bars | After the drop | Break | Crash |
 | ENV BUILD (PRESETS: tempo rise) | Style | Sweep | Riser | Gap |
-| EDIT KICK › KNOBS, K1 SET .. K4 SET (ALGORITHM: the knob; SEL + PRESETS: its function) | its function's four settings | | | |
+| EDIT KICK › KNOBS, K1 SET .. K4 SET (ALGORITHM: the knob; PRESETS: its function) | its function's four settings | | | |
 | LFO (mixer: levels; LFO held, any page: the same) | Break level | Kick level | Drums level | LFO held: the FX fader (SENDS' FX, 0.9.50; the FX page shows it as FX MIX nn %) |
 | LFO, SENDS (SELECT) | FX (the chain, dry to wet) | Drums: through the chain or around it | ARP: break, kick or thru | ROLL: break, kick or both |
 | LFO, MASTER | Comp | Ratio | Duck | Max out |

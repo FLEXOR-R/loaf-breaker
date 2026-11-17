@@ -755,11 +755,11 @@ static void selk_value(uint32_t f, int i, char *t)
             ks_text(KS_HOLD, t);
         else if (f == 20u && i < 2)
             pct_text(set.kfx[i].mix, t);
-        else if (f == 21u && i == 0) {   /* (0.9.62: SUB DRIVE's gain, OFF while the SUB's effect isn't DRIVE) */
+        else if (f == 21u && i == 0) {   /* (0.9.62: SUB DRIVE's gain; 0.9.66: shown whether SDR has it on or not, OFF
+                                          * after it while the SUB's effect isn't DRIVE) */
+            pct_text(set.kick.l[KL_SUB].fa, t);
             if (set.kick.l[KL_SUB].fx != KFX_DRIVE || subfx_off)
-                text_cat(t, "OFF");
-            else
-                pct_text(set.kick.l[KL_SUB].fa, t);
+                text_cat(t, " OFF");
         }
         return;
     }
@@ -902,15 +902,9 @@ static void selk_turn(uint32_t f, int i, int32_t d)
             ks_add(KS_HOLD, d);
         else if (f == 20u && i < 2)
             set.kfx[i].mix = knob_f(set.kfx[i].mix, d, 0.02f, 0.0f, 1.0f);
-        else if (f == 21u && i == 0) {   /* (0.9.62, FLEXOR: SUB DRIVE's gain; the SUB's effect made DRIVE, heard, at
-                                          * the first turn) */
+        else if (f == 21u && i == 0) {   /* (0.9.62, FLEXOR: SUB DRIVE's gain; 0.9.66, FLEXOR: "indépendant du switch
+                                          * on-off": the gain alone, SDR switches it on and off) */
             kick_layer_t *l = &set.kick.l[KL_SUB];
-            if (l->fx != KFX_DRIVE) {
-                l->fx = KFX_DRIVE;
-                if (l->wet < 0.05f)
-                    l->wet = 1.0f;
-            }
-            set.selk_hi &= (uint8_t)~64u;
             l->fa = knob_f(l->fa, d, 0.02f, 0.0f, 1.0f);
         } else
             return;
