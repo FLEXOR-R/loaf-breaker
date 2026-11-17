@@ -403,17 +403,6 @@ static void sw_do(uint32_t i, int down)
         ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
     }
 }
-/* (0.9.67, FLEXOR: TRI held while KIL holds the kicks quiet: refused then; KIL let go with TRI still held, the
- * triplets start, no second press) */
-static void kil_back_tri(uint32_t keys)
-{
-    if (!(keys & PAD_BIT(BKF_TRI)) || kick_x2 & 4u)
-        return;
-    kick_x2 = (uint8_t)(kick_x2 | 4u);
-    ui.x2_focus = 3u;
-    app_say("KICK TRIPLETS", set.half_mt_off & 32u ? "ON (HELD)" : "ON (LATCHED)");
-    ui.redraw |= RG_FOOT;
-}
 static int bk_knobs_held(void)           /* (0.9.57, FLEXOR: a black key held whose effect has knobs: they win over
                                           * SEL + K1-K4, on the foot and on the knobs) */
 {
@@ -758,12 +747,9 @@ static void input(void)
         uint32_t q;
         for (q = 0; q < 3u; q++) {
             uint8_t b = (uint8_t)(1u << q);
-            if (kdn & PAD_BIT(F[q]) && q == 2u && kick_hold && !(kick_x2 & b)) {   /* (0.9.57, FLEXOR: TRI not
-                                          * turned on while KIL holds the kicks quiet) */
-                ui.x2_focus = (uint8_t)(q + 1u);
-                app_say(N[q], "KICKS KILLED");
-                ui.redraw |= RG_FOOT;
-            } else if (kdn & PAD_BIT(F[q])) {
+            if (kdn & PAD_BIT(F[q])) {       /* (0.9.67, FLEXOR: TRI as X2 and X4 in every way: on or off whatever KIL
+                                          * does, quiet while KIL holds the kicks; 0.9.57-0.9.66 KIL turned it off and
+                                          * refused it) */
                 ui.x2_focus = (uint8_t)(q + 1u);
                 kick_x2 = set.half_mt_off & LB[q] ? (uint8_t)(kick_x2 | b) : (uint8_t)(kick_x2 ^ b);
                 app_say(N[q], kick_x2 & b ? (set.half_mt_off & LB[q] ? "ON (HELD)" : "ON (LATCHED)") : "OFF");
@@ -785,12 +771,8 @@ static void input(void)
                                           * LATCH (K1 while held): a press quiet, the next back */
         ui.kil_focus = 1u;
         kick_hold = set.half_mt_off & 4u ? (uint8_t)!kick_hold : 1u;
-        if (!kick_hold) {
+        if (!kick_hold)
             kil_back_flt();
-            kil_back_tri(keys);
-        }
-        else
-            kick_x2 = (uint8_t)(kick_x2 & ~4u);   /* (0.9.57, FLEXOR: KIL cuts the kick triplets too) */
         app_say("KICKS", kick_hold ? (set.half_mt_off & 4u ? "QUIET (KIL LATCHED)" : "QUIET (KIL)") : "BACK");
         ui.redraw |= RG_FOOT;
     } else if (!(keys & PAD_BIT(BKF_KIL))) {
@@ -802,7 +784,6 @@ static void input(void)
             kick_hold = 0u;
             kil_back_flt();
             app_say("KICKS", "BACK");
-            kil_back_tri(keys);
             ui.redraw |= RG_FOOT;
         }
     }

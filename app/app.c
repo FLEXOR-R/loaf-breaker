@@ -2562,12 +2562,53 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                     nk = 0u;             /* (0.9.57, FLEXOR: KIL quiets the triplets too, the ARP's KICK TRI as well;
                                           * a roll pad's KICK ROLL still plays) */
             }
-            if (vin && (st.pads >> PAD_TAPESTOP & 1u))
-                nk = np = 0u;            /* the vinyl held: the drums' steps quiet, as the break's */
             int vs = vin && (tape0 < 1.0f || st.tape < 1.0f);
             if (vs)
                 for (i = 0; i < m; i++)  /* (the engine's ramp, this block's end; between, straight) */
                     spd[i] = tape0 + (st.tape - tape0) * (float)(i + 1u) / (float)m;
+            {                            /* the vinyl held: the drums' own steps quiet, as the break's; 0.9.67, FLEXOR
+                                          * ("le vinyl stop coupe le kick plutôt que de le ralentir"): the record's steps
+                                          * instead, a step clock that slows with it, so the kicks and the drums come on,
+                                          * further and further apart, down to the stop */
+                static uint8_t v_on, v_idx;
+                static uint32_t v_since;
+                static float v_pos;
+                static int32_t v_last;
+                if (vin && (st.pads >> PAD_TAPESTOP & 1u) && st.playing) {
+                    float sl = (float)BRK_SR * 15.0f / brk_get_tempo();
+                    if (!v_on) {
+                        v_on = 1u;
+                        v_pos = (float)v_idx + (float)v_since / sl;
+                        v_last = (int32_t)v_pos;
+                    }
+                    nk = np = 0u;
+                    for (i = 0; i < m; i++) {
+                        int32_t q;
+                        v_pos += (vs ? spd[i] : 1.0f) / sl;
+                        q = (int32_t)v_pos;
+                        if (q != v_last) {
+                            uint32_t n = (uint32_t)q & 63u, s = n & 15u, bar = n >> 4 & 3u, d, w = 0u;
+                            v_last = q;
+                            if (drum_now[DR_KICK][bar] >> s & 1u && !kick_hold && nk < 8u) {
+                                kpm[nk] = x2_pm;
+                                ka[nk++] = (uint16_t)i;
+                            }
+                            for (d = DR_SNARE; d < NDRUMS; d++)
+                                w |= (uint32_t)(drum_now[d][bar] >> s & 1u) << (d - 1u);
+                            if (w && np < 8u) {
+                                pa[np] = (uint16_t)i;
+                                who[np++] = (uint8_t)w;
+                            }
+                        }
+                    }
+                } else
+                    v_on = 0u;
+                if (ne) {                /* (where the pattern is, for the next vinyl) */
+                    v_idx = idx[ne - 1u];
+                    v_since = m - off[ne - 1u];
+                } else
+                    v_since += m;
+            }
             tape0 = st.tape;
             kick_speed(vs ? spd : 0);
             perc_speed(vs ? spd : 0);
