@@ -2009,7 +2009,7 @@ static const char *knob_name(int i)
                                                 {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
     static const char *const KN_MORE[3][4] = {{"SKIN", "KICK EQ", "MODE", "AUTO SAVE"},   /* SETUP (K2 WAVE ZOOM: HOME's
                                       * SETTINGS, 0.9.2) */
-                                              {"EFFECT", "ON / OFF", "", "KICK SWITCH"},   /* (LOAF BREAKER: EFFECTS, */
+                                              {"EFFECT", "ON / OFF", "DRUM FILTER", "KICK SWITCH"},   /* (LOAF BREAKER: EFFECTS, */
                                               {"AMOUNT", "KICK", "DROP", "LENGTH"}};   /* FX SET) */
     static const char *const KN_TRK[6][4] = {{"TRACK", "FROM", "END", ""}, {"BUILD", "AFTER", "BREAK", "CRASH"},
                                              {"STYLE", "SWEEP", "RISER", "GAP"}, {"", "RESET", "", "WHAT"},
@@ -3851,8 +3851,8 @@ int app_expect(const char *what, int *got)
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
                                     "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15", "broll", "stut", "fxwet", "tempo10", "kitsel", "kit0kick", "vthru", "dafter",
-                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold", "subfa"};
-    int v[191];
+                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold", "subfa", "dft"};
+    int v[192];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -4059,6 +4059,7 @@ int app_expect(const char *what, int *got)
         v[188] = (int)ksw_mode();        /* (0.9.64: KICK SWITCH; KIL holding the kicks) */
         v[189] = kick_hold;
         v[190] = (int)(set.kick.l[KL_SUB].fa * 100.0f + 0.5f);   /* (0.9.66: SUB DRIVE's gain, on or off) */
+        v[191] = (int)dft_kind();        /* (0.9.67: the drums' filter's kind) */
     }
     v[161] = set.vinyl & 3u;             /* (0.9.54: VINYL BREAK's THRU, 0 BOTH 1 BREAK 2 KICK) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */

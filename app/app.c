@@ -63,7 +63,8 @@ typedef struct {
     uint8_t bta_on;                      /* Bluetooth audio out (GLOBAL, third part): on at power-on, the last device
                                           * connected again */
     uint8_t bta_codec;                   /* its SBC coding: 0 joint stereo (fm1-base's), 1 plain stereo */
-    uint8_t click_gone;                  /* (the metronome's click, gone with TAP TEMPO: its byte kept) */
+    uint8_t click_gone;                  /* (the metronome's click, gone with TAP TEMPO: its byte kept; 0.9.67: the
+                                          * drums' filter's kind, 0x60 | BRK_DFT_*, untagged CLASSIC: `dft_kind`) */
     uint8_t rsv;                         /* (0.9.64: KICK SWITCH, 0x50 | KS_*; untagged SMART: `ksw_mode`) */
     brk_padset_t pads;                   /* the pads' own settings (K1-K4 while a pad is held) */
     brk_keyset_t keys[BRK_KEYS];         /* each white key's loop: length, pitch, start, mode (K1-K4 while held) */
@@ -480,6 +481,8 @@ static void kb_echo_put(uint32_t e) { set.rsv6[0] = 0xE5u; set.rsv6[1] = (uint8_
 /* (0.9.64, FLEXOR) KICK SWITCH, SYSTEM › EFFECTS K4: the drums' filter when the kicks come back (KIL): SMART (it goes
  * OFF, unless it was turned while the kicks were quiet: then they come back through it), FLT OFF (always OFF, as
  * 0.9.50-0.9.63), FLT KEEP (never touched); set.rsv 0x50 | it, untagged SMART */
+static const char *const DFT_NAME[BRK_DFTS] = {"CLASSIC", "SMOOTH", "SOFT", "RESO"};
+static uint32_t dft_kind(void) { return (set.click_gone & 0xF0u) == 0x60u && (set.click_gone & 15u) < BRK_DFTS ? set.click_gone & 15u : BRK_DFT_CLASSIC; }
 enum { KSW_SMART, KSW_OFF, KSW_KEEP, KSW_N };
 static const char *const KSW_NAME[KSW_N] = {"SMART", "FLT OFF", "FLT KEEP"};
 static uint32_t ksw_mode(void) { return (set.rsv & 0xF0u) == 0x50u && (set.rsv & 15u) < KSW_N ? set.rsv & 15u : KSW_SMART; }
@@ -2619,6 +2622,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                         perc[i] *= g;
                 }
             }
+            brk_fx_drum_type(dft_kind());   /* (0.9.67: its kind) */
             brk_fx_drums_dj(kick, perc, m, (float)set.kick_dj * 0.01f);   /* HOME's DRUM FLT (LOAF BREAKER: every drum,
                                           * not the break) */
             build_p = b_on ? (build_len ? (float)b_steps / (float)build_len : 1.0f) : -1.0f;

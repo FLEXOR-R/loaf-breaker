@@ -875,6 +875,12 @@ quicker it answers). For telling what slows it down.
 while on), K1 points at one and K2 turns it on (right) or off (left). **CRT** (every other line dimmed, as an old
 tube), **VHS** (bands that slip sideways), **GRAIN** (specks that move), **RGB** (the red a few pixels off the rest), **SHAKE** (the screen jolts on the kicks and at the drop), **STROBE** (the colours turn over
 at the drop, and on the kicks when ON A KICK is past 50 %), **8-BIT** (fewer colours). VHS and RGB together, for one.
+**K3 DRUM FILTER** (0.9.67, FLEXOR; not a screen effect either) is the drums' filter's kind (SEL + SELECT, HOME's
+DRUM FLT): **CLASSIC** (as it always was: 12 dB/oct, an even sweep, 50 Hz to 6.4 kHz high-pass, 18 kHz to 80 Hz
+low-pass), **SMOOTH** (as a club DJ mixer's filter: 12 dB/oct with no peak, the first part of the turn moving it
+little, 30 Hz to 3.8 kHz, 20 kHz to 160 Hz), **SOFT** (6 dB/oct, the gentlest: 30 Hz to 1.9 kHz, 20 kHz to 250 Hz),
+**RESO** (CLASSIC's range with a resonant peak, about +7 dB at the cutoff). At half a turn of the high-pass, 200 Hz
+loses 18 dB in CLASSIC, under 2 dB in SMOOTH and SOFT. An older save keeps CLASSIC.
 **K4 KICK SWITCH** (0.9.64, not a screen effect: the page had the knob free) is what happens to the drums' filter
 (SEL + SELECT, HOME's DRUM FLT) when KIL brings the kicks back: **SMART** (the start) puts it OFF, unless you turned it
 while the kicks were quiet: then the kicks come back through it, as you set it; **FLT OFF** always OFF (as 0.9.50 to

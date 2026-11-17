@@ -237,8 +237,7 @@ static void kick_flt_text(char *t)
     t[0] = 0;
     text_cat(t, set.kick_dj > 0 ? "HP " : set.kick_dj < 0 ? "LP " : "OFF");
     if (set.kick_dj)
-        hz_text(set.kick_dj > 0 ? BRK_KICK_HP_HZ((float)set.kick_dj * 0.01f)
-                                : BRK_DRUM_LP_HZ((float)set.kick_dj * 0.01f), t + 3);
+        hz_text(brk_fx_drum_hz((float)set.kick_dj * 0.01f, dft_kind()), t + 3);   /* (0.9.67: its kind's) */
 }
 
 static uint8_t kdj_quiet;                /* (0.9.64: the drums' filter turned while KIL had the kicks quiet) */

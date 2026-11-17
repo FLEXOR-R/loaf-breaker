@@ -233,6 +233,13 @@ void brk_fx_set_kick_slot(uint32_t i, const brk_fxslot_t *s);
 void brk_fx_kick(float *x, uint32_t n);
 void brk_fx_drums_dj(float *kick, float *perc, uint32_t n, float pos);   /* LOAF BREAKER: that filter on the kick
                                           * and on the snare, hat and clap (either 0: not that one) */
+/* LOAF BREAKER (0.9.67, FLEXOR: "plusieurs drum filter, moins agressifs, comme sur une DJM-A9"): its kind, from the main
+ * loop: CLASSIC (12 dB/oct, 50 Hz .. 6.4 kHz / 18 kHz .. 80 Hz, an even sweep: as it always was), SMOOTH (12 dB/oct, flat
+ * Butterworth, as a club mixer's: the sweep slow at first, 30 Hz .. 3.8 kHz / 20 kHz .. 160 Hz), SOFT (6 dB/oct, the
+ * gentlest: 30 Hz .. 1.9 kHz / 20 kHz .. 250 Hz), RESO (12 dB/oct, a resonant peak, CLASSIC's range) */
+enum { BRK_DFT_CLASSIC, BRK_DFT_SMOOTH, BRK_DFT_SOFT, BRK_DFT_RESO, BRK_DFTS };
+void brk_fx_drum_type(uint32_t t);
+float brk_fx_drum_hz(float pos, uint32_t t);   /* its cutoff at pos (-1 .. 1; 0 off), for that kind (the screen's too) */
 #define BRK_KICK_HP_HZ(pos) (50.0f * brk_exp2f((pos) * 7.0f))
 #define BRK_DRUM_LP_HZ(pos) (18000.0f * brk_exp2f((pos) * 7.8f))   /* LOAF BREAKER: pos < 0, its low-pass: 18 kHz down
                                           * to 80 Hz (the break's DJ filter's) */   /* its cutoff: 50 Hz up to 6.4 kHz (the screen's too) */

@@ -469,20 +469,51 @@ BRK_COLD void brk_fx_add_dry(float *l, float *r, const float *xl, const float *x
 
 /* GLOUPI BREAKS: a DJ filter of its own on the kick (HOME's KICK FLT, pos -1..1), in place (the render's kick, before
  * the snare and the hat join it): left low-pass, right high-pass, as the break's */
+static volatile uint8_t p_dft;           /* (0.9.67) the drums' filter's kind, BRK_DFT_* */
+static float dj_k1, dj_p1;               /* (SOFT: its one pole, the kick's, the other drums') */
+void brk_fx_drum_type(uint32_t t) { p_dft = (uint8_t)(t < BRK_DFTS ? t : BRK_DFT_CLASSIC); }
+BRK_COLD float brk_fx_drum_hz(float pos, uint32_t t)
+{
+    static const float LO[BRK_DFTS] = {50.0f, 30.0f, 30.0f, 50.0f}, HI[BRK_DFTS] = {18000.0f, 20000.0f, 20000.0f, 18000.0f};
+    static const float OHP[BRK_DFTS] = {7.0f, 7.0f, 6.0f, 7.0f}, OLP[BRK_DFTS] = {7.8f, 7.0f, 6.3f, 7.8f};
+    float a = brk_clampf(brk_absf(pos), 0.0f, 1.0f);
+    t = t < BRK_DFTS ? t : BRK_DFT_CLASSIC;
+    if (t == BRK_DFT_SMOOTH || t == BRK_DFT_SOFT)
+        a *= 0.4f + 0.6f * a;            /* (a mixer's taper: the first part of the turn moves it little) */
+    return pos > 0.0f ? LO[t] * brk_exp2f(a * OHP[t]) : HI[t] * brk_exp2f(-a * OLP[t]);
+}
 BRK_COLD void brk_fx_drums_dj(float *x, float *y, uint32_t n, float pos)
 {
-    float d = brk_clampf(pos, -1.0f, 1.0f), w, lp, h, a;   /* (LOAF BREAKER: above 0 its high-pass, below its
+    float d = brk_clampf(pos, -1.0f, 1.0f), w, lp, h, a, hz;   /* (LOAF BREAKER: above 0 its high-pass, below its
                                           * low-pass) */
     svf_c c;
-    uint32_t i;
+    uint32_t i, t = p_dft;
     int hp;
     djk_s += (d - djk_s) * 0.3f;
     a = brk_absf(djk_s);
-    if (a < 0.01f)
+    if (a < 0.01f) {
+        dj_k1 = dj_p1 = 0.0f;
         return;
+    }
     hp = djk_s > 0.0f;
     w = a < 0.05f ? a * 20.0f : 1.0f;    /* (coming in: faded in over its first step, no thump) */
-    c = svf_coef(hp ? BRK_KICK_HP_HZ(djk_s) : BRK_DRUM_LP_HZ(djk_s), 0.35f);
+    hz = brk_fx_drum_hz(djk_s, t);
+    if (t == BRK_DFT_SOFT) {             /* (0.9.67: SOFT, one pole, 6 dB/oct) */
+        float g = 1.0f - brk_exp2f(-9.0647f * hz / (float)BRK_SR);
+        for (i = 0; i < n; i++) {
+            if (x) {
+                dj_k1 += g * (x[i] - dj_k1);
+                x[i] += ((hp ? x[i] - dj_k1 : dj_k1) - x[i]) * w;
+            }
+            if (y) {
+                dj_p1 += g * (y[i] - dj_p1);
+                y[i] += ((hp ? y[i] - dj_p1 : dj_p1) - y[i]) * w;
+            }
+        }
+        return;
+    }
+    c = svf_coef(hz, t == BRK_DFT_SMOOTH ? 0.293f : t == BRK_DFT_RESO ? 0.83f : 0.35f);   /* (SMOOTH k 1.414:
+                                          * Butterworth; RESO k 0.34: a ~+9 dB peak; CLASSIC as always) */
     for (i = 0; i < n; i++) {
         if (x) {
             h = svf_run(&dj_k, &c, x[i], &lp);

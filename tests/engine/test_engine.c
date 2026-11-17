@@ -2445,6 +2445,38 @@ static void test_half_time(void)
     brk_half_time(0);
 }
 
+/* LOAF BREAKER (0.9.67): the drums' filter's kinds: SMOOTH and SOFT gentler than CLASSIC at the same knob, RESO a peak */
+static float dft_gain(uint32_t t, float pos, float hz)
+{
+    static float x[256], y[256];
+    float ph = 0.0f, in = 0.0f, out = 0.0f;
+    int b, i;
+    brk_fx_drum_type(t);
+    for (b = 0; b < 300; b++) {
+        for (i = 0; i < 256; i++) {
+            x[i] = y[i] = sinf(ph);
+            ph += 6.2831853f * hz / 44100.0f;
+            if (ph > 6.2831853f)
+                ph -= 6.2831853f;
+        }
+        brk_fx_drums_dj(y, 0, 256, pos);
+        if (b > 150)
+            for (i = 0; i < 256; i++) {
+                in += x[i] * x[i];
+                out += y[i] * y[i];
+            }
+    }
+    return 10.0f * log10f(out / in);
+}
+static void test_drum_filter_kinds(void)
+{
+    float c = dft_gain(BRK_DFT_CLASSIC, 0.5f, 200.0f), m = dft_gain(BRK_DFT_SMOOTH, 0.5f, 200.0f);
+    float so = dft_gain(BRK_DFT_SOFT, 0.5f, 200.0f), r = dft_gain(BRK_DFT_RESO, -0.5f, 1000.0f);
+    CHECK(c < -12.0f && m > -4.0f && so > -4.0f, "drum filter at half: CLASSIC %.1f dB, SMOOTH %.1f, SOFT %.1f at 200 Hz", c, m, so);
+    CHECK(r > 4.0f, "RESO's peak: %.1f dB", r);
+    CHECK(brk_fx_drum_hz(0.5f, BRK_DFT_CLASSIC) == 50.0f * brk_exp2f(3.5f), "CLASSIC's cutoff as it always was");
+    brk_fx_drum_type(BRK_DFT_CLASSIC);
+}
 int main(int argc, char **argv)
 {
     if (argc > 1)
@@ -2493,6 +2525,7 @@ int main(int argc, char **argv)
     test_dub();
     test_styles();
     test_ovl();
+    test_drum_filter_kinds();
     printf("%d of %d checks passed\n", checks - fails, checks);
     return fails ? 1 : 0;
 }
