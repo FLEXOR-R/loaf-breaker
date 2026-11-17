@@ -419,7 +419,7 @@ all the way up: -3 dB to start with (headroom for the FM-1's output and your spe
 
 ### Your own breaks (BREAKS)
 
-Beside the ten built in, the FM-1 holds breaks of your own (0.9.32, from CHOPPAH 1.4's break manager): 232 KB of
+Beside the nine built in, the FM-1 holds breaks of your own (0.9.32, from CHOPPAH 1.4's break manager): 232 KB of
 room, five to seven breaks of the library's size.
 The site's [Breaks](https://flexor-r.github.io/loaf-breaker/breaks/) page, in Chrome or Edge on a computer, does it:
 
@@ -436,7 +436,7 @@ The site's [Breaks](https://flexor-r.github.io/loaf-breaker/breaks/) page, in Ch
    the room taken, and a break that fits in neither is refused with the room left. Remove one, hear one. **Connect** the FM-1 by USB, **stop** LOAF BREAKER, **Send to the FM-1**:
    the list replaces what was on it (sending an empty list deletes them). Connected, the page reads back the ones on it.
 
-Your breaks come **after the ten built in** on ALGORITHM (break 11 on, in the list's order; your saved patterns and
+Your breaks come **after the nine built in** on ALGORITHM (break 10 on, in the list's order; your saved patterns and
 tracks keep their breaks). The FM-1 says RECEIVING A BREAK, then plays the first of them. They stay through updates of LOAF BREAKER;
 RESET ALL and WIPE MEMORY keep them.
 

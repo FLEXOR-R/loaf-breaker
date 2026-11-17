@@ -18,7 +18,7 @@ library shows (0.9.40, FLEXOR: `Artist – Track (kind)`, the FM-1's short name 
 | `the_satan_gangzta_cash.wav` | The Satan, "Gangzta Cash" (intro break) | 200 | 2 | SATAN 200 (0.9.34) |
 | `tripped_matt_green_underground_panther_jacket.wav` | Tripped & Matt Green, "Underground Panther Jacket" (break) | 170 | 2 | PANTHER 170 (0.9.34) |
 | `artheist_the_obedience_algorithm.wav` | Artheist, "The Obedience Algorithm" (break) | 165 | 2 | OBEDIENC165 in 0.9.37; in the library since 0.9.38 |
-| `dolphin_rotterdam_shuffle.wav` | Dolphin, "Rotterdam Shuffle" (intro break) | 190 | 2 | SHUFFLE 190 (0.9.38, in OBEDIENC165's place) |
+| `dolphin_rotterdam_shuffle.wav` | Dolphin, "Rotterdam Shuffle" (intro break) | 190 | 2 | the library (SHUFFLE 190: the firmware's 0.9.38-0.9.66) |
 | `deathmachine_bad_man_crew.wav` | Deathmachine, "Bad Man Crew" (break) | 200 | 2 | the library (BADMAN 200, 0.9.40) |
 | `detest_tripped_hardcore_to_the_penis_vocal.wav` | Detest & Tripped, "Hardcore To The Penis" (vocal break) | 175 | 2 | the library (DETESTV 175, 0.9.40) |
 | `dolphin_buckshot.wav` | Dolphin, "Buckshot" (break) | 200 | 2 | the library (BUCKSHT 200, 0.9.40) |
@@ -26,7 +26,7 @@ library shows (0.9.40, FLEXOR: `Artist – Track (kind)`, the FM-1's short name 
 | `lil_texas_louder_2.wav` | Lil Texas, "LOUDER" (break 2) | 175 | 2 | the library (LOUDER2 175, 0.9.40) |
 | `the_outside_agency_hells_basement.wav` | The Outside Agency, "Hell's Basement" (intro break) | 175 | 2 | the library (TOAHELL 175, 0.9.40) |
 | `the_outside_agency_like_a_fire.wav` | The Outside Agency, "Like A Fire" (intro break) | 160 | 2 | the library (TOAFIRE 160, 0.9.40) |
-| `dj_hidden_the_nightmare_connector_vip.wav` | DJ Hidden, "The Nightmare Connector VIP" (break) | 175 | 2 | the library (NIGHT 175, 0.9.40) |
+| `dj_hidden_the_nightmare_connector_vip.wav` | DJ Hidden, "The Nightmare Connector VIP" (break) | 175 | 2 | NIGHT 175 (0.9.67, in SHUFFLE 190's place; the library's 0.9.40-0.9.66) |
 | `dj_hidden_the_nightmare_connector_vip_outro_break.wav` | DJ Hidden, "The Nightmare Connector VIP" (outro break) | 175 | 2 | the library (NIGHT2 175, 0.9.40) |
 | `dj_hidden_times_like_these_vip_break_2.wav` | DJ Hidden, "Times Like These VIP" (break 2) | 175 | 2 | the library (TIMES2 175, 0.9.40) |
 | `dj_hidden_times_like_these_vip.wav` | DJ Hidden, "Times Like These VIP" (break) | 175 | 2 | the library (TIMES 175: the firmware's 0.9.43-0.9.49) |
