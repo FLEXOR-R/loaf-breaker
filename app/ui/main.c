@@ -1780,8 +1780,9 @@ static void draw_tabs(void)
                 x = tab(x, OPAGE_NAME[i], i == ui.opage);
     }
     else if (ui.page == PG_TRACK)        /* LOAF BREAKER: ENV: TRACKS, PLAY, DROP */
-        for (i = 0; i < NTORD; i++)   /* (TRACKS, PLAY, DROP, BUILD: no "ENV" before them, for the room) */
-            x = tab(x, TPART[TORDER[i]], TORDER[i] == ui.tpage);
+        for (i = 0; i < NTORD; i++)   /* (TRACKS, PLAY, DROP, BUILD: no "ENV" before them, for the room; 0.9.69:
+                                          * narrower, BUILD BRK and DROP BANK in full) */
+            x = tab_pad(x, TPART[TORDER[i]], TORDER[i] == ui.tpage, 3, 2);
     else if (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK)   /* (SOUNDS' BREAK: the break playing) */
         tab(x, break_name(set.brk), 1);
     else if (ui.page == PG_GLOBAL && ui.gpage != GP_FILL)   /* (SEQ's SETTINGS: SEQ's tabs, below) */
@@ -1866,7 +1867,8 @@ static void page_say(void)
     case PG_MIX: text_cat(t, ui.mpage == 3u ? "DYNAMICS" : ui.mpage == 2u ? "MASTER" : ui.mpage ? "ROUTING" : "LEVELS"); break;
     case PG_SEQ: text_cat(t, SEQ_BRK ? "BREAK" : SEQ_LANE_NAME[ui.seq_lane % NSEQL]); break;
     case PG_TRACK: text_cat(t, TPART[ui.tpage % NTPART]); break;
-    case PG_OVL: text_cat(t, OPAGE_NAME[ui.opage % 5u]); break;   /* (LOAF BREAKER: its tabs) */
+    case PG_OVL: text_cat(t, ui.opage % 5u ? OPAGE_NAME[ui.opage % 5u] : "EFFECTS"); break;   /* (LOAF BREAKER: its tabs;
+                                          * 0.9.69: its first EFFECTS, not "ARP ARP") */
     case PG_FX:
         text_cat(t, IS_KFX() ? "KICK FX " : "SLOT ");
         int_text((int32_t)(fx_foc() % BRK_FX_SLOTS) + 1, t + (IS_KFX() ? 8 : 5));
