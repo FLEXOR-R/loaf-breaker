@@ -391,7 +391,7 @@ static void draw_global(const brk_status_t *st)
         static const char *const SN[3] = {"SWING", "BREAK ROWS", "FOLLOW"};
         uint32_t s;
         char v[12];
-        cv_text(6, 1, &FONT_T, "SEQ SETTINGS", C_GRAY);   /* (0.9.31, FLEXOR: GROOVE until 0.9.30) */
+        cv_text(6, 1, &FONT_T, "GROOVE", C_GRAY);   /* (0.9.31-0.9.67 SEQ SETTINGS; 0.9.68, FLEXOR: GROOVE, its tab's name) */
         cv_text(6, 16, &FONT_XS, "K1 SWING  K2 THE BREAK'S ROWS IN FULL", C_DIM);
         cv_text(6, 28, &FONT_XS, "K3 FOLLOW: THE GRID ON THE BAR PLAYING", C_DIM);
         cv_blit(0, 44);

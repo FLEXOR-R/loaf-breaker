@@ -28,10 +28,11 @@ tap HOME
 wait 200
 tap PLAY
 wait 300
+# (0.9.68, FLEXOR: SMOOTH a detent two: 12 detents 48 %)
 press SEL
-turn SELECT 25 10
+turn SELECT 12 10
 release SEL
 wait 300
-expect kick_dj 50
+expect kick_dj 48
 wait 500
 tap PLAY

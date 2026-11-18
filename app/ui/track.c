@@ -9,7 +9,7 @@
 static void page_say(void);
 static void break_ask(uint32_t i);      /* (main.c) */
 #define NTPART 8u
-static const char *const TPART[NTPART] = {"TRACKS", "PLAY", "DROP", "KNOB", "BUILD", "RESET", "BREAK", "DROPS"};
+static const char *const TPART[NTPART] = {"TRACKS", "PLAY", "DROP", "KNOB", "BUILD", "RESET", "BUILD BRK", "DROP BANK"};
 #define NTORD 6u
 static const uint8_t TORDER[NTORD] = {0u, 1u, 2u, 4u, 6u, 7u};   /* (0.9.58, FLEXOR: DROPS, DROP 1-8, last) */   /* (0.9.50, FLEXOR: BREAK after BUILD, the break in the build) */
 static const char *const BROLL_NAME[2] = {"STILL", "ROLL"};

@@ -1728,16 +1728,17 @@ static int32_t tab(int32_t x, const char *s, int on) { return tab_pad(x, s, on, 
 /* the pages' buttons as printed, GLOBAL's parts, SEQ's lanes: for the tabs and the header (page_say) */
 static const char *const BTN[NPAGES] = {"HOME", "HOME", "FX", "GLO", "EDIT", "LFO", "SEQ", "EDIT", "ENV", "ARP",
                                         "EDIT", "GLO"};   /* (0.9.56: SETTINGS, SYSTEM's) */
-static const char *const GPART[NGPART] = {"MIDI", "PITCH", "SETUP", "EFFECTS", "FX SET", "RESET",
-                                                   "SETTINGS", "LIGHTS"};   /* (6: GP_FILL; 7 GP_LIGHTS, 0.9.57) */
-static int32_t tab_glo(int32_t x, uint32_t g, int on)   /* (0.9.57: SYSTEM's seven, narrower so they fit) */
+static const char *const GPART[NGPART] = {"MIDI", "PITCH", "SETUP", "SCREEN FX", "SCREEN SET", "RESET",
+                                                   "GROOVE", "LIGHTS"};   /* (6: GP_FILL; 7 GP_LIGHTS, 0.9.57) */
+static int32_t tab_glo(int32_t x, uint32_t g, int on)   /* (0.9.57: SYSTEM's seven, narrower so they fit; 0.9.68,
+                                          * FLEXOR's names: SCREEN FX, SCREEN SET, DISPLAY, a pixel each side) */
 {
-    return tab_pad(x, g == GLO_HSET ? "SETTINGS" : GPART[g % NGPART], on, 2, 2);
+    return tab_pad(x, g == GLO_HSET ? "DISPLAY" : GPART[g % NGPART], on, 1, 1);
 }
 /* LOAF BREAKER (0.201): each button a domain, its name on the screen (the button keeps its print): LIVE (HOME), SOUNDS
  * (EDIT: the kick, the drums, the melody, the break), PATTERN (SEQ), SONG (ENV), MIX (LFO), EFFECTS (FX), SYSTEM (GLO) */
 static const char *const DOM[NPAGES] = {"LIVE", "LIVE", "EFFECTS", "SYSTEM", "SOUNDS", "MIX", "PATTERN", "SOUNDS", "SONG",
-                                        "OVERLAY", "SOUNDS", "SYSTEM"};
+                                        "ARP", "SOUNDS", "SYSTEM"};
 static const char *dom_name(void)
 {
     if (IS_KFX() || (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK))
@@ -1788,9 +1789,9 @@ static void draw_tabs(void)
             x = tab_glo(x, GLO_ORD[i], GLO_ORD[i] == ui.gpage);
     else if (ui.page == PG_MIX) {
         x = tab(x, "LEVELS", !ui.mpage);
-        x = tab(x, "SENDS", ui.mpage == 1u);
+        x = tab(x, "ROUTING", ui.mpage == 1u);
         x = tab(x, "MASTER", ui.mpage == 2u);
-        tab(x, "DYN", ui.mpage == 3u);   /* (LOAF BREAKER: COMP's and DUCK's timing, what DUCK ducks) */
+        tab(x, "DYNAMICS", ui.mpage == 3u);   /* (LOAF BREAKER: COMP's and DUCK's timing, what DUCK ducks) */
     } else if (ui.page == PG_SEQ || (ui.page == PG_GLOBAL && ui.gpage == GP_FILL)) {
         char pn[6] = "P";                /* LOAF BREAKER: the pattern, then SELECT's views (0.9.31, FLEXOR: FULL, DRUMS,
                                           * SETTINGS); the lane the keys edit in the header */
@@ -1801,7 +1802,7 @@ static void draw_tabs(void)
         x = tab(x, pn, 0);
         x = tab(x, "FULL", v == 0u);
         x = tab(x, "DRUMS", v == 1u);
-        tab(x, "SETTINGS", v == 2u);
+        tab(x, "GROOVE", v == 2u);
     } else if (ui.page == PG_FX && !IS_KFX()) {
         for (i = 0; i < fx_nslots(); i++)   /* (LOAF BREAKER: BEGINNER's two) */
             x = tab(x, SLOT_NUM[i], i == fx_foc());
@@ -1859,10 +1860,10 @@ static void page_say(void)
     switch (ui.page) {
     case PG_HOME: text_cat(t, "PERFORM"); break;
     case PG_GEN: text_cat(t, "GENERATOR"); break;
-    case PG_HSET: text_cat(t, "SETTINGS"); break;
+    case PG_HSET: text_cat(t, "DISPLAY"); break;
     case PG_KEQ: text_cat(t, ui.keq_part ? "KICK EQ SHAPE" : "KICK EQ BANDS"); break;
-    case PG_GLOBAL: text_cat(t, ui.gpage == GP_FILL ? "SETTINGS" : ui.gpage == GP_BREAK ? "BREAK" : GPART[ui.gpage % NGPART]); break;
-    case PG_MIX: text_cat(t, ui.mpage == 3u ? "DYNAMICS" : ui.mpage == 2u ? "MASTER" : ui.mpage ? "SENDS" : "LEVELS"); break;
+    case PG_GLOBAL: text_cat(t, ui.gpage == GP_FILL ? "GROOVE" : ui.gpage == GP_BREAK ? "BREAK" : GPART[ui.gpage % NGPART]); break;
+    case PG_MIX: text_cat(t, ui.mpage == 3u ? "DYNAMICS" : ui.mpage == 2u ? "MASTER" : ui.mpage ? "ROUTING" : "LEVELS"); break;
     case PG_SEQ: text_cat(t, SEQ_BRK ? "BREAK" : SEQ_LANE_NAME[ui.seq_lane % NSEQL]); break;
     case PG_TRACK: text_cat(t, TPART[ui.tpage % NTPART]); break;
     case PG_OVL: text_cat(t, OPAGE_NAME[ui.opage % 5u]); break;   /* (LOAF BREAKER: its tabs) */

@@ -246,6 +246,8 @@ static void kick_flt_turn(int32_t d)
     char t[16];
     if (kick_hold)
         kdj_quiet = 1u;
+    if (dft_kind() == BRK_DFT_SMOOTH)
+        d *= 2;                          /* (0.9.68, FLEXOR: SMOOTH not reactive enough, a detent two) */
     float v = flt_turn((float)set.kick_dj * 0.01f, d, 0.02f, 0.16f, &lock_drum);
     set.kick_dj = (int8_t)(int32_t)(v * 100.0f + (v < 0.0f ? -0.5f : 0.5f));
     changed();
