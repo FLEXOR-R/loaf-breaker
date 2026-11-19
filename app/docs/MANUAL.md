@@ -1003,7 +1003,7 @@ nothing set there sounds exactly as it always did.
 
 | Part | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- |
-| TAIL | MODE: CLASSIC · CLEAN | NOTE: FREE · A#0 … A2 | CURVE: EXP · LINEAR · SNAP | END: OFF · 40 – 1000 ms |
+| TAIL | MODE: CLASSIC · CLEAN | NOTE: FREE · A#0 … A2 | CURVE: EXP · LINEAR · SNAP | END: OFF · 40 – 1000 ms by 20 ms, then on to 3000 ms by 50 ms (0.9.70) |
 | TAIL + | FILTER: OFF · 11 kHz – 190 Hz | F TIME: 20 – 600 ms | DRIVE: OFF · 1 – 100 % | |
 | STACK | ATTACK: OFF · KICK 1–20 | CROSS: 10 – 300 ms | FADE: 2 – 150 ms | SOLO: BOTH · ATTACK · TAIL |
 | TOOLS | MUTATE | A/B | | |
@@ -1028,7 +1028,7 @@ nothing set there sounds exactly as it always did.
 - **NOTE** puts the tail on a note (the SUB's PITCH otherwise, FREE), shown in Hz at the top right: tune it to the
   track's key. **CURVE** shapes the pitch drop: EXP as always (fast, then a long slide), LINEAR and SNAP (high, then
   down fast) land exactly on the note at half the drop's TIME and stay there: no slide left in the tail.
-- **END** cuts the kick (in 5 ms) at that length, white dashes on the picture: a tight tail at 200 BPM.
+- **END** cuts the kick (in 5 ms) at that length, white dashes on the picture: a tight tail at 200 BPM. From 40 ms to 1 s by 20 ms, then on to 3 s by 50 ms for the longest tails (0.9.70, FLEXOR).
 - **FILTER** closes a low-pass on the kick as it goes, from open at the hit down to its value in **F TIME**: the
   attack bright, the tail darker, the fizz gone. **DRIVE** pushes the tail (after the attack) harder into the clip:
   a denser, flatter tail.

@@ -1652,7 +1652,7 @@ static float klab_norm(int i)
     case KP_TAIL * 4: return (float)(l->mode == 1u);
     case KP_TAIL * 4 + 1: return (float)l->note * (1.0f / 24.0f);
     case KP_TAIL * 4 + 2: return (float)(l->curve % 3u) * 0.5f;
-    case KP_TAIL * 4 + 3: return (float)l->end * (1.0f / 49.0f);
+    case KP_TAIL * 4 + 3: return (float)l->end * (1.0f / (float)KICK_END_MAX);
     case KP_TAIL2 * 4: return (float)l->filt * 0.01f;
     case KP_TAIL2 * 4 + 1: return (float)l->ftime * 0.01f;
     case KP_TAIL2 * 4 + 2: return (float)l->drive * 0.01f;
@@ -1737,7 +1737,7 @@ static void klab_turn(int i, int32_t d)
         l->curve = (uint8_t)clamp((int32_t)(l->curve % 3u) + s, 0, 2);
         break;
     case KP_TAIL * 4 + 3:
-        l->end = (uint8_t)clamp((int32_t)l->end + d, 0, 49);
+        l->end = (uint8_t)clamp((int32_t)l->end + d, 0, (int32_t)KICK_END_MAX);
         break;
     case KP_TAIL2 * 4:
         if (!l->filt && d > 0 && !l->ftime)

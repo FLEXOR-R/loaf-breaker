@@ -122,8 +122,9 @@ BRK_COLD float kick_lab_ms(uint32_t what, uint32_t v)
 {
     float f = (float)(v > 100u ? 100u : v);
     switch (what) {
-    case KLM_END:
-        return 20.0f + 20.0f * f;
+    case KLM_END:                        /* (1..49: 40 .. 1000 ms by 20 ms, as saved before; 0.9.70, FLEXOR: 50..89 on to
+                                          * 3 s by 50 ms) */
+        return f <= 49.0f ? 20.0f + 20.0f * f : 1000.0f + 50.0f * (f - 49.0f);
     case KLM_CROSS:
         return 10.0f * brk_exp2f_c(f * 0.049f);
     case KLM_FADE:
@@ -327,7 +328,7 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c, const volatile int8_t *sy
                     c->rlen = rum_cap;
             }
         }
-        c->end_n = lab->end ? (uint32_t)(kick_lab_ms(KLM_END, lab->end > 49u ? 49u : lab->end) * (float)(BRK_SR / 1000u)) : 0u;
+        c->end_n = lab->end ? (uint32_t)(kick_lab_ms(KLM_END, lab->end > KICK_END_MAX ? KICK_END_MAX : lab->end) * (float)(BRK_SR / 1000u)) : 0u;
         c->filt = lab->filt ? 1u : 0u;
         if (c->filt) {
             c->fa_end = 1.0f - brk_exp2f_c(-6.2832f * 1.4427f * kick_lab_ms(KLM_FILT, lab->filt) / (float)BRK_SR);

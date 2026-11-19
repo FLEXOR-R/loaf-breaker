@@ -93,7 +93,8 @@ typedef struct {
     uint8_t note;                        /* NOTE: 0 FREE (the SUB's PITCH), 1..24 the SUB on A#0 .. A2 (MIDI 22 + n) */
     uint8_t curve;                       /* the pitch drop's shape: 0 EXP (as always), 1 LINEAR, 2 SNAP (up, then down
                                           * fast); the last two land on the note at half the drop's TIME, and stay */
-    uint8_t end;                         /* END: 0 off, 1..49: the kick cut at 20 + 20 n ms (40 .. 1000 ms; 5 ms fade) */
+    uint8_t end;                         /* END: 0 off, 1..49: the kick cut at 20 + 20 n ms (40 .. 1000 ms; 5 ms fade);
+                                          * 50..KICK_END_MAX: 1000 + 50 (n - 49) ms, to 3 s (0.9.70) */
     uint8_t filt;                        /* TAIL FILTER: 0 off, 1..100: the kick low-passed, from open down to ~11 kHz ..
                                           * 190 Hz as it goes (two poles) */
     uint8_t ftime;                       /* how fast it closes, 0..100: 20 .. 600 ms */
@@ -106,6 +107,7 @@ typedef struct {
                                           * K4 PRESET's place; 0: the kick memory's own built-in, 0.9.2) */
     uint8_t rsv;
 } kick_lab_t;                            /* 12 bytes */
+#define KICK_END_MAX 89u                 /* (0.9.70, FLEXOR: END to 3 s, "1000 ms ne suffit pas") */
 float kick_lab_ms(uint32_t what, uint32_t v);   /* KL_END, KL_CROSS, KL_FADE, KL_FTIME as ms; KL_FILT, KL_NOTE as Hz */
 enum { KLM_END, KLM_CROSS, KLM_FADE, KLM_FTIME, KLM_FILT, KLM_NOTE };
 void kick_set_lab(const kick_lab_t *l);  /* main loop: the kick playing's */

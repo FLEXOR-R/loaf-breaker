@@ -71,6 +71,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   kick_mem_go, copied with COPY K n, off with a built-in PRESET / RESET); engine `kick_set_lab`, `kick_set_stack`
   (a second kick voice, kv2, until STACK's hand-over), `kick_set_solo`. All 0 renders bit for bit as 0.203: keep it so.
   The tabs drop the "KICK" label on the KICK menu (six sections).
+- END (19 Nov 2026, 0.9.70, FLEXOR: "1000 ms ne suffit pas"): KICK › TAIL K4, kick_lab_t.end 1..49 40 .. 1000 ms by 20 (as saved before), 50..KICK_END_MAX (89) on to 3 s by 50 (kick.c kick_lab_ms KLM_END); scenario kickend.
 - KICK menu by anatomy (10 Nov 2026, 0.205, FLEXOR's choice): KSECT ATTACK, BODY, TAIL, DIRT, FX1, FX2, MORE (kick.c;
   0.9.29, FLEXOR: FX1 and FX2 sections of one part each, ALGORITHM there the effect's parts (`fx_part_turn`, the FX page's chips), no ksect_row on them; MORE (KNOBS until 0.9.28) 21 27 22-25 31 11 12: KNOBS, ASSIGN, K1-K4 SET, TOOLS, EQ B, EQ S, nine parts (KSECT rows of 9; `ksect_row` narrows its margins to fit); KNOBS' STYLE named ASSIGN in 0.9.2);
   app_ui_init opens it on ATTACK's PRESET (0.253, FLEXOR: KP_PRESET, part KP_PART_PRESET, K1 the built-in kicks alone; ui.ksect 0; 0.205-0.252 on BODY's MIX); the parts in a row at the

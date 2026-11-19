@@ -1867,6 +1867,11 @@ static void test_kick_lab(void)
     pk = kick_run(&k, BRK_SR / 2, 0u);
     CHECK(span_peak(BRK_SR / 4, BRK_SR / 2) < 1e-3f && pk > 0.3f, "END cuts the kick at 200 ms (after: %.4f)",
           span_peak(BRK_SR / 4, BRK_SR / 2));
+    CHECK(kick_lab_ms(KLM_END, 9u) > 199.0f && kick_lab_ms(KLM_END, 9u) < 201.0f &&
+          kick_lab_ms(KLM_END, 49u) > 999.0f && kick_lab_ms(KLM_END, 49u) < 1001.0f &&
+          kick_lab_ms(KLM_END, 50u) > 1049.0f && kick_lab_ms(KLM_END, 50u) < 1051.0f &&
+          kick_lab_ms(KLM_END, KICK_END_MAX) > 2999.0f && kick_lab_ms(KLM_END, KICK_END_MAX) < 3001.0f,
+          "END: 40 .. 1000 ms by 20 as saved before, then on to 3 s by 50 (0.9.70)");
     lab.end = 0u;
     lab.filt = 80u;
     lab.ftime = 30u;
