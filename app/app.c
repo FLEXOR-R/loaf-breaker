@@ -284,6 +284,7 @@ static uint32_t arp_mask(uint32_t r)     /* (the effects THRU r: bit OV_*) */
 static uint32_t bk_seq(void) { return (set.bkeys.bk[BK_SEQ] & 0xF0u) == 0xD0u ? set.bkeys.bk[BK_SEQ] & 15u : 0u; }
 static uint32_t notes_in(void);
 static uint32_t vnl_lat(void);
+static uint32_t swk_bit(void);
 static uint32_t bk_lat(void)             /* (bit 4 VINYL BREAK's, 0.9.64, FLEXOR: in set.rsv6[2] bit 2) */
 {
     return ((set.bkeys.bk[BK_PLAT] & 0xF0u) == 0xA0u ? set.bkeys.bk[BK_PLAT] & 15u : 0u) | vnl_lat() << 4;
@@ -291,7 +292,7 @@ static uint32_t bk_lat(void)             /* (bit 4 VINYL BREAK's, 0.9.64, FLEXOR
 static void bk_lat_put(uint32_t m)
 {
     set.bkeys.bk[BK_PLAT] = (uint8_t)(0xA0u | (m & 15u));
-    set.rsv6[2] = (uint8_t)(0xA0u | notes_in() | (m >> 4 & 1u) << 2);
+    set.rsv6[2] = (uint8_t)(0xA0u | notes_in() | (m >> 4 & 1u) << 2 | swk_bit() << 3);
 }
 static uint32_t bk_fthru(void)
 {
@@ -492,7 +493,13 @@ static const char *const NI_NAME[NI_N] = {"ALL", "DRUMS", "OFF"};
 static uint32_t notes_in(void) { return (set.rsv6[2] & 0xF0u) == 0xA0u && (set.rsv6[2] & 3u) < NI_N ? set.rsv6[2] & 3u : NI_ALL; }
 static uint32_t vnl_lat(void) { return (set.rsv6[2] & 0xF0u) == 0xA0u ? set.rsv6[2] >> 2 & 1u : 0u; }   /* (0.9.64: bit 2,
                                           * VINYL BREAK's LATCH, its K2) */
-static void notes_in_put(uint32_t m) { set.rsv6[2] = (uint8_t)(0xA0u | m % NI_N | vnl_lat() << 2); }
+static void notes_in_put(uint32_t m) { set.rsv6[2] = (uint8_t)(0xA0u | m % NI_N | vnl_lat() << 2 | swk_bit() << 3); }
+/* (0.9.70, FLEXOR: "pour activer SEL WHITE, une option dans GLO"; off for every mode, on only in EXPERT) SYSTEM › SETUP's
+ * PRESETS: the SEL WHITE shortcuts (SEL + a white key) on or off, set.rsv6[2] bit 3; untagged (a new FM-1, RESET ALL,
+ * a save from before): OFF */
+static uint32_t swk_bit(void) { return (set.rsv6[2] & 0xF0u) == 0xA0u ? set.rsv6[2] >> 3 & 1u : 0u; }
+static uint32_t swk_on(void) { return !set.novice && swk_bit(); }
+static void swk_put(uint32_t on) { set.rsv6[2] = (uint8_t)(0xA0u | notes_in() | vnl_lat() << 2 | (on ? 8u : 0u)); }
 static uint32_t kb_rev(void) { return (kx2.rsv[KB_RSV] & 0xC0u) == KB_TAG && kx2.rsv[KB_RSV + 1u] <= 100u ? kx2.rsv[KB_RSV + 1u] : 60u; }
 static void kb_put(uint32_t mode, uint32_t latch, uint32_t time, uint32_t rev)
 {

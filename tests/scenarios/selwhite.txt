@@ -3,6 +3,16 @@
 # held), key 5 a DROP (AUTO). On the page a white key picks itself (K2 too, ALGORITHM), K3 the kind, K4 its value.
 #   app/build/host/loaf-breaker_host tests/scenarios/selwhite.txt app/build/scenarios
 wait 4200
+# (0.9.70, FLEXOR: SEL WHITE off on a new FM-1: SYSTEM › SETUP's PRESETS turns it on, EXPERT)
+tap GLO
+wait 200
+turn SELECT 1 10
+wait 200
+turn PRESET 1 10
+wait 200
+expect swon 1
+tap HOME
+wait 300
 tap ARP
 wait 300
 turn SELECT 3 10

@@ -1,0 +1,61 @@
+# LOAF BREAKER (0.9.70, FLEXOR: "pour activer SEL WHITE, mettre une option dans GLO"; off for every mode, on only in
+# EXPERT): SYSTEM › SETUP's PRESETS. Off at the start: key 1 set to KICK 3, SEL + key 1 does nothing; turned on: KICK 3;
+# BEGINNER: off whatever it says, its PRESETS EXPERT MODE; back in EXPERT it is on again.
+#   app/build/host/loaf-breaker_host tests/scenarios/swoff.txt app/build/scenarios
+wait 4200
+expect swon 0
+tap ARP
+wait 300
+turn SELECT 3 10
+wait 300
+expect opage 3
+tapkey w0
+wait 100
+turn K3 1 10
+turn K4 2 10
+wait 200
+expect swcat 1
+tap HOME
+wait 300
+expect kslot 3
+press SEL
+wait 50
+tapkey w0
+wait 100
+release SEL
+wait 200
+expect kslot 3
+tap GLO
+wait 200
+turn SELECT 1 10
+wait 200
+expect gpage 2
+turn PRESET 1 10
+wait 1500
+expect swon 1
+shot swoff_setup.png
+tap HOME
+wait 300
+press SEL
+wait 50
+tapkey w0
+wait 100
+release SEL
+wait 200
+expect kslot 2
+tap GLO
+wait 200
+turn SELECT 1 10
+wait 200
+turn K3 -1 80
+wait 300
+expect swon 0
+turn PRESET -1 10
+wait 200
+expect swon 0
+turn K3 1 80
+wait 300
+expect swon 1
+turn PRESET -1 10
+wait 200
+expect swon 0

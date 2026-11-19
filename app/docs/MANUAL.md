@@ -160,7 +160,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD |
 | LFO | MIX | LEVELS (BREAK, KICK, PERC), ROUTING (FX, the drums' route, DUCKS, ROLL), MASTER, DYNAMICS |
 | FX | EFFECTS | The four slots: MAIN, MORE, MOD |
-| GLO | SYSTEM | MIDI (EXPERT: K3 METER), SETUP (K1 SKIN, also PRESETS; K3 MODE, K4 AUTO SAVE), DISPLAY (K1 VIEW, K2 WAVE TYPE, K3 WAVE ZOOM, K4 BREAK TIME; HOME's until 0.9.55), SCREEN FX (the screen's effects), SCREEN SET (their settings), LIGHTS (K1 GLOW, K2 PULSE, K3 PULSE ON, K4 STYLE; 0.9.57), RESET |
+| GLO | SYSTEM | MIDI (EXPERT: K3 METER), SETUP (K1 SKIN, K3 MODE, K4 AUTO SAVE; PRESETS SEL WHITE on / off, EXPERT, 0.9.70), DISPLAY (K1 VIEW, K2 WAVE TYPE, K3 WAVE ZOOM, K4 BREAK TIME; HOME's until 0.9.55), SCREEN FX (the screen's effects), SCREEN SET (their settings), LIGHTS (K1 GLOW, K2 PULSE, K3 PULSE ON, K4 STYLE; 0.9.57), RESET |
 
 The same gestures everywhere: **the button again** is the next part; **ALGORITHM** the element in the part (a slot, a
 lane, a drum's part; where there is nothing to pick, the break); **PRESETS** the pattern, but on SOUNDS the source's
@@ -279,7 +279,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 - **LFO** (MIX): LEVELS, ROUTING, MASTER (K1 COMP, K2 its RATIO, K3 DUCK, K4 MAX OUT; COMP's reduction metered),
   DYNAMICS (COMP's ATTACK and RELEASE, DUCK's RELEASE, DUCKS: BREAK, PERC or BOTH; ROUTING' K3 too, 0.9.64).
 - **ENV**: the song. TRACKS, PLAY, DROP, BUILD. (What SEL + each knob does: EDIT › KNOBS; RESET: GLO.)
-- **GLO** (SYSTEM): MIDI (EXPERT: the METER), SETUP (SKIN, MODE, AUTO SAVE: K1, K3, K4, top to bottom; PRESETS turns the skin too), DISPLAY (0.9.56: VIEW, WAVE TYPE, WAVE ZOOM, BREAK TIME, HOME's before; SETTINGS until 0.9.67), SCREEN FX (several at once, keys 1–7; each effect's card a small picture with that effect done to it, lit when on, since 0.9.30; the waves' colours are SYSTEM › DISPLAY's WAVE TYPE since 0.9.25; EDIT VIEW and DRUM VIEW ZOOM are KICK › MORE › TOOLS since 0.9.29), SCREEN SET, RESET.
+- **GLO** (SYSTEM): MIDI (EXPERT: the METER), SETUP (SKIN, MODE, AUTO SAVE: K1, K3, K4, top to bottom; PRESETS turns the SEL WHITE shortcuts on or off, EXPERT only: off on a new FM-1, 0.9.70; the skin before), DISPLAY (0.9.56: VIEW, WAVE TYPE, WAVE ZOOM, BREAK TIME, HOME's before; SETTINGS until 0.9.67), SCREEN FX (several at once, keys 1–7; each effect's card a small picture with that effect done to it, lit when on, since 0.9.30; the waves' colours are SYSTEM › DISPLAY's WAVE TYPE since 0.9.25; EDIT VIEW and DRUM VIEW ZOOM are KICK › MORE › TOOLS since 0.9.29), SCREEN SET, RESET.
   The break's PITCH, GRAIN and SNAP are SOUNDS › BREAK; SWING is PATTERN › GROOVE.
 
 ### The CDJ view (HOME)
@@ -598,7 +598,8 @@ SEL keeps that function until you let it go. SAVE keeps them; RESET's SEL KEYS a
 ![SEL BLACK: key 11 with SEL, KICKS X2 (without SEL: SUB FX)](img/screen-selblack.png "SEL BLACK")
 
 **SEL WHITE** (0.9.50, EXPERT, the fourth tab) makes each white key a **shortcut, pressed with SEL** held or locked,
-any kind on any key: **K2 KEY** (or **ALGORITHM**, or press the white key: it picks itself), **K3 KIND**, **K4 VALUE**:
+once **SYSTEM › SETUP › PRESETS** has turned them **ON** (0.9.70, FLEXOR: off on a new FM-1 and after RESET ALL, and
+always off in BEGINNER; off, SEL + a white key plays the key as without SEL). Any kind on any key: **K2 KEY** (or **ALGORITHM**, or press the white key: it picks itself), **K3 KIND**, **K4 VALUE**:
 
 | Kind | SEL + the key | K4 |
 | --- | --- | --- |

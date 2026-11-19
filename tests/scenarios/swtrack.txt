@@ -3,6 +3,16 @@
 # step 1, the track's loops counted from there). Key 6 PATTERN 4, key 7 TRACK 1 (P1 x4, P2 x4, a DROP, P3 x8).
 #   app/build/host/loaf-breaker_host tests/scenarios/swtrack.txt app/build/scenarios
 wait 4200
+# (0.9.70, FLEXOR: SEL WHITE off on a new FM-1: SYSTEM › SETUP's PRESETS turns it on, EXPERT)
+tap GLO
+wait 200
+turn SELECT 1 10
+wait 200
+turn PRESET 1 10
+wait 200
+expect swon 1
+tap HOME
+wait 300
 tap ARP
 wait 300
 turn SELECT 3 10
