@@ -64,6 +64,14 @@
 .brk .item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center;
   background: var(--raise); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
 .brk .item.now { border-color: var(--amber); }
+/* (0.9.70, FLEXOR: the breaks built in and those already in your list told apart at a glance) */
+.brk .item.in-fw { border-left: 4px solid var(--amber); background: linear-gradient(90deg, var(--amber-soft), var(--raise) 60%); }
+.brk .item.in-list { border-left: 4px solid #7fd6a4; background: linear-gradient(90deg, rgba(127, 214, 164, .12), var(--raise) 60%); }
+.brk .item.in-fw .nm::after, .brk .item.in-list .nm::after { font: 600 10px/1 var(--f-mono); letter-spacing: .08em; margin-left: 8px;
+  padding: 3px 5px; border-radius: 3px; vertical-align: 2px; }
+.brk .item.in-fw .nm::after { content: "IN THE FIRMWARE"; background: var(--amber); color: #1a1406; }
+.brk .item.in-list .nm::after { content: "IN YOUR LIST"; background: #7fd6a4; color: #0b1a12; }
+.brk .tag.ok { background: #7fd6a4; color: #0b1a12; }
 .brk .item .nm { font: 600 15px/1.3 var(--f-mono); color: var(--fg); overflow-wrap: anywhere; }
 .brk .item .meta { font: 500 12px/1.4 var(--f-mono); color: var(--dim); }
 .brk .item .acts { display: flex; gap: 6px; align-items: center; }
@@ -561,10 +569,10 @@ function renderMine() {
   $("ladd").disabled = !heard || heard.built || mine.some((m) => m.one === heard.one);
   renderLib();
 }
-function add(name, one, b, st = $("sendStatus")) {   /* (the sample's own line under it: addStatus) */
+function add(name, one, b, st = $("sendStatus"), id = "") {   /* (id: the library's, 0.9.70: its row marked IN YOUR LIST) */   /* (the sample's own line under it: addStatus) */
   if (mine.length >= MAX_MINE) { say(st, `Eight is the most: remove one of yours first.`, true); return false; }
   if (mine.some((m) => crc32(m.one) === crc32(one) && m.one.length === one.length)) { say(st, `${esc(name)} is in your list already.`, true); return false; }
-  const l = mine.concat([{ name, bpm: b.bpm, one, b, sent: false }]), z = plan(l);
+  const l = mine.concat([{ name, bpm: b.bpm, one, b, sent: false, id }]), z = plan(l);
   if (!z) {
     const free = [0, 1].map((k) => ZONE_CAP[k] - bankBytes(inZone(mine, k).map((m) => m.one)));
     say(st, `${esc(name)} doesn't fit: it needs ${kb(one.length)}, the most left in one place is ${kb(Math.max(...free))}. Remove one, or pick a shorter break.`, true);
@@ -607,17 +615,19 @@ function renderLib() {
   $("libMore").textContent = `Show all ${shown.length}`;
   el.innerHTML = list.length ? "" : '<p class="empty">Nothing by that name.</p>';
   for (const e of list) {
-    const row = document.createElement("div"), one = bins.get(e.id), taken = one && mine.some((m) => m.one === one);
-    row.className = "item" + (heard && heard.id === e.id ? " now" : "");
+    const row = document.createElement("div"), one = bins.get(e.id),
+      taken = !e.built && mine.some((m) => m.id === e.id || (one && m.one === one) || m.name === e.name);   /* (0.9.70: by its
+                                          * library id, its bytes, or its name as the FM-1 gave it back) */
+    row.className = "item" + (e.built ? " in-fw" : taken ? " in-list" : "") + (heard && heard.id === e.id ? " now" : "");
     row.innerHTML = `<button aria-label="Hear ${esc(e.title || e.name)}">▶</button><div><div class="nm">${esc(e.title || e.name)}</div>` +
       `<div class="meta">${e.title ? `on the FM-1: ${esc(e.name)} · ` : ""}${esc(e.folder)} · ${e.bpm.toFixed(2)} BPM · ${e.bars} bar${e.bars > 1 ? "s" : ""} · ${kb(e.size)}</div></div>` +
-      `<div class="acts">${e.built ? '<span class="tag">Built in</span>' : `<button${taken ? " disabled" : ""}>${taken ? "Added" : "+ Add"}</button>`}</div>`;
+      `<div class="acts">${e.built || taken ? "" : "<button>+ Add</button>"}</div>`;   /* (0.9.70: the row's own mark says IN THE FIRMWARE or IN YOUR LIST) */
     row.querySelector("button").onclick = async () => {
       const img = await libBank(e);
       listen({ name: e.name, title: e.title, one: img, b: readBank(img), from: "lib", id: e.id, built: e.built }, true);
     };
     const addB = row.querySelector(".acts button");
-    if (addB) addB.onclick = async () => { const img = await libBank(e); add(e.name, img, readBank(img)); };
+    if (addB) addB.onclick = async () => { const img = await libBank(e); add(e.name, img, readBank(img), undefined, e.id); };
     el.appendChild(row);
   }
 }

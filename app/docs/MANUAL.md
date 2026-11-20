@@ -419,8 +419,9 @@ all the way up: -3 dB to start with (headroom for the FM-1's output and your spe
 
 ### Your own breaks (BREAKS)
 
-Beside the nine built in, the FM-1 holds breaks of your own (0.9.32, from CHOPPAH 1.4's break manager): 232 KB of
-room, five to seven breaks of the library's size.
+Beside the eight built in, the FM-1 holds breaks of your own (0.9.32, from CHOPPAH 1.4's break manager): 232 KB of
+room, five to seven breaks of the library's size. In the page's library, a break built into the firmware is marked
+**IN THE FIRMWARE** (an amber edge), one already in your list **IN YOUR LIST** (a green edge; 0.9.70, FLEXOR).
 The site's [Breaks](https://flexor-r.github.io/loaf-breaker/breaks/) page, in Chrome or Edge on a computer, does it:
 
 1. **The library**: the project's breaks, over ninety (the Cyberworm Amens, the Huge Amen pack, the classics, FLEXOR's hardcore breaks under the track's whole name, the FM-1's short name beside it), each
