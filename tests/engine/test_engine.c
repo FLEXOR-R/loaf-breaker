@@ -1891,6 +1891,54 @@ static void test_kick_lab(void)
     for (i = BRK_SR / 10; i < BRK_SR / 5; i++)
         t1 = fabsf(ref[i]) > t1 ? fabsf(ref[i]) : t1;
     CHECK(t0 > t1 * 0.7f && t0 < t1 * 1.4f, "CLEAN keeps the tail about as loud (%.2f, %.2f)", t0, t1);
+    {                                    /* (0.9.71, FLEXOR) SPLIT: as CLASSIC up to its time, then a clean sine: as loud
+                                          * there, far fewer crossings (the harmonics gone) */
+        uint32_t sp, same = 1u, zr = 0u, zs = 0u;
+        float bp, ap, rp;
+        memset(&lab, 0, sizeof lab);
+        lab.mode = KTM_SPLIT;
+        lab.amt = 50u;
+        kick_set_lab(&lab);
+        kick_run(&k, BRK_SR / 2, 0u);
+        sp = (uint32_t)(kick_lab_ms(KLM_SPLIT, 50u) * (float)(BRK_SR / 1000u));
+        for (i = 0; i < sp; i++)
+            same &= kick_buf[i] == ref[i];
+        CHECK(same, "SPLIT: the body as CLASSIC, bit for bit, up to %u ms", (unsigned)(sp / (BRK_SR / 1000u)));
+        bp = span_peak(sp - BRK_SR / 50u, sp);
+        ap = span_peak(sp, sp + BRK_SR / 50u);
+        CHECK(ap > bp * 0.6f && ap < bp * 1.4f, "SPLIT: no jump in level as the tail turns clean (%.2f, %.2f)", bp, ap);
+        for (i = sp * 2u + 1u; i < BRK_SR / 2; i++) {
+            zr += (ref[i - 1] < 0.0f) != (ref[i] < 0.0f);
+            zs += (kick_buf[i - 1] < 0.0f) != (kick_buf[i] < 0.0f);
+        }
+        rp = span_peak(sp * 2u, BRK_SR / 2);
+        CHECK(zs * 2u < zr + 2u && rp > 0.01f, "SPLIT: the tail a clean sine (%u crossings, %u as CLASSIC; %.3f)", zs, zr,
+              rp);
+    }
+    {                                    /* DIRTY (on the 909, a light drive): the hit less driven, the tail harder */
+        static float r9[BRK_SR / 2];
+        float e0, e1, r0, r1;
+        kick_preset(&a, 0u);
+        a.volume = k.volume;
+        memset(&lab, 0, sizeof lab);
+        kick_set_lab(&lab);
+        kick_run(&a, BRK_SR / 2, 0u);
+        memcpy(r9, kick_buf, sizeof r9);
+        lab.mode = KTM_DIRTY;
+        lab.amt = 50u;
+        kick_set_lab(&lab);
+        kick_run(&a, BRK_SR / 2, 0u);
+        e0 = span_peak(BRK_SR / 4, BRK_SR / 2);
+        e1 = 0.0f;
+        for (i = BRK_SR / 4; i < BRK_SR / 2; i++)
+            e1 = fabsf(r9[i]) > e1 ? fabsf(r9[i]) : e1;
+        for (i = 0, r0 = r1 = 0.0f; i < BRK_SR / 100; i++) {
+            r0 += kick_buf[i] * kick_buf[i];
+            r1 += r9[i] * r9[i];
+        }
+        CHECK(e0 > e1 * 1.1f && r0 < r1, "DIRTY: the tail dirtier and louder (%.3f, %.3f), the hit less driven (%.2f, %.2f)",
+              e0, e1, r0, r1);
+    }
     memset(&lab, 0, sizeof lab);
     lab.src = 1u;
     lab.cross = 50u;

@@ -3735,7 +3735,8 @@ int app_host_cmd(const char *cmd, const char *a, const char *b, const char *c, c
                                           * listening pages of kicks FLEXOR makes presets from): disto, disto2 0..100;
                                           * dtype 0..8 (FOLD ..); drive, grit, punch, click, sub (levels) %; subdrv %
                                           * (0: the SUB's effect off); tdrive (TAIL +'s DRIVE) 0..100; tmode 0 CLASSIC,
-                                          * 1 CLEAN; eqlow, eqmid, eqhigh dB; drop, dshape, hold -50..50; dtime MS */
+                                          * 1 CLEAN, 2 SPLIT, 3 DIRTY; tamt their setting 0..100; eqlow, eqmid, eqhigh
+                                          * dB; drop, dshape, hold -50..50; dtime MS */
         kick_t *k = &set.kick;
         float v = strtof(b, 0);
         int32_t n = atoi(b);
@@ -3759,7 +3760,9 @@ int app_host_cmd(const char *cmd, const char *a, const char *b, const char *c, c
         } else if (!strcmp(a, "tdrive"))
             klab.cur.drive = (uint8_t)clamp(n, 0, 100);
         else if (!strcmp(a, "tmode"))
-            klab.cur.mode = (uint8_t)(n ? 1u : 0u);
+            klab.cur.mode = (uint8_t)clamp(n, 0, (int32_t)KTM_N - 1);
+        else if (!strcmp(a, "tamt"))     /* (0.9.71: SPLIT's time, DIRTY's rise, 0..100) */
+            klab.cur.amt = (uint8_t)clamp(n, 0, 100);
         else if (!strcmp(a, "eqlow") || !strcmp(a, "eqmid") || !strcmp(a, "eqhigh"))
             set.keq[!strcmp(a, "eqlow") ? 0 : !strcmp(a, "eqmid") ? 1 : 2] = 0.5f + v / 24.0f;
         else if (!strcmp(a, "drop") || !strcmp(a, "dshape") || !strcmp(a, "hold"))
@@ -3862,8 +3865,8 @@ int app_expect(const char *what, int *got)
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
                                     "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15", "broll", "stut", "fxwet", "tempo10", "kitsel", "kit0kick", "vthru", "dafter",
-                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold", "subfa", "dft", "swon", "strip"};
-    int v[194];
+                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold", "subfa", "dft", "swon", "strip", "kl_amt"};
+    int v[195];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -4073,6 +4076,7 @@ int app_expect(const char *what, int *got)
         v[191] = (int)dft_kind();        /* (0.9.67: the drums' filter's kind) */
         v[192] = (int)swk_on();          /* (0.9.70: SEL WHITE on) */
         v[193] = (int)strip_style();     /* (0.9.70: the strip's style, SS_*) */
+        v[194] = klab.cur.amt;           /* (0.9.71: TAIL MODE SPLIT's or DIRTY's setting) */
     }
     v[161] = set.vinyl & 3u;             /* (0.9.54: VINYL BREAK's THRU, 0 BOTH 1 BREAK 2 KICK) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */

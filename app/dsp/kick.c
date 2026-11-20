@@ -41,6 +41,8 @@ typedef struct {
     float tok_ph, tok_env, tok_pe, tok_n1, tok_n2;   /* (0.9.45) TOK: its phase, level, pitch's fall, its filters */
     uint32_t g_pos;                      /* the TAIL GATE: where in its chop */
     float g_s;                           /* its gain, smoothed (no clicks) */
+    float sp_env, sp_g;                  /* (0.9.71) TAIL MODE SPLIT: the kick's level followed, the clean sine's level
+                                          * against the SUB's (0: not split yet) */
 } kv_t;
 
 /* the block's settings, mapped */
@@ -73,6 +75,9 @@ typedef struct {
     float grat, pl_step, fa_end, f_dec, tdrive;   /* GRIT's FM ratio, the ramp's step, the filter's coefficient at its
                                           * end, its fall a sample, TAIL DRIVE */
     uint32_t end_n, x0, x1;              /* END (0 off), STACK's hand-over from .. to (samples from the hit) */
+    uint32_t sp_n, sp_f;                 /* (0.9.71) TAIL MODE SPLIT: where the tail turns clean, the fade's samples (0:
+                                          * no SPLIT) */
+    float sp_k, dr_k;                    /* its fade's step a sample; DIRTY: its rise's step (0: no DIRTY) */
     float tok_lvl, tok_f1, tok_fd, tok_pdec, tok_edec, tok_k;   /* (0.9.45) TOK: level (0 off), its end frequency and
                                           * the drop above it (cycles a sample), their falls, NOISE's band coefficient */
     uint8_t tok_type;
@@ -133,6 +138,10 @@ BRK_COLD float kick_lab_ms(uint32_t what, uint32_t v)
         return 20.0f * brk_exp2f_c(f * 0.049f);
     case KLM_FILT:
         return 12000.0f * brk_exp2f_c(-f * 0.06f);
+    case KLM_SPLIT:                      /* (0.9.71: 30 .. 600 ms) */
+        return 30.0f * brk_exp2f_c(f * 0.0432f);
+    case KLM_RISE:                       /* (0.9.71: 50 .. 2000 ms) */
+        return 50.0f * brk_exp2f_c(f * 0.0532f);
     default:                             /* (KLM_NOTE: MIDI 22 + n, A#0 ..) */
         return 440.0f * brk_exp2f_c((f + 22.0f - 69.0f) * (1.0f / 12.0f));
     }
@@ -335,6 +344,16 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c, const volatile int8_t *sy
             c->f_dec = decay_factor(kick_lab_ms(KLM_FTIME, lab->ftime));
         }
         c->tdrive = (float)(lab->drive > 100u ? 100u : lab->drive) * 0.08f;
+        c->sp_n = c->sp_f = 0u;
+        c->sp_k = c->dr_k = 0.0f;
+        if (lab->mode == KTM_SPLIT) {    /* (0.9.71, FLEXOR) SPLIT: the body as CLASSIC, then the tail a clean sine on
+                                          * the SUB's note, faded in over half the time */
+            float ms = kick_lab_ms(KLM_SPLIT, lab->amt);
+            c->sp_n = (uint32_t)(ms * (float)(BRK_SR / 1000u));
+            c->sp_f = (uint32_t)(ms * 0.5f * (float)(BRK_SR / 1000u)) + 1u;
+            c->sp_k = 1.0f / (float)c->sp_f;
+        } else if (lab->mode == KTM_DIRTY)   /* DIRTY: the drive low on the attack, rising through the tail */
+            c->dr_k = 1.0f / (kick_lab_ms(KLM_RISE, lab->amt) * (float)(BRK_SR / 1000u));
         {
             float cr = kick_lab_ms(KLM_CROSS, lab->cross) * (float)(BRK_SR / 1000u);
             float fd = kick_lab_ms(KLM_FADE, lab->fade) * (float)(BRK_SR / 1000u);
@@ -390,6 +409,7 @@ static void kv_hit(kv_t *v)
     v->tok_env = v->tok_pe = 1.0f;
     v->g_pos = 0u;
     v->g_s = 1.0f;
+    v->sp_env = v->sp_g = 0.0f;          /* (0.9.71: SPLIT from this hit) */
 }
 
 static inline float noise(kv_t *v)
@@ -437,7 +457,7 @@ static inline float layer_fx(kv_t *v, const kc_t *c, uint32_t i, float x)
 
 static inline float kv_tick(kv_t *v, const kc_t *c)
 {
-    float x[KICK_LAYERS], y = 0.0f, d, out;
+    float x[KICK_LAYERS], y = 0.0f, d, out, dirt = 1.0f;
     float clean = c->csub > 0.0f ? brk_sin_turns(v->ph[KL_SUB]) * v->env[KL_SUB] : 0.0f;   /* (CLEAN SUB: the SUB's
                                           * sine, this sample, before anything drives it) */
     uint32_t i;
@@ -534,6 +554,12 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
     }
     /* the sum: a drive into a clip, soft and then (INTENSITY over half) hard: the distorted kick */
     d = y * c->g;
+    if (c->dr_k > 0.0f) {                /* (0.9.71) TAIL MODE DIRTY: 0.35x the drive on the hit, up to 3x along the tail */
+        float r = (float)v->t * c->dr_k;
+        r = r < 1.0f ? r * (2.0f - r) : 1.0f;
+        dirt = 0.35f + 2.65f * r;
+        d *= dirt;
+    }
     if (c->tdrive > 0.0f)                /* (LAB: TAIL DRIVE, after the attack) */
         d *= 1.0f + c->tdrive * (1.0f - v->pe2);
     if (c->asym > 0.0f)                  /* (SYNTH: ASYM, uneven: one side pushed harder) */
@@ -550,7 +576,7 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
         v->tenv += (a - v->tenv) * (a > v->tenv ? 0.05f : c->trel);   /* (the kick's level: fast up, ~20 ms down;
                                           * TAIL: slower or faster) */
         v->tlo += (out - v->tlo) * c->tsub;
-        h = (out - v->tlo) * c->tg;
+        h = (out - v->tlo) * c->tg * dirt;   /* (DIRTY: the DISTO rising too) */
         t = h * 0.25f + 0.25f;
         t -= (float)(int32_t)t;
         if (t < 0.0f)
@@ -631,6 +657,21 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
                                           * sine at the SUB's note in: the round bass under the dirt */
         v->clp += (out - v->clp) * 0.013f;
         out = brk_clampf(out - v->clp * c->csub + clean * 0.9f * c->csub, -1.2f, 1.2f);
+    }
+    if (c->sp_n) {                       /* (0.9.71) TAIL MODE SPLIT: from sp_n, the kick faded into a clean sine on the
+                                          * SUB's phase, as loud as the kick was there, falling as the SUB does */
+        float a = brk_absf(out);
+        if (v->t < c->sp_n) {
+            v->sp_env += (a - v->sp_env) * (a > v->sp_env ? 0.2f : 0.0015f);   /* (~15 ms down: a cycle's peak held) */
+        } else {
+            float e = v->env[KL_SUB] > 1e-4f ? v->env[KL_SUB] : 1e-4f, x, sn;
+            uint32_t k = v->t - c->sp_n;
+            if (k == 0u)
+                v->sp_g = v->sp_env / e;
+            x = k >= c->sp_f ? 1.0f : (float)k * c->sp_k;
+            sn = brk_sin_turns(v->ph[KL_SUB]) * v->env[KL_SUB] * v->sp_g;
+            out += (brk_clampf(sn, -1.2f, 1.2f) - out) * x;
+        }
     }
     if (c->end_n && v->t >= c->end_n) {  /* LAB: END, the kick cut (in ~5 ms) */
         v->gend *= 0.979f;

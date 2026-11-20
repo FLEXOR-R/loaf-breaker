@@ -853,7 +853,7 @@ out). K2 **KICK EQ** (0.9.57, FLEXOR; EXPERT): right ON, left **OFF (FLAT)**: ev
 each thing to its essentials, to play the machine before learning it: the **KICK** is three pages, EDIT again (or
 ALGORITHM) going round them: **KICK** (K1 **PRESET**, the built-in kicks; K2 **DISTO**; K3 **SUB DRIVE**, the SUB
 through its drive, OFF at the left; K4 **DRIVE**, the whole kick's), **SHAPE** (K1 **P DROP**, the pitch's fall at the
-hit; K2 **DROP TIME**, how long it falls; K3 **TAIL**, the SUB's length; K4 **TAIL MODE**, CLASSIC or CLEAN) and
+hit; K2 **DROP TIME**, how long it falls; K3 **TAIL**, the SUB's length; K4 **TAIL MODE**, CLASSIC, CLEAN, SPLIT or DIRTY) and
 **MIX** (the four layers' levels: SUB, PUNCH, GRIT, CLICK), its pages as tabs at the picture's foot, the header's tabs
 the sounds, KICK, SN, HH, CP, **SELECT** going round them (on the drums' page too); the drums' page is PRESET, FX, LEVEL and DECAY; the **FX**
 chain has two slots and a short list on PRESETS, MAGIC EQ and MAGIC MBC at its end (above); FX again stays on MAIN;
@@ -1015,8 +1015,8 @@ nothing set there sounds exactly as it always did.
 
 | Part | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- |
-| TAIL | MODE: CLASSIC · CLEAN | NOTE: FREE · A#0 … A2 | CURVE: EXP · LINEAR · SNAP | END: OFF · 40 – 1000 ms by 20 ms, then on to 3000 ms by 50 ms (0.9.70) |
-| TAIL + | FILTER: OFF · 11 kHz – 190 Hz | F TIME: 20 – 600 ms | DRIVE: OFF · 1 – 100 % | |
+| TAIL | MODE: CLASSIC · CLEAN · SPLIT · DIRTY (0.9.71) | NOTE: FREE · A#0 … A2 | CURVE: EXP · LINEAR · SNAP | END: OFF · 40 – 1000 ms by 20 ms, then on to 3000 ms by 50 ms (0.9.70) |
+| TAIL + | FILTER: OFF · 11 kHz – 190 Hz | F TIME: 20 – 600 ms | DRIVE: OFF · 1 – 100 % | SPLIT AT: 30 – 600 ms (SPLIT) · DIRT RISE: 50 – 2000 ms (DIRTY); empty in CLASSIC and CLEAN |
 | STACK | ATTACK: OFF · KICK 1–20 | CROSS: 10 – 300 ms | FADE: 2 – 150 ms | SOLO: BOTH · ATTACK · TAIL |
 | TOOLS | MUTATE | A/B | | |
 | TOK (ATTACK) | LEVEL: OFF · 2 – 100 % | TYPE: SQUARE · NOISE · SINE | PITCH: 400 Hz – 4 kHz | LENGTH: 2 – 30 ms |
@@ -1037,6 +1037,12 @@ nothing set there sounds exactly as it always did.
   against the SUB's. In CLEAN the distortion works on a steady sound and the fade comes after it, at the same
   loudness; PUNCH and GRIT land on the SUB's octave, GRIT's FM is harmonic, and the RUMBLE's echo is tuned to the
   note. The kick stays one note from the hit to the end.
+- **MODE SPLIT** (0.9.71, FLEXOR): the body as CLASSIC, all its dirt, then at **SPLIT AT** (TAIL + K4, 30 – 600 ms;
+  the tail turns clean over half that time again) the kick fades into a clean sine on the SUB's note, as loud as the
+  kick was there, falling as the SUB does: the dirty hit and a round, long sub after it, without the ringing of a
+  distorted held note. **MODE DIRTY**: the inverse, the hit driven at a third of its DRIVE (tight), the drive and
+  DISTO rising to three times over **DIRT RISE** (TAIL + K4, 50 – 2000 ms): the tail dirtier as it falls. Picking
+  either puts its TAIL + K4 half way (SPLIT 133 ms, DIRTY 316 ms).
 - **NOTE** puts the tail on a note (the SUB's PITCH otherwise, FREE), shown in Hz at the top right: tune it to the
   track's key. **CURVE** shapes the pitch drop: EXP as always (fast, then a long slide), LINEAR and SNAP (high, then
   down fast) land exactly on the note at half the drop's TIME and stay there: no slide left in the tail.

@@ -52,7 +52,11 @@ expect subdrv -1
 tap EDIT
 wait 300
 expect keasy 1
+expect kl_mode 1
 turn K4 1 60
+wait 200
+expect kl_mode 2
+turn K4 -1 60
 wait 200
 expect kl_mode 1
 turn K4 -1 60
