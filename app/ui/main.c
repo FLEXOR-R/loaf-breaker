@@ -423,10 +423,23 @@ static void input(void)
         } else
             btn |= 1u << B_SEL;
     }
-    if (rec_key_on()) {                  /* (0.9.58, FLEXOR: REC as a black key: its bit among the keys, no REC press) */
-        if (btn >> B_REC & 1u)
-            keys |= REC_KEY;
-        btn &= ~(1u << B_REC);
+    {                                    /* (0.9.58, FLEXOR: REC as a black key: its bit among the keys, no REC press;
+                                          * 0.9.70, FLEXOR: when it has a function on BLACK, or a SEL function and SEL is
+                                          * held or locked as it goes down, or on ARP's BLACK tabs to pick it; else it
+                                          * records; decided as it goes down, kept until it is let go) */
+        static uint8_t rk_held, rk_key;
+        if (btn >> B_REC & 1u) {
+            if (!rk_held) {
+                rk_held = 1u;
+                rk_key = (uint8_t)(rec_key_on() || (btn >> B_SEL & 1u && selb_fn(11u)) ||
+                                   (ui.page == PG_OVL && ui.opage >= 1u && ui.opage <= 3u && !set.novice));
+            }
+            if (rk_key) {
+                keys |= REC_KEY;
+                btn &= ~(1u << B_REC);
+            }
+        } else
+            rk_held = rk_key = 0u;
     }
     if (sel_now && !ui.sel_raw)
         ui.sel_t = now;                  /* (LOAF BREAKER: SEL down: held a moment, the foot shows its knobs) */
@@ -2055,8 +2068,6 @@ static const char *knob_name(int i)
     }
     if (ui.page == PG_GLOBAL && !ui.gpage && i == 2 && !set.novice)
         name = "METER";              /* (LOAF BREAKER, 0.213: SYSTEM › MIDI K3, EXPERT only) */
-    if (ui.page == PG_GLOBAL && !ui.gpage && i == 3 && !set.novice)
-        name = "REC KEY";            /* (0.9.58: SYSTEM › MIDI K4, EXPERT only) */
     return name ? name : "";
 }
 /* the foot: the pads, then the page and its knobs with their values */

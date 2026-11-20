@@ -508,19 +508,19 @@ static void kb_put(uint32_t mode, uint32_t latch, uint32_t time, uint32_t rev)
     kx2.rsv[KB_RSV] = (uint8_t)(KB_TAG | (mode % KB_N) | (latch & 1u) << 2 | (time % KB_TIMES) << 3);
     kx2.rsv[KB_RSV + 1u] = (uint8_t)(rev > 100u ? 100u : rev);
 }
-/* LOAF BREAKER (0.9.58, FLEXOR): SYSTEM › MIDI K4 REC KEY (EXPERT): ON, the REC button is a twelfth black key (REC_KEY),
- * any function but ARP, set on ARP › BLACK (its last key, right); REC records no more. kx2.rsv[50]: 0x80 | its function
- * (untagged: KILL BREAK); rsv[51]: 0xA0 | on (untagged: off) */
+/* LOAF BREAKER (0.9.58, FLEXOR): the REC button a twelfth black key (REC_KEY), set on ARP › BLACK (its last key, right):
+ * any function but ARP; then REC records no more. 0.9.70, FLEXOR: no REC KEY option any more (SYSTEM › MIDI K4 before):
+ * NONE on BLACK, REC records as ever; a function there, REC is that key; with a SEL function (SEL BLACK) alone, SEL + REC
+ * that function, REC alone records. kx2.rsv[50]: 0x80 | its function (untagged: KILL BREAK); rsv[51]: 0xA0 | assigned
+ * (untagged: NONE) */
 #define RK_RSV 50u
 static uint32_t rec_key_on(void) { return (kx2.rsv[RK_RSV + 1u] & 0xF0u) == 0xA0u && (kx2.rsv[RK_RSV + 1u] & 1u); }
-static uint32_t rec_fn(void)             /* (FLEXOR: on FLEXOR LAYOUT, and CHOPPAH's, KILL BREAK; CUSTOM its own) */
+static uint32_t rec_fn(void)             /* (its own, whatever the layout, 0.9.70; untagged KILL BREAK) */
 {
     uint32_t f = kx2.rsv[RK_RSV] & 0x7Fu;
-    if (bk_preset() != BKP_CUSTOM)
-        return BKF_KBR;
     return kx2.rsv[RK_RSV] & 0x80u && f < BKF_N && f != BKF_ARP ? f : BKF_KBR;
 }
-static uint32_t nbk(void) { return rec_key_on() ? 12u : 11u; }   /* (the black keys, REC's with them) */
+static uint32_t nbk(void) { return 12u; }   /* (the black keys, REC's with them: always since 0.9.70) */
 static uint32_t kit_bpm(uint32_t k)      /* (its tempo, tenths of a BPM; 0 KEEP) */
 {
     uint32_t v = kx2.rsv[KIT_BPM0 + k % 16u];

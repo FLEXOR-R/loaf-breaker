@@ -91,6 +91,11 @@ static void bk_release_all(void)         /* (the layout changes: whatever a key 
     ui.x2_focus = 0u;
     kick_x2 = 0u;
 }
+static const char *bk_long(uint32_t j)   /* (0.9.70: the REC key with no function: it records) */
+{
+    return j == 11u && !rec_key_on() ? "NONE: REC RECORDS" : BKF_LONG[bk_fn(j)];
+}
+static const char *bk_short(uint32_t j) { return j == 11u && !rec_key_on() ? "-" : BKF_NAME[bk_fn(j)]; }
 static void bk_key_name(uint32_t j, char *t)   /* ("KEY 3", the REC key "REC KEY", 0.9.58) */
 {
     t[0] = 0;
@@ -121,7 +126,7 @@ static void bk_say(void)
         app_say(t, selb_fn(ui.bk_sel) ? BKF_LONG[selb_fn(ui.bk_sel) - 1u] : "ITS OWN");
         return;
     }
-    app_say(t, BKF_LONG[bk_fn(ui.bk_sel)]);
+    app_say(t, bk_long(ui.bk_sel));
 }
 static void bk_pick(uint32_t j)          /* a black key pressed on BLACK KEYS */
 {
@@ -393,7 +398,7 @@ static void bk_value(int i, char *t)
     else if (i == 1)
         int_text((int32_t)ui.bk_sel % 11 + 1, t);
     else if (i == 2)
-        text_cat(t, BKF_LONG[bk_fn(ui.bk_sel)]);
+        text_cat(t, ui.bk_sel == 11u && !rec_key_on() ? "NONE" : BKF_LONG[bk_fn(ui.bk_sel)]);   /* (0.9.70: REC records) */
     else if (ui.bk_sel < 11u && bk_fn(ui.bk_sel) == BKF_ARP)  /* (0.9.45: K4, an ARP key's own effect) */
         text_cat(t, OVL_NAME[arpk_fx(ui.bk_sel)]);
 }
@@ -430,17 +435,19 @@ static void bk_turn(int i, int32_t d)
         bk_say();
         ui.redraw |= RG_BLOCKS | RG_FOOT;
         return;
-    } else if (i == 2 && ui.bk_sel == 11u) {   /* (0.9.58: the REC key's own, any function but ARP, the preset kept) */
-        uint32_t f = (rec_fn() + (uint32_t)(dir > 0 ? 1 : BKF_N - 1)) % BKF_N;
-        if (f == BKF_ARP)
-            f = (f + (uint32_t)(dir > 0 ? 1 : BKF_N - 1)) % BKF_N;
-        if (bk_preset() != BKP_CUSTOM) { /* (a preset: its copy, CUSTOM, then the REC key, as the others) */
-            for (j = 0; j < 11u; j++)
-                set.bkeys.bk[2u + j] = (uint8_t)bk_fn(j);
-            set.bkeys.bk[1] = BKP_CUSTOM;
-        }
+    } else if (i == 2 && ui.bk_sel == 11u) {   /* (0.9.58: the REC key's own, any function but ARP; 0.9.70, FLEXOR:
+                                          * NONE first (REC records), whatever the layout, its preset kept) */
+        uint32_t v = rec_key_on() ? rec_fn() + 1u : 0u;
+        v = (v + (uint32_t)(dir > 0 ? 1 : BKF_N)) % (BKF_N + 1u);
+        if (v == 1u + BKF_ARP)
+            v = (v + (uint32_t)(dir > 0 ? 1 : BKF_N)) % (BKF_N + 1u);
         bk_release_all();
-        kx2.rsv[RK_RSV] = (uint8_t)(0x80u | f);
+        if (v) {
+            kx2.rsv[RK_RSV] = (uint8_t)(0x80u | (v - 1u));
+            ui.rec = 0u;                 /* (recording no more) */
+        }
+        kx2.rsv[RK_RSV + 1u] = (uint8_t)(0xA0u | (v ? 1u : 0u));
+        (void)j;
         bk_say();
     } else if (i == 2) {
         uint32_t f = (bk_fn(ui.bk_sel) + (uint32_t)(dir > 0 ? 1 : BKF_N - 1)) % BKF_N;
@@ -482,7 +489,7 @@ static void draw_bk(void)
             int32_t kw = nbk() > 11u ? 15 : 17, x = nbk() > 11u ? (rk ? 212 : 4 + (int32_t)j * 17 + (int32_t)GRP[j] * 4)
                                                                 : 4 + (int32_t)j * 19 + (int32_t)GRP[j] * 6;
             int sel = j == ui.bk_sel, chop = rk ? 0 : sl ? !sf : f == BK_LAY[0][j];
-            const char *n = sl ? (sf ? BKF_NAME[sf - 1u] : "-") : BKF_NAME[f];
+            const char *n = sl ? (sf ? BKF_NAME[sf - 1u] : "-") : bk_short(j);
             if (rk)
                 kw = 24;
             cv_rect(x, 6, kw, 30, sel ? C_WHITE : chop ? C_LINE : C_AMB);
@@ -502,7 +509,7 @@ static void draw_bk(void)
             cv_text(6, 50, &FONT_B, selb_fn(ui.bk_sel) ? BKF_LONG[selb_fn(ui.bk_sel) - 1u] : "ITS OWN", C_HI);
             t[0] = 0;
             text_cat(t, "WITHOUT: ");
-            text_cat(t, BKF_LONG[bk_fn(ui.bk_sel)]);
+            text_cat(t, ui.bk_sel == 11u && !rec_key_on() ? "IT RECORDS" : bk_long(ui.bk_sel));
             cv_text(6, 72, &FONT_XS, t, C_GRAY);
             cv_text(6, 86, &FONT_XS, "SEL + THIS KEY PLAYS THE ONE ABOVE", C_DIM);
             cv_oy = 0;
@@ -514,10 +521,11 @@ static void draw_bk(void)
             cv_text(6, 50, &FONT_B, "ARP", C_HI);
             cv_text(6 + text_w(&FONT_B, "ARP "), 50, &FONT_B, OVL_NAME[arpk_fx(ui.bk_sel)], C_WHITE);
         } else
-            cv_text(6, 50, &FONT_B, BKF_LONG[bk_fn(ui.bk_sel)], C_HI);
+            cv_text(6, 50, &FONT_B, bk_long(ui.bk_sel), C_HI);
         cv_text(6, 72, &FONT_XS, "PRESET", C_GRAY);
         cv_text(234 - text_w(&FONT_B, BKP_NAME[p]), 68, &FONT_B, BKP_NAME[p], p == BKP_CUSTOM ? C_AMB : C_WHITE);
-        cv_text(6, 86, &FONT_XS, p == BKP_CUSTOM ? "A BLACK KEY PICKS ITSELF" : "K3: A CUSTOM COPY, THAT KEY CHANGED",
+        cv_text(6, 86, &FONT_XS, ui.bk_sel == 11u ? "K3: NONE (IT RECORDS) OR A FUNCTION" : p == BKP_CUSTOM
+                ? "A BLACK KEY PICKS ITSELF" : "K3: A CUSTOM COPY, THAT KEY CHANGED",
                 C_DIM);
         cv_oy = 0;
         cv_blit(0, 88u + band * 52u);

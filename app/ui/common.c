@@ -296,7 +296,7 @@ static uint32_t bkf_mask(uint32_t f)
     for (j = 0; j < 11u; j++)
         if (bk_fn(j) == f)
             m |= 1u << BK[j];
-    if (rec_key_on() && bk_fn(11u) == f)   /* (0.9.58: the REC key's; 0.9.70 with SEL its SEL function) */
+    if ((rec_key_on() || bk_sel_dn >> 11 & 1u) && bk_fn(11u) == f)   /* (0.9.58: the REC key's; 0.9.70 with SEL its SEL function) */
         m |= REC_KEY;
     return m;
 }
