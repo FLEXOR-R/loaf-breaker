@@ -1302,6 +1302,8 @@ static void input(void)
         }
         if (k == EN_SELECT && ui.page == PG_OVL && !set.novice) {   /* (0.9.2, FLEXOR: OVERLAY, SELECT its tabs) */
             ui.opage = (uint8_t)((ui.opage + (d > 0 ? 1u : 4u)) % 5u);   /* (0.9.52, FLEXOR: both ways) */
+            if (ui.opage == 3u && !swk_on())   /* (0.9.70, FLEXOR: SEL WHITE off, its tab gone: passed over) */
+                ui.opage = (uint8_t)((ui.opage + (d > 0 ? 1u : 4u)) % 5u);
             page_say();
             ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
             continue;
@@ -1777,7 +1779,8 @@ static void draw_tabs(void)
     else if (ui.page == PG_OVL) {        /* (LOAF BREAKER: EXPERT, its three tabs; BEGINNER, ARP EFFECTS alone: no tab) */
         if (!set.novice)
             for (i = 0; i < 5u; i++)     /* (0.259, FLEXOR: MORE gone for now; 0.9.49 SEL KEYS; 0.9.50 SEL WHITE; 0.9.54 KITS) */
-                x = tab(x, OPAGE_NAME[i], i == ui.opage);
+                if (i != 3u || swk_on())   /* (0.9.70, FLEXOR: SEL WHITE's tab only while SETUP has it on) */
+                    x = tab(x, OPAGE_NAME[i], i == ui.opage);
     }
     else if (ui.page == PG_TRACK)        /* LOAF BREAKER: ENV: TRACKS, PLAY, DROP */
         for (i = 0; i < NTORD; i++)   /* (TRACKS, PLAY, DROP, BUILD: no "ENV" before them, for the room; 0.9.69:

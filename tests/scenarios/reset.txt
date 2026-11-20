@@ -132,6 +132,19 @@ wait 100
 turn K2 -2 10
 wait 100
 expect arp_thru 1
+tap HOME
+wait 200
+tap GLO
+wait 200
+turn SELECT 1 10
+wait 200
+turn PRESET 1 10
+wait 200
+expect swon 1
+tap HOME
+wait 200
+tap ARP
+wait 200
 turn SELECT 3 10
 wait 200
 tapkey w0

@@ -599,7 +599,7 @@ SEL keeps that function until you let it go. SAVE keeps them; RESET's SEL KEYS a
 
 **SEL WHITE** (0.9.50, EXPERT, the fourth tab) makes each white key a **shortcut, pressed with SEL** held or locked,
 once **SYSTEM › SETUP › PRESETS** has turned them **ON** (0.9.70, FLEXOR: off on a new FM-1 and after RESET ALL, and
-always off in BEGINNER; off, SEL + a white key plays the key as without SEL). Any kind on any key: **K2 KEY** (or **ALGORITHM**, or press the white key: it picks itself), **K3 KIND**, **K4 VALUE**:
+always off in BEGINNER; off, SEL + a white key plays the key as without SEL, and this tab is not shown: ARP's tabs go ARP, BLACK, SEL BLACK, KITS). Any kind on any key: **K2 KEY** (or **ALGORITHM**, or press the white key: it picks itself), **K3 KIND**, **K4 VALUE**:
 
 | Kind | SEL + the key | K4 |
 | --- | --- | --- |
