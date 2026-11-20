@@ -593,7 +593,9 @@ sets it back to CHOPPAH, and EXPERT keeps it until you change it).
 locked (SEL twice): **K2 KEY** (or **ALGORITHM**, or press the key: it picks itself), **K3 SEL +**, what that key does
 with SEL: **ITS OWN** (the same as without SEL, exactly: 0.9.56, FLEXOR; SEL + R8 / R16 / R32 rolled the kick alone until 0.9.55) or any
 function of the list. While SEL is held or locked the strip and the lights show the SEL functions. A key pressed with
-SEL keeps that function until you let it go. SAVE keeps them; RESET's SEL KEYS and RESET ALL clear them.
+SEL keeps that function until you let it go. SAVE keeps them; RESET's SEL KEYS and RESET ALL clear them. With REC KEY
+on (SYSTEM › MIDI K4), the **REC** key, last on the right, has one too (0.9.70, FLEXOR; press REC on this tab to pick it):
+any function but ARP; REC alone keeps its own.
 
 ![SEL BLACK: key 11 with SEL, KICKS X2 (without SEL: SUB FX)](img/screen-selblack.png "SEL BLACK")
 

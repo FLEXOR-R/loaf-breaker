@@ -383,7 +383,7 @@ static void bk_value(int i, char *t)
         else if (i == 1)
             int_text((int32_t)ui.bk_sel % 11 + 1, t);
         else if (i == 2)
-            text_cat(t, ui.bk_sel == 11u ? "-" : selb_fn(ui.bk_sel) ? BKF_LONG[selb_fn(ui.bk_sel) - 1u] : "ITS OWN");
+            text_cat(t, selb_fn(ui.bk_sel) ? BKF_LONG[selb_fn(ui.bk_sel) - 1u] : "ITS OWN");   /* (0.9.70: REC too) */
         return;
     }
     if (i == 0)
@@ -405,11 +405,13 @@ static void bk_turn(int i, int32_t d)
         return;
     if (ui.opage == 2u && i != 1) {      /* (0.9.49, FLEXOR: SEL KEYS: K3 the key's function with SEL, ITS OWN (none)
                                           * then every function, round) */
-        uint8_t *v = &kx2.selk[ui.bk_sel % 11u];
-        if (i != 2 || ui.bk_sel >= 11u)  /* (the REC key: no SEL function) */
+        uint8_t *v = ui.bk_sel == 11u ? &kx2.selrec : &kx2.selk[ui.bk_sel % 11u];   /* (0.9.70, FLEXOR: the REC key's too) */
+        if (i != 2)
             return;
         bk_release_all();
         *v = (uint8_t)((selb_fn(ui.bk_sel) + (uint32_t)(dir > 0 ? 1 : BKF_N)) % (BKF_N + 1u));
+        if (ui.bk_sel == 11u && *v == 1u + BKF_ARP)   /* (the REC key: any function but ARP, as its own) */
+            *v = (uint8_t)((*v + (uint32_t)(dir > 0 ? 1 : BKF_N)) % (BKF_N + 1u));
         bk_say();
         set_dirty = 1u;
         ui.redraw |= RG_BLOCKS | RG_FOOT;
@@ -476,11 +478,11 @@ static void draw_bk(void)
         cv_oy = -(int32_t)band * 52;
         for (j = 0; j < nbk(); j++) {    /* (0.9.58: the REC key last, right, narrower keys to fit) */
             int rk = j == 11u;
-            uint32_t f = bk_fn(j), sf = rk ? 0u : selb_fn(j);
+            uint32_t f = bk_fn(j), sf = selb_fn(j);   /* (0.9.70: the REC key's SEL function too) */
             int32_t kw = nbk() > 11u ? 15 : 17, x = nbk() > 11u ? (rk ? 212 : 4 + (int32_t)j * 17 + (int32_t)GRP[j] * 4)
                                                                 : 4 + (int32_t)j * 19 + (int32_t)GRP[j] * 6;
             int sel = j == ui.bk_sel, chop = rk ? 0 : sl ? !sf : f == BK_LAY[0][j];
-            const char *n = rk && sl ? "-" : sl ? (sf ? BKF_NAME[sf - 1u] : "-") : BKF_NAME[f];
+            const char *n = sl ? (sf ? BKF_NAME[sf - 1u] : "-") : BKF_NAME[f];
             if (rk)
                 kw = 24;
             cv_rect(x, 6, kw, 30, sel ? C_WHITE : chop ? C_LINE : C_AMB);

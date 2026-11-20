@@ -320,8 +320,8 @@ static uint32_t bk_fn(uint32_t j)        /* black key j's (0..10) function (0.9.
                                           * function, when it has one; 11 the REC key's, 0.9.58) */
 {
     uint32_t p = bk_preset(), f;
-    if (j == 11u)
-        return rec_fn();
+    if (j == 11u)                        /* (0.9.70, FLEXOR: its SEL function too, ARP › SEL BLACK) */
+        return bk_sel_dn >> 11 & 1u && selb_fn(11u) ? selb_fn(11u) - 1u : rec_fn();
     j %= 11u;
     if (bk_sel_dn >> j & 1u && selb_fn(j))
         return selb_fn(j) - 1u;
@@ -444,6 +444,8 @@ typedef struct {
      * pattern to go to at once; 0 in a field: KEEP, as it is. A shorter save: all KEEP. Their tempo in rsv[32 + n], a
      * whole BPM - 49 (50..300), for the pool's margin) */
     struct { uint8_t kick, brk, pat; } kit[16];
+    uint8_t selrec;                      /* (appended, 0.9.70, FLEXOR: the REC key's SEL function, 1 + BKF_* but ARP, 0
+                                          * none; a shorter save: none) */
 } kx2_t;
 #define KIT_BPM0 32u                     /* (rsv[32..47]: the kits' tempo; rsv[0..31] SEL WHITE's) */
 static kx2_t kx2 PLAT_POOL;
@@ -527,6 +529,7 @@ static uint32_t kit_bpm(uint32_t k)      /* (its tempo, tenths of a BPM; 0 KEEP)
 static void selk_clear(void)             /* (0.9.49: the SEL layer, none: RESET ALL, RESET's PADS) */
 {
     memset(kx2.selk, 0, sizeof kx2.selk);
+    kx2.selrec = 0u;
     memset(kx2.rsv, 0, KIT_BPM0);        /* (SEL WHITE's 32 bytes; the kits' tempo kept, 0.9.54) */
 }
 /* LOAF BREAKER (0.9.55, FLEXOR): the ARP's 16 effects in a new order, WAH, WOBBLE and REESE gone, KICK X2, X4, TRI last.
@@ -569,7 +572,7 @@ static void ovl_order_fix(void)
 }
 static uint32_t selb_fn(uint32_t j)      /* (black key j's SEL function, 1 + BKF_*; 0: none) */
 {
-    uint32_t f = j < 11u ? kx2.selk[j] : 0u;   /* (the REC key, 11: none, 0.9.58) */
+    uint32_t f = j < 11u ? kx2.selk[j] : j == 11u ? kx2.selrec : 0u;   /* (the REC key, 11: its own since 0.9.70) */
     return f <= BKF_N ? f : 0u;
 }
 static void klab_defaults(void)

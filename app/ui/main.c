@@ -618,6 +618,14 @@ static void input(void)
             else
                 bk_sel_dn &= (uint16_t)~(1u << i);
         }
+    if (kdn & REC_KEY) {                 /* (0.9.70, FLEXOR: the REC key's SEL function, as the black keys') */
+        if (btn & 1u << B_SEL)
+            ui.tap_combo = 1u;
+        if (btn & 1u << B_SEL && selb_fn(11u))
+            bk_sel_dn |= (uint16_t)(1u << 11);
+        else
+            bk_sel_dn &= (uint16_t)~(1u << 11);
+    }
     for (i = 0; i < BRK_NPADS; i++) {    /* black keys: the pads, held; the last one pressed has the screen (LOAF
                                           * BREAKER: on the keys the layout gives them, app.c bk_fn) */
         if (i <= PAD_ROLL32) {           /* LOAF BREAKER: the rolls, through their THRU (the break, the kick, both) */
@@ -796,6 +804,8 @@ static void input(void)
     for (i = 0; i < 11u; i++)            /* (0.9.49: let go: its own function again) */
         if (!(keys >> BK[i] & 1u))
             bk_sel_dn &= (uint16_t)~(1u << i);
+    if (!(keys & REC_KEY))               /* (0.9.70: the REC key too) */
+        bk_sel_dn &= (uint16_t)~(1u << 11);
     if (bdn & 1u << B_PLAY) {
         brk_status_t st;
         brk_status(&st);
