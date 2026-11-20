@@ -600,13 +600,18 @@ static void klab_send(void)              /* the LAB to the engine, STACK's attac
 static int32_t morph_i(int32_t a, int32_t b, uint32_t m) { return a + (b - a) * (int32_t)m / 100; }
 /* LOAF BREAKER: TER (the tenth black key), as SUB's DRIVE: the kick's TERROR off, whatever its amount (kept as it is),
  * or on again; the kick's own (selk_hi bit 4, with its memory: kx_put), saved */
-static int bk_has(uint32_t f)            /* (a black key of the layout in use does f) */
+static int bk_has(uint32_t f)            /* (a black key of the layout in use does f; 0.9.71, FLEXOR: or a key's SEL
+                                          * function (SEL BLACK, the REC key's too), or the REC key's own: DST, DRV, SUB
+                                          * switch there as well, their lights following) */
 {
     uint32_t j;
     for (j = 0; j < 11u; j++)
         if (bk_fn(j) == f)
             return 1;
-    return 0;
+    for (j = 0; j < 12u; j++)
+        if (selb_fn(j) == f + 1u)
+            return 1;
+    return rec_key_on() && rec_fn() == f;
 }
 #define terror_off ((set.selk_hi & 16u) && bk_has(BKF_DST))   /* (the kick's own DST switch, each kick its own (kx_put);
                                           * 0.9.24: in either mode, where the layout has a DST key (BEGINNER keeps
