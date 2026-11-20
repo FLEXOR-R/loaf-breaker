@@ -160,7 +160,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD |
 | LFO | MIX | LEVELS (BREAK, KICK, PERC), ROUTING (FX, the drums' route, DUCKS, ROLL), MASTER, DYNAMICS |
 | FX | EFFECTS | The four slots: MAIN, MORE, MOD |
-| GLO | SYSTEM | MIDI (EXPERT: K3 METER), SETUP (K1 SKIN, K3 MODE, K4 AUTO SAVE; PRESETS SEL WHITE on / off, EXPERT, 0.9.70), DISPLAY (K1 VIEW, K2 WAVE TYPE, K3 WAVE ZOOM, K4 BREAK TIME; HOME's until 0.9.55), SCREEN FX (the screen's effects), SCREEN SET (their settings), LIGHTS (K1 GLOW, K2 PULSE, K3 PULSE ON, K4 STYLE; 0.9.57), RESET |
+| GLO | SYSTEM | MIDI (EXPERT: K3 METER), SETUP (K1 SKIN, K3 MODE, K4 AUTO SAVE; PRESETS the skin, as K1), DISPLAY (K1 VIEW, K2 WAVE TYPE, K3 WAVE ZOOM, K4 BREAK TIME; HOME's until 0.9.55), SCREEN FX (the screen's effects), SCREEN SET (their settings), LIGHTS (K1 GLOW, K2 PULSE, K3 PULSE ON, K4 STYLE; 0.9.57), RESET |
 
 The same gestures everywhere: **the button again** is the next part; **ALGORITHM** the element in the part (a slot, a
 lane, a drum's part; where there is nothing to pick, the break); **PRESETS** the pattern, but on SOUNDS the source's
@@ -279,7 +279,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 - **LFO** (MIX): LEVELS, ROUTING, MASTER (K1 COMP, K2 its RATIO, K3 DUCK, K4 MAX OUT; COMP's reduction metered),
   DYNAMICS (COMP's ATTACK and RELEASE, DUCK's RELEASE, DUCKS: BREAK, PERC or BOTH; ROUTING' K3 too, 0.9.64).
 - **ENV**: the song. TRACKS, PLAY, DROP, BUILD. (What SEL + each knob does: EDIT › KNOBS; RESET: GLO.)
-- **GLO** (SYSTEM): MIDI (EXPERT: the METER), SETUP (SKIN, MODE, AUTO SAVE: K1, K3, K4, top to bottom; PRESETS turns the SEL WHITE shortcuts on or off, EXPERT only: off on a new FM-1, 0.9.70; the skin before), DISPLAY (0.9.56: VIEW, WAVE TYPE, WAVE ZOOM, BREAK TIME, HOME's before; SETTINGS until 0.9.67), SCREEN FX (several at once, keys 1–7; each effect's card a small picture with that effect done to it, lit when on, since 0.9.30; the waves' colours are SYSTEM › DISPLAY's WAVE TYPE since 0.9.25; EDIT VIEW and DRUM VIEW ZOOM are KICK › MORE › TOOLS since 0.9.29), SCREEN SET, RESET.
+- **GLO** (SYSTEM): MIDI (EXPERT: the METER), SETUP (SKIN, MODE, AUTO SAVE: K1, K3, K4, top to bottom; PRESETS the skin too; SEL WHITE on / off in 0.9.70, gone in 0.9.71), DISPLAY (0.9.56: VIEW, WAVE TYPE, WAVE ZOOM, BREAK TIME, HOME's before; SETTINGS until 0.9.67), SCREEN FX (several at once, keys 1–7; each effect's card a small picture with that effect done to it, lit when on, since 0.9.30; the waves' colours are SYSTEM › DISPLAY's WAVE TYPE since 0.9.25; EDIT VIEW and DRUM VIEW ZOOM are KICK › MORE › TOOLS since 0.9.29), SCREEN SET, RESET.
   The break's PITCH, GRAIN and SNAP are SOUNDS › BREAK; SWING is PATTERN › GROOVE.
 
 ### The CDJ view (HOME)
@@ -449,8 +449,9 @@ give way to **the key's view**: its window zoomed to the screen's width, the par
 the right when it runs backwards), the playhead, the slice lines inside the window, this repeat's progress and a dot
 for each repeat. A quick tap plays the slice once and keeps the blocks.
 
-While the key is held, **K1–K4 set its loop**, for that key only (SAVE keeps them; a key with a loop of its own has a
-dot on its block):
+While the key is held, **K1–K4 set its loop**, for that key only and for **the break playing** (0.9.71, FLEXOR: each
+break keeps its own white keys, to chop each one its way: change the break and its own come back; SAVE keeps every
+break's; a key with a loop of its own has a dot on its block):
 
 | Knob | Sets | Range |
 | --- | --- | --- |
@@ -579,9 +580,9 @@ played from 0.1xx to 0.243 is gone, LOAF BREAKER 0.244.)
 
 ![ARP: the sixteen effects, RING on the break, JET on the kick (THRU KICK), KICK X2, X4 and TRI last](img/screen-arp.png "ARP")
 
-In EXPERT the page has five tabs (**SELECT** goes to the next, or back to the left, 0.9.52; **ARP** again goes back to HOME; their names short
-since 0.9.50, FLEXOR; BLACK and SEL BLACK in full since 0.9.53): **ARP** (the effects above), **BLACK** (the black keys), **SEL BLACK** (the black keys with SEL) and
-**SEL WHITE** (the white keys with SEL) and **KITS** (0.9.54). **BLACK** lays out the black keys: **K1 PRESET**, CHOPPAH (CHOPPAH's eleven, the ARP
+In EXPERT the page has three tabs (**SELECT** goes to the next, or back to the left, 0.9.52; **ARP** again goes back to HOME; their names short
+since 0.9.50, FLEXOR; BLACK and SEL BLACK in full since 0.9.53): **ARP** (the effects above), **BLACK** (the black keys) and **SEL BLACK** (the black keys with SEL)
+(SEL WHITE, the white keys' shortcuts with SEL, and KITS were there in 0.9.50-0.9.70: gone in 0.9.71, FLEXOR). **BLACK** lays out the black keys: **K1 PRESET**, CHOPPAH (CHOPPAH's eleven, the ARP
 key not among them), FLEXOR LAYOUT (R8 R16 R32 ARP ARP TRI X4 X2 SUB DST KIL since 0.9.61) or CUSTOM; **K2 KEY** (or **ALGORITHM**, 0.9.26), the key you edit (or press it:
 here a black key picks itself and plays nothing); **K3 EFFECT**, what it does: any of R8, R16, R32, REV, FRZ, HLF, VNL,
 GAT, RND, FLT, DUB, ARP, KIL, DST, SUB, DRV, X2, X4, TRI, SDR (SUB DRIVE, 0.9.57), KBR (KILL BREAK, 0.9.58); on an ARP key, **K4 ARP FX** its own effect (0.9.45: several ARP keys, each with its own, play at once). Turned on a preset, K3 makes a CUSTOM of it first, that key changed (keys
@@ -602,322 +603,11 @@ plays it, REC alone does what BLACK gives it (NONE: it records).
 
 ![SEL BLACK: key 11 with SEL, KICKS X2 (without SEL: SUB FX)](img/screen-selblack.png "SEL BLACK")
 
-**SEL WHITE** (0.9.50, EXPERT, the fourth tab) makes each white key a **shortcut, pressed with SEL** held or locked,
-once **SYSTEM › SETUP › PRESETS** has turned them **ON** (0.9.70, FLEXOR: off on a new FM-1 and after RESET ALL, and
-always off in BEGINNER; off, SEL + a white key plays the key as without SEL, and this tab is not shown: ARP's tabs go ARP, BLACK, SEL BLACK, KITS). Any kind on any key: **K2 KEY** (or **ALGORITHM**, or press the white key: it picks itself), **K3 KIND**, **K4 VALUE**:
-
-| Kind | SEL + the key | K4 |
-| --- | --- | --- |
-| NONE | The key as without SEL: its slice, its page's own (0.9.56, FLEXOR: and SEL let go after it opens no card) | |
-| KICK | That kick memory plays, as PRESETS on the kick | KICK 1–20 |
-| PATTERN | That pattern (playing: at the loop's end, as PRESETS; another group's: SAVE first, as ever) | P1–P64 |
-| BREAK | That break (at the next bar, as ALGORITHM) | any break, the firmware's and yours |
-| EFFECT | That ARP effect while you hold the key | DIVE … KICK TRI |
-| DROP | A build, then the drop | AUTO (as SEL + ENV: the next pattern or DROP's AFTER), or into P1–P64 |
-| KIT | That KIT (ARP › KITS, 0.9.54): its kick, break, tempo and pattern at once | KIT 1–16 |
-| TRACK | That whole track (0.9.63), as SONG › PLAY: stopped, at once; playing, at the break's loop end (the loop plays to its last step, then the track from its first item, with no cut). Stopped while it waits: forgotten | TRACK 1–8 |
-
-On the KICK menu and the drums' pages, stopped, keys 1–4 play the kick and the drums to hear them, SEL held or not: their shortcuts don't apply there (0.9.63).
-
-![SEL WHITE: key 5 with SEL, a DROP (AUTO); key 1 KICK 3, key 2 P5, key 3 a break, key 4 an effect](img/screen-selwhite.png "SEL WHITE")
-
-**KITS** (0.9.54, FLEXOR, EXPERT, the fifth tab): sixteen kits, shown as the ARP effects' cards, each a **kick, a break,
-a tempo and a pattern** to go to at once. A white key (or **ALGORITHM**) picks the kit; **K1 KICK** (KICK 1–20),
-**K2 BREAK**, **K3 BPM**, **K4 PATTERN** (P1–P64); each starts at KEEP (left as it is when the kit loads), and the first
-turn right from KEEP takes what plays now. A card shows its kit in brief (K3 P5 170) or EMPTY. To play one, give a white
-key the kind **KIT** in SEL WHITE: SEL + that key loads it (the pattern, playing, at the loop's end; the tempo not while
-following a MIDI clock). SAVE keeps them; RESET's KITS and RESET ALL empty them.
-
-![ARP › KITS: KIT 1, KICK 3, UPDOWN 165, P5](img/screen-kits.png "KITS")
-
-(**SETTINGS**, a fifth tab setting every white key at once, came and went in 0.9.50-0.9.51, FLEXOR: a white key is set
-held, as ever, and RESET's WHITE KEYS puts them all back.)
-
-The page shows the sixteen keys as two rows of cards, each with its shortcut in brief (K3 kick 3, P5, a break's
-name, an effect, DROP or D12 for a drop into P12; a dash: none), the one edited lit. A key used as a shortcut does
-nothing else while held. SAVE keeps them; RESET's SEL KEYS and RESET ALL clear them.
-
-**PATTERN › GROOVE** (SEQ's third view on SELECT; GROOVE until 0.9.30, SETTINGS in 0.9.31-0.9.67; also **SEL + ARP**), saved with the rest:
-**K1 SWING**, 50–75 % (was the MIXER's), every second 16th later (the page shows the bar's 16ths as it lays them out);
-**K2 BREAK ROWS**, the break's rows the FULL view shows, 16 (BRK1) or 32 (both); **K3 FOLLOW**, ON: the lane shown
-moves on with the bar playing, OFF: it stays where you put it. SELECT there goes on to FULL (back: DRUMS).
-
-## 6. The FX chain
-
-**FX** opens the master effects chain: four slots in series, the break (through its DJ filter, with the kick when it
-goes through the chain) into slot 1, then 2, 3 and 4, then on to the drums when they go around the chain, the DUB
-pad's delay and the limiter. Each slot holds any effect (two of one are fine), with
-three settings, a mix and a bypass, and more knobs on two more parts (MORE and MOD, below). The screen shows the
-effect you tune as a live picture; under it the chain in order (yours lit, the bypassed ones dim), its modulator and
-its level in and out.
-
-![FILTER in slot 2: its response, the cutoff swept by its modulator](img/screen-fxchain.png "The FX chain")
-
-| Control | Does |
-| --- | --- |
-| SELECT | The slot to tune (1–4): the tabs at the top (0.9.2; ALGORITHM before) |
-| ALGORITHM | The slot's part, MAIN, MORE, MOD, either way (an MB COMP: its six): the tabs below (0.9.2; FX again before) |
-| FX again | Back to HOME (0.9.2): SELECT and ALGORITHM move everywhere in it. On the kick's own FX (EDIT › FX), FX again still steps MAIN, MORE, MOD |
-| PRESETS | The effect in that slot, through the library (EMPTY first); a new effect comes in on, as you last left it (its MORE and MOD too; never touched: its starting settings) |
-| SEL + REC | The slot's effect back to its starting settings (its MORE, MOD and MB COMP detail too); SEL + REC again within 4 s takes the reset back. On EDIT KICK's FX parts the same for that layer's effect, which is also remembered effect by effect |
-
-**KICK FX** (EDIT KICK's sections FX1 and FX2, after DIRT): the FX page on the kick's own two slots,
-after its EQ and before everything else (the break's chain never sees them). Every effect of the library but REVERB
-and DELAY; **PRESETS** the effect (remembered as left, apart from the chain's; 0.9.29: in the FX section PRESETS goes through the effects alone, nothing on EQ B and EQ S, and SEL + PRESETS changes the kick), ALGORITHM the next part of the effect (MAIN, MORE, MOD, or
-the MB COMP's), SELECT the kick's next section, FX the next part of the effect too, FX held + ALGORITHM moves the slot, SEL + FX bypasses, SEL + REC resets.
-![The kick's FX1: DRIVE, its curve, on](img/screen-kick-fx.png "KICK FX1")
-
-FX from another page: the chain. **Each kick has its own FX section** (EQ B, EQ S, FX1, FX2: KICK 1–20 each its own,
-0.9.26): another kick picked brings its own EQ and effects.
-
-**BEGINNER's chain.** In BEGINNER mode the FX page has two slots (the third and fourth are muted and hidden; EXPERT
-gives them back as they were) and PRESETS turns through a short list: EMPTY, FILTER, CRUNCH, DRIVE, FLANGER, REVERB,
-DELAY, TAPE, CLIP, then **MAGIC EQ** and **MAGIC MBC**. Each slot keeps its settings (K1–K3, K4 its mix).
-
-**MAGIC EQ** and **MAGIC MBC** are FLEXOR's own, at the very end of PRESETS (past CLIP), in the FX chain and in KICK
-FX. MAGIC EQ is an EQ: LOW −5.8 dB (shelf at 182 Hz), MID −2.9 dB at 999 Hz (Q 1.59), HIGH +1.9 dB (shelf at 8 kHz),
-0 dB out. MAGIC MBC is an MB COMP split at 200 Hz and 2.5 kHz with a hard knee: the LOW at 0 dB, 8:1 (10 / 150 ms)
-and 6 dB down, the MID at −34 dB, 3:1 (5 / 100 ms), the HIGH at −48 dB, 2:1 (2 / 60 ms) and 2 dB up; the AMOUNTs at
-4.5:1, 1.7:1 and 1.5:1, 60 % wet. Both stay what they are underneath: every knob and part works as on a plain EQ or
-MB COMP.
-
-| K1–K3 · K4 | Its settings · its mix |
-| SEL + FX | That slot on / bypassed |
-| FX held + ALGORITHM | Moves that slot along the chain (the order is the sound: DRIVE before a FILTER is not a FILTER before DRIVE) |
-| MIX ROUTING K1 FX | The whole chain against the dry sound: fade every effect in or out at once (the FX page shows it beside the slots' tabs, FX MIX 70 %; LFO held + K4 turns it on any page, 0.9.50) |
-
-![The FX page: FX MIX 70 % beside the slots' tabs, CRUNCH in slot 1](img/screen-fx-mix.png "FX MIX")
-
-| Effect | K1 | K2 | K3 |
-| --- | --- | --- | --- |
-| FILTER | Cutoff (30 Hz – 16 kHz) | Resonance | Mode: LP · BP · HP |
-| CRUNCH | Bits (16 → 2) | Rate (44.1 kHz → 1 kHz) | Drive |
-| DRIVE | Gain (×1 – ×30) | Tone (dark → bright) | Level |
-| PUNCH | Amount (a drum-bus compressor; low MIX for parallel squash) | Attack (0.1 – 30 ms) | Release (20 – 500 ms) |
-| FLANGER | Rate (0.02 – 10 Hz) | Depth | Feedback (−90 … +90 %) |
-| RING MOD | Frequency (20 Hz – 2 kHz) | Spread (the right side higher) | |
-| TREMOLO | Rate on the tempo (1/2 … 1/32, 1/8T) | Depth | Pan (0 tremolo … 100 % auto-pan) |
-| REVERB | Size (short room … long hall) | Tone (bright … dark) | Pre-delay (0 – 60 ms) |
-| DELAY | Time on the tempo (1/16, 1/8, 3/16, 1/4, 3/8, 1/2, 1/8T, 1/4T) | Feedback | Tone (dark … bright repeats) |
-| EQ | Low (a shelf at 120 Hz) | Mid (a bell; K4 is its frequency, 200 Hz – 5 kHz) | High (a shelf at 8 kHz) |
-| TAPE | Drive (0 – 24 dB into a tape curve: denser, warmer, even harmonics; the peaks kept level) | Warmth (the low head bump, the top rolled off) | Wow (and flutter: the pitch wanders like a worn machine) |
-| MB COMP | Low amount | Mid amount | High amount (five more parts of its own: below) |
-| CLIP | Drive (0 – +24 dB into it) | Knee (soft … hard) | Ceiling (0 – −12 dB) |
-
-**EQ**'s bands go −12 … +12 dB, flat in the middle; its K4 is not a mix but the **mid's frequency** (**MID FREQ**, in Hz: 1.5KHZ is 1,500 Hz); its MORE part has the mid's width (**MID Q**: low, wide; high, narrow). **TAPE** is a
-saturator after a tape machine: put it last in the chain to glue the break, or before CRUNCH for a dusty sampler.
-
-**MB COMP** is a 3-band (multiband) compressor, and the one effect with a page of its own (below). The heaviest effects on the FM-1's processor are **TAPE** and the **MB COMP**s (MAGIC MBC too), then FLANGER and EQ: if the screen says **OVERLOAD · FX SLOT BYPASSED**, the sound got close to its limit twice in a row and the chain's last slot on was switched off for 2 s; fewer of those (or SYSTEM › MIDI K3 METER, in EXPERT, to watch the CPU) keeps it clear. **CLIP** squares
-the peaks off at its ceiling: soft rounds them, hard cuts them; below the ceiling it only adds its drive. MB COMP then
-CLIP last in the chain is a loud master; CLIP before a FILTER is a fizzy one.
-
-**DELAY** is a stereo ping-pong: the echoes bounce left, right, left, each darker. Its K4 is **SEND**, how much of the
-sound reaching it goes in (the echoes come back at full), so with SEND low only throws ring out: the DUB pad, the
-the slices' ECHO. There is one delay (0.74 s at most: 1/2 at 162 BPM and up; slower, it holds the
-longest it can).
-
-**REVERB** is a plate (after Dattorro's design: diffusers, then a modulated stereo tank): its MIX is how much reverb
-goes over the dry sound. The tail rings on after STOP. There is one: a second REVERB slot passes the sound on. Put it
-late in the chain to reverb the effects before it, or early to crunch or drive the reverb itself.
-
-The chain starts as CRUNCH → FILTER → FLANGER → RING MOD, all bypassed: SEL + FX switches the focused one on.
-CRUNCH used to be HOME's K4; it is slot 1 now.
-
-STOP fades the break out at once (a white key held keeps looping); the reverb's and the dub delay's tails ring on.
-
-### Each effect's view, MORE and MOD
-
-Every effect (but MB COMP, which has its own page, below) has three parts, stepped by **ALGORITHM** (FX again on the kick's own FX): **MAIN** (its
-three settings and mix, as in the table above), **MORE** (its extra knobs) and **MOD** (a modulator that moves one of
-its settings in time). The tab bar names the part (`< FILTER MOD >`), the strip shows it lit.
-
-The picture above follows the sound as you turn:
-
-- **FILTER, FLANGER:** the response from 20 Hz to 20 kHz (the cutoff and resonance; the flanger's comb sweeping as
-  it plays). **EQ:** its three bands, ±12 dB about the middle line.
-- **DRIVE, CLIP, TAPE, CRUNCH:** a tone through it, the clean tone grey behind: rounded, squared, folded, stepped.
-  **PUNCH:** two hits, their peaks held down. **RING MOD:** the tone times its carrier. **TREMOLO:** a tone under two
-  of its cycles.
-- **REVERB:** its decay over 3 s (0 to −60 dB), the pre-delay a gap. **DELAY:** its echoes, left up and right down,
-  each quieter by the feedback.
-
-Below: the chain, then the modulator's cycle with where it is now (the white dot) and what it moves, and the
-effect's level in and out.
-
-![EQ's MORE part: the low shelf moved up, a wider mid](img/screen-fx-more.png "MORE")
-
-| Effect | MORE K1 | K2 | K3 | K4 |
-| --- | --- | --- | --- | --- |
-| FILTER | Drive into it | Slope: 12 · 24 dB | Spread (the right's cutoff higher: a stereo filter) | |
-| CRUNCH | Tone (a low-pass after it; OFF at full) | Dither (noise under the steps) | | |
-| DRIVE | Shape: SOFT · TUBE · HARD · FOLD | Bias (lopsided: even harmonics) | Low cut before it (OFF … 800 Hz) | |
-| PUNCH | Ratio (1.5:1 … 20:1) | Make-up (+0 … +12 dB) | SC HPF (the lows don't pump it; OFF … 300 Hz) | |
-| FLANGER | Delay (where the sweep starts, 0.2 – 2.7 ms) | Spread (the right's phase, 0 – 180°) | Sync (OFF, or the sweep on the tempo: 4 bars … 1/4) | |
-| RING MOD | Wave: SINE · TRI · SQUARE | Mode: RING · AM | | |
-| TREMOLO | Shape: SINE · TRI · SQUARE · SAW | Smooth (the edges rounded) | | |
-| REVERB | Width | Low cut into it (OFF … 600 Hz) | Mod (the tail's wobble) | Diffusion |
-| DELAY | Width (mono … full ping-pong) | Low cut in its loop (each echo thinner) | Duck (the echoes duck under what plays) | |
-| EQ | Low shelf's frequency (40 – 400 Hz) | Mid's Q (0.3 – 4) | High shelf's frequency (2 – 16 kHz) | Level (±12 dB) |
-| TAPE | Flutter | Wow's rate (0.1 – 3 Hz) | Hiss | |
-| CLIP | Bias (lopsided) | Output (−12 … 0 dB) | | |
-
-Every MORE knob starts where the effect always was, so a saved sound plays as it did.
-
-| MOD | K1 | K2 | K3 | K4 |
-| --- | --- | --- | --- | --- |
-| | Rate on the tempo (4 bars … 1/16, 1/4T, 1/8T) | Depth (OFF in the middle; left moves it the other way) | Shape: SINE · TRIANGLE · SAW · RAMP · SQUARE · S&H · ENV | Target: the effect's K1, K2, K3 or MIX |
-
-**ENV** follows the effect's own input: the louder the break hits, the further it moves (a filter that opens on
-every snare, a drive that bites on the kicks). **S&H** jumps to a new random place each cycle. The foot shows the
-setting it moves as the modulator leaves it.
-
-![TAPE: a tone through its curve, the clean tone grey behind it](img/screen-fx-tape.png "TAPE")
-
-### MB COMP
-
-The break is split into a low, a mid and a high band (by default at 200 Hz and 2.5 kHz), each pressed on its own and
-added back together; with nothing pressed the bands add back up to the sound untouched. Focus an MB COMP slot and the
-screen turns into the compressor:
-
-- **Above:** its six parts as tabs, then the spectrum from 20 Hz to 20 kHz in the three bands' colours (low red, mid
-  amber, high blue). The filled shape is what the sound goes through right now: a band being pressed **dips**, a band
-  turned up with GAIN stands above the 0 dB line, and the dotted line shows where it would be with nothing pressed.
-  The splits are marked with their frequencies.
-- **Below:** each band's curve, input across and output up (−48 … 0 dB): flat at 1:1, bending at the threshold, the
-  knee rounding the bend. The white dot is the band's level, riding the curve as the break plays. Beside it, the
-  band's level in (the threshold marked white) and its reduction hanging from the top in amber, its peak held for a
-  second. On the right, the ratio, the threshold and any gain as they act now; at the top, the reduction in dB.
-
-![MB COMP on AMOUNT: the low pressed 8:1, its reduction a dip in the spectrum](img/screen-mbcomp.png "MB COMP")
-
-**FX again** steps through the six parts and back to AMOUNT, staying on the slot; ALGORITHM jumps straight to another slot
-(and an MB COMP there opens on AMOUNT). The tab bar names the part: `< MB COMP LOW >`.
-
-| Part | K1 | K2 | K3 | K4 |
-| --- | --- | --- | --- | --- |
-| AMOUNT | Low amount | Mid amount | High amount | Mix (parallel: the pressed sound against the dry) |
-| LOW · MID · HIGH | Threshold (−48 … 0 dB) | Ratio (1:1 … 20:1, LIMIT) | Attack (0.1 – 100 ms) | Release (10 – 1000 ms) |
-| GAIN | Low gain | Mid gain | High gain (each −12 … +12 dB) | Solo: OFF, LOW, MID, HIGH |
-| X-OVER | Low split (40 – 800 Hz) | High split (1 – 12 kHz) | Knee (hard … 12 dB soft) | Output (−12 … +12 dB) |
-
-The **amounts** are the knobs to ride while playing: each takes its band from untouched (OFF) to its own threshold and
-ratio, and the foot shows the ratio it reaches. The band parts set where full amount lands: by default −30 dB and
-8:1, the low slow (10 ms in, 150 ms out), the mid at 5 / 100 ms, the high fast (2 / 60 ms). Half of a band's
-reduction at full scale is made back up by itself; GAIN adds or takes away more after it. **Solo** plays the one band
-alone, with no dry sound under it, to hear exactly what it holds while you move the splits. The page outlines the band
-whose part you are on.
-
-![MB COMP's LOW part: threshold −36 dB, 16:1, a 3.3 ms attack](img/screen-mbcomp-band.png "MB COMP LOW")
-
-![MB COMP's GAIN part with the low soloed: the rest of the spectrum falls away](img/screen-mbcomp-solo.png "MB COMP solo")
-
-## 7. SYSTEM (GLO): MIDI, setup, screen effects, reset
-
-**GLO** opens SYSTEM: the slice blocks give way to the state of MIDI, and K1–K4 set it (SAVE keeps it); in EXPERT, K3 is
-the **METER** (below).
-**SELECT** (or ALGORITHM) turns to SETUP (0.9.2; GLO again goes back to HOME): the skins, the mode and AUTO SAVE; then DISPLAY, SCREEN FX, SCREEN SET, LIGHTS and RESET (below; left of MIDI: RESET). LOAF BREAKER has no Bluetooth: MIDI goes over USB and the TRS jack. On a computer the FM-1 shows as **LOAF BREAKER FM-1** (a MIDI device and, for recording, an audio input). The site's **Mirror** page (0.9.43) shows its screen and panel live on the computer over USB (Chrome or Edge): large, to record, and the panel played from the computer's mouse and keyboard. Its **Studio** page (0.9.43) is the whole FM-1 on the computer, as a DAW (Chrome or Edge, over USB). At the top the transport: PLAY / STOP (or Space), the tempo (drag it, roll the wheel, double-click to type it), the break, the pattern playing and the next, the track and its next DROP, the bar, the kick, SAVE (lit while something is unsaved). At the bottom the mix as it leaves the FM-1, scrolling by in RGB as HOME's CDJ view, its beats ticked. On the left its views: **Live** (the break's waveform with its slices and where it plays, the macros, the track and its next drop, a launcher of the 64 patterns), **Kick** (every part of the KICK menu, FX1 and FX2 and the EQ at once, KICK 1–20, its RGB waveform drawn again as you turn), **Drums** (the snare, hat and clap side by side), **Sequencer** (the break's 32 steps over its own waveform, the kick, snare, hat and clap over four bars: click a step to turn it on or off, then its NOTE, HITS, COND, NUDGE; a bar's FILL, CLEAR or 4×4; each lane's sound and LENGTH; a break step's SLICE, PITCH, REPEAT, REVERSE; UNDO is SEL + SAVE's), **Patterns** (the 64 as cards with their pictures: a click plays one next, a double click opens it), **Tracks** (each track as blocks on a timeline: drag patterns, DROPs and gaps in, drag a block to move it, Delete removes it, Ctrl+D doubles it; each block's loops, kick and break, a DROP's STUTTER and GAP KEEPS; the DROP and BUILD settings; where it starts, what it does at its end), **FX** (the chain's four slots as a rack, the sends), **Mix** (the levels as faders, the sends, the master, the dynamics), **ARP · Keys** (the ARP's effects, what each black key does) and **System** (setup, MIDI, HOME's settings, the groove, the break's own, the generator). Every knob is the FM-1's own: drag it, roll the wheel over it or use the arrows (Shift: five steps); its names, values and limits are the FM-1's, you hear each change at once and its screen stays on its page. RESET stays on the FM-1. Three designs (DESIGN: Loaf, Nexus, Acid); the waveforms' colours follow WAVE TYPE (REKORDBOX or SERATO).
-
-![SYSTEM: MIDI in and out](img/screen-global.png "SYSTEM")
-
-| Knob | Sets | |
-| --- | --- | --- |
-| K1 CLOCK IN | OFF · FOLLOW | Following, MIDI clock from USB or the TRS jack sets the tempo (the header says EXT; SELECT waits), START plays from bar 1, STOP stops, and the loop eases onto the clock's beat every beat. The clock is stamped where it lands, so the tempo it reads is steady |
-| K2 CLOCK OUT | OFF · ON | While playing, 24 clocks a beat (straight, whatever the swing); PLAY sends START, stopping sends STOP, HOME + PLAY sends START again |
-| K3 METER | OFF · ON | (EXPERT) CPU, IMG, FR in the header: the audio's load, the screen's |
-| PRESETS NOTES IN | ALL · DRUMS · OFF | (0.9.64) The MIDI notes the FM-1 takes in: ALL (as before: 48–63 the slices, 36–46 the drums), DRUMS (36–46 the drums alone), OFF (none: the clock, START and STOP alone). With a drum machine such as a TR-8S sending its notes, DRUMS or OFF: its crash (49), high tom (50) and ride (51) would otherwise hold slices and cut the break |
-| K4 | | (REC KEY, 0.9.58-0.9.69: gone in 0.9.70, FLEXOR; the REC button is set on ARP › BLACK, its last key) |
-
-The panel shows the clock coming in (its tempo, where from, running or stopped), the clock going out, and a light for
-MIDI in and out on each port. The FM-1 has no MIDI out jack: MIDI goes out over USB only.
-
-**The break's sound: pitch and snap (SOUNDS › BREAK: SEL + EDIT from the drums, or twice from the kick; ALGORITHM there: the break):**
-
-| Knob | Sets | |
-| --- | --- | --- |
-| K1 PITCH | KEEP LENGTH (the default) · SPEED | KEEP LENGTH changes the pitch only: each slice keeps its length (a granular pitch shift), so a key pitched +7 still fills its loop. SPEED is the classic repitch: up plays faster and shorter, down slower and longer (K1 left) |
-| K2 GRAIN | 10 … 80 ms | KEEP LENGTH's grains: shorter keeps hits tight, longer sounds smoother on held sounds |
-| K3 SNAP | OFF · 1/8 · 1/4 · 1/2 · 1 (the default) · 2 · 4 slices | Where a white key pressed while playing lands: at once (OFF), or at the next point of a grid that many slices apart, counted from the top of the pattern. The panel says what it is in this break (on the 2-bar breaks 1 slice = 1/8, 1/2 slice = 1/16, 2 slices = 1/4). Stopped, keys always play at once |
-| K4 LEVEL | 0 … 100 % | The break's level, the MIXER's BREAK (2 % a detent) |
-
-It covers every pitch in semitones: OCT, a key's pitch, the roll's pitch a repeat, the freeze's pitch, steps. The
-tempo's own repitch, HALF, REVERSE's speed and the tape stop stay speed effects.
-
-![RESET ALL done: the lobotomy screen](img/screen-lobotomized.png "LOBOTOMIZED")
-
-**SETUP (GLO, then SELECT):** its four settings top to bottom, K1 to K4. K1 **SKIN**, the screen's colours (RED to start; the
-whole screen changes at once), 24 chosen by FLEXOR, two rows of twelve swatches: CHROME, FIRE&ICE, CHOPPAH, GLOUPI,
-TESS, OUTRUN, THUNDER, CYBERPUNK, MC SALO, ACID, RED, GARRY, PIP-BOY, NEON, BLACKLIGHT, PATINA, SYNTHWAVE, MIAMI, ELECTRIC,
-ARCTIC, BREADCRUMBZ, IRIS, GLUCKSMAN, MAXENCE (an FM-1 updated from before keeps its colour, or the nearest left). **WAVE ZOOM** (K2 here until 0.9.1: SYSTEM › DISPLAY K3 now, PRESETS on HOME too), how much of the past HOME's scrolling wave (the
-CDJ view) holds across the screen: 1/2, 2/3, 5/6 of a bar (zoomed in), 1 BAR (as it was), 1 1/4, 1 1/2, 2 BARS (zoomed
-out). K2 **KICK EQ** (0.9.57, FLEXOR; EXPERT): right ON, left **OFF (FLAT)**: every kick's EQ (EQ B and EQ S, KICK 1–20) left out at once, the kicks heard flat, the EQs themselves untouched (the KICK EQ page says OFF); it is never saved: **ON again at every start**. K3 **MODE**: TUTORIAL (left of BEGINNER: the tutorial, above), BEGINNER or EXPERT (right). **BEGINNER** keeps
-each thing to its essentials, to play the machine before learning it: the **KICK** is three pages, EDIT again (or
-ALGORITHM) going round them: **KICK** (K1 **PRESET**, the built-in kicks; K2 **DISTO**; K3 **SUB DRIVE**, the SUB
-through its drive, OFF at the left; K4 **DRIVE**, the whole kick's), **SHAPE** (K1 **P DROP**, the pitch's fall at the
-hit; K2 **DROP TIME**, how long it falls; K3 **TAIL**, the SUB's length; K4 **TAIL MODE**, CLASSIC, CLEAN, SPLIT or DIRTY) and
-**MIX** (the four layers' levels: SUB, PUNCH, GRIT, CLICK), its pages as tabs at the picture's foot, the header's tabs
-the sounds, KICK, SN, HH, CP, **SELECT** going round them (on the drums' page too); the drums' page is PRESET, FX, LEVEL and DECAY; the **FX**
-chain has two slots and a short list on PRESETS, MAGIC EQ and MAGIC MBC at its end (above); FX again stays on MAIN;
-the MIXER has LEVELS and ROUTING; on SEQ, ALGORITHM goes round the lanes and SELECT through FULL, DRUMS and GROOVE as in EXPERT; on the drum lanes K1 is **FILL**, K2 the lane's sound, K3 CLR / 4X4, K4 **LENGTH**
-the kick's alone (16, 32 or 64 steps; turning BEGINNER on
-sets every kick and drum of the group to 32 (0.9.32, FLEXOR); a drum lane's LENGTH stays as it is, "LONGER: EXPERT MODE"), and a step held has no menu (the key just
-turns the step on or off); SONG is whole, as in EXPERT (0.9.22: every knob, ALGORITHM the items, PRESETS' BUILD KICK and TEMPO RISE); a white key held plays its loop with no knobs; the black keys keep the layout EXPERT left (0.9.23; a new FM-1
-starts on CHOPPAH's: R8 R16 R32 REV FRZ HLF VNL GAT RND FLT DUB; ARP › BLACK, to change it, is EXPERT's), each with its knobs as in EXPERT; a knob BEGINNER leaves out is drawn blank
-and says "EXPERT MODE" when turned; SOUNDS › BREAK keeps
-its LEVEL (K4; the pitch is OCT's) and PATTERN › GROOVE its SWING.
-Nothing is lost: EXPERT shows everything again, as it was left, and what BEGINNER sets is there to refine. A
-new FM-1, the web emulator and RESET ALL ask for the mode first (BEGINNER chosen to start; RESET ALL as a first start:
-its screen, the start screen, then the question); an FM-1 updated with its
-settings saved stays as it was.
-K4 **AUTO SAVE**, ON: what you change is saved by itself a minute after it changed, **never while PLAY runs**: once
-PLAY has been **stopped for 20 s** (0.9.26; a save holds the sound for a moment, so not while it plays nor just after
-the stop, while its tail rings; you can go on turning knobs and pressing keys meanwhile). SAVE saves at once.
-
-**METER** (EXPERT only: SYSTEM › MIDI, K3; not saved: off at every start, and in BEGINNER): once a second the header
-shows CPU (the share of its time the sound takes, average and peak: past ~85 % at its peak the sound is at its limit),
-IMG (the screen strips sent that second) and FR (how many times a second the interface went round: the higher, the
-quicker it answers). For telling what slows it down.
-
-**EFFECTS (GLO four times):** the screen effects, **several at once**: white keys **1–7** turn each on or off (lit
-while on), K1 points at one and K2 turns it on (right) or off (left). **CRT** (every other line dimmed, as an old
-tube), **VHS** (bands that slip sideways), **GRAIN** (specks that move), **RGB** (the red a few pixels off the rest), **SHAKE** (the screen jolts on the kicks and at the drop), **STROBE** (the colours turn over
-at the drop, and on the kicks when ON A KICK is past 50 %), **8-BIT** (fewer colours). VHS and RGB together, for one.
-**K3 DRUM FILTER** (0.9.67, FLEXOR; not a screen effect either) is the drums' filter's kind (SEL + SELECT, HOME's
-DRUM FLT): **CLASSIC** (as it always was: 12 dB/oct, an even sweep, 50 Hz to 6.4 kHz high-pass, 18 kHz to 80 Hz
-low-pass), **SMOOTH** (as a club DJ mixer's filter: 12 dB/oct with no peak, the first part of the turn moving it
-little, 30 Hz to 3.8 kHz, 20 kHz to 160 Hz), **SOFT** (6 dB/oct, the gentlest: 30 Hz to 1.9 kHz, 20 kHz to 250 Hz),
-**RESO** (CLASSIC's range with a resonant peak, about +7 dB at the cutoff). At half a turn of the high-pass, 200 Hz
-loses 18 dB in CLASSIC, under 2 dB in SMOOTH and SOFT. An older save keeps CLASSIC. In SMOOTH a detent of SEL + SELECT moves the filter two steps (0.9.68, FLEXOR: quicker under the hand).
-**K4 KICK SWITCH** (0.9.64, not a screen effect: the page had the knob free) is what happens to the drums' filter
-(SEL + SELECT, HOME's DRUM FLT) when KIL brings the kicks back: **SMART** (the start) puts it OFF, unless you turned it
-while the kicks were quiet: then the kicks come back through it, as you set it; **FLT OFF** always OFF (as 0.9.50 to
-0.9.63); **FLT KEEP** never touches it.
-The waves' colours are SYSTEM › DISPLAY's WAVE TYPE: **RGB** (rekordbox's: the three bands mixed, white where they all
-are; REKORDBOX until 0.9.69), **SERATO** (the bands as one hue from red through yellow and green to blue, never white),
-**3 BAND** (rekordbox's 3-band: the lows blue and widest behind, the mids orange, the highs white in front) or **BLUE**
-(rekordbox's classic: blue, paler where there are highs; 0.9.70, FLEXOR, the last two). They colour the CDJ view, the
-kick's and the drums' pictures. **PRESETS** on DISPLAY picks the **strip** over the master's wave (the whole break, its
-slices ticked at the top, the slice sounding lit): **RGB** (the start), **3 BAND**, **BLUE**, **SERATO**, each by the
-level as heard (the hits stand out) over a grid of the beats (the bar's first brighter), or **GREY**, as it was until
-0.9.69 (0.9.70, FLEXOR). RESET › SCREEN puts it back to RGB. **EDIT VIEW** (KICK › KNOBS ›
-TOOLS, **K3**, since 0.9.29; on this page before):
-what the KICK menu's picture shows, **THE WHOLE KICK** (left) or **THE PART EDITED** (right): on a layer's page (SUB,
-PUNCH, GRIT, CLICK, their effects) that layer alone, CLICK over 50 ms and PUNCH over 150 (the time at the top right),
-STACK its attack's kick, the TAIL section the whole tail over a second; the other parts the whole kick.
-**DRUM VIEW ZOOM** (KICK › KNOBS › TOOLS, **K4**, "DRUM ZOOM"): how much time EDIT's pictures show, the kick's and the drums': **AUTO** (as above: the
-kick 500 ms in RGB, 250 in WAVE, each part its own with EDIT VIEW PART; a drum its decay and a bit), or **250 MS**,
-**500 MS**, **750 MS**, **1 S**, **1.5 S**, **2 S** for every picture (zoomed out: a long hardcore tail seen whole). The time shows
-under the pitch, top right of the kick's picture. On the FM-1 a longer picture takes longer to work out: at 2 S it follows a
-knob less smoothly (the sound is never touched). RESET's SCREEN puts it back on AUTO.
-
-**SCREEN SET (GLO five times):** the effects' settings, for all those on: K1 **AMOUNT**, K2 **ON A KICK** (how hard each kick
-shows; 0: nothing), K3 **AT THE DROP** (how hard the drop shows; 0: nothing), K4 **LENGTH** (how long those moments last:
-50 % as given, 0 half, 100 % half as long again). 5 % a detent; 50 % each to start.
-
 **LIGHTS** (0.9.57, FLEXOR; after SCREEN SET): the FM-1's lights. They have four levels, each with a meaning: **off**,
 the **glow** (at rest: there, it does something), **mid** (assigned, or where the sequencer is) and **lit** (on,
 playing). Every button and key glows at rest (the keys too, since 0.9.57); a lit one is lit; on a lane's page (SEQ, a
 drum lane) the step playing is at mid (it was the step's light turned over); while SEL is held or locked the black keys
-with a SEL BLACK function, the white keys with a SEL WHITE shortcut and the buttons with a SEL combination (EDIT, SEQ,
+with a SEL BLACK function and the buttons with a SEL combination (EDIT, SEQ,
 ENV, ARP, REC, SAVE) are at mid. The page shows the FM-1's lights as they are now, the buttons, the black keys and the
 white keys, live.
 - **K1 GLOW**: how bright the lights at rest are: **OFF** (only the lit and mid ones), **1** to **7** (6, as the
@@ -945,8 +635,8 @@ came); **MIX** (the MIXER: levels, swing, the drums' route, COMP and DUCK off wi
 **FX CHAIN** (the four slots as they came, each effect's memory forgotten, the FX level kept); **STEPS** (this
 pattern's drum steps: 1 hit, ALWAYS, on time; the steps themselves kept); **BLACK KEYS** (their settings: rolls,
 THRU, filter, gate, VINYL, the LATCHES, KIL's and X2's too; the layout kept); **ARP** (0.9.52: the sixteen effects'
-AMOUNT, each one's THRU, RATE, SWEEP, LATCH off, every ARP key one effect); **WHITE KEYS** (each: one slice, pitch 0,
-LOOP, no DECAY, its slice effect off); **SEL KEYS** (0.9.52: SEL + a black key its own again, SEL + a white key NONE); **KITS** (0.9.54: all sixteen EMPTY);
+AMOUNT, each one's THRU, RATE, SWEEP, LATCH off, every ARP key one effect); **WHITE KEYS** (each, on every break: one slice, pitch 0,
+LOOP, no DECAY, its slice effect off); **SEL KEYS** (0.9.52: SEL + a black key or REC its own again);
 **TRACK** (this track: from its first item, every item's break SAME; its items kept); **SCREEN** (the skin RED, the
 screen effects off, their settings at 50 %, WAVE ZOOM one bar; the LIGHTS as they came, 0.9.57); **WIPE MEMORY** (before installing another firmware: every save LOAF BREAKER keeps in the FM-1's memory erased, a sector at a time while the screen counts to 40, playing stopped first; then MEMORY WIPED, and nothing is saved again until the FM-1 restarts: install the other firmware next, and it finds that memory blank); and last **EVERYTHING**: RESET ALL, everything back
 to how it came (tempo, generator, FX chain, the drums, mixer, keys, slices, SYSTEM, the tracks and all 64 patterns; the

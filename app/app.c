@@ -284,7 +284,6 @@ static uint32_t arp_mask(uint32_t r)     /* (the effects THRU r: bit OV_*) */
 static uint32_t bk_seq(void) { return (set.bkeys.bk[BK_SEQ] & 0xF0u) == 0xD0u ? set.bkeys.bk[BK_SEQ] & 15u : 0u; }
 static uint32_t notes_in(void);
 static uint32_t vnl_lat(void);
-static uint32_t swk_bit(void);
 static uint32_t bk_lat(void)             /* (bit 4 VINYL BREAK's, 0.9.64, FLEXOR: in set.rsv6[2] bit 2) */
 {
     return ((set.bkeys.bk[BK_PLAT] & 0xF0u) == 0xA0u ? set.bkeys.bk[BK_PLAT] & 15u : 0u) | vnl_lat() << 4;
@@ -292,7 +291,7 @@ static uint32_t bk_lat(void)             /* (bit 4 VINYL BREAK's, 0.9.64, FLEXOR
 static void bk_lat_put(uint32_t m)
 {
     set.bkeys.bk[BK_PLAT] = (uint8_t)(0xA0u | (m & 15u));
-    set.rsv6[2] = (uint8_t)(0xA0u | notes_in() | (m >> 4 & 1u) << 2 | swk_bit() << 3);
+    set.rsv6[2] = (uint8_t)(0xA0u | notes_in() | (m >> 4 & 1u) << 2);
 }
 static uint32_t bk_fthru(void)
 {
@@ -446,19 +445,68 @@ typedef struct {
     struct { uint8_t kick, brk, pat; } kit[16];
     uint8_t selrec;                      /* (appended, 0.9.70, FLEXOR: the REC key's SEL function, 1 + BKF_* but ARP, 0
                                           * none; a shorter save: none) */
+    uint8_t rsv3;
+    uint16_t wk[24][BRK_KEYS];           /* (appended, 0.9.71, FLEXOR: "que les réglages des white keys restent sur les
+                                          * breaks": each break's white keys, LENGTH, PITCH, MODE, DECAY (wk_pack), break
+                                          * 0..23 (WK_NB); a shorter save: every break as the keys were saved) */
 } kx2_t;
 #define KIT_BPM0 32u                     /* (rsv[32..47]: the kits' tempo; rsv[0..31] SEL WHITE's) */
 static kx2_t kx2 PLAT_POOL;
 static kick_x2_t *kx2_at(uint32_t k) { return &kx2.m[k % KICK_MEMS]; }
+/* LOAF BREAKER (0.9.71, FLEXOR: each break its own white keys, "afin de mieux chopper"): set.keys holds the break
+ * playing's (wk_brk), the others in kx2.wk, packed: LENGTH bits 0-3, DECAY 4-7, MODE 8-9, PITCH + 12 10-14, bit 15 set.
+ * A break change stores the keys into their break and reads the next one's (wk_follow); SAVE keeps them all (OBJ_KX2) */
+#define WK_NB 24u
+#define WK_SET 0x8000u
+static uint8_t wk_brk = 0xFFu;           /* (the break whose keys set.keys holds; 0xFF: none yet) */
+static uint16_t wk_pack(const brk_keyset_t *k)
+{
+    uint32_t p = (uint32_t)clamp(k->pitch, -12, 12) + 12u;
+    return (uint16_t)(WK_SET | (k->len & 15u) | (uint32_t)(k->start >> 4 & 15u) << 4 | (uint32_t)(k->mode & 3u) << 8 |
+                      p << 10);
+}
+static void wk_unpack(uint32_t v, brk_keyset_t *k)
+{
+    k->len = (uint8_t)((v & 15u) < BRK_KEY_LENS ? v & 15u : 3u);
+    k->start = (uint8_t)((v >> 4 & 15u) << 4);
+    k->mode = (uint8_t)(v >> 8 & 3u);
+    k->pitch = (int8_t)((int32_t)(v >> 10 & 31u) - 12);
+}
+static void wk_fill(void)                /* (every break's keys as set.keys: an older save, RESET) */
+{
+    uint32_t b, k;
+    for (b = 0; b < WK_NB; b++)
+        for (k = 0; k < BRK_KEYS; k++)
+            kx2.wk[b][k] = wk_pack(&set.keys[k]);
+}
+static void wk_store(void)               /* (the keys into their break: before a change, before SAVE) */
+{
+    uint32_t k;
+    if (wk_brk < WK_NB)
+        for (k = 0; k < BRK_KEYS; k++)
+            kx2.wk[wk_brk][k] = wk_pack(&set.keys[k]);
+}
+static void wk_follow(void)              /* (the keys to the break chosen, set.brk: its own, to the engine at once) */
+{
+    uint32_t k;
+    if (set.brk == wk_brk)
+        return;
+    wk_store();
+    wk_brk = set.brk;
+    if (wk_brk >= WK_NB)
+        return;
+    for (k = 0; k < BRK_KEYS; k++) {
+        if (kx2.wk[wk_brk][k] & WK_SET)
+            wk_unpack(kx2.wk[wk_brk][k], &set.keys[k]);
+        else
+            brk_keyset_defaults(&set.keys[k]);
+        brk_keyset(k, &set.keys[k]);
+    }
+}
 static void kx2_defaults(void)           /* (the kicks' TOK and TAIL GATE; the SEL layer kept) */
 {
     memset(&kx2.m, 0, sizeof kx2.m);
     kx2.magic = KX2_MAGIC;
-}
-static void kits_clear(void)             /* (0.9.54: every KIT empty, KEEP) */
-{
-    memset(kx2.kit, 0, sizeof kx2.kit);
-    memset(kx2.rsv + KIT_BPM0, 0, 16u);
 }
 /* LOAF BREAKER (0.9.58, FLEXOR): KILL BREAK, a black key: the break out, as K1 MODE says: FADE (over K2 TIME), CUT (at
  * once), BAR END (at the bar's end, its last 8th thrown into the reverb, K3 REVERB: the chain's REVERB, or the plate
@@ -495,13 +543,10 @@ static const char *const NI_NAME[NI_N] = {"ALL", "DRUMS", "OFF"};
 static uint32_t notes_in(void) { return (set.rsv6[2] & 0xF0u) == 0xA0u && (set.rsv6[2] & 3u) < NI_N ? set.rsv6[2] & 3u : NI_ALL; }
 static uint32_t vnl_lat(void) { return (set.rsv6[2] & 0xF0u) == 0xA0u ? set.rsv6[2] >> 2 & 1u : 0u; }   /* (0.9.64: bit 2,
                                           * VINYL BREAK's LATCH, its K2) */
-static void notes_in_put(uint32_t m) { set.rsv6[2] = (uint8_t)(0xA0u | m % NI_N | vnl_lat() << 2 | swk_bit() << 3); }
+static void notes_in_put(uint32_t m) { set.rsv6[2] = (uint8_t)(0xA0u | m % NI_N | vnl_lat() << 2); }
 /* (0.9.70, FLEXOR: "pour activer SEL WHITE, une option dans GLO"; off for every mode, on only in EXPERT) SYSTEM › SETUP's
  * PRESETS: the SEL WHITE shortcuts (SEL + a white key) on or off, set.rsv6[2] bit 3; untagged (a new FM-1, RESET ALL,
  * a save from before): OFF */
-static uint32_t swk_bit(void) { return (set.rsv6[2] & 0xF0u) == 0xA0u ? set.rsv6[2] >> 3 & 1u : 0u; }
-static uint32_t swk_on(void) { return !set.novice && swk_bit(); }
-static void swk_put(uint32_t on) { set.rsv6[2] = (uint8_t)(0xA0u | notes_in() | vnl_lat() << 2 | (on ? 8u : 0u)); }
 static uint32_t kb_rev(void) { return (kx2.rsv[KB_RSV] & 0xC0u) == KB_TAG && kx2.rsv[KB_RSV + 1u] <= 100u ? kx2.rsv[KB_RSV + 1u] : 60u; }
 static void kb_put(uint32_t mode, uint32_t latch, uint32_t time, uint32_t rev)
 {
@@ -521,16 +566,11 @@ static uint32_t rec_fn(void)             /* (its own, whatever the layout, 0.9.7
     return kx2.rsv[RK_RSV] & 0x80u && f < BKF_N && f != BKF_ARP ? f : BKF_KBR;
 }
 static uint32_t nbk(void) { return 12u; }   /* (the black keys, REC's with them: always since 0.9.70) */
-static uint32_t kit_bpm(uint32_t k)      /* (its tempo, tenths of a BPM; 0 KEEP) */
-{
-    uint32_t v = kx2.rsv[KIT_BPM0 + k % 16u];
-    return v ? (v + 49u > 300u ? 300u : v + 49u) * 10u : 0u;
-}
 static void selk_clear(void)             /* (0.9.49: the SEL layer, none: RESET ALL, RESET's PADS) */
 {
     memset(kx2.selk, 0, sizeof kx2.selk);
     kx2.selrec = 0u;
-    memset(kx2.rsv, 0, KIT_BPM0);        /* (SEL WHITE's 32 bytes; the kits' tempo kept, 0.9.54) */
+    memset(kx2.rsv, 0, KIT_BPM0);        /* (SEL WHITE's 32 bytes, unused since 0.9.71) */
 }
 /* LOAF BREAKER (0.9.55, FLEXOR): the ARP's 16 effects in a new order, WAH, WOBBLE and REESE gone, KICK X2, X4, TRI last.
  * A save from before (bk[23] untagged or 0x7C): each effect's AMOUNT and THRU, the ARP keys' effects and SEL WHITE's
@@ -566,9 +606,6 @@ static void ovl_order_fix(void)
             set.rsv2[j] = (uint8_t)(MAP[set.rsv2[j] & 15u] | MAP[set.rsv2[j] >> 4] << 4);
         set.rsv2[6] = (uint8_t)((set.rsv2[6] & 0xF0u) | MAP[set.rsv2[6] & 15u]);
     }
-    for (k = 0; k < 16u; k++)            /* (SEL WHITE's EFFECT keys: kind 4, ovl.c SW_FX) */
-        if (kx2.rsv[2u * k] == 4u)
-            kx2.rsv[2u * k + 1u] = MAP[kx2.rsv[2u * k + 1u] & 15u];
 }
 static uint32_t selb_fn(uint32_t j)      /* (black key j's SEL function, 1 + BKF_*; 0: none) */
 {
@@ -1307,7 +1344,8 @@ static int store_all(void)               /* SAVE: the settings, the patterns (th
            plat_store_save(OBJ_KLAB, &klab, sizeof klab) == 0 &&
            plat_store_save(OBJ_KMEM2, &km2, sizeof km2) == 0 &&   /* (KICK 11..20, 0.9.2) */
            (kfx_put(set.kslot), plat_store_save(OBJ_KFXM, &kfxm, sizeof kfxm) == 0) &&   /* (each kick's FX, 0.9.26) */
-           plat_store_save(OBJ_KX2, &kx2, sizeof kx2) == 0;   /* (each kick's TOK and TAIL GATE, 0.9.45) */
+           (wk_store(), plat_store_save(OBJ_KX2, &kx2, sizeof kx2) == 0);   /* (each kick's TOK and TAIL GATE, 0.9.45; each
+                                          * break's white keys, 0.9.71) */
 }
 /* LOAF BREAKER: the kick memory k's knobs from the ones playing (kx_put), the ones playing from k's (kx_get); kx_all:
  * every memory's as the ones playing (an older save, RESET ALL) */
@@ -2063,13 +2101,15 @@ void app_init(void)
                                           * shorter one, before the SEL layer: none) */
         int sz = plat_store_size(OBJ_KX2);
         selk_clear();
-        kits_clear();
         if (sz < (int)offsetof(kx2_t, selk) || sz > (int)sizeof kx2 ||
             plat_store_load(OBJ_KX2, &kx2, (uint32_t)sz) != sz || kx2.magic != KX2_MAGIC) {
             kx2_defaults();
             selk_clear();
-            kits_clear();
+            sz = 0;
         }
+        if (sz < (int)sizeof kx2)        /* (0.9.71: a save before each break's white keys: every break as the keys were) */
+            wk_fill();
+        wk_brk = set.brk;
     }                 /* (LOAF BREAKER: a save before the KICK LAB: every kick as it sounded) */
     {                                    /* (LOAF BREAKER, 0.9.2: KICK 11..20; a save before them: as they begin; the
                                           * KICK LAB's line above may have cleared their LAB: theirs read after) */

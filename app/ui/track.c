@@ -20,10 +20,10 @@ static const char *const BFROM_NAME[3] = {"BUILD START", "HALF WAY", "LAST QUART
 #define RST_ON (ui.page == PG_GLOBAL && ui.gpage == 5u)   /* (GLO RESET: drawn and turned by ENV's code here) */
 /* RESET (ENV's last part): K1 what (a list: more to come), K4 turned right twice within 3 s: back to the start */
 enum { RST_DROP, RST_BUILD, RST_KNOB, RST_KICK, RST_KTONE, RST_KICKS, RST_DRUMS, RST_MIX, RST_FX, RST_STEPS, RST_PADS,
-       RST_ARP, RST_KEYS, RST_SELK, RST_KITS, RST_TRACK, RST_SCREEN, RST_WIPE, RST_ALL, NRST };   /* (0.9.52, FLEXOR: PADS BLACK
+       RST_ARP, RST_KEYS, RST_SELK, RST_TRACK, RST_SCREEN, RST_WIPE, RST_ALL, NRST };   /* (0.9.52, FLEXOR: PADS BLACK
                                           * KEYS, KEYS WHITE KEYS; ARP and SEL KEYS their own) */   /* (RST_WIPE: 0.263, FLEXOR; EVERYTHING last) */   /* (LOAF BREAKER: ALL, RESET ALL, was the PITCH part's K4) */
 static const char *const RST_NAME[NRST] = {"DROP", "BUILD", "KNOB", "KICK", "KICK TONE", "ALL KICKS", "DRUMS", "MIX",
-                                           "FX CHAIN", "STEPS", "BLACK KEYS", "ARP", "WHITE KEYS", "SEL KEYS", "KITS", "TRACK",
+                                           "FX CHAIN", "STEPS", "BLACK KEYS", "ARP", "WHITE KEYS", "SEL KEYS", "TRACK",
                                            "SCREEN", "WIPE MEMORY", "EVERYTHING"};
 static const char *const RST_WHAT[NRST] = {"BUILD 4 BARS, NEXT PATTERN, SAME BREAK, CRASH 100%",
                                           "SNARE ROLL, HIGH-PASS, RISER 100%, NO GAP, THE BREAK STILL, THE GAP KEEPS NOTHING",
@@ -38,8 +38,7 @@ static const char *const RST_WHAT[NRST] = {"BUILD 4 BARS, NEXT PATTERN, SAME BRE
                                           "ROLLS, THRU, FILTER, GATE, VINYL, THEIR LATCHES (KIL AND X2 TOO); THE LAYOUT KEPT",
                                           "THE 16 EFFECTS: AMOUNT, THRU, RATE, SWEEP, LATCH OFF; EACH ARP KEY ONE EFFECT",
                                           "EACH: ONE SLICE, PITCH 0, LOOP, NO DECAY, ITS SLICE EFFECT OFF",
-                                          "SEL + A BLACK KEY: ITS OWN; SEL + A WHITE KEY: NONE",
-                                          "THE 16 KITS EMPTY: KICK, BREAK, BPM, PATTERN ALL KEEP",
+                                          "SEL + A BLACK KEY OR REC: ITS OWN",
                                           "THIS TRACK: FROM ITEM 1, EVERY ITEM'S BREAK SAME",
                                           "SKIN RED, SCREEN EFFECTS OFF, THEIR SETTINGS 50%, WAVE ZOOM 1 BAR, DRUM VIEW ZOOM AUTO, THE LIGHTS",
                                           "ALL LOAF BREAKER SAVES ERASED, FOR ANOTHER FIRMWARE: INSTALL IT NEXT",
@@ -239,11 +238,8 @@ static void reset_do(uint32_t w)
         set.ovl_sweep = 2u;
         set.ovl_latch = 0u;
         ovl_push();
-    } else if (w == RST_SELK) {          /* (0.9.52, FLEXOR) SEL KEYS: SEL BLK's and SEL WHITE's, none */
+    } else if (w == RST_SELK) {          /* (0.9.52, FLEXOR) SEL KEYS: SEL BLACK's, none (SEL WHITE's until 0.9.70) */
         selk_clear();
-        set_dirty = 1u;
-    } else if (w == RST_KITS) {          /* (0.9.54, FLEXOR) KITS: all 16 empty */
-        kits_clear();
         set_dirty = 1u;
     } else if (w == RST_KEYS) {          /* WHITE KEYS: each one's loop (LENGTH, PITCH, MODE, DECAY) and slice effect as
                                           * they came */
@@ -252,6 +248,7 @@ static void reset_do(uint32_t w)
             brk_keyset_defaults(&set.keys[k]);
             brk_slicefx_defaults(&set.slx[k]);
         }
+        wk_fill();                       /* (0.9.71: every break's, not only this one's) */
     } else if (w == RST_TRACK) {         /* TRACK: this track from its first item, each item's break SAME (its items
                                           * kept) */
         uint32_t k;
@@ -503,8 +500,6 @@ static void build_click(void)
 
 /* PLAY: the track from its first item (TRK_FROM; a DROP there: the pattern after it), from bar 1; HOME (home: 0, from
  * TRACKS: it stays) */
-static uint8_t trk_want;                 /* (0.9.63: SEL WHITE's TRACK n + 1 waiting for the break's loop end, 0 none) */
-static uint8_t trk_seam;                 /* (track_play at the loop's end: the pattern's first step next, no restart) */
 static void track_play(int home)
 {
     const track_t *t = trk_now();
@@ -520,9 +515,7 @@ static void track_play(int home)
     pat_apply();
     trk_brk_go((uint32_t)i);             /* (its break) */
     trk_kick_go((uint32_t)i, 1);         /* (LOAF BREAKER: its kick) */
-    if (playing_now() && trk_seam)
-        brk_rewind();                    /* (0.9.63: at the break's loop end, its step 1 next, no cut) */
-    else if (playing_now())
+    if (playing_now())
         transport(1, 1);                 /* (from bar 1) */
     else {
         brk_reset();

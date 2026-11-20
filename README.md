@@ -54,7 +54,7 @@ Built on [fm1-base](https://github.com/charlesvestal/fm1-base) (MPL-2.0). No Blu
 
 ![Live: TRACKS, PLAY (the radio), a build before the drop, a step's HITS, the MASTER (COMP, DUCK, MAX OUT), the pattern](docs/img/live.png)
 
-![The newest menus: ARP's sixteen effects (each on the break or the kick), SEL BLACK, SEL WHITE, KITS, SONG › BUILD BRK, AFTER DROP SAME, MIX › ROUTING, the FX page's FX MIX, SYSTEM › DISPLAY, RESET, the kick's tail GATE, SYSTEM › LIGHTS](docs/img/menus.png)
+![The newest menus: ARP's sixteen effects (each on the break or the kick), SEL BLACK, the kick's TAIL MODE SPLIT, a white key's LENGTH (each break its own), SONG › BUILD BRK, AFTER DROP SAME, MIX › ROUTING, the FX page's FX MIX, SYSTEM › DISPLAY, RESET, the kick's tail GATE, SYSTEM › LIGHTS](docs/img/menus.png)
 
 - **The manual**: [online](https://flexor-r.github.io/loaf-breaker/manual/), or [app/docs/MANUAL.md](app/docs/MANUAL.md)
 - **Download the firmware**: [releases](../../releases) (`loaf-breaker-X.YY.fwsc`), each release also carries the

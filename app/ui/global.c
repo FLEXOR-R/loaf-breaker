@@ -146,17 +146,6 @@ static void notes_in_turn(int32_t d)
             ? "DRUMS ONLY: 36-46" : "OFF: CLOCK ALONE");
     ui.redraw |= RG_BLOCKS;
 }
-static void swk_turn(int32_t d)         /* (0.9.70, FLEXOR) SYSTEM › SETUP's PRESETS: SEL WHITE on / off, EXPERT only */
-{
-    if (set.novice) {
-        easy_no();
-        return;
-    }
-    swk_put(d > 0 ? 1u : 0u);
-    set_dirty = 1u;
-    app_say("SEL WHITE", swk_on() ? "ON: SEL + WHITE KEYS" : "OFF");
-    ui.redraw |= RG_BLOCKS;
-}
 /* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's BREAK its LEVEL alone (K4; the pitch: OCT), GROOVE its SWING alone */
 static int glo_knob_ok(int i)
 {
@@ -509,8 +498,6 @@ static void draw_global(const brk_status_t *st)
         cv_text(96, 2, &FONT_T, set.auto_save ? "ON" : "OFF", set.auto_save ? C_HI : C_DIM);
         cv_text(96, 16, &FONT_XS, "A MINUTE AFTER A CHANGE,", C_DIM);
         cv_text(96, 28, &FONT_XS, "ONCE STOPPED 20 S", C_DIM);
-        cv_text(6, 40, &FONT_T, "PRESETS SEL WHITE", C_GRAY);   /* (0.9.70, FLEXOR: the SEL WHITE shortcuts, EXPERT) */
-        cv_text(96, 40, &FONT_T, set.novice ? "EXPERT" : swk_bit() ? "ON" : "OFF", !set.novice && swk_bit() ? C_HI : C_DIM);
         cv_blit(0, 140);
         return;
     }
