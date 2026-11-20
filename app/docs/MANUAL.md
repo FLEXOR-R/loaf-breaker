@@ -329,7 +329,7 @@ hard turn deletes one item, not the ones moving into its place, 0.9.26),
   before; a DROP's build starts at the next bar. **SEL + ENV** while a track plays drops into its next pattern and the
   track goes on from there. PLAY again stops it.
 - **DROP**: **K1** the build: NONE (the bar playing ends in the drop), 1, 2, 4 or 8 bars; **K2** the pattern a SEL + ENV
-  drop brings in (NEXT, SAME: the pattern playing again from its start, 0.9.55, FLEXOR, or P1–P64); **K3** the break it brings in (SAME, or one of the bank's); **K4** the crash's
+  drop brings in (NEXT, SAME: the pattern playing again from its start, 0.9.55, FLEXOR, or P1–P64); **K3** the break it brings in (SAME, **NEXT**: the break after the one playing, round, so each drop brings in a new one, 0.9.71, FLEXOR; or any break, the firmware's and yours); **K4** the crash's
   level; **PRESETS: BUILD KICK**, the kick the build plays (SAME, or KICK 1–20: for its kick roll, say), the one
   before back at the drop (a track's DROP item: its own, TRACKS K1).
 - **BUILD**: how the build before a drop sounds, so drops don't all sound alike. **K1 STYLE**: SNARE ROLL (the

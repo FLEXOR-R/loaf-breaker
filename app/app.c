@@ -118,7 +118,7 @@ typedef struct {
     uint8_t pslot[3];                    /* the memory playing, PV_SNARE..PV_CLAP 0..9 (SNARE 1..10...): perc_voice() is
                                           * it (the stab's: sslot) */
     uint8_t drop_brk;                    /* LOAF BREAKER (crossbreed): the break a drop brings in, 1.. (0: the same one;
-                                          * MORE's K4) */
+                                          * MORE's K4; DBRK_NEXT, 0.9.71: the next one) */
     perc_voice_t pmem[3][PERC_MEMS];     /* each as left (PRESETS on EDIT; the stab's: smem) */
     /* (appended: LOAF BREAKER's LIMIT; an older save's: off) */
     uint8_t comp;                        /* SEL + K3: COMP, the whole mix compressed, 0 off .. 100 (its threshold 0 ..
@@ -215,6 +215,7 @@ typedef struct {
 static uint32_t brk_view(void);          /* (below: set is declared after) */
 /* (LOAF BREAKER, 0.244: FILL gone, set.fill_cfg unused) */
 #define DROP_SAME 0xFFu                  /* (0.9.55, FLEXOR: AFTER DROP SAME, the pattern playing again) */
+#define DBRK_NEXT 0xFFu                  /* (0.9.71, FLEXOR: DROP BREAK NEXT, the break after the one playing, round) */
 enum { DS_SNARE, DS_KICK, DS_BOTH, DS_STUTTER, DS_SWEEP, DS_RANDOM, DS_N };
 static const uint8_t DROP_GAP[5] = {0u, 1u, 2u, 4u, 8u};   /* its steps: none, a 16th, an 8th, a beat, half a bar */
 static const float COMP_RATIO[8] = {1.5f, 2.0f, 3.0f, 4.0f, 6.0f, 8.0f, 12.0f, 20.0f};

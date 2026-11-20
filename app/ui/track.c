@@ -627,7 +627,9 @@ static uint32_t trk_drop_brk(void)
 {
     uint32_t b = ui.trk_on && ui.trk_drop != 0xFFu ? *trk_brk(ui.trk_drop) : 0u;
     if (!b || b > n_breaks)
-        b = set.drop_brk <= n_breaks ? set.drop_brk : 0u;
+        b = set.drop_brk == DBRK_NEXT && n_breaks ? (set.brk + 1u) % n_breaks + 1u   /* (0.9.71, FLEXOR: NEXT, the break
+                                          * after the one playing, round) */
+            : set.drop_brk <= n_breaks ? set.drop_brk : 0u;
     return b;
 }
 /* the drop came (the main loop, drop_n): a track's on from the pattern it went to */
@@ -1184,7 +1186,9 @@ static void track_value(int i, char *t)
                 int_text(set.drop_after, t + 1);
             }
         } else if (i == 2) {
-            if (!set.drop_brk || set.drop_brk > n_breaks)
+            if (set.drop_brk == DBRK_NEXT)
+                text_cat(t, "NEXT");
+            else if (!set.drop_brk || set.drop_brk > n_breaks)
                 text_cat(t, "SAME");
             else
                 text_cat(t, break_name(set.drop_brk - 1u));
@@ -1350,8 +1354,11 @@ static void track_turn(int i, int32_t d)
             p = clamp(p + dir, -1, (int32_t)NPAT_ALL);
             set.drop_after = (uint8_t)(p < 0 ? (int32_t)DROP_SAME : p);
         }
-        else if (i == 2)
-            set.drop_brk = (uint8_t)clamp((int32_t)set.drop_brk + dir, 0, (int32_t)n_breaks);
+        else if (i == 2) {               /* (0.9.71, FLEXOR: SAME, NEXT, then each break, as AFTER DROP) */
+            int32_t p = set.drop_brk == DBRK_NEXT ? 1 : set.drop_brk && set.drop_brk <= n_breaks ? set.drop_brk + 1 : 0;
+            p = clamp(p + dir, 0, (int32_t)n_breaks + 1);
+            set.drop_brk = (uint8_t)(p == 1 ? (int32_t)DBRK_NEXT : p > 1 ? p - 1 : 0);
+        }
         else
             set.drop_crash = (uint8_t)clamp((int32_t)set.drop_crash + d * 5, 0, 100);
         changed();
