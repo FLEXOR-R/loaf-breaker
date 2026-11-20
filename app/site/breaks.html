@@ -4,7 +4,7 @@
      the repository's breaks to hear (lib/, tools/break_lib.py) and yours on the FM-1 (two places, four in each), after the ones
      built in, from the library or from a sample. tools/site_style.py puts it at breaks/ on
      the site, with the site's style and header. A sample is made into a break here exactly as the built-in ones are
-     (tools/prep_breaks.py: two bars, levelled to -16 LUFS (as heard) with a look-ahead limiter, at most 22.05 kHz, sixteen slices
+     (tools/prep_breaks.py: two bars, levelled to -12 LUFS (as heard; -16 until 0.9.70) with a look-ahead limiter, at most 22.05 kHz, sixteen slices
      snapped to the hits, IMA ADPCM, a bank of one slot) and written over Web MIDI SysEx (ui/main.c app_sysex: F0 7D 43
      48 CMD 7-bit-packed DATA F7). The preview plays the ADPCM decoded again: what the FM-1 will play. -->
 <html lang="en">
@@ -134,7 +134,7 @@ computer.</p>
 
 <section class="card" aria-labelledby="h-lib">
   <h2 id="h-lib">3. The library</h2>
-  <p class="sub">Every break of the project, made exactly as the FM-1 holds them: two bars, levelled, sixteen slices (FLEXOR's louder and on an even grid, as in the firmware).</p>
+  <p class="sub">Every break of the project, made exactly as the FM-1 holds them: two bars, levelled, sixteen slices on an even grid, all at the same level, as in the firmware (0.9.70).</p>
   <div class="chips" id="chips" role="group" aria-label="Show"></div>
   <input type="text" class="search" id="search" placeholder="Search a name or a tempo" aria-label="Search the library">
   <div class="list" id="lib" style="margin-top:12px"><p class="empty">Loading the library…</p></div>
@@ -155,8 +155,8 @@ computer.</p>
       <label class="f">Bars in the file<select id="bars"><option>1</option><option selected>2</option><option>4</option><option>8</option><option>16</option></select></label>
       <label class="f">Use bars<select id="start"></select></label>
       <label class="f">Tempo (BPM)<input type="number" id="bpm" min="40" max="300" step="0.01"></label>
-      <label class="f">Slices<select id="snap"><option value="1" selected>On the hits</option><option value="0">Even grid</option></select></label>
-      <label class="f">Level<select id="level"><option value="1" selected>As the built-in breaks</option><option value="2">DJ master (−12 LUFS, as FLEXOR's)</option><option value="0">Loudest at full scale</option></select></label>
+      <label class="f">Slices<select id="snap"><option value="0" selected>Even grid</option><option value="1">On the hits</option></select></label>
+      <label class="f">Level<select id="level"><option value="1" selected>As the built-in breaks (−12 LUFS)</option><option value="0">Loudest at full scale</option></select></label>
     </div>
     <div class="facts" id="facts"></div>
     <div class="wave"><canvas id="wave" width="1100" height="150" aria-label="Your break: its waveform and slices"></canvas></div>
@@ -249,7 +249,7 @@ function limit(y, rate, ceiling) {         /* look-ahead (2 ms) limiter, 40 ms r
   }
   return [out, most];
 }
-function level(x, rate, target = -16, ceiling = 0.98) {
+function level(x, rate, target = -12, ceiling = 0.98) {   /* (0.9.70, FLEXOR: every break at -12 LUFS; -16 before) */
   let g = Math.pow(10, (target - loudnessDb(x, rate)) / 20), out = x;
   for (let t = 0; t < 5; t++) {
     const y = new Float32Array(x.length);

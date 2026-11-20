@@ -435,9 +435,19 @@ static void draw_wave(const brk_status_t *st, const brk_break_t *b)
             if (set.gate && set.gate < 100u && st->key < 0)   /* gated: only the part that sounds lit */
                 lit_z = lit_a + ((lit_z - lit_a) * (int32_t)set.gate + 99) / 100;
         }
-        for (i = 0; i < 240u; i++) {
-            int32_t h = wave_px[i] * 5 / 6;
-            cv_rect((int32_t)i, 22 - h, 1, 2 * h + 1, (int32_t)i >= lit_a && (int32_t)i < lit_z ? C_HI : C_DIM);
+        if (strip_style() == SS_GREY)    /* (GREY: as it always was, the peaks) */
+            for (i = 0; i < 240u; i++) {
+                int32_t h = wave_px[i] * 5 / 6;
+                cv_rect((int32_t)i, 22 - h, 1, 2 * h + 1, (int32_t)i >= lit_a && (int32_t)i < lit_z ? C_HI : C_DIM);
+            }
+        else {                           /* (0.9.70, FLEXOR: in colour, by its level as heard; the beats behind, the
+                                          * bar's first brighter; out of the slice sounding a little darker) */
+            uint32_t nb = (b->bars ? b->bars : 2u) * 4u, k;
+            for (k = 1u; k < nb; k++)
+                cv_rect((int32_t)(k * 240u / nb), 6, 1, 38, k % 4u ? C_LINE : C_DIM);
+            for (i = 0; i < 240u; i++)
+                wave_col((int32_t)i, 22, wave_b[i][0], wave_b[i][1], wave_b[i][2], wave_b[i][3],
+                         (int32_t)i >= lit_a && (int32_t)i < lit_z ? 255u : 185u, SS_WS[strip_style()], 0);
         }
         for (i = 1; i < b->nslices; i++)
             cv_rect((int32_t)(b->slice[i] * 240u / b->len), 0, 1, 5, C_GRAY);

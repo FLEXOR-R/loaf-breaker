@@ -1247,15 +1247,9 @@ static void kick_picture(int32_t top)
             if (!m || !h)
                 continue;
             br = 120u + (uint32_t)v[3] * 135u / pk;
-            {                            /* (each band against the strongest, squared: the colour saturated, a
-                                          * distorted kick orange, a clean one red, a screech green-white) */
-                uint32_t r = (uint32_t)v[0] * 255u / m, g = (uint32_t)v[1] * 255u / m, b = (uint32_t)v[2] * 255u / m;
-                r = r * r / 255u;
-                g = g * g / 255u;
-                b = b * b / 255u;
-                cv_rect(4 + (int32_t)i, 45 - (int32_t)h, 1, 2 * (int32_t)h + 1,
-                        set.wstyle ? serato_col(v[0], v[1], v[2], br) : RGB(r * br / 255u, g * br / 255u, b * br / 255u));
-            }
+            /* (each band against the strongest, squared in RGB: the colour saturated, a distorted kick orange, a
+             * clean one red, a screech green-white; WAVE TYPE's other styles, 0.9.70) */
+            wave_col(4 + (int32_t)i, 45, (int32_t)h, v[0], v[1], v[2], br, ws_style(), 1);
         }
     } else
     for (i = 0; i < KV_W; i++) {         /* the hit: its level (dim, mirrored), its wave over it */

@@ -239,6 +239,59 @@ static uint16_t serato_col(uint32_t lo, uint32_t mi, uint32_t hi, uint32_t br)
     }
     return RGB(r * br / 255u, g * br / 255u, bl * br / 255u);
 }
+/* LOAF BREAKER (0.9.70, FLEXOR: "rajoute aussi 3 band et blue aux waveform classiques"): WAVE TYPE (set.wstyle, SYSTEM ›
+ * DISPLAY K2): RGB (rekordbox's, as ever; REKORDBOX until 0.9.69), SERATO, 3 BAND (rekordbox's: the lows blue behind, the
+ * mids orange, the highs white in front), BLUE (rekordbox's classic: blue, lighter where there are highs). wave_col draws
+ * one column of a coloured wave in it: the CDJ view, the kick's and the drums' pictures, the strip (strip_style) */
+enum { WS_RGB, WS_SERATO, WS_3BAND, WS_BLUE, WS_N };
+static const char *const WS_NAME[WS_N] = {"RGB", "SERATO", "3 BAND", "BLUE"};
+static uint32_t ws_style(void) { return set.wstyle < WS_N ? set.wstyle : WS_RGB; }
+static void wave_col(int32_t x, int32_t mid, int32_t h, uint32_t lo, uint32_t mi, uint32_t hi, uint32_t br, uint32_t st,
+                     int sq)                /* (sq: RGB's bands squared, saturated, as the kick's and the drums' pictures) */
+{
+    uint32_t m = lo > mi ? lo : mi;
+    m = hi > m ? hi : m;
+    if (!m || h <= 0)
+        return;
+    if (st == WS_SERATO) {
+        cv_rect(x, mid - h, 1, 2 * h + 1, serato_col(lo, mi, hi, br));
+    } else if (st == WS_3BAND) {         /* (each band as tall as it is against the strongest, the lows behind) */
+        static const uint8_t C[3][3] = {{36, 104, 255}, {255, 150, 40}, {245, 245, 245}};
+        static const uint8_t K[3] = {150, 95, 45};   /* (the lows the widest, as rekordbox draws them) */
+        uint32_t v[3] = {lo, mi, hi}, j;
+        for (j = 0; j < 3u; j++) {
+            int32_t hh = (int32_t)((uint32_t)h * v[j] * K[j] / (100u * m));
+            if (hh > h)
+                hh = h;
+            if (hh > 0 || (j == 0u && v[j]))
+                cv_rect(x, mid - hh, 1, 2 * hh + 1, RGB(C[j][0] * br / 255u, C[j][1] * br / 255u, C[j][2] * br / 255u));
+        }
+    } else if (st == WS_BLUE) {          /* (dark blue, to pale blue-white with the highs) */
+        uint32_t s = lo + mi + hi, r = s ? hi * 560u / s : 0u;
+        r = r > 255u ? 255u : r;
+        cv_rect(x, mid - h, 1, 2 * h + 1, RGB((20u + 150u * r / 255u) * br / 255u, (70u + 155u * r / 255u) * br / 255u,
+                                              (210u + 45u * r / 255u) * br / 255u));
+    } else {
+        uint32_t r = lo * 255u / m, g = mi * 255u / m, b = hi * 255u / m;
+        if (sq) {
+            r = r * r / 255u;
+            g = g * g / 255u;
+            b = b * b / 255u;
+        }
+        cv_rect(x, mid - h, 1, 2 * h + 1, RGB(r * br / 255u, g * br / 255u, b * br / 255u));
+    }
+}
+/* (0.9.70, FLEXOR: "la petite waveform grise ... stylisée") the strip over the master's wave (screen.c draw_wave): RGB
+ * (the start), 3 BAND, BLUE, SERATO, or GREY (as it always was); SYSTEM › DISPLAY's PRESETS. In set.bta_codec (no
+ * Bluetooth: its old byte), 0xC0 | it; untagged RGB */
+enum { SS_RGB, SS_3BAND, SS_BLUE, SS_SERATO, SS_GREY, SS_N };
+static const char *const SS_NAME[SS_N] = {"RGB", "3 BAND", "BLUE", "SERATO", "GREY"};
+static const uint8_t SS_WS[SS_N] = {WS_RGB, WS_3BAND, WS_BLUE, WS_SERATO, WS_RGB};
+static uint32_t strip_style(void)
+{
+    return (set.bta_codec & 0xF0u) == 0xC0u && (set.bta_codec & 15u) < SS_N ? set.bta_codec & 15u : SS_RGB;
+}
+static void strip_put(uint32_t s) { set.bta_codec = (uint8_t)(0xC0u | s % SS_N); }
 static uint16_t skin_rgb(const uint8_t *c, uint32_t pct)   /* a colour at pct % of its brightness */
 {
     return RGB(c[0] * pct / 100u, c[1] * pct / 100u, c[2] * pct / 100u);

@@ -11,7 +11,7 @@ import argparse, sys
 sys.path.insert(0, "tools")
 import prep_breaks as pb, break_lib as bl
 from pathlib import Path
-args = argparse.Namespace(bars=2, slices=16, break_slices=16, rate=22050, transients=True, loudness=-16.0, name_prefix="")
+args = argparse.Namespace(bars=2, slices=16, break_slices=16, rate=22050, transients=True, loudness=-12.0, name_prefix="")
 fw = {shown: spec for spec, shown in pb.read_list(Path("breaks/breaks.txt"))}
 n = 0
 for built, file, bpm, bars, name, grid, loud, hz in bl.entries(Path("breaks/breaks.txt")):

@@ -16,8 +16,8 @@ o = sys.argv[1]
 x, rate = pb.read_wav("breaks/classics/rotary_connection_life_could.wav")
 bpm = 99.81
 x = x[:int(round(rate * 240.0 / bpm * 2))]
-lv, _, _ = pb.level(x, rate, -16.0)
-args = argparse.Namespace(bars=2, slices=16, break_slices=16, rate=22050, transients=True, loudness=-16.0, name_prefix="")
+lv, _, _ = pb.level(x, rate, -12.0)   # (0.9.70: every break at -12 LUFS)
+args = argparse.Namespace(bars=2, slices=16, break_slices=16, rate=22050, transients=True, loudness=-12.0, name_prefix="")
 s = pb.prepare(f"breaks/classics/rotary_connection_life_could.wav:{bpm}:2:LIFE COULD", args)
 img = pb.build_bank([s])
 s2 = pb.prepare("breaks/classics/lightnin_rod_sport.wav:120.69:2:SPORT", args)   # (LOAF BREAKER 0.9.32: two, merged)

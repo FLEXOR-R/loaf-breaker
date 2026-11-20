@@ -70,12 +70,22 @@ function toast(t, ok) {
 
 /* ================================================================== colours: the FM-1's own (common.c serato_col, cdj.c) */
 let accent = "#ff8470";                    /* (the design's own, for the canvases) */
-let wstyle = 0;                             /* 0 REKORDBOX, 1 SERATO (the FM-1's WAVE TYPE) */
+let wstyle = 0;                             /* 0 RGB, 1 SERATO, 2 3 BAND, 3 BLUE (the FM-1's WAVE TYPE; 0.9.70 the last two) */
+const WS_NAMES = ["RGB", "Serato", "3 Band", "Blue"];
 function colOf(v, bright) {                 /* v: lows, mids, highs, peak (0..255) -> [r, g, b] */
   const m = Math.max(v[0], v[1], v[2]);
   if (!m) return [0, 0, 0];
   const br = bright === undefined ? 110 + v[3] * 145 / 255 : bright;
-  if (wstyle) {
+  if (wstyle === 3) {                       /* (BLUE: dark blue, pale with the highs: common.c wave_col) */
+    const s = v[0] + v[1] + v[2], q = Math.min(255, s ? v[2] * 560 / s : 0);
+    return [(20 + 150 * q / 255) * br / 255, (70 + 155 * q / 255) * br / 255, (210 + 45 * q / 255) * br / 255];
+  }
+  if (wstyle === 2) {                       /* (3 BAND as one colour, where a column is a single rectangle: the strongest band's) */
+    const C = [[36, 104, 255], [255, 150, 40], [245, 245, 245]], k = [v[0] * 1.5, v[1] * 0.95, v[2] * 0.45];
+    const j = k[0] >= k[1] && k[0] >= k[2] ? 0 : k[1] >= k[2] ? 1 : 2;
+    return C[j].map((c) => c * br / 255);
+  }
+  if (wstyle === 1) {
     const a = 3 * v[0], b = v[1], c = v[2], s = a + b + c, hh = (b * 120 + c * 240) / s;
     let r, g, bl;
     if (hh < 60) { r = 255; g = hh * 255 / 60; bl = 0; } else if (hh < 120) { r = (120 - hh) * 255 / 60; g = 255; bl = 0; }
@@ -101,8 +111,17 @@ function drawRGB(cv, cols, opt = {}) {
   for (let x = 0; x < W; x++) {
     const c = cols[Math.min(n - 1, Math.floor(x * n / W))];
     if (!c || !c[3]) continue;
-    const hh = c[3] / pk * (mid - 3 * dpr);
-    const [r, gg, b] = colOf(c, 120 + c[3] * 135 / pk);
+    const hh = c[3] / pk * (mid - 3 * dpr), br = 120 + c[3] * 135 / pk;
+    if (wstyle === 2) {                     /* (3 BAND: the lows blue behind, the mids orange, the highs white in front) */
+      const m = Math.max(c[0], c[1], c[2], 1), C = [[36, 104, 255], [255, 150, 40], [245, 245, 245]], K = [1.5, 0.95, 0.45];
+      for (let j = 0; j < 3; j++) {
+        const h3 = Math.min(hh, hh * c[j] * K[j] / m);
+        g.fillStyle = `rgb(${C[j][0] * br / 255 | 0},${C[j][1] * br / 255 | 0},${C[j][2] * br / 255 | 0})`;
+        g.fillRect(x, mid - h3, 1, 2 * h3 + 1);
+      }
+      continue;
+    }
+    const [r, gg, b] = colOf(c, br);
     g.fillStyle = `rgb(${r | 0},${gg | 0},${b | 0})`;
     g.fillRect(x, mid - hh, 1, 2 * hh + 1);
   }
@@ -355,7 +374,7 @@ function showStatus(was) {
   $("kickNow").textContent = String(S.kslot + 1);
   $("save").classList.toggle("dirty", !!S.dirty);
   $("save").title = S.dirty ? "Unsaved changes: Save (Ctrl+S)" : "Save (Ctrl+S)";
-  if (S.wstyle !== wstyle) { wstyle = S.wstyle; $("wstyle").textContent = wstyle ? "Serato" : "Rekordbox"; if (view && view.redrawWaves) view.redrawWaves(); }
+  if (S.wstyle !== wstyle) { wstyle = S.wstyle; $("wstyle").textContent = WS_NAMES[wstyle] || "RGB"; if (view && view.redrawWaves) view.redrawWaves(); }
   if ($("brkSel").value !== String(S.brk) && document.activeElement !== $("brkSel")) $("brkSel").value = String(S.brk);
   if (view && view.status) view.status(was);
 }
@@ -409,7 +428,7 @@ $("brkSel").onchange = () => transport(2, +$("brkSel").value);
 $("brkPrev").onclick = () => transport(2, (S.brk + S.nbrk - 1) % Math.max(1, S.nbrk));
 $("brkNext").onclick = () => transport(2, (S.brk + 1) % Math.max(1, S.nbrk));
 $("wstyle").onclick = async () => {                /* (HOME › SETTINGS K2, WAVE TYPE) */
-  await knobReq({ t: "p", pg: PG.HSET }, 1, wstyle ? -1 : 1).catch(() => {});
+  await knobReq({ t: "p", pg: PG.HSET }, 1, wstyle >= 3 ? -3 : 1).catch(() => {});   /* (round: RGB, SERATO, 3 BAND, BLUE) */
   poll();
 };
 

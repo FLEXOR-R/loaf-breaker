@@ -291,7 +291,7 @@ FOLDER_LOUD = {"flexor": -12.0}         # (LOAF BREAKER, 14 Nov 2026, FLEXOR: hi
 
 
 def line_loud(file, loud):
-    """a catalogue line's level: its own @X, or its folder's (flexor/: -12), or None (the default, -16)"""
+    """a catalogue line's level: its own @X, or its folder's (flexor/: -12), or None (the default, -12 since 0.9.70)"""
     return loud if loud is not None else FOLDER_LOUD.get(file.split("/")[0])
 
 
@@ -376,8 +376,8 @@ def main():
                     help="slices a break whatever its bars (16: one per white key) instead of --slices a bar")
     ap.add_argument("--rate", type=int, default=22050, help="sample rate in the bank (default 22050, PRD Q4)")
     ap.add_argument("--transients", action="store_true", help="move markers to the nearest hit")
-    ap.add_argument("--loudness", type=float, default=-16.0,
-                    help="every break to this level, LUFS (as heard: K-weighted, gated), its peaks limited (default -16; "
+    ap.add_argument("--loudness", type=float, default=-12.0,
+                    help="every break to this level, LUFS (as heard: K-weighted, gated), its peaks limited (default -12 since 0.9.70, FLEXOR: every break at the same level; -16 before; "
                          "0: peaks to full scale instead)")
     ap.add_argument("--name-prefix", default="", help="put before each name")
     ap.add_argument("-o", "--out", type=Path, default=Path("build/bank.bin"))

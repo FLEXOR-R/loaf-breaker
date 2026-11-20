@@ -34,7 +34,7 @@ again where you left it; SAVE keeps where you are). An FM-1 already in use when 
 
 ### 1. Press PLAY
 
-The break plays with its kick at once (the slowest to start, AMEN20 164; the breaks go slowest to fastest; once saved, the FM-1 starts on the break you left it on). **ALGORITHM** picks the next break (it changes on the next
+The break plays with its kick at once (the slowest to start, AMEN10 135; the breaks go slowest to fastest; once saved, the FM-1 starts on the break you left it on). **ALGORITHM** picks the next break (it changes on the next
 bar), **SELECT** sets the tempo, **PRESETS** the pattern (P1–P64). PLAY again stops.
 
 ### 2. Play the white keys: the slices
@@ -211,7 +211,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 - **HOME**: playing, the main page. PERFORM and GENERATOR (HOME again: the other tab), the CDJ waveform on both;
   **SEL + PRESETS** there changes the kick (KICK 1–20, 0.9.26). The waveform's settings are **SYSTEM › DISPLAY** (GLO,
   then SELECT; HOME's third tab from 0.9.2 to 0.9.55, FLEXOR moved it): K1 **VIEW** (WAVEFORM or SLICES: what PERFORM and GENERATOR show; HOME held still flips
-  it), K2 **WAVE TYPE** (REKORDBOX or SERATO colours), K3 **WAVE ZOOM** (how much of the past the wave holds), K4 **BREAK
+  it), K2 **WAVE TYPE** (RGB, SERATO, 3 BAND or BLUE colours), K3 **WAVE ZOOM** (how much of the past the wave holds), K4 **BREAK
   TIME** (NORMAL, or HALF: the break at half the tempo, at its own speed, its steps every other 16th, while the kick,
   the drums and the clock stay at the tempo: a 115 break under a 230 kick); SELECT stays the tempo. (0.9.25: these four
   are only here; SYSTEM no longer shows them.)
@@ -890,8 +890,14 @@ loses 18 dB in CLASSIC, under 2 dB in SMOOTH and SOFT. An older save keeps CLASS
 (SEL + SELECT, HOME's DRUM FLT) when KIL brings the kicks back: **SMART** (the start) puts it OFF, unless you turned it
 while the kicks were quiet: then the kicks come back through it, as you set it; **FLT OFF** always OFF (as 0.9.50 to
 0.9.63); **FLT KEEP** never touches it.
-The waves' colours are SYSTEM › DISPLAY's WAVE TYPE: **REKORDBOX** (the three bands mixed, white where they all are) or
-**SERATO** (the bands as one hue from red through yellow and green to blue, never white). **EDIT VIEW** (KICK › KNOBS ›
+The waves' colours are SYSTEM › DISPLAY's WAVE TYPE: **RGB** (rekordbox's: the three bands mixed, white where they all
+are; REKORDBOX until 0.9.69), **SERATO** (the bands as one hue from red through yellow and green to blue, never white),
+**3 BAND** (rekordbox's 3-band: the lows blue and widest behind, the mids orange, the highs white in front) or **BLUE**
+(rekordbox's classic: blue, paler where there are highs; 0.9.70, FLEXOR, the last two). They colour the CDJ view, the
+kick's and the drums' pictures. **PRESETS** on DISPLAY picks the **strip** over the master's wave (the whole break, its
+slices ticked at the top, the slice sounding lit): **RGB** (the start), **3 BAND**, **BLUE**, **SERATO**, each by the
+level as heard (the hits stand out) over a grid of the beats (the bar's first brighter), or **GREY**, as it was until
+0.9.69 (0.9.70, FLEXOR). RESET › SCREEN puts it back to RGB. **EDIT VIEW** (KICK › KNOBS ›
 TOOLS, **K3**, since 0.9.29; on this page before):
 what the KICK menu's picture shows, **THE WHOLE KICK** (left) or **THE PART EDITED** (right): on a layer's page (SUB,
 PUNCH, GRIT, CLICK, their effects) that layer alone, CLICK over 50 ms and PUNCH over 150 (the time at the top right),

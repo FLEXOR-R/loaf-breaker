@@ -327,19 +327,12 @@ static void perc_picture(const brk_status_t *st, int32_t top)
             pk = kv_rgb[i][3] > pk ? kv_rgb[i][3] : pk;
         for (i = 0; i < PW_W; i++) {
             const uint8_t *c = kv_rgb[i];
-            uint32_t m = c[0] > c[1] ? c[0] : c[1], h = (uint32_t)c[3] * 34u / pk, br, r, g, b;
+            uint32_t m = c[0] > c[1] ? c[0] : c[1], h = (uint32_t)c[3] * 34u / pk, br;
             m = c[2] > m ? c[2] : m;
             if (!m || !h)
                 continue;
             br = 120u + (uint32_t)c[3] * 135u / pk;
-            r = (uint32_t)c[0] * 255u / m;
-            g = (uint32_t)c[1] * 255u / m;
-            b = (uint32_t)c[2] * 255u / m;
-            r = r * r / 255u;
-            g = g * g / 255u;
-            b = b * b / 255u;
-            cv_rect(4 + (int32_t)i, 50 - (int32_t)h, 1, 2 * (int32_t)h + 1,
-                    set.wstyle ? serato_col(c[0], c[1], c[2], br) : RGB(r * br / 255u, g * br / 255u, b * br / 255u));
+            wave_col(4 + (int32_t)i, 50, (int32_t)h, c[0], c[1], c[2], br, ws_style(), 1);   /* (WAVE TYPE, 0.9.70) */
         }
     } else
     for (i = 0; i < PW_W; i++) {         /* the hit: its level (dim, mirrored), its wave over it */

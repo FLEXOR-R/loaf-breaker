@@ -12,7 +12,7 @@ static void cdj_picture(const brk_status_t *st, uint32_t w, int32_t top)
     uint32_t z = CDJ_Z[set.wzoom % CDJ_ZN];
     float ph = st->playing ? st->phase : 0.0f, spx = (float)CDJ_PX * 12.0f / (float)z;   /* (pixels a step) */
     for (x = 0; x < 240; x++) {          /* the newest at the right */
-        uint32_t back = (239u - (uint32_t)x) * z / 12u, m, r, g, b;
+        uint32_t back = (239u - (uint32_t)x) * z / 12u, m;
         const uint8_t *v;
         int32_t h;
         if (back >= w || back >= SCOPE_N)
@@ -24,12 +24,8 @@ static void cdj_picture(const brk_status_t *st, uint32_t w, int32_t top)
         h = (int32_t)((uint32_t)v[3] * 48u / 255u);
         if (!m || !h)
             continue;
-        r = (uint32_t)v[0] * 255u / m;   /* (the bands' mix at full brightness, a touch dimmer when quiet) */
-        g = (uint32_t)v[1] * 255u / m;
-        b = (uint32_t)v[2] * 255u / m;
-        m = 110u + (uint32_t)v[3] * 145u / 255u;
-        cv_rect(x, mid - h, 1, 2 * h + 1, set.wstyle ? serato_col(v[0], v[1], v[2], m)   /* (LOAF BREAKER: SERATO) */
-                                                     : RGB(r * m / 255u, g * m / 255u, b * m / 255u));
+        m = 110u + (uint32_t)v[3] * 145u / 255u;   /* (the bands' mix at full brightness, a touch dimmer when quiet) */
+        wave_col(x, mid, h, v[0], v[1], v[2], m, ws_style(), 0);   /* (WAVE TYPE: RGB, SERATO, 3 BAND, BLUE, 0.9.70) */
     }
     for (k = 0; k < 9; k++) {            /* the beats back from now: a tick top and bottom, the bar's first lit */
         int32_t at = s16 - s16 % 4 - 4 * k;

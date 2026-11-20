@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MPL-2.0
 """LOAF BREAKER (0.9.32, FLEXOR): the BREAKS page's library. Every break of breaks/breaks.txt (in the firmware or not)
-made exactly as the firmware's bank makes them (tools/prep_breaks.py: levelled to -16 LUFS, sixteen slices on the
+made exactly as the firmware's bank makes them (tools/prep_breaks.py: levelled to -12 LUFS (0.9.70, FLEXOR: every break alike; -16 before), sixteen slices on the
 hits, IMA ADPCM), each a bank of one slot the page plays and sends as it is; a slow break at a lower rate so its bars
 fit the FM-1's buffer (the page's own rule for a sample). And index.json, the list the page shows.
 
@@ -51,7 +51,7 @@ def main(outdir):
     full = {f"flexor/{k}": v for k, v in titles(ROOT / "breaks" / "flexor" / "README.md").items()}
     for built, file, bpm, bars, name, grid, loud, hz in entries(ROOT / "breaks" / "breaks.txt"):
         rate = hz or min(22050, int(pb.BANK_MAX_LEN // (bars * 240.0 / bpm)))   # (its own, or slow ones lower, as the page does)
-        args = argparse.Namespace(bars=bars, slices=16, break_slices=16, rate=rate, transients=True, loudness=-16.0,
+        args = argparse.Namespace(bars=bars, slices=16, break_slices=16, rate=rate, transients=True, loudness=-12.0,
                                   name_prefix="")
         try:
             s = pb.prepare(f"{ROOT / 'breaks' / file}:{bpm}:{bars}:{name}" + (":grid" if grid else "") +

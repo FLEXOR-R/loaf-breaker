@@ -1705,6 +1705,8 @@ static uint32_t n_synth;                 /* 0; 1 in a build with no bank: a synt
 static uint32_t n_breaks;                /* then the bank's valid slots */
 static int32_t brk_next = -1;            /* a break chosen, waiting for the next bar (break_ask), or -1 */
 static uint8_t wave_px[240];             /* the waveform's height per column, for the screen */
+static uint8_t wave_b[240][4] PLAT_POOL; /* (0.9.70, FLEXOR: the strip's colours) each column's height by its level as
+                                          * heard (0..20) and its lows, mids, highs (0..255, against the break's loudest) */
 #define BLK_N 16u                        /* the slicer view's blocks: one per white key */
 #define BLK_W 26u                        /* columns of waveform in a block */
 static uint8_t blk_px[BLK_N][BLK_W];     /* each slice's waveform, 0..19 */
@@ -1730,6 +1732,43 @@ static void wave_build(const brk_break_t *b)
                 pk = (uint32_t)s;
         }
         wave_px[x] = (uint8_t)(pk * 24u / 32768u);
+    }
+    {                                    /* (0.9.70) the strip's colours: each column's mean level and its three bands, a
+                                          * one-pole split at ~200 Hz and ~2.5 kHz (the CDJ view's); the height the mean's
+                                          * 0.8th power against the loudest (the hits stand out of a squashed break). Two
+                                          * passes, the loudest first: nothing kept on the stack */
+        float k1 = 1.0f - brk_exp2f_c(-9.0647f * 200.0f / (float)(b->rate ? b->rate : 22050u)),
+              k2 = 1.0f - brk_exp2f_c(-9.0647f * 2500.0f / (float)(b->rate ? b->rate : 22050u)), top = 1e-9f, tb = 1e-9f;
+        uint32_t p;
+        for (p = 0; p < 2u; p++) {
+            float l1 = 0.0f, l2 = 0.0f;
+            for (x = 0; x < 240u; x++) {
+                uint32_t a = b->len * x / 240u, z = b->len * (x + 1u) / 240u;
+                float s[4] = {0.0f, 0.0f, 0.0f, 0.0f}, n = (float)(z > a ? z - a : 1u);
+                for (i = a; i < z; i++) {
+                    float v = (float)b->pcm[i] * (1.0f / 32768.0f);
+                    l1 += (v - l1) * k1;
+                    l2 += (v - l2) * k2;
+                    s[0] += brk_absf(v);
+                    s[1] += brk_absf(l1);
+                    s[2] += brk_absf(l2 - l1);
+                    s[3] += brk_absf(v - l2);
+                }
+                for (i = 0; i < 4u; i++)
+                    s[i] /= n;
+                if (!p) {
+                    top = s[0] > top ? s[0] : top;
+                    for (i = 1u; i < 4u; i++)
+                        tb = s[i] > tb ? s[i] : tb;
+                    continue;
+                }
+                for (i = 0; i < 4u; i++) {
+                    float q = s[i] / (i ? tb : top);
+                    q = q > 1e-4f ? brk_exp2f_c(0.8f * brk_log2f_c(q)) : 0.0f;
+                    wave_b[x][i] = (uint8_t)((i ? 255.0f : 20.0f) * (q > 1.0f ? 1.0f : q) + 0.5f);
+                }
+            }
+        }
     }
     blk_n = (uint8_t)(b->nslices < BLK_N ? b->nslices : BLK_N);
     for (x = 0; x < BLK_N; x++) {

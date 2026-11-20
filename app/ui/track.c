@@ -265,6 +265,7 @@ static void reset_do(uint32_t w)
         set.scrfx = set.sfx_kick = set.sfx_drop = set.sfx_len = 50u;
         set.wzoom = 3u;
         set.ezoom = 0u;                  /* (LOAF BREAKER: EDIT ZOOM AUTO) */
+        set.bta_codec = 0u;              /* (0.9.70: the strip RGB) */
         led_defaults();                  /* (0.9.57: SYSTEM › LIGHTS) */
         ui.redraw = RG_ALL;
     } else {                               /* LOAF BREAKER: KICK: the kick selected (KICK 1-10) as it starts: ROTTERDAM,

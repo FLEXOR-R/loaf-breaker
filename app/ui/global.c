@@ -615,7 +615,7 @@ static const char *const HSET_NAME[4] = {"VIEW", "WAVE TYPE", "WAVE ZOOM", "BREA
 static void hset_value(int i, char *t)
 {
     t[0] = 0;
-    text_cat(t, i == 0 ? (ui.blocks ? "SLICES" : "WAVEFORM") : i == 1 ? (set.wstyle ? "SERATO" : "REKORDBOX")
+    text_cat(t, i == 0 ? (ui.blocks ? "SLICES" : "WAVEFORM") : i == 1 ? WS_NAME[ws_style()]   /* (0.9.70: 3 BAND, BLUE) */
                 : i == 2 ? CDJ_ZNAME[set.wzoom % CDJ_ZN] : (set.bkeys.bk[BK_BHALF] & 1u ? "HALF" : "NORMAL"));
 }
 static void hset_turn(int i, int32_t d)
@@ -624,8 +624,8 @@ static void hset_turn(int i, int32_t d)
     if (i == 0) {
         ui.blocks = d > 0 ? 1u : 0u;     /* (right the slices, left the waveform) */
         set.bkeys.bk[BK_VIEW] = ui.blocks;
-    } else if (i == 1)
-        set.wstyle = d > 0 ? 1u : 0u;
+    } else if (i == 1)                   /* (0.9.70, FLEXOR: RGB, SERATO, 3 BAND, BLUE) */
+        set.wstyle = (uint8_t)clamp((int32_t)ws_style() + (d > 0 ? 1 : d < -1 ? (int32_t)d : -1), 0, WS_N - 1);   /* (the Studio: -3 back to RGB) */
     else if (i == 2)
         set.wzoom = (uint8_t)clamp((int32_t)(set.wzoom % CDJ_ZN) + (d > 0 ? 1 : -1), 0, CDJ_ZN - 1);
     else
@@ -634,6 +634,13 @@ static void hset_turn(int i, int32_t d)
     hset_value(i, t);
     app_say(HSET_NAME[i & 3], t);
     ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
+}
+static void strip_turn(int32_t d)        /* (0.9.70, FLEXOR) SYSTEM › DISPLAY's PRESETS: the strip's style, round */
+{
+    strip_put((strip_style() + (d > 0 ? 1u : SS_N - 1u)) % SS_N);
+    set_dirty = 1u;
+    app_say("STRIP", SS_NAME[strip_style()]);
+    ui.redraw |= RG_ALL;
 }
 static void draw_hset(void)
 {
@@ -666,7 +673,11 @@ static void draw_hset(void)
     text_cat(t, v);
     text_cat(t, " BPM");
     cv_text(6, 2, &FONT_XS, "HOME HELD: WAVEFORM / SLICES", C_DIM);
-    cv_text(6, 14, &FONT_XS, set.wstyle ? "WAVE COLOURS AS SERATO'S" : "WAVE COLOURS AS REKORDBOX'S", C_DIM);
+    {                                    /* (0.9.70, FLEXOR: PRESETS, the strip's style) */
+        char sv[32] = "PRESETS: THE STRIP ";
+        text_cat(sv, SS_NAME[strip_style()]);
+        cv_text(6, 14, &FONT_XS, sv, C_HI);
+    }
     cv_text(6, 26, &FONT_XS, t, C_DIM);
     cv_text(6, 38, &FONT_XS, "SELECT: SYSTEM'S PARTS", C_DIM);
     cv_blit(0, 140);
