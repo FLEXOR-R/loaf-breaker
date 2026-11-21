@@ -6,22 +6,6 @@
 #define INTRO_HOLD 900u                  /* ms the finished screen stays before the slicer opens */
 
 /* the mark: sixteen bars like a break's hits, two of them chopped out of line */
-/* the break in the header: its name, a split's two ("AMEN10 + FOCUZ": the first word of each, 0.9.71) */
-static const char *hdr_brk_name(void)
-{
-    static char t[24];
-    const char *n;
-    uint32_t k = 0u, j;
-    if (!split_on())
-        return break_name(set.brk);
-    for (n = break_name(set.brk), j = 0; n[j] && n[j] != ' ' && k < 8u; j++)
-        t[k++] = n[j];
-    t[k++] = '+';
-    for (n = break_name(split_b_of(set.brk)), j = 0; n[j] && n[j] != ' ' && k < 19u; j++)
-        t[k++] = n[j];
-    t[k] = 0;
-    return t;
-}
 static const uint8_t MARK_H[16] = {30, 12, 26, 10, 34, 14, 11, 20, 12, 22, 28, 24, 34, 10, 13, 22};
 #include "pp_wave.h"                     /* (LOAF BREAKER: PRESS PLAY's picture, tools/make_pp_wave.py) */
 static void mark(int32_t y0, uint32_t shown, const uint8_t (*px)[BLK_W])
@@ -406,7 +390,7 @@ static void draw_head(const brk_status_t *st, const brk_break_t *b, uint32_t now
         } else
             cv_rect(8, 9, 10, 10, C_DIM);
         {                                /* the break, the pattern (> one queued), REC */
-            int32_t x = cv_text(24, 6, &FONT_B, b ? hdr_brk_name() : "NO BREAK",   /* (amber: still to come) */
+            int32_t x = cv_text(24, 6, &FONT_B, b ? break_name(set.brk) : "NO BREAK",   /* (amber: still to come) */
                                 brk_next >= 0 ? C_AMB : C_WHITE);
             t[0] = 'P';
             int_text((int32_t)pat_cur() + 1, t + 1);

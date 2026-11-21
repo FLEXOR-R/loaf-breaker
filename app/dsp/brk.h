@@ -28,8 +28,6 @@ typedef struct {
     uint32_t bars;                       /* whole bars in the loop (1..4) */
     uint32_t nslices;                    /* 1..BRK_MAX_SLICES */
     uint32_t slice[BRK_MAX_SLICES + 1];
-    uint32_t split;                      /* a split break (PRD S-030): slices below it are its first half (bar 1,
-                                          * break A), the rest its second (bar 2, break B); 0 none */
     char name[13];
 } brk_break_t;
 
@@ -133,10 +131,6 @@ typedef struct {
     uint8_t key_rev;                     /* this repeat plays backwards */
     int8_t bar16;                        /* the step's place in the bar, 0..15, -1 none yet */
     int8_t bar64;                        /* its place in four bars, 0..63 (as brk_step_events), -1 none yet */
-    int8_t half;                         /* the split's half in force (brk_half): -1 both, 0 the first, 1 the second */
-    int32_t layer;                       /* the layer's key looping (its slice), -1 none (PRD S-032) */
-    float layer_lo, layer_w, layer_phase;   /* its window and how far into this repeat, as the key's */
-    float layer_pos;                     /* its playhead in the break's samples, -1 quiet */
 } brk_status_t;
 
 void brk_init(void);
@@ -166,12 +160,6 @@ void brk_half_master(int on);            /* GLOUPI BREAKS: HALF SPEED keeps the 
 /* LOAF BREAKER: the VINYL BREAK pad (PAD_TAPESTOP) slows the break (1, the start), or not (0: the drums alone, the
  * app's kick_speed / perc_speed; the status's tape still runs) */
 void brk_vinyl(int on);
-/* a split break (brk_break_t.split, PRD S-030 to S-032): a white key held in the half the key looping isn't in layers
- * on voices of its own (one key a half; within a half the last pressed wins). brk_half keeps the loop to one half
- * (0, 1; -1 both, the default): the change waits for the next bar line, and the loop's own slices (the pattern's,
- * the generator's, RANDOM's) fold into that half; keys still play any slice. Without a split it does nothing */
-void brk_half(int h);
-int brk_get_half(void);                  /* the half asked for */
 void brk_swing(float s);                 /* 0.5 straight .. 0.75 */
 /* the gate (PRD B-30): how much of each slice the loop plays sounds, 0.05..1 (1: all of it). A slice gated at g
  * fades out once it has played g of its own length (at whatever speed), so it follows the tempo and the pitch. For

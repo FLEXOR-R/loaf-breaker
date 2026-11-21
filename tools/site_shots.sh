@@ -33,7 +33,7 @@ MAP = {  # the manual's name: the scenario's shot
     "screen-mixer": "x_levels", "screen-master": "m_maxout", "c_cdj_gen": "c_cdj_gen", "t_tracks": "t_tracks",
     "t_play": "t_play", "t_build": "t_build", "screen-drum-big": "d_big_snare",
     "screen-klab-tail": "kl_tail", "screen-klab-stack": "kl_stack", "screen-kick-wave": "km_wave", "screen-tutorial": "tu_1",
-    "screen-blackkeys": "a_blackkeys", "screen-split": "split_page",
+    "screen-blackkeys": "a_blackkeys",
     # (0.9.57: the menus of 0.9.45-0.9.56)
     "screen-arp": "a_thru_split", "screen-selblack": "sk_page",
     "screen-song-break": "t_break", "screen-drop-same": "t_dropsame", "screen-sends": "dm_sends",

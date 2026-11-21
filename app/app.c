@@ -443,14 +443,11 @@ typedef struct {
     /* (appended, 0.9.54, FLEXOR: the 16 KITS, ARP › KITS, SEL + a white key KIT n: each a kick, a break, a tempo and a
      * pattern to go to at once; 0 in a field: KEEP, as it is. A shorter save: all KEEP. Their tempo in rsv[32 + n], a
      * whole BPM - 49 (50..300), for the pool's margin) */
-    uint8_t sp_tag, split, split_b, split_bars;   /* (0.9.71, FLEXOR, from CHOPPAH 1.5: the split, HOME › SPLIT;
-                                          * valid with SP_TAG, KITS' bytes before: split on, break B + 1 (0: the one
-                                          * after A), bit 0 A's second bar, bit 1 B's) */
-    uint8_t rsv4[44];                    /* (the rest of the KITS' bytes, 0.9.54-0.9.70: unused) */
+    struct { uint8_t kick, brk, pat; } kit[16];
     uint8_t selrec;                      /* (appended, 0.9.70, FLEXOR: the REC key's SEL function, 1 + BKF_* but ARP, 0
                                           * none; a shorter save: none) */
     uint8_t rsv3;
-    uint16_t wk[25][BRK_KEYS];           /* (appended, 0.9.71, FLEXOR: "que les réglages des white keys restent sur les
+    uint16_t wk[24][BRK_KEYS];           /* (appended, 0.9.71, FLEXOR: "que les réglages des white keys restent sur les
                                           * breaks": each break's white keys, LENGTH, PITCH, MODE, DECAY (wk_pack), break
                                           * 0..23 (WK_NB); a shorter save: every break as the keys were saved) */
 } kx2_t;
@@ -461,11 +458,7 @@ static kick_x2_t *kx2_at(uint32_t k) { return &kx2.m[k % KICK_MEMS]; }
  * playing's (wk_brk), the others in kx2.wk, packed: LENGTH bits 0-3, DECAY 4-7, MODE 8-9, PITCH + 12 10-14, bit 15 set.
  * A break change stores the keys into their break and reads the next one's (wk_follow); SAVE keeps them all (OBJ_KX2) */
 #define WK_NB 24u
-#define WK_SPLIT 24u                     /* (wk's last row: the split's own keys, FLEXOR's choice) */
 #define WK_SET 0x8000u
-#define SP_TAG 0x5Bu
-static uint32_t split_on(void) { return kx2.sp_tag == SP_TAG && kx2.split; }
-static uint32_t wk_idx(void) { return split_on() ? WK_SPLIT : set.brk; }
 static uint8_t wk_brk = 0xFFu;           /* (the break whose keys set.keys holds; 0xFF: none yet) */
 static uint16_t wk_pack(const brk_keyset_t *k)
 {
@@ -483,25 +476,25 @@ static void wk_unpack(uint32_t v, brk_keyset_t *k)
 static void wk_fill(void)                /* (every break's keys as set.keys: an older save, RESET) */
 {
     uint32_t b, k;
-    for (b = 0; b <= WK_SPLIT; b++)
+    for (b = 0; b < WK_NB; b++)
         for (k = 0; k < BRK_KEYS; k++)
             kx2.wk[b][k] = wk_pack(&set.keys[k]);
 }
 static void wk_store(void)               /* (the keys into their break: before a change, before SAVE) */
 {
     uint32_t k;
-    if (wk_brk <= WK_SPLIT)
+    if (wk_brk < WK_NB)
         for (k = 0; k < BRK_KEYS; k++)
             kx2.wk[wk_brk][k] = wk_pack(&set.keys[k]);
 }
 static void wk_follow(void)              /* (the keys to the break chosen, set.brk: its own, to the engine at once) */
 {
     uint32_t k;
-    if (wk_idx() == wk_brk)
+    if (set.brk == wk_brk)
         return;
     wk_store();
-    wk_brk = (uint8_t)wk_idx();
-    if (wk_brk > WK_SPLIT)
+    wk_brk = set.brk;
+    if (wk_brk >= WK_NB)
         return;
     for (k = 0; k < BRK_KEYS; k++) {
         if (kx2.wk[wk_brk][k] & WK_SET)
@@ -2012,105 +2005,6 @@ static const char *break_name(uint32_t i)
 
 /* break i into pcm_a and the descriptor the render isn't using (whatever plays from pcm_a meanwhile is muted, see
  * break_poll); hand it to the render after */
-/* LOAF BREAKER (0.9.71, FLEXOR, from CHOPPAH 1.5, PRD S-030): the split, break B's number */
-static uint32_t split_b_of(uint32_t a)
-{
-    uint32_t b = kx2.split_b ? kx2.split_b - 1u : (a + 1u) % (n_breaks ? n_breaks : 1u);
-    return b < n_breaks ? b : n_synth;
-}
-/* bar `bar` of a slot (its first n samples, n = a bar) decoded into dst; the bars before it decoded over dst and
- * forgotten (IMA ADPCM only reads forwards). from: where the bar begins in the slot */
-static uint32_t bar_decode(const uint8_t *bk, const bank_slot_t *s, uint32_t bar, int16_t *dst, uint32_t n,
-                           uint32_t *from)
-{
-    adpcm_state_t st = {0, 0, 0};
-    const uint8_t *src = bk + s->data_off;
-    uint32_t bars = s->bars ? s->bars : 1u, skip;
-    if (bar >= bars)
-        bar = bars - 1u;
-    skip = *from = (s->len / bars * bar) & ~1u;   /* (even: whole bytes) */
-    while (skip) {
-        uint32_t k = skip < (n & ~1u) ? skip : n & ~1u;
-        adpcm_decode(&st, src, dst, k);
-        src += k / 2u;
-        skip -= k;
-    }
-    adpcm_decode(&st, src, dst, n);
-    return n;
-}
-/* the split's half of a slot: its slices in the bar, re-based to `base` and scaled from the bar's n samples to m, at
- * most 16; into d->slice from k. Returns the count */
-static uint32_t split_slices(const bank_slot_t *s, uint32_t bar, uint32_t from, uint32_t n, uint32_t m,
-                             uint32_t base, brk_break_t *d, uint32_t k)
-{
-    uint32_t bars = s->bars ? s->bars : 1u, j0, j1, st, j, c = 0u;
-    if (bar >= bars)
-        bar = bars - 1u;
-    j0 = s->nslices * bar / bars;
-    j1 = s->nslices * (bar + 1u) / bars;
-    st = (j1 - j0 + 15u) / 16u;          /* (a 32-slice bar: every other marker) */
-    for (j = j0; j < j1; j += st) {
-        uint32_t x = c && s->slice[j] > from ? (uint32_t)((float)(s->slice[j] - from) * (float)m / (float)n) : 0u;
-        x += base;
-        if (c && x <= d->slice[k + c - 1u])
-            continue;                    /* (markers that met when scaled) */
-        if (x >= base + m)
-            break;
-        d->slice[k + c++] = x;
-    }
-    return c;
-}
-/* the split: bar 1 of break a (as it is), then bar 2 of break b repitched to a's bar's length (it plays at a's
- * tempo), in pcm_a. b's bar decoded to pcm_a's end, then read forwards into place behind a's: the reads stay ahead
- * of the writes. 0: one isn't there */
-static const brk_break_t *split_load(uint32_t a, uint32_t b, brk_break_t *d)
-{
-    const uint8_t *ka, *kb;
-    const bank_slot_t *sa = slot_of(a, &ka), *sb = slot_of(b, &kb);
-    uint32_t la, lb, fa, fb, o, k, na, nb;
-    int16_t *raw;
-    float r, pos;
-    if (!sa || !sb)
-        return 0;
-    la = sa->len / (sa->bars ? sa->bars : 1u);
-    lb = sb->len / (sb->bars ? sb->bars : 1u);
-    if (la > (CH_PCM_MAX - 8u) / 2u)
-        la = (CH_PCM_MAX - 8u) / 2u;
-    if (la + lb + 6u + lb / la > CH_PCM_MAX)
-        lb = CH_PCM_MAX - 6u - la - 2u;
-    if (la < 64u || lb < 64u || lb > 7u * la)
-        return 0;
-    bar_decode(ka, sa, kx2.split_bars & 1u, pcm_a, la, &fa);
-    raw = pcm_a + CH_PCM_MAX - lb;
-    bar_decode(kb, sb, (kx2.split_bars >> 1) & 1u, raw, lb, &fb);
-    r = (float)lb / (float)la;
-    for (o = 0, pos = 0.0f; o < la; o++, pos = (float)o * r) {   /* 4-point Hermite, as the voices read */
-        int32_t i = (int32_t)pos, y;
-        float t = pos - (float)i, xm = (float)raw[i > 0 ? i - 1 : 0], x0 = (float)raw[i];
-        float x1 = (float)raw[(uint32_t)i + 1u < lb ? i + 1 : i], x2 = (float)raw[(uint32_t)i + 2u < lb ? i + 2 : i];
-        float c1 = 0.5f * (x1 - xm), c2 = xm - 2.5f * x0 + 2.0f * x1 - 0.5f * x2, c3 = 0.5f * (x2 - xm) + 1.5f * (x0 - x1);
-        y = (int32_t)(((c3 * t + c2) * t + c1) * t + x0);
-        pcm_a[la + o] = (int16_t)(y > 32767 ? 32767 : y < -32768 ? -32768 : y);
-    }
-    na = split_slices(sa, kx2.split_bars & 1u, fa, la, la, 0u, d, 0u);
-    nb = split_slices(sb, (kx2.split_bars >> 1) & 1u, fb, lb, la, la, d, na);
-    d->pcm = pcm_a;
-    d->len = 2u * la;
-    d->rate = sa->rate;
-    d->bpm_x100 = sa->bpm_x100;          /* (two bars of a's: its tempo) */
-    d->bars = 2u;
-    d->nslices = na + nb;
-    d->slice[na + nb] = 2u * la;
-    d->split = na;
-    for (k = o = 0; o < 5u && sa->name[o] && sa->name[o] != ' '; o++)   /* "AMEN10+FOCUZ" */
-        d->name[k++] = sa->name[o];
-    d->name[k++] = '+';
-    for (o = 0; k < 12u && o < 12u && sb->name[o] && sb->name[o] != ' '; o++)
-        d->name[k++] = sb->name[o];
-    d->name[k] = 0;
-    return d;
-}
-
 static const brk_break_t *break_load(uint32_t i)
 {
     const uint8_t *bk;
@@ -2118,11 +2012,6 @@ static const brk_break_t *break_load(uint32_t i)
     brk_break_t *d = brk_get_break() == &brk_cur[0] ? &brk_cur[1] : &brk_cur[0];
     const brk_break_t *b = &brk0;
     uint32_t k;
-    if (s && split_on() && split_load(i, split_b_of(i), d)) {   /* (0.9.71: the split, A and B) */
-        set.brk = (uint8_t)i;
-        wave_build(d);
-        return d;
-    }
     if (s) {
         adpcm_state_t st = {0, 0, 0};
         adpcm_decode(&st, bk + s->data_off, pcm_a, s->len);
@@ -2132,7 +2021,6 @@ static const brk_break_t *break_load(uint32_t i)
         d->bpm_x100 = s->bpm_x100;
         d->bars = s->bars;
         d->nslices = s->nslices;
-        d->split = 0u;
         for (k = 0; k <= s->nslices; k++)
             d->slice[k] = s->slice[k];
         for (k = 0; k < 12u; k++)
@@ -2222,11 +2110,7 @@ void app_init(void)
         }
         if (sz < (int)sizeof kx2)        /* (0.9.71: a save before each break's white keys: every break as the keys were) */
             wk_fill();
-        if (kx2.sp_tag != SP_TAG) {      /* (0.9.71: a save before the split, KITS' bytes there: off) */
-            kx2.sp_tag = SP_TAG;
-            kx2.split = kx2.split_b = kx2.split_bars = 0u;
-        }
-        wk_brk = (uint8_t)wk_idx();
+        wk_brk = set.brk;
     }                 /* (LOAF BREAKER: a save before the KICK LAB: every kick as it sounded) */
     {                                    /* (LOAF BREAKER, 0.9.2: KICK 11..20; a save before them: as they begin; the
                                           * KICK LAB's line above may have cleared their LAB: theirs read after) */
