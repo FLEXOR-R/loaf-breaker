@@ -714,7 +714,7 @@ static void draw_split(void)
     cv_text(6, 13, &FONT_XS, t, on ? C_WHITE : C_DIM);
     cv_text(130, 13, &FONT_XS, split_bars_of(set.brk) & 2u ? "BAR 2: KEYS 9-16" : "BAR 1: KEYS 9-16", C_DIM);
     cv_text(6, 26, &FONT_XS, !on ? "K1: ONE BAR OF A, ONE OF B, IN A'S TEMPO" : b && b->split ?
-            "A KEY: LOOP ITS BAR. SEL + KEY: BOTH" : "ON AT THE NEXT BAR", on ? C_AMB : C_DIM);
+            "KEYS PLAY THEIR SLICES, THE LOOP A + B" : "ON AT THE NEXT BAR", on ? C_AMB : C_DIM);
     cv_text(6, 37, &FONT_XS, "A KEY OF EACH HELD: LAYERED", on ? C_WHITE : C_DIM);
     cv_blit(0, 140);
 }

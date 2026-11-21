@@ -231,42 +231,11 @@ static void edit_open(void)
 static void break_ask(uint32_t i);
 /* a white key pressed with a split playing: its half latched, the loop rounding that bar alone from the next bar line;
  * SEL + a key, both halves again; a key pressed while one of the other half is held layers and keeps the latch */
-static void split_key(uint32_t i, uint32_t keys, uint32_t btn)
-{
-    const brk_break_t *b = brk_get_break();
-    uint32_t k;
-    int h;
-    if (!b || !b->split)
-        return;
-    h = i >= b->split;
-    if (btn & 1u << B_SEL) {
-        ui.tap_combo = 1u;               /* (not SEL's card) */
-        if (brk_get_half() >= 0) {
-            brk_half(-1);
-            app_say("LOOP", "A AND B");
-        }
-        return;
-    }
-    for (k = 0; k < 16u; k++)
-        if (k != i && keys >> WK[k] & 1u && (int)(k >= b->split) != h)
-            return;                      /* a layer: the latch stays */
-    if (brk_get_half() != h) {
-        brk_half(h);
-        app_say("LOOP", h ? "B ALONE" : "A ALONE");
-    }
-}
-/* ALGORITHM's break: a split's (S-033), the break of the half looping alone, B with bar 2 latched, else A; in at the
- * next bar, as any break change */
+/* ALGORITHM's break: the next or the one before, in at the next bar (a split's B: HOME › SPLIT K2; 0.9.73, FLEXOR: no
+ * half latched any more, so ALGORITHM always A) */
 static void break_turn(int32_t d)
 {
-    uint32_t step = d > 0 ? 1u : n_breaks - 1u;
-    if (split_on() && brk_get_half() == 1) {
-        sp_put(set.brk, (sp_get(set.brk) & ~31u) | ((split_b_of(set.brk) + step) % n_breaks + 1u));
-        set_dirty = 1u;
-        break_ask(set.brk);
-        app_say(playing_now() ? "NEXT BREAK B" : "BREAK B", break_name(split_b_of(set.brk)));
-    } else
-        break_ask((set.brk + step) % n_breaks);
+    break_ask((set.brk + (d > 0 ? 1u : n_breaks - 1u)) % n_breaks);
 }
 static void break_ask(uint32_t i)
 {
@@ -534,7 +503,6 @@ static void input(void)
         if (kdn >> WK[i] & 1u) {
             if (ui.rec)
                 rec_slice(i);            /* REC: into the pattern too (stopped: step by step, LOAF BREAKER) */
-            split_key(i, keys, btn);     /* (0.9.71: a split, the key's half latched; SEL + key both again) */
             brk_key((int)i, 1);
             ui.key_focus = (int8_t)i;    /* the engine loops the key pressed last */
             ui.key_since = now;

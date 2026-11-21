@@ -230,11 +230,9 @@ two stay in time whatever their own tempos (as an old sampler would).
 | K3 BAR A | Which of A's two bars plays: BAR 1 · BAR 2 |
 | K4 BAR B | Which of B's two bars plays: BAR 1 · BAR 2 |
 
-Playing a split: white keys **1–8 are A's slices, 9–16 B's**. A key pressed **latches its half**: from the next bar
-line the loop goes round that bar alone (the pattern's slices, the GENERATOR's and RANDOM's fold into it); a key of
-the other half switches, in time; **SEL + a key** plays both halves again. **A key of each half held** plays both: the
-second loops on voices of its own over the first. With bar 2 latched, **ALGORITHM** changes break B, otherwise break A
-(at the next bar, the latch kept). The white keys' LENGTH, PITCH, MODE and DECAY are the split's own (as a break of
+Playing a split: white keys **1–8 are A's slices, 9–16 B's**. A key plays its slice as on any break, and the loop
+always goes on over **A + B** (0.9.73: no half latched any more). **A key of each half held** plays both: the second
+loops on voices of its own over the first. **ALGORITHM** changes break A (at the next bar); break B is K2's. The white keys' LENGTH, PITCH, MODE and DECAY are the split's own (as a break of
 its own, SAVE keeps them); a pattern picked while a half loops alone comes in at that bar's end. The drums, the kick and
 the sequencer play on as ever.
 
