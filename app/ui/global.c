@@ -640,30 +640,37 @@ static void split_value(int i, char *t)
     else if (i == 1)
         text_cat(t, break_name(split_b_of(set.brk)));
     else
-        text_cat(t, kx2.split_bars >> (i - 2) & 1u ? "BAR 2" : "BAR 1");
+        text_cat(t, split_bars_of(set.brk) >> (i - 2) & 1u ? "BAR 2" : "BAR 1");
 }
 static void split_turn(int i, int32_t d)
 {
     static const char *const SN[4] = {"SPLIT", "BREAK B", "BAR OF A", "BAR OF B"};
-    uint32_t was = kx2.split | (uint32_t)kx2.split_b << 8 | (uint32_t)kx2.split_bars << 16;
+    uint32_t was = sp_get(set.brk), v = was;   /* (0.9.71, FLEXOR: the break playing's own split, kept for it) */
     char t[16];
     if (set.novice) {
         easy_no();
         return;
     }
-    kx2.sp_tag = SP_TAG;
+    if (set.brk >= WK_NB) {
+        app_say("SPLIT", "NOT ON THIS BREAK");
+        return;
+    }
+    if (!(v & 31u))                      /* (B as shown: the one after A, until one is picked) */
+        v |= split_b_of(set.brk) + 1u;
     if (i == 0)
-        kx2.split = (uint8_t)(d > 0);
+        v = d > 0 ? v | SP_ON : v & ~SP_ON;
     else if (i == 1)
-        kx2.split_b = (uint8_t)((split_b_of(set.brk) + (d > 0 ? 1u : n_breaks - 1u)) % n_breaks + 1u);
+        v = (v & ~31u) | ((split_b_of(set.brk) + (d > 0 ? 1u : n_breaks - 1u)) % n_breaks + 1u);
     else if (d > 0)
-        kx2.split_bars |= (uint8_t)(1u << (i - 2));
+        v |= 1u << (i + 3);
     else
-        kx2.split_bars &= (uint8_t)~(1u << (i - 2));
-    if (was != (kx2.split | (uint32_t)kx2.split_b << 8 | (uint32_t)kx2.split_bars << 16)) {
-        if (!kx2.split)
+        v &= ~(1u << (i + 3));
+    if (was != v) {
+        sp_put(set.brk, v);
+        if (!(v & SP_ON))
             brk_half(-1);
-        if (kx2.split || i == 0)         /* the break again, at the next bar (break_poll) */
+        if ((v & SP_ON) || i == 0)       /* the break again, at the next bar (break_poll), with the split's own keys
+                                          * or the break's (break_ask's wk_follow) */
             break_ask(set.brk);
         set_dirty = 1u;
     }
@@ -700,12 +707,12 @@ static void draw_split(void)
     text_cat(t, "A ");
     text_cat(t, break_name(set.brk));
     cv_text(6, 2, &FONT_XS, t, on ? C_WHITE : C_DIM);
-    cv_text(130, 2, &FONT_XS, kx2.split_bars & 1u ? "BAR 2: KEYS 1-8" : "BAR 1: KEYS 1-8", C_DIM);
+    cv_text(130, 2, &FONT_XS, split_bars_of(set.brk) & 1u ? "BAR 2: KEYS 1-8" : "BAR 1: KEYS 1-8", C_DIM);
     t[0] = 0;
     text_cat(t, "B ");
     text_cat(t, break_name(split_b_of(set.brk)));
     cv_text(6, 13, &FONT_XS, t, on ? C_WHITE : C_DIM);
-    cv_text(130, 13, &FONT_XS, kx2.split_bars & 2u ? "BAR 2: KEYS 9-16" : "BAR 1: KEYS 9-16", C_DIM);
+    cv_text(130, 13, &FONT_XS, split_bars_of(set.brk) & 2u ? "BAR 2: KEYS 9-16" : "BAR 1: KEYS 9-16", C_DIM);
     cv_text(6, 26, &FONT_XS, !on ? "K1: ONE BAR OF A, ONE OF B, IN A'S TEMPO" : b && b->split ?
             "A KEY: LOOP ITS BAR. SEL + KEY: BOTH" : "ON AT THE NEXT BAR", on ? C_AMB : C_DIM);
     cv_text(6, 37, &FONT_XS, "A KEY OF EACH HELD: LAYERED", on ? C_WHITE : C_DIM);

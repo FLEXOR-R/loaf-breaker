@@ -236,7 +236,12 @@ the other half switches, in time; **SEL + a key** plays both halves again. **A k
 second loops on voices of its own over the first. With bar 2 latched, **ALGORITHM** changes break B, otherwise break A
 (at the next bar, the latch kept). The white keys' LENGTH, PITCH, MODE and DECAY are the split's own (as a break of
 its own, SAVE keeps them); a pattern picked while a half loops alone comes in at that bar's end. The drums, the kick and
-the sequencer play on as ever. SAVE keeps the split.
+the sequencer play on as ever.
+
+**Each break has its own split** (0.9.71): the split you set is kept on break A, the break playing, with its break B,
+its bars and its keys. Go to another break and there is no split there until you set one on it; come back to A and
+its split is there again. A split stays until you turn K1 OFF on its break (B and the bars are kept for when you turn
+it on again). SAVE keeps every break's split; RESET ALL clears them all.
 
 ![HOME › SPLIT: AMEN10 in bar 1, UPDOWN in bar 2](img/screen-split.png "HOME: SPLIT")
 

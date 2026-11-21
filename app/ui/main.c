@@ -261,7 +261,7 @@ static void break_turn(int32_t d)
 {
     uint32_t step = d > 0 ? 1u : n_breaks - 1u;
     if (split_on() && brk_get_half() == 1) {
-        kx2.split_b = (uint8_t)((split_b_of(set.brk) + step) % n_breaks + 1u);
+        sp_put(set.brk, (sp_get(set.brk) & ~31u) | ((split_b_of(set.brk) + step) % n_breaks + 1u));
         set_dirty = 1u;
         break_ask(set.brk);
         app_say(playing_now() ? "NEXT BREAK B" : "BREAK B", break_name(split_b_of(set.brk)));
@@ -270,6 +270,8 @@ static void break_turn(int32_t d)
 }
 static void break_ask(uint32_t i)
 {
+    if (i != set.brk)                    /* (0.9.71: another break, its own split or none: no half latched) */
+        brk_half(-1);
     set.brk = (uint8_t)i;                /* turning on fast just moves the target */
     wk_follow();                         /* (0.9.71, FLEXOR: the white keys, the break's own) */
     brk_next = (int32_t)i;
@@ -284,7 +286,8 @@ static void reset_all(void)
     uint8_t ble_was_off = set.ble_off;
     settings_defaults();
     wk_fill();                           /* (0.9.71: every break's white keys as they start) */
-    kx2.split = kx2.split_b = kx2.split_bars = 0u;   /* (0.9.71: no split) */
+    memset(kx2.sp, 0, sizeof kx2.sp);   /* (0.9.71: no split on any break) */
+    kx2.sp_tag = SP_TAG2;
     brk_half(-1);
     drops_init();                        /* (0.9.58: DROP 1-8 all as the defaults, DROP 1 selected) */
     klab_defaults();                     /* (LOAF BREAKER: the KICK LAB off on every kick) */
@@ -4013,7 +4016,7 @@ int app_expect(const char *what, int *got)
             v[200] = bs.layer;
         }
         v[199] = brk_get_half();
-        v[201] = kx2.split_b;
+        v[201] = (int)(sp_get(set.brk) & 31u);
         v[202] = set.keys[0].start >> 4; /* (0.9.71: the first white key's DECAY) */
     }
     v[161] = set.vinyl & 3u;             /* (0.9.54: VINYL BREAK's THRU, 0 BOTH 1 BREAK 2 KICK) */

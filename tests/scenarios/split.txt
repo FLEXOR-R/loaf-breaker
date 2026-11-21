@@ -76,13 +76,55 @@ tapkey w5
 release SEL
 wait 3000
 expect half -1
-# both halves: ALGORITHM changes break A
+# both halves: ALGORITHM changes break A. (0.9.71, FLEXOR: "chaque break a un split indépendant en mémoire") Break 2
+# has no split of its own: one break, none until one is set there; back on break 1, its split as it was
 turn ALGO 1 10
 wait 3000
 expect brk 1
-expect split_b 5
-# off: one break again
-turn K1 -1 10
-wait 3000
 expect split 0
 expect split_at 0
+expect split_b 0
+turn ALGO -1 10
+wait 3000
+expect brk 0
+expect split 1
+expect split_b 5
+expect split_at 8
+# break 2 its own split (B the one after it, bar 2 of A): break 1's stays as it was
+turn ALGO 1 10
+wait 3000
+turn K1 1 10
+turn K3 1 10
+wait 3000
+expect brk 1
+expect split 1
+expect split_b 3
+turn ALGO -1 10
+wait 3000
+expect brk 0
+expect split_b 5
+# both kept by SAVE through a restart, each on its break
+tap PLAY
+wait 300
+tap SAVE
+wait 600
+reboot
+wait 4200
+expect brk 0
+expect split 1
+expect split_b 5
+turn ALGO 1 10
+wait 400
+expect brk 1
+expect split 1
+expect split_b 3
+# off by hand on break 2: one break again there, break 1's kept
+expect page 12
+turn K1 -1 10
+wait 400
+expect split 0
+expect split_at 0
+turn ALGO -1 10
+wait 400
+expect brk 0
+expect split 1
