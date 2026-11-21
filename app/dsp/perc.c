@@ -295,7 +295,7 @@ static inline float voice_out(pv_t *v, const pc_t *c, float x)
  * hit's PX_ROOM length, then closed in ~6 ms */
 #define RM_C 4u
 static const uint16_t RM_CL[RM_C] = {557u, 617u, 691u, 751u}, RM_AL[2] = {225u, 76u};
-static int16_t rm_c[RM_C][751], rm_a[2][225];
+static int16_t rm_c[RM_C][751] BRK_POOL, rm_a[2][225] BRK_POOL;   /* (0.9.71: in the pool, 6.9 KB of RAM freed) */
 static uint16_t rm_cp[RM_C], rm_ap[2];
 static float rm_f[RM_C], rm_g;
 static uint32_t rm_open;

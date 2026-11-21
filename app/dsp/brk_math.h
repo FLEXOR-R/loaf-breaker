@@ -18,6 +18,13 @@
 #else
 #define BRK_RAM __attribute__((noinline))
 #endif
+/* (LOAF BREAKER 0.9.71, for the RAM) a big line in the FM-1's pool (fm1-base's .pool: zeroed at start, SRAM as the
+ * RAM), not its 96 KB of RAM; elsewhere nothing */
+#if defined(__PI32V2__)
+#define BRK_POOL __attribute__((section(".pool")))
+#else
+#define BRK_POOL
+#endif
 #ifdef BRK_ENGINE
 #define BRK_INL static inline __attribute__((always_inline))
 #else

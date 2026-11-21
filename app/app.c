@@ -1214,7 +1214,7 @@ typedef struct {
     } k[KICK_MEMS];
 } kfxm_t;
 _Static_assert(sizeof(kfxm_t) <= 3840u, "a store object holds 3840 bytes");
-static kfxm_t kfxm;
+static kfxm_t kfxm PLAT_POOL;            /* (0.9.71: in the pool, for the RAM) */
 static float *kfx_f(uint32_t j, uint32_t i)   /* the kick FX slot j's setting i (KFX_NF of them) */
 {
     brk_fxslot_t *s = &set.kfx[j % BRK_KFX_SLOTS];
@@ -1746,7 +1746,9 @@ static void pat_read_back(void)          /* the engine's steps into the pattern 
 
 /* ------------------------------------------------------------------- engine --- */
 static int16_t pcm_a[CH_PCM_MAX] PLAT_POOL;
-#define CH_DUB_LEN 30720u                /* the dub delay's line: 0.70 s a side, 3/8 down to 97 BPM, 1/2 to 172 */
+#define CH_DUB_LEN 24256u                /* the dub delay's line: 0.55 s a side, 3/8 down to 123 BPM, 1/4 to 82 (0.9.71, FLEXOR,
+                                          * for the RAM: 0.70 s before, 3/8 down to 97; 12.9 KB of pool for the drums' room
+                                          * and the kicks' FX sections) */
 static int16_t dub_line[CH_DUB_LEN] PLAT_POOL;
 static int16_t ovl_line[2u * OVL_LINE] PLAT_POOL;   /* the overlays' JET (1 KB; 4 KB with WOBBLE until 0.9.57) */
 static brk_break_t brk0;
