@@ -128,3 +128,32 @@ turn ALGO -1 10
 wait 400
 expect brk 0
 expect split 1
+# (0.9.73, FLEXOR: "un reset split pour mettre off sur tous les splits") break 2's on again, then SYSTEM › RESET ›
+# SPLITS: both off; K1 ON again on break 1: its B kept
+turn ALGO 1 10
+wait 400
+turn K1 1 10
+wait 400
+expect brk 1
+expect split 1
+tap GLO
+wait 150
+turn SELECT -1 10
+wait 300
+expect gpage 5
+turn K4 -20 10
+turn K4 14 10
+wait 200
+shot split_reset.png
+turn K2 5 10
+wait 200
+tap GLO
+wait 3300
+expect split 0
+tap HOME
+wait 300
+turn ALGO -1 10
+wait 400
+expect brk 0
+expect split 0
+expect split_b 5

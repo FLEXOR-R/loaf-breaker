@@ -241,7 +241,8 @@ the sequencer play on as ever.
 **Each break has its own split** (0.9.71): the split you set is kept on break A, the break playing, with its break B,
 its bars and its keys. Go to another break and there is no split there until you set one on it; come back to A and
 its split is there again. A split stays until you turn K1 OFF on its break (B and the bars are kept for when you turn
-it on again). SAVE keeps every break's split; RESET ALL clears them all.
+it on again). SAVE keeps every break's split; **SYSTEM › RESET › SPLITS** (0.9.73) turns every one OFF at once (their B
+and bars kept); RESET ALL clears them all.
 
 ![HOME › SPLIT: AMEN10 in bar 1, UPDOWN in bar 2](img/screen-split.png "HOME: SPLIT")
 
@@ -677,7 +678,7 @@ pattern's drum steps: 1 hit, ALWAYS, on time; the steps themselves kept); **BLAC
 THRU, filter, gate, VINYL, the LATCHES, KIL's and X2's too; the layout kept); **ARP** (0.9.52: the sixteen effects'
 AMOUNT, each one's THRU, RATE, SWEEP, LATCH off, every ARP key one effect); **WHITE KEYS** (each, on every break: one slice, pitch 0,
 LOOP, no DECAY, its slice effect off); **WHITE LENGTH** (0.9.71: the break playing's white keys one slice each again, their
-PITCH, MODE and DECAY kept, the other breaks' keys untouched); **SEL KEYS** (0.9.52: SEL + a black key or REC its own again);
+PITCH, MODE and DECAY kept, the other breaks' keys untouched); **SPLITS** (0.9.73: every break's split OFF, its break B and bars kept); **SEL KEYS** (0.9.52: SEL + a black key or REC its own again);
 **TRACK** (this track: from its first item, every item's break SAME; its items kept); **SCREEN** (the skin RED, the
 screen effects off, their settings at 50 %, WAVE ZOOM one bar; the LIGHTS as they came, 0.9.57); **WIPE MEMORY** (before installing another firmware: every save LOAF BREAKER keeps in the FM-1's memory erased, a sector at a time while the screen counts to 40, playing stopped first; then MEMORY WIPED, and nothing is saved again until the FM-1 restarts: install the other firmware next, and it finds that memory blank); and last **EVERYTHING**: RESET ALL, everything back
 to how it came (tempo, generator, FX chain, the drums, mixer, keys, slices, SYSTEM, the tracks and all 64 patterns; the
