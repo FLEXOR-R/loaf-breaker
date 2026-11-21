@@ -105,7 +105,7 @@ wait 150
 turn SELECT 2 10   # (0.9.57: past LIGHTS)
 wait 300
 expect gpage 5
-turn K4 13 10
+turn K4 14 10   # (0.9.71: WHITE LENGTH before SEL KEYS)
 wait 200
 shot rs_screen.png
 turn K2 5 10
@@ -154,7 +154,7 @@ turn K2 5 10
 wait 200
 tap GLO
 wait 3300
-turn K4 2 10
+turn K4 3 10
 wait 100
 turn K2 5 10
 wait 200

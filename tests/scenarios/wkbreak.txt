@@ -53,3 +53,33 @@ turn ALGO -1 10
 wait 400
 expect brk 0
 expect klen0 4
+# (0.9.71, FLEXOR: "un RESET WHITE LENGTH") SYSTEM › RESET › WHITE LENGTH on break 1: its keys one slice again, key 1's
+# DECAY kept; break 2's own lengths untouched
+key w0 down
+wait 200
+turn K4 2 10
+wait 200
+key w0 up
+wait 200
+expect kdec0 2
+tap GLO
+wait 150
+turn SELECT -1 10
+wait 300
+expect gpage 5
+turn K4 -20 10
+turn K4 13 10
+wait 200
+shot wkbreak_rstlen.png
+turn K2 5 10
+wait 200
+tap GLO
+wait 300
+expect klen0 3
+expect kdec0 2
+tap HOME
+wait 300
+turn ALGO 1 10
+wait 400
+expect brk 1
+expect klen0 10

@@ -648,7 +648,8 @@ came); **MIX** (the MIXER: levels, swing, the drums' route, COMP and DUCK off wi
 pattern's drum steps: 1 hit, ALWAYS, on time; the steps themselves kept); **BLACK KEYS** (their settings: rolls,
 THRU, filter, gate, VINYL, the LATCHES, KIL's and X2's too; the layout kept); **ARP** (0.9.52: the sixteen effects'
 AMOUNT, each one's THRU, RATE, SWEEP, LATCH off, every ARP key one effect); **WHITE KEYS** (each, on every break: one slice, pitch 0,
-LOOP, no DECAY, its slice effect off); **SEL KEYS** (0.9.52: SEL + a black key or REC its own again);
+LOOP, no DECAY, its slice effect off); **WHITE LENGTH** (0.9.71: the break playing's white keys one slice each again, their
+PITCH, MODE and DECAY kept, the other breaks' keys untouched); **SEL KEYS** (0.9.52: SEL + a black key or REC its own again);
 **TRACK** (this track: from its first item, every item's break SAME; its items kept); **SCREEN** (the skin RED, the
 screen effects off, their settings at 50 %, WAVE ZOOM one bar; the LIGHTS as they came, 0.9.57); **WIPE MEMORY** (before installing another firmware: every save LOAF BREAKER keeps in the FM-1's memory erased, a sector at a time while the screen counts to 40, playing stopped first; then MEMORY WIPED, and nothing is saved again until the FM-1 restarts: install the other firmware next, and it finds that memory blank); and last **EVERYTHING**: RESET ALL, everything back
 to how it came (tempo, generator, FX chain, the drums, mixer, keys, slices, SYSTEM, the tracks and all 64 patterns; the
