@@ -154,7 +154,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 
 | Button | Domain | Its parts |
 | --- | --- | --- |
-| HOME | LIVE | PERFORM, GENERATOR; HOME again: the other tab (its settings are SYSTEM › DISPLAY's since 0.9.56). HOME is the main page: FX, ENV, LFO, GLO or ARP pressed again come back to it, SELECT turning their tabs |
+| HOME | LIVE | PERFORM, GENERATOR, SPLIT (EXPERT, 0.9.71); HOME again: the next tab (its settings are SYSTEM › DISPLAY's since 0.9.56). HOME is the main page: FX, ENV, LFO, GLO or ARP pressed again come back to it, SELECT turning their tabs |
 | EDIT | SOUNDS | Three sources, **SEL + EDIT** the next: **KICK** (its menu, by the kick's anatomy: ATTACK, BODY, TAIL, DIRT, FX1, FX2, MORE; SELECT its next section; EDIT again the next sound, EXPERT: SNARE, HAT, CLAP, then the KICK), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
 | SEQ | PATTERN | The lanes (ALGORITHM); the views FULL, DRUMS and **GROOVE** (SWING, BREAK ROWS, FOLLOW; also SEL + ARP) on SELECT |
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD |
@@ -206,9 +206,32 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 | ALGORITHM | (HOME, MIXER; SEL held: any page) The next or previous break: its name shows at once (amber in the header) and, while playing, it comes in at the next bar (the old one goes quiet for the bar's last 16th meanwhile); stopped, at once. NUSKOOL 140, AMEN20 164, AMEN19 172, UPDOWN 165, JUNGLE 175, THINK 114 (Lyn Collins), APACHE 115 (Incredible Bongo Band), THEWORM 110 (Jimmy McGriff) (the Amens: The Winstons, cut by Cyberworm): 2 bars each, played at the tempo you set; then **your own breaks**, if you sent some (below) |
 | MASTER | Volume |
 
+### The split
+<a id="split"></a>**HOME › SPLIT** (0.9.71, FLEXOR, from CHOPPAH 1.5; EXPERT: HOME, HOME again, HOME again) puts **two
+breaks in one loop**: bar 1 is a bar of break A (the break playing), bar 2 a bar of break B, repitched to A's bar so the
+two stay in time whatever their own tempos (as an old sampler would).
+
+| Knob | Sets |
+| --- | --- |
+| K1 SPLIT | OFF · ON: the break becomes the two at the next bar (stopped, at once); the header shows both, "AMEN10+FOCUZ" |
+| K2 BREAK B | Any break, the firmware's and yours (at first the one after A) |
+| K3 BAR A | Which of A's two bars plays: BAR 1 · BAR 2 |
+| K4 BAR B | Which of B's two bars plays: BAR 1 · BAR 2 |
+
+Playing a split: white keys **1–8 are A's slices, 9–16 B's**. A key pressed **latches its half**: from the next bar
+line the loop goes round that bar alone (the pattern's slices, the GENERATOR's and RANDOM's fold into it); a key of
+the other half switches, in time; **SEL + a key** plays both halves again. **A key of each half held** plays both: the
+second loops on voices of its own over the first. With bar 2 latched, **ALGORITHM** changes break B, otherwise break A
+(at the next bar, the latch kept). The white keys' LENGTH, PITCH, MODE and DECAY are the split's own (as a break of
+its own, SAVE keeps them); a pattern picked while a half loops alone comes in at that bar's end. The drums, the kick and
+the sequencer play on as ever. SAVE keeps the split.
+
+![HOME › SPLIT: AMEN10 in bar 1, UPDOWN in bar 2](img/screen-split.png "HOME: SPLIT")
+
 ### Where things are
 
-- **HOME**: playing, the main page. PERFORM and GENERATOR (HOME again: the other tab), the CDJ waveform on both;
+- **HOME**: playing, the main page. PERFORM and GENERATOR (HOME again: the next tab), the CDJ waveform on both; in
+  EXPERT a third, **SPLIT** (0.9.71, below);
   **SEL + PRESETS** there changes the kick (KICK 1–20, 0.9.26). The waveform's settings are **SYSTEM › DISPLAY** (GLO,
   then SELECT; HOME's third tab from 0.9.2 to 0.9.55, FLEXOR moved it): K1 **VIEW** (WAVEFORM or SLICES: what PERFORM and GENERATOR show; HOME held still flips
   it), K2 **WAVE TYPE** (RGB, SERATO, 3 BAND or BLUE colours), K3 **WAVE ZOOM** (how much of the past the wave holds), K4 **BREAK
