@@ -2221,6 +2221,9 @@ void app_init(void)
     }
     if (set.brk >= n_breaks)
         set.brk = 0u;
+    set.pitch = 0;                       /* (0.9.73, FLEXOR: "a chaque démarrage, remettre le pitch de tous les breaks a
+                                          * zero": the breaks' PITCH (SOUNDS › BREAK K1, OCT- / OCT+) 0 at every start,
+                                          * the one saved setting a start puts back, his rule's exception) */
     trk_defaults();
     pats.mem.fx_ok = pats.mem.kfx_ok = pats.kfm_ok = 0u;   /* (an older save: no effect remembered) */
     {

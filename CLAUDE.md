@@ -93,7 +93,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   FX by default (`drums_chain` 0 in the defaults; a saved THRU stays). On HOME, SEL + PRESETS the kick (0.9.26, FLEXOR;
   elsewhere the pattern).
 - **A saved setting never changes at a restart** (FLEXOR, 12 Nov 2026): defaults are for a new FM-1 and resets only;
-  never force a value at power-on once it has been saved.
+  never force a value at power-on once it has been saved. The one exception, his own (0.9.73): the breaks' PITCH (`set.pitch`, OCT- / OCT+, SOUNDS ›
+  BREAK K1) is 0 at every start (app_init; probe bpitch, scenario pitchboot).
 - KICK 1-20 (0.9.2, FLEXOR): `KICK_MEMS` 20, `KMEM_A` 10 (the first ten's arrays as saved before); 11-20 in `km2`
   (OBJ_KMEM2 = OBJ_NG0, pool RAM); always reach a memory through `kmem_at`, `ksmem_at`, `kx_at`, `kxh_at`, `klmem_at`.
   Each kick's PRESET name: `kick_lab_t.pre` (1 + OUT K4's place; 0 the memory's own built-in, `kpre_mem`).

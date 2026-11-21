@@ -199,7 +199,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 | SEL + PRESETS | The pattern, from any page; **the kick** (KICK 1–20) on HOME, PATTERN (SEQ, GROOVE), MIX, ARP and SYSTEM's MIDI, SCREEN SET, RESET; in the KICK menu the kick on KNOBS, ASSIGN, K1–K4 SET (PRESETS alone their knob presets, 0.9.66) and on FX1, FX2 |
 | SEL + ARP | PATTERN › GROOVE; **in the KICK menu: copy the kick, then, on another kick (PRESETS), paste it** (its sound, LAB, KNOBS and FX; its volume kept); on a drum's page the same for that drum's memories (0.9.26) |
 | SEL + SAVE | **Undo** the last pattern wipe (SEL + REC, a drum lane's FILL, CLR / 4X4 or COPY); again: redo |
-| OCT− / OCT+ | Pitch in semitones (hold to go faster). Both: back to 0 |
+| OCT− / OCT+ | Pitch in semitones (hold to go faster). Both: back to 0. Back to 0 at every start too (0.9.73) |
 | PRESETS | The pattern, P1–P64 (§5); while playing the new one starts at the end of the loop |
 | SEQ · REC | The sequencer; recording the keys into the pattern (§5). SEL + REC: clear the pattern (SEL + SAVE takes it back) |
 | MIDI notes | Notes 48–63 (C3–D#4) play slices 1–16, held like the white keys; 36 the kick, 38 the snare, 39 the clap, 42 / 44 / 46 the hat (§8); any channel. SYSTEM › MIDI's PRESETS, NOTES IN: ALL, DRUMS (the drums alone), OFF |
