@@ -12,6 +12,7 @@
 <a href="https://flexor-r.github.io/loaf-breaker/"><b>Site</b></a> ·
 <a href="https://flexor-r.github.io/loaf-breaker/emu/">Emulator</a> ·
 <a href="https://flexor-r.github.io/loaf-breaker/install/">Install</a> ·
+<a href="https://flexor-r.github.io/loaf-breaker/app/">App (Android)</a> ·
 <a href="https://flexor-r.github.io/loaf-breaker/manual/">Manual</a> ·
 <a href="https://flexor-r.github.io/loaf-breaker/manual/#controls">Controls</a> ·
 <a href="https://flexor-r.github.io/loaf-breaker/breaks/">Breaks</a> ·

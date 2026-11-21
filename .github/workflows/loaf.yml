@@ -154,6 +154,7 @@ jobs:
           sh tests/editor_link.sh
           sh tests/drum_kit.sh       # (0.9.45: your drum samples, the IMPORT page)
           sh tests/import_page.sh
+          sh tests/live_page.sh      # (0.9.71: the app's LIVE page against the simulator; skipped without Playwright)
 
       # LOAF BREAKER's site, as CHOPPAH's: the front page, the web installer, the emulator in the browser and the
       # manual, its screenshots taken from this build (tools/site_shots.sh), in CHOPPAH's look (tools/site_style.py)

@@ -68,7 +68,8 @@ def header(current):
     name = re.search(r'^title\s*=\s*"([^"]+)"', conf, re.M) or re.search(r'^name\s*=\s*"([^"]+)"', conf, re.M)
     repo = re.search(r'^repo\s*=\s*"([^"]+)"', conf, re.M)
     links = [("../emu/", "Emulator"), ("../install/", "Install"), ("../manual/", "Manual"), ("../manual/#controls", "Controls"),
-             ("../breaks/", "Breaks"), ("../import/", "Import"), ("../editor/", "Studio")]
+             ("../breaks/", "Breaks"), ("../import/", "Import"), ("../editor/", "Studio"), ("../live/", "Live"),
+             ("../app/", "App")]
     if repo:
         links.append((repo.group(1), "Source"))
     return ('<div class="page"><header class="site"><a class="home" href="../">' + (name.group(1) if name else "CHOPPAH") +
@@ -200,6 +201,35 @@ def editor(site):
     (site / "editor" / "index.html").write_text(page, encoding="utf-8")
 
 
+def page_of(site, name, current):
+    """LOAF BREAKER (0.9.71): a page of app/site/NAME.html at NAME/ (app.html: app/), the site's style and header"""
+    page = (APP / "site" / f"{name}.html").read_text(encoding="utf-8")
+    css = (APP / "site" / "site.css").read_text(encoding="utf-8")
+    if "/*SITE_CSS*/" not in page or "<!--HEADER-->" not in page:
+        raise SystemExit(f"app/site/{name}.html: no /*SITE_CSS*/ or <!--HEADER--> to fill")
+    page = page.replace("<style>/*SITE_CSS*/", FONTS + "<style>" + css, 1).replace("<!--HEADER-->", header(current), 1)
+    (site / name).mkdir(parents=True, exist_ok=True)
+    (site / name / "index.html").write_text(page, encoding="utf-8")
+
+
+def pwa(site):
+    """LOAF BREAKER (0.9.71, FLEXOR: an Android app): the site installable as an app: its manifest and service worker at
+    the root (their scope the whole site), every page linking the manifest, the theme's colour, the worker registered"""
+    for f in ("manifest.webmanifest", "sw.js"):
+        (site / f).write_text((APP / "site" / f).read_text(encoding="utf-8"), encoding="utf-8")
+    for f in site.rglob("index.html"):
+        up = "../" * (len(f.relative_to(site).parts) - 1)
+        s = f.read_text(encoding="utf-8")
+        if 'rel="manifest"' in s:
+            continue
+        reg = "" if "serviceWorker" in s else (f'<script>if ("serviceWorker" in navigator) navigator.serviceWorker'
+                                               f'.register("{up}sw.js").catch(function () {{}});</script>\n')
+        s = s.replace("</head>", f'<link rel="manifest" href="{up}manifest.webmanifest">\n'
+                                 f'<meta name="theme-color" content="#0e0d0b">\n'
+                                 f'<meta name="mobile-web-app-capable" content="yes">\n' + reg + "</head>", 1)
+        f.write_text(s, encoding="utf-8")
+
+
 def main(site):
     site = Path(site)
     rebrand(site)
@@ -208,11 +238,14 @@ def main(site):
     breaks(site)
     imp(site)
     editor(site)
+    page_of(site, "live", "Live")        # (0.9.71: the FM-1 in the hand, the app's)
+    page_of(site, "app", "App")
     home = site / "index.html"
     if home.exists():
         home.write_text(restyle(home, "home", "manual/#controls"), encoding="utf-8")
     man = site / "manual" / "index.html"
     if not man.exists():
+        pwa(site)
         print(f"site_style: {site}: front page restyled (no manual)")
         return
     s = restyle(man, "manual", "#controls")
@@ -226,6 +259,7 @@ def main(site):
     s = s.replace("</body>", SPY + "</body>", 1)
     man.write_text(s, encoding="utf-8")
     logo(site)
+    pwa(site)
     print(f"site_style: {site}: the front page and the manual restyled, the control map in section {h.group(1)}")
 
 

@@ -206,6 +206,18 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 | ALGORITHM | (HOME, MIXER; SEL held: any page) The next or previous break: its name shows at once (amber in the header) and, while playing, it comes in at the next bar (the old one goes quiet for the bar's last 16th meanwhile); stopped, at once. NUSKOOL 140, AMEN20 164, AMEN19 172, UPDOWN 165, JUNGLE 175, THINK 114 (Lyn Collins), APACHE 115 (Incredible Bongo Band), THEWORM 110 (Jimmy McGriff) (the Amens: The Winstons, cut by Cyberworm): 2 bars each, played at the tempo you set; then **your own breaks**, if you sent some (below) |
 | MASTER | Volume |
 
+### The app (Android)
+<a id="app"></a>The site is also an **app** (0.9.71, FLEXOR): on an Android phone, open it in **Chrome**, then Chrome's menu,
+**Install app** (or Add to Home screen). It opens full screen on **App**: **Live**, **Studio**, **Breaks**, **Import** and
+the manual. Plug the FM-1 into the phone with a **USB-C cable** (an OTG one if the phone asks; LOAF BREAKER has no
+Bluetooth), press **Connect** and allow MIDI.
+
+**Live** is the FM-1 in your hand: its screen, live, and its whole panel under your fingers, as the FM-1's own: the
+buttons (PLAY, REC, SEL, SAVE, HOME, EDIT, SEQ, ENV, LFO, FX, ARP, GLO, OCT), the seven knobs (drag up or down on one,
+or tap its − and +), the 11 black keys and the 16 white keys (hold as long as you hold your finger, several at once),
+MASTER, and **Drop** (SEL + ENV in one press). The lit buttons and keys light on the phone too. It keeps the phone
+awake while it is connected. It works the same from a computer (Chrome or Edge).
+
 ### The split
 <a id="split"></a>**HOME › SPLIT** (0.9.71, FLEXOR, from CHOPPAH 1.5; EXPERT: HOME, HOME again, HOME again) puts **two
 breaks in one loop**: bar 1 is a bar of break A (the break playing), bar 2 a bar of break B, repitched to A's bar so the
