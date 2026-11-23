@@ -190,7 +190,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   blocks saves until a restart; on the host the store is kept apart, so only the FM-1 really erases.
 - Screen mirror (0.9.43, FLEXOR: a computer interface, then a bigger sequencer and kick editor on it later): fm1-base's
   `mirror = true` (fm1.toml; its web page at the site's mirror/, tools/fm1_mirror.py), `APP_REDRAW` (main.c app_redraw);
-  for the RAM: app.h MR_SEGW 240 (whole rows), MRQ 2048, the CDJ `scope` in the pool: RAM 97,116 of 98,304, pool 340,712 (fm1.toml `pool_spare` 3072: the 8 KB margin spent on it, 3,352 B left; more in the pool frees room first). Image 566,192 B with the Studio: ~15.4 KB left.
+  for the RAM: app.h MR_SEGW 240 (whole rows), MRQ 2048 (4096 again since 0.9.74, FLEXOR: artefacts on the mirror; RAM 90,060), the CDJ `scope` in the pool: RAM 97,116 of 98,304, pool 340,712 (fm1.toml `pool_spare` 3072: the 8 KB margin spent on it, 3,352 B left; more in the pool frees room first). Image 566,192 B with the Studio: ~15.4 KB left.
 - Studio (0.9.43, FLEXOR: "une interface efficace et complète", then "gérer séquenceur, banque de patterns et tracks ...
   comme si j'utilisais un DAW", the RGB waveforms as on the machine): the site's editor/ page (app/site/editor.html, its
   script app/site/editor.js inlined by tools/site_style.py `editor` at SCRIPT; the nav's "Studio"). SysEx (ui/main.c):

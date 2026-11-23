@@ -92,7 +92,9 @@ void app_redraw(void);
 #define MR_SEGW 240u                     /* (the mirror's segments a whole row: rows_send sends whole rows anyway; 7.7 KB
                                           * of pool and 1 KB of RAM fewer than 30-pixel ones) */
 #ifndef PLAT_HOST
-#define MRQ 2048u                        /* (the mirror's USB ring: 2 KB, not 4, for the RAM; a frame is at most ~1.1 KB) */
+#define MRQ 4096u                        /* (the mirror's USB ring: fm1-base's 4 KB again in 0.9.74, FLEXOR: "le screen
+                                          * mirroring ... il y a des artefacts": at 2 KB a busy screen's frames and its
+                                          * redraws were dropped over and over; the RAM freed in 0.9.71 pays for it) */
 #endif
 #define APP_SYSEX
 int app_sysex(const uint8_t *p, uint32_t n);
