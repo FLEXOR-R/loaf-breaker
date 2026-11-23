@@ -208,8 +208,9 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 
 ### The app (Android)
 <a id="app"></a>The site is also an **app** (0.9.71, FLEXOR): on an Android phone, open it in **Chrome**, then Chrome's menu,
-**Install app** (or Add to Home screen). It opens full screen on **App**: **Live**, **Studio**, **Breaks**, **Import** and
-the manual. Plug the FM-1 into the phone with a **USB-C cable** (an OTG one if the phone asks; LOAF BREAKER has no
+**Install app** (or Add to Home screen). It opens full screen on **App**: **Live**, **Studio**, **Breaks**, **Import**,
+**Update** (0.9.74: the installer, to put the newest LOAF BREAKER on the FM-1 from the phone; keep the screen on and
+the app in front until it says done) and the manual. Plug the FM-1 into the phone with a **USB-C cable** (an OTG one if the phone asks; LOAF BREAKER has no
 Bluetooth), press **Connect** and allow MIDI.
 
 **Live** is the FM-1 in your hand: its screen, live, and its whole panel under your fingers, as the FM-1's own: the
