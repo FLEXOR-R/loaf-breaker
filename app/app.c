@@ -27,6 +27,22 @@
 #ifndef CH_HAVE_BANK
 #define CH_HAVE_BANK 0
 #endif
+#if LB_BIG
+/* LOAF BREAKER's VST (24 Nov 2026, FLEXOR: "casser tout ce qui limite techniquement la version fm1"): the bank is a file
+ * the plugin loads (lb_bank_ptr: every break of breaks.txt, 44.1 kHz 16-bit PCM, tools/prep_breaks.py --all --pcm16),
+ * up to BANK_NSLOTS of them; the built-in one when there is none. The FM-1 never has LB_BIG */
+extern const uint8_t *lb_bank_ptr;
+extern uint32_t lb_bank_len;
+#define BANK_PTR (lb_bank_ptr ? lb_bank_ptr : CH_BANK)
+#define BANK_LEN (lb_bank_ptr ? lb_bank_len : CH_BANK_SIZE)
+#define BANK_NSLOTS 128u
+#define BANK_PCM16(s) (((s)->rsv & 1u) != 0u)   /* (a slot of 16-bit PCM, not IMA ADPCM) */
+#else
+#define BANK_PTR CH_BANK
+#define BANK_LEN CH_BANK_SIZE
+#define BANK_NSLOTS BANK_SLOTS
+#define BANK_PCM16(s) 0
+#endif
 #if CH_LOGO
 #include "splash_data.h"            /* LOAF BREAKER: the splash and the title (tools/make_egg.py) */
 #include "title_data.h"
@@ -432,6 +448,20 @@ static uint8_t klab_solo;                /* STACK's SOLO (not saved): 0 both, 1 
  * store object (OBJ_KX2: the KICK LAB's object kept as it was, so no save is lost); the kick playing's is its memory's
  * (kx2_at(set.kslot)). A save before them: all 0, every kick as it sounded */
 #define KX2_MAGIC 0x3258324Bu            /* "K2X2" */
+#if LB_BIG                               /* (LOAF BREAKER's VST: every break of the library its white keys and split; a
+                                          * split's break B in 8 bits: sp 16-bit, bit 15 on, bits 8-9 the bars) */
+#define WK_NB 128u
+typedef uint16_t sp_t;
+#define SP_ON 0x8000u
+#define SP_BMASK 255u
+#define SP_BARS 8u
+#else
+#define WK_NB 24u
+typedef uint8_t sp_t;
+#define SP_ON 0x80u
+#define SP_BMASK 31u                     /* (break B + 1) */
+#define SP_BARS 5u                       /* (bit SP_BARS A's second bar, the next B's) */
+#endif
 typedef struct {
     uint32_t magic;
     kick_x2_t m[KICK_MEMS];
@@ -446,7 +476,7 @@ typedef struct {
     uint8_t sp_tag, split, split_b, split_bars;   /* (0.9.71, FLEXOR, from CHOPPAH 1.5: the split, HOME › SPLIT;
                                           * valid with SP_TAG, KITS' bytes before: split on, break B + 1 (0: the one
                                           * after A), bit 0 A's second bar, bit 1 B's) */
-    uint8_t sp[24];                      /* (0.9.71, FLEXOR: "chaque break a un split indépendant en mémoire": break A's
+    sp_t sp[WK_NB];                      /* (0.9.71, FLEXOR: "chaque break a un split indépendant en mémoire": break A's
                                           * own split, A 0..23 (WK_NB), valid with SP_TAG2: bit 7 on, bits 0-4 break B + 1
                                           * (0: the one after A), bit 5 A's second bar, bit 6 B's; 0 never set. sp_tag
                                           * SP_TAG (0x5B) and split / split_b / split_bars: the one split for all of
@@ -459,21 +489,63 @@ typedef struct {
     uint8_t selrec;                      /* (appended, 0.9.70, FLEXOR: the REC key's SEL function, 1 + BKF_* but ARP, 0
                                           * none; a shorter save: none) */
     uint8_t rsv3;
-    uint16_t wk[25][BRK_KEYS];           /* (appended, 0.9.71, FLEXOR: "que les réglages des white keys restent sur les
+    uint16_t wk[WK_NB + 1u][BRK_KEYS];           /* (appended, 0.9.71, FLEXOR: "que les réglages des white keys restent sur les
                                           * breaks": each break's white keys, LENGTH, PITCH, MODE, DECAY (wk_pack), break
                                           * 0..23 (WK_NB); a shorter save: every break as the keys were saved) */
-    uint16_t wks[24][BRK_KEYS];          /* (appended, 0.9.71, FLEXOR: each break's split its own white keys, as wk; wk's
+    uint16_t wks[WK_NB][BRK_KEYS];          /* (appended, 0.9.71, FLEXOR: each break's split its own white keys, as wk; wk's
                                           * row 24, the one split's of 0.9.71's release, unused since; a shorter save:
                                           * every split's as that row) */
 } kx2_t;
 #define KIT_BPM0 32u                     /* (rsv[32..47]: the kits' tempo; rsv[0..31] SEL WHITE's) */
 static kx2_t kx2 PLAT_POOL;
+#if LB_BIG
+/* (the VST: kx2 over several store objects, PLAT_STORE_MAX bytes each, the last one shorter) */
+static const int KX2_OBJ[] = {OBJ_KX2, OBJ_KX2B, OBJ_KX2C, OBJ_KX2D};
+_Static_assert(sizeof(kx2_t) <= sizeof KX2_OBJ / sizeof KX2_OBJ[0] * PLAT_STORE_MAX, "kx2 fits its objects");
+static int kx2_save(void)
+{
+    uint32_t o = 0, i;
+    for (i = 0; o < sizeof kx2; i++, o += PLAT_STORE_MAX) {
+        uint32_t m = sizeof kx2 - o < PLAT_STORE_MAX ? (uint32_t)(sizeof kx2 - o) : PLAT_STORE_MAX;
+        if (plat_store_save(KX2_OBJ[i], (const uint8_t *)&kx2 + o, m) != 0)
+            return -1;
+    }
+    return 0;
+}
+static int kx2_size(void)
+{
+    int n = 0, z;
+    uint32_t i;
+    for (i = 0; i < sizeof KX2_OBJ / sizeof KX2_OBJ[0]; i++) {
+        z = plat_store_size(KX2_OBJ[i]);
+        if (z <= 0)
+            break;
+        n += z;
+        if (z < (int)PLAT_STORE_MAX)
+            break;
+    }
+    return n;
+}
+static int kx2_load(uint32_t n)
+{
+    uint32_t o = 0, i;
+    for (i = 0; o < n; i++, o += PLAT_STORE_MAX) {
+        uint32_t m = n - o < PLAT_STORE_MAX ? n - o : PLAT_STORE_MAX;
+        if (plat_store_load(KX2_OBJ[i], (uint8_t *)&kx2 + o, m) != (int)m)
+            return -1;
+    }
+    return (int)n;
+}
+#else
+#define kx2_save() plat_store_save(OBJ_KX2, &kx2, sizeof kx2)
+#define kx2_size() plat_store_size(OBJ_KX2)
+#define kx2_load(n) plat_store_load(OBJ_KX2, &kx2, (n))
+#endif
 static kick_x2_t *kx2_at(uint32_t k) { return &kx2.m[k % KICK_MEMS]; }
 /* LOAF BREAKER (0.9.71, FLEXOR: each break its own white keys, "afin de mieux chopper"): set.keys holds the break
  * playing's (wk_brk), the others in kx2.wk, packed: LENGTH bits 0-3, DECAY 4-7, MODE 8-9, PITCH + 12 10-14, bit 15 set.
  * A break change stores the keys into their break and reads the next one's (wk_follow); SAVE keeps them all (OBJ_KX2) */
-#define WK_NB 24u
-#define WK_SPLIT 24u                     /* (wk's last row: the one split's keys of 0.9.71's release; then wks) */
+#define WK_SPLIT WK_NB                   /* (wk's last row: the one split's keys of 0.9.71's release; then wks) */
 #define WK_ROWS (WK_SPLIT + 1u + WK_NB)  /* (a row: 0..23 a break's keys, 25..48 its split's; 24 unused) */
 #define WK_SET 0x8000u
 #define CH_TAG 0xC4u                     /* (0.9.75: CHAOS's bytes set) */
@@ -489,18 +561,17 @@ static void chaos_push(void)             /* (HOME › CHAOS to the engine: brk.h
 }
 #define SP_TAG 0x5Bu                     /* (0.9.71's release: one split for all) */
 #define SP_TAG2 0x5Cu                    /* (each break its own: kx2.sp) */
-#define SP_ON 0x80u
 static uint32_t sp_get(uint32_t a) { return a < WK_NB && kx2.sp_tag == SP_TAG2 ? kx2.sp[a] : 0u; }
 static void sp_put(uint32_t a, uint32_t v)
 {
     if (a < WK_NB) {
         kx2.sp_tag = SP_TAG2;
-        kx2.sp[a] = (uint8_t)v;
+        kx2.sp[a] = (sp_t)v;
     }
 }
 static uint32_t split_on_of(uint32_t a) { return (sp_get(a) & SP_ON) != 0u; }
 static uint32_t split_on(void) { return split_on_of(set.brk); }
-static uint32_t split_bars_of(uint32_t a) { return sp_get(a) >> 5 & 3u; }
+static uint32_t split_bars_of(uint32_t a) { return sp_get(a) >> SP_BARS & 3u; }
 static uint32_t wk_idx(void) { return split_on() ? WK_SPLIT + 1u + set.brk : set.brk; }
 static uint16_t *wk_row(uint32_t r) { return r < WK_SPLIT + 1u ? kx2.wk[r] : kx2.wks[(r - WK_SPLIT - 1u) % WK_NB]; }
 static uint8_t wk_brk = 0xFFu;           /* (the break whose keys set.keys holds; 0xFF: none yet) */
@@ -1389,7 +1460,7 @@ static int store_all(void)               /* SAVE: the settings, the patterns (th
            plat_store_save(OBJ_KLAB, &klab, sizeof klab) == 0 &&
            plat_store_save(OBJ_KMEM2, &km2, sizeof km2) == 0 &&   /* (KICK 11..20, 0.9.2) */
            (kfx_put(set.kslot), plat_store_save(OBJ_KFXM, &kfxm, sizeof kfxm) == 0) &&   /* (each kick's FX, 0.9.26) */
-           (wk_store(), plat_store_save(OBJ_KX2, &kx2, sizeof kx2) == 0);   /* (each kick's TOK and TAIL GATE, 0.9.45; each
+           (wk_store(), kx2_save() == 0);   /* (each kick's TOK and TAIL GATE, 0.9.45; each
                                           * break's white keys, 0.9.71) */
 }
 /* LOAF BREAKER: the kick memory k's knobs from the ones playing (kx_put), the ones playing from k's (kx_get); kx_all:
@@ -1783,9 +1854,13 @@ static void pat_read_back(void)          /* the engine's steps into the pattern 
 
 /* ------------------------------------------------------------------- engine --- */
 static int16_t pcm_a[CH_PCM_MAX] PLAT_POOL;
+#if LB_BIG
+#define CH_DUB_LEN 176400u               /* (LOAF BREAKER's VST: 2 s a side, every time at every tempo) */
+#else
 #define CH_DUB_LEN 24256u                /* the dub delay's line: 0.55 s a side, 3/8 down to 123 BPM, 1/4 to 82 (0.9.71, FLEXOR,
                                           * for the RAM: 0.70 s before, 3/8 down to 97; 12.9 KB of pool for the drums' room
                                           * and the kicks' FX sections) */
+#endif
 static int16_t dub_line[CH_DUB_LEN] PLAT_POOL;
 static int16_t ovl_line[2u * OVL_LINE] PLAT_POOL;   /* the overlays' JET (1 KB; 4 KB with WOBBLE until 0.9.57) */
 static brk_break_t brk0;
@@ -1880,11 +1955,12 @@ static const bank_slot_t *bank_check(const uint8_t *bank, uint32_t size, uint32_
 {
     const bank_header_t *h = (const bank_header_t *)bank;
     const bank_slot_t *s;
-    if (!bank || h->magic != BANK_MAGIC || h->version != BANK_VERSION || i >= h->nslots || i >= BANK_SLOTS ||
+    if (!bank || h->magic != BANK_MAGIC || h->version != BANK_VERSION || i >= h->nslots || i >= BANK_NSLOTS ||
         16u + 168u * (i + 1u) > size)
         return 0;
     s = (const bank_slot_t *)(bank + 16u + 168u * i);
-    if (s->data_off + s->data_len > size || s->len > CH_PCM_MAX || s->data_len < (s->len + 1u) / 2u ||
+    if (s->data_off + s->data_len > size || s->len > CH_PCM_MAX ||
+        s->data_len < (BANK_PCM16(s) ? s->len * 2u : (s->len + 1u) / 2u) ||
         !s->nslices || s->nslices > BANK_SLICES || !s->bars || s->slice[s->nslices] != s->len || !s->bpm_x100)
         return 0;
     return s;
@@ -2009,8 +2085,8 @@ static const bank_slot_t *slot_of(uint32_t i, const uint8_t **bank)
     *bank = 0;
 #if CH_HAVE_BANK
     if (i >= n_synth && i - n_synth < n_bank) {
-        *bank = CH_BANK;
-        return bank_check(CH_BANK, CH_BANK_SIZE, i - n_synth);
+        *bank = BANK_PTR;
+        return bank_check(BANK_PTR, BANK_LEN, i - n_synth);
     }
 #endif
     if (i < n_synth + n_bank)
@@ -2028,7 +2104,7 @@ static void breaks_count(void)
     cu_scan();
     n_synth = n_bank = 0u;
 #if CH_HAVE_BANK
-    while (n_bank < BANK_SLOTS && bank_check(CH_BANK, CH_BANK_SIZE, n_bank))
+    while (n_bank < BANK_NSLOTS && bank_check(BANK_PTR, BANK_LEN, n_bank))
         n_bank++;
 #endif
     if (!n_bank)                         /* a build without a bank still has a break: a synthesised Amen */
@@ -2054,7 +2130,7 @@ static const char *break_name(uint32_t i)
 /* LOAF BREAKER (0.9.71, FLEXOR, from CHOPPAH 1.5, PRD S-030): the split, break B's number */
 static uint32_t split_b_of(uint32_t a)
 {
-    uint32_t v = sp_get(a) & 31u, b = v ? v - 1u : (a + 1u) % (n_breaks ? n_breaks : 1u);
+    uint32_t v = sp_get(a) & SP_BMASK, b = v ? v - 1u : (a + 1u) % (n_breaks ? n_breaks : 1u);
     return b < n_breaks ? b : n_synth;
 }
 /* bar `bar` of a slot (its first n samples, n = a bar) decoded into dst; the bars before it decoded over dst and
@@ -2068,6 +2144,10 @@ static uint32_t bar_decode(const uint8_t *bk, const bank_slot_t *s, uint32_t bar
     if (bar >= bars)
         bar = bars - 1u;
     skip = *from = (s->len / bars * bar) & ~1u;   /* (even: whole bytes) */
+    if (BANK_PCM16(s)) {                 /* (the VST's 16-bit bank: read in place) */
+        memcpy(dst, src + 2u * skip, 2u * n);
+        return n;
+    }
     while (skip) {
         uint32_t k = skip < (n & ~1u) ? skip : n & ~1u;
         adpcm_decode(&st, src, dst, k);
@@ -2165,7 +2245,10 @@ static const brk_break_t *break_load(uint32_t i)
     }
     if (s) {
         adpcm_state_t st = {0, 0, 0};
-        adpcm_decode(&st, bk + s->data_off, pcm_a, s->len);
+        if (BANK_PCM16(s))               /* (the VST's 16-bit bank) */
+            memcpy(pcm_a, bk + s->data_off, 2u * s->len);
+        else
+            adpcm_decode(&st, bk + s->data_off, pcm_a, s->len);
         d->pcm = pcm_a;
         d->len = s->len;
         d->rate = s->rate;
@@ -2256,10 +2339,10 @@ void app_init(void)
         klab_defaults();
     {                                    /* (0.9.45: a save before TOK and the TAIL GATE: none on any kick; 0.9.49: a
                                           * shorter one, before the SEL layer: none) */
-        int sz = plat_store_size(OBJ_KX2);
+        int sz = kx2_size();
         selk_clear();
         if (sz < (int)offsetof(kx2_t, selk) || sz > (int)sizeof kx2 ||
-            plat_store_load(OBJ_KX2, &kx2, (uint32_t)sz) != sz || kx2.magic != KX2_MAGIC) {
+            kx2_load((uint32_t)sz) != sz || kx2.magic != KX2_MAGIC) {
             kx2_defaults();
             selk_clear();
             sz = 0;
@@ -2281,7 +2364,7 @@ void app_init(void)
         if (kx2.sp_tag != SP_TAG2) {     /* (a save before each break's split: KITS' bytes there, or 0.9.71's one split,
                                           * which goes to the break it was saved on) */
             uint32_t was = kx2.sp_tag == SP_TAG && kx2.split ?
-                SP_ON | (kx2.split_b & 31u) | (uint32_t)(kx2.split_bars & 3u) << 5 : 0u;
+                SP_ON | (kx2.split_b & 31u) | (uint32_t)(kx2.split_bars & 3u) << SP_BARS : 0u;
             memset(kx2.sp, 0, sizeof kx2.sp);
             kx2.split = kx2.split_b = kx2.split_bars = 0u;
             kx2.sp_tag = SP_TAG2;

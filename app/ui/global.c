@@ -655,16 +655,16 @@ static void split_turn(int i, int32_t d)
         app_say("SPLIT", "NOT ON THIS BREAK");
         return;
     }
-    if (!(v & 31u))                      /* (B as shown: the one after A, until one is picked) */
+    if (!(v & SP_BMASK))                 /* (B as shown: the one after A, until one is picked) */
         v |= split_b_of(set.brk) + 1u;
     if (i == 0)
         v = d > 0 ? v | SP_ON : v & ~SP_ON;
     else if (i == 1)
-        v = (v & ~31u) | ((split_b_of(set.brk) + (d > 0 ? 1u : n_breaks - 1u)) % n_breaks + 1u);
+        v = (v & ~SP_BMASK) | ((split_b_of(set.brk) + (d > 0 ? 1u : n_breaks - 1u)) % n_breaks + 1u);
     else if (d > 0)
-        v |= 1u << (i + 3);
+        v |= 1u << (SP_BARS + (uint32_t)i - 2u);
     else
-        v &= ~(1u << (i + 3));
+        v &= ~(1u << (SP_BARS + (uint32_t)i - 2u));
     if (was != v) {
         sp_put(set.brk, v);
         if (!(v & SP_ON))

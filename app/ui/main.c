@@ -4015,7 +4015,7 @@ int app_expect(const char *what, int *got)
             v[200] = bs.layer;
         }
         v[199] = brk_get_half();
-        v[201] = (int)(sp_get(set.brk) & 31u);
+        v[201] = (int)(sp_get(set.brk) & SP_BMASK);
         v[202] = set.keys[0].start >> 4; /* (0.9.71: the first white key's DECAY) */
         v[203] = set.pitch;              /* (0.9.73: the breaks' PITCH, 0 at every start) */
         v[204] = kx2.chaos[0];           /* (0.9.75: HOME › CHAOS; the Slice Map: how many kicks, snares, hats) */

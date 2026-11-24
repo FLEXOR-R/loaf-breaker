@@ -295,7 +295,7 @@ def line_loud(file, loud):
     return loud if loud is not None else FOLDER_LOUD.get(file.split("/")[0])
 
 
-def read_list(path):
+def read_list(path, every=False):
     """the catalogue's lines marked *, as specs FILE:BPM:BARS:NAME (FILE resolved) and the FILE as written"""
     specs = []
     for n, line in enumerate(Path(path).read_text().splitlines(), 1):
@@ -304,7 +304,7 @@ def read_list(path):
         f = line.split(None, 5)
         if len(f) < 6 or f[0] not in ("*", "-", "*=", "-="):
             raise SystemExit(f"{path}:{n}: expected IN FILE BPM BARS OF NAME, IN * or - (*= or -=: slices on an even grid)")
-        if f[0].startswith("*"):
+        if f[0].startswith("*") or every:   # (--all, LOAF BREAKER's VST: the library's lines too)
             name, loud, hz = name_opts(f[5])
             loud = line_loud(f[1], loud)
             specs.append((f"{Path(path).parent / f[1]}:{f[2]}:{f[3]}:{name}" + (":grid" if f[0].endswith("=") else "") +
@@ -339,19 +339,22 @@ def prepare(spec, args, shown=None):
         gain_db, lim_db = 20.0 * math.log10(0.98 / peak), 0.0
         x = [v * (0.98 / peak) for v in x]
     x = resample(x, rate, out_rate)
-    if len(x) > BANK_MAX_LEN:
+    if len(x) > (args.max_len or BANK_MAX_LEN):
         raise SystemExit(f"{shown or path}: {bars} bar(s) at {bpm:.2f} BPM are {len(x)} samples, the firmware's buffer "
-                         f"holds {BANK_MAX_LEN} (fewer bars)")
+                         f"holds {args.max_len or BANK_MAX_LEN} (fewer bars)")
     nslices = min(BANK_SLICES, args.break_slices or args.slices * bars)
     pts = slice_points(x, out_rate, nslices, transients)
-    data = adpcm_encode(x)
+    if args.pcm16:                       # (LOAF BREAKER's VST: 16-bit PCM, as recorded; the slot's rsv bit 0 says so)
+        data = struct.pack(f"<{len(x)}h", *(max(-32768, min(32767, int(round(v * 32767.0)))) for v in x))
+    else:
+        data = adpcm_encode(x)
     name = (given or (args.name_prefix + path.stem)).upper()[:11]
     return {"name": name, "file": shown or str(path), "bpm": round(bpm, 2), "bars": bars, "rate": out_rate,
             "len": len(x), "nslices": nslices, "slices": pts, "data": data, "pcm": x,
             "gain_db": round(gain_db, 1), "limit_db": round(lim_db, 1)}
 
 
-def build_bank(slots):
+def build_bank(slots, pcm16=False):
     table = bytearray()
     data = bytearray()
     off = 16 + 168 * len(slots)
@@ -360,7 +363,7 @@ def build_bank(slots):
         data += b"\0" * pad
         sl = s["slices"] + [s["len"]] * (BANK_SLICES + 1 - len(s["slices"]))
         table += struct.pack(SLOT_FMT, s["name"].encode("ascii", "replace"), int(round(s["bpm"] * 100)), s["rate"],
-                             s["len"], off + len(data), len(s["data"]), s["bars"], s["nslices"], 0, *sl)
+                             s["len"], off + len(data), len(s["data"]), s["bars"], s["nslices"], 1 if pcm16 else 0, *sl)
         data += s["data"]
     body = bytes(table + data)
     return struct.pack(HDR_FMT, BANK_MAGIC, BANK_VERSION, len(slots), len(body), zlib.crc32(body)) + body
@@ -384,23 +387,28 @@ def main():
     ap.add_argument("--dry-run", action="store_true", help="report what fits, write nothing")
     ap.add_argument("--header", type=Path, help="also write the bank as a C header (CH_BANK[]) for the firmware")
     ap.add_argument("--verify", action="store_true", help="decode again and report the ADPCM's SNR")
+    ap.add_argument("--all", action="store_true", help="--list: every line, * and - (LOAF BREAKER's VST: the whole library)")
+    ap.add_argument("--pcm16", action="store_true", help="16-bit PCM instead of IMA ADPCM (the VST's bank: no FM-1 reads it)")
+    ap.add_argument("--slots", type=int, default=0, help="at most this many breaks (default the FM-1's 16)")
+    ap.add_argument("--capacity", type=int, default=0, help="bytes the bank may take (default the FM-1's)")
+    ap.add_argument("--max-len", type=int, default=0, help="samples a break may have (default the FM-1's buffer)")
     args = ap.parse_args()
-    specs = read_list(args.list) if args.list else [(i, None) for i in args.inputs]
+    specs = read_list(args.list, args.all) if args.list else [(i, None) for i in args.inputs]
     if not specs:
         ap.error("inputs or --list")
-    if len(specs) > BANK_SLOTS:
-        raise SystemExit(f"{len(specs)} breaks: at most {BANK_SLOTS}")
+    if len(specs) > (args.slots or BANK_SLOTS):
+        raise SystemExit(f"{len(specs)} breaks: at most {args.slots or BANK_SLOTS}")
     slots = [prepare(s, args, shown) for s, shown in specs]
     if args.list:                        # (LOAF BREAKER 0.9.43, FLEXOR: the bank always slowest to fastest, whatever the
         slots.sort(key=lambda s: s["bpm"])   # catalogue's order (the same BPM: its order kept): a new FM-1 starts on the
                                          # slowest, the bank's first)
-    capacity = IMAGE_CAPACITY if args.header else BANK_CAPACITY
-    bank = build_bank(slots)
+    capacity = args.capacity or (IMAGE_CAPACITY if args.header else BANK_CAPACITY)
+    bank = build_bank(slots, args.pcm16)
     for s in slots:
         line = (f"{s['name']:<12} {s['bpm']:7.2f} BPM  {s['bars']} bar(s)  {s['nslices']:2} slices  "
                 f"{s['len'] / s['rate']:5.2f} s  {len(s['data']) / 1024:6.1f} KB  {s['gain_db']:+5.1f} dB"
                 f"{'  peaks -%.1f dB' % s['limit_db'] if s['limit_db'] >= 0.1 else ''}")
-        if args.verify:
+        if args.verify and not args.pcm16:
             d = adpcm_decode(s["data"], s["len"])
             sig = sum((v * 32767.0) ** 2 for v in s["pcm"])
             err = sum((v * 32767.0 - q) ** 2 for v, q in zip(s["pcm"], d)) + 1.0

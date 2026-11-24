@@ -57,7 +57,11 @@ int app_ble_at_boot(void);
 /* the store (PRD 8.4): settings in Felucca's settings pair, the panel calibration where every fm1-base firmware
  * keeps it. The break bank will take 0x97000..0xD9FFF and PLAT_XDATA1 (M5), patterns 0xDA000 (M2). */
 enum { OBJ_SETTINGS, OBJ_PANEL, OBJ_BLE, OBJ_PAT, OBJ_STEP, OBJ_PG0, OBJ_KG0 = OBJ_PG0 + 4, OBJ_SG0 = OBJ_KG0 + 4,
-       OBJ_NG0 = OBJ_SG0 + 4, OBJ_KLAB = OBJ_NG0 + 4, OBJ_NOBJ };
+       OBJ_NG0 = OBJ_SG0 + 4, OBJ_KLAB = OBJ_NG0 + 4,
+#if LB_BIG
+       OBJ_KX2B, OBJ_KX2C, OBJ_KX2D,     /* (LOAF BREAKER's VST: kx2's rest, every break's white keys and split) */
+#endif
+       OBJ_NOBJ };
 #define OBJ_KFXM (OBJ_NG0 + 1)          /* (LOAF BREAKER, 0.9.26: each kick's FX section, EQ and FX1 FX2: 0xBA000) */
 #define OBJ_DX (OBJ_NG0 + 2)            /* (LOAF BREAKER, 0.9.30: the snare's, hat's, clap's bars 3 and 4, every group's: 0xBC000) */
 #define OBJ_KX2 (OBJ_NG0 + 3)           /* (LOAF BREAKER, 0.9.45: each kick's TOK and TAIL GATE, kick_x2_t: 0xBE000) */
@@ -73,7 +77,11 @@ enum { OBJ_SETTINGS, OBJ_PANEL, OBJ_BLE, OBJ_PAT, OBJ_STEP, OBJ_PG0, OBJ_KG0 = O
                        0xD0000u, 0xD2000u, 0xD4000u, 0xD6000u, 0xB8000u, 0xBA000u, 0xBC000u, 0xBE000u, 0xB6000u}
 
 /* the pool: the break playing, decoded to 16-bit PCM (PRD 8.2). M1 has one buffer; M5 adds the second */
+#if LB_BIG
+#define CH_PCM_MAX (1u << 20)            /* (LOAF BREAKER's VST: 23 s at 44.1 kHz, every break of the library whole) */
+#else
 #define CH_PCM_MAX 106496u               /* samples: 4.8 s at 22.05 kHz (2 bars at 99.4 BPM and up: Funky Drummer) */
+#endif
 #define CH_RATE 22050u                   /* the built-in break's rate */
 
 /* the contract: the platform calls these */
