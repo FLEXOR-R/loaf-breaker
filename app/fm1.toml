@@ -12,6 +12,7 @@ usb_audio_in = true            # the FM-1 recordable over USB (PRD A-50)
 usb_audio_out = false
 mirror = true                  # LOAF BREAKER (0.9.43, FLEXOR): the screen and panel live on a computer over USB, the
                                # panel played from it (fm1-base's web/mirror: the site's mirror/; tools/fm1_mirror.py)
+backup = true                  # (LOAF BREAKER, 24 Nov 2026: everything saved over USB, the VST <-> FM-1 transfer; app.h APP_BACKUP_*)
 pool_spare = 3072              # LOAF BREAKER (0.9.43): the mirror's buffers (mr_seg, mr_msg, mr_wire, ~3 KB) spent the
                                # pool's 8 KB margin on purpose; 3,352 B are left: anything more in the pool frees its room first
 midi_stamp = true             # LOAF BREAKER: MIDI in (the clock) stamped where it lands, USB and TRS (fm1-base)

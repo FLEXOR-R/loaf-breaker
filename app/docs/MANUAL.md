@@ -261,6 +261,12 @@ slice). Then:
 It works on whatever the break plays: its loop, the GENERATOR's slices, the pattern's. The kick and the drums are not
 touched. SAVE keeps the four; RESET ALL turns them off. A black key set to **CHS** (ARP › BLACK K3, 0.9.76) turns CHAOS off and on in one press, its settings kept. (The TUTORIAL passes over the tab.)
 
+### Backup and restore
+**Everything the FM-1 saves** (kicks, patterns, the song, every setting; not your own breaks nor your drum samples,
+which have their own pages) can be copied to a computer and put back over USB (24 Nov 2026): the site's **Backup**
+page, or the LOAF BREAKER VST. A restore needs the FM-1 stopped (STOP FIRST otherwise), checks the whole file first,
+then asks on the screen: **SEL** yes, **HOME** no; the FM-1 then restarts with it.
+
 ### Where things are
 
 - **HOME**: playing, the main page. PERFORM and GENERATOR (HOME again: the next tab), the CDJ waveform on both; in

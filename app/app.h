@@ -44,6 +44,22 @@ void app_splash(void);
 #define APP_LOOP
 #define APP_DIM_LEVELS                   /* LOAF BREAKER (0.9.57): plat_dim_ns, SYSTEM › LIGHTS' GLOW at any strength */
 #define APP_OVERLOAD                     /* the render over 90 % of its time: the FX chain sheds slots (PRD E-7) */
+/* LOAF BREAKER (24 Nov 2026, FLEXOR: "de quoi envoyer ce que j'ai fait sur le VST sur la machine ... un système de
+ * traduction et de synchronisation"): fm1-base's backup and restore over USB (fm1.toml backup = true, device/backup.c):
+ * everything saved, as one image (the VST reads and writes it; tools/fm1_backup.py and the site's backup/ page too).
+ * Not the panel's calibration, not the drum samples' sectors (OBJ_BLE), not the player's breaks (their own page) */
+#define APP_BACKUP_OBJS {OBJ_SETTINGS, OBJ_PAT, OBJ_STEP, OBJ_PG0, OBJ_PG0 + 1, OBJ_PG0 + 2, OBJ_PG0 + 3, \
+                         OBJ_KG0, OBJ_KG0 + 1, OBJ_KG0 + 2, OBJ_KG0 + 3, OBJ_SG0, OBJ_SG0 + 1, OBJ_SG0 + 2, \
+                         OBJ_SG0 + 3, OBJ_NG0, OBJ_NG0 + 1, OBJ_NG0 + 2, OBJ_NG0 + 3, OBJ_KLAB}
+#define APP_BACKUP_MAGIC 0x4B52424Cu     /* "LBRK" */
+#define APP_BACKUP_VERSION 1u
+#define APP_BACKUP_WHAT "KICKS, PATTERNS, SONG..."
+#define APP_BACKUP_BUF lb_bu_buf         /* (app.c: 3840 B of RAM; the pool has no room for backup.c's own) */
+#define APP_RESTART                      /* (a restore done: plat_restart, everything read again from a clean start) */
+int app_backup_playing(void);
+void app_backup_flush(void);
+void app_backup_hold(int on);
+void app_backup_restored(void);
 void app_loop(void);
 #define APP_TICK
 void app_tick(void);

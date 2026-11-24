@@ -1450,9 +1450,10 @@ static void kmem_extras(void)            /* (every memory: a new FM-1, RESET ALL
     for (k = 0; k < KS_N; k++)
         set.ksyn[k] = ksmem_at(set.kslot % KICK_MEMS)[k];
 }
+static uint8_t bu_held;                  /* (a backup streaming over USB: no saving meanwhile, backup.c) */
 static int store_all(void)               /* SAVE: the settings, the patterns (the group in RAM too), the steps: 1 done */
 {
-    if (wiped)                           /* (LOAF BREAKER, 0.263: WIPE MEMORY done: nothing saved until a restart) */
+    if (wiped || bu_held)                /* (LOAF BREAKER, 0.263: WIPE MEMORY done: nothing saved until a restart) */
         return 0;
     dm_put(steps.dm[drop_sel()]);        /* (0.9.58: the drop selected, as set, into its memory) */
     return plat_store_save(OBJ_SETTINGS, &set, sizeof set) == 0 && plat_store_save(OBJ_PAT, &pats, sizeof pats) == 0 &&
@@ -1463,6 +1464,13 @@ static int store_all(void)               /* SAVE: the settings, the patterns (th
            (wk_store(), kx2_save() == 0);   /* (each kick's TOK and TAIL GATE, 0.9.45; each
                                           * break's white keys, 0.9.71) */
 }
+/* LOAF BREAKER (24 Nov 2026): fm1-base's backup and restore (app.h APP_BACKUP_*; the VST sends and fetches through it) */
+uint8_t lb_bu_buf[3840] __attribute__((aligned(4)));   /* (a restore's scratch: RAM, the pool has no room) */
+static int playing_now(void);          /* (seq.c) */
+int app_backup_playing(void) { return playing_now(); }
+void app_backup_flush(void) { store_all(); }   /* (stopped: everything as it is now, saved first) */
+void app_backup_hold(int on) { bu_held = (uint8_t)(on != 0); }
+void app_backup_restored(void) { plat_restart(); }   /* (everything read again, as at power-on) */
 /* LOAF BREAKER: the kick memory k's knobs from the ones playing (kx_put), the ones playing from k's (kx_get); kx_all:
  * every memory's as the ones playing (an older save, RESET ALL) */
 static void kx_put(uint32_t k)
