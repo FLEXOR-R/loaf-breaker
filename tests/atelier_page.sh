@@ -1,6 +1,6 @@
 #!/bin/sh
 # SPDX-License-Identifier: MPL-2.0
-# The ATELIER (LOAF BREAKER 0.9.76, FLEXOR: a secret page to install TEST and personal builds): the installer as
+# The ATELIER (LOAF BREAKER 0.9.75, FLEXOR: a secret page to install TEST and personal builds): the installer as
 # make_site writes it (fm1-base's web/installer.html, its libraries inlined, the package's metadata), then
 # tools/site_style.py (install, atelier); in Chromium: a LOAF BREAKER .fwsc chosen is taken (Install enabled), a zip
 # holding one too, another identity (m-bootloader's) refused; the page is noindex and no other page links it.

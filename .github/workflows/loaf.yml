@@ -13,7 +13,7 @@ name: LOAF BREAKER
 
 on:
   push:
-    branches: [loaf, dev, "perso/**"]   # (perso/NAME: a PERSO draft of its own, FLEXOR 0.9.76; the site's atelier/ installs it)
+    branches: [loaf, dev, "perso/**"]   # (perso/NAME: a PERSO draft of its own, FLEXOR 0.9.75; the site's atelier/ installs it)
     paths-ignore: ["breaks/tests/**", ".github/workflows/tests.yml", "CLAUDE.md"]   # (the break tests' own: tests.yml)
   workflow_dispatch:
 
@@ -53,7 +53,7 @@ jobs:
             N="$(git rev-list --count origin/loaf..HEAD)"
             SHOW="$V TEST $N"; V="$V-test$N"
             echo "TEST=1" >> "$GITHUB_ENV"
-          elif [ "$GITHUB_REF_NAME" != loaf ]; then   # (0.9.76, FLEXOR: any other branch, pushed as perso/NAME or run by
+          elif [ "$GITHUB_REF_NAME" != loaf ]; then   # (0.9.75, FLEXOR: any other branch, pushed as perso/NAME or run by
             # hand: a PERSO draft of its own, never a release (Run workflow on a branch made a loaf-v release before))
             B="$(printf '%s' "${GITHUB_REF_NAME#perso/}" | tr 'A-Z' 'a-z' | tr -c 'a-z0-9-' '-' | cut -c1-24)"
             SHOW="$V PERSO"; V="$V-$B"
@@ -161,7 +161,7 @@ jobs:
           sh tests/drum_kit.sh       # (0.9.45: your drum samples, the IMPORT page)
           sh tests/import_page.sh
           sh tests/live_page.sh      # (0.9.71: the app's LIVE page against the simulator; skipped without Playwright)
-          sh tests/atelier_page.sh   # (0.9.76: the secret installer atelier/ and the app's tile; skipped without Playwright)
+          sh tests/atelier_page.sh   # (0.9.75: the secret installer atelier/ and the app's tile; skipped without Playwright)
 
       # LOAF BREAKER's site, as CHOPPAH's: the front page, the web installer, the emulator in the browser and the
       # manual, its screenshots taken from this build (tools/site_shots.sh), in CHOPPAH's look (tools/site_style.py)

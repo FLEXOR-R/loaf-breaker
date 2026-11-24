@@ -1,4 +1,4 @@
-/* LOAF BREAKER (0.9.76, FLEXOR: "un onglet secret sur le site pour facilement installer ... les firmware de test ou les
+/* LOAF BREAKER (0.9.75, FLEXOR: "un onglet secret sur le site pour facilement installer ... les firmware de test ou les
    firmwares perso du git"): the ATELIER, the installer (fm1-base's install/, restyled) with any LOAF BREAKER package
    instead of the site's own. tools/site_style.py `atelier` copies install/index.html to atelier/ and puts this inside
    its module, before the Install button's handler: it sees the installer's image, meta, writing, say, $, productOf,

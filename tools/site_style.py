@@ -140,7 +140,7 @@ ATELIER_CSS = """<style>
 
 
 def atelier(site):
-    """LOAF BREAKER (0.9.76, FLEXOR: "un onglet secret ... pour installer les firmware de test ou les firmwares perso du
+    """LOAF BREAKER (0.9.75, FLEXOR: "un onglet secret ... pour installer les firmware de test ou les firmwares perso du
     git"): atelier/, the installer (install/, already restyled) with any LOAF BREAKER package dropped on it in place of
     the site's own (app/site/atelier.js inside its module); in no menu, noindex"""
     src = site / "install" / "index.html"
