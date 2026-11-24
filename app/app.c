@@ -451,7 +451,9 @@ typedef struct {
                                           * (0: the one after A), bit 5 A's second bar, bit 6 B's; 0 never set. sp_tag
                                           * SP_TAG (0x5B) and split / split_b / split_bars: the one split for all of
                                           * 0.9.71's release, read once into the break it was saved on) */
-    uint8_t rsv4[20];                    /* (the rest of the KITS' bytes, 0.9.54-0.9.70: unused) */
+    uint8_t ch_tag, chaos[4];            /* (0.9.75, FLEXOR: HOME › CHAOS, valid with CH_TAG: AMOUNT 0..100, MATH 0 or
+                                          * 3 5 7 11 13, ROLLS 0..100, SEED 0..99; untagged: all 0, the break as it is) */
+    uint8_t rsv4[15];                    /* (the rest of the KITS' bytes, 0.9.54-0.9.70: unused) */
     uint8_t selrec;                      /* (appended, 0.9.70, FLEXOR: the REC key's SEL function, 1 + BKF_* but ARP, 0
                                           * none; a shorter save: none) */
     uint8_t rsv3;
@@ -472,6 +474,15 @@ static kick_x2_t *kx2_at(uint32_t k) { return &kx2.m[k % KICK_MEMS]; }
 #define WK_SPLIT 24u                     /* (wk's last row: the one split's keys of 0.9.71's release; then wks) */
 #define WK_ROWS (WK_SPLIT + 1u + WK_NB)  /* (a row: 0..23 a break's keys, 25..48 its split's; 24 unused) */
 #define WK_SET 0x8000u
+#define CH_TAG 0xC4u                     /* (0.9.75: CHAOS's bytes set) */
+static void chaos_push(void)             /* (HOME › CHAOS to the engine: brk.h brk_chaos) */
+{
+    if (kx2.ch_tag != CH_TAG)
+        brk_chaos(0u);
+    else
+        brk_chaos((uint32_t)kx2.chaos[0] | (uint32_t)kx2.chaos[1] << 8 | (uint32_t)kx2.chaos[2] << 16 |
+                  (uint32_t)kx2.chaos[3] << 24);
+}
 #define SP_TAG 0x5Bu                     /* (0.9.71's release: one split for all) */
 #define SP_TAG2 0x5Cu                    /* (each break its own: kx2.sp) */
 #define SP_ON 0x80u
@@ -2144,6 +2155,7 @@ static const brk_break_t *break_load(uint32_t i)
     uint32_t k;
     if (s && split_on_of(i) && split_load(i, split_b_of(i), d)) {   /* (0.9.71: the split, A and B) */
         set.brk = (uint8_t)i;
+        brk_auto_roles(d);               /* (0.9.75: its Slice Map, for CHAOS) */
         wave_build(d);
         return d;
     }
@@ -2172,6 +2184,7 @@ static const brk_break_t *break_load(uint32_t i)
 #endif
     }
     set.brk = (uint8_t)i;
+    brk_auto_roles((brk_break_t *)b);    /* (0.9.75: the Slice Map heard, for HOME › CHAOS) */
     wave_build(b);
     return b;
 }
@@ -2255,6 +2268,11 @@ void app_init(void)
             for (b = 0; b < WK_NB; b++)
                 memcpy(kx2.wks[b], kx2.wk[WK_SPLIT], sizeof kx2.wks[b]);
         }
+        if (kx2.ch_tag != CH_TAG) {      /* (0.9.75: a save before CHAOS: off) */
+            kx2.ch_tag = CH_TAG;
+            memset(kx2.chaos, 0, sizeof kx2.chaos);
+        }
+        chaos_push();
         if (kx2.sp_tag != SP_TAG2) {     /* (a save before each break's split: KITS' bytes there, or 0.9.71's one split,
                                           * which goes to the break it was saved on) */
             uint32_t was = kx2.sp_tag == SP_TAG && kx2.split ?

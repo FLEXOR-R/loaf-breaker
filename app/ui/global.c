@@ -718,6 +718,85 @@ static void draw_split(void)
     cv_text(6, 37, &FONT_XS, "A KEY OF EACH HELD: LAYERED", on ? C_WHITE : C_DIM);
     cv_blit(0, 140);
 }
+/* LOAF BREAKER (0.9.75, FLEXOR: "une fonction un peu mathcore lite ... scramble ... pour rajouter du chaos", the
+ * break): HOME › CHAOS, after GENERATOR (and SPLIT in EXPERT). K1 CHAOS (each hit for another of its role: a kick for a
+ * kick, a snare for a snare; backwards from 50), K2 MATH (OFF, 3, 5, 7, 11, 13: each bar's first N 16ths round against
+ * the bar), K3 ROLLS (snares in three, hats in two), K4 SEED (the variation: the same seed, the same chaos every loop).
+ * The roles: CHOPPAH's Slice Map, heard (brk.c brk_auto_roles); in at the next step */
+static const uint8_t CH_MATH[6] = {0u, 3u, 5u, 7u, 11u, 13u};
+static uint32_t chaos_math_idx(void)
+{
+    uint32_t i;
+    for (i = 0; i < 6u; i++)
+        if (kx2.chaos[1] == CH_MATH[i])
+            return i;
+    return 0u;
+}
+static void chaos_value(int i, char *t)
+{
+    t[0] = 0;
+    if (i == 1) {
+        if (!kx2.chaos[1])
+            text_cat(t, "OFF");
+        else
+            int_text(kx2.chaos[1], t);
+    } else if ((i == 0 || i == 2) && !kx2.chaos[i])
+        text_cat(t, "OFF");
+    else
+        int_text(kx2.chaos[i & 3], t);
+}
+static void chaos_turn(int i, int32_t d)
+{
+    static const char *const CN[4] = {"CHAOS", "MATH", "ROLLS", "SEED"};
+    char t[16];
+    kx2.ch_tag = CH_TAG;
+    if (i == 1)
+        kx2.chaos[1] = CH_MATH[(uint32_t)clamp((int32_t)chaos_math_idx() + (d > 0 ? 1 : -1), 0, 5)];
+    else if (i == 3)
+        kx2.chaos[3] = (uint8_t)clamp((int32_t)kx2.chaos[3] + d, 0, 99);
+    else
+        kx2.chaos[i] = (uint8_t)clamp((int32_t)kx2.chaos[i] + d * 2, 0, 100);
+    chaos_push();
+    set_dirty = 1u;
+    chaos_value(i, t);
+    app_say(CN[i & 3], t);
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
+/* the four as cards, then the break's slices with what the Slice Map heard in each (K kick, S snare, H hat, P perc) */
+static void draw_chaos(void)
+{
+    const brk_break_t *b = brk_get_break();
+    static const char *const N[4] = {"CHAOS", "MATH", "ROLLS", "SEED"};
+    uint32_t i, n;
+    char t[16];
+    int on = kx2.chaos[0] || kx2.chaos[1] || kx2.chaos[2];
+    cv_begin(240, 52, C_BLACK);
+    for (i = 0; i < 4u; i++) {
+        int32_t x = 2 + (int32_t)i * 60;
+        cv_rect(x, 0, 56, 50, C_BLOCK);
+        cv_text(x + 4, 3, &FONT_XS, N[i], C_GRAY);
+        chaos_value((int)i, t);
+        cv_text(x + 4, 32, &FONT_T, t, i == 3 ? (on ? C_WHITE : C_DIM) : kx2.chaos[i] ? C_HI : C_DIM);
+    }
+    cv_blit(0, 88);
+    cv_begin(240, 52, C_BLACK);
+    n = b ? (b->nslices < BRK_MAX_SLICES ? b->nslices : BRK_MAX_SLICES) : 0u;
+    for (i = 0; i < n; i++) {
+        uint32_t r = b->roles[i];
+        int32_t x0 = 2 + (int32_t)(i * 236u / n), x1 = 2 + (int32_t)((i + 1u) * 236u / n) - 2;
+        const char *l = r & 1u << BRK_ROLE_KICK ? "K" : r & 1u << BRK_ROLE_SNARE ? "S" : r & 1u << BRK_ROLE_HAT ? "H" :
+                        r & 1u << BRK_ROLE_PERC ? "P" : "";
+        uint16_t c = r & 1u << BRK_ROLE_KICK ? C_WHITE : r & 1u << BRK_ROLE_SNARE ? C_AMB : r ? C_GRAY : C_BLOCK;
+        cv_rect(x0, 2, x1 - x0, 14, r ? C_BLOCK : C_BLACK);
+        cv_rect(x0, 14, x1 - x0, 2, c);
+        if (l[0] && x1 - x0 >= 6)
+            cv_text(x0 + (x1 - x0 - text_w(&FONT_XS, l)) / 2, 4, &FONT_XS, l, c);
+    }
+    cv_text(6, 24, &FONT_XS, on ? "SCRAMBLED BY ROLE, SAME EVERY LOOP" : "K1: EACH HIT SWAPPED FOR ITS ROLE",
+            on ? C_AMB : C_DIM);
+    cv_text(6, 36, &FONT_XS, "K4 SEED: ANOTHER VARIATION", C_DIM);
+    cv_blit(0, 140);
+}
 static void draw_hset(void)
 {
     uint32_t i;

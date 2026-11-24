@@ -201,6 +201,8 @@ static void knob_turn(int k, int32_t d)
         return;
     } else if (ui.page == PG_SPLIT) {    /* (0.9.71: HOME's SPLIT) */
         split_turn(k - EN_K1, d);
+    } else if (ui.page == PG_CHAOS) {    /* (0.9.75: HOME's CHAOS) */
+        chaos_turn(k - EN_K1, d);
         return;
     } else if (ui.page == PG_GEN) {
         float *p = k == EN_K1 ? &set.gen.complexity : k == EN_K2 ? &set.gen.anchor : k == EN_K3 ? &set.gen.roll
@@ -256,6 +258,9 @@ static void reset_all(void)
     settings_defaults();
     wk_fill();                           /* (0.9.71: every break's white keys as they start) */
     memset(kx2.sp, 0, sizeof kx2.sp);   /* (0.9.71: no split on any break) */
+    memset(kx2.chaos, 0, sizeof kx2.chaos);   /* (0.9.75: CHAOS off) */
+    kx2.ch_tag = CH_TAG;
+    chaos_push();
     kx2.sp_tag = SP_TAG2;
     brk_half(-1);
     drops_init();                        /* (0.9.58: DROP 1-8 all as the defaults, DROP 1 selected) */
@@ -763,7 +768,9 @@ static void input(void)
     if (ui.home_hold && !(btn & 1u << B_HOME)) {
         ui.home_hold = 0u;
         if (!ui.home_combo && HOME_PG(ui.page)) {
-            ui.page = ui.page == PG_HOME ? PG_GEN : ui.page == PG_GEN && !set.novice ? PG_SPLIT : PG_HOME;   /* (0.9.56,
+            ui.page = ui.page == PG_HOME ? PG_GEN : ui.page == PG_GEN && !set.novice ? PG_SPLIT :
+                      (ui.page == PG_GEN || ui.page == PG_SPLIT) && !tut_on() ? PG_CHAOS : PG_HOME;   /* (0.9.75:
+                                          * CHAOS last; not while the TUTORIAL runs, its steps say PERFORM again) */   /* (0.9.56,
                                           * FLEXOR: two tabs, SETTINGS in SYSTEM; 0.9.71, EXPERT: SPLIT third) */
             ui.redraw |= RG_FOOT | RG_BLOCKS;
             page_say();
@@ -1441,7 +1448,7 @@ static void leds(void)
     if (st.playing && plat_ms() - ui.kick_t >= 70u)   /* (LOAF BREAKER TEST: PLAY blinks off on each kick) */
         b |= 1u << B_PLAY;
     static const uint8_t PAGE_BTN[NPAGES] = {B_HOME, B_HOME, B_FX, B_GLO, B_EDIT, B_LFO, B_SEQ, B_EDIT, B_ENV, B_ARP,
-                                             B_EDIT, B_GLO, B_HOME};   /* (TEST: KICK EQ under EDIT; 0.9.56 SETTINGS under GLO) */
+                                             B_EDIT, B_GLO, B_HOME, B_HOME};   /* (TEST: KICK EQ under EDIT; 0.9.56 SETTINGS under GLO) */
     b |= 1u << (IS_KFX() || (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK) ? B_EDIT : ui.page == PG_GLOBAL &&
                 ui.gpage == GP_FILL ? B_SEQ : PAGE_BTN[ui.page]);   /* (LOAF BREAKER: SOUNDS' BREAK, PATTERN's GROOVE) */
     if (rec_key_on() ? bkf_lit(rec_fn(), &st) != 0 : ui.rec != 0u)   /* (0.9.58: the REC key lit as its function) */
@@ -1637,6 +1644,8 @@ static void knob_value(int i, char *t)  /* the page's knob i (0..3), as shown un
         hset_value(i, t);
     else if (ui.page == PG_SPLIT)
         split_value(i, t);
+    else if (ui.page == PG_CHAOS)
+        chaos_value(i, t);
     else if (ui.page == PG_GEN) {
         float v = i == 0 ? set.gen.complexity : i == 1 ? set.gen.anchor : i == 2 ? set.gen.roll : set.gen.fill;
         int_text((int32_t)(v * 100.0f), t);
@@ -1659,7 +1668,7 @@ static int32_t tab_pad(int32_t x, const char *s, int on, int32_t pad, int32_t ga
 static int32_t tab(int32_t x, const char *s, int on) { return tab_pad(x, s, on, 4, 3); }
 /* the pages' buttons as printed, GLOBAL's parts, SEQ's lanes: for the tabs and the header (page_say) */
 static const char *const BTN[NPAGES] = {"HOME", "HOME", "FX", "GLO", "EDIT", "LFO", "SEQ", "EDIT", "ENV", "ARP",
-                                        "EDIT", "GLO", "HOME"};   /* (0.9.56: SETTINGS, SYSTEM's) */
+                                        "EDIT", "GLO", "HOME", "HOME"};   /* (0.9.56: SETTINGS, SYSTEM's) */
 static const char *const GPART[NGPART] = {"MIDI", "PITCH", "SETUP", "SCREEN FX", "SCREEN SET", "RESET",
                                                    "GROOVE", "LIGHTS"};   /* (6: GP_FILL; 7 GP_LIGHTS, 0.9.57) */
 static int32_t tab_glo(int32_t x, uint32_t g, int on)   /* (0.9.57: SYSTEM's seven, narrower so they fit; 0.9.68,
@@ -1670,7 +1679,7 @@ static int32_t tab_glo(int32_t x, uint32_t g, int on)   /* (0.9.57: SYSTEM's sev
 /* LOAF BREAKER (0.201): each button a domain, its name on the screen (the button keeps its print): LIVE (HOME), SOUNDS
  * (EDIT: the kick, the drums, the melody, the break), PATTERN (SEQ), SONG (ENV), MIX (LFO), EFFECTS (FX), SYSTEM (GLO) */
 static const char *const DOM[NPAGES] = {"LIVE", "LIVE", "EFFECTS", "SYSTEM", "SOUNDS", "MIX", "PATTERN", "SOUNDS", "SONG",
-                                        "ARP", "SOUNDS", "SYSTEM", "LIVE"};
+                                        "ARP", "SOUNDS", "SYSTEM", "LIVE", "LIVE"};
 static const char *dom_name(void)
 {
     if (IS_KFX() || (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK))
@@ -1704,7 +1713,8 @@ static void draw_tabs(void)
         x = tab(x, "PERFORM", ui.page == PG_HOME);
         x = tab(x, "GENERATOR", ui.page == PG_GEN);
         if (!set.novice)
-            tab(x, "SPLIT", ui.page == PG_SPLIT);
+            x = tab(x, "SPLIT", ui.page == PG_SPLIT);
+        tab(x, "CHAOS", ui.page == PG_CHAOS);   /* (0.9.75) */
     }
     else if (ui.page == PG_HSET)         /* (0.9.56: SYSTEM's tabs, SETTINGS lit) */
         for (i = 0; i < NGLO; i++)
@@ -1798,6 +1808,7 @@ static void page_say(void)
     case PG_HOME: text_cat(t, "PERFORM"); break;
     case PG_GEN: text_cat(t, "GENERATOR"); break;
     case PG_SPLIT: text_cat(t, "SPLIT"); break;
+    case PG_CHAOS: text_cat(t, "CHAOS"); break;
     case PG_HSET: text_cat(t, "DISPLAY"); break;
     case PG_KEQ: text_cat(t, ui.keq_part ? "KICK EQ SHAPE" : "KICK EQ BANDS"); break;
     case PG_GLOBAL: text_cat(t, ui.gpage == GP_FILL ? "GROOVE" : ui.gpage == GP_BREAK ? "BREAK" : GPART[ui.gpage % NGPART]); break;
@@ -1925,7 +1936,8 @@ static const char *knob_name(int i)
                                               {"AMOUNT", "THRU", "", "LATCH"},   /* (0.9.50: K2 the effect's THRU, K3 RATE or SWEEP: below) */
                                               {"LOW", "MID", "HIGH", "MID FREQ"},
                                               {"VIEW", "WAVE TYPE", "WAVE ZOOM", "BREAK TIME"},
-                                              {"SPLIT", "BREAK B", "BAR A", "BAR B"}};   /* (0.9.71: HOME's SPLIT) */
+                                              {"SPLIT", "BREAK B", "BAR A", "BAR B"},   /* (0.9.71: HOME's SPLIT) */
+                                              {"CHAOS", "MATH", "ROLLS", "SEED"}};   /* (0.9.75: HOME's CHAOS) */
     static const char *const KN_PITCH[4] = {"PITCH", "GRAIN", "SNAP", "LEVEL"};   /* (SOUNDS' BREAK) */
     static const char *const KN_GROOVE[3][4] = {{"FX", "DRUMS", "DUCKS", "ROLL"}, {"COMP", "RATIO", "DUCK", "MAX OUT"},
                                                 {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
@@ -2574,6 +2586,8 @@ void app_frame(void)
             draw_hset();                 /* (LOAF BREAKER, 0.9.2: HOME's SETTINGS) */
         else if (ui.page == PG_SPLIT)
             draw_split();                /* (0.9.71: HOME's SPLIT) */
+        else if (ui.page == PG_CHAOS)
+            draw_chaos();                /* (0.9.75: HOME's CHAOS) */
         else if (ui.cdj)
             draw_cdj(&st);
         else
@@ -3074,7 +3088,7 @@ static int edx_page(const uint8_t *u, uint32_t len, uint8_t *o, uint32_t *n)
             ui.fx_page = (uint8_t)(b < np ? b : 0u);
         } else
             ok = 0;
-    } else if (pg != PG_HOME && pg != PG_GEN && pg != PG_HSET && pg != PG_SPLIT)
+    } else if (pg != PG_HOME && pg != PG_GEN && pg != PG_HSET && pg != PG_SPLIT && pg != PG_CHAOS)
         ok = 0;                          /* (the kick, the drums, SEQ: their own commands) */
     if (ok && d) {
         if (pg == PG_FX && u[4] == 4u) {
@@ -3763,8 +3777,8 @@ int app_expect(const char *what, int *got)
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
                                     "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15", "broll", "stut", "fxwet", "tempo10", "kitsel", "kit0kick", "vthru", "dafter",
-                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold", "subfa", "dft", "swon", "strip", "kl_amt", "dbrk", "split", "split_at", "half", "half_ask", "layer", "split_b", "kdec0", "bpitch"};
-    int v[204];
+                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold", "subfa", "dft", "swon", "strip", "kl_amt", "dbrk", "split", "split_at", "half", "half_ask", "layer", "split_b", "kdec0", "bpitch", "chaos", "cmath", "crolls", "cseed", "rkick", "rsnare", "rhat"};
+    int v[211];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -3987,6 +4001,20 @@ int app_expect(const char *what, int *got)
         v[201] = (int)(sp_get(set.brk) & 31u);
         v[202] = set.keys[0].start >> 4; /* (0.9.71: the first white key's DECAY) */
         v[203] = set.pitch;              /* (0.9.73: the breaks' PITCH, 0 at every start) */
+        v[204] = kx2.chaos[0];           /* (0.9.75: HOME › CHAOS; the Slice Map: how many kicks, snares, hats) */
+        v[205] = kx2.chaos[1];
+        v[206] = kx2.chaos[2];
+        v[207] = kx2.chaos[3];
+        {
+            const brk_break_t *bb = brk_get_break();
+            uint32_t q;
+            v[208] = v[209] = v[210] = 0;
+            for (q = 0; bb && q < bb->nslices && q < BRK_MAX_SLICES; q++) {
+                v[208] += bb->roles[q] >> BRK_ROLE_KICK & 1;
+                v[209] += bb->roles[q] >> BRK_ROLE_SNARE & 1;
+                v[210] += bb->roles[q] >> BRK_ROLE_HAT & 1;
+            }
+        }
     }
     v[161] = set.vinyl & 3u;             /* (0.9.54: VINYL BREAK's THRU, 0 BOTH 1 BREAK 2 KICK) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */

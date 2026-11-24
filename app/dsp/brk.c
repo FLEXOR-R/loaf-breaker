@@ -415,6 +415,40 @@ static int32_t follow_slice(const brk_break_t *b, uint32_t i)
     return f != prev ? f : -1;
 }
 
+/* LOAF BREAKER (0.9.75): CHAOS, HOME's fourth part (brk.h brk_chaos) */
+static uint32_t p_chaos;
+static uint32_t ch_hash(uint32_t a)       /* (a step's dice: the same seed and step, the same numbers) */
+{
+    a ^= a >> 16;
+    a *= 0x7FEB352Du;
+    a ^= a >> 15;
+    a *= 0x846CA68Bu;
+    a ^= a >> 16;
+    return a;
+}
+static uint32_t ch_role(const brk_break_t *b, int32_t s)   /* the slice's one role (kick first), or 4: none */
+{
+    uint32_t r = s >= 0 && (uint32_t)s < b->nslices && (uint32_t)s < BRK_MAX_SLICES ? b->roles[s] : 0u, k;
+    for (k = 0; k < 4u; k++)
+        if (r >> k & 1u)
+            return k;
+    return 4u;
+}
+static int32_t ch_swap(const brk_break_t *b, int32_t s, uint32_t role, uint32_t h)   /* another slice of the role */
+{
+    uint32_t i, n = 0u, pick;
+    for (i = 0; i < b->nslices && i < BRK_MAX_SLICES; i++)
+        if ((int32_t)i != s && b->roles[i] >> role & 1u)
+            n++;
+    if (!n)
+        return s;
+    pick = h % n;
+    for (i = 0; i < b->nslices && i < BRK_MAX_SLICES; i++)
+        if ((int32_t)i != s && b->roles[i] >> role & 1u && !pick--)
+            return (int32_t)i;
+    return s;
+}
+
 /* the generator (PRD A-10): f is the loop's own slice at this step */
 static int32_t generate(const brk_break_t *b, int32_t f)
 {
@@ -565,7 +599,12 @@ static void on_step(const brk_break_t *b)
             return;
         if (p->prob < 100u && brk_randf(&rng) * 100.0f >= (float)p->prob)
             return;
-        f = follow_slice(b, (uint32_t)step);
+        {
+            uint32_t m = p_chaos >> 8 & 0xFFu, q = (uint32_t)step;
+            if (m >= 2u && m < BRK_STEPS_PER_BAR)   /* (CHAOS's MATH: the bar's first m 16ths round again) */
+                q = q - q % BRK_STEPS_PER_BAR + q % BRK_STEPS_PER_BAR % m;
+            f = follow_slice(b, q);
+        }
         if (p->slice >= 0)
             s = p->slice;
         else if (f >= 0)
@@ -576,13 +615,34 @@ static void on_step(const brk_break_t *b)
         if (p->flags & STEP_REVERSE)
             rev ^= 1;
         step_pitch = (float)p->pitch;
-        if (p->ratchet > 1u) {           /* the step's ratchet: the rest of the hits inside the step */
-            rat_count = p->ratchet - 1u;
-            rat_len = (float)step_in_len / (float)p->ratchet;
-            rat_left = rat_len;
-            rat_slice = s;
-            rat_rev = rev;
-            rat_pitch = step_pitch;
+        {                                /* (0.9.75: CHAOS: the hit swapped for one of its role, reversed, rolled) */
+            uint32_t amt = p_chaos & 0xFFu, rolls = p_chaos >> 16 & 0xFFu, ratch = p->ratchet;
+            if (amt || rolls) {
+                uint32_t h = ch_hash((p_chaos >> 24) * 0x9E3779B9u + (uint32_t)step * 0x85EBCA6Bu + 0x1234567u),
+                         r = ch_role(b, s);
+                if (r < 4u && (h & 0xFFFFu) * 125u < amt * 65536u) {   /* (up to 80 % of the hits) */
+                    s = fold(b, ch_swap(b, s, r, h >> 16));
+                    r = ch_role(b, s);
+                }
+                h = ch_hash(h);          /* (fresh dice for the rest) */
+                if (amt > 50u && (h & 0xFFu) * 100u < (amt - 50u) * 230u)
+                    rev ^= 1;            /* (from 50: up to 45 % of the hits backwards) */
+                if (ratch <= 1u && rolls) {
+                    uint32_t d = h >> 24;
+                    if ((r == BRK_ROLE_SNARE || r == BRK_ROLE_PERC) && d * 100u < rolls * 115u)
+                        ratch = 3u;      /* (a snare in three: up to 45 %) */
+                    else if (r == BRK_ROLE_HAT && d * 100u < rolls * 77u)
+                        ratch = 2u;      /* (a hat in two: up to 30 %) */
+                }
+            }
+            if (ratch > 1u) {            /* the step's ratchet: the rest of the hits inside the step */
+                rat_count = ratch - 1u;
+                rat_len = (float)step_in_len / (float)ratch;
+                rat_left = rat_len;
+                rat_slice = s;
+                rat_rev = rev;
+                rat_pitch = step_pitch;
+            }
         }
     }
     K0->pitch = 0.0f;                    /* the loop's own sound now, not a key's */
@@ -1194,6 +1254,104 @@ BRK_COLD void brk_swing(float s) { p_swing = brk_clampf(s, 0.5f, 0.75f); }
 BRK_COLD void brk_gate(float g) { p_gate = brk_clampf(g, 0.05f, 1.0f); }
 BRK_COLD void brk_snap(float slices) { p_snap = brk_clampf(slices, 0.0f, 16.0f); }
 BRK_COLD void brk_gen(const brk_gen_t *g) { p_gen = *g; }
+BRK_COLD void brk_chaos(uint32_t packed) { p_chaos = packed; }
+
+/* LOAF BREAKER (0.9.75): the break's Slice Map, heard: CHOPPAH's mc_auto_roles (MATHCORE, MM-SM, MPL-2.0, Laurens
+ * Profittlich), the same rules. The first 60 ms of each slice through three bands: a low one (under ~120 Hz, a kick's
+ * body), a middle one (~250 Hz .. 4 kHz, a snare's body and crack), a high one (over ~7 kHz, hats). Loud low: KICK;
+ * loud middle (less low): SNARE; quiet and mostly high: HAT; other hits with something in them: PERC. KICK, SNARE and
+ * HAT each get their likeliest slice at the least; the same audio, the same map */
+static float ch_onepole(float hz, uint32_t rate) { return 1.0f - brk_exp2f_c(-9.0647f * hz / (float)rate); }
+BRK_COLD void brk_auto_roles(brk_break_t *b)
+{
+    float lo[BRK_MAX_SLICES], mid[BRK_MAX_SLICES], hr[BRK_MAX_SLICES], en[BRK_MAX_SLICES];
+    float mxl = 0.0f, mxm = 0.0f, mxh = 0.0f, mxe = 0.0f, a_l, a_m1, a_m2, a_h;
+    uint32_t n, s, i, best[3] = {0u, 0u, 0u};
+    float bs[3] = {-1.0f, -1.0f, -1.0f};
+    uint8_t *roles;
+    if (!b)
+        return;
+    roles = b->roles;
+    for (s = 0; s < BRK_MAX_SLICES; s++)
+        roles[s] = 0u;
+    if (!b->pcm || !b->nslices || !b->rate)
+        return;
+    n = b->nslices < BRK_MAX_SLICES ? b->nslices : BRK_MAX_SLICES;
+    a_l = ch_onepole(120.0f, b->rate);
+    a_m1 = ch_onepole(250.0f, b->rate);
+    a_m2 = ch_onepole(4000.0f, b->rate);
+    a_h = ch_onepole(7000.0f, b->rate);
+    for (s = 0; s < n; s++) {
+        uint32_t z = b->slice[s + 1], w = b->rate * 3u / 50u;
+        float l1 = 0.0f, m1 = 0.0f, m2 = 0.0f, h1 = 0.0f, el = 0.0f, em = 0.0f, eh = 0.0f, et = 0.0f;
+        if (z > b->slice[s] + w)
+            z = b->slice[s] + w;
+        if (z > b->len)
+            z = b->len;
+        for (i = b->slice[s]; i < z; i++) {
+            float x = (float)b->pcm[i] * (1.0f / 32768.0f), m, h;
+            l1 += (x - l1) * a_l;
+            m1 += (x - m1) * a_m1;
+            m2 += (x - m2) * a_m2;
+            h1 += (x - h1) * a_h;
+            m = m2 - m1;
+            h = x - h1;
+            el += l1 * l1;
+            em += m * m;
+            eh += h * h;
+            et += x * x;
+        }
+        lo[s] = el;
+        mid[s] = em;
+        en[s] = et;
+        hr[s] = et > 1e-9f ? eh / et : 0.0f;
+        if (et > mxe)
+            mxe = et;
+    }
+    for (s = 0; s < n; s++) {            /* (the band maxima over the slices with a hit in them) */
+        if (en[s] < 0.015f * mxe)
+            continue;
+        if (lo[s] > mxl)
+            mxl = lo[s];
+        if (mid[s] > mxm)
+            mxm = mid[s];
+        if (hr[s] > mxh)
+            mxh = hr[s];
+    }
+    if (mxe <= 1e-9f || mxl <= 0.0f || mxm <= 0.0f || mxh <= 0.0f)
+        return;                          /* (silence: no roles) */
+    for (s = 0; s < n; s++) {
+        float nk = lo[s] / mxl, ns = mid[s] / mxm, nh = hr[s] / mxh, sc[3];
+        uint32_t r;
+        if (en[s] < 0.015f * mxe)
+            continue;
+        sc[0] = nk - 0.5f * ns;          /* (the likeliness of each, for the best of each) */
+        sc[1] = ns - 0.7f * nk;
+        sc[2] = nh - 0.6f * (nk > ns ? nk : ns);
+        for (r = 0; r < 3u; r++)
+            if (sc[r] > bs[r]) {
+                bs[r] = sc[r];
+                best[r] = s;
+            }
+        if (nk >= 0.45f && nk >= 0.8f * ns)
+            roles[s] |= 1u << BRK_ROLE_KICK;
+        if (ns >= 0.5f && ns > nk)
+            roles[s] |= 1u << BRK_ROLE_SNARE;
+        if (!roles[s] && nh >= 0.6f && nk < 0.3f && ns < 0.5f)
+            roles[s] |= 1u << BRK_ROLE_HAT;
+        if (!roles[s] && en[s] >= 0.08f * mxe)
+            roles[s] |= 1u << BRK_ROLE_PERC;   /* (a ghost note, a tom, a rim: something to play) */
+    }
+    for (s = 0; s < 3u; s++)             /* (each of the three at least once) */
+        if (bs[s] > -1.0f)
+            roles[best[s]] |= (uint8_t)(1u << s);
+    for (s = 0; s < n; s++)              /* (PERC empty: the snares' quieter hits do) */
+        if (roles[s] & 1u << BRK_ROLE_PERC)
+            return;
+    for (s = 0; s < n; s++)
+        if (roles[s] & 1u << BRK_ROLE_SNARE && s != best[1])
+            roles[s] |= 1u << BRK_ROLE_PERC;
+}
 BRK_COLD void brk_seed(uint32_t seed) { rng = seed ? seed : 1u; }
 BRK_COLD void brk_step_set(uint32_t i, const brk_step_t *s)
 {

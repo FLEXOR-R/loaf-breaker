@@ -681,6 +681,74 @@ static float rms_of(const float *x, uint32_t n)
         a += (double)x[i] * (double)x[i];
     return (float)sqrt(a / (double)n);
 }
+/* LOAF BREAKER (0.9.75): CHAOS. The Slice Map heard on the test break (kicks, snares, hats); CHAOS swaps a hit for one
+ * of its role only, the same seed the same every loop, another seed another; MATH 5 rounds each bar's first five 16ths;
+ * off: the loop as ever */
+static void chaos_run(uint32_t packed, int32_t *sls, int32_t *seen)
+{
+    uint32_t sl;
+    brk_gen_t g = {0.0f, 0.0f, 0.0f, 0.0f, 0u};   /* (the generator out of it: its fills are chaos of their own) */
+    fresh(2);
+    brk_gen(&g);
+    brk_auto_roles(&brk);
+    brk_chaos(packed);
+    sl = brk_step_len_samples();
+    brk_play(1);
+    render(buf, sl * 64u + sl / 2u, seen, sls, 64);
+}
+static void test_chaos(void)
+{
+    int32_t a[64], b2[64], c[64], d[64], na, nb, nc, nd, i, k = 0, s = 0, h = 0, ok = 1, diff = 0;
+    fresh(2);
+    brk_auto_roles(&brk);
+    for (i = 0; i < (int32_t)brk.nslices; i++) {
+        k += brk.roles[i] >> BRK_ROLE_KICK & 1;
+        s += brk.roles[i] >> BRK_ROLE_SNARE & 1;
+        h += brk.roles[i] >> BRK_ROLE_HAT & 1;
+    }
+    CHECK(k > 0 && s > 0 && h > 0, "the Slice Map hears kicks %d, snares %d, hats %d", k, s, h);
+    chaos_run(0u, a, &na);
+    chaos_run(100u | 1u << 24, b2, &nb);
+    for (i = 0; i < na && i < nb; i++) {
+        if (a[i] < 0 || b2[i] < 0 || a[i] == b2[i])
+            continue;
+        diff++;
+        if (!(brk.roles[a[i]] & brk.roles[b2[i]]))
+            ok = 0;
+    }
+    CHECK(diff > 4 && ok, "CHAOS 100: %d hits swapped, each for one of its role", diff);
+    chaos_run(100u | 1u << 24, c, &nc);
+    for (ok = nc == nb, i = 0; ok && i < nc; i++)
+        ok = c[i] == b2[i];
+    CHECK(ok, "the same seed, the same chaos");
+    {
+        int32_t per = 1;                 /* (the loop's length in the steps seen: where the plain loop repeats) */
+        for (; per < na / 2; per++) {
+            for (ok = 1, i = 0; i + per < na; i++)
+                if (a[i] != a[i + per])
+                    ok = 0;
+            if (ok)
+                break;
+        }
+        for (ok = per < na / 2, i = 0; ok && i + per < nb; i++)
+            ok = b2[i] == b2[i + per];
+        CHECK(ok, "and the same every loop, %d steps seen (it grooves)", per);
+    }
+    chaos_run(100u | 7u << 24, d, &nd);
+    for (diff = 0, i = 0; i < nd && i < nb; i++)
+        diff += d[i] != b2[i];
+    CHECK(diff > 2, "another seed, another chaos (%d steps differ)", diff);
+    chaos_run(5u << 8, d, &nd);
+    for (ok = 1, i = 1; i + 5 < 16 && i + 5 < nd; i++)
+        if (d[i] >= 0 && d[i + 5] >= 0 && d[i] != d[i + 5])
+            ok = 0;
+    CHECK(ok, "MATH 5: the bar's first five 16ths round again (%d %d %d / %d %d %d)", d[1], d[2], d[3], d[6], d[7], d[8]);
+    chaos_run(0u, c, &nc);
+    for (ok = nc == na, i = 0; ok && i < nc; i++)
+        ok = c[i] == a[i];
+    CHECK(ok, "CHAOS off: the loop as ever");
+}
+
 static void test_split(void)
 {
     uint32_t sl = brk_step_len_samples(), i;
@@ -2689,6 +2757,7 @@ int main(int argc, char **argv)
     test_quantised_key();
     test_hold_loops();
     test_split();
+    test_chaos();
     test_key_loops();
     test_clock();
     test_keep_length();

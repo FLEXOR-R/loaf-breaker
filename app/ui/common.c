@@ -309,8 +309,8 @@ static void skin_apply(uint32_t s)
 #undef C_WHITE                           /* (the app's white is the skin's: put back after the UI, app.c's end) */
 #define C_WHITE skin_white
 
-enum { PG_HOME, PG_GEN, PG_FX, PG_GLOBAL, PG_KICK, PG_MIX, PG_SEQ, PG_PERC, PG_TRACK, PG_OVL, PG_KEQ, PG_HSET, PG_SPLIT, NPAGES };   /* (PG_SPLIT: HOME's third part, 0.9.71) */
-#define HOME_PG(p) ((p) == PG_HOME || (p) == PG_GEN || (p) == PG_SPLIT)   /* (HOME's parts: PERFORM, GENERATOR, SPLIT) */
+enum { PG_HOME, PG_GEN, PG_FX, PG_GLOBAL, PG_KICK, PG_MIX, PG_SEQ, PG_PERC, PG_TRACK, PG_OVL, PG_KEQ, PG_HSET, PG_SPLIT, PG_CHAOS, NPAGES };   /* (PG_SPLIT: HOME's third part, 0.9.71) */
+#define HOME_PG(p) ((p) == PG_HOME || (p) == PG_GEN || (p) == PG_SPLIT || (p) == PG_CHAOS)   /* (0.9.75: CHAOS) */   /* (HOME's parts: PERFORM, GENERATOR, SPLIT) */
 /* (LOAF BREAKER, 0.9.2, FLEXOR: PG_HSET, HOME's SETTINGS after PERFORM and GENERATOR) */
                                          /* (LOAF BREAKER: PG_KEQ, HOME's third part, the KICK EQ; PG_TRACK, ENV's
                                           * TRACKS, PLAY, DROP where TAP TEMPO was) */

@@ -31,7 +31,10 @@ typedef struct {
     uint32_t split;                      /* a split break (PRD S-030): slices below it are its first half (bar 1,
                                           * break A), the rest its second (bar 2, break B); 0 none */
     char name[13];
+    uint8_t roles[BRK_MAX_SLICES];       /* (LOAF BREAKER 0.9.75, from CHOPPAH's MATHCORE Slice Map) each slice's role
+                                          * bits, 1 << BRK_ROLE_*, heard from its audio (brk_auto_roles); 0 none */
 } brk_break_t;
+enum { BRK_ROLE_KICK, BRK_ROLE_SNARE, BRK_ROLE_HAT, BRK_ROLE_PERC };
 
 /* one step of a pattern (PRD B-21); slice BRK_NO_SLICE follows the loop */
 typedef struct {
@@ -193,6 +196,15 @@ void brk_slicefx(uint32_t slice, const brk_slicefx_t *f);   /* main loop; the sl
 void brk_sends(float *echo, float *verb);
 void brk_pad(int pad, int down);
 void brk_gen(const brk_gen_t *g);
+/* LOAF BREAKER (0.9.75, FLEXOR: "une fonction un peu mathcore lite ... scramble ... pour rajouter du chaos", the break):
+ * HOME › CHAOS. b's roles heard (main loop, when a break is loaded: CHOPPAH's MATHCORE Slice Map, MPL-2.0); then each
+ * step the break plays (the loop, the generator, the pattern's slices) goes through CHAOS: packed as amount 0..100
+ * (bits 0-7: a hit swapped for another of the same role, kick for kick, snare for snare; reversed above 50), MATH
+ * (bits 8-15: 0 off, else N, each bar's first N 16ths round and round against the bar: 3, 5, 7, 11, 13), ROLLS
+ * (bits 16-23, 0..100: snares rolled in three, hats in two) and SEED (bits 24-31: which variation; the same seed, the
+ * same chaos every loop, so it grooves). 0: the break as it is */
+void brk_auto_roles(brk_break_t *b);
+void brk_chaos(uint32_t packed);
 void brk_padset_defaults(brk_padset_t *p);
 void brk_padset(const brk_padset_t *p);  /* main loop; the render follows it at once, also while a pad is held */
 void brk_seed(uint32_t seed);

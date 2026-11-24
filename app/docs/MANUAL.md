@@ -154,7 +154,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 
 | Button | Domain | Its parts |
 | --- | --- | --- |
-| HOME | LIVE | PERFORM, GENERATOR, SPLIT (EXPERT, 0.9.71); HOME again: the next tab (its settings are SYSTEM › DISPLAY's since 0.9.56). HOME is the main page: FX, ENV, LFO, GLO or ARP pressed again come back to it, SELECT turning their tabs |
+| HOME | LIVE | PERFORM, GENERATOR, SPLIT (EXPERT, 0.9.71), CHAOS (0.9.75); HOME again: the next tab (its settings are SYSTEM › DISPLAY's since 0.9.56). HOME is the main page: FX, ENV, LFO, GLO or ARP pressed again come back to it, SELECT turning their tabs |
 | EDIT | SOUNDS | Three sources, **SEL + EDIT** the next: **KICK** (its menu, by the kick's anatomy: ATTACK, BODY, TAIL, DIRT, FX1, FX2, MORE; SELECT its next section; EDIT again the next sound, EXPERT: SNARE, HAT, CLAP, then the KICK), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
 | SEQ | PATTERN | The lanes (ALGORITHM); the views FULL, DRUMS and **GROOVE** (SWING, BREAK ROWS, FOLLOW; also SEL + ARP) on SELECT |
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD |
@@ -245,10 +245,26 @@ and bars kept); RESET ALL clears them all.
 
 ![HOME › SPLIT: AMEN10 in bar 1, UPDOWN in bar 2](img/screen-split.png "HOME: SPLIT")
 
+### CHAOS
+<a id="chaos"></a>**HOME › CHAOS** (0.9.75, FLEXOR: "un mathcore lite pour rajouter du chaos"; HOME's last tab, BEGINNER and
+EXPERT) scrambles the break **by role**, as CHOPPAH's MATHCORE does. When a break loads, the FM-1 hears what each slice
+is (its Slice Map, CHOPPAH's own: **K** kick, **S** snare, **H** hat, **P** perc, shown on the page under each
+slice). Then:
+
+| Knob | Does |
+| --- | --- |
+| K1 CHAOS | OFF … 100: a hit is swapped for another of **its own role** (a kick for a kick, a snare for a snare), up to 8 in 10; from 50 some are played backwards too |
+| K2 MATH | OFF · 3 · 5 · 7 · 11 · 13: each bar's first N 16ths go round and round against the bar (5 against 16: a math loop) |
+| K3 ROLLS | OFF … 100: snares rolled in three, hats in two |
+| K4 SEED | 0 … 99: which variation. The same seed gives **the same chaos every loop**, so it grooves; turn it for another |
+
+It works on whatever the break plays: its loop, the GENERATOR's slices, the pattern's. The kick and the drums are not
+touched. SAVE keeps the four; RESET ALL turns them off. (The TUTORIAL passes over the tab.)
+
 ### Where things are
 
 - **HOME**: playing, the main page. PERFORM and GENERATOR (HOME again: the next tab), the CDJ waveform on both; in
-  EXPERT a third, **SPLIT** (0.9.71, below);
+  EXPERT a third, **SPLIT** (0.9.71, below); then **CHAOS** (0.9.75, below);
   **SEL + PRESETS** there changes the kick (KICK 1–20, 0.9.26). The waveform's settings are **SYSTEM › DISPLAY** (GLO,
   then SELECT; HOME's third tab from 0.9.2 to 0.9.55, FLEXOR moved it): K1 **VIEW** (WAVEFORM or SLICES: what PERFORM and GENERATOR show; HOME held still flips
   it), K2 **WAVE TYPE** (RGB, SERATO, 3 BAND or BLUE colours), K3 **WAVE ZOOM** (how much of the past the wave holds), K4 **BREAK
