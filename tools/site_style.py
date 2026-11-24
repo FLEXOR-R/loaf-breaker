@@ -110,6 +110,60 @@ def install(site):
     page.write_text(s, encoding="utf-8")
 
 
+ATELIER_HTML = """<h1>Atelier</h1>
+  <p class="atlead">Installe n'importe quel LOAF BREAKER : la TEST du moment, une ancienne version, un firmware fait sur une
+  branche. Page secrète : dans aucun menu, ni dans les moteurs de recherche.</p>
+  <div id="atdrop" class="atdrop">
+    <p><strong>Glisse ici un .fwsc</strong> (ou le .zip d'une build GitHub)</p>
+    <p><label for="atfile" class="sr">Fichier du firmware</label><input type="file" id="atfile" accept=".fwsc,.zip"></p>
+    <p id="atstate" role="status"></p>
+  </div>
+  <ul class="small atwhere">
+    <li><strong>TEST du moment</strong> : <a data-at="/releases" target="_blank" rel="noopener">Releases</a>, le brouillon
+      « LOAF BREAKER TEST » (connecté à GitHub : toi seul le vois), fichier loaf-breaker-A.B.C-testN.fwsc.</li>
+    <li><strong>Une branche à toi</strong> : pousse-la en <code>perso/un-nom</code> (ou Actions › LOAF BREAKER › Run
+      workflow sur ta branche) : un brouillon « LOAF BREAKER PERSO un-nom » arrive dans
+      <a data-at="/releases" target="_blank" rel="noopener">Releases</a>.</li>
+    <li><strong>Une ancienne version</strong> : <a data-at="/releases" target="_blank" rel="noopener">Releases</a>,
+      loaf-breaker-A.B.C.fwsc.</li>
+  </ul>"""
+
+ATELIER_CSS = """<style>
+.atdrop { border: 2px dashed currentColor; border-radius: 10px; padding: 14px 16px; margin: 18px 0; opacity: .95; }
+.atdrop.over { border-style: solid; background: rgba(255, 255, 255, .06); }
+.atdrop p { margin: 6px 0; }
+#atstate { font-weight: 600; min-height: 1.4em; }
+#atstate.bad { color: #ff6b6b; }
+.atwhere li { margin: 4px 0; }
+</style>
+"""
+
+
+def atelier(site):
+    """LOAF BREAKER (0.9.76, FLEXOR: "un onglet secret ... pour installer les firmware de test ou les firmwares perso du
+    git"): atelier/, the installer (install/, already restyled) with any LOAF BREAKER package dropped on it in place of
+    the site's own (app/site/atelier.js inside its module); in no menu, noindex"""
+    src = site / "install" / "index.html"
+    if not src.exists():
+        return
+    s = src.read_text(encoding="utf-8")
+    js = (APP / "site" / "atelier.js").read_text(encoding="utf-8")
+    load = "    const r = await fetch(meta.pkg);\n"
+    click = '$("go").addEventListener("click", () => run(image, meta.product, false));'
+    for mark in (load, click, "</head>", "<title>"):
+        if s.count(mark) != 1:
+            raise SystemExit(f"install/index.html: {mark.strip()!r} not found once (atelier)")
+    s, n = re.subn(r"<h1>.*?</h1>", ATELIER_HTML, s, count=1, flags=re.S)
+    if n != 1:
+        raise SystemExit("install/index.html: no <h1> (atelier)")
+    s = s.replace(load, '    say("Choisis un firmware ci-dessus."); return;   /* (the atelier: no package of its own) */\n' + load, 1)
+    s = s.replace(click, js.replace("</script", "<\\/script") + "\n" + click, 1)
+    s = re.sub(r"<title>[^<]*</title>", "<title>Atelier · LOAF BREAKER</title>", s, count=1)
+    s = s.replace("</head>", '<meta name="robots" content="noindex, nofollow">\n' + ATELIER_CSS + "</head>", 1)
+    (site / "atelier").mkdir(parents=True, exist_ok=True)
+    (site / "atelier" / "index.html").write_text(s, encoding="utf-8")
+
+
 def site_name():
     conf = (APP / "fm1.toml").read_text(encoding="utf-8")
     m = re.search(r'^title\s*=\s*"([^"]+)"', conf, re.M)
@@ -234,6 +288,7 @@ def main(site):
     site = Path(site)
     rebrand(site)
     install(site)
+    atelier(site)
     emu(site)
     breaks(site)
     imp(site)

@@ -13,7 +13,7 @@ name: LOAF BREAKER
 
 on:
   push:
-    branches: [loaf, dev]
+    branches: [loaf, dev, "perso/**"]   # (perso/NAME: a PERSO draft of its own, FLEXOR 0.9.76; the site's atelier/ installs it)
     paths-ignore: ["breaks/tests/**", ".github/workflows/tests.yml", "CLAUDE.md"]   # (the break tests' own: tests.yml)
   workflow_dispatch:
 
@@ -53,6 +53,12 @@ jobs:
             N="$(git rev-list --count origin/loaf..HEAD)"
             SHOW="$V TEST $N"; V="$V-test$N"
             echo "TEST=1" >> "$GITHUB_ENV"
+          elif [ "$GITHUB_REF_NAME" != loaf ]; then   # (0.9.76, FLEXOR: any other branch, pushed as perso/NAME or run by
+            # hand: a PERSO draft of its own, never a release (Run workflow on a branch made a loaf-v release before))
+            B="$(printf '%s' "${GITHUB_REF_NAME#perso/}" | tr 'A-Z' 'a-z' | tr -c 'a-z0-9-' '-' | cut -c1-24)"
+            SHOW="$V PERSO"; V="$V-$B"
+            echo "TEST=1" >> "$GITHUB_ENV"
+            echo "PERSO=$B" >> "$GITHUB_ENV"
           fi
           echo "VERSION=$V" >> "$GITHUB_ENV"
           echo "PKG=$PKG" >> "$GITHUB_ENV"
@@ -155,6 +161,7 @@ jobs:
           sh tests/drum_kit.sh       # (0.9.45: your drum samples, the IMPORT page)
           sh tests/import_page.sh
           sh tests/live_page.sh      # (0.9.71: the app's LIVE page against the simulator; skipped without Playwright)
+          sh tests/atelier_page.sh   # (0.9.76: the secret installer atelier/ and the app's tile; skipped without Playwright)
 
       # LOAF BREAKER's site, as CHOPPAH's: the front page, the web installer, the emulator in the browser and the
       # manual, its screenshots taken from this build (tools/site_shots.sh), in CHOPPAH's look (tools/site_style.py)
@@ -202,12 +209,19 @@ jobs:
         run: |
           # (a draft: only the repository's owner sees it; the Firmware Hub, which looks at the newest release, pre-releases
           # too, never does. 0.9.1's TEST pre-release, zipped, made the hub's check miss the .fwsc: FLEXOR, 12 Nov 2026)
-          gh release delete loaf-test --cleanup-tag -y || true
-          gh api --paginate "repos/$GITHUB_REPOSITORY/releases" -q '.[] | select(.draft and (.name | startswith("LOAF BREAKER TEST"))) | .id' \
+          if [ -n "$PERSO" ]; then   # (a branch's own: LOAF BREAKER PERSO NAME, replaced at its next build)
+            TAG="loaf-perso-$PERSO"; TITLE="LOAF BREAKER PERSO $PERSO"
+            NOTES="A personal build of the branch $GITHUB_REF_NAME ($(git rev-parse --short HEAD)), not a release (a draft: only the owner sees it): install loaf-breaker-$VERSION.fwsc with the site's atelier/ page; the splash shows PERSO."
+          else
+            TAG="loaf-test"; TITLE="LOAF BREAKER TEST"
+            NOTES="A test build of the work in progress on dev ($(git rev-parse --short HEAD)), not a release (a draft: only the owner sees it): install loaf-breaker-$VERSION.fwsc with the web installer or the site's atelier/ page; the splash shows TEST. Replaced at the next push to dev."
+          fi
+          gh release delete "$TAG" --cleanup-tag -y || true
+          gh api --paginate "repos/$GITHUB_REPOSITORY/releases" -q ".[] | select(.draft and (.name | startswith(\"$TITLE (\"))) | .id" \
             | while read -r id; do gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/$id"; done
-          gh release create loaf-test --draft --target "$GITHUB_SHA" \
-            --title "LOAF BREAKER TEST ($VERSION)" \
-            --notes "A test build of the work in progress on dev ($(git rev-parse --short HEAD)), not a release (a draft: only the owner sees it): install loaf-breaker-$VERSION.fwsc with the web installer; the splash shows TEST. Replaced at the next push to dev." \
+          gh release create "$TAG" --draft --target "$GITHUB_SHA" \
+            --title "$TITLE ($VERSION)" \
+            --notes "$NOTES" \
             "app/build/loaf-breaker-$VERSION.fwsc"
 
       - uses: softprops/action-gh-release@v2

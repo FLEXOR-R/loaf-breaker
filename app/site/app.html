@@ -19,6 +19,7 @@
 .ap .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .ap .tile { display: grid; gap: 6px; align-content: start; padding: 18px 16px; min-height: 120px; border-radius: 14px;
   background: var(--panel); border: 1px solid var(--line); color: var(--fg); text-decoration: none; }
+.ap .tile[hidden] { display: none; }
 .ap .tile:hover, .ap .tile:focus-visible { border-color: var(--amber); background: var(--raise); outline: none; }
 .ap .tile b { font: 600 20px/1.1 var(--f-display); letter-spacing: .03em; }
 .ap .tile span { color: var(--dim); font-size: 14px; line-height: 1.35; }
@@ -46,6 +47,7 @@
     <a class="tile" href="../import/"><b>Import</b><span>Your own snare, hat and clap as samples.</span></a>
     <a class="tile" href="../install/"><b>Update</b><span>Install the newest LOAF BREAKER on the FM-1, from the phone.</span></a>
     <a class="tile" href="../manual/"><b>Manual</b><span>Every page and every control.</span></a>
+    <a class="tile" id="atelier" hidden><b>Atelier</b><span>Installe une TEST ou un firmware perso.</span></a>
   </div>
   <button id="install" type="button">Install the app</button>
   <section class="how">
@@ -58,6 +60,21 @@
   </section>
 </main>
 <script>
+/* (0.9.76, FLEXOR: a secret way in) five taps on the title within 3 s show the ATELIER's tile (the TEST and personal
+   builds' installer, atelier/), kept in this browser; five more hide it again */
+(function () {
+  var t = document.querySelector(".ap h1"), a = document.getElementById("atelier"), n = 0, at = 0;
+  var show = function (on) { a.hidden = !on; if (on) a.href = "../" + "atelier/"; };
+  try { show(localStorage.getItem("loaf-atelier") === "1"); } catch (e) {}
+  t.addEventListener("click", function () {
+    var now = Date.now();
+    n = now - at < 3000 ? n + 1 : 1; at = now;
+    if (n < 5) return;
+    n = 0;
+    show(a.hidden);
+    try { localStorage.setItem("loaf-atelier", a.hidden ? "0" : "1"); } catch (e) {}
+  });
+})();
 "use strict";
 let ask = null;
 addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); ask = e; document.getElementById("install").classList.add("show"); });
