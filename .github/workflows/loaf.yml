@@ -224,17 +224,21 @@ jobs:
             --notes "$NOTES" \
             "app/build/loaf-breaker-$VERSION.fwsc"
 
+      - name: Release notes (docs/NEXT.md, what changed since the last release, then the install words)
+        if: env.TEST != '1'
+        run: |
+          { if [ -s docs/NEXT.md ]; then echo "**What's new in $VERSION**"; echo; sed '/^<!--/,/-->$/d' docs/NEXT.md; echo; fi
+            echo "Install loaf-breaker-$VERSION.fwsc with fm1-base's web installer (Chrome or Edge, the FM-1 on"
+            echo "USB); the splash shows $VERSION. loaf-breaker-site-$VERSION.zip: the site (front page,"
+            echo "installer, emulator, manual), open its index.html; loaf-breaker-screens-$VERSION.zip: the"
+            echo "simulator's screens."; } > release-notes.md
       - uses: softprops/action-gh-release@v2
         if: env.TEST != '1'
         with:
           tag_name: loaf-v${{ env.VERSION }}
           target_commitish: ${{ github.sha }}
           name: LOAF BREAKER ${{ env.VERSION }}
-          body: |
-            Install loaf-breaker-${{ env.VERSION }}.fwsc with fm1-base's web installer (Chrome or Edge, the FM-1 on
-            USB); the splash shows ${{ env.VERSION }}. loaf-breaker-site-${{ env.VERSION }}.zip: the site (front page,
-            installer, emulator, manual), open its index.html; loaf-breaker-screens-${{ env.VERSION }}.zip: the
-            simulator's screens.
+          body_path: release-notes.md
           generate_release_notes: true
           make_latest: true
           files: |
