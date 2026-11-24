@@ -750,6 +750,7 @@ static void chaos_turn(int i, int32_t d)
     static const char *const CN[4] = {"CHAOS", "MATH", "ROLLS", "SEED"};
     char t[16];
     kx2.ch_tag = CH_TAG;
+    kx2.ch_sw = CH_SW;                   /* (0.9.76: a knob turned here, CHAOS heard again: the CHS key's switch on) */
     if (i == 1)
         kx2.chaos[1] = CH_MATH[(uint32_t)clamp((int32_t)chaos_math_idx() + (d > 0 ? 1 : -1), 0, 5)];
     else if (i == 3)
@@ -769,7 +770,7 @@ static void draw_chaos(void)
     static const char *const N[4] = {"CHAOS", "MATH", "ROLLS", "SEED"};
     uint32_t i, n;
     char t[16];
-    int on = kx2.chaos[0] || kx2.chaos[1] || kx2.chaos[2];
+    int on = (kx2.chaos[0] || kx2.chaos[1] || kx2.chaos[2]) && !chaos_off;
     cv_begin(240, 52, C_BLACK);
     for (i = 0; i < 4u; i++) {
         int32_t x = 2 + (int32_t)i * 60;
@@ -792,8 +793,8 @@ static void draw_chaos(void)
         if (l[0] && x1 - x0 >= 6)
             cv_text(x0 + (x1 - x0 - text_w(&FONT_XS, l)) / 2, 4, &FONT_XS, l, c);
     }
-    cv_text(6, 24, &FONT_XS, on ? "SCRAMBLED BY ROLE, SAME EVERY LOOP" : "K1: EACH HIT SWAPPED FOR ITS ROLE",
-            on ? C_AMB : C_DIM);
+    cv_text(6, 24, &FONT_XS, on ? "SCRAMBLED BY ROLE, SAME EVERY LOOP" : chaos_off ? "OFF BY THE CHS KEY: A KNOB, ON" :
+            "K1: EACH HIT SWAPPED FOR ITS ROLE", on ? C_AMB : C_DIM);
     cv_text(6, 36, &FONT_XS, "K4 SEED: ANOTHER VARIATION", C_DIM);
     cv_blit(0, 140);
 }

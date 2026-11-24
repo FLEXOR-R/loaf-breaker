@@ -150,12 +150,13 @@ static const char *const PAD_KNOB[BKF_N][4] = {   /* (LOAF BREAKER: by function,
     {"EFFECT", "AMOUNT", "TIME", "LATCH"},   /* (the ARP key's; FX while held: MORE, pad_knob_name; K2 what goes
                                           * through the ARP effects: the kick, the break, or both) */
     {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0},
-    {"MODE", "TIME", "REVERB", "LATCH"}};   /* (0.9.58: KILL BREAK) */   /* (KIL, X2: their LATCH, main.c; DST,
+    {"MODE", "TIME", "REVERB", "LATCH"},   /* (0.9.58: KILL BREAK) */
+    {0, 0, 0, 0}};                       /* (0.9.76: CHS, a press each) */   /* (KIL, X2: their LATCH, main.c; DST,
                                           * SUB, DRV: a press each) */
 static const char *const PAD_TITLE[BKF_N] = {"ROLL", "ROLL", "ROLL", "REVERSE", "FREEZE", "HALF SPEED",
                                               "VINYL BREAK", "GATE", "RANDOM", "FILTER", "DUB", "OVERLAY", "KICKS OFF",
                                               "DISTO", "SUB FX", "DRIVE", "KICKS X2", "KICKS X4", "KICK TRIPLETS",
-                                              "SUB DRIVE", "KILL BREAK"};
+                                              "SUB DRIVE", "KILL BREAK", "CHAOS"};
 static const char *const FRZ_LEN_NAME[4] = {"SLICE", "1/2", "1/4", "1/8"};
 
 /* LOAF BREAKER: the ARP key's knobs (the OVERLAY page gone, its settings here). MAIN: K1 EFFECT, K2 its AMOUNT, K3
@@ -924,6 +925,8 @@ static int bkf_lit(uint32_t f, const brk_status_t *st)
         return (kick_x2 & 4u) != 0u;
     if (f == BKF_KBR)                    /* (0.9.58: KILL BREAK, the break out) */
         return kbrk_hold != 0u;
+    if (f == BKF_CHS)                    /* (0.9.76: CHAOS heard: the switch on and something set) */
+        return !chaos_off && kx2.ch_tag == CH_TAG && (kx2.chaos[0] || kx2.chaos[1] || kx2.chaos[2]);
     if (f == BKF_SDR)                    /* (0.9.57: SUB DRIVE, the SUB layer's effect DRIVE, heard) */
         return set.kick.l[KL_SUB].fx == KFX_DRIVE && !subfx_off;
     return !subfx_off;                   /* (0.9.43: SUB, the SUB FX switch on, even with no effect set) */

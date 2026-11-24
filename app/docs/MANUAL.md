@@ -259,7 +259,7 @@ slice). Then:
 | K4 SEED | 0 … 99: which variation. The same seed gives **the same chaos every loop**, so it grooves; turn it for another |
 
 It works on whatever the break plays: its loop, the GENERATOR's slices, the pattern's. The kick and the drums are not
-touched. SAVE keeps the four; RESET ALL turns them off. (The TUTORIAL passes over the tab.)
+touched. SAVE keeps the four; RESET ALL turns them off. A black key set to **CHS** (ARP › BLACK K3, 0.9.76) turns CHAOS off and on in one press, its settings kept. (The TUTORIAL passes over the tab.)
 
 ### Where things are
 
@@ -572,6 +572,7 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 | DRV | A switch (0.9.43): a press, the kick's DRIVE off, the next on again; its amount is never touched. Lit while it is ON; the kick's own (KICK 1–20), as DST; a built-in kick picked with a DRIVE puts it on again. In no preset layout: put it on a key of CUSTOM (ARP › BLACK, K3) | | | | |
 | SDR | SUB DRIVE (0.9.57, FLEXOR: back, as the SUB key was until 0.9.42): a press puts the kick's SUB layer through its DRIVE (EDIT's SUB FX set to DRIVE; its mix up from nothing, the SUB FX switch on again so it is heard), the next press turns that effect OFF. Lit while on. Beside SUB, which stays the SUB FX switch (whichever effect, untouched). In no preset layout: put it on a key of CUSTOM (ARP › BLACK, K3) or as a SEL BLACK function | | | | |
 | KBR | KILL BREAK (0.9.58, FLEXOR): the break out while held (the kick and the drums play on), back when let go | MODE: FADE (out over TIME), CUT (out at once), BAR END (out at the bar's end, its last 8th thrown into the reverb: the FX chain's REVERB, or a plate of its own if there is none; its tail rings on), END FADE (0.9.60, FLEXOR: the break plays on to the end of its loop, its two bars, then fades out over TIME) | TIME: FADE's and END FADE's length, 1/16, 1/8, 1/4, 1/2, 1 BAR, 2 BARS; on BAR END, **ECHO** (0.9.60, FLEXOR): its last 8th also thrown into an echo that repeats and fades, OFF, 1/8, 3/16 (to start), 1/4, 3/8 apart (the DUB delay, or the FX chain's DELAY if there is one) | REVERB: BAR END's, how much of its last 8th goes in (0–100 %) | LATCH: ON, a press out, the next back. In no preset layout: CUSTOM (ARP › BLACK, K3) or SEL BLACK |
+| CHS | CHAOS on / off (0.9.76, FLEXOR): a press turns HOME › CHAOS off (its settings kept), the next on again; on with nothing set, CHAOS 40 to hear it. Lit while CHAOS is heard; a CHAOS knob turned on its page turns it back on. In no preset layout: CUSTOM (ARP › BLACK, K3) or SEL BLACK | | | | |
 
 ![ROLL held: the caught slice repeating, each copy quieter](img/pad-roll8.png "ROLL held")
 ![VINYL BREAK held: the platter slowing down](img/pad-stop.png "VINYL BREAK held")
@@ -641,7 +642,7 @@ since 0.9.50, FLEXOR; BLACK and SEL BLACK in full since 0.9.53): **ARP** (the ef
 (SEL WHITE, the white keys' shortcuts with SEL, and KITS were there in 0.9.50-0.9.70: gone in 0.9.71, FLEXOR). **BLACK** lays out the black keys: **K1 PRESET**, CHOPPAH (CHOPPAH's eleven, the ARP
 key not among them), FLEXOR LAYOUT (R8 R16 R32 ARP ARP TRI X4 X2 SUB DST KIL since 0.9.61) or CUSTOM; **K2 KEY** (or **ALGORITHM**, 0.9.26), the key you edit (or press it:
 here a black key picks itself and plays nothing); **K3 EFFECT**, what it does: any of R8, R16, R32, REV, FRZ, HLF, VNL,
-GAT, RND, FLT, DUB, ARP, KIL, DST, SUB, DRV, X2, X4, TRI, SDR (SUB DRIVE, 0.9.57), KBR (KILL BREAK, 0.9.58); on an ARP key, **K4 ARP FX** its own effect (0.9.45: several ARP keys, each with its own, play at once). Turned on a preset, K3 makes a CUSTOM of it first, that key changed (keys
+GAT, RND, FLT, DUB, ARP, KIL, DST, SUB, DRV, X2, X4, TRI, SDR (SUB DRIVE, 0.9.57), KBR (KILL BREAK, 0.9.58), CHS (CHAOS on / off, 0.9.76); on an ARP key, **K4 ARP FX** its own effect (0.9.45: several ARP keys, each with its own, play at once). Turned on a preset, K3 makes a CUSTOM of it first, that key changed (keys
 outlined amber differ from CHOPPAH's). SAVE keeps the layout. The **REC** button is the last key, right (0.9.58; press REC
 here to pick it): **NONE** at first, REC records as ever; given any function but ARP on K3, REC is that black key and
 records no more, whatever the layout (the preset kept; 0.9.70, FLEXOR: the SYSTEM › MIDI K4 REC KEY switch gone). BEGINNER always plays CHOPPAH's (turning BEGINNER on

@@ -228,8 +228,8 @@ static settings_t set;
  * back), then ARP (an OVERLAY effect), KIL (the sequencer's kicks quiet), DST (the kick's DISTO), SUB (its SUB FX on / off: 0.9.43, FLEXOR).
  * A layout: the function of each key, left to right. Presets: CHOPPAH (CHOPPAH's keys; BEGINNER's only), FLEXOR LAYOUT
  * (LOAF BREAKER's until 0.244), CUSTOM (each key its own: ARP › BLACK KEYS) */
-enum { BKF_ARP = BRK_NPADS, BKF_KIL, BKF_DST, BKF_SUB, BKF_DRV, BKF_X2, BKF_X4, BKF_TRI, BKF_SDR, BKF_KBR, BKF_N };   /* (0.9.55: X4, TRI; 0.9.57 SDR, SUB DRIVE on / off again;
-                                          * 0.9.58 KBR, KILL BREAK) */   /* (BKF_DRV: the kick's DRIVE, 0.9.43;
+enum { BKF_ARP = BRK_NPADS, BKF_KIL, BKF_DST, BKF_SUB, BKF_DRV, BKF_X2, BKF_X4, BKF_TRI, BKF_SDR, BKF_KBR, BKF_CHS, BKF_N };   /* (0.9.55: X4, TRI; 0.9.57 SDR, SUB DRIVE on / off again;
+                                          * 0.9.58 KBR, KILL BREAK; 0.9.76 CHS, CHAOS on / off) */   /* (BKF_DRV: the kick's DRIVE, 0.9.43;
                                           * BKF_X2: the kicks doubled, 0.9.48) */
 enum { BKP_CHOPPAH, BKP_FLEXOR, BKP_CUSTOM, BKP_N };
 #define BK_TAG 0xB4u
@@ -453,7 +453,9 @@ typedef struct {
                                           * 0.9.71's release, read once into the break it was saved on) */
     uint8_t ch_tag, chaos[4];            /* (0.9.75, FLEXOR: HOME › CHAOS, valid with CH_TAG: AMOUNT 0..100, MATH 0 or
                                           * 3 5 7 11 13, ROLLS 0..100, SEED 0..99; untagged: all 0, the break as it is) */
-    uint8_t rsv4[15];                    /* (the rest of the KITS' bytes, 0.9.54-0.9.70: unused) */
+    uint8_t ch_sw;                       /* (0.9.76, FLEXOR: the CHS black key's switch, CH_SW | 1 off; anything else
+                                          * on: a KITS byte before) */
+    uint8_t rsv4[14];                    /* (the rest of the KITS' bytes, 0.9.54-0.9.70: unused) */
     uint8_t selrec;                      /* (appended, 0.9.70, FLEXOR: the REC key's SEL function, 1 + BKF_* but ARP, 0
                                           * none; a shorter save: none) */
     uint8_t rsv3;
@@ -475,9 +477,11 @@ static kick_x2_t *kx2_at(uint32_t k) { return &kx2.m[k % KICK_MEMS]; }
 #define WK_ROWS (WK_SPLIT + 1u + WK_NB)  /* (a row: 0..23 a break's keys, 25..48 its split's; 24 unused) */
 #define WK_SET 0x8000u
 #define CH_TAG 0xC4u                     /* (0.9.75: CHAOS's bytes set) */
-static void chaos_push(void)             /* (HOME › CHAOS to the engine: brk.h brk_chaos) */
+#define CH_SW 0xE0u                      /* (0.9.76: the CHS key's switch, bit 0 off) */
+#define chaos_off (kx2.ch_sw == (CH_SW | 1u))
+static void chaos_push(void)             /* (HOME › CHAOS to the engine: brk.h brk_chaos; off by the CHS key: none) */
 {
-    if (kx2.ch_tag != CH_TAG)
+    if (kx2.ch_tag != CH_TAG || chaos_off)
         brk_chaos(0u);
     else
         brk_chaos((uint32_t)kx2.chaos[0] | (uint32_t)kx2.chaos[1] << 8 | (uint32_t)kx2.chaos[2] << 16 |
@@ -2271,6 +2275,7 @@ void app_init(void)
         if (kx2.ch_tag != CH_TAG) {      /* (0.9.75: a save before CHAOS: off) */
             kx2.ch_tag = CH_TAG;
             memset(kx2.chaos, 0, sizeof kx2.chaos);
+            kx2.ch_sw = CH_SW;           /* (0.9.76: the CHS key's switch on) */
         }
         chaos_push();
         if (kx2.sp_tag != SP_TAG2) {     /* (a save before each break's split: KITS' bytes there, or 0.9.71's one split,
