@@ -18,7 +18,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   `firmware` submodule, run through fm1-base's host core, host/rfm1.c with PLAT_RFM1). The order, every time: the
   FM-1 first (dev, its TEST), then ask FLEXOR whether to publish; then the VST (its submodule moved to the firmware's
   commit, the VST's changes, its TEST), published only if he wants (its version is the firmware's). Keep the host
-  build (`./build.sh --host`) working: the VST is built from it.
+  build (`./build.sh --host`) working: the VST is built from it. LB_BIG (the VST only): SELECT never the tempo (HOME's tabs there,
+  nothing elsewhere; the VST's header and lb_tempo have it, FLEXOR: "certaines commandes ... montent le BPM").
 - The changelog, in French, is FLEXOR's Claude Doc (project 6f32699a-06f8-4eaa-a41a-6f03a8b20dc9, node 1fc2737b-3a82):
   after each release (not a TEST) add a row (everything since the last one) (version, date, what changed) above the top one and put the version in the intro's
   "LOAF BREAKER 0.9.x". Keep its first part current whenever it is relevant: the summary paragraph, "Les grandes

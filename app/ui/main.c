@@ -1266,6 +1266,28 @@ static void input(void)
             ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
             continue;
         }
+#if LB_BIG
+        if (k == EN_SELECT && HOME_PG(ui.page)) {   /* (the VST, 24 Nov 2026, FLEXOR: "certaines commandes ... montent
+                                          * le BPM": its tabs and arrows turn SELECT; HOME's tabs then, never the tempo,
+                                          * which has its own control in the VST's header: lb_tempo) */
+            static const uint8_t HP[4] = { PG_HOME, PG_GEN, PG_SPLIT, PG_CHAOS };
+            uint32_t i, n = 4u, at = 0u;
+            for (i = 0; i < 4u; i++)
+                if (HP[i] == ui.page)
+                    at = i;
+            if (set.novice)              /* (BEGINNER: no SPLIT, as the tabs drawn) */
+                at = at == 3u ? 2u : at, n = 3u;
+            at = (at + (d > 0 ? 1u : n - 1u)) % n;
+            ui.page = set.novice && at == 2u ? PG_CHAOS : HP[at];
+            if (tut_on() && ui.page == PG_CHAOS)
+                ui.page = PG_HOME;       /* (as HOME does while the TUTORIAL runs) */
+            ui.redraw |= RG_HEAD | RG_FOOT | RG_BLOCKS;
+            page_say();
+            continue;
+        }
+        if (k == EN_SELECT)              /* (anywhere else: nothing; the tempo is the header's) */
+            continue;
+#endif
         if (k == EN_SELECT && ext_active()) {
             app_say("TEMPO", "EXT CLOCK");   /* the outside clock has the tempo */
         } else if (k == EN_SELECT) {     /* tempo: 1 BPM a detent (SEL held: the kick, above) */
