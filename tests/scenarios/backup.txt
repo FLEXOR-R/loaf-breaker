@@ -16,7 +16,7 @@ wait 200
 expect chaos 40
 tap SAVE
 wait 500
-backup lbrk.bak
+backup out:lbrk.bak
 wait 300
 turn K1 20 10
 wait 200
@@ -25,11 +25,11 @@ tap SAVE
 wait 500
 tap PLAY
 wait 500
-restore lbrk.bak
+restore out:lbrk.bak
 wait 300
 expect chaos 80
 tap PLAY
 wait 500
-restore lbrk.bak
+restore out:lbrk.bak
 wait 6000
 expect chaos 40
