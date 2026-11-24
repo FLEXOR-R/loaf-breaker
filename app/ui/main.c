@@ -1675,8 +1675,17 @@ static void knob_value(int i, char *t)  /* the page's knob i (0..3), as shown un
  * button again, or ALGORITHM, goes to the next); EDIT and FX also name the part edited, "< SUB FX >" */
 static int8_t build_stut = -1;          /* (a build's break roll: the roll pad it holds, -1 none) */
 static const char *const OPAGE_NAME[3] = {"ARP", "BLACK", "SEL BLACK"};   /* (0.9.53, FLEXOR: BLACK, there is room) */   /* (SETTINGS 0.9.50-0.9.51) */   /* (LOAF BREAKER: ARP's tabs) */
+#if LB_BIG
+/* (LOAF BREAKER's VST, 24 Nov 2026, FLEXOR: "des contrôles contextuels qui affichent ce qu'ils modifient": the tabs and
+ * the part as the screen draws them, noted for the VST's own interface: lbcore.c) */
+static void lb_cap_tab(const char *s, int on);
+static void lb_cap_part(const char *label, const char *part);
+#endif
 static int32_t tab_pad(int32_t x, const char *s, int on, int32_t pad, int32_t gap)
 {
+#if LB_BIG
+    lb_cap_tab(s, on);
+#endif
     int32_t w = text_w(&FONT_T, s) + 2 * pad;
     cv_rect(x, 0, w, 13, on ? C_HI : C_BLOCK);
     cv_text(x + pad, 1, &FONT_T, s, on ? C_BLACK : C_GRAY);
@@ -1804,6 +1813,10 @@ static void draw_tabs(void)
         else
             text_cat(part, PPAGE_NAME[perc_pg()]);
     }
+#if LB_BIG
+    lb_cap_part(ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX() ? "KICK" : ui.page == PG_PERC ? "DRUMS"
+                : ui.page == PG_GLOBAL && ui.gpage == GP_BREAK ? "BREAK" : dom_name(), part);
+#endif
     if (sel_hint)                        /* (LOAF BREAKER, 0.230: BEGINNER's sounds, SELECT goes round them) */
         cv_text(236 - text_w(&FONT_T, "SELECT: KICK SN HH CP"), 1, &FONT_T, "SELECT: KICK SN HH CP", C_DIM);
     if (part[0]) {                       /* "< PART >": ALGORITHM turns it */
