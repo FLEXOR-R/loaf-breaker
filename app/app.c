@@ -574,7 +574,12 @@ static uint32_t split_on(void) { return split_on_of(set.brk); }
 static uint32_t split_bars_of(uint32_t a) { return sp_get(a) >> SP_BARS & 3u; }
 static uint32_t wk_idx(void) { return split_on() ? WK_SPLIT + 1u + set.brk : set.brk; }
 static uint16_t *wk_row(uint32_t r) { return r < WK_SPLIT + 1u ? kx2.wk[r] : kx2.wks[(r - WK_SPLIT - 1u) % WK_NB]; }
-static uint8_t wk_brk = 0xFFu;           /* (the break whose keys set.keys holds; 0xFF: none yet) */
+#if LB_BIG
+typedef uint16_t wkrow_t;                /* (the VST: 257 rows, past a byte) */
+#else
+typedef uint8_t wkrow_t;
+#endif
+static wkrow_t wk_brk = (wkrow_t)~0u;    /* (the break whose keys set.keys holds; all ones: none yet) */
 static uint16_t wk_pack(const brk_keyset_t *k)
 {
     uint32_t p = (uint32_t)clamp(k->pitch, -12, 12) + 12u;
@@ -608,7 +613,7 @@ static void wk_follow(void)              /* (the keys to the break chosen, set.b
     if (wk_idx() == wk_brk)
         return;
     wk_store();
-    wk_brk = (uint8_t)wk_idx();
+    wk_brk = (wkrow_t)wk_idx();
     if (wk_brk >= WK_ROWS || wk_brk == WK_SPLIT)
         return;
     for (k = 0; k < BRK_KEYS; k++) {
@@ -2379,7 +2384,7 @@ void app_init(void)
             if (was)
                 sp_put(set.brk, was);
         }
-        wk_brk = (uint8_t)wk_idx();
+        wk_brk = (wkrow_t)wk_idx();
     }                 /* (LOAF BREAKER: a save before the KICK LAB: every kick as it sounded) */
     {                                    /* (LOAF BREAKER, 0.9.2: KICK 11..20; a save before them: as they begin; the
                                           * KICK LAB's line above may have cleared their LAB: theirs read after) */
