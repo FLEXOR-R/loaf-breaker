@@ -1,4 +1,4 @@
-# CHOPPAH's breaks: every WAV in this folder, and which of them go into the firmware.
+# LOAF BREAKER's breaks (from CHOPPAH's): every WAV in this folder, and which of them go into the firmware.
 # ./build.sh turns the lines marked * into the bank built into the firmware (app/bank_data.h, generated), in this
 # order: the first is the break at power-on. ALGORITHM steps through them. Swap breaks in or out by moving the *; the
 # firmware has 400 KB for breaks: 8 classics at 2 bars fill ~360 KB (./build.sh says if they don't fit;

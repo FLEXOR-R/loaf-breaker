@@ -57,7 +57,7 @@ def restyle(path, cls, controls_href, extra=""):
     if nav:                                          # "Controls" after "Manual"
         breaks = "breaks/" if controls_href.startswith("manual/") else "../breaks/"   # (the front page, the manual)
         links = re.sub(r'(<a href="[^"]*manual/"[^>]*>Manual</a>)',
-                       r'\1<a href="' + controls_href + '">Controls</a><a href="' + breaks + '">Breaks</a><a href="' + breaks.replace("breaks", "import") + '">Import</a><a href="' + breaks.replace("breaks", "editor") + '">Studio</a>',
+                       r'\1<a href="' + controls_href + '">Controls</a><a href="' + breaks + '">Breaks</a><a href="' + breaks.replace("breaks", "import") + '">Import</a><a href="' + breaks.replace("breaks", "editor") + '">Studio</a><a href="' + breaks.replace("breaks", "vst") + '">VST</a>',
                        nav.group(2), count=1)
         s = s[:nav.start(2)] + links + s[nav.end(2):]
     return s
@@ -67,7 +67,7 @@ def header(current):
     conf = (APP / "fm1.toml").read_text(encoding="utf-8")
     name = re.search(r'^title\s*=\s*"([^"]+)"', conf, re.M) or re.search(r'^name\s*=\s*"([^"]+)"', conf, re.M)
     repo = re.search(r'^repo\s*=\s*"([^"]+)"', conf, re.M)
-    links = [("../emu/", "Emulator"), ("../install/", "Install"), ("../manual/", "Manual"), ("../manual/#controls", "Controls"),
+    links = [("../vst/", "VST"), ("../emu/", "Emulator"), ("../install/", "Install"), ("../manual/", "Manual"), ("../manual/#controls", "Controls"),
              ("../breaks/", "Breaks"), ("../import/", "Import"), ("../editor/", "Studio"), ("../live/", "Live"),
              ("../app/", "App")]
     if repo:
@@ -295,6 +295,9 @@ def main(site):
     editor(site)
     page_of(site, "live", "Live")        # (0.9.71: the FM-1 in the hand, the app's)
     page_of(site, "app", "App")
+    page_of(site, "vst", "VST")          # (24 Nov 2026, FLEXOR: "un onglet VST sur le site": the plugin, its pictures)
+    for f in (APP / "site" / "vst_img").glob("*.png"):
+        (site / "vst" / f.name).write_bytes(f.read_bytes())
     home = site / "index.html"
     if home.exists():
         home.write_text(restyle(home, "home", "manual/#controls"), encoding="utf-8")

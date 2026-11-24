@@ -12,9 +12,10 @@ started on the FM-1 itself.
 ![LOAF BREAKER's start-up screen](manual/img/screen-boot.png "Switched on")
 ![LOAF BREAKER playing: the mix scrolling in as on a CDJ, in rekordbox's colours](manual/img/screen-slicer.png "Playing")
 
-Version {{VERSION}} (beta). Installing is at your own risk; the installer can put M-VAVE's own firmware back. 9 breaks, 2 bars
-each: BANGPHS 155, AMEN20 164, UPDOWN 165, AMEN19 172, PANTHER 170, LOUDER 175, FOCUZ 175, SHUFFLE 190, SATAN 200. Five to seven of your own after them: [Breaks](breaks/), the library's breaks to hear, or a sample of yours.
+Version {{VERSION}} (beta). Installing is at your own risk; the installer can put M-VAVE's own firmware back. 8 breaks, 2 bars
+each, slowest first: AMEN10 135, AMEN05 158, AMEN20 164, UPDOWN 165, AMEN06 169, AMEN19 172, AMEN13 173, FOCUZ 175. Five to seven of your own after them: [Breaks](breaks/), the library's breaks to hear, or a sample of yours.
 
+- [**VST**](vst/) **New: LOAF BREAKER on the computer**, a plugin for your DAW (VST3 and Standalone, Windows): the same firmware with real menus, a full sequencer, 98 breaks in CD quality, a kick library and your FM-1 managed from it.
 - [Emulator](emu/) The same code the FM-1 runs, in the browser, with sound. No FM-1 needed.
 - [Install](install/) From Chrome or Edge, with the FM-1 connected by USB.
 - [Manual](manual/) Start in five minutes, then the kick, the sequencer, the tracks and drops, the pads, the effects.
@@ -22,6 +23,10 @@ each: BANGPHS 155, AMEN20 164, UPDOWN 165, AMEN19 172, PANTHER 170, LOUDER 175, 
 - [Studio](editor/) The whole FM-1 on the computer, as a DAW: the kick and the drums with every setting at once, the sequencer, the 64 patterns, the tracks of your set on a timeline, the effects and the mix, the waveforms in RGB and the mix scrolling live (USB, Chrome or Edge).
 - [Mirror](mirror/) The FM-1's screen and panel live on your computer over USB (Chrome or Edge): see it big, record it, play the panel from the computer.
 - [Breaks](breaks/) The library's breaks to hear (over ninety, FLEXOR's hardcore breaks among them), and yours sent to the FM-1.
+- [Live](live/) The FM-1's screen and whole panel in your hand, on a phone or a computer, over USB.
+- [App](app/) The site as an app on Android (Chrome: Install app): Live, Studio, Breaks, Import, Update.
+- [Import](import/) Your own snare, hat and clap samples, sent to the FM-1.
+- [Backup](backup/) Everything the FM-1 saves copied to the computer, and put back.
 - [Source](https://github.com/FLEXOR-R/loaf-breaker) The code (MPL-2.0) and every version's .fwsc.
 
 Built on CHOPPAH by Laurens Profittlich, on fm1-base and felucca-bsp, from Felucca by Leo Kuroshita, Hügelton

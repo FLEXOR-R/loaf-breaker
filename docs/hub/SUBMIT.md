@@ -9,11 +9,11 @@ zven confirmed on 12 Nov 2026 that LOAF BREAKER is welcome on the hub.
 ## Identity
 
 - **Package identity:** `FM-1_2623` (fm1.toml `id_prefix`): dev builds `FM-1_262300`, releases `FM-1_2623` + the
-  package number as two digits each (0.220 is package 1.0.21: `FM-1_2623010021`; 1.00 will be 2.0.0:
-  `FM-1_2623020000`; since 0.9.1 (12 Nov 2026) A.B.C is A+2 . B . C: 0.9.1 is `FM-1_2623020901`, always above the last: `scripts/loaf_version.sh`). Checked free on the hub's catalogue on
+  package number as two digits each (0.220 was package 1.0.21: `FM-1_2623010021`; since 0.9.1 (12 Nov 2026) A.B.C is
+  A+2 . B . C: 0.9.1 is `FM-1_2623020901`, 1.0.0 will be 3.0.0: `FM-1_2623030000`, always above the last: `scripts/loaf_version.sh`). Checked free on the hub's catalogue on
   9 Nov 2026: no identity there starts with 2623, and 2623 starts none of theirs. CHOPPAH keeps its own, `FM-1_86`.
   Nothing is reserved on the hub: an identity is chosen, used in the releases, and given in the mail.
-- **Files:** `loaf-breaker-X.fwsc` (fm1.toml `name`), the site's installer and the releases.
+- **Files:** `loaf-breaker-A.B.C.fwsc` (fm1.toml `name`), the site's installer and the releases.
 - **USB:** a MIDI device named "LOAF BREAKER FM-1", maker "LOAF BREAKER".
 - **Sounds** (13 Nov 2026, the hub's ask, Sven): `fmhub.json`'s `sounds` line says where `breaks/` comes from: Cyberworm's
   Amen loops (Rhythm Lab, royalty free), the funk and soul classics and the hardcore tracks of `breaks/flexor/` (its
@@ -29,7 +29,7 @@ zven confirmed on 12 Nov 2026 that LOAF BREAKER is welcome on the hub.
 | # | The hub asks | LOAF BREAKER |
 | --- | --- | --- |
 | 1 | Open source, the whole source public, a LICENSE | MPL-2.0, LICENSE in the root. Public since 11 Nov 2026. Its history is clean: the GLOUPI BREAKS photo is in no branch and no tag since 10 Nov 2026 (branches rewritten, then the 219 tags with it by the PURGE START-UP PHOTO action, since removed; GitHub's cached views of the old commits: a Support request) |
-| 2 | A GitHub release with the .fwsc | Every push to `loaf`: release `loaf-vX.YYY` with `loaf-breaker-X.YYY.fwsc` |
+| 2 | A GitHub release with the .fwsc | Every push to `loaf`: release `loaf-vA.B.C` with `loaf-breaker-A.B.C.fwsc` |
 | 3 | Its own `FM-1_` identity | `FM-1_2623` (above) |
 | 4 | The update loader in the package | felucca-bsp's, shipped in every package |
 | 5 | Tested on a real FM-1: from V15, from another firmware, and another installed from it | Done by FLEXOR with 0.9.1 (12 Nov 2026), and the form sent; his V15's instrument list was already broken (its factory data overwritten, M-VAVE's to restore), said in the form. Before (before leaving LOAF BREAKER: SYSTEM › RESET › WIPE MEMORY, 0.263, its saves erased so the next firmware finds that memory blank) |
