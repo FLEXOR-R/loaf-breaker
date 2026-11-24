@@ -36,7 +36,7 @@
 # out of the base on 14 Nov 2026 (FLEXOR, 0.9.34: THEWORM, then NUSKOOL, JUNGLE and APACHE for his five; 0.9.40 AKIRA 190,
 # to the library below; THINK 114 on an even grid, 0.9.40; 0.9.43, FLEXOR's Break Lab 2: THINK 114 out, FOCUZ 175 and TIMES 175 in)
 -=  huge/cw_amen_nuskool.wav                    139.99  2     4   NUSKOOL 140
--=  classics/lyn_collins_think_about_it.wav     113.78  2     4   THINK 114 16000Hz
+-=  classics/lyn_collins_think_about_it.wav     113.78  2     4   THINK 114
 -=  huge/cw_amen_jungle.wav                     175     2     2   JUNGLE 175
 -=  classics/incredible_bongo_band_apache.wav   114.78  2     4   APACHE 115
 -=  classics/jimmy_mcgriff_the_worm.wav         109.79  2     4   THEWORM 110
@@ -83,7 +83,7 @@
 -=  flexor/the_satan_strangers.wav                  175     2     2   STRANGR 175
 #
 # classics/: ten breaks from the records (32-bit float WAV, 4 bars each, tempos from their lengths)
--=  classics/the_winstons_amen_brother.wav      141.82  2     4   AMEN 142
+-=  classics/the_winstons_amen_brother.wav      141.82  3+4   4   AMEN 145
 -=  classics/james_brown_cold_sweat.wav         114     2     4   COLDSWE 114
 -=  classics/lightnin_rod_sport.wav             120.69  2     4   SPORT 121
 -=  classics/rotary_connection_life_could.wav   99.81   2     4   LIFECOU 100

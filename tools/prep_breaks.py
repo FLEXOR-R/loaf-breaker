@@ -314,11 +314,71 @@ def read_list(path, every=False):
     return specs
 
 
+# (LOAF BREAKER, 24 Nov 2026, FLEXOR: "les breaks mis à jour par profikid dans CHOPPAH doivent être à jour sur LOAF
+# BREAKER"): CHOPPAH 1.5.3's bars picked from a live recording (BARS "3+4"), cut at the drummer's own tempo; its slices
+# stay on an even grid here (FLEXOR: "tous les breaks ... ON GRID et pas ON HIT"), not on the hits as CHOPPAH's
+def downbeat(x, rate, at, win):
+    """where the drummer played the bar line near sample at: the strongest attack within win samples of it, 3 ms
+    before it so the attack is whole; at itself when nothing there stands out (a bar that starts without a hit)"""
+    h = 64
+    lo, hi = max(h, at - win), min(len(x) - 2 * h, at + win)
+    rms = lambda i, n: (sum(v * v for v in x[i:i + n]) / max(1, n)) ** 0.5
+    best, bi = 0.0, None
+    for i in range(lo, hi, h):
+        before, after = rms(i - h, h), rms(i, h)
+        if after > 4.0 * before + 1e-6:              # a rise of 6 dB+ in 1.5 ms: an attack
+            loud = rms(i, int(rate * 0.03))
+            if loud > best:
+                best, bi = loud, i
+    if bi is None or best < rms(0, len(x)):           # no hit louder than the break on average
+        return at
+    peak = max(abs(v) for v in x[bi:bi + int(rate * 0.01)])
+    k = bi - h
+    while k < bi + h and abs(x[k]) < 0.2 * peak:
+        k += 1
+    return max(0, k - int(rate * 0.003))
+
+
+def pick_bars(x, rate, bar_len, pick):
+    """the file's bars pick (from 1), in that order, each run of bars that follow in the file in one piece, from where
+    the drummer played its first bar line (downbeat) to where he played the bar line after it: a live recording drifts
+    off an even grid (the Amen's drummer speeds up, bars 3 and 4 at ~144.7 BPM in a file at 141.82), and a run cut to
+    the file's average tempo drags at its end. A run at the file's end ends where its sound does (the Amen's WAV goes
+    silent 71 ms before its end: where the next downbeat would come). Where a run follows one that isn't before it in
+    the file, its first 1.5 ms fade in from what followed that one, so the join doesn't click. Returns the samples and
+    the tempo they make (the bars picked, end to end)"""
+    runs = []
+    for b in pick:
+        if runs and runs[-1][-1] + 1 == b:
+            runs[-1].append(b)
+        else:
+            runs.append([b])
+    win = int(bar_len / 32)                          # half a 16th
+    sound = len(x)
+    while sound > 1 and abs(x[sound - 1]) < 1e-5:
+        sound -= 1
+    out = []
+    for j, r in enumerate(runs):
+        s = downbeat(x, rate, int(round((r[0] - 1) * bar_len)), win)
+        nxt = int(round(r[-1] * bar_len))
+        e = sound if nxt >= sound - rate * 0.1 else downbeat(x, rate, nxt, win)
+        seg = list(x[s:e])
+        if j:                                        # a join
+            n = int(rate * 0.0015)
+            for i in range(min(n, len(x) - prev_end, len(seg))):
+                w = (i + 0.5) / n
+                seg[i] = x[prev_end + i] * (1.0 - w) + seg[i] * w
+        prev_end = e
+        out += seg
+    return out, 240.0 * len(pick) * rate / len(out)
+
+
 def prepare(spec, args, shown=None):
     parts = spec.split(":")
     path = Path(parts[0])
     bpm = float(parts[1]) if len(parts) > 1 and parts[1] else None
-    bars = int(parts[2]) if len(parts) > 2 and parts[2] else args.bars
+    pick = [int(b) for b in parts[2].split("+")] if len(parts) > 2 and "+" in parts[2] else None
+    bars = len(pick) if pick else int(parts[2]) if len(parts) > 2 and parts[2] else args.bars
     given = parts[3] if len(parts) > 3 else None
     extra = parts[4:]                        # (LOAF BREAKER 0.9.34: "grid", a break marked *= or -= in the catalogue: an even
     transients = args.transients and "grid" not in extra   # grid, the BREAKS page's EVEN GRID; 0.9.35 "loud=X": its own
@@ -327,9 +387,17 @@ def prepare(spec, args, shown=None):
     out_rate = next((int(e[3:]) for e in extra if e.startswith("hz=")), args.rate)
     x, rate = read_wav(path)
     if bpm is None:                          # the file is whole bars
+        if pick:
+            raise SystemExit(f"{path}: bars {parts[2]} need the loop's BPM")
         bpm = 240.0 * bars / (len(x) / rate)
     bar_len = rate * 240.0 / bpm
-    x = x[:int(round(bar_len * bars))]       # exactly the bars asked for
+    if pick:                                 # the bars asked for, in that order, at the drummer's own tempo (CHOPPAH's)
+        if max(pick) * bar_len > len(x) + 2 or min(pick) < 1:
+            raise SystemExit(f"{path}: has no bar {max(pick)} at {bpm:.2f} BPM")
+        x, bpm = pick_bars(x, rate, bar_len, pick)
+        bar_len = rate * 240.0 / bpm
+    else:
+        x = x[:int(round(bar_len * bars))]   # exactly the bars asked for
     if len(x) < int(bar_len * bars) - 2:
         raise SystemExit(f"{path}: shorter than {bars} bar(s) at {bpm:.2f} BPM")
     if loud:                                 # every break as loud as the others (its peaks limited)

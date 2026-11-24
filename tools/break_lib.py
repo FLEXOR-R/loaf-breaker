@@ -27,7 +27,7 @@ def entries(path):
         f = line.split(None, 5)
         if len(f) == 6 and f[0] in ("*", "-", "*=", "-="):
             name, loud, hz = pb.name_opts(f[5])
-            out.append((f[0].startswith("*"), f[1], float(f[2]), int(f[3]), name, f[0].endswith("="), pb.line_loud(f[1], loud), hz))
+            out.append((f[0].startswith("*"), f[1], float(f[2]), f[3] if "+" in f[3] else int(f[3]), name, f[0].endswith("="), pb.line_loud(f[1], loud), hz))
     return out
 
 
@@ -50,8 +50,9 @@ def main(outdir):
     index = []
     full = {f"flexor/{k}": v for k, v in titles(ROOT / "breaks" / "flexor" / "README.md").items()}
     for built, file, bpm, bars, name, grid, loud, hz in entries(ROOT / "breaks" / "breaks.txt"):
-        rate = hz or min(22050, int(pb.BANK_MAX_LEN // (bars * 240.0 / bpm)))   # (its own, or slow ones lower, as the page does)
-        args = argparse.Namespace(bars=bars, slices=16, break_slices=16, rate=rate, transients=True, loudness=-12.0,
+        nb = len(bars.split("+")) if isinstance(bars, str) else bars   # (bars "3+4": two, picked; CHOPPAH 1.5.3's)
+        rate = hz or min(22050, int(pb.BANK_MAX_LEN // (nb * 240.0 / bpm)))   # (its own, or slow ones lower, as the page does)
+        args = argparse.Namespace(bars=nb, slices=16, break_slices=16, rate=rate, transients=True, loudness=-12.0,
                                   name_prefix="")
         try:
             s = pb.prepare(f"{ROOT / 'breaks' / file}:{bpm}:{bars}:{name}" + (":grid" if grid else "") +
@@ -64,7 +65,7 @@ def main(outdir):
         (out / f"{bid}.bin").write_bytes(img)
         folder = file.split("/")[0]
         index.append({"id": bid, "name": s["name"], "file": file, "folder": FOLDER.get(folder, folder.upper()),
-                      "bpm": s["bpm"], "bars": bars, "size": len(img), "built": built})
+                      "bpm": s["bpm"], "bars": nb, "size": len(img), "built": built})
         if file in full:                         # (the track's whole name, on the page only: the FM-1 keeps "name")
             index[-1]["title"] = full[file]
     (out / "index.json").write_text(json.dumps(index, separators=(",", ":")), encoding="utf-8")
