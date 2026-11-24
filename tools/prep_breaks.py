@@ -339,12 +339,13 @@ def prepare(spec, args, shown=None):
         gain_db, lim_db = 20.0 * math.log10(0.98 / peak), 0.0
         x = [v * (0.98 / peak) for v in x]
     x = resample(x, rate, out_rate)
-    if len(x) > (args.max_len or BANK_MAX_LEN):
+    max_len = getattr(args, "max_len", None) or BANK_MAX_LEN   # (the VST's longer; the pages' callers have none)
+    if len(x) > max_len:
         raise SystemExit(f"{shown or path}: {bars} bar(s) at {bpm:.2f} BPM are {len(x)} samples, the firmware's buffer "
-                         f"holds {args.max_len or BANK_MAX_LEN} (fewer bars)")
+                         f"holds {max_len} (fewer bars)")
     nslices = min(BANK_SLICES, args.break_slices or args.slices * bars)
     pts = slice_points(x, out_rate, nslices, transients)
-    if args.pcm16:                       # (LOAF BREAKER's VST: 16-bit PCM, as recorded; the slot's rsv bit 0 says so)
+    if getattr(args, "pcm16", False):  # (LOAF BREAKER's VST: 16-bit PCM, as recorded; the slot's rsv bit 0 says so)
         data = struct.pack(f"<{len(x)}h", *(max(-32768, min(32767, int(round(v * 32767.0)))) for v in x))
     else:
         data = adpcm_encode(x)
