@@ -503,6 +503,10 @@ static void ctl_draw(void)               /* (once: the screen stays still) */
     }
 }
 
+#if LB_BIG
+static uint8_t lb_hw_sel;               /* (0.9.79: the VST's core: SELECT turned on the FM-1 itself, as its CONTROLLER:
+                                          * lbcore's lb_turn_hw) */
+#endif
 static void input(void)
 {
     uint32_t keys = plat_keys(), btn = plat_buttons(), now = plat_ms(), i, sel_now = btn >> B_SEL & 1u;
@@ -1437,6 +1441,10 @@ static void input(void)
             continue;
         }
 #if LB_BIG
+        if (k == EN_SELECT && lb_hw_sel)   /* (0.9.79, FLEXOR: "SELECT change le tempo en mode contrôleur": the FM-1's
+                                          * own SELECT, the VST played from it: as on the FM-1, the tempo) */
+            lb_hw_sel = 0;
+        else {
         if (k == EN_SELECT && HOME_PG(ui.page)) {   /* (the VST, 24 Nov 2026, FLEXOR: "certaines commandes ... montent
                                           * le BPM": its tabs and arrows turn SELECT; HOME's tabs then, never the tempo,
                                           * which has its own control in the VST's header: lb_tempo) */
@@ -1457,6 +1465,7 @@ static void input(void)
         }
         if (k == EN_SELECT)              /* (anywhere else: nothing; the tempo is the header's) */
             continue;
+        }
 #endif
         if (k == EN_SELECT && ext_active()) {
             app_say("TEMPO", "EXT CLOCK");   /* the outside clock has the tempo */

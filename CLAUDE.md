@@ -103,7 +103,9 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   protocol: CC 127 on / keepalive / off, LED notes in, key / button notes, encoder CCs, MASTER CC 25 + 24 out);
   main.c `ctl_*` (ctl_input before input()'s work, ctl_leds in leds(), ctl_draw once, app_frame does nothing else),
   app.c: app_loop hands all MIDI to `ctl_midi` while on, app_render silent. RAM only, never saved; 3 s without the VST
-  (`CTL_KEEP`): off. PRD A-76; probes ctl ctln ctllast ctllitk ctlmidk ctlmaster; scenario ctl. Image 561,688 B, RAM
+  (`CTL_KEEP`): off. In the VST (LB_BIG), SELECT turned on the FM-1 itself is the tempo as on the FM-1 (FLEXOR:
+  "SELECT change le tempo en mode contrôleur"; main.c `lb_hw_sel`, set by lbcore's lb_turn_hw; the VST's own tabs still
+  never the tempo). PRD A-76; probes ctl ctln ctllast ctllitk ctlmidk ctlmaster; scenario ctl. Image 561,688 B, RAM
   94,764.
 - BACKUP (24 Nov 2026, FLEXOR: "de quoi envoyer ce que j'ai fait sur le VST sur la machine ... un système de traduction
   et de synchronisation"): fm1-base's backup and restore over USB, fm1.toml `backup = true` (device/backup.c; the site's
