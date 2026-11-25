@@ -1854,7 +1854,7 @@ static void draw_tabs(void)
  * ("GLO PITCH", "EDIT KICK SUB FX", "FX SLOT 2 TREMOLO", "SEQ HAT", "ENV TAP TEMPO") */
 static void page_say(void)
 {
-    char t[24];
+    char t[48];                          /* (0.9.78: "KICK FX 1 MAGIC MBC X-OVER" is 26: 24 overflowed; app_say keeps 23) */
     t[0] = 0;
     switch (ui.page) {
     case PG_HOME: text_cat(t, "PERFORM"); break;
