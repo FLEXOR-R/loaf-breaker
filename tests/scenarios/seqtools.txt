@@ -4,6 +4,7 @@
 # stopped. REC on, a drum lane: a white key writes the kick where it lands.
 #   app/build/host/loaf-breaker_host tests/scenarios/seqtools.txt app/build/scenarios
 wait 4200
+layout_0961   # (0.9.78: FLEXOR LAYOUT changed; this scenario was written on the one before, as CUSTOM)
 tap SEQ
 wait 300
 expect seq_lane 2

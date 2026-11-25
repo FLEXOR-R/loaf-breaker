@@ -3,6 +3,7 @@
 # kick's DISTO / SUB FX off and on again (on the CHOPPAH layout, no DST or SUB key of its own), and the key's light (SEL held) follows (app.c bk_has: the SEL functions too).
 #   app/build/host/loaf-breaker_host tests/scenarios/seldst.txt app/build/scenarios
 wait 4200
+layout_0961   # (0.9.78: FLEXOR LAYOUT changed; this scenario was written on the one before, as CUSTOM)
 tap ARP
 wait 300
 turn SELECT 1 10

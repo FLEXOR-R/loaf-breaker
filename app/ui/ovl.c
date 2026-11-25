@@ -105,14 +105,33 @@ static void bk_key_name(uint32_t j, char *t)   /* ("KEY 3", the REC key "REC KEY
     text_cat(t, "KEY ");
     int_text((int32_t)j % 11 + 1, t + 4);
 }
-#define FLAY_TAG 0x5Bu                    /* (kx2.rsv[52]: FLEXOR LAYOUT's key 5 given RISE, 0.9.58) */
-static void flexor_lay_fix(int force)    /* (0.9.58, FLEXOR: FLEXOR LAYOUT's key 5, an ARP key, RISE: once on an FM-1 on
-                                          * it, and each time the preset is picked) */
+#define FLAY_TAG 0x5Cu                    /* (kx2.rsv[52]: FLEXOR LAYOUT's own set, 0.9.78; 0x5B: 0.9.58's, key 5 RISE) */
+static void flexor_lay_fix(int force)    /* (0.9.58, FLEXOR; 0.9.78, FLEXOR's new FLEXOR LAYOUT: its ARP keys' effects, its
+                                          * SEL layer and its REC key, set once on an FM-1 on it and each time the preset
+                                          * is picked; changed after, they stay as changed) */
 {
     if (bk_preset() != BKP_FLEXOR || (!force && kx2.rsv[52] == FLAY_TAG))
         return;
-    arpk_set_fx(4u, OV_RISE);
+    arpk_set_fx(4u, OV_RISE);            /* (key 5 RISE, key 9 CHOP; its SEL layer and REC: app.c FLX_SEL, read as is) */
+    arpk_set_fx(8u, OV_CHOP);
     kx2.rsv[52] = FLAY_TAG;
+    set_dirty = 1u;
+}
+static void bk_custom_of(void)           /* a preset edited: CUSTOM, its copy (0.9.78: FLEXOR LAYOUT's SEL layer and REC
+                                          * key too) */
+{
+    uint32_t j, p = bk_preset();
+    if (p == BKP_CUSTOM)
+        return;
+    for (j = 0; j < 11u; j++)
+        set.bkeys.bk[2u + j] = BK_LAY[p][j];
+    if (p == BKP_FLEXOR) {
+        memcpy(kx2.selk, FLX_SEL, sizeof kx2.selk);
+        kx2.selrec = FLX_SEL[11];
+        kx2.rsv[RK_RSV] = (uint8_t)(0x80u | FLX_REC);
+        kx2.rsv[RK_RSV + 1u] = 0xA1u;
+    }
+    set.bkeys.bk[1] = BKP_CUSTOM;
 }
 static void bk_say(void)
 {
@@ -168,6 +187,8 @@ static void bk_turn(int i, int32_t d)
         if (i != 2)
             return;
         bk_release_all();
+        if (bk_preset() == BKP_FLEXOR)   /* (0.9.78: its SEL layer the preset's: edited, a CUSTOM of it first) */
+            bk_custom_of();
         *v = (uint8_t)((selb_fn(ui.bk_sel) + (uint32_t)(dir > 0 ? 1 : BKF_N)) % (BKF_N + 1u));
         if (ui.bk_sel == 11u && *v == 1u + BKF_ARP)   /* (the REC key: any function but ARP, as its own) */
             *v = (uint8_t)((*v + (uint32_t)(dir > 0 ? 1 : BKF_N)) % (BKF_N + 1u));
@@ -191,7 +212,10 @@ static void bk_turn(int i, int32_t d)
         return;
     } else if (i == 2 && ui.bk_sel == 11u) {   /* (0.9.58: the REC key's own, any function but ARP; 0.9.70, FLEXOR:
                                           * NONE first (REC records), whatever the layout, its preset kept) */
-        uint32_t v = rec_key_on() ? rec_fn() + 1u : 0u;
+        uint32_t v;
+        if (bk_preset() == BKP_FLEXOR)   /* (0.9.78: its REC key the preset's: edited, a CUSTOM of it first) */
+            bk_custom_of();
+        v = rec_key_on() ? rec_fn() + 1u : 0u;
         v = (v + (uint32_t)(dir > 0 ? 1 : BKF_N)) % (BKF_N + 1u);
         if (v == 1u + BKF_ARP)
             v = (v + (uint32_t)(dir > 0 ? 1 : BKF_N)) % (BKF_N + 1u);
@@ -205,11 +229,7 @@ static void bk_turn(int i, int32_t d)
         bk_say();
     } else if (i == 2) {
         uint32_t f = (bk_fn(ui.bk_sel) + (uint32_t)(dir > 0 ? 1 : BKF_N - 1)) % BKF_N;
-        if (bk_preset() != BKP_CUSTOM) { /* (a preset: its copy, CUSTOM, then the key) */
-            for (j = 0; j < 11u; j++)
-                set.bkeys.bk[2u + j] = (uint8_t)bk_fn(j);
-            set.bkeys.bk[1] = BKP_CUSTOM;
-        }
+        bk_custom_of();                  /* (a preset: its copy, CUSTOM, then the key) */
         bk_release_all();
         set.bkeys.bk[2u + ui.bk_sel % 11u] = (uint8_t)f;
         bk_say();

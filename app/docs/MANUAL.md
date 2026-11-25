@@ -551,7 +551,7 @@ slices you marked ring out, the classic dub throw. (Without a DELAY slot, ECHO g
 
 The black keys act while held and combine. Which key does what is a **layout** (ARP › BLACK, below): CHOPPAH's,
 left to right R8 R16 R32 REV FRZ HLF VNL GAT RND FLT DUB (a new FM-1's, after RESET ALL too; BEGINNER keeps the layout EXPERT left, 0.9.23),
-FLEXOR LAYOUT (R8 R16 R32 ARP ARP TRI X4 X2 SUB DST KIL since 0.9.61, FLEXOR (KIL and SUB swapped; 0.9.58-0.9.60 KIL DST SUB): two ARP keys, the second on RISE, then the kicks in triplets, X4 and X2; REC, as a key, KILL BREAK; VNL GAT FLT ARP ARP from key 4 in 0.9.53-0.9.57, RND HLF FLT ARP VNL in 0.9.26-0.9.52) or CUSTOM, each key any of the functions below. (HOME's K1 is
+FLEXOR LAYOUT (R8 R16 R32 DUB ARP TRI X4 X2 ARP CHS KIL since 0.9.78, FLEXOR: two ARP keys, key 5 on RISE, key 9 on CHOP; REC, as a key, VINYL BREAK; and its own SEL layer: SEL + key 4 ARP, 5 GATE, 6 FILTER, 7 RANDOM, 8 FREEZE, 9 SUB FX, 10 DISTO, SEL + REC KILL BREAK, while FLEXOR LAYOUT is in use (your own SEL BLACK stays for the other layouts; edited on FLEXOR LAYOUT, it all becomes a CUSTOM); R8 R16 R32 ARP ARP TRI X4 X2 SUB DST KIL in 0.9.61-0.9.77, REC KILL BREAK; VNL GAT FLT ARP ARP from key 4 in 0.9.53-0.9.57, RND HLF FLT ARP VNL in 0.9.26-0.9.52) or CUSTOM, each key any of the functions below. (HOME's K1 is
 the gate and K2 the DJ filter as well.) While a pad is held, the slice blocks give way to an
 animation of what it does, and **K1–K4 tune that pad** (the foot shows its settings; SAVE keeps them):
 
@@ -647,7 +647,7 @@ played from 0.1xx to 0.243 is gone, LOAF BREAKER 0.244.)
 In EXPERT the page has three tabs (**SELECT** goes to the next, or back to the left, 0.9.52; **ARP** again goes back to HOME; their names short
 since 0.9.50, FLEXOR; BLACK and SEL BLACK in full since 0.9.53): **ARP** (the effects above), **BLACK** (the black keys) and **SEL BLACK** (the black keys with SEL)
 (SEL WHITE, the white keys' shortcuts with SEL, and KITS were there in 0.9.50-0.9.70: gone in 0.9.71, FLEXOR). **BLACK** lays out the black keys: **K1 PRESET**, CHOPPAH (CHOPPAH's eleven, the ARP
-key not among them), FLEXOR LAYOUT (R8 R16 R32 ARP ARP TRI X4 X2 SUB DST KIL since 0.9.61) or CUSTOM; **K2 KEY** (or **ALGORITHM**, 0.9.26), the key you edit (or press it:
+key not among them), FLEXOR LAYOUT (R8 R16 R32 DUB ARP TRI X4 X2 ARP CHS KIL since 0.9.78, with its own SEL layer and REC) or CUSTOM; **K2 KEY** (or **ALGORITHM**, 0.9.26), the key you edit (or press it:
 here a black key picks itself and plays nothing); **K3 EFFECT**, what it does: any of R8, R16, R32, REV, FRZ, HLF, VNL,
 GAT, RND, FLT, DUB, ARP, KIL, DST, SUB, DRV, X2, X4, TRI, SDR (SUB DRIVE, 0.9.57), KBR (KILL BREAK, 0.9.58), CHS (CHAOS on / off, 0.9.76), SPL (SPLIT on / off, 0.9.78); on an ARP key, **K4 ARP FX** its own effect (0.9.45: several ARP keys, each with its own, play at once). Turned on a preset, K3 makes a CUSTOM of it first, that key changed (keys
 outlined amber differ from CHOPPAH's). SAVE keeps the layout. The **REC** button is the last key, right (0.9.58; press REC

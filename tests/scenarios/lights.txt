@@ -4,6 +4,7 @@
 # middle level, the SEL functions mid while SEL is held.
 #   app/build/host/loaf-breaker_host tests/scenarios/lights.txt app/build/scenarios
 wait 4200
+layout_0961   # (0.9.78: FLEXOR LAYOUT changed; this scenario was written on the one before, as CUSTOM)
 tap HOME
 wait 300
 expect lglow 6

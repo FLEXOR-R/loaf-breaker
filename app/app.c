@@ -254,12 +254,22 @@ enum { BKP_CHOPPAH, BKP_FLEXOR, BKP_CUSTOM, BKP_N };
 #define BK_BHALF 13u                     /* (bk[13]: BREAK TIME, 0 NORMAL, 1 HALF: the break at half the tempo, 0.256) */
 static const uint8_t BK_LAY[2][11] = {{PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, PAD_REVERSE, PAD_FREEZE, PAD_HALF,
                                        PAD_TAPESTOP, PAD_GATE, PAD_RANDOM, PAD_FILTER, PAD_DUB},
-                                      {PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, BKF_ARP, BKF_ARP, BKF_TRI,
-                                       BKF_X4, BKF_X2, BKF_SUB, BKF_DST, BKF_KIL}};   /* (FLEXOR LAYOUT, 0.9.58, FLEXOR (0.9.61:
+                                      {PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, PAD_DUB, BKF_ARP, BKF_TRI,
+                                       BKF_X4, BKF_X2, BKF_ARP, BKF_CHS, BKF_KIL}};   /* (FLEXOR LAYOUT, 0.9.78, FLEXOR, on
+                                          * https://claude.ai/artifact/DVMkj5gTUY7xE9uHSZwkiV (store layout/flexor): R8
+                                          * R16 R32 DUB ARP(RISE) TRI X4 X2 ARP(CHOP) CHS KIL, REC VNL; with SEL: key 4
+                                          * ARP, 5 GAT, 6 FLT, 7 RND, 8 FRZ, 9 SUB, 10 DST, REC KBR (ovl.c
+                                          * flexor_lay_fix). Before, 0.9.58, FLEXOR (0.9.61:
                                           * SUB key 9, KIL key 11, swapped):
                                           * key 4 ARP, 5 ARP RISE (its own effect, flexor_lay_fix), 6 KICK TRIPLETS, 7
                                           * KICKS X4, 8 KICKS X2; REC KILL BREAK; 0.9.53-0.9.57: VNL GAT FLT ARP ARP from key
                                           * 4; 0.9.26-0.9.52: RND HLF FLT ARP VNL) */
+/* (0.9.78, FLEXOR) FLEXOR LAYOUT's SEL layer (1 + BKF_*, 0 the key's own) and its REC key, part of the preset: read
+ * while it is in use (selb_fn, rec_fn, rec_key_on), the player's own SEL BLACK and REC kept for the other layouts;
+ * edited on FLEXOR LAYOUT, they become a CUSTOM's (ovl.c bk_custom_of). Keys 1-11, then REC */
+static const uint8_t FLX_SEL[12] = {0u, 0u, 0u, 1u + BKF_ARP, 1u + PAD_GATE, 1u + PAD_FILTER, 1u + PAD_RANDOM,
+                                    1u + PAD_FREEZE, 1u + BKF_SUB, 1u + BKF_DST, 0u, 1u + BKF_KBR};
+#define FLX_REC PAD_TAPESTOP             /* (its REC key: VINYL BREAK) */
 #define BK_PLAT 15u                      /* (bk[15]: 0xA0 | the LATCH bits of REVERSE, FREEZE, GATE, RANDOM (their K4),
                                           * 0.9.26, FLEXOR; tagged: an older save's byte there the STAB's leftover) */
 #define BK_FTHRU 16u                     /* (bk[16]: 0xC0 | the FILTER key's THRU, its K4: 0 BREAK, 1 DRUMS, 2 BOTH) */
@@ -681,10 +691,17 @@ static void kb_put(uint32_t mode, uint32_t latch, uint32_t time, uint32_t rev)
  * that function, REC alone records. kx2.rsv[50]: 0x80 | its function (untagged: KILL BREAK); rsv[51]: 0xA0 | assigned
  * (untagged: NONE) */
 #define RK_RSV 50u
-static uint32_t rec_key_on(void) { return (kx2.rsv[RK_RSV + 1u] & 0xF0u) == 0xA0u && (kx2.rsv[RK_RSV + 1u] & 1u); }
+static uint32_t rec_key_on(void)
+{
+    if (bk_preset() == BKP_FLEXOR)       /* (0.9.78: FLEXOR LAYOUT's REC, VINYL BREAK) */
+        return 1u;
+    return (kx2.rsv[RK_RSV + 1u] & 0xF0u) == 0xA0u && (kx2.rsv[RK_RSV + 1u] & 1u);
+}
 static uint32_t rec_fn(void)             /* (its own, whatever the layout, 0.9.70; untagged KILL BREAK) */
 {
     uint32_t f = kx2.rsv[RK_RSV] & 0x7Fu;
+    if (bk_preset() == BKP_FLEXOR)
+        return FLX_REC;
     return kx2.rsv[RK_RSV] & 0x80u && f < BKF_N && f != BKF_ARP ? f : BKF_KBR;
 }
 static uint32_t nbk(void) { return 12u; }   /* (the black keys, REC's with them: always since 0.9.70) */
@@ -732,6 +749,8 @@ static void ovl_order_fix(void)
 static uint32_t selb_fn(uint32_t j)      /* (black key j's SEL function, 1 + BKF_*; 0: none) */
 {
     uint32_t f = j < 11u ? kx2.selk[j] : j == 11u ? kx2.selrec : 0u;   /* (the REC key, 11: its own since 0.9.70) */
+    if (bk_preset() == BKP_FLEXOR)       /* (0.9.78: FLEXOR LAYOUT's own SEL layer) */
+        f = j < 12u ? FLX_SEL[j] : 0u;
     return f <= BKF_N ? f : 0u;
 }
 static void klab_defaults(void)

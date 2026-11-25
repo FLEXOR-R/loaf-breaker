@@ -4,6 +4,7 @@
 # layer's effect none, as 909 is made. SUB never changes the effect itself: ROTTERDAM's stays as it was.
 #   app/build/host/loaf-breaker_host tests/scenarios/dstkick.txt app/build/scenarios
 wait 4200
+layout_0961   # (0.9.78: FLEXOR LAYOUT changed; this scenario was written on the one before, as CUSTOM)
 tap GLO
 wait 150
 turn SELECT 1 10

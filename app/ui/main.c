@@ -3687,6 +3687,20 @@ int app_host_cmd(const char *cmd, const char *a, const char *b, const char *c, c
         app_splash();
         return 1;
     }
+    if (!strcmp(cmd, "layout_0961")) {   /* layout_0961: the black keys as FLEXOR LAYOUT was 0.9.61-0.9.77 (R8 R16 R32 ARP
+                                          * ARP(RISE) TRI X4 X2 SUB DST KIL, no SEL layer, REC records), as CUSTOM: the
+                                          * scenarios written on it */
+        static const uint8_t L[11] = {PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, BKF_ARP, BKF_ARP, BKF_TRI, BKF_X4, BKF_X2,
+                                      BKF_SUB, BKF_DST, BKF_KIL};
+        uint32_t j;
+        for (j = 0; j < 11u; j++)
+            set.bkeys.bk[2u + j] = L[j];
+        set.bkeys.bk[1] = BKP_CUSTOM;
+        memset(kx2.selk, 0, sizeof kx2.selk);
+        kx2.selrec = 0u;
+        kx2.rsv[RK_RSV] = kx2.rsv[RK_RSV + 1u] = 0u;
+        return 1;
+    }
     if (!strcmp(cmd, "layout_0953")) {   /* layout_0953: the black keys as FLEXOR LAYOUT was 0.9.53-0.9.57 (R8 R16 R32 VNL
                                           * GAT FLT ARP ARP KIL DST SUB), as CUSTOM: the scenarios written on it */
         static const uint8_t L[11] = {PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, PAD_TAPESTOP, PAD_GATE, PAD_FILTER, BKF_ARP,

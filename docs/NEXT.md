@@ -4,3 +4,6 @@ the release's notes. Emptied (this comment kept) once the release is out. -->
   name was longer than its buffer).
 - **SPL**, a new black key function: SPLIT on / off for the break playing (its B and bars kept), in ARP › BLACK
   (CUSTOM), SEL BLACK or on the REC key.
+- **FLEXOR LAYOUT remade**, with its own SEL layer: R8 R16 R32 DUB ARP (RISE) TRI X4 X2 ARP (CHOP) CHS KIL, REC VINYL BREAK;
+  with SEL: key 4 ARP, 5 GATE, 6 FILTER, 7 RANDOM, 8 FREEZE, 9 SUB FX, 10 DISTO, REC KILL BREAK. Your own SEL BLACK stays
+  for the other layouts.

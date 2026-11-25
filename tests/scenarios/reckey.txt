@@ -4,6 +4,7 @@
 # NONE again: REC records. (0.9.76: CHS, CHAOS, last before NONE: K3 -2 to KILL BREAK; 0.9.78 SPL after it: -3)
 #   app/build/host/loaf-breaker_host tests/scenarios/reckey.txt app/build/scenarios
 wait 4200
+layout_0961   # (0.9.78: FLEXOR LAYOUT changed; this scenario was written on the one before, as CUSTOM: its bk_pre 2)
 expect reckey 0
 tap ARP
 wait 300
@@ -20,11 +21,11 @@ turn K3 -3 10
 wait 200
 expect reckey 1
 expect recfn 20
-expect bk_pre 1
+expect bk_pre 2
 turn K3 -7 10
 wait 1500
 expect recfn 13
-expect bk_pre 1
+expect bk_pre 2
 shot a_blackkeys_rec.png
 tap HOME
 wait 300
