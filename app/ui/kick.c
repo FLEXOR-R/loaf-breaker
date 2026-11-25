@@ -584,12 +584,14 @@ static int kick_preset_knob(int i)
                                           * BEGINNER: KICK's K1) */
 }
 /* LOAF BREAKER (0.9.71, FLEXOR): TAIL MODE CLASSIC, CLEAN, SPLIT (the body dirty, the tail a clean sine), DIRTY (the
- * dirt rising along the tail); SPLIT's and DIRTY's own setting on TAIL + K4 (kick_lab_t.amt), half way at first */
-static const char *const KTM_NAME[KTM_N] = {"CLASSIC", "CLEAN", "SPLIT", "DIRTY"};
+ * dirt rising along the tail); 0.9.80, FLEXOR: CHOP (the tail chopped in a short curved fall); SPLIT's, DIRTY's and
+ * CHOP's own setting on TAIL + K4 (kick_lab_t.amt), half way at first */
+static const char *const KTM_NAME[KTM_N] = {"CLASSIC", "CLEAN", "SPLIT", "DIRTY", "CHOP"};
+#define ktm_amt(m) ((m) == KTM_SPLIT || (m) == KTM_DIRTY || (m) == KTM_CHOP)
 static void ktm_turn(kick_lab_t *l, int32_t d)
 {
     uint32_t m = (uint32_t)clamp((int32_t)(l->mode % KTM_N) + (d > 0 ? 1 : -1), 0, (int32_t)KTM_N - 1);
-    if ((m == KTM_SPLIT || m == KTM_DIRTY) && l->mode != m)
+    if (ktm_amt(m) && l->mode != m)
         l->amt = 50u;
     l->mode = (uint8_t)m;
 }
@@ -606,7 +608,8 @@ static const char *kick_knob_name(int i)
     if (ui.kpage == KP_FX && (i == 1 || i == 2))
         return KFX_PARAM[set.kick.l[ui.klayer % KICK_LAYERS].fx % KICK_FX][i - 1];
     if (ui.kpage == KP_TAIL2 && i == 3)   /* (0.9.71: TAIL MODE's own setting, SPLIT's or DIRTY's) */
-        return klab.cur.mode == KTM_SPLIT ? "SPLIT AT" : klab.cur.mode == KTM_DIRTY ? "DIRT RISE" : "";
+        return klab.cur.mode == KTM_SPLIT ? "SPLIT AT" : klab.cur.mode == KTM_DIRTY ? "DIRT RISE"
+             : klab.cur.mode == KTM_CHOP ? "CHOP AT" : "";
     return KN_KICK[ui.kpage % KPAGES][i];
 }
 static void kick_value(int i, char *t)
@@ -1614,8 +1617,8 @@ static void klab_value(int i, char *t)
             text_cat(t, "OFF");
         break;
     case KP_TAIL2 * 4 + 3:               /* (0.9.71: SPLIT's time, DIRTY's rise; nothing for CLASSIC, CLEAN) */
-        if (l->mode == KTM_SPLIT || l->mode == KTM_DIRTY)
-            ms_text(kick_lab_ms(l->mode == KTM_SPLIT ? KLM_SPLIT : KLM_RISE, l->amt), t);
+        if (ktm_amt(l->mode))
+            ms_text(kick_lab_ms(l->mode == KTM_SPLIT ? KLM_SPLIT : l->mode == KTM_DIRTY ? KLM_RISE : KLM_CHOP, l->amt), t);
         break;
     case KP_STACK * 4:
         if (l->src) {
@@ -1666,7 +1669,7 @@ static float klab_norm(int i)
     case KP_TAIL2 * 4: return (float)l->filt * 0.01f;
     case KP_TAIL2 * 4 + 1: return (float)l->ftime * 0.01f;
     case KP_TAIL2 * 4 + 2: return (float)l->drive * 0.01f;
-    case KP_TAIL2 * 4 + 3: return l->mode == KTM_SPLIT || l->mode == KTM_DIRTY ? (float)l->amt * 0.01f : 0.0f;
+    case KP_TAIL2 * 4 + 3: return ktm_amt(l->mode) ? (float)l->amt * 0.01f : 0.0f;
     case KP_STACK * 4: return (float)l->src * 0.1f;
     case KP_STACK * 4 + 1: return (float)l->cross * 0.01f;
     case KP_STACK * 4 + 2: return (float)l->fade * 0.01f;
@@ -1762,7 +1765,7 @@ static void klab_turn(int i, int32_t d)
         l->drive = (uint8_t)clamp((int32_t)l->drive + d * 2, 0, 100);
         break;
     case KP_TAIL2 * 4 + 3:
-        if (l->mode == KTM_SPLIT || l->mode == KTM_DIRTY)
+        if (ktm_amt(l->mode))
             l->amt = (uint8_t)clamp((int32_t)l->amt + d * 2, 0, 100);
         break;
     case KP_STACK * 4:

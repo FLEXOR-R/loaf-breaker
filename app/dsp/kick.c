@@ -78,6 +78,8 @@ typedef struct {
     uint32_t sp_n, sp_f;                 /* (0.9.71) TAIL MODE SPLIT: where the tail turns clean, the fade's samples (0:
                                           * no SPLIT) */
     float sp_k, dr_k;                    /* its fade's step a sample; DIRTY: its rise's step (0: no DIRTY) */
+    uint32_t ch_n;                       /* (0.9.80) TAIL MODE CHOP: where the tail is chopped (0: no CHOP) */
+    float ch_k;                          /* its fall's step a sample */
     float tok_lvl, tok_f1, tok_fd, tok_pdec, tok_edec, tok_k;   /* (0.9.45) TOK: level (0 off), its end frequency and
                                           * the drop above it (cycles a sample), their falls, NOISE's band coefficient */
     uint8_t tok_type;
@@ -142,6 +144,8 @@ BRK_COLD float kick_lab_ms(uint32_t what, uint32_t v)
         return 30.0f * brk_exp2f_c(f * 0.0432f);
     case KLM_RISE:                       /* (0.9.71: 50 .. 2000 ms) */
         return 50.0f * brk_exp2f_c(f * 0.0532f);
+    case KLM_CHOP:                       /* (0.9.80: 50 .. 800 ms) */
+        return 50.0f * brk_exp2f_c(f * 0.04f);
     default:                             /* (KLM_NOTE: MIDI 22 + n, A#0 ..) */
         return 440.0f * brk_exp2f_c((f + 22.0f - 69.0f) * (1.0f / 12.0f));
     }
@@ -344,8 +348,8 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c, const volatile int8_t *sy
             c->f_dec = decay_factor(kick_lab_ms(KLM_FTIME, lab->ftime));
         }
         c->tdrive = (float)(lab->drive > 100u ? 100u : lab->drive) * 0.08f;
-        c->sp_n = c->sp_f = 0u;
-        c->sp_k = c->dr_k = 0.0f;
+        c->sp_n = c->sp_f = c->ch_n = 0u;
+        c->sp_k = c->dr_k = c->ch_k = 0.0f;
         if (lab->mode == KTM_SPLIT) {    /* (0.9.71, FLEXOR) SPLIT: the body as CLASSIC, then the tail a clean sine on
                                           * the SUB's note, faded in over half the time */
             float ms = kick_lab_ms(KLM_SPLIT, lab->amt);
@@ -354,6 +358,11 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c, const volatile int8_t *sy
             c->sp_k = 1.0f / (float)c->sp_f;
         } else if (lab->mode == KTM_DIRTY)   /* DIRTY: the drive low on the attack, rising through the tail */
             c->dr_k = 1.0f / (kick_lab_ms(KLM_RISE, lab->amt) * (float)(BRK_SR / 1000u));
+        else if (lab->mode == KTM_CHOP) {    /* (0.9.80, FLEXOR: "un fondu assez brut ... sans que ce soit comme s'il
+                                          * était juste coupé") CHOP: as CLASSIC, then from CHOP AT a short curved fall */
+            c->ch_n = (uint32_t)(kick_lab_ms(KLM_CHOP, lab->amt) * (float)(BRK_SR / 1000u)) + 1u;
+            c->ch_k = 1.0f / (float)(KICK_CHOP_MS * (BRK_SR / 1000u));
+        }
         {
             float cr = kick_lab_ms(KLM_CROSS, lab->cross) * (float)(BRK_SR / 1000u);
             float fd = kick_lab_ms(KLM_FADE, lab->fade) * (float)(BRK_SR / 1000u);
@@ -672,6 +681,16 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
             sn = brk_sin_turns(v->ph[KL_SUB]) * v->env[KL_SUB] * v->sp_g;
             out += (brk_clampf(sn, -1.2f, 1.2f) - out) * x;
         }
+    }
+    if (c->ch_n && v->t >= c->ch_n) {    /* (0.9.80) TAIL MODE CHOP: (1 - x)^2 over KICK_CHOP_MS, down fast at first
+                                          * (the chop heard), its end soft (no click, not END's cut) */
+        float x = (float)(v->t - c->ch_n) * c->ch_k;
+        if (x >= 1.0f) {
+            out = 0.0f;
+            for (i = 0; i < KICK_LAYERS; i++)
+                v->env[i] = 0.0f;
+        } else
+            out *= (1.0f - x) * (1.0f - x);
     }
     if (c->end_n && v->t >= c->end_n) {  /* LAB: END, the kick cut (in ~5 ms) */
         v->gend *= 0.979f;

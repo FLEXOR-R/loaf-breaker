@@ -2156,6 +2156,26 @@ static void test_kick_lab(void)
         CHECK(e0 > e1 * 1.1f && r0 < r1, "DIRTY: the tail dirtier and louder (%.3f, %.3f), the hit less driven (%.2f, %.2f)",
               e0, e1, r0, r1);
     }
+    {                                    /* (0.9.80, FLEXOR) CHOP: as CLASSIC up to CHOP AT, then down fast (a quarter
+                                          * in ~17 ms), silent after KICK_CHOP_MS, no step at the chop (not END's cut) */
+        uint32_t ch, same = 1u, ms = BRK_SR / 1000u;
+        float bp, ap, rp, tp;
+        memset(&lab, 0, sizeof lab);
+        lab.mode = KTM_CHOP;
+        lab.amt = 30u;
+        kick_set_lab(&lab);
+        kick_run(&k, BRK_SR / 2, 0u);
+        ch = (uint32_t)(kick_lab_ms(KLM_CHOP, 30u) * (float)ms) + 1u;
+        for (i = 0; i < ch; i++)
+            same &= kick_buf[i] == ref[i];
+        CHECK(same, "CHOP: the kick as CLASSIC, bit for bit, up to %u ms", (unsigned)(ch / ms));
+        bp = span_peak(ch - 5u * ms, ch);
+        ap = span_peak(ch, ch + 3u * ms);
+        tp = span_peak(ch + 17u * ms, ch + 22u * ms);
+        rp = span_peak(ch + KICK_CHOP_MS * ms, BRK_SR / 2);
+        CHECK(ap > bp * 0.6f && tp < bp * 0.3f && rp == 0.0f,
+              "CHOP: no jump at the chop (%.3f, %.3f), down fast (%.3f), then silent (%.4f)", bp, ap, tp, rp);
+    }
     memset(&lab, 0, sizeof lab);
     lab.src = 1u;
     lab.cross = 50u;

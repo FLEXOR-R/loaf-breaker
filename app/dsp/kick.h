@@ -109,12 +109,14 @@ typedef struct {
                                           * K4 PRESET's place; 0: the kick memory's own built-in, 0.9.2) */
     uint8_t amt;                         /* (0.9.71, the byte left free before) TAIL MODE's own setting, 0..100: SPLIT
                                           * where the tail turns clean (KLM_SPLIT), DIRTY how long the dirt takes to
-                                          * rise (KLM_RISE); CLASSIC, CLEAN: none */
+                                          * rise (KLM_RISE), CHOP where the tail is chopped (KLM_CHOP); CLASSIC,
+                                          * CLEAN: none */
 } kick_lab_t;                            /* 12 bytes */
-enum { KTM_CLASSIC, KTM_CLEAN, KTM_SPLIT, KTM_DIRTY, KTM_N };
+enum { KTM_CLASSIC, KTM_CLEAN, KTM_SPLIT, KTM_DIRTY, KTM_CHOP, KTM_N };   /* (CHOP: 0.9.80) */
 #define KICK_END_MAX 89u                 /* (0.9.70, FLEXOR: END to 3 s, "1000 ms ne suffit pas") */
+#define KICK_CHOP_MS 35u                 /* (0.9.80) TAIL MODE CHOP: its fall (END's cut is ~10 ms) */
 float kick_lab_ms(uint32_t what, uint32_t v);   /* KL_END, KL_CROSS, KL_FADE, KL_FTIME as ms; KL_FILT, KL_NOTE as Hz */
-enum { KLM_END, KLM_CROSS, KLM_FADE, KLM_FTIME, KLM_FILT, KLM_NOTE, KLM_SPLIT, KLM_RISE };
+enum { KLM_END, KLM_CROSS, KLM_FADE, KLM_FTIME, KLM_FILT, KLM_NOTE, KLM_SPLIT, KLM_RISE, KLM_CHOP };
 void kick_set_lab(const kick_lab_t *l);  /* main loop: the kick playing's */
 /* LOAF BREAKER (0.9.45, FLEXOR's Kick Lab 2: chosen by ear, HARD 909's dry attack and ROLL's chopped tail): TOK, a short
  * pitched attack in front of the layers, into the clip with them (the dirt takes it too); the TAIL GATE, the kick

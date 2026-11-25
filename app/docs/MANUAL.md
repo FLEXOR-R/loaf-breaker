@@ -772,7 +772,7 @@ nothing set there sounds exactly as it always did.
 | Part | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- |
 | TAIL | MODE: CLASSIC · CLEAN · SPLIT · DIRTY (0.9.71) | NOTE: FREE · A#0 … A2 | CURVE: EXP · LINEAR · SNAP | END: OFF · 40 – 1000 ms by 20 ms, then on to 3000 ms by 50 ms (0.9.70) |
-| TAIL + | FILTER: OFF · 11 kHz – 190 Hz | F TIME: 20 – 600 ms | DRIVE: OFF · 1 – 100 % | SPLIT AT: 30 – 600 ms (SPLIT) · DIRT RISE: 50 – 2000 ms (DIRTY); empty in CLASSIC and CLEAN |
+| TAIL + | FILTER: OFF · 11 kHz – 190 Hz | F TIME: 20 – 600 ms | DRIVE: OFF · 1 – 100 % | SPLIT AT: 30 – 600 ms (SPLIT) · DIRT RISE: 50 – 2000 ms (DIRTY) · CHOP AT: 50 – 800 ms (CHOP); empty in CLASSIC and CLEAN |
 | STACK | ATTACK: OFF · KICK 1–20 | CROSS: 10 – 300 ms | FADE: 2 – 150 ms | SOLO: BOTH · ATTACK · TAIL |
 | TOOLS | MUTATE | A/B | | |
 | TOK (ATTACK) | LEVEL: OFF · 2 – 100 % | TYPE: SQUARE · NOISE · SINE | PITCH: 400 Hz – 4 kHz | LENGTH: 2 – 30 ms |
@@ -799,6 +799,9 @@ nothing set there sounds exactly as it always did.
   distorted held note. **MODE DIRTY**: the inverse, the hit driven at a third of its DRIVE (tight), the drive and
   DISTO rising to three times over **DIRT RISE** (TAIL + K4, 50 – 2000 ms): the tail dirtier as it falls. Picking
   either puts its TAIL + K4 half way (SPLIT 133 ms, DIRTY 316 ms).
+- **MODE CHOP** (0.9.80, FLEXOR): the kick as CLASSIC, then at **CHOP AT** (TAIL + K4, 50 – 800 ms, 200 ms when picked)
+  its tail falls in 35 ms on a curve: down fast at first, so the chop is heard, its end soft, so it never sounds just
+  cut (END's cut takes ~10 ms). A shorter, tighter kick that keeps its tail's start.
 - **NOTE** puts the tail on a note (the SUB's PITCH otherwise, FREE), shown in Hz at the top right: tune it to the
   track's key. **CURVE** shapes the pitch drop: EXP as always (fast, then a long slide), LINEAR and SNAP (high, then
   down fast) land exactly on the note at half the drop's TIME and stay there: no slide left in the tail.
