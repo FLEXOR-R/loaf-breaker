@@ -5,3 +5,5 @@ the release's notes. Emptied (this comment kept) once the release is out. -->
   from the VST too.
 - **KICK › TAIL MODE CHOP**: the kick cut short without sounding cut: from **CHOP AT** (TAIL + K4, 50 – 800 ms) its
   tail falls in 35 ms, fast then soft.
+- **SONG: the white keys play the slices** on every tab; TRACKS' pattern (K2 PUT), PLAY's track (K1) and DROP BANK's
+  drop (K1) are picked with the knobs only.

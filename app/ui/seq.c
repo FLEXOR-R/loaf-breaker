@@ -736,14 +736,11 @@ static void pattern_pick(int32_t d)      /* PRESETS: the next or previous patter
     say_int(playing_now() ? "NEXT PATTERN" : "PATTERN", want + 1, "");
     ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
 }
-static uint32_t track_keys_lit(void);
 static int8_t lit_head = -1;             /* (0.9.57: the step playing on a lane's page, 0..15, -1 none: leds() shows it
                                           * at the middle level; it was the step's light turned over) */
 static uint32_t keys_lit(const brk_status_t *st)   /* the white keys' lights on a lane's page (ENV: its own) */
 {
     lit_head = -1;
-    if (ui.page == PG_TRACK)
-        return track_keys_lit();
     if (ui.page == PG_OVL)               /* (0.9.27, FLEXOR: the OVERLAY page, its effects on lit: held, latched, the
                                           * ARP key's) */
         return ui.opage ? 0u : ovl_held | ovl_latched | ovl_pad_bits();

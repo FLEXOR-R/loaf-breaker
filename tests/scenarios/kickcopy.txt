@@ -1,6 +1,6 @@
 # LOAF BREAKER: a kick copied onto another, a track's items each their kick. KICK 4 gets a CLEAN SUB (TAIL, CLEAN
 # MORPH); KICK 5 (PRESETS) takes it all from KICK 4: BODY's OUT, K4 PRESET past the eleven built-in kicks, COPY K4.
-# Then ENV TRACKS, track 2: P1, P2 (white keys 1, 2); the second item KICK 7 (ALGORITHM back to it, K1); PLAY: KICK 5
+# Then ENV TRACKS, track 2: P1, P2 (K2); the second item KICK 7 (ALGORITHM back to it, K1); PLAY: KICK 5
 # for P1, KICK 7 as P2 comes in.
 #   app/build/host/loaf-breaker_host tests/scenarios/kickcopy.txt app/build/scenarios
 wait 4200
@@ -45,10 +45,10 @@ shot kc_copy.png
 tap ENV
 wait 200
 turn PRESET 1 10
-key w0 down
-key w0 up
-key w1 down
-key w1 up
+turn K2 1 10
+turn ALGO 1 10
+turn K2 2 10
+turn ALGO 1 10
 turn ALGO -1 10
 turn K1 7 10
 wait 200

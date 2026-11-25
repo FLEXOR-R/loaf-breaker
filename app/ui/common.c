@@ -475,7 +475,7 @@ static uint8_t lb_ctl_slices;            /* (0.9.80, the VST: the FM-1 playing i
 #else
 #define LB_SEQ_KEYS 1
 #endif
-static int slices_page(void) { return (ui.page != PG_SEQ || SEQ_BRK || !LB_SEQ_KEYS) && ui.page != PG_TRACK && ui.page != PG_OVL &&
+static int slices_page(void) { return (ui.page != PG_SEQ || SEQ_BRK || !LB_SEQ_KEYS) && ui.page != PG_OVL &&
                                          !(ui.page == PG_GLOBAL && ui.gpage == 3u); }   /* (GLO EFFECTS: keys 1-7) */   /* (ARP: overlays) */
 enum { RG_HEAD = 1, RG_WAVE = 2, RG_BLOCKS = 4, RG_FOOT = 8, RG_ALL = 15, RG_FX = 16 };
 

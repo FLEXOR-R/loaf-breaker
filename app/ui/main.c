@@ -622,11 +622,6 @@ static void input(void)
                 sfx_toggle(i + 1u, -1);
             continue;
         }
-        if (ui.page == PG_TRACK) {       /* LOAF BREAKER: ENV: a pattern into the track, or a track played */
-            if (kdn >> WK[i] & 1u)
-                track_key(i);
-            continue;
-        }
         if (ui.page == PG_SEQ && !SEQ_BRK && LB_SEQ_KEYS) {   /* the SEQ page: a break step to edit, or a drum lane's steps (LOAF
                                           * BREAKER, 0.234: on its BREAK entry, the slices) */
             if (btn & 1u << B_SEQ) {     /* LOAF BREAKER: SEQ held + white key 1..4: the bar shown copied there */

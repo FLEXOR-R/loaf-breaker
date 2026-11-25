@@ -179,7 +179,7 @@ table (tap SEL alone to see it):
 **The rules.** ALGORITHM picks what you edit on the page (an FX slot, a drum's part, a SEQ lane, SYSTEM's part); on HOME (both its parts) and the MIXER, where there is nothing to pick, it is the break. PRESETS picks what goes
 in (an effect, a kick, a snare or hat sound); elsewhere it is the pattern. **SEQ is where everything is sequenced**
 (the break's steps and the kick, snare and hat lanes), **EDIT where the drums' sounds are made** (kick, snare, hat);
-the white keys play slices everywhere but SEQ and ENV (tracks). **ARP opens its page of effects** (§5). **SEL + ALGORITHM is the break and SEL +
+the white keys play slices everywhere but SEQ and ARP (0.9.80, FLEXOR: SONG's tabs too, their knobs pick). **ARP opens its page of effects** (§5). **SEL + ALGORITHM is the break and SEL +
 PRESETS the pattern on every page.** **Where ALGORITHM alone is already the break** (HOME, SOUNDS › BREAK, SONG's PLAY / DROP / BUILD, MIX, ARP's tabs but ARP), **SEL + ALGORITHM is BREAK TIME** (right HALF, left NORMAL), **and SEL + PRESETS the kick** on HOME, PATTERN, MIX, ARP and SYSTEM's MIDI, SCREEN SET, RESET (0.9.26, FLEXOR). A page's button pressed again is its next part. **Press SEL** alone and the strip
 shows a card: above, the four SEL combinations that work on any page; below, this page's own shortcuts (on HOME and
 the pages without any: what SEL + K1–K4 turn). SEL again, or any other button, key or knob, closes it. The control map (§11) shows all of it at once.
@@ -387,7 +387,7 @@ hard turn deletes one item, not the ones moving into its place, 0.9.26),
   and stays on TRACKS (PLAY again stops it).
 - **PLAY**: a radio. **K1** tunes it: the needle glides along the dial to the track (1–8, the ones with something in
   them lit), the big knob turns with it; the station shows the track's length, its items, where it starts and what it
-  does at its end. **K2** the item it starts from (the same as TRACKS' SEL + PLAY, each track its own). **PLAY** (or white keys 1–8: that track) plays it from
+  does at its end. **K2** the item it starts from (the same as TRACKS' SEL + PLAY, each track its own). **PLAY** plays it from
   bar 1 and goes back to HOME; the header shows T1 … T8. Each pattern comes in at the end of the last loop of the one
   before; a DROP's build starts at the next bar. **SEL + ENV** while a track plays drops into its next pattern and the
   track goes on from there. PLAY again stops it.
@@ -901,12 +901,12 @@ filters the break alone: sweep it down and the drums stay full on top.
 | SEQ (the break's steps) | Slice | Pitch | Hits | Reverse |
 | SEQ, a drum lane | Fill | Sound: the kick (KICK 1–20), the drum's memory | Clear / 4x4 / grooves | Length |
 | SEQ, a drum step held | Note (the kick's) | Hits | Cond | Nudge |
-| ENV TRACKS (ALGORITHM: the item; PRESETS: the track; a white key: its pattern in; SEL + PLAY: start here) | Kick (a DROP: its build's) | Pattern / DROP / END | Loops (a DROP: stutter) | Its break (a DROP: gap keeps) |
+| ENV TRACKS (ALGORITHM: the item; PRESETS: the track; SEL + PLAY: start here) | Kick (a DROP: its build's) | Pattern / DROP / END | Loops (a DROP: stutter) | Its break (a DROP: gap keeps) |
 | ENV PLAY (PLAY: the track) | Track | From item | At the end | |
 | ENV DROP | Build bars | After the drop | Break | Crash |
 | ENV BUILD (PRESETS: tempo rise) | Style | Sweep | Riser | Gap |
 | ENV BUILD BRK | Break: still / roll | Roll from | Gap keeps | |
-| ENV DROP BANK (white keys 1–8: the drop) | Drop | Build | Style | After |
+| ENV DROP BANK (K1: the drop) | Drop | Build | Style | After |
 | EDIT KICK › KNOBS, K1 SET .. K4 SET (ALGORITHM: the knob; PRESETS: its function) | its function's four settings | | | |
 | LFO (mixer: levels; LFO held, any page: the same) | Break level | Kick level | Drums level | LFO held: the FX fader (ROUTING's FX, 0.9.50; the FX page shows it as FX MIX nn %) |
 | LFO, ROUTING (SELECT) | FX (the chain, dry to wet) | Drums: through the chain or around it | Ducks: BREAK, PERC or BOTH | ROLL: break, kick or both |

@@ -1508,49 +1508,10 @@ static void track_from_here(void)
     say_int("START AT ITEM", (int32_t)TRK_FROM + 1, "");
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
-/* a white key on ENV. TRACKS: that pattern put at the item edited (its loops kept), then the next item; PLAY: that
- * track played (keys 1-8) */
-static void track_key(uint32_t k)
-{
-    if (ui.tpage == 7u) {                /* (0.9.58: DROPS: keys 1-8 pick DROP 1-8) */
-        if (k < NDROPS) {
-            char s[8] = "DROP ";
-            drop_go(k);
-            int_text((int32_t)k + 1, s + 5);
-            app_say("SELECTED", s);
-        }
-        return;
-    }
-    if (ui.tpage == 1u) {
-        if (k < NTRACKS) {
-            set.trk = (uint8_t)k;
-            changed();
-            track_play(1);
-        }
-        return;
-    }
-    if (ui.tpage == 0u) {
-        track_t *t = trk_now();
-        uint32_t c = ui.trk_cur % TRK_ITEMS;
-        char s[8], r[6];
-        if (c > trk_len(t))
-            c = trk_len(t);
-        if (t->it[c] == TI_DROP)
-            *trk_brk(c) = 0u;            /* (a DROP's byte not read as a break) */
-        if (t->it[c] == TI_END || t->it[c] == TI_DROP || t->it[c] == TI_GAP || !t->rep[c])
-            t->rep[c] = 1u;
-        t->it[c] = (uint8_t)(k + 1u);
-        trk_item_text(t, c, s, r);
-        say_int("ITEM", (int32_t)c + 1, "");
-        app_say(ui.msg[0], s);
-        if (c + 1u < TRK_ITEMS)
-            ui.trk_cur = (uint8_t)(c + 1u);
-        set_dirty = 1u;
-        ui.redraw |= RG_BLOCKS | RG_FOOT;
-    }
-}
+/* (0.9.80, FLEXOR: the white keys no longer pick on SONG (TRACKS' pattern, PLAY's track, DROP BANK's drop): unnumbered,
+ * a wrong one is too easy; the knobs do it, the keys play the slices) */
 /* ENV held on TRACKS: the items after the one edited one place right, a gap after it (the one edited stays where it
- * is); the gap edited, for a white key (a pattern) or K2 (a DROP; K2 left: the gap gone again). Played past if left.
+ * is); the gap edited with K2 (a pattern or a DROP; K2 left: the gap gone again). Played past if left.
  * ENV held on a gap: it goes, the items on its sides closed up */
 static void track_gap(void)
 {
@@ -1604,25 +1565,8 @@ static void track_gap(void)
         TRK_FROM++;
     set_dirty = 1u;
     say_int("SPACE AT", (int32_t)c + 2, "");
-    app_say(ui.msg[0], "KEY: A PATTERN");
+    app_say(ui.msg[0], "K2: A PATTERN");
     ui.redraw |= RG_BLOCKS | RG_FOOT;
-}
-static uint32_t track_keys_lit(void)     /* TRACKS: the item's pattern; PLAY: the tracks there are; KNOB: its function */
-{
-    uint32_t m = 0u, i;
-    if (ui.tpage == 7u)                  /* (0.9.58: DROPS: the one selected) */
-        return 1u << drop_sel();
-    if (ui.tpage == 1u) {
-        for (i = 0; i < NTRACKS; i++)
-            if (trk_len(&pats.trk[i]))
-                m |= 1u << i;
-        return m;
-    }
-    if (ui.tpage == 0u) {
-        uint32_t v = trk_now()->it[ui.trk_cur % TRK_ITEMS];
-        return v && v <= NPAT_ALL && (v - 1u) / NPAT == set.pgrp ? 1u << (v - 1u) % NPAT : 0u;
-    }
-    return 0u;
 }
 
 /* the picture, y 44..191 (148 rows, drawn in strips): TRACKS and PLAY the track's items in four rows of eight (a
@@ -1804,7 +1748,7 @@ static void track_picture(int32_t top)
             }
             cv_text(x + 3, y + 37, &FONT_XS, s, on ? C_BLACK : C_GRAY);
         }
-        cv_text(6, 116, &FONT_XS, "KEYS 1-8: PICK. SEL + ARP: COPY, PASTE", C_DIM);
+        cv_text(6, 116, &FONT_XS, "K1: PICK. SEL + ARP: COPY, PASTE", C_DIM);
         cv_text(6, 128, &FONT_XS, "TRACKS K2: A DROP ITEM'S DROP 1-8", C_DIM);
         cv_oy = 0;
         return;

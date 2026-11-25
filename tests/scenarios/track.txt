@@ -1,5 +1,5 @@
 # LOAF BREAKER: ENV's TRACK. TRACKS: track 1 as it starts (P1 x4, P2 x4, a DROP, P3 x8); track 2 (PRESETS) made:
-# P1 (white key 1), a DROP (K2 left of P1), P2 (white key 2); DROP: no build (K1 to NONE); PLAY: track 2 played (PLAY:
+# P1 (K2), a DROP (K2 left of P1), P2 (K2; 0.9.80, FLEXOR: no white keys on SONG); DROP: no build (K1 to NONE); PLAY: track 2 played (PLAY:
 # HOME, T2 in the header): P1's two bars, the drop at its end into P2, P2's two bars, P1 again (LOOP). Then on
 # track 1, SEL + ENV: the build from the next bar.
 #   app/build/host/loaf-breaker_host tests/scenarios/track.txt app/build/scenarios
@@ -8,14 +8,21 @@ tap ENV
 wait 300
 expect page 8
 shot t_tracks.png
+# (0.9.80, FLEXOR) a white key on SONG plays its slice, the track untouched
+key w3 down
+wait 100
+expect key 3
+expect trk_it 1
+key w3 up
+wait 100
 turn PRESET 1 10
-key w0 down
-key w0 up
+turn K2 1 10
+turn ALGO 1 10
 turn K2 1 10
 turn K2 -1 10
 turn ALGO 1 10
-key w1 down
-key w1 up
+turn K2 2 10
+turn ALGO 1 10
 wait 200
 shot t_put.png
 turn SELECT 1 10
