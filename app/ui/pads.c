@@ -149,7 +149,11 @@ static const char *const PAD_KNOB[BKF_N][4] = {   /* (LOAF BREAKER: by function,
     {"TIME", "FEEDBACK", "TONE", "MIX"},   /* (DUB: CHOPPAH's; a DELAY in the chain: its own, fx_param_name) */
     {"EFFECT", "AMOUNT", "TIME", "LATCH"},   /* (the ARP key's; FX while held: MORE, pad_knob_name; K2 what goes
                                           * through the ARP effects: the kick, the break, or both) */
-    {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0},
+    {"LATCH", 0, 0, 0},                  /* (KIL: 0.9.80, FLEXOR: "le kill n'a pas de latch": its K1 LATCH named, shown
+                                          * and turned as the other keys', main.c's kil_focus the same) */
+    {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0},   /* (DST, SUB, DRV: a press each) */
+    {"LATCH", 0, 0, 0}, {"LATCH", 0, 0, 0}, {"LATCH", 0, 0, 0},   /* (X2, X4, TRI: their K1 LATCH, as KIL's) */
+    {0, 0, 0, 0},                        /* (SDR: a press each) */
     {"MODE", "TIME", "REVERB", "LATCH"},   /* (0.9.58: KILL BREAK) */
     {0, 0, 0, 0},                        /* (0.9.76: CHS, a press each) */
     {0, 0, 0, 0}};                       /* (0.9.78: SPL, a press each) */   /* (KIL, X2: their LATCH, main.c; DST,
@@ -397,6 +401,12 @@ static void pad_knob_value(int pad, int k, char *t)
             text_cat(t, arpk_latch(arpk_focus()) ? "ON" : "OFF");
         break;
     }
+    case BKF_KIL:                        /* (0.9.80: K1 LATCH: on, the kicks stay out at a press) */
+        text_cat(t, set.half_mt_off & 4u ? "ON" : "OFF");
+        break;
+    case BKF_X2: case BKF_X4: case BKF_TRI:   /* (K1 LATCH: half_mt_off bits 3-5 are LATCH OFF) */
+        text_cat(t, set.half_mt_off & (8u << (pad - BKF_X2)) ? "OFF" : "ON");
+        break;
     default: break;
     }
     return;
@@ -545,6 +555,23 @@ static void pad_knob_turn(int pad, int k, int32_t d)
         ui.redraw |= RG_FOOT;
         ui.redraw |= RG_BLOCKS;
         break;
+    case BKF_KIL:                        /* (0.9.80: K1 LATCH, right on (held now: the kicks stay out), left off; as
+                                          * main.c's kil_focus) */
+        set.half_mt_off = (uint8_t)(d > 0 ? set.half_mt_off | 4u : set.half_mt_off & ~4u);
+        if (d > 0 && ui.kil_focus)
+            kick_hold = 1u;
+        set_dirty = 1u;
+        ui.redraw |= RG_FOOT;
+        break;
+    case BKF_X2: case BKF_X4: case BKF_TRI: {   /* (K1 LATCH, right on, left off; as main.c's x2_focus) */
+        uint8_t lb = (uint8_t)(8u << (pad - BKF_X2));
+        set.half_mt_off = (uint8_t)(d > 0 ? set.half_mt_off & ~lb : set.half_mt_off | lb);
+        if (d > 0 && ui.x2_focus == (uint8_t)(pad - BKF_X2 + 1))
+            kick_x2 = (uint8_t)(kick_x2 | 1u << (pad - BKF_X2));
+        set_dirty = 1u;
+        ui.redraw |= RG_FOOT;
+        break;
+    }
     default: break;
     }
     if (0) {
