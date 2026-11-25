@@ -227,7 +227,8 @@ jobs:
       - name: Release notes (docs/NEXT.md, what changed since the last release, then the install words)
         if: env.TEST != '1'
         run: |
-          { if [ -s docs/NEXT.md ]; then echo "**What's new in $VERSION**"; echo; sed '/^<!--/,/-->$/d' docs/NEXT.md; echo; fi
+          NEW="$(sed '/^<!--/,/-->$/d' docs/NEXT.md 2>/dev/null || true)"
+          { if [ -n "$(printf '%s' "$NEW" | tr -d '[:space:]')" ]; then echo "**What's new in $VERSION**"; echo; printf '%s\n\n' "$NEW"; fi
             echo "Install loaf-breaker-$VERSION.fwsc with fm1-base's web installer (Chrome or Edge, the FM-1 on"
             echo "USB); the splash shows $VERSION. loaf-breaker-site-$VERSION.zip: the site (front page,"
             echo "installer, emulator, manual), open its index.html; loaf-breaker-screens-$VERSION.zip: the"
