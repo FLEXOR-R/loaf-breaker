@@ -402,6 +402,7 @@ static void ctl_leave(void)
     lcd_fill(0, 0, 240, 240, C_BLACK);
     app_redraw();
 }
+static void ctl_leds(void);
 static void ctl_midi(uint32_t pkt)       /* (app_loop: all MIDI in while on; CC 127 on channel 16 while off) */
 {
     uint32_t st = pkt >> 8 & 0xFFu, a = pkt >> 16 & 0x7Fu, v = pkt >> 24 & 0x7Fu, bit, lv;
@@ -436,6 +437,8 @@ static void ctl_midi(uint32_t pkt)       /* (app_loop: all MIDI in while on; CC 
     } else
         return;
     ctl.dirty = 1u;
+    ctl_leds();                          /* (0.9.80, FLEXOR: "la latence très minimale": lit as it comes, not at the
+                                          * next frame) */
 }
 static void ctl_input(void)              /* (input(), each pass of the main loop: sent as soon as read) */
 {

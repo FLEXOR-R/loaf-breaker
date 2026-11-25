@@ -101,7 +101,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   les touches actionnées visibles sur le daw et sur la machine (rétroéclairage) ... toutes les optimisations
   possibles"): the FM-1 as the VST's hands, channel 16 both ways in short messages (app.c's comment at `ctl_on` the
   protocol: CC 127 on / keepalive / off, LED notes in, key / button notes, encoder CCs, MASTER CC 25 + 24 out);
-  main.c `ctl_*` (ctl_input before input()'s work, ctl_leds in leds(), ctl_draw once, app_frame does nothing else),
+  main.c `ctl_*` (ctl_input before input()'s work, ctl_leds in leds() and as each LED note comes in (0.9.80, FLEXOR:
+  "la latence très minimale"), ctl_draw once, app_frame does nothing else),
   app.c: app_loop hands all MIDI to `ctl_midi` while on, app_render silent. RAM only, never saved; 3 s without the VST
   (`CTL_KEEP`): off. In the VST (LB_BIG), SELECT turned on the FM-1 itself is the tempo as on the FM-1 (FLEXOR:
   "SELECT change le tempo en mode contrôleur"; main.c `lb_hw_sel`, set by lbcore's lb_turn_hw; the VST's own tabs still
