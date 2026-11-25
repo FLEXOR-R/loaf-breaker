@@ -7,7 +7,7 @@ the white keys, throw effects with the black keys, program the kick, snare, hat 
 patterns into tracks with builds and drops. BEGINNER keeps it simple, EXPERT opens everything, and a tutorial gets you
 started on the FM-1 itself.
 
-> **A work in progress, on purpose.** LOAF BREAKER changes all the time: new versions come out often, and each can move things. The built-in breaks are not final: they will be swapped for better ones as they are sampled (the breaks you send from [Breaks](breaks/) stay yours). Pages of the firmware and of this site may still change their layout or their look, and some sections will be redesigned. The aim is a machine that is quick to play live, easy to find your way in, and yours to shape: if you are here, you are early, and the best is still to come.
+> Work in progress
 
 ![LOAF BREAKER's start-up screen](manual/img/screen-boot.png "Switched on")
 ![LOAF BREAKER playing: the mix scrolling in as on a CDJ, in rekordbox's colours](manual/img/screen-slicer.png "Playing")

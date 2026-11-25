@@ -100,6 +100,11 @@ td strong { color: var(--fg); }
 .status p { margin: 0; }
 .callout { border-left: 3px solid var(--amber); background: var(--amber-soft); padding: 10px 16px; margin: 0 0 18px; max-width: 70ch; border-radius: 0 8px 8px 0; }
 .callout p { margin: 0; }
+/* (25 Nov 2026, FLEXOR: "remplacer la section surlignée ... en un simple WORK IN PROGRESS comme sur la vst"): the front
+   page's one callout is a badge, as vst/'s */
+body.home .callout { display: inline-block; max-width: none; margin: 4px 0 22px; padding: 6px 12px; background: none;
+  border: 1px solid var(--amber); border-radius: 4px; }
+body.home .callout p { color: var(--amber); font: 700 14px/1 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; }
 details { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 0 16px; margin: 0 0 18px; }
 details > summary { cursor: pointer; padding: 10px 0; font-family: var(--f-display); font-weight: 600; }
 details[open] > summary { margin-bottom: 6px; }
