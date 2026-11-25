@@ -356,11 +356,162 @@ static int bk_knobs_held(void)           /* (0.9.57, FLEXOR: a black key held wh
 {
     return ui.pad_focus >= 0 || ui.x2_focus || ui.kil_focus;
 }
+/* ------------------------------------------------ CONTROLLER (0.9.79, FLEXOR; app.c ctl_on says the protocol) --- */
+#define CTL_KEEP 3000u                   /* ms without a word from the VST: the FM-1 again */
+#define CTL_NKEY 27u                     /* the keys F3 .. G5 (REC's key is a button here) */
+static struct {
+    uint32_t seen, keys, btn, n, last;   /* the VST's last word; the keys and buttons sent; messages sent, the last one */
+    uint32_t lit_b, mid_b, dim_b, lit_k, mid_k, dim_k;   /* the LEDs as the VST lights them */
+    uint16_t msent;                      /* MASTER as sent (0xFFFF: not yet) */
+    uint8_t drawn, dirty;
+} ctl;
+static void ctl_send(uint32_t st, uint32_t a, uint32_t v)
+{
+    uint32_t pkt = (st >> 4) | st << 8 | (a & 0x7Fu) << 16 | (v & 0x7Fu) << 24;
+    plat_midi_send(pkt, TO_USB);
+    ctl.n++;
+    ctl.last = pkt >> 8;
+}
+static void ctl_enter(void)
+{
+    brk_status_t st;
+    uint32_t i;
+    brk_status(&st);
+    if (st.playing)                      /* (stopped: the render will compute nothing) */
+        brk_play(0);
+    for (i = 0; i < 16u; i++)            /* nothing left held */
+        brk_key((int)i, 0);
+    for (i = 0; i < BRK_NPADS; i++)
+        brk_pad((int)i, 0);
+    memset(&ctl, 0, sizeof ctl);
+    ctl.msent = 0xFFFFu;                 /* (MASTER sent at once) */
+    ctl.seen = plat_ms();
+    ctl.dirty = 1u;
+    ui.home_hold = ui.fx_hold = ui.tap_pend = ui.env_hold = ui.lfo_hold = 0u;
+    ctl_on = 1u;
+}
+static void ctl_leave(void)
+{
+    int k;
+    ctl_on = 0u;
+    ui.keys = plat_keys();               /* (what is held now does nothing until let go) */
+    ui.btn = plat_buttons();
+    ui.sel_raw = (uint8_t)(ui.btn >> B_SEL & 1u);
+    for (k = 0; k < NE; k++)
+        (void)plat_enc(k);
+    lcd_fill(0, 0, 240, 240, C_BLACK);
+    app_redraw();
+}
+static void ctl_midi(uint32_t pkt)       /* (app_loop: all MIDI in while on; CC 127 on channel 16 while off) */
+{
+    uint32_t st = pkt >> 8 & 0xFFu, a = pkt >> 16 & 0x7Fu, v = pkt >> 24 & 0x7Fu, bit, lv;
+    if ((st & 0x0Fu) != 0x0Fu)           /* (another channel: nothing while on) */
+        return;
+    if (st == 0xBFu && a == 127u) {
+        if (!v) {
+            if (ctl_on)
+                ctl_leave();
+            return;
+        }
+        if (!ctl_on)
+            ctl_enter();
+        ctl.seen = plat_ms();
+        ctl_send(0xBFu, 127u, 1u);       /* (here, and on) */
+        return;
+    }
+    if (!ctl_on || (st != 0x9Fu && st != 0x8Fu))
+        return;
+    ctl.seen = plat_ms();
+    lv = st == 0x8Fu ? 0u : v & 3u;
+    if (a <= (uint32_t)NB) {             /* a button, or (NB) PLAY's green */
+        bit = a == (uint32_t)NB ? LED_PLAY_GREEN : 1u << a;
+        ctl.lit_b = lv == 3u ? ctl.lit_b | bit : ctl.lit_b & ~bit;
+        ctl.mid_b = lv == 2u ? ctl.mid_b | bit : ctl.mid_b & ~bit;
+        ctl.dim_b = lv == 1u ? ctl.dim_b | bit : ctl.dim_b & ~bit;
+    } else if (a >= 16u && a < 16u + CTL_NKEY) {
+        bit = 1u << (a - 16u);
+        ctl.lit_k = lv == 3u ? ctl.lit_k | bit : ctl.lit_k & ~bit;
+        ctl.mid_k = lv == 2u ? ctl.mid_k | bit : ctl.mid_k & ~bit;
+        ctl.dim_k = lv == 1u ? ctl.dim_k | bit : ctl.dim_k & ~bit;
+    } else
+        return;
+    ctl.dirty = 1u;
+}
+static void ctl_input(void)              /* (input(), each pass of the main loop: sent as soon as read) */
+{
+    uint32_t keys = plat_keys() & ((1u << CTL_NKEY) - 1u), btn = plat_buttons() & ((1u << NB) - 1u), d, i, m;
+    int k;
+    if (plat_ms() - ctl.seen > CTL_KEEP) {
+        ctl_leave();
+        return;
+    }
+    for (d = btn ^ ctl.btn, i = 0; d && i < (uint32_t)NB; i++)
+        if (d >> i & 1u) {
+            if (plat_midi_out_room(TO_USB) < 2u)   /* (the rest at the next pass) */
+                return;
+            ctl_send(btn >> i & 1u ? 0x9Fu : 0x8Fu, i, btn >> i & 1u ? 127u : 0u);
+            ctl.btn ^= 1u << i;
+        }
+    for (d = keys ^ ctl.keys, i = 0; d && i < CTL_NKEY; i++)
+        if (d >> i & 1u) {
+            if (plat_midi_out_room(TO_USB) < 2u)
+                return;
+            ctl_send(keys >> i & 1u ? 0x9Fu : 0x8Fu, 16u + i, keys >> i & 1u ? 127u : 0u);
+            ctl.keys ^= 1u << i;
+        }
+    if (plat_midi_out_room(TO_USB) < 2u * (uint32_t)NE + 2u)
+        return;
+    for (k = 0; k < NE; k++) {
+        int32_t e = plat_enc(k);
+        while (e) {
+            int32_t s = e > 63 ? 63 : e < -63 ? -63 : e;
+            ctl_send(0xBFu, 16u + (uint32_t)k, (uint32_t)(64 + s));
+            e -= s;
+        }
+    }
+    m = plat_master() >> 2;
+    m = m > 1023u ? 1023u : m;
+    if (ctl.msent == 0xFFFFu || m + 2u <= ctl.msent || m >= ctl.msent + 2u || (m != ctl.msent && (m == 0u || m == 1023u))) {
+        ctl_send(0xBFu, 25u, m & 7u);
+        ctl_send(0xBFu, 24u, m >> 3);
+        ctl.msent = (uint16_t)m;
+    }
+}
+static void ctl_leds(void)
+{
+    if (!ctl.dirty)
+        return;
+    ctl.dirty = 0u;
+    plat_lights(ctl.lit_b, ctl.lit_k, ctl.dim_b, ctl.dim_k, ctl.dim_b | ctl.dim_k ? 2 : 0);
+    plat_lights_mid(ctl.mid_b, ctl.mid_k);
+}
+static void ctl_draw(void)               /* (once: the screen stays still) */
+{
+    static const char *const L[] = {"THE VST PLAYS, THIS FM-1", "IS ITS KEYS, KNOBS,", "BUTTONS AND MASTER", "",
+                                    "UNPLUG OR CLOSE THE VST", "TO COME BACK"};
+    uint32_t band, i;
+    for (band = 0; band < 4u; band++) {
+        int32_t top = (int32_t)band * 60;
+        cv_begin(240, 60, C_BLACK);
+        cv_oy = -top;
+        cv_text2((240 - text2_w(&FONT_B, "CONTROLLER")) / 2, 62, &FONT_B, "CONTROLLER", C_HI);
+        cv_rect(40, 92, 160, 2, C_HI);
+        for (i = 0; i < 6u; i++)
+            cv_text((240 - text_w(&FONT_XS, L[i])) / 2, 112 + 12 * (int32_t)i, &FONT_XS, L[i], i < 3u ? C_WHITE : C_GRAY);
+        cv_oy = 0;
+        cv_blit(0, (uint32_t)top);
+    }
+}
+
 static void input(void)
 {
     uint32_t keys = plat_keys(), btn = plat_buttons(), now = plat_ms(), i, sel_now = btn >> B_SEL & 1u;
     uint32_t raw;                        /* (0.9.50: the keys as pressed; keys without SEL WHITE's held) */
     uint32_t kdn, kup, bdn;
+    if (ctl_on) {                        /* (0.9.79: CONTROLLER: the keys go to the VST) */
+        ctl_input();
+        return;
+    }
     if (ui.sel_lock) {                   /* LOAF BREAKER: SEL locked (SEL x2): it counts as held, lit, until
                                           * pressed again (that press no click) */
         if (sel_now && !ui.sel_raw) {
@@ -1487,6 +1638,10 @@ static void leds(void)
     static uint8_t after_intro;
     brk_status_t st;
     uint32_t b = 0u, k = 0u, i;
+    if (ctl_on) {                        /* (0.9.79: CONTROLLER: the VST's lights) */
+        ctl_leds();
+        return;
+    }
     if (demo.on) {                       /* the demo's own (demo.c) */
         demo_leds(plat_ms());
         after_intro = 1u;
@@ -2170,6 +2325,14 @@ void app_frame(void)
     const brk_break_t *b;
     uint32_t now = plat_ms(), hdr;
     input();
+    if (ctl_on) {                        /* (0.9.79: CONTROLLER: the lights, the still screen; nothing else) */
+        leds();
+        if (!ctl.drawn) {
+            ctl.drawn = 1u;
+            ctl_draw();
+        }
+        return;
+    }
     wipe_step();                         /* (LOAF BREAKER, 0.263: WIPE MEMORY, a sector a frame) */
     {                                    /* LOAF BREAKER TEST: GLO MORE's METER: the audio's load (average and peak, % of
                                           * its block), the strips sent to the screen and the passes, a second's worth */
@@ -3862,8 +4025,8 @@ int app_expect(const char *what, int *got)
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
                                     "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15", "broll", "stut", "fxwet", "tempo10", "kitsel", "kit0kick", "vthru", "dafter",
-                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold", "subfa", "dft", "swon", "strip", "kl_amt", "dbrk", "split", "split_at", "half", "half_ask", "layer", "split_b", "kdec0", "bpitch", "chaos", "cmath", "crolls", "cseed", "rkick", "rsnare", "rhat", "chsw"};
-    int v[212];
+                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold", "subfa", "dft", "swon", "strip", "kl_amt", "dbrk", "split", "split_at", "half", "half_ask", "layer", "split_b", "kdec0", "bpitch", "chaos", "cmath", "crolls", "cseed", "rkick", "rsnare", "rhat", "chsw", "ctl", "ctln", "ctllast", "ctllitk", "ctlmidk", "ctlmaster"};
+    int v[218];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -4102,6 +4265,13 @@ int app_expect(const char *what, int *got)
         }
         v[211] = !chaos_off;             /* (0.9.76: the CHS key's switch, 1 on) */
     }
+    v[212] = ctl_on;                     /* (0.9.79: CONTROLLER: on; messages sent, the last (status | a << 8 | v << 16);
+                                          * the keys it lights, mid; MASTER as sent) */
+    v[213] = (int)ctl.n;
+    v[214] = (int)ctl.last;
+    v[215] = (int)ctl.lit_k;
+    v[216] = (int)ctl.mid_k;
+    v[217] = ctl.msent;
     v[161] = set.vinyl & 3u;             /* (0.9.54: VINYL BREAK's THRU, 0 BOTH 1 BREAK 2 KICK) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */
     v[141] = kx2_at(set.kslot)->gate;    /* (its TAIL GATE's division) */

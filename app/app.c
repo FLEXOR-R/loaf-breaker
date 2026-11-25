@@ -1910,6 +1910,17 @@ static uint8_t wave_b[240][4] PLAT_POOL; /* (0.9.70, FLEXOR: the strip's colours
 static uint8_t blk_px[BLK_N][BLK_W];     /* each slice's waveform, 0..19 */
 static uint8_t blk_n;                    /* blocks with a slice behind them */
 static volatile uint8_t muted;
+/* LOAF BREAKER (0.9.79, FLEXOR: "contrôler les touches du clavier et les knobs du VST avec la machine ... les touches
+ * actionnées visibles ... sur la machine (rétroéclairage) ... le mode contrôleur avec toutes les optimisations
+ * possibles"): CONTROLLER, the FM-1 as the VST's hands over USB, channel 16 both ways (short messages: a DAW routes
+ * them to and from a plugin, which SysEx it would not). In: CC 127 1 (on, and every second while it lasts), 0 (off);
+ * notes, the LEDs as the VST's firmware lights them (note 0-13 a button B_*, 14 PLAY's green, 16-42 key 0-26;
+ * velocity 0 off, 1 the glow, 2 mid, 3 lit). Out: notes 0-13 the buttons, 16-42 the keys (127 down, off up); CC 16-22
+ * an encoder EN_* (64 + its detents); CC 25 then 24 MASTER (0..1023: its low 3 bits, then the rest); CC 127 1 each
+ * time the VST says on. Meanwhile silent (the render computes nothing), its screen still (drawn once), no clock out,
+ * no MIDI in played, nothing saved; 3 s without a word from the VST (unplugged, closed): the FM-1 again (main.c ctl_*) */
+static volatile uint8_t ctl_on;
+static void ctl_midi(uint32_t pkt);
 static volatile float meter_brk, meter_kick, meter_perc;   /* the MIXER's channels: the break, the kick, the snare
                                                            * and hat, before the chain */
 static volatile float meter_l, meter_r;  /* the output's peaks as it leaves (after MASTER: 1 = full scale), falling
@@ -2549,6 +2560,10 @@ void app_loop(void)
     int port;
     while (plat_midi_in(&pkt, &port)) {
         uint32_t st = pkt >> 8 & 0xFFu, t = plat_ms(), t24 = plat_midi_in_t24();   /* (t24: where it landed) */
+        if (ctl_on || (st == 0xBFu && (pkt >> 16 & 0x7Fu) == 127u)) {   /* (0.9.79: CONTROLLER's, and all of it while on) */
+            ctl_midi(pkt);
+            continue;
+        }
         if ((st & 0xE0u) == 0x80u) {     /* notes, any channel: 48..63 (C3..D#4) the slices, held as the white keys;
                                           * 36 the kick, 38 the snare, 42 / 44 / 46 the hat (a drum machine's) */
             static uint16_t mid_held;    /* (the slices a note holds: their note-off whatever NOTES IN says now) */
@@ -2660,6 +2675,12 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                  brk_exp2f(-(float)max_out_db() * 0.16610f);   /* (LOAF BREAKER: MAX OUT's headroom) */
     brk_status_t st;
     uint32_t t0 = plat_ms(), done = 0u, total = n;
+    if (ctl_on) {                        /* (0.9.79: CONTROLLER: the VST sounds, the FM-1 computes nothing) */
+        for (done = 0u; done < 2u * n; done++)
+            lr[done] = 0;
+        meter_l = meter_r = 0.0f;
+        return;
+    }
     if (sync_c != sync_seen) {           /* the outside clock's beat, and how long ago it came */
         float age = (float)(t0 - sync_ms) / MS_PER_SAMPLE;
         sync_seen = sync_c;

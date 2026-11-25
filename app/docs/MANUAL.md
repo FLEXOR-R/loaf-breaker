@@ -205,6 +205,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 | MIDI notes | Notes 48–63 (C3–D#4) play slices 1–16, held like the white keys; 36 the kick, 38 the snare, 39 the clap, 42 / 44 / 46 the hat (§8); any channel. SYSTEM › MIDI's PRESETS, NOTES IN: ALL, DRUMS (the drums alone), OFF |
 | ALGORITHM | (HOME, MIXER; SEL held: any page) The next or previous break: its name shows at once (amber in the header) and, while playing, it comes in at the next bar (the old one goes quiet for the bar's last 16th meanwhile); stopped, at once. AMEN10 135, AMEN05 158, AMEN20 164, UPDOWN 165, AMEN06 169, AMEN19 172, AMEN13 173 (the Amens: The Winstons, cut by Cyberworm), FOCUZ 175 (DNGN DRGNS, "Focuz (DNGN DRGNS Remix)"): 2 bars each, slowest first, played at the tempo you set; then **your own breaks**, if you sent some (below) |
 | MASTER | Volume |
+| CONTROLLER | **The FM-1 as the VST's hands** (0.9.79): plugged in by USB, the VST's FM-1 button turns it on. Its keys, buttons, knobs and MASTER then play the VST, and its lights show the VST's (the keys lit as the VST lights them). The FM-1 is silent meanwhile and its screen says CONTROLLER; unplug it or close the VST and it is itself again within 3 s, its settings untouched. In a DAW, the FM-1's MIDI goes to the VST's track (channel 16), and the VST's MIDI out back to the FM-1 for the lights |
 
 ### The app (Android)
 <a id="app"></a>The site is also an **app** (0.9.71, FLEXOR): on an Android phone, open it in **Chrome**, then Chrome's menu,

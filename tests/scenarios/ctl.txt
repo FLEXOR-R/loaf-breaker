@@ -1,0 +1,48 @@
+# LOAF BREAKER (0.9.79, FLEXOR: "contrôler les touches du clavier et les knobs du VST avec la machine ... les touches
+# actionnées visibles ... sur la machine (rétroéclairage)"): CONTROLLER. The VST's CC 127 1 on channel 16 turns it on
+# (answered CC 127 1); keys, buttons, encoders go out on channel 16 and do nothing here; the VST's notes light the
+# keys; CC 127 0 ends it, and so do 3 s without a word.
+#   app/build/host/loaf-breaker_host tests/scenarios/ctl.txt app/build/scenarios
+wait 4200
+expect ctl 0
+midi BF 7F 01
+wait 50
+expect ctl 1
+shot ctl.png
+key w0 down
+wait 30
+expect ctllast 8327327
+key w0 up
+wait 30
+expect ctllast 4239
+turn K1 1 30
+wait 30
+expect ctllast 4264895
+tap PLAY
+wait 50
+expect playing 0
+expect ctllast 2703
+midi 9F 10 03
+midi 9F 12 02
+wait 50
+expect ctllitk 1
+expect ctlmidk 4
+midi 8F 10 00
+wait 50
+expect ctllitk 0
+master 2000
+wait 50
+expect ctlmaster 500
+midi BF 7F 00
+wait 50
+expect ctl 0
+tap PLAY
+wait 100
+expect playing 1
+tap PLAY
+wait 100
+midi BF 7F 01
+wait 50
+expect ctl 1
+wait 3500
+expect ctl 0
