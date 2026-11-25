@@ -467,7 +467,15 @@ static struct {
 /* the white keys play slices (or, on the SEQ, KICK and SNARE / HAT pages, steps) */
 static void page_say(void);              /* the header: the page's button and part, as its tabs (main.c) */
 #define SEQ_BRK (ui.seq_brk && !set.novice)
-static int slices_page(void) { return (ui.page != PG_SEQ || SEQ_BRK) && ui.page != PG_TRACK && ui.page != PG_OVL &&
+#if LB_BIG
+static uint8_t lb_ctl_slices;            /* (0.9.80, the VST: the FM-1 playing it, its white keys the slices on SEQ too,
+                                          * as on HOME, FLEXOR: "ne pas commander les pas du séquenceur de la VST en mode
+                                          * controleur avec les 16 white keys"; lbcore's lb_ctl_keys) */
+#define LB_SEQ_KEYS (!lb_ctl_slices)
+#else
+#define LB_SEQ_KEYS 1
+#endif
+static int slices_page(void) { return (ui.page != PG_SEQ || SEQ_BRK || !LB_SEQ_KEYS) && ui.page != PG_TRACK && ui.page != PG_OVL &&
                                          !(ui.page == PG_GLOBAL && ui.gpage == 3u); }   /* (GLO EFFECTS: keys 1-7) */   /* (ARP: overlays) */
 enum { RG_HEAD = 1, RG_WAVE = 2, RG_BLOCKS = 4, RG_FOOT = 8, RG_ALL = 15, RG_FX = 16 };
 

@@ -106,7 +106,9 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   app.c: app_loop hands all MIDI to `ctl_midi` while on, app_render silent. RAM only, never saved; 3 s without the VST
   (`CTL_KEEP`): off. In the VST (LB_BIG), SELECT turned on the FM-1 itself is the tempo as on the FM-1 (FLEXOR:
   "SELECT change le tempo en mode contrôleur"; main.c `lb_hw_sel`, set by lbcore's lb_turn_hw; the VST's own tabs still
-  never the tempo). PRD A-76; probes ctl ctln ctllast ctllitk ctlmidk ctlmaster; scenario ctl. Image 561,688 B, RAM
+  never the tempo); and its white keys the slices on SEQ too, as on HOME (FLEXOR: "ne pas commander les pas du
+  séquenceur de la VST en mode controleur avec les 16 white keys": common.c `lb_ctl_slices` / LB_SEQ_KEYS, set by lbcore's
+  lb_ctl_keys while the FM-1 plays the VST). PRD A-76; probes ctl ctln ctllast ctllitk ctlmidk ctlmaster; scenario ctl. Image 561,688 B, RAM
   94,764.
 - BACKUP (24 Nov 2026, FLEXOR: "de quoi envoyer ce que j'ai fait sur le VST sur la machine ... un système de traduction
   et de synchronisation"): fm1-base's backup and restore over USB, fm1.toml `backup = true` (device/backup.c; the site's
