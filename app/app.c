@@ -244,8 +244,9 @@ static settings_t set;
  * back), then ARP (an OVERLAY effect), KIL (the sequencer's kicks quiet), DST (the kick's DISTO), SUB (its SUB FX on / off: 0.9.43, FLEXOR).
  * A layout: the function of each key, left to right. Presets: CHOPPAH (CHOPPAH's keys; BEGINNER's only), FLEXOR LAYOUT
  * (LOAF BREAKER's until 0.244), CUSTOM (each key its own: ARP › BLACK KEYS) */
-enum { BKF_ARP = BRK_NPADS, BKF_KIL, BKF_DST, BKF_SUB, BKF_DRV, BKF_X2, BKF_X4, BKF_TRI, BKF_SDR, BKF_KBR, BKF_CHS, BKF_N };   /* (0.9.55: X4, TRI; 0.9.57 SDR, SUB DRIVE on / off again;
-                                          * 0.9.58 KBR, KILL BREAK; 0.9.76 CHS, CHAOS on / off) */   /* (BKF_DRV: the kick's DRIVE, 0.9.43;
+enum { BKF_ARP = BRK_NPADS, BKF_KIL, BKF_DST, BKF_SUB, BKF_DRV, BKF_X2, BKF_X4, BKF_TRI, BKF_SDR, BKF_KBR, BKF_CHS, BKF_SPL, BKF_N };   /* (0.9.55: X4, TRI; 0.9.57 SDR, SUB DRIVE on / off again;
+                                          * 0.9.58 KBR, KILL BREAK; 0.9.76 CHS, CHAOS on / off; 0.9.78 SPL, the
+                                          * break's SPLIT on / off) */   /* (BKF_DRV: the kick's DRIVE, 0.9.43;
                                           * BKF_X2: the kicks doubled, 0.9.48) */
 enum { BKP_CHOPPAH, BKP_FLEXOR, BKP_CUSTOM, BKP_N };
 #define BK_TAG 0xB4u

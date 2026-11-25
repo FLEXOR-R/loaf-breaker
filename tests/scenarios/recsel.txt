@@ -51,7 +51,7 @@ turn SELECT 1 10
 wait 300
 tap REC
 wait 200
-turn K3 -2 10   # (0.9.76: CHS last, then KBR)
+turn K3 -3 10   # (0.9.76: CHS last, then KBR; 0.9.78 SPL last)
 wait 200
 expect reckey 1
 expect recfn 20

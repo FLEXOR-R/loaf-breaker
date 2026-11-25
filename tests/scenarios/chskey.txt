@@ -10,7 +10,7 @@ tap ARP
 wait 300
 turn SELECT 1 10
 wait 300
-turn K3 -1 60
+turn K3 -2 60
 wait 300
 expect bk_pre 2
 tap HOME

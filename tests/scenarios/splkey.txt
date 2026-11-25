@@ -1,0 +1,29 @@
+# LOAF BREAKER (0.9.78, FLEXOR: "rajoute une touche noire split on / off"): SPL, a black key's function (ARP › BLACK
+# K3, the last one): a press, the break playing's SPLIT (HOME › SPLIT K1) on, its B the break after it; the next off.
+# Lit while the split is on (the lit keys: 3 on, 2 off).
+#   app/build/host/loaf-breaker_host tests/scenarios/splkey.txt app/build/scenarios
+wait 4200
+expect split 0
+tap ARP
+wait 300
+turn SELECT 1 10
+wait 300
+turn K3 -1 60
+wait 300
+expect bk_pre 2
+expect bk_fn 22
+tap HOME
+wait 300
+key b0 down
+wait 100
+key b0 up
+wait 300
+expect split 1
+expect llitk 3
+shot splkey_on.png
+key b0 down
+wait 100
+key b0 up
+wait 300
+expect split 0
+expect llitk 2

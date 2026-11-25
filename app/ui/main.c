@@ -660,6 +660,25 @@ static void input(void)
         app_say("CHAOS", heard ? "OFF" : "ON");
         ui.redraw |= RG_FOOT | RG_BLOCKS;
     }
+    if (kdn & PAD_BIT(BKF_SPL)) {        /* LOAF BREAKER (0.9.78, FLEXOR: "rajoute une touche noire split on / off"): SPL,
+                                          * a switch: the break playing's SPLIT (HOME › SPLIT K1) on or off, its B and
+                                          * bars kept; the break again at the next bar, as SPLIT's K1 */
+        if (set.brk >= WK_NB)
+            app_say("SPLIT", "NOT ON THIS BREAK");
+        else {
+            uint32_t v = sp_get(set.brk);
+            if (!(v & SP_BMASK))          /* (B as HOME › SPLIT shows it: the break after A, until one is picked) */
+                v |= split_b_of(set.brk) + 1u;
+            v ^= SP_ON;
+            sp_put(set.brk, v);
+            if (!(v & SP_ON))
+                brk_half(-1);
+            break_ask(set.brk);
+            set_dirty = 1u;
+            app_say("SPLIT", v & SP_ON ? "ON" : "OFF");
+            ui.redraw |= RG_FOOT | RG_BLOCKS;
+        }
+    }
     if (kdn & PAD_BIT(BKF_KBR)) {        /* LOAF BREAKER (0.9.58, FLEXOR): KILL BREAK: the break out (FADE, CUT, or at the
                                           * bar's end into the reverb), back when let go; LATCH: a press out, the next back */
         kbrk_mode = (uint8_t)kb_mode();
