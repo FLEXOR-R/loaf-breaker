@@ -2165,7 +2165,7 @@ static const char *knob_name(int i)
     static const char *const KN[NPAGES][4] = {{"GATE", "FILTER", "DRUM FLT", "SUB DECAY"},
                                               {"CMPLX", "ANCHOR", "ROLL", "FILL"},
                                               {"P1", "P2", "P3", "MIX"},
-                                              {"CLOCK IN", "CLOCK OUT", "", "TEMPO"},
+                                              {"CLOCK IN", "CLOCK OUT", "", "BPM FINE"},   /* (0.9.81: BPM FINE TUNE, the foot too narrow for it) */
                                               {"", "", "", ""},
                                               {"BREAK", "KICK", "PERC", ""},
                                               {"SLICE", "PITCH", "HITS", "REVERSE"},

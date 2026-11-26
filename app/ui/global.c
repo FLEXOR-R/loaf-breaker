@@ -130,7 +130,7 @@ static void global_value(int i, char *t)
         }
         return;
     }
-    if (i == 3) {                        /* (0.9.81, FLEXOR: K4 TEMPO, 0.1 BPM a detent) */
+    if (i == 3) {                        /* (0.9.81, FLEXOR: K4 BPM FINE TUNE, 0.1 BPM a detent) */
         if (ext_active())
             text_cat(t, "EXT CLOCK");
         else
@@ -334,16 +334,16 @@ static void global_turn(int i, int32_t d)
         ui.redraw |= RG_HEAD | RG_FOOT;
         return;
     } else {                             /* (K4 REC KEY 0.9.58-0.9.69: gone, FLEXOR: REC set on ARP › BLACK alone;
-                                          * 0.9.81, FLEXOR: K4 TEMPO, 0.1 BPM a detent, SELECT's 1 BPM kept) */
+                                          * 0.9.81, FLEXOR: K4 BPM FINE TUNE, 0.1 BPM a detent, SELECT's 1 BPM kept) */
         if (ext_active()) {
-            app_say("TEMPO", "EXT CLOCK");
+            app_say("BPM FINE TUNE", "EXT CLOCK");
             return;
         }
         set.tempo_x10 = (uint16_t)clamp((int32_t)set.tempo_x10 + d, 400, 3000);
         changed();
         tenths_text(set.tempo_x10, t);
         text_cat(t, " BPM");
-        app_say("TEMPO", t);
+        app_say("BPM FINE TUNE", t);
         ui.redraw |= RG_BLOCKS | RG_FOOT;
         return;
     }
