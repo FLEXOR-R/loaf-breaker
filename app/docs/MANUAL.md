@@ -427,7 +427,7 @@ hard turn deletes one item, not the ones moving into its place, 0.9.26),
 - **The live knobs** (EDIT › KNOBS): what SEL + each knob does, on any page. On the KICK menu's KNOBS section,
   **ALGORITHM** goes to K1 SET .. K4 SET, and **PRESETS** there gives that knob its function: SCREAM, DISTO, D+ DRIVE, D+ TYPE, D+ SCREECH, D+ TAIL (DISTO +'s settings, one each),
   DRIVE (the kick's INTENSITY), DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH, PITCH DROP, RUMBLE, PUNCH, DRUM FLT,
-  HOLD, KICK FX or SUB DRIVE (0.9.62: the SUB layer's DRIVE gain; 0.9.66, FLEXOR: the gain alone, it never turns the drive on: the SDR key does, and it says OFF beside the gain while off), PRE LOW, PRE MID, PRE HIGH (0.9.85: the PRE EQ's gains, 1 dB a detent, -18 to +18), PRE LO FREQ, PRE MID FREQ, PRE HI FREQ (their frequencies, a semitone a detent), or BRK FLT (the break's DJ filter, HOME's K2): sculpt the kick's PRE EQ or sweep the break live. They start as K1 DRIVE, K2 SCREAM, K3 D+ SCREECH, K4 DISTO. K1–K4 then set the
+  HOLD, KICK FX or SUB DRIVE (0.9.62: the SUB layer's DRIVE gain; 0.9.66, FLEXOR: the gain alone, it never turns the drive on: the SDR key does, and it says OFF beside the gain while off), PRE LOW, PRE MID, PRE HIGH (0.9.85: the PRE EQ's gains, 1 dB a detent, -18 to +18), PRE LO FREQ, PRE MID FREQ, PRE HI FREQ (their frequencies, a semitone a detent), BRK FLT (the break's DJ filter, HOME's K2), or XSUB FREQ (0.9.86: KICK › DIST › SUB SPLIT's X FREQ, OFF then 40 to 300 Hz): sculpt the kick's PRE EQ, move its split or sweep the break live. They start as K1 DRIVE, K2 SCREAM, K3 D+ SCREECH, K4 DISTO. K1–K4 then set the
   function's settings (K1 is what SEL + its knob turns). DUCK and COMP are not here: the MIXER (LFO) has them, MASTER and
   DYNAMICS.
   - **SCREAM**: AMOUNT, SUB (what stays clean under it, ~48–250 Hz), SCREAM (the mids it pushes, ~150 Hz–2.4 kHz),
@@ -598,10 +598,18 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 
 ### KNOB ASSIGN (0.9.85)
 
-**ARP › ASSIGN** (EXPERT, ARP's fourth tab) is where SEL + K1–K4 get their function, next to MOTION that records them:
-**K1–K4** each pick what SEL + that knob turns (the same list as KICK › MORE › K1–K4 SET, which stays where it was),
-**PRESETS** goes through the styles and PRESET 1–4 (as KICK › MORE › ASSIGN). The page shows each knob's function, its
-value and a bar. The functions are the kick playing's, as everywhere.
+**ARP › ASSIGN** (EXPERT, ARP's fourth tab) is where SEL + K1–K4 get their function, next to MOTION that records them.
+On the left the four knobs, each its function and a bar of its value, the one touched last lit. On the right **the whole
+list**, by family, **DIST** (DISTO, SCREAM, DRIVE, SUB DRIVE, DISTO +, D+ TYPE, D+ SCREECH, D+ TAIL), **SHAPE** (PUNCH,
+DECAY, PITCH DROP, RUMBLE, HOLD, CLEAN SUB, REV BASS, GLIDE, MORPH, KICK FX), **PRE EQ** (each band beside its frequency),
+**XSUB** (XSUB FREQ, SUB SPLIT's crossover, 0.9.86) and **FILTER** (DRUM FLT, BRK FLT): the knob's own function lit, the
+ones the other knobs already have tagged K1–K4.
+
+- **K1–K4**: that knob's function, one place on through the list (or back).
+- **ALGORITHM**: the knob touched last, straight to the next family (or the one before).
+- **PRESETS**: the styles and PRESET 1–4 (as KICK › MORE › ASSIGN), the four knobs at once.
+
+KICK › MORE › K1–K4 SET still works as before, in its own order. The functions are the kick playing's, as everywhere.
 
 ![ARP › ASSIGN: SEL + K1 on PRE LOW](img/arpassign.png "KNOB ASSIGN")
 
@@ -611,7 +619,7 @@ value and a bar. The functions are the kick playing's, as everywhere.
 **REC** ON, press PLAY, then turn **SEL + K1–K4**. Each one's move is written at the step playing, over the pattern's
 64 steps (four bars), and comes back every time the pattern loops. What gets recorded is whatever the four SEL knobs
 do (ARP › ASSIGN, or KICK › MORE › K1–K4 SET): the kick's DRIVE, DISTO, SCREAM, SUB DRIVE, DECAY, PITCH DROP, PUNCH, the drums' filter, the
-PRE EQ's gains and frequencies, the break's filter (BRK FLT)… Each lane keeps the function it was recorded with; recording another function on a lane replaces it.
+PRE EQ's gains and frequencies, the break's filter (BRK FLT), the SUB SPLIT's crossover (XSUB FREQ)… Each lane keeps the function it was recorded with; recording another function on a lane replaces it.
 Between two written steps the value holds. While you turn a knob, its own lane waits for your hand.
 
 - **K1 MOTION**: the pattern's motion, OFF or M1–M4 (four motions, each pattern picks one: the motion changes with the

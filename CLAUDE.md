@@ -152,7 +152,11 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - ARP › ASSIGN (26 Nov 2026, 0.9.85, FLEXOR: "dans ARP un nouvel onglet Knob assign ... avant motion ... ne modifie
   pas l'autre"): ui.opage 3 (OPAGE_NAME "ASSIGN", the header KNOB ASSIGN), track.c `as_value` / `as_turn` (selk_assign_k)
   / `draw_assign`; PRESETS kstyle_turn; ALGORITHM nothing; KICK › MORE's KNOBS, ASSIGN, K1-K4 SET untouched. MOTION is
-  opage 4 since. Scenario arpassign.
+  opage 4 since. Scenario arpassign. 0.9.86 (FLEXOR: "une liste déroulante ... pas de menu diving"): the four knobs left
+  (`as_foc` the one touched last), every function right by family (`AS_ORD`, `AS_FAM_AT`, `AS_FAM_NAME`: DIST SHAPE PRE
+  EQ XSUB FILTER; this page's own order, SK_CODE's untouched so the saved codes keep), the others' tagged K1-K4; K1-K4
+  `as_turn` a place on, ALGORITHM `as_fam_turn` a family on. SK 29 XSUB FREQ (`SK_XO`, kx2.px xo, OFF / 40-300 Hz),
+  SK_N / SK_CODES 30: code 31, one function more at most.
 - MOTION (26 Nov 2026, 0.9.85, a TEST, FLEXOR, from issue #5: "motion control recording ... in Edit Mode ... and for the
   white/black key effects"; his choices: SEL + K1-K4 and BRK FLT, four motions, each pattern its own, "utiliser un motion
   sur l'étendue d'un pattern de 64 steps"; he wants feedback before more): ARP's fifth tab (ui.opage 4 since ASSIGN, OPAGE_NAME,

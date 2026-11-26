@@ -435,6 +435,7 @@ ABG's four, plus the master section a live unit needs.
 | A-86 | **KIL MUTES** (LOAF BREAKER, 26 Nov 2026, 0.9.85, FLEXOR, from issue #5: "mute the entire drum section including snares and hi-hats"): KIL's K2 MUTES, what it quiets while held (or latched, K1): KICKS (as before), DRUMS (snare, hat, clap), ALL; set.half_mt_off bits 6-7 | P1 | *Done* |
 | A-87 | **The PRE EQ and BRK FLT as knob functions** (LOAF BREAKER, 26 Nov 2026, 0.9.85, FLEXOR: "pouvoir assigner les db+ et db- des trois fréquences du pre-eq ainsi que les low freq, med freq, high freq ... sculpter les kicks en direct ou grâce à une motion"): SK 22-28 PRE LOW / MID / HIGH, their frequencies, BRK FLT, for SEL + K1-K4 (and MOTION) | P1 | *Done* |
 | A-88 | **MOTION** (LOAF BREAKER, 26 Nov 2026, 0.9.85, a TEST, FLEXOR, from issue #5: "motion control recording"; his choices: SEL + K1-K4 and BRK FLT, four motions, each pattern its own, over 64 steps): ARP › MOTION; REC on and playing, SEL + K1-K4 written at bar64, played back each loop; saved after km2 in OBJ_KMEM2; RAM 1.1 KB | P1 | *TEST* |
+| A-89 | **ARP › ASSIGN as a list; XSUB FREQ** (LOAF BREAKER, 26 Nov 2026, 0.9.86, FLEXOR: "une liste déroulante ... pas de menu diving ... ne pas avoir à sacrifier des options"; "un knob assign pour l'XFREQ de l'onglet xsub"): the four knobs left, every function right by family, ALGORITHM a family on; SK 29 XSUB FREQ | P1 | *Done* |
 
 ---
 

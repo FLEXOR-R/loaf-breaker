@@ -1,4 +1,4 @@
-# LOAF BREAKER (0.9.85, FLEXOR): the PRE EQ's gains and frequencies and BRK FLT as SEL + K1-K4 functions (KICK › MORE › K1 SET's PRESETS): BRK FLT the break's filter, PRE LOW its gain, PRE MID FREQ, then SEL + K1 turning it.
+# LOAF BREAKER (0.9.85, FLEXOR): the PRE EQ's gains and frequencies and BRK FLT as SEL + K1-K4 functions (KICK › MORE › K1 SET's PRESETS): (0.9.86: XSUB FREQ last) BRK FLT the break's filter, PRE LOW its gain, PRE MID FREQ, then SEL + K1 turning it.
 #   app/build/host/loaf-breaker_host tests/scenarios/skpre.txt app/build/scenarios
 wait 4200
 tap EDIT
@@ -23,6 +23,9 @@ wait 100
 expect kpage 12
 expect kpage 12
 turn PRESET 40 10
+wait 100
+expect selk1_fn 29
+turn PRESET -1 10
 wait 100
 expect selk1_fn 28
 turn K1 3 10

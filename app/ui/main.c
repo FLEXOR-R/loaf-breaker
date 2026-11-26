@@ -684,7 +684,7 @@ static void enc_one(int k, int32_t d, uint32_t btn)   /* an encoder turned d (in
         else if (ui.page == PG_OVL && ui.opage == 4u)
             mo_turn(2, d);
         else if (ui.page == PG_OVL && ui.opage == 3u)
-            ;                        /* (0.9.85: ASSIGN, nothing) */           /* (0.9.85: MOTION, ALGORITHM the lane, as K3) */
+            as_fam_turn(d);          /* (0.9.86: ASSIGN, ALGORITHM the knob touched last a family on) */           /* (0.9.85: MOTION, ALGORITHM the lane, as K3) */
         else if (ui.page == PG_OVL && ui.opage >= 1u)
             bk_turn(1, d);           /* (0.9.26, FLEXOR: ARP › BLACK KEYS, ALGORITHM the key, as K2) */
         else if (ui.page == PG_TRACK && ui.tpage == 0u)

@@ -678,23 +678,24 @@ static void track_dropped(void)
 /* LOAF BREAKER (10 Nov 2026, early next gen): 15 PITCH DROP (SYNTH's DROP, its TIME), 16 RUMBLE (its amount, its
  * time), 17 PUNCH (MACRO's), 18 DRUM FLT (the drums' filter, SEL + SELECT's), 19 HOLD (SYNTH's), 20 KICK FX (the
  * kick's two FX slots' mix) */
-#define SK_N 29u                         /* (0.9.62, FLEXOR: 21 SUB DRV, the SUB layer's DRIVE gain; 0.9.85, FLEXOR: "les db+
+#define SK_N 30u                         /* (0.9.62, FLEXOR: 21 SUB DRV, the SUB layer's DRIVE gain; 0.9.85, FLEXOR: "les db+
                                           * et db- des trois fréquences du pre-eq ainsi que les low freq, med freq, high
                                           * freq ... sculpter les kicks en direct ou grâce à une motion": 22-24 PRE LOW, MID,
                                           * HIGH (their gains), 25-27 their frequencies, 28 BRK FLT (the break's DJ filter)) */
 #define SK_PRE 22u                       /* (the first PRE EQ function: 22 + b a gain, 25 + b a frequency) */
 #define SK_BFLT 28u
+#define SK_XO 29u                        /* (0.9.86, FLEXOR: "un knob assign pour l'XFREQ de l'onglet xsub": SUB SPLIT's X FREQ) */
 /* (LOAF BREAKER, 10 Nov 2026: on the screen TERROR is DISTO, TERROR 2 SCREAM, TERROR + DISTO +, its settings D+ ..: names
  * a newcomer reads; the code keeps TERROR's) */
 static const char *const SK_NAME[SK_N] = {"DUCK", "SCREAM", "COMP", "DISTO", "DISTO +", "DRIVE", "D+ TYPE",
                                           "D+ SCREECH", "D+ TAIL", "TUNE", "DECAY", "REV BASS", "GLIDE", "CLEAN SUB",
                                           "MORPH", "PITCH DROP", "RUMBLE", "PUNCH", "DRUM FLT", "HOLD", "KICK FX", "SUB DRIVE",
                                           "PRE LOW", "PRE MID", "PRE HIGH", "PRE LO FREQ", "PRE MID FREQ", "PRE HI FREQ",
-                                          "BRK FLT"};
+                                          "BRK FLT", "XSUB FREQ"};
 static const char *const SK_SHORT[SK_N] = {"DUCK", "SCREAM", "COMP", "DISTO", "D+ DRIVE", "DRIVE", "D+ TYPE", "SCRCH",
                                            "D+ TAIL", "TUNE", "DECAY", "REV B", "GLIDE", "C SUB", "MORPH", "P DROP",
                                            "RUMBLE", "PUNCH", "D FLT", "HOLD", "K FX", "SUB DRV", "P LOW",
-                                           "P MID", "P HIGH", "P LO F", "P MID F", "P HI F", "B FLT"};
+                                           "P MID", "P HIGH", "P LO F", "P MID F", "P HI F", "B FLT", "X FREQ"};
 static const char *const SK_KNOB[SK_N][4] = {{"AMOUNT", "ATTACK", "RELEASE", "DUCKS"}, {"AMOUNT", "SUB", "SCREAM", "PUSH"},
                                              {"AMOUNT", "RATIO", "ATTACK", "RELEASE"}, {"AMOUNT", "SUB", "FIZZ", "SUSTAIN"},
                                              {"DRIVE", "TYPE", "SCREECH", "TAIL"}, {"AMOUNT", "", "", ""},
@@ -706,14 +707,14 @@ static const char *const SK_KNOB[SK_N][4] = {{"AMOUNT", "ATTACK", "RELEASE", "DU
                                              {"HOLD", "", "", ""}, {"FX 1 MIX", "FX 2 MIX", "", ""}, {"GAIN", "", "", ""},
                                              {"GAIN", "", "", ""}, {"GAIN", "", "", ""}, {"GAIN", "", "", ""},
                                              {"FREQ", "", "", ""}, {"FREQ", "", "", ""}, {"FREQ", "", "", ""},
-                                             {"FILTER", "", "", ""}};
+                                             {"FILTER", "", "", ""}, {"FREQ", "", "", ""}};
 static const char *const T_TYPE_NAME[KICK_T_TYPES] = {"FOLD", "CLIP", "CRUSH", "RECT", "TUBE", "HALF", "SINE",
                                                       "WRAP", "FUZZ"};   /* (0.255: four more, FLEXOR) */
 /* what a SEL + knob can be given (KNOB, PRESETS), in that order: its code 1..15 is its place + 1 (0: the knob's own) */
-#define SK_CODES 29u                     /* (codes past 15: selk_hi's fifth bit; 0.9.62 SUB DRIVE, 22; 0.9.85 the PRE EQ's
+#define SK_CODES 30u                     /* (codes past 15: selk_hi's fifth bit; 0.9.62 SUB DRIVE, 22; 0.9.85 the PRE EQ's
                                           * six and BRK FLT, 23-29: the fifth bit holds them, 31 at most) */
 static const uint8_t SK_CODE[SK_CODES] = {0u, 1u, 2u, 3u, 4u, 6u, 7u, 8u, 5u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u,
-                                          17u, 18u, 19u, 20u, 21u, 22u, 23u, 24u, 25u, 26u, 27u, 28u};
+                                          17u, 18u, 19u, 20u, 21u, 22u, 23u, 24u, 25u, 26u, 27u, 28u, 29u};
 static const uint8_t SK_OWN[4] = {5u, 1u, 7u, 3u};   /* K1 DRIVE, K2 TERROR 2, K3 T+ SCREECH, K4 TERROR (LOAF BREAKER:
                                           * DUCK and COMP no more: the MIXER's MASTER has them) */
 static const char *sk_short(uint32_t f) { return SK_SHORT[f % SK_N]; }   /* (EDIT KICK's KNOBS) */
@@ -775,12 +776,17 @@ static void selk_value(uint32_t f, int i, char *t)
     uint8_t v;
     int32_t sv;
     t[0] = 0;
-    if (f >= SK_PRE) {                   /* (0.9.85: the PRE EQ's gains and frequencies, BRK FLT) */
+    if (f >= SK_PRE) {                   /* (0.9.85: the PRE EQ's gains and frequencies, BRK FLT; 0.9.86 X FREQ) */
         const kick_px_t *x = kpx_at(set.kslot);
         uint32_t b = (f - SK_PRE) % 3u;
         if (i)
             return;
-        if (f == SK_BFLT)
+        if (f == SK_XO) {
+            if (!x->xo)
+                text_cat(t, "OFF");
+            else
+                hz_text(40.0f + 5.0f * (float)(x->xo - 1u), t);
+        } else if (f == SK_BFLT)
             brk_flt_text(t);
         else if (f >= SK_PRE + 3u)
             hz_text(kpx_hz(x, b), t);
@@ -903,7 +909,7 @@ static float sk_norm(uint32_t f, int i)  /* a setting 0..1, as its bar */
     if (f >= SK_PRE) {                   /* (0.9.85: the PRE EQ's, BRK FLT) */
         const kick_px_t *x = kpx_at(set.kslot);
         uint32_t b = (f - SK_PRE) % 3u;
-        return i ? 0.0f : f == SK_BFLT ? (set.fx.dj + 1.0f) * 0.5f :
+        return i ? 0.0f : f == SK_XO ? (float)x->xo / (float)KICK_XO_N : f == SK_BFLT ? (set.fx.dj + 1.0f) * 0.5f :
                f >= SK_PRE + 3u ? (float)(x->eq_f[b] - KPX_FLO[b]) / (float)(KPX_FHI[b] - KPX_FLO[b]) :
                (float)(x->eq_g[b] + KICK_PX_DB) * (1.0f / (2.0f * KICK_PX_DB));
     }
@@ -959,7 +965,9 @@ static void selk_turn(uint32_t f, int i, int32_t d)
         uint32_t b = (f - SK_PRE) % 3u;
         if (i)
             return;
-        if (f >= SK_PRE + 3u)
+        if (f == SK_XO)
+            x->xo = (uint8_t)clamp((int32_t)x->xo + d, 0, (int32_t)KICK_XO_N);
+        else if (f >= SK_PRE + 3u)
             x->eq_f[b] = (int8_t)clamp((int32_t)x->eq_f[b] + d, KPX_FLO[b], KPX_FHI[b]);
         else
             x->eq_g[b] = (int8_t)clamp((int32_t)x->eq_g[b] + d, -KICK_PX_DB, KICK_PX_DB);
@@ -2234,39 +2242,101 @@ static void draw_motion(void)
 }
 
 /* ---- ARP › ASSIGN (0.9.85, FLEXOR: "dans ARP un nouvel onglet Knob assign ... avant motion"; KICK › MORE's kept as
- * it is): K1-K4 the function SEL + K1..K4 turn (as K1-K4 SET's PRESETS), PRESETS the styles and PRESET 1-4 (as
- * ASSIGN's); the page each knob's function, its value and its bar ---- */
+ * it is; 0.9.86, FLEXOR: "une liste déroulante ... voir beaucoup plus facilement les options ... pas de menu diving"):
+ * the four knobs on the left, the one touched last lit; on the right every function in a list by family, the knob's
+ * own lit, the ones the other knobs have tagged with their number. K1-K4 move that knob a function on through the list
+ * (this page's order, by family: KICK › MORE keeps SK_CODE's, the saved codes untouched), ALGORITHM the focused knob a
+ * family on, PRESETS the styles and PRESET 1-4 ---- */
+#define AS_FAM 5u
+static const char *const AS_FAM_NAME[AS_FAM] = {"DIST", "SHAPE", "PRE EQ", "XSUB", "FILTER"};
+static const uint8_t AS_ORD[] = {3u, 1u, 5u, 21u, 4u, 6u, 7u, 8u,            /* (DIST: DISTO, SCREAM, DRIVE, SUB DRIVE, D+ ..) */
+                                 17u, 10u, 15u, 16u, 19u, 13u, 11u, 12u, 14u, 20u,   /* (SHAPE) */
+                                 22u, 25u, 23u, 26u, 24u, 27u,               /* (PRE EQ: each band beside its frequency) */
+                                 29u,                                        /* (XSUB) */
+                                 18u, 28u};                                  /* (FILTER: DRUM FLT, BRK FLT) */
+#define AS_N (sizeof AS_ORD / sizeof AS_ORD[0])
+static const uint8_t AS_FAM_AT[AS_FAM] = {0u, 8u, 18u, 24u, 25u};   /* (each family's first place in AS_ORD) */
+static uint8_t as_foc;                   /* (the knob touched last) */
+static uint32_t as_at(uint32_t f)        /* a function's place in the list (one not there: 0) */
+{
+    uint32_t i;
+    for (i = 0; i < AS_N; i++)
+        if (AS_ORD[i] == f)
+            return i;
+    return 0u;
+}
+static uint32_t as_fam(uint32_t at)
+{
+    uint32_t g = AS_FAM - 1u;
+    while (g && at < AS_FAM_AT[g])
+        g--;
+    return g;
+}
+static void as_set(uint32_t kn, uint32_t at)   /* knob kn to the list's place at */
+{
+    uint32_t c, f = AS_ORD[at % AS_N];
+    char n[12] = "SEL + K";
+    for (c = 0; c < SK_CODES && SK_CODE[c] != f; c++)
+        ;
+    sk_code_set(kn & 3u, c + 1u);
+    n[7] = (char)('1' + (kn & 3u));
+    n[8] = 0;
+    app_say(n, SK_NAME[f % SK_N]);
+    changed();
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
 static void as_value(int i, char *t)
 {
     t[0] = 0;
     text_cat(t, sk_short(selk_fn((uint32_t)i & 3u)));
 }
-static void as_turn(int i, int32_t d) { selk_assign_k((uint32_t)i & 3u, d); }
+static void as_turn(int i, int32_t d)    /* K1-K4: that knob a function on (or back) through the list, stopping at its ends */
+{
+    as_foc = (uint8_t)(i & 3);
+    as_set(as_foc, (uint32_t)clamp((int32_t)as_at(selk_fn(as_foc)) + (d > 0 ? 1 : -1), 0, (int32_t)AS_N - 1));
+}
+static void as_fam_turn(int32_t d)       /* ALGORITHM: the focused knob to the next family's first (or the one before) */
+{
+    int32_t g = (int32_t)as_fam(as_at(selk_fn(as_foc))) + (d > 0 ? 1 : -1);
+    as_set(as_foc, AS_FAM_AT[clamp(g, 0, (int32_t)AS_FAM - 1)]);
+}
 static void draw_assign(void)
 {
-    uint32_t band, k;
+    uint32_t band, k, r, cur = as_at(selk_fn(as_foc)), top;
     char t[16];
+    top = cur < 3u ? 0u : cur - 3u;      /* (the list's eight rows, the knob's own the fourth when it can) */
+    if (top > AS_N - 8u)
+        top = AS_N - 8u;
     for (band = 0; band < 2u; band++) {
         cv_begin(240, 52, C_BLACK);
-        for (k = band * 2u; k < band * 2u + 2u; k++) {
-            int32_t y = (int32_t)(k % 2u) * 26, h = 25, w;
+        for (k = band * 2u; k < band * 2u + 2u; k++) {   /* (left: the four knobs) */
+            int32_t y = (int32_t)(k % 2u) * 26;
+            int on = k == as_foc;
             uint32_t f = selk_fn(k);
-            float n = sk_norm(f, 0);
-            cv_rect(0, y, 240, h, C_BLOCK);
-            cv_rect(0, y, 43, h, C_BLOCK_HI);
+            cv_rect(0, y, 92, 25, on ? C_BLOCK_HI : C_BLOCK);
             t[0] = 0;
-            text_cat(t, "SEL +");
-            cv_text(3, y + 2, &FONT_T, t, C_BLACK);
-            t[0] = 0;
-            text_cat(t, "K");
-            int_text((int32_t)k + 1, t + 1);
-            cv_text(3, y + 13, &FONT_T, t, C_BLACK);
-            cv_text(48, y + 2, &FONT_XS, SK_NAME[f % SK_N], C_WHITE);
-            selk_value(f, 0, t);
-            w = text_w(&FONT_XS, t);
-            cv_text(236 - w, y + 2, &FONT_XS, t, C_HI);
-            cv_rect(48, y + h - 5, 188, 3, C_LINE);
-            cv_rect(48, y + h - 5, (int32_t)(n * 188.0f + 0.5f), 3, C_HI);
+            text_cat(t, "SEL + K");
+            int_text((int32_t)k + 1, t + 7);
+            cv_text(3, y + 2, &FONT_T, t, on ? C_BLACK : C_DIM);
+            cv_text(3, y + 11, &FONT_XS, sk_short(f), on ? C_BLACK : C_WHITE);
+            cv_rect(60, y + 21, 29, 2, on ? C_BLACK : C_LINE);   /* (its value's bar) */
+            cv_rect(60, y + 21, (int32_t)(sk_norm(f, 0) * 29.0f + 0.5f), 2, on ? C_WHITE : C_HI);
+        }
+        for (r = band * 4u; r < band * 4u + 4u; r++) {   /* (right: the list, 13 rows each) */
+            uint32_t at = top + r, f = AS_ORD[at], g = as_fam(at), j;
+            int32_t y = (int32_t)(r % 4u) * 13;
+            int on = at == cur;
+            cv_rect(95, y, 145, 12, on ? C_HI : (g & 1u) ? C_BLOCK : C_BLACK);
+            if (at == AS_FAM_AT[g] || r == 0u)   /* (a family's first, and the list's top row: its name) */
+                cv_text(97, y + 1, &FONT_T, AS_FAM_NAME[g], on ? C_BLACK : at == AS_FAM_AT[g] ? C_AMB : C_DIM);
+            cv_text(134, y + 1, &FONT_XS, SK_NAME[f % SK_N], on ? C_BLACK : C_WHITE);
+            for (j = 0; j < 4u; j++)     /* (the other knobs that have it) */
+                if (j != as_foc && selk_fn(j) == f) {
+                    t[0] = 'K';
+                    t[1] = (char)('1' + j);
+                    t[2] = 0;
+                    cv_text(236 - text_w(&FONT_T, t), y + 3, &FONT_T, t, on ? C_BLACK : C_HI);
+                }
         }
         cv_blit(0, 88u + band * 52u);
     }

@@ -1,6 +1,7 @@
-# LOAF BREAKER (0.9.85, FLEXOR: "dans ARP un nouvel onglet Knob assign ... avant motion"): ARP › ASSIGN, its fourth tab:
-# K1-K4 the function SEL + K1..K4 turn (as KICK › MORE › K1-K4 SET, kept as it is), PRESETS the styles; SEL + K1 then
-# turns the function picked here.
+# LOAF BREAKER (0.9.85, FLEXOR: "dans ARP un nouvel onglet Knob assign ... avant motion"; 0.9.86: "une liste déroulante
+# ... pas de menu diving"): ARP › ASSIGN, its fourth tab: the four knobs on the left, on the right every function by
+# family (DIST, SHAPE, PRE EQ, XSUB, FILTER); K1-K4 that knob a function on, ALGORITHM a family on, PRESETS the styles;
+# SEL + K1 then turns the function picked here (KICK › MORE › K1-K4 SET kept as it is).
 #   app/build/host/loaf-breaker_host tests/scenarios/arpassign.txt app/build/scenarios
 wait 4200
 tap ARP
@@ -12,7 +13,7 @@ expect selk1_fn 5
 turn K1 40 10
 wait 150
 expect selk1_fn 28
-turn K1 -6 10
+turn K1 -8 10
 wait 150
 expect selk1_fn 22
 shot arpassign.png
@@ -21,6 +22,18 @@ turn K1 4 10
 release SEL
 wait 100
 expect pxlow 4
+# ALGORITHM: the family after PRE EQ, XSUB: its X FREQ; SEL + K1 then the crossover
+turn ALGO 1 10
+wait 150
+expect selk1_fn 29
+press SEL
+turn K1 3 10
+release SEL
+wait 100
+expect xo 3
+turn ALGO -2 10
+wait 150
+expect selk1_fn 17
 turn PRESET 1 10
 wait 150
 expect selk1_fn 15
