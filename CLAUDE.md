@@ -123,8 +123,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - KCK SNR HAT CLP (26 Nov 2026, 0.9.81, FLEXOR, from issue #4: "map them to the Kick, Snare, Hi-Hat, and Clap ... to finger-drum and live-record"; his choice: four assignable black-key functions, "il pourra le configurer lui-même"): `BKF_KCK`..`BKF_CLP`, last in BKF_* (after SPL; KCK + d = DR_*); main.c a press each `midi_drum(d)` (REC playing: written into the lane), bkf_lit while held; CUSTOM / SEL BLACK / REC; in no preset layout. Scenario drumkeys; the scenarios turning K3 left of R8 (or REC's list) four more.
 - PRE EQ and SUB SPLIT (26 Nov 2026, 0.9.82, FLEXOR: "l'eq avant la disto ... et le sub séparé"; GABBERKIX's ideas
   only, its code GPL: never copied): KICK › DIST's last three parts (DIST: DIRT until 0.9.81, FLEXOR) (KP_PREQ, KP_PREQ2, KP_XSUB; parts KP_PART_PREQ
-  35..37, KSECT rows of 10 now): PRE EQ K1-K3 LOW MID HIGH dB, K4 MID FREQ; PRE EQ + LO FREQ, MID Q, HI FREQ (the KICK
-  EQ's names: the VST draws its curve); SUB SPLIT X FREQ (OFF, 40..300 Hz), SUB LEVEL, SUB DIRT, SUB DECAY. kick.h
+  35..37, KSECT rows of 10 now): PRE EQ K1-K3 LOW MID HIGH dB (K4 none); PRE EQ + LO FREQ, MID FREQ, HI FREQ, MID Q
+  (0.9.83, FLEXOR; the KICK EQ's names: the VST draws its curve); SUB SPLIT X FREQ (OFF, 40..300 Hz), SUB LEVEL, SUB DIRT, SUB DECAY. kick.h
   `kick_px_t`, `kick_set_px` (klab_send); kick.c: bells on the layers' sum before `d = y * c->g`, an LR4 crossover
   (two Butterworth SVFs each side) whose lows come back after TERROR 2; all 0 bit for bit. Each kick's in `kx2.px`
   (appended to kx2_t, `kpx_at`, PX_TAG 0x82), copied with COPY, cleared as TOK. Drawn in frequency (ui/kick.c
@@ -136,7 +136,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   the picture KV_PH 148 rows (KV_MID, KV_AMP; perc.c PW_MID, PW_AMP). Every other page's foot (FLEXOR: "garder le
   carré sans la barre quand ce n'est pas pertinent"): main.c `foot_card`, each knob a card under the black keys'
   row, a fader where `foot_norm` (HOME, GENERATOR, CHAOS, ARP's AMOUNT, MIX, the FX slots) or `sk_norm` (SEL) knows
-  it, from the middle for the DJ filters (`foot_bip`); the knobs' arc gone. A new continuous knob: give foot_norm it. DIST's chips short (DIST D+ SCR SFX .. CFX PRE PRE+ XSUB, FLEXOR). Host `kset px.*`; probes pxlow ..
+  it, from the middle for the DJ filters (`foot_bip`); the knobs' arc gone; GATE OFF at the top (0.9.83, FLEXOR: no jump to 95 %). A new
+  continuous knob: give foot_norm it. DIST's chips short (DIST D+ SCR SFX .. CFX PRE PRE+ XSUB, FLEXOR). Host `kset px.*`; probes pxlow ..
   xdec; engine test; scenario prexsub. Image 567,556 B, RAM 94,892, pool 337,816.
 - DROP BREAK NEXT (20 Nov 2026, 0.9.71, FLEXOR): SONG › DROP K3 SAME, NEXT, then each break; `DBRK_NEXT` 0xFF in set.drop_brk (an older firmware reads it as SAME), track.c `trk_drop_brk` the break after set.brk, round; probe dbrk; scenario dropnext.
 - White keys per break; SEL WHITE and KITS gone (20 Nov 2026, 0.9.71, FLEXOR: "assigner des réglages de length de white key pour chaque break afin de mieux chopper ... tu peux supprimer la fonction d'assignation des white keys"; KITS too, his choice): set.keys is the break playing's, every break's in kx2.wk (24 x 16, packed 2 bytes: LENGTH, DECAY, MODE, PITCH, bit 15 set; appended to OBJ_KX2 after `selrec`), app.c `wk_follow` (break_ask), `wk_store` (store_all), `wk_fill` (an older save, RESET WHITE KEYS, RESET ALL); slice effects (set.slx) still shared. ARP's tabs ARP, BLACK, SEL BLACK (`ui.opage` 0..2); SETUP's PRESETS the skin again; RESET's KITS gone; kx2.kit and kx2.rsv[0..47] unused now (kept for the layout), set.rsv6[2] bit 3 free; the notes on SEL WHITE, KITS and the TRACK shortcut below are history. Scenario wkbreak.

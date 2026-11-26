@@ -1,6 +1,6 @@
 # LOAF BREAKER (0.9.82, FLEXOR: "l'eq avant la disto (fonction très importante pour la variété des kicks) et le sub
-# séparé"): KICK › DIRT's last three parts: PRE EQ (K1 LOW, K2 MID, K3 HIGH -18 .. +18 dB, K4 MID FREQ), PRE EQ + (K1
-# LO FREQ, K2 MID Q, K3 HI FREQ), three bells before the drive and the DISTOs; SUB SPLIT (K1 X FREQ OFF, 40 .. 300 Hz,
+# séparé"): KICK › DIST's last three parts: PRE EQ (K1 LOW, K2 MID, K3 HIGH -18 .. +18 dB), PRE EQ + (K1 LO FREQ, K2
+# MID FREQ, K3 HI FREQ, K4 MID Q; 0.9.83), three bells before the drive and the DISTOs; SUB SPLIT (K1 X FREQ OFF, 40 .. 300 Hz,
 # K2 SUB LEVEL, K3 SUB DIRT, K4 SUB DECAY), the lows around the dirt. Each kick its own; a built-in PRESET clears them.
 #   app/build/host/loaf-breaker_host tests/scenarios/prexsub.txt app/build/scenarios
 wait 4200
@@ -28,7 +28,7 @@ wait 200
 expect pxhigh -18
 turn K4 5 60
 wait 200
-expect pxmidf 5
+expect pxmidf 0
 shot preeq.png
 turn ALGO 1 10
 wait 300
@@ -36,9 +36,13 @@ expect kpage 23
 turn K1 -4 60
 wait 200
 expect pxlof -4
-turn K2 3 60
+turn K2 5 60
+wait 200
+expect pxmidf 5
+turn K4 3 60
 wait 200
 expect pxq 3
+shot preeq2.png
 turn ALGO 1 10
 wait 300
 expect kpage 24

@@ -2156,7 +2156,8 @@ static float foot_norm(int i)            /* the page's knob i, 0..1, or -1 (no g
     foot_bip = 0u;
     if (ui.page == PG_HOME) {            /* (0.9.82, FLEXOR: the foot's cards a fader where it means something) */
         if (i == 0)
-            return set.gate && set.gate < 100u ? (float)set.gate * 0.01f : 0.0f;
+            return set.gate && set.gate < 100u ? (float)set.gate * 0.01f : 1.0f;   /* (OFF: all of each slice, at the
+                                          * top: 95 % next to it, FLEXOR) */
         if (i == 3)
             return set.kick.l[KL_SUB].decay;
         foot_bip = 1u;                   /* (the break's and the drums' filters: LP left, HP right) */
@@ -2268,23 +2269,23 @@ static int edit_page(void)              /* (0.9.82, FLEXOR: the KICK menu and th
 static void foot_card(uint32_t i, const char *name, uint16_t ncol, const char *v, float norm, int bip)
 {
     int32_t x = 2 + (int32_t)i * 60;
-    cv_rect(x, 16, 56, 31, C_BLOCK);
+    cv_rect(x, 15, 56, 33, C_BLOCK);     /* (0.9.83, FLEXOR: a few pixels more, the value off its fader) */
     if (name[0])
-        cv_text(x + 3, 17, &FONT_T, name, ncol);
+        cv_text(x + 3, 15, &FONT_T, name, ncol);
     if (v[0]) {
         if (text_w(&FONT_XS, v) > 51)    /* (a value wider than its card: the smaller letters, 0.238) */
-            cv_text(x + 1, 30, &FONT_T, v, C_WHITE);
+            cv_text(x + 1, 29, &FONT_T, v, C_WHITE);
         else
-            cv_text(x + 3, 29, &FONT_XS, v, C_WHITE);
+            cv_text(x + 3, 27, &FONT_XS, v, C_WHITE);
     }
     if (norm >= 0.0f) {
         int32_t w = (int32_t)(50.0f * brk_clampf(norm, 0.0f, 1.0f) + 0.5f);
-        cv_rect(x + 3, 42, 50, 2, C_BLACK);
+        cv_rect(x + 3, 44, 50, 2, C_BLACK);
         if (bip) {                       /* (both ways: from the middle, its notch) */
-            cv_rect(x + 3 + (w < 25 ? w : 25), 42, w < 25 ? 25 - w : w - 25, 2, C_HI);
-            cv_rect(x + 27, 41, 2, 4, C_GRAY);
+            cv_rect(x + 3 + (w < 25 ? w : 25), 44, w < 25 ? 25 - w : w - 25, 2, C_HI);
+            cv_rect(x + 27, 43, 2, 4, C_GRAY);
         } else
-            cv_rect(x + 3, 42, w, 2, C_HI);
+            cv_rect(x + 3, 44, w, 2, C_HI);
     }
 }
 static void draw_foot(const brk_status_t *st)
