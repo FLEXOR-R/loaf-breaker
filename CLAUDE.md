@@ -149,6 +149,17 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   PRE LOW / MID / HIGH (kx2.px eq_g, 1 dB a detent), 25-27 their frequencies (eq_f, a semitone; KPX_FLO..FHI), 28 BRK FLT
   (set.fx.dj, brk_flt_turn: its own say); SK_N / SK_CODES 29 (codes to 29: selk_hi's fifth bit holds up to 31; two more
   at most), `SK_PRE`, `SK_BFLT`. Scenario skpre.
+- MOTION (26 Nov 2026, 0.9.85, a TEST, FLEXOR, from issue #5: "motion control recording ... in Edit Mode ... and for the
+  white/black key effects"; his choices: SEL + K1-K4 and BRK FLT, four motions, each pattern its own, "utiliser un motion
+  sur l'étendue d'un pattern de 64 steps"; he wants feedback before more): ARP's fourth tab (ui.opage 3, OPAGE_NAME,
+  EXPERT), track.c's end `mo_*`: REC (`mo_arm`, RAM only) and playing, main.c's SEL + K1-K4 turn calls `mo_rec`: the
+  function's sk_norm 0..254 written at st.bar64 into the pattern's motion (none: the first free taken; a lane with another
+  function cleared first); main.c's frame `mo_frame`: each new step, the lanes' written values put back (`mo_put`:
+  sk_set_norm, DRUM FLT and BRK FLT straight), a lane the hand turned within 400 ms left alone. app.c `motion_t` `mo`
+  (tag MO_TAG, fn[4][4] 1 + SK_*, pat[64] 0 OFF / 1..4, v[4][4][64] MO_NONE nothing), RAM 1,108 B (the pool had no room),
+  saved after km2 in OBJ_KMEM2 through lb_bu_buf (`km2_save`; read back the same way; an object of km2 alone: no motion);
+  RESET ALL mo_defaults. K1 MOTION, K2 REC, K3 LANE (ALGORITHM too) K1-K4 / ALL, K4 CLEAR (right). Probes mo morec mofn0
+  mon0; scenario motion (blackkeys: four ARP tabs now). Image 574,188 B (~7.4 KB left), RAM 96,060 of 98,304.
 - PRE EQ and SUB SPLIT (26 Nov 2026, 0.9.82, FLEXOR: "l'eq avant la disto ... et le sub séparé"; GABBERKIX's ideas
   only, its code GPL: never copied): KICK › DIST's last three parts (DIST: DIRT until 0.9.81, FLEXOR) (KP_PREQ, KP_PREQ2, KP_XSUB; parts KP_PART_PREQ
   35..37, KSECT rows of 10 now): PRE EQ K1 LOW, K2 LO FREQ, K3 MID, K4 MID FREQ; PRE EQ + HIGH, HI FREQ, MID Q (0.9.83,

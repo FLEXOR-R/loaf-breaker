@@ -2036,3 +2036,177 @@ static void track_open(void)
     ui.redraw |= RG_FOOT | RG_BLOCKS;
     page_say();
 }
+
+/* ---- MOTION (0.9.85, a TEST, FLEXOR, from issue #5; app.c motion_t): ARP's fourth tab. REC on and the FM-1 playing,
+ * SEL + K1..K4 turned write their function's place into the pattern's motion at the step playing (its lane takes the
+ * function: another one there, the lane cleared first); playing, each step that holds one puts the function there
+ * (the steps between hold it). Each pattern its motion, OFF or M1-M4 (K1); REC (K2) never saved; K3 the lane, ALL;
+ * K4 right CLEAR it. A pattern without one gets the first free motion as REC writes. ---- */
+static uint8_t mo_arm, mo_lane;          /* (REC; the lane K3 shows, MO_LANES: ALL) */
+static int8_t mo_last = -1;              /* (the step put last) */
+static uint32_t mo_hand[MO_LANES];       /* (when the hand last turned each lane: its playing waits 400 ms) */
+static uint32_t mo_of(void) { return mo.pat[pat_cur() % NPAT_ALL] % (MO_N + 1u); }   /* the pattern's: 0 OFF, 1..4 */
+static int mo_used(uint32_t m)
+{
+    uint32_t k;
+    for (k = 0; k < MO_LANES; k++)
+        if (mo.fn[m][k])
+            return 1;
+    return 0;
+}
+static void mo_clear(uint32_t m, uint32_t k)   /* (a lane, or MO_LANES: all four) */
+{
+    uint32_t j;
+    for (j = 0; j < MO_LANES; j++)
+        if (k >= MO_LANES || j == k) {
+            mo.fn[m][j] = 0u;
+            memset(mo.v[m][j], MO_NONE, MO_STEPS);
+        }
+}
+static void mo_put(uint32_t f, float want)   /* a function to a place (0..1), quietly */
+{
+    if (f == 18u) {                      /* (DRUM FLT and BRK FLT: straight there, nothing said) */
+        set.kick_dj = (int8_t)clamp((int32_t)(want * 200.0f + 0.5f) - 100, -100, 100);
+        changed();
+    } else if (f == SK_BFLT) {
+        set.fx.dj = want * 2.0f - 1.0f;
+        changed();
+    } else
+        sk_set_norm(f, want);
+}
+static void mo_rec(uint32_t kn)          /* SEL + K(kn + 1) turned: written, REC on and playing */
+{
+    brk_status_t st;
+    uint32_t m, f = selk_fn(kn & 3u), j;
+    brk_status(&st);
+    if (!mo_arm || !st.playing || st.bar64 < 0)
+        return;
+    m = mo_of();
+    if (!m) {                            /* (none yet: the first motion no pattern uses and empty, or M1) */
+        for (m = 1u; m <= MO_N; m++) {
+            for (j = 0; j < NPAT_ALL && mo.pat[j] != m; j++)
+                ;
+            if (j == NPAT_ALL && !mo_used(m - 1u))
+                break;
+        }
+        if (m > MO_N)
+            m = 1u;
+        mo.pat[pat_cur() % NPAT_ALL] = (uint8_t)m;
+    }
+    m--;
+    kn &= 3u;
+    if (mo.fn[m][kn] != f + 1u) {        /* (another function there: the lane cleared, this one's) */
+        mo_clear(m, kn);
+        mo.fn[m][kn] = (uint8_t)(f + 1u);
+    }
+    mo.v[m][kn][(uint32_t)st.bar64 % MO_STEPS] = (uint8_t)(sk_norm(f, 0) * 254.0f + 0.5f);
+    mo_hand[kn] = plat_ms() | 1u;
+    set_dirty = 1u;
+    if (ui.page == PG_OVL && ui.opage == 3u)
+        ui.redraw |= RG_BLOCKS;
+}
+static void mo_frame(const brk_status_t *st)   /* each frame: a new step, the pattern's motion played there */
+{
+    uint32_t m = mo_of(), k, now = plat_ms();
+    int s = st->playing ? st->bar64 : -1;
+    if (s == mo_last)
+        return;
+    mo_last = (int8_t)s;
+    if (ui.page == PG_OVL && ui.opage == 3u)
+        ui.redraw |= RG_BLOCKS;          /* (its playhead) */
+    if (s < 0 || !m)
+        return;
+    for (k = 0; k < MO_LANES; k++) {
+        uint32_t f = mo.fn[m - 1u][k], v = mo.v[m - 1u][k][(uint32_t)s % MO_STEPS];
+        if (!f || v == MO_NONE || (mo_hand[k] && now - mo_hand[k] < 400u))
+            continue;
+        mo_put(f - 1u, (float)v * (1.0f / 254.0f));
+    }
+}
+static const char *const MO_KNOB[4] = {"MOTION", "REC", "LANE", "CLEAR"};
+static void mo_value(int i, char *t)
+{
+    t[0] = 0;
+    if (i == 0) {
+        if (!mo_of())
+            text_cat(t, "OFF");
+        else {
+            text_cat(t, "M");
+            int_text((int32_t)mo_of(), t + 1);
+        }
+    } else if (i == 1)
+        text_cat(t, mo_arm ? "ON" : "OFF");
+    else if (i == 2) {
+        if (mo_lane >= MO_LANES)
+            text_cat(t, "ALL");
+        else {
+            text_cat(t, "K");
+            int_text((int32_t)mo_lane + 1, t + 1);
+        }
+    } else
+        text_cat(t, "TURN >");
+}
+static void mo_turn(int i, int32_t d)
+{
+    char t[16];
+    if (i == 0) {
+        uint8_t *p = &mo.pat[pat_cur() % NPAT_ALL];
+        *p = (uint8_t)clamp((int32_t)(*p % (MO_N + 1u)) + (d > 0 ? 1 : -1), 0, (int32_t)MO_N);
+        set_dirty = 1u;
+    } else if (i == 1)
+        mo_arm = d > 0;
+    else if (i == 2)
+        mo_lane = (uint8_t)clamp((int32_t)mo_lane + (d > 0 ? 1 : -1), 0, (int32_t)MO_LANES);
+    else {
+        if (d < 0 || !mo_of())
+            return;
+        mo_clear(mo_of() - 1u, mo_lane);
+        set_dirty = 1u;
+        app_say(mo_lane >= MO_LANES ? "MOTION" : "LANE", "CLEARED");
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        return;
+    }
+    mo_value(i, t);
+    app_say(i == 0 ? "PATTERN'S MOTION" : i == 1 ? "MOTION REC" : "LANE", t);
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
+/* the page: its four lanes, 26 rows each (the foot says the motion and REC): each lane's knob and function on the
+ * left (the lane K3 picks lit), its 64 steps (a bar where one is written, the value held faint after it), the step
+ * playing */
+static void draw_motion(void)
+{
+    brk_status_t st;
+    uint32_t band, k, s, m = mo_of();
+    char t[8];
+    brk_status(&st);
+    for (band = 0; band < 2u; band++) {
+        cv_begin(240, 52, C_BLACK);
+        for (k = band * 2u; k < band * 2u + 2u; k++) {
+            int32_t y = (int32_t)(k % 2u) * 26, h = 25;
+            uint32_t f = m ? mo.fn[m - 1u][k] : 0u, held = MO_NONE;
+            int on = mo_lane >= MO_LANES || mo_lane == k;
+            cv_rect(0, y, 240, h, C_BLOCK);
+            cv_rect(0, y, 43, h, on ? C_BLOCK_HI : C_BLOCK);
+            t[0] = 0;
+            text_cat(t, "K");
+            int_text((int32_t)k + 1, t + 1);
+            cv_text(3, y + 2, &FONT_T, t, on ? C_BLACK : C_DIM);
+            cv_text(3, y + 13, &FONT_T, sk_short(f ? f - 1u : selk_fn(k)), on ? C_BLACK : f ? C_HI : C_DIM);
+            for (s = 0; s < MO_STEPS; s++) {
+                uint32_t v = f ? mo.v[m - 1u][k][s] : MO_NONE;
+                int32_t x = 46 + (int32_t)s * 3, bh;
+                if (v != MO_NONE)
+                    held = v;
+                if (held == MO_NONE) {
+                    cv_rect(x, y + h - 2, 2, 1, C_LINE);
+                    continue;
+                }
+                bh = 1 + (int32_t)held * (h - 3) / 254;
+                cv_rect(x, y + h - 1 - bh, 2, bh, v != MO_NONE ? (on ? C_HI : C_GRAY) : C_LINE);
+            }
+            if (st.playing && st.bar64 >= 0)
+                cv_rect(46 + st.bar64 % (int)MO_STEPS * 3, y, 1, h, C_WHITE);
+        }
+        cv_blit(0, 88u + band * 52u);
+    }
+}

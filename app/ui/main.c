@@ -265,6 +265,7 @@ static void reset_all(void)
     kx2.sp_tag = SP_TAG2;
     brk_half(-1);
     drops_init();                        /* (0.9.58: DROP 1-8 all as the defaults, DROP 1 selected) */
+    mo_defaults();                       /* (0.9.85: no motion) */
     klab_defaults();                     /* (LOAF BREAKER: the KICK LAB off on every kick) */
     kx2_defaults();                      /* (0.9.45: TOK and the TAIL GATE off on every kick) */
     selk_clear();                        /* (0.9.49: no SEL layer) */
@@ -557,6 +558,7 @@ static void enc_one(int k, int32_t d, uint32_t btn)   /* an encoder turned d (in
     if (k >= EN_K1 && k <= EN_K4 && btn & 1u << B_SEL && !bk_knobs_held()) {   /* LOAF BREAKER: SEL + K1 DUCK, K2 TERROR 2, K3 COMP
                                       * (was LIMIT), K4 TERROR, on any page: its amount (its settings: ENV's KNOB) */
         selk_turn(selk_fn((uint32_t)(k - EN_K1)), 0, d);
+        mo_rec((uint32_t)(k - EN_K1));   /* (0.9.85: MOTION's REC on, playing: written into the pattern's motion) */
         ui.redraw |= RG_FOOT;        /* (the foot shows them: SEL held or locked) */
         return;
     }
@@ -624,7 +626,7 @@ static void enc_one(int k, int32_t d, uint32_t btn)   /* an encoder turned d (in
         return;
     }
     if (k == EN_SELECT && ui.page == PG_OVL && !set.novice) {   /* (0.9.2, FLEXOR: OVERLAY, SELECT its tabs) */
-        ui.opage = (uint8_t)((ui.opage + (d > 0 ? 1u : 2u)) % 3u);   /* (0.9.52, FLEXOR: both ways; 0.9.71 SEL WHITE
+        ui.opage = (uint8_t)((ui.opage + (d > 0 ? 1u : 3u)) % 4u);   /* (0.9.85: MOTION, the fourth) */   /* (0.9.52, FLEXOR: both ways; 0.9.71 SEL WHITE
                                       * and KITS gone: ARP, BLACK, SEL BLACK) */
         page_say();
         ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
@@ -679,6 +681,8 @@ static void enc_one(int k, int32_t d, uint32_t btn)   /* an encoder turned d (in
         else if (ui.page == PG_OVL && !ui.opage)
             ovl_step(d);             /* (0.9.52, FLEXOR: ARP, ALGORITHM the 16 effects in order; SEL + ALGORITHM
                                       * the break there) */
+        else if (ui.page == PG_OVL && ui.opage == 3u)
+            mo_turn(2, d);           /* (0.9.85: MOTION, ALGORITHM the lane, as K3) */
         else if (ui.page == PG_OVL && ui.opage >= 1u)
             bk_turn(1, d);           /* (0.9.26, FLEXOR: ARP › BLACK KEYS, ALGORITHM the key, as K2) */
         else if (ui.page == PG_TRACK && ui.tpage == 0u)
@@ -1002,7 +1006,7 @@ static void input(void)
                     ui.key_since = now;
                 }
     }
-    if (ui.page == PG_OVL && ui.opage >= 1u && ui.opage <= 3u) {   /* LOAF BREAKER: ARP › BLACK KEYS (0.9.49: and SEL KEYS): a black key
+    if (ui.page == PG_OVL && ui.opage >= 1u && ui.opage <= 2u) {   /* LOAF BREAKER: ARP › BLACK KEYS (0.9.49: and SEL KEYS): a black key
                                           * picks itself (what was held lets go as ever; nothing new starts) */
         for (i = 0; i < 11u; i++)
             if (kdn >> BK[i] & 1u)
@@ -1915,7 +1919,7 @@ static void knob_value(int i, char *t)  /* the page's knob i (0..3), as shown un
 /* the tab bar under the header: the button's name, then the page's parts as tabs (the one you are on lit: the
  * button again, or ALGORITHM, goes to the next); EDIT and FX also name the part edited, "< SUB FX >" */
 static int8_t build_stut = -1;          /* (a build's break roll: the roll pad it holds, -1 none) */
-static const char *const OPAGE_NAME[3] = {"ARP", "BLACK", "SEL BLACK"};   /* (0.9.53, FLEXOR: BLACK, there is room) */   /* (SETTINGS 0.9.50-0.9.51) */   /* (LOAF BREAKER: ARP's tabs) */
+static const char *const OPAGE_NAME[4] = {"ARP", "BLACK", "SEL BLACK", "MOTION"};   /* (0.9.85: MOTION, a TEST) */   /* (0.9.53, FLEXOR: BLACK, there is room) */   /* (SETTINGS 0.9.50-0.9.51) */   /* (LOAF BREAKER: ARP's tabs) */
 #if LB_BIG
 /* (LOAF BREAKER's VST, 24 Nov 2026, FLEXOR: "des contrôles contextuels qui affichent ce qu'ils modifient": the tabs and
  * the part as the screen draws them, noted for the VST's own interface: lbcore.c) */
@@ -1988,7 +1992,7 @@ static void draw_tabs(void)
             x = tab_glo(x, GLO_ORD[i], GLO_ORD[i] == GLO_HSET);
     else if (ui.page == PG_OVL) {        /* (LOAF BREAKER: EXPERT, its three tabs; BEGINNER, ARP EFFECTS alone: no tab) */
         if (!set.novice)
-            for (i = 0; i < 3u; i++)     /* (0.259, FLEXOR: MORE gone for now; 0.9.49 SEL KEYS; SEL WHITE and KITS
+            for (i = 0; i < 4u; i++)     /* (0.259, FLEXOR: MORE gone for now; 0.9.49 SEL KEYS; SEL WHITE and KITS
                                           * 0.9.50-0.9.70) */
                 x = tab(x, OPAGE_NAME[i], i == ui.opage);
     }
@@ -2086,7 +2090,7 @@ static void page_say(void)
     case PG_MIX: text_cat(t, ui.mpage == 3u ? "DYNAMICS" : ui.mpage == 2u ? "MASTER" : ui.mpage ? "ROUTING" : "LEVELS"); break;
     case PG_SEQ: text_cat(t, SEQ_BRK ? "BREAK" : SEQ_LANE_NAME[ui.seq_lane % NSEQL]); break;
     case PG_TRACK: text_cat(t, TPART[ui.tpage % NTPART]); break;
-    case PG_OVL: text_cat(t, ui.opage % 3u ? OPAGE_NAME[ui.opage % 3u] : "EFFECTS"); break;   /* (LOAF BREAKER: its tabs;
+    case PG_OVL: text_cat(t, ui.opage % 4u ? OPAGE_NAME[ui.opage % 4u] : "EFFECTS"); break;   /* (LOAF BREAKER: its tabs;
                                           * 0.9.69: its first EFFECTS, not "ARP ARP") */
     case PG_FX:
         text_cat(t, IS_KFX() ? "KICK FX " : "SLOT ");
@@ -2236,7 +2240,7 @@ static const char *knob_name(int i)
                                               {"", "KEY", "KIND", "VALUE"}};   /* (ARP's
                                       * BLACK KEYS, MORE) */
     static const char *const KN_LIGHTS[4] = {"GLOW", "PULSE", "PULSE ON", "STYLE"};   /* (0.9.57: SYSTEM › LIGHTS) */
-    const char *name = ui.page == PG_OVL && ui.opage ? KN_BK[(ui.opage - 1u) % 2u][i] :
+    const char *name = ui.page == PG_OVL && ui.opage == 3u ? MO_KNOB[i] : ui.page == PG_OVL && ui.opage ? KN_BK[(ui.opage - 1u) % 2u][i] :
                        ui.page == PG_GLOBAL && ui.gpage == GP_FILL ? KN_FILL[i] : ui.page == PG_GLOBAL &&
                        ui.gpage == GP_LIGHTS ? KN_LIGHTS[i] : RST_ON ? KN_TRK[3][i] : ui.page == PG_TRACK &&
                        ui.tpage ? KN_TRK[ui.tpage == 7u ? 5u : ui.tpage == 6u ? 4u : ui.tpage == 4u ? 2u : (ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
@@ -2803,6 +2807,7 @@ void app_frame(void)
         if (RST_ON)
             ui.redraw |= RG_BLOCKS | RG_FOOT;
     }
+    mo_frame(&st);                       /* (0.9.85: the pattern's MOTION, a step at a time) */
     kv_poll();                           /* (0.9.83: the kick's and the drums' pictures, a slice further a frame) */
     pw_poll();
     if (ui.page == PG_KICK && !ui.kclassic && kscope_hit && now - ui.kscope_drawn >= 200u && st.playing) {
@@ -4131,8 +4136,8 @@ int app_expect(const char *what, int *got)
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
                                     "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15", "broll", "stut", "fxwet", "tempo10", "kitsel", "kit0kick", "vthru", "dafter",
-                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold", "subfa", "dft", "swon", "strip", "kl_amt", "dbrk", "split", "split_at", "half", "half_ask", "layer", "split_b", "kdec0", "bpitch", "chaos", "cmath", "crolls", "cseed", "rkick", "rsnare", "rhat", "chsw", "ctl", "ctln", "ctllast", "ctllitk", "ctlmidk", "ctlmaster", "pxlow", "pxmid", "pxhigh", "pxmidf", "pxq", "pxlof", "xo", "xsg", "xdrv", "xdec", "phits", "kilwhat"};
-    int v[230];
+                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold", "subfa", "dft", "swon", "strip", "kl_amt", "dbrk", "split", "split_at", "half", "half_ask", "layer", "split_b", "kdec0", "bpitch", "chaos", "cmath", "crolls", "cseed", "rkick", "rsnare", "rhat", "chsw", "ctl", "ctln", "ctllast", "ctllitk", "ctlmidk", "ctlmaster", "pxlow", "pxmid", "pxhigh", "pxmidf", "pxq", "pxlof", "xo", "xsg", "xdrv", "xdec", "phits", "kilwhat", "mo", "morec", "mofn0", "mon0"};
+    int v[234];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -4398,6 +4403,12 @@ int app_expect(const char *what, int *got)
             seen = perc_hit_n;
     }
     v[229] = (int)kil_what();
+    v[230] = (int)mo_of();               /* (0.9.85: MOTION: the pattern's, REC, its first lane's function + 1, its steps) */
+    v[231] = mo_arm;
+    v[232] = mo_of() ? mo.fn[mo_of() - 1u][0] : 0;
+    v[233] = 0;
+    for (i = 0; mo_of() && i < MO_STEPS; i++)
+        v[233] += mo.v[mo_of() - 1u][0][i] != MO_NONE;
     v[161] = set.vinyl & 3u;             /* (0.9.54: VINYL BREAK's THRU, 0 BOTH 1 BREAK 2 KICK) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */
     v[141] = kx2_at(set.kslot)->gate;    /* (its TAIL GATE's division) */

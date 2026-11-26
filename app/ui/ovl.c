@@ -320,9 +320,16 @@ static void ovl_step(int32_t d)          /* (0.9.52, FLEXOR: ALGORITHM, the effe
     app_say(OVL_NAME[e], t);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
+static void mo_value(int i, char *t);   /* (0.9.85: ARP › MOTION, track.c) */
+static void mo_turn(int i, int32_t d);
+static void draw_motion(void);
 static void ovl_value(int i, char *t)
 {
     t[0] = 0;
+    if (ui.opage == 3u) {
+        mo_value(i, t);
+        return;
+    }
     if (ui.opage >= 1u) {                /* (BLACK KEYS; 0.9.49 SEL KEYS) */
         bk_value(i, t);
         return;
@@ -346,6 +353,10 @@ static void ovl_value(int i, char *t)
 static void ovl_turn(int i, int32_t d)
 {
     char t[16];
+    if (ui.opage == 3u) {
+        mo_turn(i, d);
+        return;
+    }
     if (ui.opage >= 1u) {
         bk_turn(i, d);
         return;
@@ -383,6 +394,10 @@ static void draw_ovl(void)
 {
     uint32_t band, i, on = ovl_sounding() | ovl_held | ovl_latched | ovl_pad_bits();
     char t[4];
+    if (ui.opage == 3u) {                /* (0.9.85: MOTION) */
+        draw_motion();
+        return;
+    }
     if (ui.opage >= 1u) {                /* (BLACK KEYS; 0.9.49 SEL KEYS) */
         draw_bk();
         return;

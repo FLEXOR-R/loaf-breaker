@@ -1221,6 +1221,31 @@ typedef struct {
 } km2_t;
 _Static_assert(sizeof(km2_t) <= 3840u, "a store object holds 3840 bytes");
 static km2_t km2 PLAT_POOL;
+/* LOAF BREAKER (26 Nov 2026, 0.9.85, a TEST, FLEXOR, from issue #5: "motion control recording"; his choices: SEL + K1-K4
+ * and BRK FLT, four motions, each pattern its own, "utiliser un motion sur l'étendue d'un pattern de 64 steps"): MOTION.
+ * A motion: four lanes (SEL + K1..K4 as they were when recorded: the function each lane holds, 1 + SK_*), 64 steps
+ * each (the pattern's bar64), a step 0..254 (the function's place, sk_norm) or MO_NONE (nothing there: the value
+ * before holds). Each pattern (0..63) plays one, OFF or M1-M4 (`pat`). RAM (1.1 KB: the pool has no room), saved after
+ * km2 in its object (OBJ_KMEM2 had 2 KB free; an older save's object is km2 alone: no motion) */
+#define MO_N 4u
+#define MO_LANES 4u
+#define MO_STEPS 64u
+#define MO_NONE 0xFFu
+#define MO_TAG 0x4Du
+typedef struct {
+    uint8_t tag, rsv[3];
+    uint8_t fn[MO_N][MO_LANES];          /* (each lane's function, 1 + SK_*; 0 empty) */
+    uint8_t pat[64];                     /* (each pattern (NPAT_ALL, asserted below)'s motion: 0 OFF, 1..MO_N) */
+    uint8_t v[MO_N][MO_LANES][MO_STEPS];
+} motion_t;
+_Static_assert(sizeof(km2_t) + sizeof(motion_t) <= 3840u, "km2 and the motions share a store object");
+static motion_t mo;
+static void mo_defaults(void)
+{
+    memset(&mo, 0, sizeof mo);
+    memset(mo.v, MO_NONE, sizeof mo.v);
+    mo.tag = MO_TAG;
+}
 static kick_t *kmem_at(uint32_t n)
 {
     n %= KICK_MEMS;
@@ -1259,6 +1284,7 @@ static void km2_lab_clear(void)
  * playing (a write stops the sound for a moment): SAVE or STOP first */
 #define NGRP 4u
 #define NPAT_ALL (NPAT * NGRP)
+_Static_assert(sizeof(((motion_t *)0)->pat) == NPAT_ALL, "a motion for each pattern");
 #define KH_SIZE (sizeof pats.kn + sizeof pats.hits)
 /* (0.9.30: the snare's, hat's, clap's bars 3 and 4, every group's: dx_of below) */
 #define DX_MAGIC 0x31435844u             /* "DXC1" */
@@ -1486,6 +1512,14 @@ static void kmem_extras(void)            /* (every memory: a new FM-1, RESET ALL
         set.ksyn[k] = ksmem_at(set.kslot % KICK_MEMS)[k];
 }
 static uint8_t bu_held;                  /* (a backup streaming over USB: no saving meanwhile, backup.c) */
+uint8_t lb_bu_buf[3840] __attribute__((aligned(4)));   /* (a restore's scratch: RAM, the pool has no room; 0.9.85: km2
+                                          * and the motions put together to be saved, and read back) */
+static int km2_save(void)                /* (km2, then the motions, one object) */
+{
+    memcpy(lb_bu_buf, &km2, sizeof km2);
+    memcpy(lb_bu_buf + sizeof km2, &mo, sizeof mo);
+    return plat_store_save(OBJ_KMEM2, lb_bu_buf, sizeof km2 + sizeof mo);
+}
 static int store_all(void)               /* SAVE: the settings, the patterns (the group in RAM too), the steps: 1 done */
 {
     if (wiped || bu_held)                /* (LOAF BREAKER, 0.263: WIPE MEMORY done: nothing saved until a restart) */
@@ -1494,13 +1528,12 @@ static int store_all(void)               /* SAVE: the settings, the patterns (th
     return plat_store_save(OBJ_SETTINGS, &set, sizeof set) == 0 && plat_store_save(OBJ_PAT, &pats, sizeof pats) == 0 &&
            plat_store_save(OBJ_STEP, &steps, sizeof steps) == 0 && grp_save() &&
            plat_store_save(OBJ_KLAB, &klab, sizeof klab) == 0 &&
-           plat_store_save(OBJ_KMEM2, &km2, sizeof km2) == 0 &&   /* (KICK 11..20, 0.9.2) */
+           km2_save() == 0 &&            /* (KICK 11..20, 0.9.2; 0.9.85 the motions after them) */
            (kfx_put(set.kslot), plat_store_save(OBJ_KFXM, &kfxm, sizeof kfxm) == 0) &&   /* (each kick's FX, 0.9.26) */
            (wk_store(), kx2_save() == 0);   /* (each kick's TOK and TAIL GATE, 0.9.45; each
                                           * break's white keys, 0.9.71) */
 }
 /* LOAF BREAKER (24 Nov 2026): fm1-base's backup and restore (app.h APP_BACKUP_*; the VST sends and fetches through it) */
-uint8_t lb_bu_buf[3840] __attribute__((aligned(4)));   /* (a restore's scratch: RAM, the pool has no room) */
 static int playing_now(void);          /* (seq.c) */
 int app_backup_playing(void) { return playing_now(); }
 void app_backup_flush(void) { store_all(); }   /* (stopped: everything as it is now, saved first) */
@@ -2442,7 +2475,13 @@ void app_init(void)
     {                                    /* (LOAF BREAKER, 0.9.2: KICK 11..20; a save before them: as they begin; the
                                           * KICK LAB's line above may have cleared their LAB: theirs read after) */
         km2_lab_clear();
-        if (plat_store_load(OBJ_KMEM2, &km2, sizeof km2) != (int)sizeof km2 || km2.magic != KM2_MAGIC)
+        int kn = plat_store_load(OBJ_KMEM2, lb_bu_buf, sizeof lb_bu_buf);
+        mo_defaults();                   /* (0.9.85: the motions; a save before them: none) */
+        if (kn == (int)(sizeof km2 + sizeof mo) && lb_bu_buf[sizeof km2] == MO_TAG)
+            memcpy(&mo, lb_bu_buf + sizeof km2, sizeof mo);
+        if (kn >= (int)sizeof km2)
+            memcpy(&km2, lb_bu_buf, sizeof km2);
+        if (kn < (int)sizeof km2 || km2.magic != KM2_MAGIC)
             km2_defaults();
         if (plat_store_load(OBJ_KFXM, &kfxm, sizeof kfxm) != (int)sizeof kfxm || kfxm.magic != KFXM_MAGIC)
             kfx_all();                   /* (0.9.26: each kick's FX section; before, the one they shared) */

@@ -596,6 +596,27 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 ![ROLL held: the caught slice repeating, each copy quieter](img/pad-roll8.png "ROLL held")
 ![VINYL BREAK held: the platter slowing down](img/pad-stop.png "VINYL BREAK held")
 
+### MOTION (a TEST, 0.9.85)
+
+**ARP › MOTION** (EXPERT, ARP's fourth tab) records your knob moves and plays them back over the pattern: turn K2
+**REC** ON, press PLAY, then turn **SEL + K1–K4**. Each one's move is written at the step playing, over the pattern's
+64 steps (four bars), and comes back every time the pattern loops. What gets recorded is whatever the four SEL knobs
+do (KICK › MORE › K1–K4 SET): the kick's DRIVE, DISTO, SCREAM, SUB DRIVE, DECAY, PITCH DROP, PUNCH, the drums' filter, the
+PRE EQ's gains and frequencies, the break's filter (BRK FLT)… Each lane keeps the function it was recorded with; recording another function on a lane replaces it.
+Between two written steps the value holds. While you turn a knob, its own lane waits for your hand.
+
+- **K1 MOTION**: the pattern's motion, OFF or M1–M4 (four motions, each pattern picks one: the motion changes with the
+  pattern). A pattern without one takes the first free motion as soon as REC writes.
+- **K2 REC**: OFF / ON (never saved: off at power-on).
+- **K3 LANE** (or ALGORITHM): K1–K4 or ALL, the lane lit on the page and the one CLEAR empties.
+- **K4 CLEAR**: turned right, empties that lane (or the whole motion on ALL).
+
+The page draws the four lanes: each its knob and function on the left, its 64 steps (a bar where a value is written, the
+value held faint after it), the step playing. Motions are saved with the rest (SAVE, AUTO SAVE); RESET ALL clears them.
+It is a TEST: tell FLEXOR what works and what doesn't.
+
+![ARP › MOTION: K1's DRIVE recorded over the pattern](img/motion.png "MOTION")
+
 ## 5. Patterns and the sequencer
 
 LOAF BREAKER holds **64 patterns**, P1–P64. Each is the break's 32 steps (2 bars), each step playing the loop's own
