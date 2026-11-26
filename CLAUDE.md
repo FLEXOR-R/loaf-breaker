@@ -12,6 +12,10 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   pushed to `loaf` (`git push origin dev:loaf`, a fast-forward), whose every push is a release `loaf-vA.B.C` (0.9.1 on; 0.02-0.267 were X.YY)
   (`.github/workflows/loaf.yml`; CLAUDE.md alone releases nothing) and updates the site, https://flexor-r.github.io/loaf-breaker/ (0.261: the firmware on it
   open, no install code; tools/site_lock.py and the secret LOAF_INSTALL_CODE no longer used). Never write that old code anywhere.
+- **Download links** (26 Nov 2026, FLEXOR: "j'apprécie quand tu me mets un lien de téléchargement directement ici pour
+  les tests du firmware ou VST"): every reply that brings a TEST (or a release) gives its direct download link (the
+  draft's asset: `gh api repos/FLEXOR-R/loaf-breaker/releases?per_page=1`, the VST's `vst-test` likewise) once its
+  run has finished.
 - **The VST** (24 Nov 2026, FLEXOR: "synchroniser la VST et loaf breaker pour la fm1 ... toujours d'abord s'occuper de la
   fm1, me demander si il faut publier, et ensuite faire les modifs et possiblement la publication de la vst"): this
   firmware also runs as FLEXOR's plugin, in his private repository FLEXOR-R/loaf-breaker-vst (this repository as its
