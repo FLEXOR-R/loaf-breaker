@@ -5,5 +5,5 @@ the release's notes. Emptied (this comment kept) once the release is out. -->
 - **KICK › DIRT › SUB SPLIT**: X FREQ splits the kick; its lows go around the drive and the DISTOs and come back clean
   (or with their own SUB DIRT), with their own SUB LEVEL and SUB DECAY. Drawn in frequency: the split a white line.
 - DIRT's tabs shortened (DIST, SCR, SFX ..) so the ten fit.
-- The KICK and drum pages: the picture a third taller; the knobs' cards are thin gauges (their names and values stay
-  at the foot of the screen).
+- The KICK and drum pages: the picture a quarter taller, the knobs' cards more compact; the black keys' functions
+  are no longer shown there, to make room.

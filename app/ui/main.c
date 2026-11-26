@@ -2246,13 +2246,21 @@ static const char *knob_name(int i)
     return name ? name : "";
 }
 /* the foot: the pads, then the page and its knobs with their values */
+static int edit_page(void)              /* (0.9.82, FLEXOR: the KICK menu and the drums' big view: the foot without the
+                                          * black keys' functions, its 14 rows the picture's) */
+{
+    return (ui.page == PG_KICK && !ui.kclassic) || (ui.page == PG_PERC && ui.pbig);
+}
 static void draw_foot(const brk_status_t *st)
 {
     uint32_t i;
     char t[16];
+    int ed = edit_page();
     draw_tabs();
-    cv_begin(240, 48, C_BLACK);
-    for (i = 0; i < 11u; i++) {          /* (LOAF BREAKER: each key's function, the layout's) */
+    cv_begin(240, ed ? 34 : 48, C_BLACK);
+    if (ed)
+        cv_oy = -14;                     /* (the knobs' rows up where the keys were) */
+    for (i = 0; !ed && i < 11u; i++) {   /* (LOAF BREAKER: each key's function, the layout's) */
         uint32_t f = bk_fn_shown(i);
         int on = f == BKF_ARP ? arpk_on(i) : bkf_lit(f, st);
         int32_t x = 2 + (int32_t)i * 21;
@@ -2317,7 +2325,8 @@ static void draw_foot(const brk_status_t *st)
                 knob_arc(4 + (int32_t)i * 60 + 49, 37, nv);
         }
     }
-    cv_blit(0, 192);
+    cv_oy = 0;
+    cv_blit(0, ed ? 206u : 192u);
 }
 
 void app_ui_init(void)
