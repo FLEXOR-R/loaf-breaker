@@ -158,7 +158,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   sk_set_norm, DRUM FLT and BRK FLT straight), a lane the hand turned within 400 ms left alone. app.c `motion_t` `mo`
   (tag MO_TAG, fn[4][4] 1 + SK_*, pat[64] 0 OFF / 1..4, v[4][4][64] MO_NONE nothing), RAM 1,108 B (the pool had no room),
   saved after km2 in OBJ_KMEM2 through lb_bu_buf (`km2_save`; read back the same way; an object of km2 alone: no motion);
-  RESET ALL mo_defaults. K1 MOTION, K2 REC, K3 LANE (ALGORITHM too) K1-K4 / ALL, K4 CLEAR (right). Probes mo morec mofn0
+  RESET ALL mo_defaults. K1 MOTION, K2 REC, K3 LANE (ALGORITHM too) K1-K4 / ALL, K4 CLEAR (five detents right within 2 s of each other, FLEXOR: `MO_CLR_N`, `mo_clr_n`). Probes mo morec mofn0
   mon0; scenario motion (blackkeys: four ARP tabs now). Image 574,188 B (~7.4 KB left), RAM 96,060 of 98,304.
 - PRE EQ and SUB SPLIT (26 Nov 2026, 0.9.82, FLEXOR: "l'eq avant la disto ... et le sub séparé"; GABBERKIX's ideas
   only, its code GPL: never copied): KICK › DIST's last three parts (DIST: DIRT until 0.9.81, FLEXOR) (KP_PREQ, KP_PREQ2, KP_XSUB; parts KP_PART_PREQ

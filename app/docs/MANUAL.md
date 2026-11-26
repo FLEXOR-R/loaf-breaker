@@ -609,7 +609,8 @@ Between two written steps the value holds. While you turn a knob, its own lane w
   pattern). A pattern without one takes the first free motion as soon as REC writes.
 - **K2 REC**: OFF / ON (never saved: off at power-on).
 - **K3 LANE** (or ALGORITHM): K1–K4 or ALL, the lane lit on the page and the one CLEAR empties.
-- **K4 CLEAR**: turned right, empties that lane (or the whole motion on ALL).
+- **K4 CLEAR**: five detents right (within 2 s of each other; the foot counts down), empties that lane (or the whole
+  motion on ALL). Fewer, or left, nothing is lost.
 
 The page draws the four lanes: each its knob and function on the left, its 64 steps (a bar where a value is written, the
 value held faint after it), the step playing. Motions are saved with the rest (SAVE, AUTO SAVE); RESET ALL clears them.

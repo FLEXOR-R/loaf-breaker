@@ -2045,6 +2045,10 @@ static void track_open(void)
 static uint8_t mo_arm, mo_lane;          /* (REC; the lane K3 shows, MO_LANES: ALL) */
 static int8_t mo_last = -1;              /* (the step put last) */
 static uint32_t mo_hand[MO_LANES];       /* (when the hand last turned each lane: its playing waits 400 ms) */
+#define MO_CLR_N 5u                      /* (FLEXOR: "un clear avec 5x turn": K4 five detents right, within 2 s of each
+                                          * other, clears; left, or a pause, starts the count again) */
+static uint8_t mo_clr_n;
+static uint32_t mo_clr_t;
 static uint32_t mo_of(void) { return mo.pat[pat_cur() % NPAT_ALL] % (MO_N + 1u); }   /* the pattern's: 0 OFF, 1..4 */
 static int mo_used(uint32_t m)
 {
@@ -2143,8 +2147,13 @@ static void mo_value(int i, char *t)
             text_cat(t, "K");
             int_text((int32_t)mo_lane + 1, t + 1);
         }
-    } else
-        text_cat(t, "TURN >");
+    } else {
+        if (mo_clr_n && plat_ms() - mo_clr_t < 2000u) {
+            int_text((int32_t)(MO_CLR_N - mo_clr_n), t);
+            text_cat(t, " MORE >");
+        } else
+            text_cat(t, "TURN 5X >");
+    }
 }
 static void mo_turn(int i, int32_t d)
 {
@@ -2158,8 +2167,21 @@ static void mo_turn(int i, int32_t d)
     else if (i == 2)
         mo_lane = (uint8_t)clamp((int32_t)mo_lane + (d > 0 ? 1 : -1), 0, (int32_t)MO_LANES);
     else {
-        if (d < 0 || !mo_of())
+        uint32_t now = plat_ms();
+        if (d < 0 || !mo_of() || now - mo_clr_t >= 2000u)
+            mo_clr_n = 0u;
+        mo_clr_t = now;
+        if (d < 0 || !mo_of()) {
+            ui.redraw |= RG_FOOT;
             return;
+        }
+        if (++mo_clr_n < MO_CLR_N) {     /* (not yet: how many more) */
+            mo_value(3, t);
+            app_say(mo_lane >= MO_LANES ? "CLEAR MOTION" : "CLEAR LANE", t);
+            ui.redraw |= RG_FOOT;
+            return;
+        }
+        mo_clr_n = 0u;
         mo_clear(mo_of() - 1u, mo_lane);
         set_dirty = 1u;
         app_say(mo_lane >= MO_LANES ? "MOTION" : "LANE", "CLEARED");

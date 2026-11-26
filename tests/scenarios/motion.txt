@@ -1,6 +1,6 @@
 # LOAF BREAKER (0.9.85, a TEST, FLEXOR, from issue #5): ARP › MOTION. REC on (K2), playing, SEL + K1 turned writes its
 # function (DRIVE here) into the pattern's motion (none yet: M1 taken), at the steps playing; REC off, the knob turned
-# away, the motion puts it back as the loop comes round; K1 OFF: no more; K4 CLEAR empties the lane.
+# away, the motion puts it back as the loop comes round; K1 OFF: no more; K4 CLEAR (five detents right) empties the lane.
 #   app/build/host/loaf-breaker_host tests/scenarios/motion.txt app/build/scenarios
 wait 4200
 tap ARP
@@ -55,7 +55,15 @@ turn K1 1 10
 wait 100
 expect mo 1
 expect mon0 >3
+# (CLEAR: five detents right; four are not enough, nor five with a pause of more than 2 s)
+turn K4 4 10
+wait 100
+expect mon0 >3
+wait 2500
 turn K4 1 10
+wait 100
+expect mon0 >3
+turn K4 5 10
 wait 100
 expect mon0 0
 expect mofn0 0
