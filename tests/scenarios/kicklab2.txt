@@ -6,7 +6,7 @@ expect tok 0
 expect gate 0
 tap EDIT
 wait 300
-turn ALGO 4 80
+turn ALGO 6 80
 wait 300
 turn K1 20 10
 wait 200

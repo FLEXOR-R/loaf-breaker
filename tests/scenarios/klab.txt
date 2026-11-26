@@ -42,7 +42,7 @@ turn SELECT 1 10
 wait 300
 expect ksect 0
 # (0.253: ATTACK's PRESET first: three parts to STACK)
-turn ALGO 3 60
+turn ALGO 5 60
 wait 200
 expect kpage 17
 turn K1 1 60

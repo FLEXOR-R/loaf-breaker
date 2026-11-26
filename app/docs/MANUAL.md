@@ -282,15 +282,16 @@ then asks on the screen: **SEL** yes, **HOME** no; the FM-1 then restarts with i
 - **EDIT**: the **KICK menu**. Its picture: the kick's hit over a quarter of a second, its wave large (the cycles
   stretching as its pitch falls, squared off where it is driven), its level behind, the SUB's pitch falling in amber,
   its memory (KICK 1–20), what the part is for in a few words ("FOLD DISTORTION") and its note; under it the part's four knobs as cards, their values large, at the foot of the screen in place of the knobs' line (0.9.82; the drums' pages too): the black keys' functions are not shown there, their room the picture's; a black key or a white key held, or SEL held or locked, shows its own knobs there as on every page. On the other pages the foot's four knobs are cards too, under the black keys: their name, their value, and a fader under it when the setting has a travel (a level, a filter from its middle, an amount); a list or a mode has none. **SELECT**: the
-  next section (**EDIT again**: the next sound, SNARE, HAT, CLAP, then the KICK), the kick's anatomy from its hit to its end: **ATTACK** (PRESET: K1 the built-in kicks, the part the menu opens on; CLICK, PUNCH, STACK, TOK), **BODY** (MIX, SUB, GRIT,
-  SYNTH, SYNTH +, MACRO, OUT), **TAIL** (TAIL, TAIL +, BASS, MORPH, GATE), **DIST** (DISTO, DISTO +,
-  SCREAM, the layers' effects, then PRE EQ, PRE EQ + and SUB SPLIT, below), **FX1** and **FX2** (its two FX slots, each a section of its own since 0.9.29: ALGORITHM goes through the effect's parts, MAIN, MORE, MOD or the MB COMP's), **MORE** (KNOBS until 0.9.28: KNOBS, ASSIGN, K1–K4, TOOLS, then EQ B and EQ S, its EQ's bands and shape);
+  next section (**EDIT again**: the next sound, SNARE, HAT, CLAP, then the KICK), the kick's anatomy from its hit to its end: **ATTACK** (PRESET: K1 the built-in kicks, the part the menu opens on; CLICK, CFX, PUNCH, PFX, STACK, TOK), **BODY** (MIX, SUB, SFX, GRIT, GFX,
+  SYNTH, SYNTH +, MACRO, OUT; each layer's effect right after it since 0.9.87), **TAIL** (TAIL, TAIL +, BASS, MORPH, GATE), **DIST** (DISTO, DISTO +,
+  SCREAM, then PRE L, PRE M, PRE H and SUB SPLIT, below), **FX1** and **FX2** (its two FX slots, each a section of its own since 0.9.29: ALGORITHM goes through the effect's parts, MAIN, MORE, MOD or the MB COMP's), **MORE** (KNOBS until 0.9.28: KNOBS, ASSIGN, K1–K4, TOOLS, then EQ B and EQ S, its EQ's bands and shape);
   **ALGORITHM**: the next part in it (each section remembers where you were). The section's parts are a bar of tabs at
   the foot of the picture, the whole width, the one open lit (BEGINNER: those it passes over dimmed; short names
-  there: SYN+ for SYNTH +, D+ for DISTO +, SFX .. CFX for the layers' effects; DIST's ten: DIST, D+, SCR, SFX .. CFX,
-  PRE, PRE+, XSUB). **DIST's PRE EQ** (0.9.82, FLEXOR) shapes the kick *before* its drive and its DISTOs, where it
-  changes what they bite into, each band beside its frequency (0.9.83): K1 **LOW**, K2 **LO FREQ**, K3 **MID**,
-  K4 **MID FREQ** (-18 .. +18 dB, 0 the band off); **PRE EQ +**: K1 **HIGH**, K2 **HI FREQ**, K3 **MID Q**. A low band up drives the body harder, a mid cut leaves a
+  there: SYN+ for SYNTH +, D+ for DISTO +, SFX .. CFX for the layers' effects; DIST's seven: DIST, D+, SCR,
+  PRE L, PRE M, PRE H, XSUB). **DIST's PRE EQ** (0.9.82, FLEXOR) shapes the kick *before* its drive and its DISTOs, where it
+  changes what they bite into: three bands, each its own part since 0.9.87, **PRE L** (low), **PRE M** (mid), **PRE H**
+  (high), each K1 **DB** (-18 .. +18 dB, 0 the band off), K2 **FREQ**, K3 **Q** (narrow it for a sharp peak or a
+  notch, widen it for a broad tilt). A low band up drives the body harder, a mid cut leaves a
   hole the DISTO cannot fill, a high band up makes it scream. **SUB SPLIT** keeps the lows out of the dirt: K1 **X
   FREQ** (OFF, 40 .. 300 Hz) is where the kick is split, everything under it goes round the drive and the DISTOs and
   comes back after them; K2 **SUB LEVEL** (0 .. 200 %), K3 **SUB DIRT** (CLEAN, or its own saturation), K4 **SUB DECAY**

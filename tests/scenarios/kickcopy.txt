@@ -34,7 +34,7 @@ turn PRESET 1 10
 wait 200
 expect kslot 4
 expect csub 0
-turn ALGO 6 10
+turn ALGO 8 10
 wait 200
 expect kpage 4
 turn K4 11 10

@@ -415,7 +415,9 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c, const volatile int8_t *sy
                 continue;
             gd = gd < -KICK_PX_DB ? -KICK_PX_DB : gd > KICK_PX_DB ? KICK_PX_DB : gd;
             fs = fs < FLO[b] ? FLO[b] : fs > FHI[b] ? FHI[b] : fs;
-            q = b == 1u ? brk_exp2f_c((float)(x.eq_q < -8 ? -8 : x.eq_q > 12 ? 12 : x.eq_q) * 0.25f) : 0.8f;
+            fs = b == 1u ? x.eq_q : x.eq_qe[b >> 1];   /* (0.9.87: LOW's and HIGH's Q too, 0.8 at 0) */
+            fs = fs < -8 ? -8 : fs > 12 ? 12 : fs;
+            q = b == 1u ? brk_exp2f_c((float)fs * 0.25f) : fs ? 0.8f * brk_exp2f_c((float)fs * 0.25f) : 0.8f;
             A = brk_exp2f_c((float)gd * 0.0830482f);   /* (10^(dB / 40)) */
             g = brk_tan_pi_c(F0[b] * brk_exp2f_c((float)fs * (1.0f / 12.0f)) / (float)BRK_SR);
             k = 1.0f / (q * A);

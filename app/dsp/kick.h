@@ -152,7 +152,10 @@ typedef struct {
     uint8_t sdec;                        /* SUB DECAY: 0 OPEN (as the kick), 1..100 30 .. 2000 ms */
     uint8_t xoff;                        /* (0.9.86, the XSB key: 1 the SUB SPLIT switched off, X FREQ kept; the app's
                                           * alone: kick_set_px is handed xo 0 then) */
-    uint8_t rsv[4];
+    int8_t eq_qe[2];                     /* (0.9.87, FLEXOR: "PRL PRM PRH ... DB, FREQ, et Q ... faire des pics comme je
+                                          * veux") LOW's and HIGH's Q: 0.8 x 2^(q / 4), -8 .. 12 (0: 0.8, as always; the
+                                          * old rsv[0..1], 0 in every save) */
+    uint8_t rsv[2];
 } kick_px_t;
 #define KICK_XO_N 53u
 #define KICK_PX_DB 18

@@ -200,6 +200,15 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   DROP / 20; 700 px/s², one bounce (0.6), then through the bottom; it returns the RG_* the loaves were and are in
   (`rain_mask`): RG_HEAD before draw_head, the rest after the rows' forgetting (never a whole resend). Probes rain
   rainhop; scenario loafrain. Image 580,720 B (844 B left), RAM 96,284.
+- PRL PRM PRH; the layers' effects beside their layer (26 Nov 2026, 0.9.87, FLEXOR: "PRL PRM PRH comme onglets avec
+  chacun ... DB, FREQ, et Q ... faire des pics comme je veux"; "SFX, PFX, GFX et CFX après leur paramètre ... afin de
+  libérer de la place dans DIST"): KICK › DIST's PRE EQ a part a band, KP_PREQ (PRE LOW, PRL), KP_PREQ2 (PRE MID, PRM),
+  KP_PREQ3 (PRE HIGH, PRH; after KP_XSUB in the enum, its part KP_PART_PREQ + 3 = 38, KPARTS KP_BASE + 28), each K1 DB,
+  K2 FREQ, K3 Q (ui/kick.c `kpx_knob`, `kpx_q`, `kpx_qv`); LOW's and HIGH's Q `kick_px_t.eq_qe[2]` (rsv[0..1]: 0.8 x
+  2^(q / 4), -8 .. 12, 0 as always, bit for bit). KSECT rows of 11: ATTACK PRESET CLICK CFX PUNCH PFX STACK TOK, BODY MIX
+  SUB SFX GRIT GFX SYNTH SYN+ MACRO OUT, DIST DIST D+ SCR PRE L PRE M PRE H XSUB (the chips; FLEXOR: "PRE L PRE M ET pre h", PRL PRM PRH at first). Host `kset px.ql / px.qh`; probes pxql pxqh;
+  scenario prexsub (fxmem synth kpreset kickcopy klab kicklab2 encfast's ALGORITHM counts moved). Image 580,800 B (764 B
+  left). The VST's PRE EQ card (eqPreFor: PRE EQ / PRE EQ +) needs the new names.
 - MOTION (26 Nov 2026, 0.9.85, a TEST, FLEXOR, from issue #5: "motion control recording ... in Edit Mode ... and for the
   white/black key effects"; his choices: SEL + K1-K4 and BRK FLT, four motions, each pattern its own, "utiliser un motion
   sur l'étendue d'un pattern de 64 steps"; he wants feedback before more): ARP's fifth tab (ui.opage 4 since ASSIGN, OPAGE_NAME,

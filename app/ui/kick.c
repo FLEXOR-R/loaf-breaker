@@ -5,7 +5,7 @@
 /* ---- the KICK page (PRD K-*): EDIT opens it, EDIT again the next sub-page. The white keys are the kick's 16
  * steps, ALGORITHM the layer, PRESETS the built-in kicks, SEL + EDIT through the FX chain or around it */
 enum { KP_MIX, KP_LAYER, KP_FX, KP_MACRO, KP_OUT, KP_TERROR, KP_TMORE, KP_TERROR2, KP_SYN1, KP_SYN2, KP_BASS, KP_KNOBS,
-       KP_KSET, KP_CMORPH, KP_STYLE, KP_TAIL, KP_TAIL2, KP_STACK, KP_TOOLS, KP_PRESET, KP_TOK, KP_GATE, KP_PREQ, KP_PREQ2, KP_XSUB, KPAGES };   /* (KP_TOK,
+       KP_KSET, KP_CMORPH, KP_STYLE, KP_TAIL, KP_TAIL2, KP_STACK, KP_TOOLS, KP_PRESET, KP_TOK, KP_GATE, KP_PREQ, KP_PREQ2, KP_XSUB, KP_PREQ3, KPAGES };   /* (KP_TOK,
                                           * KP_GATE: 0.9.45, FLEXOR's Kick Lab 2) */   /* (KP_PRESET: LOAF
                                           * BREAKER 0.253, FLEXOR: ATTACK's first part, the built-in kicks alone) */
 /* LOAF BREAKER: the KICK LAB, the menu's LAB section (klab in app.c, kick.h kick_lab_t): TAIL (K1 MODE, K2 NOTE, K3
@@ -217,19 +217,19 @@ static void kick_mem_turn(int32_t d)
 static const char *const KPAGE_NAME[KPAGES] = {"MIX", "LAYER", "LAYER FX", "MACRO", "OUT", "DISTO", "DISTO +",
                                                 "SCREAM", "SYNTH", "SYNTH +", "BASS", "KNOBS", "K SET",
                                                 "CLEAN MORPH", "ASSIGN", "TAIL", "TAIL +", "STACK", "TOOLS", "PRESET",
-                                                "TOK", "TAIL GATE", "PRE EQ", "PRE EQ +", "SUB SPLIT"};
+                                                "TOK", "TAIL GATE", "PRE LOW", "PRE MID", "SUB SPLIT", "PRE HIGH"};
 /* the kick's parts in a row, as ALGORITHM turns through them: MIX, SUB, SUB FX, PUNCH, PUNCH FX, GRIT, GRIT FX,
  * CLICK, CLICK FX, MACRO, OUT (each a sub-page, and for a layer its layer); LOAF BREAKER TEST: then EQ BANDS, EQ
  * SHAPE (the KICK EQ page), FX 1, FX 2 (the FX page on the kick's slots), TERROR, TERROR +, TERROR 2 */
 #define KP_BASE (3u + 2u * KICK_LAYERS)
-#define KPARTS (KP_BASE + 27u)       /* (LOAF BREAKER: then the LAB's TAIL, TAIL +, STACK, TOOLS; then PRESET, 0.253; TOK,
+#define KPARTS (KP_BASE + 28u)       /* (LOAF BREAKER: then the LAB's TAIL, TAIL +, STACK, TOOLS; then PRESET, 0.253; TOK,
                                           * TAIL GATE, 0.9.45) */
 #define KP_PART_PRESET (KP_BASE + 21u)
 #define KP_PART_TOK (KP_BASE + 22u)
 #define KP_PART_GATE (KP_BASE + 23u)
 #define KP_PART_PREQ (KP_BASE + 24u)     /* (0.9.82, FLEXOR: DIRT's PRE EQ, PRE EQ +, SUB SPLIT, its last three) */
-static int kpx_page(void) { return ui.kpage >= KP_PREQ && ui.kpage <= KP_XSUB; }
-static int kpx_part(uint32_t p) { return p >= KP_PART_PREQ && p < KP_PART_PREQ + 3u; }
+static int kpx_page(void) { return ui.kpage >= KP_PREQ && ui.kpage <= KP_PREQ3; }   /* (0.9.87: PRL PRM XSUB PRH) */
+static int kpx_part(uint32_t p) { return p >= KP_PART_PREQ && p < KP_PART_PREQ + 4u; }
 static const char *const KP_MORE_NAME[11] = {"EQ BANDS", "EQ SHAPE", "FX 1", "FX 2", "DISTO", "DISTO +", "SCREAM",
                                             "SYNTH", "SYNTH +", "BASS", "KNOBS"};   /* (then K1 SET .. K4 SET: "K1 C SUB") */   /* (SYNTH, SYNTH +: ALGORITHM left from MIX) */
 static uint32_t kick_part(void)
@@ -313,13 +313,15 @@ static const char *const KSECT_NAME[KSECTS] = {"ATTACK", "BODY", "TAIL", "DIST",
                                           * FLEXOR: FX1 and FX2 sections of their own, ALGORITHM there their parts; the
                                           * EQ in MORE, KNOBS until then) */   /* (FX: TONE until
                                           * 0.9.1, FLEXOR) */
-static const uint8_t KSECT_N[KSECTS] = {5u, 7u, 5u, 10u, 1u, 1u, 9u};
-static const uint8_t KSECT[KSECTS][10] = {{32u, 7u, 3u, 30u, 33u},   /* (ATTACK: PRESET first, 0.253; TOK last, 0.9.45:
+static const uint8_t KSECT_N[KSECTS] = {7u, 9u, 5u, 7u, 1u, 1u, 9u};
+static const uint8_t KSECT[KSECTS][11] = {{32u, 7u, 8u, 3u, 4u, 30u, 33u},   /* (0.9.87, FLEXOR: "SFX, PFX, GFX et CFX après
+                                          * leur paramètre ... afin de libérer de la place dans DIST": each layer's
+                                          * effect right after it, CLICK CFX PUNCH PFX here, SUB SFX GRIT GFX in BODY) */   /* (ATTACK: PRESET first, 0.253; TOK last, 0.9.45:
                                           * the parts before where they were) */
-                                         {0u, 1u, 5u, 18u, 19u, 9u, 10u}, {28u, 29u, 20u, 26u, 34u},   /* (TAIL: its GATE
+                                         {0u, 1u, 2u, 5u, 6u, 18u, 19u, 9u, 10u}, {28u, 29u, 20u, 26u, 34u},   /* (TAIL: its GATE
                                           * last, 0.9.45) */
-                                        {15u, 16u, 17u, 2u, 4u, 6u, 8u, 35u, 36u, 37u}, {13u}, {14u},   /* (DIRT: PRE EQ,
-                                          * PRE EQ +, SUB SPLIT last, 0.9.82) */
+                                        {15u, 16u, 17u, 35u, 36u, 38u, 37u}, {13u}, {14u},   /* (DIRT: PRE EQ,
+                                          * PRE EQ +, SUB SPLIT last, 0.9.82; 0.9.87, FLEXOR: PRL PRM PRH, then XSUB) */
                                         {21u, 27u, 22u, 23u, 24u, 25u, 31u, 11u, 12u}};   /* (KNOBS: KP_BASE + 10 ..; 26 CLEAN MORPH;
                                           * 0.9.29, FLEXOR: ASSIGN right after KNOBS) */
 static void ksect_find(uint32_t p)       /* the part's section and place in it, kept */
@@ -465,8 +467,9 @@ static const char *const KN_KICK[KPAGES][4] = {{"SUB", "PUNCH", "GRIT", "CLICK"}
                                                {"ATTACK", "CROSS", "FADE", "SOLO"}, {"MUTATE", "A/B", "EDIT VIEW", "DRUM ZOOM"},
                                                {"PRESET", "", "", ""},
                                                {"LEVEL", "TYPE", "PITCH", "LENGTH"}, {"DIVISION", "LENGTH", "FADE IN", ""},
-                                               {"LOW", "LO FREQ", "MID", "MID FREQ"}, {"HIGH", "HI FREQ", "MID Q", ""},
-                                               {"X FREQ", "SUB LEVEL", "SUB DIRT", "SUB DECAY"}};   /* (0.9.82: PRE
+                                               {"LOW DB", "LOW FREQ", "LOW Q", ""}, {"MID DB", "MID FREQ", "MID Q", ""},
+                                               {"X FREQ", "SUB LEVEL", "SUB DIRT", "SUB DECAY"},
+                                               {"HIGH DB", "HIGH FREQ", "HIGH Q", ""}};   /* (0.9.82: PRE
                                           * EQ LOW and MID each beside its frequency, PRE EQ + HIGH's and the MID's Q, 0.9.83,
                                           * FLEXOR;
                                           * SUB SPLIT) */   /* (KNOBS,
@@ -564,17 +567,24 @@ static void kx2_turn(int i, int32_t d)
 static const float KPX_F0[3] = {80.0f, 600.0f, 3000.0f};
 static const int8_t KPX_FLO[3] = {-24, -24, -18}, KPX_FHI[3] = {24, 30, 18};
 static float kpx_hz(const kick_px_t *x, uint32_t b) { return KPX_F0[b] * brk_exp2f_c((float)x->eq_f[b] * (1.0f / 12.0f)); }
-/* (0.9.83, FLEXOR: "chaque plage à côté de son réglage": PRE EQ K1 LOW, K2 LO FREQ, K3 MID, K4 MID FREQ; PRE EQ + K1
- * HIGH, K2 HI FREQ, K3 MID Q) the knob's setting: KPX_G a band's gain, KPX_F its frequency, KPX_Q the MID's Q, the band
- * in bits 0-1; KPX_NONE nothing */
+/* (0.9.87, FLEXOR: "PRL PRM PRH comme onglets avec chacun ... DB, FREQ, et Q ... faire des pics comme je veux"; 0.9.83's
+ * PRE EQ / PRE EQ + before) each band its own part: K1 its gain, K2 its frequency, K3 its Q, K4 nothing. The knob's
+ * setting: KPX_G, KPX_F, KPX_Q, the band in bits 0-1; KPX_NONE nothing */
 enum { KPX_G = 0x00, KPX_F = 0x10, KPX_Q = 0x20, KPX_NONE = 0x30 };
-static const uint8_t KPX_KNOB[2][4] = {{KPX_G | 0, KPX_F | 0, KPX_G | 1, KPX_F | 1}, {KPX_G | 2, KPX_F | 2, KPX_Q | 1, KPX_NONE}};
-static uint32_t kpx_knob(int i) { return KPX_KNOB[ui.kpage == KP_PREQ2][i & 3]; }
+static uint32_t kpx_knob(int i)
+{
+    return (i & 3) == 3 ? KPX_NONE : (uint32_t)(i & 3) << 4 | (ui.kpage == KP_PREQ3 ? 2u : ui.kpage == KP_PREQ2 ? 1u : 0u);
+}
+static int8_t *kpx_q(kick_px_t *x, uint32_t b) { return b == 1u ? &x->eq_q : &x->eq_qe[b >> 1]; }
+static float kpx_qv(const kick_px_t *x, uint32_t b)   /* (the band's Q: the MID's 1 at 0, LOW's and HIGH's 0.8) */
+{
+    return (b == 1u ? 1.0f : 0.8f) * brk_exp2f_c((float)*kpx_q((kick_px_t *)x, b) * 0.25f);
+}
 static void kpx_value(int i, char *t)
 {
     const kick_px_t *x = kpx_at(set.kslot);
     t[0] = 0;
-    if (ui.kpage == KP_PREQ || ui.kpage == KP_PREQ2) {
+    if (ui.kpage != KP_XSUB) {
         uint32_t m = kpx_knob(i), b = m & 3u;
         if ((m & 0x30u) == KPX_G) {
             if (!x->eq_g[b])
@@ -588,7 +598,7 @@ static void kpx_value(int i, char *t)
         } else if ((m & 0x30u) == KPX_F)
             hz_text(kpx_hz(x, b), t);
         else if ((m & 0x30u) == KPX_Q)
-            hundredths_text(brk_exp2f_c((float)x->eq_q * 0.25f), t);
+            hundredths_text(kpx_qv(x, b), t);
         return;
     }
     if (i == 0) {
@@ -618,11 +628,11 @@ static void kpx_value(int i, char *t)
 static float kpx_norm(int i)
 {
     const kick_px_t *x = kpx_at(set.kslot);
-    if (ui.kpage == KP_PREQ || ui.kpage == KP_PREQ2) {
+    if (ui.kpage != KP_XSUB) {
         uint32_t m = kpx_knob(i), b = m & 3u;
         return (m & 0x30u) == KPX_G ? (float)(x->eq_g[b] + KICK_PX_DB) * (1.0f / (2.0f * KICK_PX_DB))
                : (m & 0x30u) == KPX_F ? (float)(x->eq_f[b] - KPX_FLO[b]) / (float)(KPX_FHI[b] - KPX_FLO[b])
-               : (m & 0x30u) == KPX_Q ? (float)(x->eq_q + 8) * 0.05f : 0.0f;
+               : (m & 0x30u) == KPX_Q ? (float)(*kpx_q((kick_px_t *)x, b) + 8) * 0.05f : 0.0f;
     }
     return i == 0 ? (float)x->xo / (float)KICK_XO_N : i == 1 ? (float)(x->sg + 50) * 0.01f
            : i == 2 ? (float)x->sdrv * 0.01f : (float)x->sdec * 0.01f;
@@ -632,14 +642,14 @@ static void kpx_turn(int i, int32_t d)
     kick_px_t *x = kpx_at(set.kslot);
     int dir = d > 0 ? 1 : -1;
     char t[16];
-    if (ui.kpage == KP_PREQ || ui.kpage == KP_PREQ2) {
+    if (ui.kpage != KP_XSUB) {
         uint32_t m = kpx_knob(i), b = m & 3u;
         if ((m & 0x30u) == KPX_G)
             x->eq_g[b] = (int8_t)clamp((int32_t)x->eq_g[b] + d, -KICK_PX_DB, KICK_PX_DB);
         else if ((m & 0x30u) == KPX_F)
             x->eq_f[b] = (int8_t)clamp((int32_t)x->eq_f[b] + d, KPX_FLO[b], KPX_FHI[b]);
         else if ((m & 0x30u) == KPX_Q)
-            x->eq_q = (int8_t)clamp((int32_t)x->eq_q + dir, -8, 12);
+            *kpx_q(x, b) = (int8_t)clamp((int32_t)*kpx_q(x, b) + dir, -8, 12);
         else
             return;
     } else if (i == 0) {
@@ -1314,15 +1324,15 @@ static void kick_chip(uint32_t p, char *t)   /* (LOAF BREAKER: a part's name at 
     }
     {                                    /* (the long ones short: "SYNTH +" SYN+, "DISTO +" D+, EQ's BANDS, SHAPE;
                                           * a layer's effect S FX .. C FX, below) */
-        static const uint8_t P[13] = {KP_BASE + 8u, KP_BASE + 5u, KP_BASE + 0u, KP_BASE + 1u, KP_BASE + 18u,
+        static const uint8_t P[14] = {KP_BASE + 8u, KP_BASE + 5u, KP_BASE + 0u, KP_BASE + 1u, KP_BASE + 18u,
                                      KP_BASE + 2u, KP_BASE + 3u, KP_PART_GATE, KP_PART_PREQ, KP_PART_PREQ + 1u,
-                                     KP_PART_PREQ + 2u, KP_BASE + 4u, KP_BASE + 6u};
-        static const char *const S[13] = {"SYN+", "D+", "EQ B", "EQ S", "TAIL+", "FX1", "FX2", "GATE", "PRE", "PRE+",
-                                          "XSUB", "DIST", "SCR"};   /* (0.9.82, FLEXOR: DIST's ten, DISTO DIST, SCREAM
+                                     KP_PART_PREQ + 2u, KP_BASE + 4u, KP_BASE + 6u, KP_PART_PREQ + 3u};
+        static const char *const S[14] = {"SYN+", "D+", "EQ B", "EQ S", "TAIL+", "FX1", "FX2", "GATE", "PRE L", "PRE M",
+                                          "XSUB", "DIST", "SCR", "PRE H"};   /* (0.9.82, FLEXOR: DIST's ten, DISTO DIST, SCREAM
                                           * SCR) */   /* (FX's: 0.9.2;
                                           * TAIL GATE's, 0.9.45) */
         uint32_t j;
-        for (j = 0; j < 13u; j++)
+        for (j = 0; j < 14u; j++)
             if (p == P[j]) {
                 text_cat(t, S[j]);
                 return;
@@ -1346,9 +1356,9 @@ static void ksect_row(int32_t y)
     const felucca_font_t *f = &FONT_T;
     int32_t cx = 4;
     char c[16];
-    for (j = 0; j < KSECTS * 10u; j++)   /* (the section holding the open part: the EQ and FX pages' own, FX) */
-        if (j % 10u < KSECT_N[j / 10u] && KSECT[j / 10u][j % 10u] == open) {
-            s = j / 10u;
+    for (j = 0; j < KSECTS * 11u; j++)   /* (the section holding the open part: the EQ and FX pages' own, FX) */
+        if (j % 11u < KSECT_N[j / 11u] && KSECT[j / 11u][j % 11u] == open) {
+            s = j / 11u;
             break;
         }
     n = KSECT_N[s];
@@ -1416,7 +1426,7 @@ static void kpx_picture(float hz)
         float A[3], Q[3], F0[3];
         for (j = 0; j < 3u; j++) {
             A[j] = brk_exp2f_c((float)x->eq_g[j] * 0.0830482f);
-            Q[j] = j == 1u ? brk_exp2f_c((float)x->eq_q * 0.25f) : 0.8f;
+            Q[j] = kpx_qv(x, j);
             F0[j] = kpx_hz(x, j);
         }
         for (i = 0; i < 232; i += 4)     /* (0 dB) */
