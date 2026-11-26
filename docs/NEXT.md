@@ -9,3 +9,4 @@ the release's notes. Emptied (this comment kept) once the release is out. -->
   tabs answer at once while it follows.
 - SYSTEM › MIDI redesigned: the tempo large with a little metronome beating it, a big TAP card (any white key, the
   taps of the count shown), then the clocks, NOTES IN and the ports.
+- Skin NEON: its pink gone, a deeper green instead.
