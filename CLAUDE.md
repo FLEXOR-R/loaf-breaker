@@ -155,7 +155,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   opage 4 since. Scenario arpassign. 0.9.86 (FLEXOR: "une liste déroulante ... pas de menu diving"): the four knobs left
   (`as_foc` the one touched last), every function right by family (`AS_ORD`, `AS_FAM_AT`, `AS_FAM_NAME`: DIST SHAPE PRE
   EQ XSUB FILTER; this page's own order, SK_CODE's untouched so the saved codes keep), the others' tagged K1-K4; K1-K4
-  `as_turn` a place on (a knob not lit: lit only, its detents ignored AS_LOCK_MS 400 after, FLEXOR: "se débloque au bout
+  every row a full tile with a stripe of its family's colour, the families alternating amber and white (FLEXOR:
+  "des délimitations pleines pour toutes les tuiles"); `as_turn` a place on (a knob not lit: lit only, its detents ignored AS_LOCK_MS 400 after, FLEXOR: "se débloque au bout
   d'un temps pertinent"), ALGORITHM `as_fam_turn` a family on. SK 29 XSUB FREQ (`SK_XO`, kx2.px xo, OFF / 40-300 Hz),
   SK_N / SK_CODES 30: code 31, one function more at most.
 - XSB (26 Nov 2026, 0.9.86, FLEXOR: "une touche noire assignable pour le ON/OFF xsub freq afin de jouer en live"):

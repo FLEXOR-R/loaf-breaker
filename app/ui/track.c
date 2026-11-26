@@ -2346,9 +2346,13 @@ static void draw_assign(void)
             uint32_t at = top + r, f = AS_ORD[at], g = as_fam(at), j;
             int32_t y = (int32_t)(r % 4u) * 13;
             int on = at == cur;
-            cv_rect(95, y, 145, 12, on ? C_HI : (g & 1u) ? C_BLOCK : C_BLACK);
+            uint16_t fc = (g & 1u) ? C_WHITE : C_AMB;   /* (0.9.86, FLEXOR: "des délimitations pleines pour toutes les
+                                          * tuiles", the families' names alternating in colour: every row a full tile,
+                                          * a stripe of its family's colour on its left) */
+            cv_rect(95, y, 145, 12, on ? C_HI : C_BLOCK);
+            cv_rect(95, y, 2, 12, on ? C_BLACK : fc);
             if (at == AS_FAM_AT[g] || r == 0u)   /* (a family's first, and the list's top row: its name) */
-                cv_text(97, y + 1, &FONT_T, AS_FAM_NAME[g], on ? C_BLACK : at == AS_FAM_AT[g] ? C_AMB : C_DIM);
+                cv_text(99, y + 1, &FONT_T, AS_FAM_NAME[g], on ? C_BLACK : fc);
             cv_text(134, y + 1, &FONT_XS, SK_NAME[f % SK_N], on ? C_BLACK : C_WHITE);
             for (j = 0; j < 4u; j++)     /* (the other knobs that have it) */
                 if (j != as_foc && selk_fn(j) == f) {
