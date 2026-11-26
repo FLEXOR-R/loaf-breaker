@@ -419,6 +419,118 @@ static void sfx_cards(int32_t top)
     }
     cv_oy = 0;
 }
+/* LOAF BREAKER (0.9.83, FLEXOR: "la page MIDI ... pas très jolie, redesigne-la et affiche un petit métronome, mets
+ * l'accent sur la fonction tap, fais-en quelque chose de joli et de digeste"): SYSTEM › MIDI. On top the tempo large
+ * and a metronome beating it (its pendulum at an end on each beat; playing, on the bar's beats; stopped, at the tempo
+ * all the same), the bar's four beats under the tempo; then TAP: any white key, the taps of the count so far (four
+ * gaps make the tempo), K4 the 0.1 BPM; then the MIDI: CLOCK IN, CLOCK OUT, NOTES IN, USB and TRS in and out */
+static uint32_t mt_t16, mt_last16 = 99u;    /* (when the bar's 16th last moved, which one) */
+static void draw_midi(const brk_status_t *st)
+{
+    static const char *const PORT_NAME[NPORTS] = {"USB", "BT", "TRS"};
+    uint32_t now = plat_ms(), i, x10 = ext_active() ? (uint32_t)(ext.bpm * 10.0f + 0.5f) : set.tempo_x10;
+    float bpm = (float)(x10 ? x10 : 1200u) * 0.1f, beats;
+    int tapping = tap_last && now - tap_last < 2000u, hit = tap_last && now - tap_last < 130u;
+    int32_t cx = 196, py = 39, tx, ty, w;
+    char t[24], v[16];
+    uint16_t acc = ext_active() ? C_AMB : C_HI;
+    if (st->playing && st->bar16 >= 0) {    /* (playing: the bar's beats, the 16th's way through by the clock) */
+        uint32_t b16 = (uint32_t)st->bar16;
+        float ms16 = 15000.0f / bpm, f;
+        if (b16 != mt_last16) {
+            mt_last16 = b16;
+            mt_t16 = now;
+        }
+        f = (float)(now - mt_t16) / ms16;
+        beats = ((float)b16 + (f < 1.0f ? f : 1.0f)) * 0.25f;
+    } else {                             /* (stopped: at the tempo all the same) */
+        mt_last16 = 99u;
+        beats = (float)(now % 600000u) * bpm * (1.0f / 60000.0f);
+    }
+    /* the tempo, large, and the metronome (y 44 .. 87) */
+    tenths_text((int32_t)x10, t);
+    w = cv_text2(6, 4, &FONT_B, t, hit ? C_WHITE : acc);
+    cv_text(w + 4, 20, &FONT_T, "BPM", C_GRAY);
+    if (ext_active())
+        cv_text(w + 4, 8, &FONT_XS, "CLOCK IN", C_AMB);
+    for (i = 0; i < 4u; i++) {           /* (the bar's four beats, the one now lit, the first whiter) */
+        uint32_t on = ((uint32_t)beats & 3u) == i;
+        cv_rect(6 + (int32_t)i * 16, 38, 12, 4, on ? (i ? acc : C_WHITE) : C_LINE);
+    }
+    for (i = 0; i < 30u; i++) {          /* (its body: a pyramid, narrower up) */
+        int32_t hw = 7 + (int32_t)i * 13 / 30;
+        cv_rect(cx - hw, 12 + (int32_t)i, 2 * hw, 1, i == 29u ? C_GRAY : C_BLOCK);
+    }
+    cv_rect(cx - 2, 3, 4, 9, C_BLOCK);
+    {                                    /* (the pendulum: an end at each beat) */
+        float o = brk_sin_turns(beats * 0.5f + 0.25f);
+        tx = cx + (int32_t)(o * 22.0f);
+        ty = py - 30 + (int32_t)(brk_absf(o) * 6.0f);
+        cv_line(cx, py, tx, ty, acc);
+        cv_line(cx + 1, py, tx + 1, ty, acc);
+        cv_rect(cx + (tx - cx) * 6 / 10 - 3, py + (ty - py) * 6 / 10 - 2, 7, 5, C_WHITE);   /* (its weight) */
+        cv_rect(cx - 2, py - 1, 5, 3, C_GRAY);   /* (its pivot) */
+    }
+    cv_blit(0, 44);
+    /* TAP (y 88 .. 139) */
+    cv_begin(240, 52, C_BLACK);
+    cv_rect(4, 2, 232, 46, hit ? C_BLOCK_HI : C_BLOCK);
+    cv_text2(12, 8, &FONT_B, "TAP", hit ? C_WHITE : C_HI);
+    for (i = 0; i < 5u; i++) {           /* (this count's taps: four gaps make the tempo) */
+        int lit = tapping && i < tap_n;
+        cv_rect(84 + (int32_t)i * 15, 10, 11, 11, lit ? (i + 1u == tap_n && hit ? C_WHITE : C_HI) : C_LINE);
+    }
+    cv_text(162, 9, &FONT_T, tapping ? (tap_n < 2u ? "AGAIN" : "TAPPING") : "", C_WHITE);
+    cv_text(84, 25, &FONT_T, ext_active() ? "THE CLOCK IN HAS IT" : "ANY WHITE KEY, IN TIME", ext_active() ? C_GRAY : C_WHITE);
+    cv_text(84, 36, &FONT_XS, "K4: 0.1 BPM   PAUSE: RESTART", hit ? C_WHITE : C_GRAY);
+    cv_blit(0, 88);
+    /* the MIDI (y 140 .. 191) */
+    cv_begin(240, 52, C_BLACK);
+    {
+        static const char *const CN[3] = {"CLOCK IN", "CLOCK OUT", "NOTES IN"};
+        for (i = 0; i < 3u; i++) {
+            int32_t x = 4 + (int32_t)i * 78;
+            uint16_t c = C_WHITE;
+            t[0] = 0;
+            if (i == 0u) {
+                if (!set.clk_in)
+                    text_cat(t, "OFF"), c = C_GRAY;
+                else if (!ext_active())
+                    text_cat(t, "WAITING"), c = C_GRAY;
+                else {
+                    tenths_text((int32_t)(ext.bpm * 10.0f + 0.5f), v);
+                    text_cat(t, v);
+                    text_cat(t, ext.run ? " ON" : " STOP");
+                    c = C_AMB;
+                }
+            } else if (i == 1u) {
+                if (!set.clk_out)
+                    text_cat(t, "OFF"), c = C_GRAY;
+                else
+                    text_cat(t, st->playing ? "SENDING" : "USB"), c = st->playing ? C_HI : C_WHITE;
+            } else
+                text_cat(t, notes_in() == NI_ALL ? "ALL" : notes_in() == NI_DRUMS ? "DRUMS" : "OFF"),
+                    c = notes_in() == NI_ALL ? C_WHITE : C_HI;
+            cv_rect(x, 0, 74, 31, C_BLOCK);
+            cv_text(x + 4, 0, &FONT_XS, CN[i], C_GRAY);
+            cv_text(x + 4, 13, &FONT_T, t, c);
+        }
+        cv_text(6, 36, &FONT_XS, "IN / OUT", C_DIM);
+        for (i = 0; i < NPORTS; i++) {   /* (USB and TRS: lit in the last 0.3 s; no Bluetooth) */
+            int32_t x = 64 + (i == PORT_TRS ? 1 : 0) * 70;
+            int in, out;
+            if (i != PORT_TRS && i != 0u)
+                continue;
+            in = plat_midi_ago((int)i, 0) < 300u;
+            out = i != PORT_TRS && plat_midi_ago((int)i, 1) < 300u;
+            cv_text(x, 35, &FONT_T, PORT_NAME[i], in || out ? C_WHITE : C_GRAY);
+            cv_rect(x + 30, 40, 8, 6, in ? C_HI : C_LINE);
+            if (i != PORT_TRS)
+                cv_rect(x + 42, 40, 8, 6, out ? C_HI : C_LINE);
+        }
+    }
+    cv_blit(0, 140);
+}
 static void draw_global(const brk_status_t *st)
 {
     static const char *const PORT_NAME[NPORTS] = {"USB", "BT", "TRS"};
@@ -552,6 +664,10 @@ static void draw_global(const brk_status_t *st)
         cv_text(96, 16, &FONT_XS, "A MINUTE AFTER A CHANGE,", C_DIM);
         cv_text(96, 28, &FONT_XS, "ONCE STOPPED 20 S", C_DIM);
         cv_blit(0, 140);
+        return;
+    }
+    if (!ui.gpage) {                     /* (0.9.83: SYSTEM › MIDI, the tempo and TAP first) */
+        draw_midi(st);
         return;
     }
     cv_blit(0, 44);

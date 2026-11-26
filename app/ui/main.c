@@ -2694,7 +2694,8 @@ void app_frame(void)
     scope_on = (uint8_t)(ui.page == PG_HOME || ui.page == PG_GEN || ui.page == PG_KICK ||
                          (ed_live_t && plat_ms() - ed_live_t < 1500u));   /* (0.9.43: the editor's LIVE view) */   /* (LOAF BREAKER: the
                                           * scrolling wave's work in the render, only where it shows) */
-    if (ui.page == PG_GLOBAL && now - ui.panel_drawn >= (ui.gpage == GP_LIGHTS ? 50u : 200u))   /* the GLOBAL page's panel: five times a second */
+    if (ui.page == PG_GLOBAL && now - ui.panel_drawn >= (ui.gpage == GP_LIGHTS || !ui.gpage ? 50u : 200u))   /* the GLOBAL page's
+                                          * panel: five times a second (LIGHTS, MIDI's metronome: twenty, 0.9.83) */
         ui.redraw |= RG_BLOCKS;
     if (ui.page == PG_TRACK && ui.tpage == 1u) {   /* LOAF BREAKER: PLAY's radio: the needle glides, PRESS PLAY blinks */
         float want = (float)(set.trk % NTRACKS), d = want - ui.radio;
