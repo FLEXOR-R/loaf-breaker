@@ -2290,9 +2290,27 @@ static void as_value(int i, char *t)
     t[0] = 0;
     text_cat(t, sk_short(selk_fn((uint32_t)i & 3u)));
 }
+/* (0.9.86, FLEXOR: "bouger un cran de knob pour faire bouger le knob surligné sur un autre ne fait pas bouger
+ * l'assignation ... et se débloque au bout d'un temps pertinent"): a detent of a knob not lit only lights it; its
+ * detents change its function AS_LOCK_MS after that, the rest of the same turn lost */
+#define AS_LOCK_MS 400u
+static uint32_t as_lock_t;
 static void as_turn(int i, int32_t d)    /* K1-K4: that knob a function on (or back) through the list, stopping at its ends */
 {
-    as_foc = (uint8_t)(i & 3);
+    uint32_t now = plat_ms();
+    if ((uint32_t)(i & 3) != as_foc) {   /* (another knob: lit, nothing changed) */
+        char n[12] = "SEL + K";
+        as_foc = (uint8_t)(i & 3);
+        as_lock_t = now | 1u;
+        n[7] = (char)('1' + as_foc);
+        n[8] = 0;
+        app_say(n, SK_NAME[selk_fn(as_foc) % SK_N]);
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        return;
+    }
+    if (as_lock_t && now - as_lock_t < AS_LOCK_MS)
+        return;                          /* (just lit: the turn that lit it changes nothing) */
+    as_lock_t = 0u;
     as_set(as_foc, (uint32_t)clamp((int32_t)as_at(selk_fn(as_foc)) + (d > 0 ? 1 : -1), 0, (int32_t)AS_N - 1));
 }
 static void as_fam_turn(int32_t d)       /* ALGORITHM: the focused knob to the next family's first (or the one before) */

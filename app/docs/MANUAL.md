@@ -605,7 +605,8 @@ DECAY, PITCH DROP, RUMBLE, HOLD, CLEAN SUB, REV BASS, GLIDE, MORPH, KICK FX), **
 **XSUB** (XSUB FREQ, SUB SPLIT's crossover, 0.9.86) and **FILTER** (DRUM FLT, BRK FLT): the knob's own function lit, the
 ones the other knobs already have tagged K1–K4.
 
-- **K1–K4**: that knob's function, one place on through the list (or back).
+- **K1–K4**: that knob's function, one place on through the list (or back). Turning a knob that isn't lit only lights it
+  (nothing changes); its turns change its function 0.4 s later (0.9.86, FLEXOR).
 - **ALGORITHM**: the knob touched last, straight to the next family (or the one before).
 - **PRESETS**: the styles and PRESET 1–4 (as KICK › MORE › ASSIGN), the four knobs at once.
 

@@ -10,6 +10,15 @@ turn SELECT 3 10
 wait 150
 expect opage 3
 expect selk1_fn 5
+# (0.9.86, FLEXOR) a knob not lit: its first turn only lights it, nothing assigned; 400 ms after, its turns assign
+turn K2 3 10
+wait 100
+expect selk1_fn 5
+expect selk3_fn 7
+turn K1 2 10
+wait 100
+expect selk1_fn 5
+wait 400
 turn K1 40 10
 wait 150
 expect selk1_fn 28
