@@ -632,8 +632,9 @@ static void enc_one(int k, int32_t d, uint32_t btn)   /* an encoder turned d (in
     }
 #if LB_BIG
     if (k == EN_SELECT && lb_hw_sel)   /* (0.9.79, FLEXOR: "SELECT change le tempo en mode contrôleur": the FM-1's
-                                      * own SELECT, the VST played from it: as on the FM-1, the tempo) */
-        lb_hw_sel = 0;
+                                      * own SELECT, the VST played from it: as on the FM-1, the tempo; let go by input's
+                                      * loop once all its detents are in, 0.9.83) */
+        ;
     else {
     if (k == EN_SELECT && HOME_PG(ui.page)) {   /* (the VST, 24 Nov 2026, FLEXOR: "certaines commandes ... montent
                                       * le BPM": its tabs and arrows turn SELECT; HOME's tabs then, never the tempo,
@@ -1663,6 +1664,10 @@ static void input(void)
             for (n = n > 16 ? 16 : n; n > 0; n--)
                 enc_one(k, s, btn);
         }
+#if LB_BIG
+        if (k == EN_SELECT)
+            lb_hw_sel = 0;               /* (the FM-1's SELECT: every detent the tempo, then the VST's own again) */
+#endif
     }
     ui.keys = raw;                       /* (0.9.50: as pressed: SEL WHITE's keys not pressed again next pass) */
     ui.btn = btn;
