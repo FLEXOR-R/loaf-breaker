@@ -1594,6 +1594,11 @@ static volatile uint8_t kroll;
 static volatile int16_t kscope[KSC_W];
 static volatile uint32_t kscope_hit;
 static volatile uint8_t kick_hold;       /* LOAF BREAKER: KIL (the tenth black key) held: the sequencer's kicks quiet */
+/* (0.9.85, FLEXOR, from issue #5: "mute the entire drum section"): KIL's K2 MUTES, what it quiets: KICKS (0: as before,
+ * older saves), DRUMS (snare, hat, clap), ALL; set.half_mt_off bits 6-7 (3 read as KICKS) */
+enum { KIL_KICKS, KIL_DRUMS, KIL_ALL };
+static const char *const KIL_NAME[3] = {"KICKS", "DRUMS", "ALL"};
+static uint32_t kil_what(void) { uint32_t w = set.half_mt_off >> 6 & 3u; return w > KIL_ALL ? KIL_KICKS : w; }
 static volatile float kbrk_g = 1.0f;     /* (0.9.58: KILL BREAK's gain on the break now, the render's) */
 static volatile uint8_t kbrk_hold, kbrk_mode, kbrk_t16, kbrk_rev, kbrk_echo;   /* (0.9.58: KILL BREAK on, its MODE, its fade in
                                           * 16ths, its REVERB %: the main loop's, for the render) */
@@ -1614,6 +1619,7 @@ static inline float lim_soft(float x)    /* over 0.95: rounded off, never reachi
 }         /* LOAF BREAKER TEST: ARP held: FILL (the steps' FILL / NOT FILL, the snare's
                                           * roll on the bar's last beat) */
 static volatile uint32_t kick_hit_n;     /* (the kick's hits so far: the simulator's checks) */
+static volatile uint32_t perc_hit_n;     /* (the drums' hits so far, 0.9.85: the same) */
 /* LOAF BREAKER: the drums' HITS (pats.hits): a hit's repeats still to come, samples from this block's start */
 #define HQ_N 16u
 static struct { int32_t at; uint8_t kick, who; float pm; } hq[HQ_N];
@@ -2969,8 +2975,11 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                         who[b - 1u] = tw;
                     }
             }
-            if (kick_hold)
+            const uint32_t kil_k = kick_hold && kil_what() != KIL_DRUMS, kil_d = kick_hold && kil_what() != KIL_KICKS;
+            if (kil_k)
                 nk = 0u;                 /* LOAF BREAKER: KIL held: the sequencer's kicks quiet (a roll still plays) */
+            if (kil_d)
+                np = 0u;                 /* (0.9.85: KIL's MUTES DRUMS or ALL: the snare, the hat, the clap too) */
             if (krp && st.playing) {     /* the KICK ROLL's hits in this block, at its pad's rate */
                 static const float RS[BRK_ROLL_DIVS] = {4.0f, 2.0f, 1.0f, 0.5f, 0.25f, 4.0f / 3.0f, 2.0f / 3.0f,
                                                         1.0f / 3.0f, 6.0f, 3.0f, 1.5f};   /* (16ths: brk.c's ROLL_STEPS) */
@@ -2984,7 +2993,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                 }
                 if (kr_next >= (int32_t)m)
                     kr_next -= (int32_t)m;
-                if (kick_hold && krp >= 4u)
+                if (kil_k && krp >= 4u)
                     nk = 0u;             /* (0.9.57, FLEXOR: KIL quiets the triplets too, the ARP's KICK TRI as well;
                                           * a roll pad's KICK ROLL still plays) */
             }
@@ -3015,13 +3024,13 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                         if (q != v_last) {
                             uint32_t n = (uint32_t)q & 63u, s = n & 15u, bar = n >> 4 & 3u, d, w = 0u;
                             v_last = q;
-                            if (drum_now[DR_KICK][bar] >> s & 1u && !kick_hold && nk < 8u) {
+                            if (drum_now[DR_KICK][bar] >> s & 1u && !kil_k && nk < 8u) {
                                 kpm[nk] = x2_pm;
                                 ka[nk++] = (uint16_t)i;
                             }
                             for (d = DR_SNARE; d < NDRUMS; d++)
                                 w |= (uint32_t)(drum_now[d][bar] >> s & 1u) << (d - 1u);
-                            if (w && np < 8u) {
+                            if (w && np < 8u && !kil_d) {
                                 pa[np] = (uint16_t)i;
                                 who[np++] = (uint8_t)w;
                             }
@@ -3061,6 +3070,7 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             }
             brk_fx_kick_eq(kick, m);    /* LOAF BREAKER: HOME's KICK EQ */
             brk_fx_kick(kick, m);        /* and its KICK FX */
+            perc_hit_n += np;
             perc_render(perc, m, pa, who, np);
             if (set.duck) {              /* LOAF BREAKER (crossbreed): DUCK: the break (and its throws; DRUMS: the
                                           * other drums too) pushed down at each kick, in its attack, back up over its

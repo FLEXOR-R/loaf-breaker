@@ -816,6 +816,8 @@ static void enc_one(int k, int32_t d, uint32_t btn)   /* an encoder turned d (in
         set_dirty = 1u;
         app_say("KIL LATCH", d > 0 ? "ON" : "OFF");
         ui.redraw |= RG_FOOT;
+    } else if (ui.kil_focus && k == EN_K2) {   /* (0.9.85: KIL held, K2: what it quiets, KICKS / DRUMS / ALL) */
+        kil_what_turn(d);
     } else if (key_tuned() >= 0) {   /* a white key held: K1-K4 tune its loop (LOAF BREAKER: BEGINNER, not) */
         if (!set.novice)
             key_knob_turn(key_tuned(), k - EN_K1, d);
@@ -1233,7 +1235,7 @@ static void input(void)
         kick_hold = set.half_mt_off & 4u ? (uint8_t)!kick_hold : 1u;
         if (!kick_hold)
             kil_back_flt();
-        app_say("KICKS", kick_hold ? (set.half_mt_off & 4u ? "QUIET (KIL LATCHED)" : "QUIET (KIL)") : "BACK");
+        app_say(KIL_NAME[kil_what()], kick_hold ? (set.half_mt_off & 4u ? "QUIET (KIL LATCHED)" : "QUIET (KIL)") : "BACK");
         ui.redraw |= RG_FOOT;
     } else if (!(keys & PAD_BIT(BKF_KIL))) {
         if (ui.kil_focus) {
@@ -1243,7 +1245,7 @@ static void input(void)
         if (kick_hold && !(set.half_mt_off & 4u)) {   /* (let go, no LATCH: back) */
             kick_hold = 0u;
             kil_back_flt();
-            app_say("KICKS", "BACK");
+            app_say(KIL_NAME[kil_what()], "BACK");
             ui.redraw |= RG_FOOT;
         }
     }
@@ -2352,8 +2354,8 @@ static void draw_foot(const brk_status_t *st)
             foot_card(0u, "LATCH", C_HI, set.half_mt_off & (8u << ((ui.x2_focus - 1u) % 3u)) ? "OFF" : "ON", -1.0f, 0);
             continue;
         }
-        if (ui.kil_focus && i == 0u && ui.shown < 100) {   /* LOAF BREAKER: KIL held: K1 its LATCH */
-            foot_card(0u, "LATCH", C_HI, set.half_mt_off & 4u ? "ON" : "OFF", -1.0f, 0);
+        if (ui.kil_focus && i < 2u && ui.shown < 100) {   /* LOAF BREAKER: KIL held: K1 its LATCH, K2 MUTES (0.9.85) */
+            foot_card(i, i ? "MUTES" : "LATCH", C_HI, i ? KIL_NAME[kil_what()] : set.half_mt_off & 4u ? "ON" : "OFF", -1.0f, 0);
             continue;
         }
         if (ui.shown >= 0) {             /* a pad held: its own settings */
@@ -4129,8 +4131,8 @@ int app_expect(const char *what, int *got)
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
                                     "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15", "broll", "stut", "fxwet", "tempo10", "kitsel", "kit0kick", "vthru", "dafter",
-                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold", "subfa", "dft", "swon", "strip", "kl_amt", "dbrk", "split", "split_at", "half", "half_ask", "layer", "split_b", "kdec0", "bpitch", "chaos", "cmath", "crolls", "cseed", "rkick", "rsnare", "rhat", "chsw", "ctl", "ctln", "ctllast", "ctllitk", "ctlmidk", "ctlmaster", "pxlow", "pxmid", "pxhigh", "pxmidf", "pxq", "pxlof", "xo", "xsg", "xdrv", "xdec"};
-    int v[228];
+                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold", "subfa", "dft", "swon", "strip", "kl_amt", "dbrk", "split", "split_at", "half", "half_ask", "layer", "split_b", "kdec0", "bpitch", "chaos", "cmath", "crolls", "cseed", "rkick", "rsnare", "rhat", "chsw", "ctl", "ctln", "ctllast", "ctllitk", "ctlmidk", "ctlmaster", "pxlow", "pxmid", "pxhigh", "pxmidf", "pxq", "pxlof", "xo", "xsg", "xdrv", "xdec", "phits", "kilwhat"};
+    int v[230];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -4389,6 +4391,13 @@ int app_expect(const char *what, int *got)
         v[226] = x->sdrv;
         v[227] = x->sdec;
     }
+    {                                    /* (0.9.85: the drums' hits since the last look; KIL's MUTES) */
+        static uint32_t seen;
+        v[228] = (int)(perc_hit_n - seen);
+        if (!strcmp(what, "phits"))
+            seen = perc_hit_n;
+    }
+    v[229] = (int)kil_what();
     v[161] = set.vinyl & 3u;             /* (0.9.54: VINYL BREAK's THRU, 0 BOTH 1 BREAK 2 KICK) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */
     v[141] = kx2_at(set.kslot)->gate;    /* (its TAIL GATE's division) */

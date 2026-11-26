@@ -137,6 +137,12 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   bar's 16ths, `mt_t16`, stopped the tempo by plat_ms), the bar's beats, the TAP card (tap_n's taps, flashing 130 ms),
   CLOCK IN / CLOCK OUT / NOTES IN cards, USB / TRS in and out; redrawn 20 times a second (main.c, as LIGHTS).
 - KCK SNR HAT CLP (26 Nov 2026, 0.9.81, FLEXOR, from issue #4: "map them to the Kick, Snare, Hi-Hat, and Clap ... to finger-drum and live-record"; his choice: four assignable black-key functions, "il pourra le configurer lui-même"): `BKF_KCK`..`BKF_CLP`, last in BKF_* (after SPL; KCK + d = DR_*); main.c a press each `midi_drum(d)` (REC playing: written into the lane), bkf_lit while held; CUSTOM / SEL BLACK / REC; in no preset layout. Scenario drumkeys; the scenarios turning K3 left of R8 (or REC's list) four more.
+- KIL MUTES (26 Nov 2026, 0.9.85, FLEXOR, from issue #5 (a player: a toggle kill, "mute the entire drum section"; the
+  toggle was there already, KIL's K1 LATCH and KBR's K4): KIL's K2 MUTES KICKS (as before) / DRUMS (snare, hat, clap) /
+  ALL, `kil_what()` (set.half_mt_off bits 6-7, 3 read as KICKS), `KIL_NAME`; the render's `kil_k` / `kil_d` (np = 0: every
+  drum hit, the black keys' KCK..CLP too while it holds); pads.c `kil_what_turn`; main.c kil_focus K2 and its foot card.
+  Probes phits (the drums' hits since the last look, `perc_hit_n`) kilwhat; scenario kilmutes. Bluetooth (the same issue):
+  still FLEXOR's no, but he gave the player his blessing to add it in his own fork or custom build (26 Nov 2026).
 - PRE EQ and SUB SPLIT (26 Nov 2026, 0.9.82, FLEXOR: "l'eq avant la disto ... et le sub séparé"; GABBERKIX's ideas
   only, its code GPL: never copied): KICK › DIST's last three parts (DIST: DIRT until 0.9.81, FLEXOR) (KP_PREQ, KP_PREQ2, KP_XSUB; parts KP_PART_PREQ
   35..37, KSECT rows of 10 now): PRE EQ K1 LOW, K2 LO FREQ, K3 MID, K4 MID FREQ; PRE EQ + HIGH, HI FREQ, MID Q (0.9.83,

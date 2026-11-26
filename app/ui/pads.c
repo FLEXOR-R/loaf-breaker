@@ -149,7 +149,7 @@ static const char *const PAD_KNOB[BKF_N][4] = {   /* (LOAF BREAKER: by function,
     {"TIME", "FEEDBACK", "TONE", "MIX"},   /* (DUB: CHOPPAH's; a DELAY in the chain: its own, fx_param_name) */
     {"EFFECT", "AMOUNT", "TIME", "LATCH"},   /* (the ARP key's; FX while held: MORE, pad_knob_name; K2 what goes
                                           * through the ARP effects: the kick, the break, or both) */
-    {"LATCH", 0, 0, 0},                  /* (KIL: 0.9.80, FLEXOR: "le kill n'a pas de latch": its K1 LATCH named, shown
+    {"LATCH", "MUTES", 0, 0},            /* (KIL: K2 MUTES KICKS / DRUMS / ALL, 0.9.85; 0.9.80, FLEXOR: "le kill n'a pas de latch": its K1 LATCH named, shown
                                           * and turned as the other keys', main.c's kil_focus the same) */
     {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0},   /* (DST, SUB, DRV: a press each) */
     {"LATCH", 0, 0, 0}, {"LATCH", 0, 0, 0}, {"LATCH", 0, 0, 0},   /* (X2, X4, TRI: their K1 LATCH, as KIL's) */
@@ -266,6 +266,16 @@ static void kick_flt_turn(int32_t d)
 /* (0.9.50, FLEXOR: the kicks back on with KIL, the drums' filter OFF at once: never a drop filtered by mistake;
  * 0.9.64, FLEXOR: SYSTEM › EFFECTS K4 KICK SWITCH: SMART keeps it when it was turned while the kicks were quiet, the
  * kicks brought back into it; FLT OFF as before; FLT KEEP never) */
+/* (0.9.85) KIL's K2 MUTES: KICKS, DRUMS, ALL, a detent a step, stopping at the ends */
+static void kil_what_turn(int32_t d)
+{
+    int32_t w = (int32_t)kil_what() + (d > 0 ? 1 : -1);
+    w = w < KIL_KICKS ? KIL_KICKS : w > KIL_ALL ? KIL_ALL : w;
+    set.half_mt_off = (uint8_t)((set.half_mt_off & 0x3Fu) | (uint32_t)w << 6);
+    set_dirty = 1u;
+    app_say("KIL MUTES", KIL_NAME[w]);
+    ui.redraw |= RG_FOOT;
+}
 static void kil_back_flt(void)
 {
     uint32_t m = ksw_mode(), q = kdj_quiet;
@@ -403,8 +413,8 @@ static void pad_knob_value(int pad, int k, char *t)
             text_cat(t, arpk_latch(arpk_focus()) ? "ON" : "OFF");
         break;
     }
-    case BKF_KIL:                        /* (0.9.80: K1 LATCH: on, the kicks stay out at a press) */
-        text_cat(t, set.half_mt_off & 4u ? "ON" : "OFF");
+    case BKF_KIL:                        /* (0.9.80: K1 LATCH: on, the kicks stay out at a press; 0.9.85: K2 MUTES) */
+        text_cat(t, k == 1 ? KIL_NAME[kil_what()] : set.half_mt_off & 4u ? "ON" : "OFF");
         break;
     case BKF_X2: case BKF_X4: case BKF_TRI:   /* (K1 LATCH: half_mt_off bits 3-5 are LATCH OFF) */
         text_cat(t, set.half_mt_off & (8u << (pad - BKF_X2)) ? "OFF" : "ON");
@@ -559,9 +569,13 @@ static void pad_knob_turn(int pad, int k, int32_t d)
         break;
     case BKF_KIL:                        /* (0.9.80: K1 LATCH, right on (held now: the kicks stay out), left off; as
                                           * main.c's kil_focus) */
-        set.half_mt_off = (uint8_t)(d > 0 ? set.half_mt_off | 4u : set.half_mt_off & ~4u);
-        if (d > 0 && ui.kil_focus)
-            kick_hold = 1u;
+        if (k == 1)
+            kil_what_turn(d);
+        else {
+            set.half_mt_off = (uint8_t)(d > 0 ? set.half_mt_off | 4u : set.half_mt_off & ~4u);
+            if (d > 0 && ui.kil_focus)
+                kick_hold = 1u;
+        }
         set_dirty = 1u;
         ui.redraw |= RG_FOOT;
         break;

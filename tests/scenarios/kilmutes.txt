@@ -1,0 +1,141 @@
+# LOAF BREAKER (0.9.85, FLEXOR, from issue #5: "mute the entire drum section"): KIL's K2 MUTES, while it is held: KICKS
+# (as before: the sequencer's kicks), DRUMS (the snare, the hat, the clap), ALL; with its LATCH (K1), a press each.
+# The kick on 1, 5, 9, 13 of its four bars, the snare on 5 and 13 of two (SEQ).
+#   app/build/host/loaf-breaker_host tests/scenarios/kilmutes.txt app/build/scenarios
+wait 4200
+tap SEQ
+wait 200
+key w0 down
+wait 30
+key w0 up
+key w4 down
+wait 30
+key w4 up
+key w8 down
+wait 30
+key w8 up
+key w12 down
+wait 30
+key w12 up
+turn ALGO 1 10
+wait 100
+key w0 down
+wait 30
+key w0 up
+key w4 down
+wait 30
+key w4 up
+key w8 down
+wait 30
+key w8 up
+key w12 down
+wait 30
+key w12 up
+turn ALGO 1 10
+wait 100
+key w0 down
+wait 30
+key w0 up
+key w4 down
+wait 30
+key w4 up
+key w8 down
+wait 30
+key w8 up
+key w12 down
+wait 30
+key w12 up
+turn ALGO 1 10
+wait 100
+key w0 down
+wait 30
+key w0 up
+key w4 down
+wait 30
+key w4 up
+key w8 down
+wait 30
+key w8 up
+key w12 down
+wait 30
+key w12 up
+turn ALGO 1 10
+wait 100
+key w4 down
+wait 30
+key w4 up
+key w12 down
+wait 30
+key w12 up
+turn ALGO 1 10
+wait 100
+key w4 down
+wait 30
+key w4 up
+key w12 down
+wait 30
+key w12 up
+tap HOME
+tap PLAY
+wait 1300
+expect khits >0
+expect phits >0
+expect kilwhat 0
+# KICKS (the start): the kicks quiet, the drums on
+key b10 down
+wait 100
+expect khits >-1
+expect phits >-1
+wait 1300
+expect khits 0
+expect phits >0
+# K2 right: DRUMS: the kicks back, the drums quiet
+turn K2 1 10
+wait 100
+expect kilwhat 1
+shot kilmutes.png
+expect khits >-1
+expect phits >-1
+wait 1300
+expect khits >0
+expect phits 0
+key b10 up
+wait 1300
+expect khits >0
+expect phits >0
+# ALL, LATCH on: a press quiets both, the next brings them back
+key b10 down
+wait 50
+turn K2 1 10
+wait 50
+turn K1 1 10
+wait 100
+expect kilwhat 2
+key b10 up
+wait 100
+expect khits >-1
+expect phits >-1
+wait 1300
+expect khits 0
+expect phits 0
+key b10 down
+wait 30
+key b10 up
+wait 1300
+expect khits >0
+expect phits >0
+# K2 stops at its ends; back to KICKS, LATCH off (as the other scenarios want it)
+key b10 down
+wait 50
+turn K2 1 10
+wait 50
+expect kilwhat 2
+turn K2 -3 10
+wait 50
+expect kilwhat 0
+turn K1 -1 10
+wait 50
+key b10 up
+wait 1300
+expect khits >0
+expect phits >0
