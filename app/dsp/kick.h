@@ -196,3 +196,9 @@ void kick_pitches(const float *pm);
 void kick_rgb(const kick_t *k, uint8_t (*col)[4], uint32_t n, uint32_t ms);
 /* the kick's shape, for the screen: n peaks (0..1) of the first ms milliseconds, rendered offline (main loop) */
 void kick_shape(const kick_t *k, uint8_t *px, uint32_t n, uint32_t ms, uint32_t height);
+/* LOAF BREAKER (0.9.83): the same pictures a slice at a time (the main loop's frames short): begun with the kick's
+ * settings now (rgb: kick_rgb's columns into col; else kick_shape's peaks into px and kick_wave's into wv, in one
+ * pass), then so many ticks a call; 1 when done (or none begun) */
+void kick_pic_start(const kick_t *k, uint32_t rgb, uint8_t (*col)[4], uint8_t *px, int8_t *wv, uint32_t n, uint32_t ms,
+                    uint32_t height);
+int kick_pic_step(uint32_t ticks);

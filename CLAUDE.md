@@ -50,7 +50,12 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   uses `changed_kick()` / `changed_fx()`. Every encoder detent is its own step (0.9.83, FLEXOR: "tous les inputs des potards ne
   sont pas pris"): input()'s loop calls main.c `enc_one(k, ±1)` once a detent (the FM-1's counts are raw, no speed in
   them), so a handler using the turn's sign alone (the tabs, parts, lists) loses none that came in while a page drew;
-  write new handlers for d = ±1 or linear in d. Scenario encfast. SYSTEM › MIDI K3 METER (EXPERT only, 0.213) shows CPU / IMG / FR on the device. CI's 30-minute
+  write new handlers for d = ±1 or linear in d. Scenario encfast. The KICK menu's and the drums' pictures (0.9.83, FLEXOR: "optimiser tout ça à
+  tout prix"; callgrind: kick_rgb was 79 % of the KICK page's frames, ~17 M instructions a change) are worked out a
+  slice at a time: dsp kick_pic_start / kick_pic_step, perc_pic_*, ui kv_poll / pw_poll each frame (KV_BUDGET_MS 3),
+  into kv_rgb_n / kv_px_n / kv_wave_n (pool), copied over the picture shown when whole; one at a time, the next begun
+  when the kick changed meanwhile; none while not shown (PRE EQ, SUB SPLIT: in frequency). On the host plat_ms stands
+  still in a frame: a picture is whole in one, as before. Never put a whole render back in a frame. SYSTEM › MIDI K3 METER (EXPERT only, 0.213) shows CPU / IMG / FR on the device. CI's 30-minute
   random soak (`tools/soak.py`, seed = run number) at every release is off since 16 Nov 2026 (FLEXOR: "pas besoin des soak test, juste publie"; loaf.yml `if: false`).
 - Names (10 Nov 2026, 0.191): what the code calls TERROR, TERROR 2, TERROR + the screen and the docs call DISTO,
   SCREAM, DISTO + (D+ TYPE: FOLD CLIP CRUSH RECT TUBE, 0.255 HALF SINE WRAP FUZZ, `KICK_T_TYPES`; D+ SCREECH ..); the black key DST. Keep newcomers' names on the screen; TERROR stays the

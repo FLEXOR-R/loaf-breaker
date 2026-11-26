@@ -511,6 +511,83 @@ BRK_COLD void perc_rgb(uint32_t voice, const perc_voice_t *s, uint8_t (*col)[4],
     }
 }
 
+/* LOAF BREAKER (0.9.83, FLEXOR: "optimiser tout ça à tout prix"): the drums' big picture a slice at a time, as the
+ * kick's (kick.c kick_pic_*): perc_rgb's columns, or perc_shape's and perc_wave's in one pass */
+static struct {
+    pc_t c;
+    pv_t v;
+    uint32_t voice, n, per, i, s, rgb, on;
+    float l1, l2, e[4], pk[4], h;
+    uint8_t (*col)[4];
+    uint8_t *px;
+    int8_t *wv;
+} pp BRK_POOL;
+BRK_COLD void perc_pic_start(uint32_t voice, const perc_voice_t *s, uint32_t rgb, uint8_t (*col)[4], uint8_t *px,
+                             int8_t *wv, uint32_t n, uint32_t ms, uint32_t height)
+{
+    uint32_t k;
+    pp.voice = voice % PERC_VOICES;
+    pc_make(pp.voice, s, 1.0f, &pp.c);
+    for (k = 0; k < 6u; k++)
+        pp.v.ph[k] = 0.0f;
+    pp.v.hp1 = pp.v.hp2 = pp.v.lp = pp.v.last = pp.v.declick = 0.0f;
+    pv_hit(&pp.v);
+    pp.v.declick = 0.0f;
+    pp.n = n;
+    pp.per = ms * (BRK_SR / 1000u) / (n ? n : 1u);
+    pp.i = pp.s = 0u;
+    pp.rgb = rgb;
+    pp.col = col;
+    pp.px = px;
+    pp.wv = wv;
+    pp.h = (float)height;
+    pp.l1 = pp.l2 = 0.0f;
+    for (k = 0; k < 4u; k++)
+        pp.e[k] = pp.pk[k] = 0.0f;
+    pp.on = n && pp.per;
+}
+BRK_COLD int perc_pic_step(uint32_t ticks)   /* 1: done (or nothing begun) */
+{
+    static const float G[4] = {300.0f, 380.0f, 520.0f, 255.0f};
+    uint32_t j;
+    while (pp.on && ticks--) {
+        float x = soft(voice_tick(pp.voice, &pp.v, &pp.c) * pp.c.g) * pp.c.make * pp.c.lvl;
+        if (pp.rgb) {
+            float b[4];
+            pp.l1 += (x - pp.l1) * 0.0285f;
+            pp.l2 += (x - pp.l2) * 0.356f;
+            b[0] = brk_absf(pp.l1);
+            b[1] = brk_absf(pp.l2 - pp.l1);
+            b[2] = brk_absf(x - pp.l2);
+            b[3] = brk_absf(x);
+            for (j = 0; j < 4u; j++) {
+                pp.e[j] = b[j] > pp.e[j] ? b[j] : pp.e[j] * 0.9985f;
+                pp.pk[j] = pp.e[j] > pp.pk[j] ? pp.e[j] : pp.pk[j];
+            }
+        } else {
+            float a = brk_absf(x);
+            pp.pk[0] = a > pp.pk[0] ? a : pp.pk[0];
+            if (a > brk_absf(pp.pk[1]))
+                pp.pk[1] = x;
+        }
+        if (++pp.s < pp.per)
+            continue;
+        if (pp.rgb)
+            for (j = 0; j < 4u; j++)
+                pp.col[pp.i][j] = (uint8_t)brk_clampf(pp.pk[j] * G[j], 0.0f, 255.0f);
+        else {
+            pp.px[pp.i] = (uint8_t)(brk_clampf(pp.pk[0], 0.0f, 1.0f) * pp.h + 0.5f);
+            pp.wv[pp.i] = (int8_t)(brk_clampf(pp.pk[1], -1.0f, 1.0f) * pp.h);
+        }
+        for (j = 0; j < 4u; j++)
+            pp.pk[j] = 0.0f;
+        pp.s = 0u;
+        if (++pp.i >= pp.n)
+            pp.on = 0u;
+    }
+    return !pp.on;
+}
+
 /* the built-in sounds: level, tune, decay, tone, snap (the hat's cut), drive */
 static const float PRESET[PERC_VOICES][PERC_PRESETS][6] = {
     {{0.80f, 0.45f, 0.40f, 0.50f, 0.55f, 0.10f},    /* 909 */

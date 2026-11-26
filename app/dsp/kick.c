@@ -1023,6 +1023,92 @@ BRK_COLD void kick_wave(const kick_t *k, int8_t *px, uint32_t n, uint32_t ms, ui
     }
 }
 
+/* LOAF BREAKER (0.9.83, FLEXOR: "il faut vraiment optimiser tout ça à tout prix, que ce soit pour les knobs tournés
+ * qui changent des settings ou les onglets"): the KICK menu's picture, ~22,000 ticks of the kick (17 M instructions on
+ * a computer: on the FM-1 a whole frame lost to it at each change), worked out a slice at a time between the main
+ * loop's frames. kick_pic_start takes the kick as it is (its settings now), kick_pic_step goes on for so many ticks:
+ * the RGB view's columns (kick_rgb's), or the WAVE view's peak and wave (kick_shape's and kick_wave's in one pass) */
+static struct {
+    kc_t c;
+    kv_t v;
+    uint32_t n, per, i, s, rgb, on;
+    float l1, l2, e[4], pk[4], h;
+    uint8_t (*col)[4];
+    uint8_t *px;
+    int8_t *wv;
+} kp BRK_POOL;
+BRK_COLD void kick_pic_start(const kick_t *k, uint32_t rgb, uint8_t (*col)[4], uint8_t *px, int8_t *wv, uint32_t n,
+                             uint32_t ms, uint32_t height)
+{
+    kick_lab_t lab = *(const kick_lab_t *)&p_lab;
+    uint32_t j;
+    kc_make(k, &kp.c, p_syn, &lab);
+    kp.c.rum = 0.0f;                     /* (the picture: no rumble, no REVERSE BASS, as kick_rgb) */
+    kp.c.rb_lvl = 0.0f;
+    kp.v.rng = 0x5eed1u;
+    kp.v.sc1 = kp.v.sc2 = 0.0f;
+    kp.v.rlp = kp.v.rout = kp.v.rlvl = kp.v.dc = 0.0f;
+    kp.v.tlo = kp.v.tlp = kp.v.tenv = 0.0f;
+    kp.v.t2lo = kp.v.t2lp = kp.v.t2env = 0.0f;
+    kp.v.pm = 1.0f;
+    kp.v.last = kp.v.declick = 0.0f;
+    kv_hit(&kp.v);
+    kp.v.declick = 0.0f;
+    kp.n = n;
+    kp.per = ms * (BRK_SR / 1000u) / (n ? n : 1u);
+    kp.i = kp.s = 0u;
+    kp.rgb = rgb;
+    kp.col = col;
+    kp.px = px;
+    kp.wv = wv;
+    kp.h = (float)height;
+    kp.l1 = kp.l2 = 0.0f;
+    for (j = 0; j < 4u; j++)
+        kp.e[j] = kp.pk[j] = 0.0f;
+    kp.on = n && kp.per;
+}
+BRK_COLD int kick_pic_step(uint32_t ticks)   /* 1: done (or nothing begun) */
+{
+    static const float G[4] = {300.0f, 380.0f, 520.0f, 255.0f};
+    uint32_t j;
+    while (kp.on && ticks--) {
+        float x = kv_tick(&kp.v, &kp.c);
+        if (kp.rgb) {                    /* (kick_rgb's bands, each followed ~15 ms down) */
+            float b[4];
+            kp.l1 += (x - kp.l1) * 0.0285f;
+            kp.l2 += (x - kp.l2) * 0.356f;
+            b[0] = brk_absf(kp.l1);
+            b[1] = brk_absf(kp.l2 - kp.l1);
+            b[2] = brk_absf(x - kp.l2);
+            b[3] = brk_absf(x);
+            for (j = 0; j < 4u; j++) {
+                kp.e[j] = b[j] > kp.e[j] ? b[j] : kp.e[j] * 0.9985f;
+                kp.pk[j] = kp.e[j] > kp.pk[j] ? kp.e[j] : kp.pk[j];
+            }
+        } else {                         /* (kick_shape's peak, kick_wave's farthest sample) */
+            float a = brk_absf(x);
+            kp.pk[0] = a > kp.pk[0] ? a : kp.pk[0];
+            if (a > brk_absf(kp.pk[1]))
+                kp.pk[1] = x;
+        }
+        if (++kp.s < kp.per)
+            continue;
+        if (kp.rgb)
+            for (j = 0; j < 4u; j++)
+                kp.col[kp.i][j] = (uint8_t)brk_clampf(kp.pk[j] * G[j], 0.0f, 255.0f);
+        else {
+            kp.px[kp.i] = (uint8_t)(brk_clampf(kp.pk[0], 0.0f, 1.0f) * kp.h + 0.5f);
+            kp.wv[kp.i] = (int8_t)(brk_clampf(kp.pk[1], -1.0f, 1.0f) * kp.h);
+        }
+        for (j = 0; j < 4u; j++)
+            kp.pk[j] = 0.0f;
+        kp.s = 0u;
+        if (++kp.i >= kp.n)
+            kp.on = 0u;
+    }
+    return !kp.on;
+}
+
 /* the built-in kicks: per layer level, pitch, decay, tone; then intensity */
 static const float PRESET[KICK_PRESETS][KICK_LAYERS * 4 + 1] = {
     {0.85f, 0.50f, 0.62f, 0.15f, 0.75f, 0.55f, 0.35f, 0.55f, 0.00f, 0.30f, 0.30f, 0.30f, 0.25f, 0.25f, 0.25f, 0.20f,

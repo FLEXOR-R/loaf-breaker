@@ -397,6 +397,39 @@ static void perc_cards(void)             /* the part's knobs: its name, its valu
     }
     cv_blit(0, 44u + KV_PH);
 }
+/* (0.9.83, FLEXOR: "optimiser tout ça à tout prix": the drums' picture a slice at a time, dsp/perc.c perc_pic_*, into
+ * the kick's spare buffers (one of the two pages at a time), then over the one shown; one pass, the view's own: the
+ * RGB view no longer worked out the wave too) */
+static uint32_t pw_job_sig, pw_job_ms;
+static uint8_t pw_job, pw_job_view;
+static void pw_poll(void)
+{
+    uint32_t t0 = plat_ms(), i, pk = 0u;
+    if (!pw_job)
+        return;
+    if (ui.page != PG_PERC || !ui.pbig) {   /* (not shown now: worked out again when it is) */
+        pw_job = 0u;
+        return;
+    }
+    while (!perc_pic_step(256u))
+        if (plat_ms() - t0 >= KV_BUDGET_MS)
+            return;
+    pw_job = 0u;
+    pw_sig = pw_job_sig;
+    pw_ms = pw_job_ms;
+    if (pw_job_view == 0u) {
+        memcpy(kv_rgb, kv_rgb_n, sizeof kv_rgb);
+        kv_sig = 0u;                     /* (the kick's picture worked out again when it is back) */
+    } else {
+        for (i = 0; i < PW_W; i++)
+            pk = kv_px_n[i] > pk ? kv_px_n[i] : pk;
+        for (i = 0; i < PW_W; i++) {     /* (as tall as it goes) */
+            pw_px[i] = (uint8_t)(pk ? (uint32_t)kv_px_n[i] * (uint32_t)PW_AMP / pk : 0u);
+            pw_wave[i] = (int8_t)(pk ? (int32_t)kv_wave_n[i] * PW_AMP / (int32_t)pk : 0);
+        }
+    }
+    ui.redraw |= RG_BLOCKS;
+}
 static void draw_perc_big(const brk_status_t *st)
 {
     const perc_voice_t *v = perc_voice(ui.pvoice);
@@ -404,24 +437,14 @@ static void draw_perc_big(const brk_status_t *st)
                    (uint32_t)perc_smp(ui.pvoice) * 7919u ^ kit_has * 131u, top;
     if (ui.kview == 0u && kv_sig)        /* (the kick's picture in kv_rgb since: this one again) */
         pw_sig = sig + 1u;
-    if (sig != pw_sig) {                 /* (its hit again, only when it changed) */
-        uint32_t pk = 0u;
+    if (sig != pw_sig && !pw_job) {      /* (its hit again, only when it changed; one at a time) */
         float d = perc_dms(ui.pvoice, v) * 1.4f;
-        pw_sig = sig;
-        pw_ms = ez_idx() ? EZ_MS[ez_idx()] : (uint32_t)brk_clampf(d, 60.0f, 900.0f);   /* (EDIT ZOOM) */
-        if (ui.kview == 0u) {            /* (LOAF BREAKER: the RGB view into the kick's buffer, the kick's picture
-                                          * worked out again when it is back) */
-            perc_rgb(ui.pvoice, v, kv_rgb, PW_W, pw_ms);
-            kv_sig = 0u;
-        }
-        perc_shape(ui.pvoice, v, pw_px, PW_W, pw_ms, (uint32_t)PW_AMP);
-        perc_wave(ui.pvoice, v, pw_wave, PW_W, pw_ms, (uint32_t)PW_AMP);
-        for (top = 0; top < PW_W; top++)
-            pk = pw_px[top] > pk ? pw_px[top] : pk;
-        for (top = 0; pk && top < PW_W; top++) {   /* (as tall as it goes) */
-            pw_px[top] = (uint8_t)((uint32_t)pw_px[top] * (uint32_t)PW_AMP / pk);
-            pw_wave[top] = (int8_t)((int32_t)pw_wave[top] * PW_AMP / (int32_t)pk);
-        }
+        pw_job = 1u;
+        pw_job_sig = sig;
+        pw_job_view = ui.kview == 0u ? 0u : 1u;
+        pw_job_ms = ez_idx() ? EZ_MS[ez_idx()] : (uint32_t)brk_clampf(d, 60.0f, 900.0f);   /* (EDIT ZOOM) */
+        perc_pic_start(ui.pvoice, v, pw_job_view == 0u, kv_rgb_n, kv_px_n, kv_wave_n, PW_W, pw_job_ms, (uint32_t)PW_AMP);
+        pw_poll();                       /* (its first slice now: a quick one shown at once) */
     }
     for (top = 0; top < KV_PH; top += 60u) {   /* (y 44..179, strips of 60 rows) */
         uint32_t h = KV_PH - top < 60u ? KV_PH - top : 60u;

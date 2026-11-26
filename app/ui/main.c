@@ -2795,8 +2795,8 @@ void app_frame(void)
         if (RST_ON)
             ui.redraw |= RG_BLOCKS | RG_FOOT;
     }
-    if (kv_pend && ui.page == PG_KICK && !ui.kclassic && now - kv_t >= 100u)
-        ui.redraw |= RG_BLOCKS;          /* (TEST: the kick's picture, its last change drawn) */
+    kv_poll();                           /* (0.9.83: the kick's and the drums' pictures, a slice further a frame) */
+    pw_poll();
     if (ui.page == PG_KICK && !ui.kclassic && kscope_hit && now - ui.kscope_drawn >= 200u && st.playing) {
         ui.kscope_drawn = now;           /* (TEST: the KICK menu's live kick, redrawn as it sounds) */
         ui.redraw |= RG_BLOCKS;

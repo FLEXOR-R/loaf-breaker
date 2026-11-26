@@ -1291,8 +1291,13 @@ static uint8_t kv_px[KV_W];              /* the hit's level, column by column */
 static int8_t kv_wave[KV_W];             /* and its wave (the pitch falling: the cycles stretching) */
 static uint8_t kv_rgb[KV_W][4];          /* LOAF BREAKER: or its lows, mids, highs and peak (the RGB view) */
 static uint32_t kv_sig;
-static uint32_t kv_t;                    /* (TEST: when the hit was last worked out) */
-static uint8_t kv_pend;                  /* (TEST: a change not drawn yet) */
+/* (0.9.83, FLEXOR: "optimiser tout ça à tout prix": the picture worked out a slice at a time, kick.c kick_pic_*, into
+ * these, then copied over the one shown: the old one stays until the new is whole, the frames short meanwhile) */
+static uint8_t kv_rgb_n[KV_W][4] PLAT_POOL, kv_px_n[KV_W] PLAT_POOL;
+static int8_t kv_wave_n[KV_W] PLAT_POOL;
+static uint32_t kv_job_sig;
+static uint8_t kv_job, kv_job_view;      /* (a picture being worked out; its view) */
+#define KV_BUDGET_MS 3u                  /* (a frame's share of it, at most: the knobs and the tabs answered first) */
 static void kick_chip(uint32_t p, char *t)   /* (LOAF BREAKER: a part's name at the picture's foot, short) */
 {
     if (p >= KP_BASE + 11u && p <= KP_BASE + 14u) {   /* (K1 SET ..: "K1") */
@@ -1715,37 +1720,54 @@ static void draw_kick_classic(const brk_status_t *st)   /* LOAF BREAKER: the men
     cv_blit(0, 88);
     draw_drums(st);
 }
+static uint32_t kv_sig_now(void)         /* (what the picture shows: the kick, its LAB, TOK, PRE EQ, the part shown) */
+{
+    return sig_of(&set.kick, sizeof set.kick) ^ sig_of(set.ksyn, sizeof set.ksyn) ^
+           (sig_of(&klab.cur, sizeof klab.cur) ^ (sig_of(kx2_at(set.kslot), sizeof(kick_x2_t)) ^
+            sig_of(kpx_at(set.kslot), sizeof(kick_px_t)) * 11u) * 5u) * 3u ^ kv_part_sig() * 7u ^ (ui.kview + 1u) * 131u;
+}
+static void kv_poll(void)                /* (each frame: the picture a slice further, at most KV_BUDGET_MS; whole, shown) */
+{
+    uint32_t t0 = plat_ms(), i, pk = 0u;
+    if (!kv_job)
+        return;
+    if (ui.page != PG_KICK || ui.kclassic || kpx_page()) {   /* (not shown now: left, worked out again when it is) */
+        kv_job = 0u;
+        return;
+    }
+    while (!kick_pic_step(256u))
+        if (plat_ms() - t0 >= KV_BUDGET_MS)
+            return;
+    kv_job = 0u;
+    kv_sig = kv_job_sig;
+    if (kv_job_view == 0u)
+        memcpy(kv_rgb, kv_rgb_n, sizeof kv_rgb);
+    else {                               /* (the wave over its level, as tall as it goes) */
+        for (i = 0; i < KV_W; i++)
+            pk = kv_px_n[i] > pk ? kv_px_n[i] : pk;
+        for (i = 0; i < KV_W; i++) {
+            kv_px[i] = (uint8_t)(pk ? (uint32_t)kv_px_n[i] * (uint32_t)KV_AMP / pk : 0u);
+            kv_wave[i] = (int8_t)(pk ? (int32_t)kv_wave_n[i] * KV_AMP / (int32_t)pk : 0);
+        }
+    }
+    ui.redraw |= RG_BLOCKS;              /* (drawn: and begun again if the kick changed meanwhile) */
+}
 static void draw_kick(const brk_status_t *st)
 {
-    uint32_t sig = sig_of(&set.kick, sizeof set.kick) ^ sig_of(set.ksyn, sizeof set.ksyn) ^
-                   (sig_of(&klab.cur, sizeof klab.cur) ^ (sig_of(kx2_at(set.kslot), sizeof(kick_x2_t)) ^ sig_of(kpx_at(set.kslot), sizeof(kick_px_t)) * 11u) * 5u) * 3u ^ kv_part_sig() * 7u, top;   /* (LOAF BREAKER: its LAB too, the
-                                          * part shown) */
+    uint32_t sig = kv_sig_now(), top;
     kick_t kk;
     if (ui.kclassic) {
         draw_kick_classic(st);
         return;
     }
-    if (sig != kv_sig && plat_ms() - kv_t < 100u)
-        kv_pend = 1u;                    /* (TEST: a knob turning: the hit again at most every 100 ms, the last one
-                                          * drawn then: main.c) */
-    else if (sig != kv_sig) {            /* (its hit again, only when it changed) */
-        uint32_t pk = 0u;
-        kv_sig = sig;
-        kv_t = plat_ms();
-        kv_pend = 0u;
+    if (sig != kv_sig && !kv_job && !kpx_page()) {   /* (its hit again, only when it changed; one at a time: a knob
+                                          * turning, the next begun as this one is whole) */
+        kv_job = 1u;
+        kv_job_sig = sig;
+        kv_job_view = ui.kview == 0u ? 0u : 1u;
         kv_kick(&kk);
-        if (ui.kview == 0u)              /* (LOAF BREAKER: the RGB view, its peaks its own; or the wave over its level) */
-            kick_rgb(&kk, kv_rgb, KV_W, KV_MS);
-        else {
-            kick_shape(&kk, kv_px, KV_W, KV_MS, (uint32_t)KV_AMP);
-            kick_wave(&kk, kv_wave, KV_W, KV_MS, (uint32_t)KV_AMP);
-        }
-        for (top = 0; top < KV_W; top++)
-            pk = kv_px[top] > pk ? kv_px[top] : pk;
-        for (top = 0; pk && top < KV_W; top++) {   /* (as tall as it goes) */
-            kv_px[top] = (uint8_t)((uint32_t)kv_px[top] * (uint32_t)KV_AMP / pk);
-            kv_wave[top] = (int8_t)((int32_t)kv_wave[top] * KV_AMP / (int32_t)pk);
-        }
+        kick_pic_start(&kk, kv_job_view == 0u, kv_rgb_n, kv_px_n, kv_wave_n, KV_W, KV_MS, (uint32_t)KV_AMP);
+        kv_poll();                       /* (its first slice now: a quick one shown at once) */
     }
     for (top = 0; top < KV_PH; top += 60u) {   /* (y 44..167, strips of 60 rows) */
         uint32_t h = KV_PH - top < 60u ? KV_PH - top : 60u;
