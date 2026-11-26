@@ -678,15 +678,23 @@ static void track_dropped(void)
 /* LOAF BREAKER (10 Nov 2026, early next gen): 15 PITCH DROP (SYNTH's DROP, its TIME), 16 RUMBLE (its amount, its
  * time), 17 PUNCH (MACRO's), 18 DRUM FLT (the drums' filter, SEL + SELECT's), 19 HOLD (SYNTH's), 20 KICK FX (the
  * kick's two FX slots' mix) */
-#define SK_N 22u                         /* (0.9.62, FLEXOR: 21 SUB DRV, the SUB layer's DRIVE gain) */
+#define SK_N 29u                         /* (0.9.62, FLEXOR: 21 SUB DRV, the SUB layer's DRIVE gain; 0.9.85, FLEXOR: "les db+
+                                          * et db- des trois fréquences du pre-eq ainsi que les low freq, med freq, high
+                                          * freq ... sculpter les kicks en direct ou grâce à une motion": 22-24 PRE LOW, MID,
+                                          * HIGH (their gains), 25-27 their frequencies, 28 BRK FLT (the break's DJ filter)) */
+#define SK_PRE 22u                       /* (the first PRE EQ function: 22 + b a gain, 25 + b a frequency) */
+#define SK_BFLT 28u
 /* (LOAF BREAKER, 10 Nov 2026: on the screen TERROR is DISTO, TERROR 2 SCREAM, TERROR + DISTO +, its settings D+ ..: names
  * a newcomer reads; the code keeps TERROR's) */
 static const char *const SK_NAME[SK_N] = {"DUCK", "SCREAM", "COMP", "DISTO", "DISTO +", "DRIVE", "D+ TYPE",
                                           "D+ SCREECH", "D+ TAIL", "TUNE", "DECAY", "REV BASS", "GLIDE", "CLEAN SUB",
-                                          "MORPH", "PITCH DROP", "RUMBLE", "PUNCH", "DRUM FLT", "HOLD", "KICK FX", "SUB DRIVE"};
+                                          "MORPH", "PITCH DROP", "RUMBLE", "PUNCH", "DRUM FLT", "HOLD", "KICK FX", "SUB DRIVE",
+                                          "PRE LOW", "PRE MID", "PRE HIGH", "PRE LO FREQ", "PRE MID FREQ", "PRE HI FREQ",
+                                          "BRK FLT"};
 static const char *const SK_SHORT[SK_N] = {"DUCK", "SCREAM", "COMP", "DISTO", "D+ DRIVE", "DRIVE", "D+ TYPE", "SCRCH",
                                            "D+ TAIL", "TUNE", "DECAY", "REV B", "GLIDE", "C SUB", "MORPH", "P DROP",
-                                           "RUMBLE", "PUNCH", "D FLT", "HOLD", "K FX", "SUB DRV"};
+                                           "RUMBLE", "PUNCH", "D FLT", "HOLD", "K FX", "SUB DRV", "P LOW",
+                                           "P MID", "P HIGH", "P LO F", "P MID F", "P HI F", "B FLT"};
 static const char *const SK_KNOB[SK_N][4] = {{"AMOUNT", "ATTACK", "RELEASE", "DUCKS"}, {"AMOUNT", "SUB", "SCREAM", "PUSH"},
                                              {"AMOUNT", "RATIO", "ATTACK", "RELEASE"}, {"AMOUNT", "SUB", "FIZZ", "SUSTAIN"},
                                              {"DRIVE", "TYPE", "SCREECH", "TAIL"}, {"AMOUNT", "", "", ""},
@@ -695,13 +703,17 @@ static const char *const SK_KNOB[SK_N][4] = {{"AMOUNT", "ATTACK", "RELEASE", "DU
                                              {"AMOUNT", "START", "CURVE", ""}, {"TIME", "", "", ""}, {"AMOUNT", "", "", ""},
                                              {"AMOUNT", "TO KICK", "", ""}, {"AMOUNT", "TIME", "", ""},
                                              {"AMOUNT", "TIME", "", ""}, {"AMOUNT", "", "", ""}, {"FILTER", "", "", ""},
-                                             {"HOLD", "", "", ""}, {"FX 1 MIX", "FX 2 MIX", "", ""}, {"GAIN", "", "", ""}};
+                                             {"HOLD", "", "", ""}, {"FX 1 MIX", "FX 2 MIX", "", ""}, {"GAIN", "", "", ""},
+                                             {"GAIN", "", "", ""}, {"GAIN", "", "", ""}, {"GAIN", "", "", ""},
+                                             {"FREQ", "", "", ""}, {"FREQ", "", "", ""}, {"FREQ", "", "", ""},
+                                             {"FILTER", "", "", ""}};
 static const char *const T_TYPE_NAME[KICK_T_TYPES] = {"FOLD", "CLIP", "CRUSH", "RECT", "TUBE", "HALF", "SINE",
                                                       "WRAP", "FUZZ"};   /* (0.255: four more, FLEXOR) */
 /* what a SEL + knob can be given (KNOB, PRESETS), in that order: its code 1..15 is its place + 1 (0: the knob's own) */
-#define SK_CODES 22u                     /* (codes past 15: selk_hi's fifth bit; 0.9.62 SUB DRIVE, 22) */
+#define SK_CODES 29u                     /* (codes past 15: selk_hi's fifth bit; 0.9.62 SUB DRIVE, 22; 0.9.85 the PRE EQ's
+                                          * six and BRK FLT, 23-29: the fifth bit holds them, 31 at most) */
 static const uint8_t SK_CODE[SK_CODES] = {0u, 1u, 2u, 3u, 4u, 6u, 7u, 8u, 5u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u,
-                                          17u, 18u, 19u, 20u, 21u};
+                                          17u, 18u, 19u, 20u, 21u, 22u, 23u, 24u, 25u, 26u, 27u, 28u};
 static const uint8_t SK_OWN[4] = {5u, 1u, 7u, 3u};   /* K1 DRIVE, K2 TERROR 2, K3 T+ SCREECH, K4 TERROR (LOAF BREAKER:
                                           * DUCK and COMP no more: the MIXER's MASTER has them) */
 static const char *sk_short(uint32_t f) { return SK_SHORT[f % SK_N]; }   /* (EDIT KICK's KNOBS) */
@@ -763,6 +775,23 @@ static void selk_value(uint32_t f, int i, char *t)
     uint8_t v;
     int32_t sv;
     t[0] = 0;
+    if (f >= SK_PRE) {                   /* (0.9.85: the PRE EQ's gains and frequencies, BRK FLT) */
+        const kick_px_t *x = kpx_at(set.kslot);
+        uint32_t b = (f - SK_PRE) % 3u;
+        if (i)
+            return;
+        if (f == SK_BFLT)
+            brk_flt_text(t);
+        else if (f >= SK_PRE + 3u)
+            hz_text(kpx_hz(x, b), t);
+        else {
+            if (x->eq_g[b] > 0)
+                text_cat(t, "+");
+            int_text(x->eq_g[b], t + (x->eq_g[b] > 0 ? 1 : 0));
+            text_cat(t, " DB");
+        }
+        return;
+    }
     if (f >= 15u) {                      /* LOAF BREAKER: PITCH DROP, RUMBLE, PUNCH, DRUM FLT, HOLD, KICK FX */
         if (f == 15u && i < 2)
             ks_text(i ? KS_TIME : KS_DROP, t);
@@ -871,6 +900,13 @@ static void selk_value(uint32_t f, int i, char *t)
 static float sk_norm(uint32_t f, int i)  /* a setting 0..1, as its bar */
 {
     uint8_t v;
+    if (f >= SK_PRE) {                   /* (0.9.85: the PRE EQ's, BRK FLT) */
+        const kick_px_t *x = kpx_at(set.kslot);
+        uint32_t b = (f - SK_PRE) % 3u;
+        return i ? 0.0f : f == SK_BFLT ? (set.fx.dj + 1.0f) * 0.5f :
+               f >= SK_PRE + 3u ? (float)(x->eq_f[b] - KPX_FLO[b]) / (float)(KPX_FHI[b] - KPX_FLO[b]) :
+               (float)(x->eq_g[b] + KICK_PX_DB) * (1.0f / (2.0f * KICK_PX_DB));
+    }
     if (f >= 15u)                        /* (LOAF BREAKER: PITCH DROP .. KICK FX) */
         return f == 15u ? (i < 2 ? ks_normj(i ? KS_TIME : KS_DROP) : 0.0f) :
                f == 16u ? (i < 2 ? ks_normj(i ? KS_RTIME : KS_RUMBLE) : 0.0f) :
@@ -912,7 +948,22 @@ static void selk_turn(uint32_t f, int i, int32_t d)
         ui.redraw |= RG_BLOCKS | RG_FOOT;
         return;
     }
-    if (f >= 15u) {                      /* LOAF BREAKER: PITCH DROP, RUMBLE, PUNCH, HOLD, KICK FX */
+    if (f == SK_BFLT) {                  /* (0.9.85: BRK FLT, HOME's break filter: its say, its change) */
+        if (i == 0)
+            brk_flt_turn(d);
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        return;
+    }
+    if (f >= SK_PRE) {                   /* (0.9.85: the PRE EQ's gains, 1 dB a detent, and frequencies, a semitone) */
+        kick_px_t *x = kpx_at(set.kslot);
+        uint32_t b = (f - SK_PRE) % 3u;
+        if (i)
+            return;
+        if (f >= SK_PRE + 3u)
+            x->eq_f[b] = (int8_t)clamp((int32_t)x->eq_f[b] + d, KPX_FLO[b], KPX_FHI[b]);
+        else
+            x->eq_g[b] = (int8_t)clamp((int32_t)x->eq_g[b] + d, -KICK_PX_DB, KICK_PX_DB);
+    } else if (f >= 15u) {               /* LOAF BREAKER: PITCH DROP, RUMBLE, PUNCH, HOLD, KICK FX */
         if ((f == 15u || f == 16u) && i < 2)
             ks_add(f == 15u ? (i ? KS_TIME : KS_DROP) : (i ? KS_RTIME : KS_RUMBLE), d);
         else if (f == 17u && i == 0) {

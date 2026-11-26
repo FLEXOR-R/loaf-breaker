@@ -427,7 +427,7 @@ hard turn deletes one item, not the ones moving into its place, 0.9.26),
 - **The live knobs** (EDIT › KNOBS): what SEL + each knob does, on any page. On the KICK menu's KNOBS section,
   **ALGORITHM** goes to K1 SET .. K4 SET, and **PRESETS** there gives that knob its function: SCREAM, DISTO, D+ DRIVE, D+ TYPE, D+ SCREECH, D+ TAIL (DISTO +'s settings, one each),
   DRIVE (the kick's INTENSITY), DECAY, REV BASS, GLIDE, CLEAN SUB, MORPH, PITCH DROP, RUMBLE, PUNCH, DRUM FLT,
-  HOLD, KICK FX or SUB DRIVE (0.9.62: the SUB layer's DRIVE gain; 0.9.66, FLEXOR: the gain alone, it never turns the drive on: the SDR key does, and it says OFF beside the gain while off). They start as K1 DRIVE, K2 SCREAM, K3 D+ SCREECH, K4 DISTO. K1–K4 then set the
+  HOLD, KICK FX or SUB DRIVE (0.9.62: the SUB layer's DRIVE gain; 0.9.66, FLEXOR: the gain alone, it never turns the drive on: the SDR key does, and it says OFF beside the gain while off), PRE LOW, PRE MID, PRE HIGH (0.9.85: the PRE EQ's gains, 1 dB a detent, -18 to +18), PRE LO FREQ, PRE MID FREQ, PRE HI FREQ (their frequencies, a semitone a detent), or BRK FLT (the break's DJ filter, HOME's K2): sculpt the kick's PRE EQ or sweep the break live. They start as K1 DRIVE, K2 SCREAM, K3 D+ SCREECH, K4 DISTO. K1–K4 then set the
   function's settings (K1 is what SEL + its knob turns). DUCK and COMP are not here: the MIXER (LFO) has them, MASTER and
   DYNAMICS.
   - **SCREAM**: AMOUNT, SUB (what stays clean under it, ~48–250 Hz), SCREAM (the mids it pushes, ~150 Hz–2.4 kHz),

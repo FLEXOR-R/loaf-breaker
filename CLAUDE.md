@@ -144,6 +144,11 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   drum hit, the black keys' KCK..CLP too while it holds); pads.c `kil_what_turn`; main.c kil_focus K2 and its foot card.
   Probes phits (the drums' hits since the last look, `perc_hit_n`) kilwhat; scenario kilmutes. Bluetooth (the same issue):
   still FLEXOR's no, but he gave the player his blessing to add it in his own fork or custom build (26 Nov 2026).
+- The PRE EQ and BRK FLT as knob functions (26 Nov 2026, 0.9.85, FLEXOR: "les db+ et db- des trois fréquences du pre-eq
+  ainsi que les low freq, med freq, high freq ... sculpter les kicks en direct ou grâce à une motion"): track.c SK 22-24
+  PRE LOW / MID / HIGH (kx2.px eq_g, 1 dB a detent), 25-27 their frequencies (eq_f, a semitone; KPX_FLO..FHI), 28 BRK FLT
+  (set.fx.dj, brk_flt_turn: its own say); SK_N / SK_CODES 29 (codes to 29: selk_hi's fifth bit holds up to 31; two more
+  at most), `SK_PRE`, `SK_BFLT`. Scenario skpre.
 - PRE EQ and SUB SPLIT (26 Nov 2026, 0.9.82, FLEXOR: "l'eq avant la disto ... et le sub séparé"; GABBERKIX's ideas
   only, its code GPL: never copied): KICK › DIST's last three parts (DIST: DIRT until 0.9.81, FLEXOR) (KP_PREQ, KP_PREQ2, KP_XSUB; parts KP_PART_PREQ
   35..37, KSECT rows of 10 now): PRE EQ K1 LOW, K2 LO FREQ, K3 MID, K4 MID FREQ; PRE EQ + HIGH, HI FREQ, MID Q (0.9.83,
