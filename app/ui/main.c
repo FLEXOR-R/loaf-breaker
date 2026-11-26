@@ -84,6 +84,7 @@ static void perc_clip(void)
     changed();
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
+static uint32_t blk_draws;               /* (0.9.86: the page's strip drawn: the simulator's checks) */
 static int sel_bt_page(void)             /* (0.9.26, FLEXOR: the pages where SEL + ALGORITHM is BREAK TIME) */
 {
     return HOME_PG(ui.page) || ui.page == PG_MIX || (ui.page == PG_OVL && ui.opage) ||
@@ -2877,6 +2878,12 @@ void app_frame(void)
             forget_t = now;
         }
     }
+    if (ui.shown != -1)                  /* (0.9.86, FLEXOR: "utiliser des touches noires par dessus la waveform, les eq,
+                                          * ou le xsub fait un flickering bizarre": a black key's picture (or a key's, the
+                                          * help) holds the strip; the page's own, asked for since (the kick's picture a
+                                          * slice at a time, its live scope every 200 ms), waits until it is let go, not
+                                          * drawn over it a frame in two) */
+        ui.redraw &= ~(uint8_t)RG_BLOCKS;
     if (!ui.redraw)
         return;
     if (ui.redraw & RG_WAVE && ui.page != PG_TRACK && ui.page != PG_SEQ && ui.page != PG_GLOBAL &&
@@ -2894,6 +2901,7 @@ void app_frame(void)
         ui.fx_drawn = now;
     }
     if (ui.redraw & RG_BLOCKS) {
+        blk_draws++;
         if (ui.page == PG_OVL)
             draw_ovl();
         else if (ui.page == PG_TRACK || RST_ON)
@@ -4143,8 +4151,8 @@ int app_expect(const char *what, int *got)
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
                                     "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15", "broll", "stut", "fxwet", "tempo10", "kitsel", "kit0kick", "vthru", "dafter",
-                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold", "subfa", "dft", "swon", "strip", "kl_amt", "dbrk", "split", "split_at", "half", "half_ask", "layer", "split_b", "kdec0", "bpitch", "chaos", "cmath", "crolls", "cseed", "rkick", "rsnare", "rhat", "chsw", "ctl", "ctln", "ctllast", "ctllitk", "ctlmidk", "ctlmaster", "pxlow", "pxmid", "pxhigh", "pxmidf", "pxq", "pxlof", "xo", "xsg", "xdrv", "xdec", "phits", "kilwhat", "mo", "morec", "mofn0", "mon0"};
-    int v[234];
+                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold", "subfa", "dft", "swon", "strip", "kl_amt", "dbrk", "split", "split_at", "half", "half_ask", "layer", "split_b", "kdec0", "bpitch", "chaos", "cmath", "crolls", "cseed", "rkick", "rsnare", "rhat", "chsw", "ctl", "ctln", "ctllast", "ctllitk", "ctlmidk", "ctlmaster", "pxlow", "pxmid", "pxhigh", "pxmidf", "pxq", "pxlof", "xo", "xsg", "xdrv", "xdec", "phits", "kilwhat", "mo", "morec", "mofn0", "mon0", "blkdraws"};
+    int v[235];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -4410,6 +4418,12 @@ int app_expect(const char *what, int *got)
             seen = perc_hit_n;
     }
     v[229] = (int)kil_what();
+    {                                    /* (0.9.86: the page's strip drawn, since the last look) */
+        static uint32_t seen;
+        v[234] = (int)(blk_draws - seen);
+        if (!strcmp(what, "blkdraws"))
+            seen = blk_draws;
+    }
     v[230] = (int)mo_of();               /* (0.9.85: MOTION: the pattern's, REC, its first lane's function + 1, its steps) */
     v[231] = mo_arm;
     v[232] = mo_of() ? mo.fn[mo_of() - 1u][0] : 0;

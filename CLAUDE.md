@@ -157,6 +157,10 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   EQ XSUB FILTER; this page's own order, SK_CODE's untouched so the saved codes keep), the others' tagged K1-K4; K1-K4
   `as_turn` a place on, ALGORITHM `as_fam_turn` a family on. SK 29 XSUB FREQ (`SK_XO`, kx2.px xo, OFF / 40-300 Hz),
   SK_N / SK_CODES 30: code 31, one function more at most.
+- Black keys over the pictures (26 Nov 2026, 0.9.86, FLEXOR: "utiliser des touches noires par dessus la waveform, les eq,
+  ou le xsub fait un flickering bizarre"): a held key's picture (ui.shown != -1) holds the strip; main.c drops RG_BLOCKS
+  again right before drawing (kv_poll and the kick's live scope set it after the frame's first clear: the page drew over
+  the key's picture a frame in two). Probe blkdraws (`blk_draws`), scenario bkflicker (8 draws in 1.5 s before, 0 now).
 - MOTION (26 Nov 2026, 0.9.85, a TEST, FLEXOR, from issue #5: "motion control recording ... in Edit Mode ... and for the
   white/black key effects"; his choices: SEL + K1-K4 and BRK FLT, four motions, each pattern its own, "utiliser un motion
   sur l'étendue d'un pattern de 64 steps"; he wants feedback before more): ARP's fifth tab (ui.opage 4 since ASSIGN, OPAGE_NAME,

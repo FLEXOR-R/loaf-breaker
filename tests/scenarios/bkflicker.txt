@@ -1,0 +1,35 @@
+# LOAF BREAKER (0.9.86, FLEXOR: "dans le menu des kicks ... utiliser des touches noires par dessus la waveform, les eq,
+# ou le xsub fait un flickering bizarre"): a black key held shows its picture; the page's own (the kick's picture, made
+# again as the kick changes; its live scope while playing) no longer draws over it until the key is let go.
+#   app/build/host/loaf-breaker_host tests/scenarios/bkflicker.txt app/build/scenarios
+wait 4200
+tap SEQ
+wait 200
+key w0 down
+wait 30
+key w0 up
+key w4 down
+wait 30
+key w4 up
+key w8 down
+wait 30
+key w8 up
+key w12 down
+wait 30
+key w12 up
+tap EDIT
+wait 300
+tap PLAY
+wait 800
+key b0 down
+wait 100
+expect blkdraws >-1
+press SEL
+turn K1 6 10
+release SEL
+wait 1500
+expect blkdraws 0
+shot bkflicker.png
+key b0 up
+wait 200
+expect blkdraws >0
