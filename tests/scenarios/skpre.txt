@@ -24,8 +24,8 @@ expect kpage 12
 expect kpage 12
 turn PRESET 40 10
 wait 100
-expect selk1_fn 29
-turn PRESET -1 10
+expect selk1_fn 30
+turn PRESET -2 10
 wait 100
 expect selk1_fn 28
 turn K1 3 10

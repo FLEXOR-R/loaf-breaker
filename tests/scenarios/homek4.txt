@@ -1,0 +1,48 @@
+# LOAF BREAKER (0.9.86, FLEXOR: "un onglet K4 dans arp pour assigner au K4 sur la page HOME un Knob assign en
+# particulier (les options gate, Break Filter, et drum filter doivent être des knob assignables aussi)"): ARP › HOME K4,
+# the same list as ASSIGN (its family HOME: GATE, BRK FLT, DRUM FLT); HOME's K4 then turns the function picked (SUB DECAY
+# as before until one is); GATE a knob function of its own (SEL + K1-K4, MOTION).
+#   app/build/host/loaf-breaker_host tests/scenarios/homek4.txt app/build/scenarios
+wait 4200
+tap ARP
+wait 150
+turn SELECT 4 10
+wait 150
+expect opage 4
+shot homek4.png
+# ALGORITHM: three families on, from SHAPE (SUB DECAY) to HOME: its first, GATE
+turn ALGO 3 10
+wait 150
+tap HOME
+wait 300
+turn K4 -4 10
+wait 100
+expect homek4 30
+expect hgate 80
+shot homek4_home.png
+# back: one place on, BRK FLT; HOME's K4 the break's filter
+tap ARP
+wait 150
+turn SELECT 4 10
+wait 150
+turn K1 1 10
+wait 150
+expect homek4 28
+tap HOME
+wait 300
+turn K4 3 10
+wait 100
+expect brk_dj >0
+# GATE as SEL + K1 (ARP › ASSIGN's HOME family)
+tap ARP
+wait 150
+turn SELECT 3 10
+wait 150
+turn ALGO 4 10
+wait 150
+expect selk1_fn 30
+press SEL
+turn K1 2 10
+release SEL
+wait 100
+expect hgate 90

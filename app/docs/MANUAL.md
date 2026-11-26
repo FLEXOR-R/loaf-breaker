@@ -603,7 +603,7 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 On the left the four knobs, each its function and a bar of its value, the one touched last lit. On the right **the whole
 list**, by family, **DIST** (DISTO, SCREAM, DRIVE, SUB DRIVE, DISTO +, D+ TYPE, D+ SCREECH, D+ TAIL), **SHAPE** (PUNCH,
 DECAY, PITCH DROP, RUMBLE, HOLD, CLEAN SUB, REV BASS, GLIDE, MORPH, KICK FX), **PRE EQ** (each band beside its frequency),
-**XSUB** (XSUB FREQ, SUB SPLIT's crossover, 0.9.86) and **FILTER** (DRUM FLT, BRK FLT): the knob's own function lit, the
+**XSUB** (XSUB FREQ, SUB SPLIT's crossover, 0.9.86) and **HOME** (GATE, BRK FLT, DRUM FLT: HOME's K1-K3, 0.9.86): the knob's own function lit, the
 ones the other knobs already have tagged K1–K4.
 
 - **K1–K4**: that knob's function, one place on through the list (or back). Turning a knob that isn't lit only lights it
@@ -615,9 +615,16 @@ KICK › MORE › K1–K4 SET still works as before, in its own order. The funct
 
 ![ARP › ASSIGN: SEL + K1 on PRE LOW](img/arpassign.png "KNOB ASSIGN")
 
+### HOME K4 (0.9.86)
+
+**ARP › HOME K4** (EXPERT, the tab after ASSIGN) picks what HOME's K4 turns, from the same list as ASSIGN: any knob
+function (SUB DECAY until you pick one, as it always was). Any of K1–K4 moves through the list, ALGORITHM jumps a
+family. On HOME the foot then names it and shows its value; GATE, BRK FLT and DRUM FLT are knob functions too, so the
+SEL knobs and MOTION can have them.
+
 ### MOTION (a TEST, 0.9.85)
 
-**ARP › MOTION** (EXPERT, ARP's fifth tab, after ASSIGN) records your knob moves and plays them back over the pattern: turn K2
+**ARP › MOTION** (EXPERT, ARP's last tab, after ASSIGN and HOME K4) records your knob moves and plays them back over the pattern: turn K2
 **REC** ON, press PLAY, then turn **SEL + K1–K4**. Each one's move is written at the step playing, over the pattern's
 64 steps (four bars), and comes back every time the pattern loops. What gets recorded is whatever the four SEL knobs
 do (ARP › ASSIGN, or KICK › MORE › K1–K4 SET): the kick's DRIVE, DISTO, SCREAM, SUB DRIVE, DECAY, PITCH DROP, PUNCH, the drums' filter, the

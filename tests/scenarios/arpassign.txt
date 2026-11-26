@@ -1,6 +1,6 @@
 # LOAF BREAKER (0.9.85, FLEXOR: "dans ARP un nouvel onglet Knob assign ... avant motion"; 0.9.86: "une liste déroulante
 # ... pas de menu diving"): ARP › ASSIGN, its fourth tab: the four knobs on the left, on the right every function by
-# family (DIST, SHAPE, PRE EQ, XSUB, FILTER); K1-K4 that knob a function on, ALGORITHM a family on, PRESETS the styles;
+# family (DIST, SHAPE, PRE EQ, XSUB, HOME: GATE, BRK FLT, DRUM FLT); K1-K4 that knob a function on, ALGORITHM a family on, PRESETS the styles;
 # SEL + K1 then turns the function picked here (KICK › MORE › K1-K4 SET kept as it is).
 #   app/build/host/loaf-breaker_host tests/scenarios/arpassign.txt app/build/scenarios
 wait 4200
@@ -21,8 +21,8 @@ expect selk1_fn 5
 wait 400
 turn K1 40 10
 wait 150
-expect selk1_fn 28
-turn K1 -8 10
+expect selk1_fn 18
+turn K1 -9 10
 wait 150
 expect selk1_fn 22
 shot arpassign.png
@@ -46,6 +46,6 @@ expect selk1_fn 17
 turn PRESET 1 10
 wait 150
 expect selk1_fn 15
-turn SELECT 1 10
+turn SELECT 2 10
 wait 150
-expect opage 4
+expect opage 5

@@ -159,6 +159,14 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   "des délimitations pleines pour toutes les tuiles"); `as_turn` a place on (a knob not lit: lit only, its detents ignored AS_LOCK_MS 400 after, FLEXOR: "se débloque au bout
   d'un temps pertinent"), ALGORITHM `as_fam_turn` a family on. SK 29 XSUB FREQ (`SK_XO`, kx2.px xo, OFF / 40-300 Hz),
   SK_N / SK_CODES 30: code 31, one function more at most.
+- ARP › HOME K4 (26 Nov 2026, 0.9.86, FLEXOR: "un onglet K4 dans arp pour assigner au K4 sur la page HOME un Knob
+  assign en particulier (les options gate, Break Filter, et drum filter doivent être des knob assignables aussi)"):
+  ui.opage 4 (OPAGE_NAME "HOME K4"; MOTION 5 since), track.c `home_k4` / `home_k4_set` (kx2.rsv[HK4_RSV 0]: HK4_TAG 0xA0 |
+  1 + SK_*; untagged: 10, DECAY, the SUB's, as HOME's K4 was), `hk_value` / `hk_turn` / `hk_fam_turn`, `draw_list(1)`
+  (draw_assign's list, HOME's K4 on the left); main.c HOME K4: selk_turn / selk_value / sk_norm of home_k4(), its name
+  SK_NAME (SUB DECAY kept for 10); RESET ALL clears it. SK 30 GATE (`SK_GATE`, set.gate, 5 % a detent, OFF at the top):
+  SK_N / SK_CODES 31, code 31: the knobs' five bits are full, a new function needs more bits. ASSIGN's family FILTER is
+  HOME (GATE, BRK FLT, DRUM FLT). Probes hgate homek4; scenario homek4.
 - XSB (26 Nov 2026, 0.9.86, FLEXOR: "une touche noire assignable pour le ON/OFF xsub freq afin de jouer en live"):
   `BKF_XSB`, last in BKF_* (after CLP): a press, the kick's SUB SPLIT muted or back (kick_px_t `xoff` toggled, its old
   rsv[0]; app.c klab_send hands kick_set_px xo 0 then; FLEXOR: "comme un mute", X FREQ never touched); lit while heard; X FREQ turned (kpx_turn,

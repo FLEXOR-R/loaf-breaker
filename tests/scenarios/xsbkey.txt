@@ -18,7 +18,7 @@ wait 200
 expect opage 3
 turn K1 40 10
 wait 150
-turn K1 -2 10
+turn K1 -3 10
 wait 150
 expect selk1_fn 29
 tap HOME

@@ -326,11 +326,18 @@ static void draw_motion(void);
 static void as_value(int i, char *t);   /* (0.9.85: ARP › ASSIGN, track.c) */
 static void as_turn(int i, int32_t d);
 static void draw_assign(void);
+static void hk_value(int i, char *t);   /* (0.9.86: ARP › HOME K4, track.c) */
+static void hk_turn(int i, int32_t d);
+static void draw_hk4(void);
 static void ovl_value(int i, char *t)
 {
     t[0] = 0;
-    if (ui.opage == 4u) {
+    if (ui.opage == 5u) {
         mo_value(i, t);
+        return;
+    }
+    if (ui.opage == 4u) {
+        hk_value(i, t);
         return;
     }
     if (ui.opage == 3u) {
@@ -360,8 +367,12 @@ static void ovl_value(int i, char *t)
 static void ovl_turn(int i, int32_t d)
 {
     char t[16];
-    if (ui.opage == 4u) {
+    if (ui.opage == 5u) {
         mo_turn(i, d);
+        return;
+    }
+    if (ui.opage == 4u) {
+        hk_turn(i, d);
         return;
     }
     if (ui.opage == 3u) {
@@ -405,8 +416,12 @@ static void draw_ovl(void)
 {
     uint32_t band, i, on = ovl_sounding() | ovl_held | ovl_latched | ovl_pad_bits();
     char t[4];
-    if (ui.opage == 4u) {                /* (0.9.85: MOTION) */
+    if (ui.opage == 5u) {                /* (0.9.85: MOTION) */
         draw_motion();
+        return;
+    }
+    if (ui.opage == 4u) {                /* (0.9.86: HOME K4) */
+        draw_hk4();
         return;
     }
     if (ui.opage == 3u) {                /* (0.9.85: ASSIGN) */
