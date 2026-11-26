@@ -159,6 +159,17 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   "des délimitations pleines pour toutes les tuiles"); `as_turn` a place on (a knob not lit: lit only, its detents ignored AS_LOCK_MS 400 after, FLEXOR: "se débloque au bout
   d'un temps pertinent"), ALGORITHM `as_fam_turn` a family on. SK 29 XSUB FREQ (`SK_XO`, kx2.px xo, OFF / 40-300 Hz),
   SK_N / SK_CODES 30: code 31, one function more at most.
+- MOTION chains, M SET, MOT (26 Nov 2026, 0.9.86, FLEXOR: "un rec qui rec de M1 à M4 pour que tous les M s'enchaînent ...
+  256 steps propre et on time"; "un onglet motion setting ... raccourcir le nom de certains trucs dans arp"; "une touche
+  noire motion on off"): mo.pat 0..7 (`MO_KINDS`: OFF, M1-M4, 5 M1+M2, 6 M3+M4, 7 M1>M4; `mo_base` / `mo_len`), the place
+  `mo_pos` from the engine's own count (dsp brk_status_t `pat_pos` / `play_pos`, appended: steps since the pattern began /
+  since PLAY; never a count of the frames'), `mo_cur` the motion playing in its chain (the page, REC); `mo_write`; LATCH
+  (`mo_latched`, written each step until REC off or stop). ARP's tabs ARP BLK SEL BLK ASSIGN K4 MOTION M SET (ui.opage 6,
+  the header says BLACK, SEL BLACK, KNOB ASSIGN, HOME K4, MOTION SETTINGS in full); track.c `ms_*`, `draw_mset`: K1
+  LENGTH, K2 RESTART (PATTERN / PLAY), K3 REC MODE (TOUCH / LATCH), K4 COPY (left the pair `mo_cp`, five right);
+  motion_t rsv[0] MO_SET_TAG 0x50 | bit 0 PLAY, bit 1 LATCH, bit 2 MOT off. `BKF_MOT` last in BKF_* (after XSB): the
+  motions played or not, lit while on. Probes mocur mused moset (mofn0, mon0 the motion playing); scenario mset; the K3
+  left-of-R8 scenarios one more again.
 - ARP › HOME K4 (26 Nov 2026, 0.9.86, FLEXOR: "un onglet K4 dans arp pour assigner au K4 sur la page HOME un Knob
   assign en particulier (les options gate, Break Filter, et drum filter doivent être des knob assignables aussi)"):
   ui.opage 4 (OPAGE_NAME "HOME K4"; MOTION 5 since), track.c `home_k4` / `home_k4_set` (kx2.rsv[HK4_RSV 0]: HK4_TAG 0xA0 |

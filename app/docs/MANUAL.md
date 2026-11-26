@@ -592,6 +592,7 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 | CHS | CHAOS on / off (0.9.76, FLEXOR): a press turns HOME › CHAOS off (its settings kept), the next on again; on with nothing set, CHAOS 40 to hear it. Lit while CHAOS is heard; a CHAOS knob turned on its page turns it back on. In no preset layout: CUSTOM (ARP › BLACK, K3) or SEL BLACK | | | | |
 | KCK · SNR · HAT · CLP | **The drums on black keys** (0.9.81, FLEXOR, from a player's request): a press plays the kick, the snare, the hat or the clap, on any page, stopped or playing; with **REC** on and playing it is written into that drum's lane at the nearest 16th (as MIDI notes 36, 38, 42, 39): finger-drum a pattern without leaving HOME. Lit while held. CUSTOM (ARP › BLACK, K3: the last four, left of R8), SEL BLACK (SEL + the key; SEL twice locks SEL, so a whole layer of drum keys) or the REC key | | | | |
 | XSB | **SUB SPLIT on / off** (0.9.86, FLEXOR: to play it live): a press mutes the kick's SUB SPLIT (KICK › DIST › SUB SPLIT), its X FREQ kept, the next brings it back: an on / off, nothing else (with no X FREQ set, there is no split to hear). Each kick its own, saved. Lit while the split is heard; turning X FREQ (on its page, or a knob given XSUB FREQ) switches it back on. CUSTOM (ARP › BLACK, K3: the last, left of R8), SEL BLACK or the REC key | | | | |
+| MOT | **MOTION on / off** (0.9.86, FLEXOR): a press stops the motions playing (ARP › MOTION), what they hold kept; the next plays them again. Lit while on. CUSTOM (ARP › BLK, K3: the last, left of R8), SEL BLACK or the REC key | | | | |
 | SPL | SPLIT on / off (0.9.78, FLEXOR): a press turns the break playing's SPLIT (HOME › SPLIT K1) on, its B and bars as they were (B the break after it until one is picked), the next off; the break comes back at the next bar. Lit while the split is on. In no preset layout: CUSTOM (ARP › BLACK, K3) or SEL BLACK | | | | |
 
 ![ROLL held: the caught slice repeating, each copy quieter](img/pad-roll8.png "ROLL held")
@@ -624,7 +625,7 @@ SEL knobs and MOTION can have them.
 
 ### MOTION (a TEST, 0.9.85)
 
-**ARP › MOTION** (EXPERT, ARP's last tab, after ASSIGN and HOME K4) records your knob moves and plays them back over the pattern: turn K2
+**ARP › MOTION** (EXPERT, after ASSIGN and K4; ARP's tabs since 0.9.86: ARP, BLK, SEL BLK, ASSIGN, K4, MOTION, M SET) records your knob moves and plays them back over the pattern: turn K2
 **REC** ON, press PLAY, then turn **SEL + K1–K4**. Each one's move is written at the step playing, over the pattern's
 64 steps (four bars), and comes back every time the pattern loops. What gets recorded is whatever the four SEL knobs
 do (ARP › ASSIGN, or KICK › MORE › K1–K4 SET): the kick's DRIVE, DISTO, SCREAM, SUB DRIVE, DECAY, PITCH DROP, PUNCH, the drums' filter, the
@@ -641,6 +642,22 @@ Between two written steps the value holds. While you turn a knob, its own lane w
 The page draws the four lanes: each its knob and function on the left, its 64 steps (a bar where a value is written, the
 value held faint after it), the step playing. Motions are saved with the rest (SAVE, AUTO SAVE); RESET ALL clears them.
 It is a TEST: tell FLEXOR what works and what doesn't.
+
+**ARP › M SET** (MOTION SETTINGS, 0.9.86, ARP's last tab):
+
+- **K1 LENGTH**: the pattern's motion (the same as MOTION's K1): OFF, M1–M4 (64 steps each), **M1+M2** or **M3+M4**
+  (128 steps, 8 bars), **M1>M4** (256 steps, 16 bars: 22.6 s at 170). A chain is one motion: one REC pass writes M1, then
+  M2… as it goes, and it plays back at the engine's own count of steps, never drifting. The page shows the four blocks
+  (the chain's lit, the one playing white, RECORDED or EMPTY) and a bar of the place over the whole length; the MOTION
+  page shows the motion of the chain playing (its name by K1).
+- **K2 RESTART**: PATTERN (the chain starts again at PLAY and at every pattern) or PLAY (at PLAY alone: across patterns
+  it goes on).
+- **K3 REC MODE**: TOUCH (only the steps you turn are written) or LATCH (a knob touched is written on every step, its
+  value as it is, until REC goes off or PLAY stops: a full curve, no holes).
+- **K4 COPY**: left picks the pair (M1 > M2, M1 > M3 …), five detents right copy it.
+
+A black key **MOT** (ARP › BLK, K3: the last, left of R8) switches the motions off and on: off, nothing plays them back,
+what they hold is kept (REC still writes).
 
 ![ARP › MOTION: K1's DRIVE recorded over the pattern](img/motion.png "MOTION")
 

@@ -1,0 +1,97 @@
+# LOAF BREAKER (0.9.86, FLEXOR: "un rec qui rec de M1 à M4 pour que tous les M s'enchaînent ... 256 steps propre et on
+# time"; "un onglet motion setting"; "une touche noire motion on off"): ARP › M SET (MOTION SETTINGS). K1 LENGTH M1>M4:
+# one REC pass of 256 steps writes M1, M2, M3, M4 in turn, at the engine's own count; LATCH writes every step once a knob
+# is touched; COPY M1 > M3 (five detents right); MOT (a black key) stops them playing, what they hold kept.
+#   app/build/host/loaf-breaker_host tests/scenarios/mset.txt app/build/scenarios
+wait 4200
+layout_0961   # (written as CUSTOM on the 0.9.61-0.9.77 layout)
+tap ARP
+wait 150
+turn SELECT 6 10
+wait 150
+expect opage 6
+turn K1 7 10
+wait 100
+expect mo 7
+turn SELECT -1 10
+wait 150
+expect opage 5
+turn K2 1 10
+wait 100
+expect morec 1
+tap PLAY
+wait 300
+expect mocur 1
+press SEL
+turn K1 -20 10
+release SEL
+wait 5700
+expect mocur 2
+press SEL
+turn K1 4 10
+release SEL
+wait 5700
+expect mocur 3
+press SEL
+turn K1 4 10
+release SEL
+wait 5700
+expect mocur 4
+press SEL
+turn K1 4 10
+release SEL
+wait 100
+expect mused 15
+wait 5400
+expect mocur 1
+turn SELECT 1 10
+wait 150
+expect opage 6
+shot mset.png
+# LATCH: one turn, then every step written until REC goes off
+turn K3 1 10
+wait 100
+expect moset 2
+turn SELECT -1 10
+wait 100
+turn K2 -1 10
+wait 100
+turn K4 5 10
+wait 100
+expect mused 0
+turn K2 1 10
+wait 100
+press SEL
+turn K1 1 10
+release SEL
+wait 1500
+expect mon0 >12
+turn K2 -1 10
+wait 100
+# COPY: left the pair (M1 > M2, then M1 > M3), five right copy
+turn SELECT 1 10
+wait 100
+turn K4 -1 10
+wait 100
+turn K4 5 10
+wait 100
+expect mused 5
+# MOT, the last black-key function (ARP › BLK K3, left of R8): a press, the motions off; again, on
+turn SELECT 2 10
+wait 150
+expect opage 1
+turn K3 -1 60
+wait 200
+expect bk_fn 28
+tap HOME
+wait 200
+key b0 down
+wait 60
+key b0 up
+wait 100
+expect moset 6
+key b0 down
+wait 60
+key b0 up
+wait 100
+expect moset 2

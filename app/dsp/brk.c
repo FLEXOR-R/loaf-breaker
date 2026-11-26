@@ -1077,6 +1077,8 @@ void brk_render(float *out, uint32_t n)
     status.key_rev = (uint8_t)(v[cur].dir < 0.0f);
     status.bar16 = steps_total ? (int8_t)((steps_total - pat_org - 1u) & 15u) : (int8_t)-1;
     status.bar64 = steps_total ? (int8_t)((steps_total - pat_org - 1u) & 63u) : (int8_t)-1;
+    status.pat_pos = steps_total ? (uint16_t)(steps_total - pat_org - 1u) : 0xFFFFu;
+    status.play_pos = steps_total ? (uint16_t)(steps_total - 1u) : 0xFFFFu;
 }
 
 /* -------------------------------------------------------------- main loop --- */

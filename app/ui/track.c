@@ -2085,19 +2085,54 @@ static void track_open(void)
     page_say();
 }
 
-/* ---- MOTION (0.9.85, a TEST, FLEXOR, from issue #5; app.c motion_t): ARP's fourth tab. REC on and the FM-1 playing,
+/* ---- MOTION (0.9.85, a TEST, FLEXOR, from issue #5; app.c motion_t): ARP's MOTION tab. REC on and the FM-1 playing,
  * SEL + K1..K4 turned write their function's place into the pattern's motion at the step playing (its lane takes the
  * function: another one there, the lane cleared first); playing, each step that holds one puts the function there
- * (the steps between hold it). Each pattern its motion, OFF or M1-M4 (K1); REC (K2) never saved; K3 the lane, ALL;
- * K4 right CLEAR it. A pattern without one gets the first free motion as REC writes. ---- */
+ * (the steps between hold it). Each pattern its motion (K1, M SET's K1 LENGTH the same): OFF, M1-M4 (64 steps), M1+M2,
+ * M3+M4 (128), M1>M4 (256: 0.9.86, FLEXOR: "un rec qui rec de M1 à M4 pour que tous les M s'enchaînent ... 256 steps
+ * propre et on time"): the place the engine's own count (st.pat_pos, or play_pos: M SET's RESTART), never a count of
+ * the frames'. REC (K2) never saved; K3 the lane, ALL; K4 five detents right CLEAR it (the whole chain's). A pattern
+ * without one gets the first free motion as REC writes. M SET (0.9.86): K1 LENGTH, K2 RESTART (PATTERN: at PLAY and at
+ * each pattern; PLAY: at PLAY alone, on across patterns), K3 REC MODE (TOUCH: the steps turned; LATCH: a lane touched
+ * written each step until REC goes off or PLAY stops), K4 COPY (left the pair, five right copy); motion_t rsv[0]:
+ * MO_SET_TAG | bit 0 RESTART PLAY, bit 1 LATCH, bit 2 the MOT key's off. ---- */
+#define MO_KINDS 8u                      /* (0 OFF, 1..4 M1..M4, 5 M1+M2, 6 M3+M4, 7 M1>M4) */
+#define MO_SET_TAG 0x50u
 static uint8_t mo_arm, mo_lane;          /* (REC; the lane K3 shows, MO_LANES: ALL) */
-static int8_t mo_last = -1;              /* (the step put last) */
+static int32_t mo_last = -1;             /* (the place put last) */
 static uint32_t mo_hand[MO_LANES];       /* (when the hand last turned each lane: its playing waits 400 ms) */
+static uint8_t mo_latched;               /* (LATCH: the lanes touched since REC went on) */
 #define MO_CLR_N 5u                      /* (FLEXOR: "un clear avec 5x turn": K4 five detents right, within 2 s of each
                                           * other, clears; left, or a pause, starts the count again) */
-static uint8_t mo_clr_n;
+static uint8_t mo_clr_n, mo_cp;          /* (and COPY's: its count, the pair, 0..11) */
 static uint32_t mo_clr_t;
-static uint32_t mo_of(void) { return mo.pat[pat_cur() % NPAT_ALL] % (MO_N + 1u); }   /* the pattern's: 0 OFF, 1..4 */
+static uint32_t mo_set(void) { return (mo.rsv[0] & 0xF8u) == MO_SET_TAG ? mo.rsv[0] & 7u : 0u; }
+static void mo_set_put(uint32_t v) { mo.rsv[0] = (uint8_t)(MO_SET_TAG | (v & 7u)); set_dirty = 1u; }
+static int mo_off(void) { return (mo_set() & 4u) != 0u; }   /* (the MOT key: the motions not played) */
+static uint32_t mo_of(void)              /* the pattern's kind: 0 OFF, 1..7 */
+{
+    uint32_t k = mo.pat[pat_cur() % NPAT_ALL];
+    return k < MO_KINDS ? k : 0u;
+}
+static uint32_t mo_base(uint32_t k) { return k == 0u ? 0u : k <= MO_N ? k - 1u : k == 6u ? 2u : 0u; }
+static uint32_t mo_len(uint32_t k) { return k == 5u || k == 6u ? 128u : k == 7u ? 256u : 64u; }
+static int32_t mo_pos(const brk_status_t *st)   /* the place in the pattern's motion, -1 none */
+{
+    uint32_t p = mo_set() & 1u ? st->play_pos : st->pat_pos;
+    if (!st->playing || p == 0xFFFFu || !mo_of())
+        return -1;
+    return (int32_t)(p % mo_len(mo_of()));
+}
+static uint32_t mo_cur(void)             /* the motion (1..4) the page shows and REC writes: the one playing, 0 none */
+{
+    brk_status_t st;
+    int32_t p;
+    if (!mo_of())
+        return 0u;
+    brk_status(&st);
+    p = mo_pos(&st);
+    return mo_base(mo_of()) + (p < 0 ? 0u : (uint32_t)p / MO_STEPS) + 1u;
+}
 static int mo_used(uint32_t m)
 {
     uint32_t k;
@@ -2126,67 +2161,78 @@ static void mo_put(uint32_t f, float want)   /* a function to a place (0..1), qu
     } else
         sk_set_norm(f, want);
 }
+static void mo_write(uint32_t m, uint32_t kn, uint32_t step)   /* lane kn of motion m (0..3) at a step: SEL + K's now */
+{
+    uint32_t f = selk_fn(kn & 3u);
+    if (mo.fn[m][kn] != f + 1u) {        /* (another function there: the lane cleared, this one's) */
+        mo_clear(m, kn);
+        mo.fn[m][kn] = (uint8_t)(f + 1u);
+    }
+    mo.v[m][kn][step % MO_STEPS] = (uint8_t)(sk_norm(f, 0) * 254.0f + 0.5f);
+    set_dirty = 1u;
+}
 static void mo_rec(uint32_t kn)          /* SEL + K(kn + 1) turned: written, REC on and playing */
 {
     brk_status_t st;
-    uint32_t m, f = selk_fn(kn & 3u), j;
+    uint32_t m, j;
+    int32_t p;
     brk_status(&st);
-    if (!mo_arm || !st.playing || st.bar64 < 0)
+    if (!mo_arm || !st.playing || st.pat_pos == 0xFFFFu)
         return;
-    m = mo_of();
-    if (!m) {                            /* (none yet: the first motion no pattern uses and empty, or M1) */
+    if (!mo_of()) {                      /* (none yet: the first motion no pattern uses and empty, or M1) */
         for (m = 1u; m <= MO_N; m++) {
             for (j = 0; j < NPAT_ALL && mo.pat[j] != m; j++)
                 ;
             if (j == NPAT_ALL && !mo_used(m - 1u))
                 break;
         }
-        if (m > MO_N)
-            m = 1u;
-        mo.pat[pat_cur() % NPAT_ALL] = (uint8_t)m;
+        mo.pat[pat_cur() % NPAT_ALL] = (uint8_t)(m > MO_N ? 1u : m);
     }
-    m--;
+    p = mo_pos(&st);
+    if (p < 0)
+        return;
     kn &= 3u;
-    if (mo.fn[m][kn] != f + 1u) {        /* (another function there: the lane cleared, this one's) */
-        mo_clear(m, kn);
-        mo.fn[m][kn] = (uint8_t)(f + 1u);
-    }
-    mo.v[m][kn][(uint32_t)st.bar64 % MO_STEPS] = (uint8_t)(sk_norm(f, 0) * 254.0f + 0.5f);
+    m = mo_base(mo_of()) + (uint32_t)p / MO_STEPS;
+    mo_write(m, kn, (uint32_t)p);
     mo_hand[kn] = plat_ms() | 1u;
-    set_dirty = 1u;
-    if (ui.page == PG_OVL && ui.opage == 5u)
+    mo_latched |= (uint8_t)(1u << kn);
+    if (ui.page == PG_OVL && ui.opage >= 5u)
         ui.redraw |= RG_BLOCKS;
 }
 static void mo_frame(const brk_status_t *st)   /* each frame: a new step, the pattern's motion played there */
 {
-    uint32_t m = mo_of(), k, now = plat_ms();
-    int s = st->playing ? st->bar64 : -1;
-    if (s == mo_last)
+    uint32_t k, now = plat_ms(), m, s;
+    int32_t p = mo_pos(st);
+    if (!mo_arm || !st->playing)
+        mo_latched = 0u;                 /* (LATCH: until REC goes off or PLAY stops) */
+    if (p == mo_last)
         return;
-    mo_last = (int8_t)s;
-    if (ui.page == PG_OVL && ui.opage == 5u)
+    mo_last = p;
+    if (ui.page == PG_OVL && ui.opage >= 5u)
         ui.redraw |= RG_BLOCKS;          /* (its playhead) */
-    if (s < 0 || !m)
+    if (p < 0)
         return;
+    m = mo_base(mo_of()) + (uint32_t)p / MO_STEPS;
+    s = (uint32_t)p % MO_STEPS;
     for (k = 0; k < MO_LANES; k++) {
-        uint32_t f = mo.fn[m - 1u][k], v = mo.v[m - 1u][k][(uint32_t)s % MO_STEPS];
-        if (!f || v == MO_NONE || (mo_hand[k] && now - mo_hand[k] < 400u))
+        uint32_t f = mo.fn[m][k], v = mo.v[m][k][s];
+        if (mo_arm && mo_set() & 2u && mo_latched >> k & 1u) {   /* (LATCH: written each step, not played) */
+            mo_write(m, k, s);
+            continue;
+        }
+        if (mo_off() || !f || v == MO_NONE || (mo_hand[k] && now - mo_hand[k] < 400u))
             continue;
         mo_put(f - 1u, (float)v * (1.0f / 254.0f));
     }
 }
+static const char *const MO_KIND_NAME[MO_KINDS] = {"OFF", "M1", "M2", "M3", "M4", "M1+M2", "M3+M4", "M1>M4"};
 static const char *const MO_KNOB[4] = {"MOTION", "REC", "LANE", "CLEAR"};
 static void mo_value(int i, char *t)
 {
     t[0] = 0;
-    if (i == 0) {
-        if (!mo_of())
-            text_cat(t, "OFF");
-        else {
-            text_cat(t, "M");
-            int_text((int32_t)mo_of(), t + 1);
-        }
-    } else if (i == 1)
+    if (i == 0)
+        text_cat(t, MO_KIND_NAME[mo_of()]);
+    else if (i == 1)
         text_cat(t, mo_arm ? "ON" : "OFF");
     else if (i == 2) {
         if (mo_lane >= MO_LANES)
@@ -2207,8 +2253,7 @@ static void mo_turn(int i, int32_t d)
 {
     char t[16];
     if (i == 0) {
-        uint8_t *p = &mo.pat[pat_cur() % NPAT_ALL];
-        *p = (uint8_t)clamp((int32_t)(*p % (MO_N + 1u)) + (d > 0 ? 1 : -1), 0, (int32_t)MO_N);
+        mo.pat[pat_cur() % NPAT_ALL] = (uint8_t)clamp((int32_t)mo_of() + (d > 0 ? 1 : -1), 0, (int32_t)MO_KINDS - 1);
         set_dirty = 1u;
     } else if (i == 1)
         mo_arm = d > 0;
@@ -2230,7 +2275,11 @@ static void mo_turn(int i, int32_t d)
             return;
         }
         mo_clr_n = 0u;
-        mo_clear(mo_of() - 1u, mo_lane);
+        {                                /* (the lane, or all, through the whole chain) */
+            uint32_t m;
+            for (m = 0; m < mo_len(mo_of()) / MO_STEPS; m++)
+                mo_clear(mo_base(mo_of()) + m, mo_lane);
+        }
         set_dirty = 1u;
         app_say(mo_lane >= MO_LANES ? "MOTION" : "LANE", "CLEARED");
         ui.redraw |= RG_BLOCKS | RG_FOOT;
@@ -2246,9 +2295,11 @@ static void mo_turn(int i, int32_t d)
 static void draw_motion(void)
 {
     brk_status_t st;
-    uint32_t band, k, s, m = mo_of();
+    uint32_t band, k, s, m = mo_cur();
+    int32_t p;
     char t[8];
     brk_status(&st);
+    p = mo_pos(&st);
     for (band = 0; band < 2u; band++) {
         cv_begin(240, 52, C_BLACK);
         for (k = band * 2u; k < band * 2u + 2u; k++) {
@@ -2261,6 +2312,12 @@ static void draw_motion(void)
             text_cat(t, "K");
             int_text((int32_t)k + 1, t + 1);
             cv_text(3, y + 2, &FONT_T, t, on ? C_BLACK : C_DIM);
+            if (k == 0u && m && mo_of() > MO_N) {   /* (a chain: which of it) */
+                t[0] = 'M';
+                t[1] = (char)('0' + m);
+                t[2] = 0;
+                cv_text(24, y + 2, &FONT_T, t, on ? C_BLACK : C_HI);
+            }
             cv_text(3, y + 13, &FONT_T, sk_short(f ? f - 1u : selk_fn(k)), on ? C_BLACK : f ? C_HI : C_DIM);
             for (s = 0; s < MO_STEPS; s++) {
                 uint32_t v = f ? mo.v[m - 1u][k][s] : MO_NONE;
@@ -2272,10 +2329,147 @@ static void draw_motion(void)
                     continue;
                 }
                 bh = 1 + (int32_t)held * (h - 3) / 254;
-                cv_rect(x, y + h - 1 - bh, 2, bh, v != MO_NONE ? (on ? C_HI : C_GRAY) : C_LINE);
+                cv_rect(x, y + h - 1 - bh, 2, bh, v != MO_NONE ? (on ? (mo_off() ? C_GRAY : C_HI) : C_GRAY) : C_LINE);
             }
-            if (st.playing && st.bar64 >= 0)
-                cv_rect(46 + st.bar64 % (int)MO_STEPS * 3, y, 1, h, C_WHITE);
+            if (p >= 0)
+                cv_rect(46 + p % (int32_t)MO_STEPS * 3, y, 1, h, C_WHITE);
+        }
+        cv_blit(0, 88u + band * 52u);
+    }
+}
+/* ---- ARP › M SET, MOTION SETTINGS (0.9.86, FLEXOR, on the mock-up shown: "implémente"): above, the length and the
+ * chain, M1-M4 blocks (the pattern's lit, the one playing white) and the place over the whole; below RESTART, REC MODE
+ * and COPY ---- */
+static const char *const MS_KNOB[4] = {"LENGTH", "RESTART", "REC MODE", "COPY"};
+static void ms_cp_text(char *t)          /* COPY's pair: from, to */
+{
+    uint32_t a = mo_cp / 3u, b = mo_cp % 3u;
+    b += b >= a;
+    t[0] = 'M';
+    t[1] = (char)('1' + a);
+    t[2] = 0;
+    text_cat(t, " > M");
+    int_text((int32_t)b + 1, t + 6);
+}
+static void ms_value(int i, char *t)
+{
+    t[0] = 0;
+    if (i == 0)
+        text_cat(t, MO_KIND_NAME[mo_of()]);
+    else if (i == 1)
+        text_cat(t, mo_set() & 1u ? "PLAY" : "PATTERN");
+    else if (i == 2)
+        text_cat(t, mo_set() & 2u ? "LATCH" : "TOUCH");
+    else
+        ms_cp_text(t);
+}
+static void ms_turn(int i, int32_t d)
+{
+    char t[20];
+    if (i == 0) {
+        mo_turn(0, d);
+        return;
+    }
+    if (i == 1 || i == 2) {
+        uint32_t b = i == 1 ? 1u : 2u;
+        mo_set_put(d > 0 ? mo_set() | b : mo_set() & ~b);
+        ms_value(i, t);
+        app_say(MS_KNOB[i], t);
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        return;
+    }
+    {                                    /* COPY: left the pair (round), five right within 2 s of each other copy */
+        uint32_t now = plat_ms();
+        if (d < 0) {
+            mo_cp = (uint8_t)((mo_cp + 1u) % 12u);
+            mo_clr_n = 0u;
+            ms_cp_text(t);
+            app_say("COPY", t);
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
+            return;
+        }
+        if (now - mo_clr_t >= 2000u)
+            mo_clr_n = 0u;
+        mo_clr_t = now;
+        if (++mo_clr_n < MO_CLR_N) {
+            ms_cp_text(t);
+            {
+                char n[4];
+                int_text((int32_t)(MO_CLR_N - mo_clr_n), n);
+                text_cat(t, ": ");
+                text_cat(t, n);
+                text_cat(t, " MORE");
+            }
+            app_say("COPY", t);
+            return;
+        }
+        mo_clr_n = 0u;
+        {
+            uint32_t a = mo_cp / 3u, b = mo_cp % 3u;
+            b += b >= a;
+            memcpy(mo.fn[b], mo.fn[a], sizeof mo.fn[a]);
+            memcpy(mo.v[b], mo.v[a], sizeof mo.v[a]);
+        }
+        set_dirty = 1u;
+        ms_cp_text(t);
+        app_say("COPIED", t);
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+    }
+}
+static void draw_mset(void)
+{
+    brk_status_t st;
+    uint32_t band, m, k = mo_of(), lo = mo_base(k), n = k ? mo_len(k) / MO_STEPS : 0u;
+    int32_t p;
+    char t[24];
+    brk_status(&st);
+    p = mo_pos(&st);
+    for (band = 0; band < 2u; band++) {
+        cv_begin(240, 52, C_BLACK);
+        if (band == 0u) {
+            t[0] = 0;
+            if (!k)
+                text_cat(t, "NO MOTION ON THIS PATTERN");
+            else {
+                text_cat(t, "LENGTH ");
+                int_text((int32_t)mo_len(k), t + 7);
+                text_cat(t, " STEPS");
+            }
+            cv_text(2, 3, &FONT_T, t, C_WHITE);
+            if (k) {
+                t[0] = 0;
+                int_text((int32_t)(mo_len(k) / 16u), t);
+                text_cat(t, " BARS");
+                cv_text(238 - text_w(&FONT_T, t), 3, &FONT_T, t, C_DIM);
+            }
+            if (mo_off())
+                cv_text(110, 3, &FONT_T, "MOT OFF", C_AMB);
+            for (m = 0; m < MO_N; m++) {
+                int32_t x = 2 + (int32_t)m * 60;
+                int in = k && m >= lo && m < lo + n, now = in && p >= 0 && m == lo + (uint32_t)p / MO_STEPS;
+                cv_rect(x, 13, 53, 25, now ? C_WHITE : in ? C_BLOCK_HI : C_BLOCK);
+                t[0] = 'M';
+                t[1] = (char)('1' + m);
+                t[2] = 0;
+                cv_text(x + 4, 15, &FONT_XS, t, in ? C_BLACK : C_DIM);
+                cv_text(x + 4, 29, &FONT_T, mo_used(m) ? "RECORDED" : "EMPTY", in ? C_BLACK : C_LINE);
+                if (in && m + 1u < lo + n)
+                    cv_text(x + 54, 21, &FONT_T, ">", C_HI);
+            }
+            cv_rect(2, 42, 236, 4, C_BLOCK);
+            if (p >= 0)
+                cv_rect(2, 42, (int32_t)((uint32_t)(p + 1) * 236u / mo_len(k)), 4, C_WHITE);
+        } else {
+            static const char *const N[3] = {"RESTART", "REC MODE", "COPY"};
+            for (m = 0; m < 3u; m++) {
+                int32_t x = 1 + (int32_t)m * 80;
+                cv_rect(x, 3, 78, 47, C_BLOCK);
+                cv_text(x + 4, 5, &FONT_T, N[m], C_GRAY);
+                ms_value((int)m + 1, t);
+                cv_text(x + 4, 16, &FONT_XS, t, C_HI);
+                cv_text(x + 4, 37, &FONT_T, m == 0u ? (mo_set() & 1u ? "AT PLAY ONLY" : "PLAY + PATTERN") :
+                                            m == 1u ? (mo_set() & 2u ? "EVERY STEP" : "STEPS TURNED") : "< PICK  5X >", C_DIM);
+            }
         }
         cv_blit(0, 88u + band * 52u);
     }

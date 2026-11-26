@@ -329,9 +329,16 @@ static void draw_assign(void);
 static void hk_value(int i, char *t);   /* (0.9.86: ARP › HOME K4, track.c) */
 static void hk_turn(int i, int32_t d);
 static void draw_hk4(void);
+static void ms_value(int i, char *t);   /* (0.9.86: ARP › M SET, track.c) */
+static void ms_turn(int i, int32_t d);
+static void draw_mset(void);
 static void ovl_value(int i, char *t)
 {
     t[0] = 0;
+    if (ui.opage == 6u) {
+        ms_value(i, t);
+        return;
+    }
     if (ui.opage == 5u) {
         mo_value(i, t);
         return;
@@ -367,6 +374,10 @@ static void ovl_value(int i, char *t)
 static void ovl_turn(int i, int32_t d)
 {
     char t[16];
+    if (ui.opage == 6u) {
+        ms_turn(i, d);
+        return;
+    }
     if (ui.opage == 5u) {
         mo_turn(i, d);
         return;
@@ -416,6 +427,10 @@ static void draw_ovl(void)
 {
     uint32_t band, i, on = ovl_sounding() | ovl_held | ovl_latched | ovl_pad_bits();
     char t[4];
+    if (ui.opage == 6u) {                /* (0.9.86: M SET) */
+        draw_mset();
+        return;
+    }
     if (ui.opage == 5u) {                /* (0.9.85: MOTION) */
         draw_motion();
         return;

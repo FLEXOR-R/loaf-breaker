@@ -158,13 +158,14 @@ static const char *const PAD_KNOB[BKF_N][4] = {   /* (LOAF BREAKER: by function,
     {0, 0, 0, 0},                        /* (0.9.76: CHS, a press each) */
     {0, 0, 0, 0},                        /* (0.9.78: SPL, a press each) */
     {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0},   /* (0.9.81: KCK SNR HAT CLP, a hit each press) */
-    {0, 0, 0, 0}};                       /* (0.9.86: XSB, a press each) */   /* (KIL, X2: their LATCH, main.c; DST,
+    {0, 0, 0, 0},                        /* (0.9.86: XSB, a press each) */
+    {0, 0, 0, 0}};                       /* (0.9.86: MOT, a press each) */   /* (KIL, X2: their LATCH, main.c; DST,
                                           * SUB, DRV: a press each) */
 static const char *const PAD_TITLE[BKF_N] = {"ROLL", "ROLL", "ROLL", "REVERSE", "FREEZE", "HALF SPEED",
                                               "VINYL BREAK", "GATE", "RANDOM", "FILTER", "DUB", "OVERLAY", "KICKS OFF",
                                               "DISTO", "SUB FX", "DRIVE", "KICKS X2", "KICKS X4", "KICK TRIPLETS",
                                               "SUB DRIVE", "KILL BREAK", "CHAOS", "SPLIT", "KICK", "SNARE", "HI-HAT",
-                                              "CLAP", "SUB SPLIT"};
+                                              "CLAP", "SUB SPLIT", "MOTION"};
 static const char *const FRZ_LEN_NAME[4] = {"SLICE", "1/2", "1/4", "1/8"};
 
 /* LOAF BREAKER: the ARP key's knobs (the OVERLAY page gone, its settings here). MAIN: K1 EFFECT, K2 its AMOUNT, K3
@@ -950,6 +951,7 @@ static int ovl_pad_on(void)
 
 /* LOAF BREAKER (11 Nov 2026): a black key's function lit: a pad on (or rolling the kick), the ARP key's effect on,
  * the kicks held quiet, the DISTO switch on, its SUB FX switch on (0.244's BEGINNER restrictions gone: FLEXOR) */
+static int mo_off(void);               /* (0.9.86: track.c, the MOT key) */
 static int bkf_lit(uint32_t f, const brk_status_t *st)
 {
     if (f < BRK_NPADS)
@@ -972,6 +974,8 @@ static int bkf_lit(uint32_t f, const brk_status_t *st)
         return kbrk_hold != 0u;
     if (f >= BKF_KCK && f <= BKF_CLP)    /* (0.9.81: a drum's key, lit while held) */
         return (ui.keys & PAD_BIT(f)) != 0u;
+    if (f == BKF_MOT)                    /* (0.9.86: the motions played) */
+        return !mo_off();
     if (f == BKF_XSB)                    /* (0.9.86: the kick's SUB SPLIT heard: an X FREQ, not switched off) */
         return kpx_at(set.kslot)->xo && !(kpx_at(set.kslot)->xoff & 1u);
     if (f == BKF_SPL)                    /* (0.9.78: the break playing's SPLIT on) */

@@ -9,7 +9,7 @@ tap ARP
 wait 300
 turn SELECT 1 10
 wait 300
-turn K3 -1 60
+turn K3 -2 60   # (0.9.86: MOT last, XSB before it)
 wait 200
 expect bk_fn 27
 # SEL + K1 given XSUB FREQ (ARP › ASSIGN): an X FREQ of 100 Hz

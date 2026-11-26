@@ -7,3 +7,6 @@ the release's notes. Emptied (this comment kept) once the release is out. -->
 - New black-key function XSB (ARP › BLACK, K3): a press mutes the kick's SUB SPLIT, X FREQ kept, the next brings it back.
 - PATTERN (the sequencer): the black keys' row is gone, the grid taller.
 - ARP › HOME K4: pick what HOME's K4 turns, from the knob functions (SUB DECAY until you pick one). GATE is a knob function too: the SEL knobs, MOTION and HOME's K4 can have GATE, BRK FLT and DRUM FLT.
+- MOTION chains (a TEST): ARP › M SET (MOTION SETTINGS) K1 LENGTH M1+M2, M3+M4 (128 steps) or M1>M4 (256 steps, 16 bars): one REC pass records them in turn, always on time; K2 RESTART (pattern / play), K3 REC MODE (TOUCH / LATCH: a curve written on every step), K4 COPY a motion into another.
+- New black-key function MOT: the motions on or off (what they hold is kept).
+- ARP's tabs shortened to fit seven: ARP, BLK, SEL BLK, ASSIGN, K4, MOTION, M SET.

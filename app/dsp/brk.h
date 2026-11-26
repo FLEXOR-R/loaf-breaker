@@ -136,6 +136,8 @@ typedef struct {
     uint8_t key_rev;                     /* this repeat plays backwards */
     int8_t bar16;                        /* the step's place in the bar, 0..15, -1 none yet */
     int8_t bar64;                        /* its place in four bars, 0..63 (as brk_step_events), -1 none yet */
+    uint16_t pat_pos, play_pos;          /* (0.9.86, the app's MOTION: the steps since the pattern began, since PLAY;
+                                          * 0xFFFF none yet; their low bits as bar64's, never drifting) */
     int8_t half;                         /* the split's half in force (brk_half): -1 both, 0 the first, 1 the second */
     int32_t layer;                       /* the layer's key looping (its slice), -1 none (PRD S-032) */
     float layer_lo, layer_w, layer_phase;   /* its window and how far into this repeat, as the key's */

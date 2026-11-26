@@ -438,6 +438,7 @@ ABG's four, plus the master section a live unit needs.
 | A-89 | **ARP › ASSIGN as a list; XSUB FREQ** (LOAF BREAKER, 26 Nov 2026, 0.9.86, FLEXOR: "une liste déroulante ... pas de menu diving ... ne pas avoir à sacrifier des options"; "un knob assign pour l'XFREQ de l'onglet xsub"): the four knobs left, every function right by family, ALGORITHM a family on; SK 29 XSUB FREQ | P1 | *Done* |
 | A-90 | **XSB, SUB SPLIT on / off** (LOAF BREAKER, 26 Nov 2026, 0.9.86, FLEXOR: "une touche noire assignable pour le ON/OFF xsub freq afin de jouer en live"): BKF_XSB, last; kx2.px xoff; X FREQ kept | P1 | *Done* |
 | A-91 | **ARP › HOME K4; GATE a knob function** (LOAF BREAKER, 26 Nov 2026, 0.9.86, FLEXOR: "un onglet K4 dans arp pour assigner au K4 sur la page HOME un Knob assign en particulier (les options gate, Break Filter, et drum filter doivent être des knob assignables aussi)"): kx2.rsv[0] HK4_TAG; SK 30 GATE, code 31 the last | P1 | *Done* |
+| A-92 | **MOTION chains, M SET, MOT** (LOAF BREAKER, 26 Nov 2026, 0.9.86, FLEXOR: "un rec qui rec de M1 à M4 pour que tous les M s'enchaînent ... 256 steps propre et on time"; "un onglet motion setting"; "une touche noire motion on off"): mo.pat 5 M1+M2, 6 M3+M4, 7 M1>M4; brk_status pat_pos / play_pos; M SET LENGTH RESTART REC MODE COPY (motion_t rsv[0]); BKF_MOT | P1 | *TEST* |
 
 ---
 
