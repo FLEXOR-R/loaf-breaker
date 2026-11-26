@@ -407,10 +407,8 @@ static void sfx_cards(int32_t top)
                 for (i = 0; i < 53; i++)
                     p[i] = p[i - (int32_t)cv_w];   /* (3 x 3 blocks, the row above's) */
         }
-        if (f == SFX_RAIN) {             /* (two LOAF LORDS: one falling, one on the floor) */
-            rain_put(x + 5, y + 3, 0, top);
-            rain_put(x + 27, y + 27, 0, top);
-        }
+        if (f == SFX_RAIN)               /* (a LOAF LORD over the picture) */
+            rain_put(x + 11, y + 10, 0, top);
         cv_rect(x, y + 53, 55, 17, SFX_ON(f) ? C_HI : C_BLOCK);
         text_cat(n, f == SFX_RAIN ? "RAIN" : SFX_NAME[f]);
         cv_text(x + 3, y + 55, text_w(&FONT_T, n) <= 50 ? &FONT_T : &FONT_XS, n, SFX_ON(f) ? C_BLACK : C_GRAY);
