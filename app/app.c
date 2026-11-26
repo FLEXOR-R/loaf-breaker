@@ -508,7 +508,11 @@ typedef struct {
     uint16_t wks[WK_NB][BRK_KEYS];          /* (appended, 0.9.71, FLEXOR: each break's split its own white keys, as wk; wk's
                                           * row 24, the one split's of 0.9.71's release, unused since; a shorter save:
                                           * every split's as that row) */
+    uint8_t px_tag, px_rsv[3];           /* (appended, 0.9.82, FLEXOR: PX_TAG, each kick's PRE EQ and SUB SPLIT valid) */
+    kick_px_t px[KICK_MEMS];             /* (each kick's PRE EQ and SUB SPLIT, kick.h; a shorter save or untagged: all 0,
+                                          * every kick as it sounded) */
 } kx2_t;
+#define PX_TAG 0x82u
 #define KIT_BPM0 32u                     /* (rsv[32..47]: the kits' tempo; rsv[0..31] SEL WHITE's) */
 static kx2_t kx2 PLAT_POOL;
 #if LB_BIG
@@ -555,6 +559,7 @@ static int kx2_load(uint32_t n)
 #define kx2_load(n) plat_store_load(OBJ_KX2, &kx2, (n))
 #endif
 static kick_x2_t *kx2_at(uint32_t k) { return &kx2.m[k % KICK_MEMS]; }
+static kick_px_t *kpx_at(uint32_t k) { return &kx2.px[k % KICK_MEMS]; }   /* (0.9.82: its PRE EQ, SUB SPLIT) */
 /* LOAF BREAKER (0.9.71, FLEXOR: each break its own white keys, "afin de mieux chopper"): set.keys holds the break
  * playing's (wk_brk), the others in kx2.wk, packed: LENGTH bits 0-3, DECAY 4-7, MODE 8-9, PITCH + 12 10-14, bit 15 set.
  * A break change stores the keys into their break and reads the next one's (wk_follow); SAVE keeps them all (OBJ_KX2) */
@@ -640,6 +645,8 @@ static void wk_follow(void)              /* (the keys to the break chosen, set.b
 static void kx2_defaults(void)           /* (the kicks' TOK and TAIL GATE; the SEL layer kept) */
 {
     memset(&kx2.m, 0, sizeof kx2.m);
+    memset(kx2.px, 0, sizeof kx2.px);    /* (0.9.82: the PRE EQ and SUB SPLIT off too) */
+    kx2.px_tag = PX_TAG;
     kx2.magic = KX2_MAGIC;
 }
 /* LOAF BREAKER (0.9.58, FLEXOR): KILL BREAK, a black key: the break out, as K1 MODE says: FADE (over K2 TIME), CUT (at
@@ -766,6 +773,7 @@ static void klab_send(void)              /* the LAB to the engine, STACK's attac
     uint32_t n = klab.cur.src ? (uint32_t)(klab.cur.src - 1u) % KICK_MEMS : 0u;
     kick_set_lab(&klab.cur);
     kick_set_x2(kx2_at(set.kslot));      /* (0.9.45: its TOK and TAIL GATE) */
+    kick_set_px(kpx_at(set.kslot));      /* (0.9.82: its PRE EQ and SUB SPLIT) */
     if (!klab.cur.src)
         kick_set_stack(0, 0, 0);
     else if (n == set.kslot % KICK_MEMS)   /* (its own: the kick playing, as it is) */
@@ -2396,10 +2404,16 @@ void app_init(void)
         if (sz < (int)(offsetof(kx2_t, wk) + sizeof kx2.wk))   /* (0.9.71: a save before each break's white keys:
                                           * every break as the keys were) */
             wk_fill();
-        else if (sz < (int)sizeof kx2) { /* (0.9.71's release: one split's keys, now each split's) */
+        else if (sz < (int)(offsetof(kx2_t, wks) + sizeof kx2.wks)) {   /* (0.9.71's release: one split's keys, now
+                                          * each split's) */
             uint32_t b;
             for (b = 0; b < WK_NB; b++)
                 memcpy(kx2.wks[b], kx2.wk[WK_SPLIT], sizeof kx2.wks[b]);
+        }
+        if (sz < (int)(offsetof(kx2_t, px) + sizeof kx2.px) || kx2.px_tag != PX_TAG) {   /* (0.9.82: a save before
+                                          * the PRE EQ and SUB SPLIT: off on every kick) */
+            memset(kx2.px, 0, sizeof kx2.px);
+            kx2.px_tag = PX_TAG;
         }
         if (kx2.ch_tag != CH_TAG) {      /* (0.9.75: a save before CHAOS: off) */
             kx2.ch_tag = CH_TAG;

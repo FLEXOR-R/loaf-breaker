@@ -284,10 +284,19 @@ then asks on the screen: **SEL** yes, **HOME** no; the FM-1 then restarts with i
   its memory (KICK 1–20), what the part is for in a few words ("FOLD DISTORTION") and its note; under it the part's four knobs as cards, their values large. **SELECT**: the
   next section (**EDIT again**: the next sound, SNARE, HAT, CLAP, then the KICK), the kick's anatomy from its hit to its end: **ATTACK** (PRESET: K1 the built-in kicks, the part the menu opens on; CLICK, PUNCH, STACK, TOK), **BODY** (MIX, SUB, GRIT,
   SYNTH, SYNTH +, MACRO, OUT), **TAIL** (TAIL, TAIL +, BASS, MORPH, GATE), **DIRT** (DISTO, DISTO +,
-  SCREAM, the layers' effects), **FX1** and **FX2** (its two FX slots, each a section of its own since 0.9.29: ALGORITHM goes through the effect's parts, MAIN, MORE, MOD or the MB COMP's), **MORE** (KNOBS until 0.9.28: KNOBS, ASSIGN, K1–K4, TOOLS, then EQ B and EQ S, its EQ's bands and shape);
+  SCREAM, the layers' effects, then PRE EQ, PRE EQ + and SUB SPLIT, below), **FX1** and **FX2** (its two FX slots, each a section of its own since 0.9.29: ALGORITHM goes through the effect's parts, MAIN, MORE, MOD or the MB COMP's), **MORE** (KNOBS until 0.9.28: KNOBS, ASSIGN, K1–K4, TOOLS, then EQ B and EQ S, its EQ's bands and shape);
   **ALGORITHM**: the next part in it (each section remembers where you were). The section's parts are a bar of tabs at
   the foot of the picture, the whole width, the one open lit (BEGINNER: those it passes over dimmed; short names
-  there: SYN+ for SYNTH +, D+ for DISTO +, S FX .. C FX for the layers' effects). **MORE** puts the live knobs on the kick's picture: its first part, KNOBS, has K1–K4 turn what SEL + K1–K4
+  there: SYN+ for SYNTH +, D+ for DISTO +, SFX .. CFX for the layers' effects; DIRT's ten: DIST, D+, SCR, SFX .. CFX,
+  PRE, PRE+, XSUB). **DIRT's PRE EQ** (0.9.82, FLEXOR) shapes the kick *before* its drive and its DISTOs, where it
+  changes what they bite into: K1 **LOW**, K2 **MID**, K3 **HIGH** (-18 .. +18 dB, 0 the band off), K4 **MID FREQ**;
+  **PRE EQ +**: K1 **LO FREQ**, K2 **MID Q**, K3 **HI FREQ**. A low band up drives the body harder, a mid cut leaves a
+  hole the DISTO cannot fill, a high band up makes it scream. **SUB SPLIT** keeps the lows out of the dirt: K1 **X
+  FREQ** (OFF, 40 .. 300 Hz) is where the kick is split, everything under it goes round the drive and the DISTOs and
+  comes back after them; K2 **SUB LEVEL** (0 .. 200 %), K3 **SUB DIRT** (CLEAN, or its own saturation), K4 **SUB DECAY**
+  (OPEN: as the kick; or the lows' own fall, 30 ms .. 2 s). Both are drawn in frequency (20 Hz to 12 kHz, the kick's
+  note a small amber mark): the EQ's curve and its three points; the lows in blue, what goes into the dirt in red, the
+  split a white line with its frequency. Each kick has its own; a built-in PRESET turns them off. **MORE** puts the live knobs on the kick's picture: its first part, KNOBS, has K1–K4 turn what SEL + K1–K4
   turn (DRIVE, SCREAM, D+ SCREECH, DISTO to start: their first setting, their value large), so you hear and see the
   kick as you set them; then **K1 SET .. K4 SET**, each knob's function with all its settings (DISTO:
   AMOUNT, SUB, FIZZ, SUSTAIN; MORPH: AMOUNT, TO KICK…), the function's name by the kick's (KICK 4  K4 DISTO). They

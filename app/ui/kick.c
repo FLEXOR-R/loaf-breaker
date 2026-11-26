@@ -5,7 +5,7 @@
 /* ---- the KICK page (PRD K-*): EDIT opens it, EDIT again the next sub-page. The white keys are the kick's 16
  * steps, ALGORITHM the layer, PRESETS the built-in kicks, SEL + EDIT through the FX chain or around it */
 enum { KP_MIX, KP_LAYER, KP_FX, KP_MACRO, KP_OUT, KP_TERROR, KP_TMORE, KP_TERROR2, KP_SYN1, KP_SYN2, KP_BASS, KP_KNOBS,
-       KP_KSET, KP_CMORPH, KP_STYLE, KP_TAIL, KP_TAIL2, KP_STACK, KP_TOOLS, KP_PRESET, KP_TOK, KP_GATE, KPAGES };   /* (KP_TOK,
+       KP_KSET, KP_CMORPH, KP_STYLE, KP_TAIL, KP_TAIL2, KP_STACK, KP_TOOLS, KP_PRESET, KP_TOK, KP_GATE, KP_PREQ, KP_PREQ2, KP_XSUB, KPAGES };   /* (KP_TOK,
                                           * KP_GATE: 0.9.45, FLEXOR's Kick Lab 2) */   /* (KP_PRESET: LOAF
                                           * BREAKER 0.253, FLEXOR: ATTACK's first part, the built-in kicks alone) */
 /* LOAF BREAKER: the KICK LAB, the menu's LAB section (klab in app.c, kick.h kick_lab_t): TAIL (K1 MODE, K2 NOTE, K3
@@ -206,6 +206,7 @@ static void kick_copy_from(uint32_t n)    /* (0.9.26: kick memory n's everything
     kfx_get(n);
     klab.cur = (*klmem_at(n));
     *kx2_at(set.kslot) = *kx2_at(n);     /* (0.9.45: its TOK and TAIL GATE too) */
+    *kpx_at(set.kslot) = *kpx_at(n);     /* (0.9.82: its PRE EQ and SUB SPLIT) */
     changed_kick();
     changed_fx();
 }
@@ -216,16 +217,19 @@ static void kick_mem_turn(int32_t d)
 static const char *const KPAGE_NAME[KPAGES] = {"MIX", "LAYER", "LAYER FX", "MACRO", "OUT", "DISTO", "DISTO +",
                                                 "SCREAM", "SYNTH", "SYNTH +", "BASS", "KNOBS", "K SET",
                                                 "CLEAN MORPH", "ASSIGN", "TAIL", "TAIL +", "STACK", "TOOLS", "PRESET",
-                                                "TOK", "TAIL GATE"};
+                                                "TOK", "TAIL GATE", "PRE EQ", "PRE EQ +", "SUB SPLIT"};
 /* the kick's parts in a row, as ALGORITHM turns through them: MIX, SUB, SUB FX, PUNCH, PUNCH FX, GRIT, GRIT FX,
  * CLICK, CLICK FX, MACRO, OUT (each a sub-page, and for a layer its layer); LOAF BREAKER TEST: then EQ BANDS, EQ
  * SHAPE (the KICK EQ page), FX 1, FX 2 (the FX page on the kick's slots), TERROR, TERROR +, TERROR 2 */
 #define KP_BASE (3u + 2u * KICK_LAYERS)
-#define KPARTS (KP_BASE + 24u)       /* (LOAF BREAKER: then the LAB's TAIL, TAIL +, STACK, TOOLS; then PRESET, 0.253; TOK,
+#define KPARTS (KP_BASE + 27u)       /* (LOAF BREAKER: then the LAB's TAIL, TAIL +, STACK, TOOLS; then PRESET, 0.253; TOK,
                                           * TAIL GATE, 0.9.45) */
 #define KP_PART_PRESET (KP_BASE + 21u)
 #define KP_PART_TOK (KP_BASE + 22u)
 #define KP_PART_GATE (KP_BASE + 23u)
+#define KP_PART_PREQ (KP_BASE + 24u)     /* (0.9.82, FLEXOR: DIRT's PRE EQ, PRE EQ +, SUB SPLIT, its last three) */
+static int kpx_page(void) { return ui.kpage >= KP_PREQ && ui.kpage <= KP_XSUB; }
+static int kpx_part(uint32_t p) { return p >= KP_PART_PREQ && p < KP_PART_PREQ + 3u; }
 static const char *const KP_MORE_NAME[11] = {"EQ BANDS", "EQ SHAPE", "FX 1", "FX 2", "DISTO", "DISTO +", "SCREAM",
                                             "SYNTH", "SYNTH +", "BASS", "KNOBS"};   /* (then K1 SET .. K4 SET: "K1 C SUB") */   /* (SYNTH, SYNTH +: ALGORITHM left from MIX) */
 static uint32_t kick_part(void)
@@ -236,6 +240,8 @@ static uint32_t kick_part(void)
         return KP_PART_PRESET;
     if (ui.page == PG_KICK && (ui.kpage == KP_TOK || ui.kpage == KP_GATE))
         return ui.kpage == KP_TOK ? KP_PART_TOK : KP_PART_GATE;
+    if (ui.page == PG_KICK && kpx_page())
+        return KP_PART_PREQ + (uint32_t)(ui.kpage - KP_PREQ);
     if (ui.page == PG_FX)
         return KP_BASE + 2u + (uint32_t)(ui.fx_focus - BRK_FX_SLOTS) % 2u;
     if (ui.kpage == KP_CMORPH)
@@ -259,6 +265,10 @@ static void kick_part_name(uint32_t p, char *t)
     }
     if (p == KP_PART_TOK || p == KP_PART_GATE) {
         text_cat(t, p == KP_PART_TOK ? "TOK" : "TAIL GATE");
+        return;
+    }
+    if (kpx_part(p)) {
+        text_cat(t, KPAGE_NAME[KP_PREQ + p - KP_PART_PREQ]);
         return;
     }
     if (p == KP_BASE + 15u) {
@@ -302,12 +312,13 @@ static const char *const KSECT_NAME[KSECTS] = {"ATTACK", "BODY", "TAIL", "DIRT",
                                           * FLEXOR: FX1 and FX2 sections of their own, ALGORITHM there their parts; the
                                           * EQ in MORE, KNOBS until then) */   /* (FX: TONE until
                                           * 0.9.1, FLEXOR) */
-static const uint8_t KSECT_N[KSECTS] = {5u, 7u, 5u, 7u, 1u, 1u, 9u};
-static const uint8_t KSECT[KSECTS][9] = {{32u, 7u, 3u, 30u, 33u},   /* (ATTACK: PRESET first, 0.253; TOK last, 0.9.45:
+static const uint8_t KSECT_N[KSECTS] = {5u, 7u, 5u, 10u, 1u, 1u, 9u};
+static const uint8_t KSECT[KSECTS][10] = {{32u, 7u, 3u, 30u, 33u},   /* (ATTACK: PRESET first, 0.253; TOK last, 0.9.45:
                                           * the parts before where they were) */
                                          {0u, 1u, 5u, 18u, 19u, 9u, 10u}, {28u, 29u, 20u, 26u, 34u},   /* (TAIL: its GATE
                                           * last, 0.9.45) */
-                                        {15u, 16u, 17u, 2u, 4u, 6u, 8u}, {13u}, {14u},
+                                        {15u, 16u, 17u, 2u, 4u, 6u, 8u, 35u, 36u, 37u}, {13u}, {14u},   /* (DIRT: PRE EQ,
+                                          * PRE EQ +, SUB SPLIT last, 0.9.82) */
                                         {21u, 27u, 22u, 23u, 24u, 25u, 31u, 11u, 12u}};   /* (KNOBS: KP_BASE + 10 ..; 26 CLEAN MORPH;
                                           * 0.9.29, FLEXOR: ASSIGN right after KNOBS) */
 static void ksect_find(uint32_t p)       /* the part's section and place in it, kept */
@@ -400,6 +411,8 @@ static void kick_part_set(uint32_t p)
         ui.kpage = KP_PRESET;
     else if (p == KP_PART_TOK || p == KP_PART_GATE)   /* (0.9.45: ATTACK's TOK, TAIL's GATE) */
         ui.kpage = p == KP_PART_TOK ? KP_TOK : KP_GATE;
+    else if (kpx_part(p))                /* (0.9.82: DIRT's PRE EQ, PRE EQ +, SUB SPLIT) */
+        ui.kpage = (uint8_t)(KP_PREQ + p - KP_PART_PREQ);
     else if (p >= KP_BASE) {                  /* (TEST) the KICK EQ, the kick's FX slots, its TERRORs */
         uint32_t q = (p - KP_BASE) % 21u;
         if (q >= 17u)                    /* (LOAF BREAKER: the LAB) */
@@ -450,7 +463,10 @@ static const char *const KN_KICK[KPAGES][4] = {{"SUB", "PUNCH", "GRIT", "CLICK"}
                                                {"MODE", "NOTE", "CURVE", "END"}, {"FILTER", "F TIME", "DRIVE", ""},
                                                {"ATTACK", "CROSS", "FADE", "SOLO"}, {"MUTATE", "A/B", "EDIT VIEW", "DRUM ZOOM"},
                                                {"PRESET", "", "", ""},
-                                               {"LEVEL", "TYPE", "PITCH", "LENGTH"}, {"DIVISION", "LENGTH", "FADE IN", ""}};   /* (KNOBS,
+                                               {"LEVEL", "TYPE", "PITCH", "LENGTH"}, {"DIVISION", "LENGTH", "FADE IN", ""},
+                                               {"LOW", "MID", "HIGH", "MID FREQ"}, {"LO FREQ", "MID Q", "HI FREQ", ""},
+                                               {"X FREQ", "SUB LEVEL", "SUB DIRT", "SUB DECAY"}};   /* (0.9.82: PRE
+                                          * EQ, PRE EQ + named as the KICK EQ's; SUB SPLIT) */   /* (KNOBS,
                                           * K SET: kick_knob_name; TOK, TAIL GATE: 0.9.45) */
 /* LOAF BREAKER (0.9.45, FLEXOR's Kick Lab 2, chosen by ear): ATTACK's TOK, a short pitched attack (K1 LEVEL, K2 TYPE
  * SQUARE NOISE SINE, K3 PITCH 400 .. 4000 Hz, K4 LENGTH 2 .. 30 ms), and TAIL's GATE, the kick chopped in time from its
@@ -538,6 +554,104 @@ static void kx2_turn(int i, int32_t d)
     changed_kick();
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
+/* LOAF BREAKER (0.9.82, FLEXOR: "l'eq avant la disto (fonction très importante pour la variété des kicks) et le sub
+ * séparé"): DIRT's PRE EQ (K1 LOW, K2 MID, K3 HIGH, K4 MID FREQ), PRE EQ + (K1 LO FREQ, K2 MID Q, K3 HI FREQ), three
+ * bells on the layers before the drive and the DISTOs; SUB SPLIT (K1 X FREQ: OFF, 40 .. 300 Hz; K2 SUB LEVEL, K3 SUB
+ * DIRT, K4 SUB DECAY), the lows around the dirt. Each kick its own (kx2.px, kick.h kick_px_t) */
+static const float KPX_F0[3] = {80.0f, 600.0f, 3000.0f};
+static const int8_t KPX_FLO[3] = {-24, -24, -18}, KPX_FHI[3] = {24, 30, 18};
+static float kpx_hz(const kick_px_t *x, uint32_t b) { return KPX_F0[b] * brk_exp2f_c((float)x->eq_f[b] * (1.0f / 12.0f)); }
+static void kpx_value(int i, char *t)
+{
+    const kick_px_t *x = kpx_at(set.kslot);
+    t[0] = 0;
+    if (ui.kpage == KP_PREQ) {
+        if (i < 3) {
+            if (!x->eq_g[i])
+                text_cat(t, "0 DB");
+            else {
+                if (x->eq_g[i] > 0)
+                    text_cat(t, "+");
+                int_text(x->eq_g[i], t);
+                text_cat(t, " DB");
+            }
+        } else
+            hz_text(kpx_hz(x, 1u), t);
+        return;
+    }
+    if (ui.kpage == KP_PREQ2) {
+        if (i == 0 || i == 2)
+            hz_text(kpx_hz(x, (uint32_t)i), t);
+        else if (i == 1)
+            hundredths_text(brk_exp2f_c((float)x->eq_q * 0.25f), t);
+        return;
+    }
+    if (i == 0) {
+        if (!x->xo)
+            text_cat(t, "OFF");
+        else
+            hz_text(40.0f + 5.0f * (float)(x->xo - 1u), t);
+    } else if (i == 1) {
+        int_text(100 + 2 * (int32_t)x->sg, t);
+        text_cat(t, "%");
+    } else if (i == 2) {
+        if (!x->sdrv)
+            text_cat(t, "CLEAN");
+        else {
+            int_text(x->sdrv, t);
+            text_cat(t, "%");
+        }
+    } else {
+        if (!x->sdec)
+            text_cat(t, "OPEN");
+        else {
+            int_text((int32_t)(30.0f * brk_exp2f_c((float)x->sdec * 0.0606f) + 0.5f), t);
+            text_cat(t, " MS");
+        }
+    }
+}
+static float kpx_norm(int i)
+{
+    const kick_px_t *x = kpx_at(set.kslot);
+    if (ui.kpage == KP_PREQ)
+        return i < 3 ? (float)(x->eq_g[i] + KICK_PX_DB) * (1.0f / (2.0f * KICK_PX_DB))
+                     : (float)(x->eq_f[1] - KPX_FLO[1]) / (float)(KPX_FHI[1] - KPX_FLO[1]);
+    if (ui.kpage == KP_PREQ2)
+        return i == 1 ? (float)(x->eq_q + 8) * 0.05f : i == 3 ? 0.0f
+               : (float)(x->eq_f[i] - KPX_FLO[i]) / (float)(KPX_FHI[i] - KPX_FLO[i]);
+    return i == 0 ? (float)x->xo / (float)KICK_XO_N : i == 1 ? (float)(x->sg + 50) * 0.01f
+           : i == 2 ? (float)x->sdrv * 0.01f : (float)x->sdec * 0.01f;
+}
+static void kpx_turn(int i, int32_t d)
+{
+    kick_px_t *x = kpx_at(set.kslot);
+    int dir = d > 0 ? 1 : -1;
+    char t[16];
+    if (ui.kpage == KP_PREQ) {
+        if (i < 3)
+            x->eq_g[i] = (int8_t)clamp((int32_t)x->eq_g[i] + d, -KICK_PX_DB, KICK_PX_DB);
+        else
+            x->eq_f[1] = (int8_t)clamp((int32_t)x->eq_f[1] + d, KPX_FLO[1], KPX_FHI[1]);
+    } else if (ui.kpage == KP_PREQ2) {
+        if (i == 1)
+            x->eq_q = (int8_t)clamp((int32_t)x->eq_q + dir, -8, 12);
+        else if (i == 0 || i == 2)
+            x->eq_f[i] = (int8_t)clamp((int32_t)x->eq_f[i] + d, KPX_FLO[i], KPX_FHI[i]);
+        else
+            return;
+    } else if (i == 0)
+        x->xo = (uint8_t)clamp((int32_t)x->xo + d, 0, (int32_t)KICK_XO_N);
+    else if (i == 1)
+        x->sg = (int8_t)clamp((int32_t)x->sg + d, -50, 50);
+    else if (i == 2)
+        x->sdrv = (uint8_t)clamp((int32_t)x->sdrv + d * 2, 0, 100);
+    else
+        x->sdec = (uint8_t)clamp((int32_t)x->sdec + d * 2, 0, 100);
+    kpx_value(i, t);
+    app_say(KN_KICK[ui.kpage % KPAGES][i], t);
+    changed_kick();
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
 /* LOAF BREAKER: OUT's K2 TERROR, K3 TERROR 2 (kick.h), 0..100 each; SEL + K4 and SEL + K3 on any page (main.c) */
 static uint8_t *kick_hc(kick_t *k, int i) { return i == 2 ? &KICK_TERROR2(k) : &KICK_TERROR(k); }
 static void kick_hc_text(const kick_t *k, int i, char *t)
@@ -619,6 +733,10 @@ static void kick_value(int i, char *t)
     t[0] = 0;
     if (kx2_page()) {                    /* (0.9.45: TOK, TAIL GATE) */
         kx2_value(i, t);
+        return;
+    }
+    if (kpx_page()) {                    /* (0.9.82: PRE EQ, PRE EQ +, SUB SPLIT) */
+        kpx_value(i, t);
         return;
     }
     if (ui.kpage == KP_PRESET) {         /* (LOAF BREAKER, 0.253: ATTACK's PRESET: K1 the built-in kick, alone) */
@@ -794,6 +912,10 @@ static void kick_knob_turn(int i, int32_t d)
         kx2_turn(i, d);
         return;
     }
+    if (kpx_page()) {                    /* (0.9.82: PRE EQ, PRE EQ +, SUB SPLIT) */
+        kpx_turn(i, d);
+        return;
+    }
     if (kick_easy() && ke(i) != KE_PRESET) {   /* (BEGINNER's pages) */
         char w[24];
         kick_layer_t *sub = &k->l[KL_SUB];
@@ -893,6 +1015,7 @@ static void kick_knob_turn(int i, int32_t d)
                 set.ksyn[j] = 0;
             memset(&klab.cur, 0, sizeof klab.cur);   /* (and its KICK LAB off) */
             memset(kx2_at(set.kslot), 0, sizeof(kick_x2_t));   /* (0.9.45: its TOK and TAIL GATE off, as the LAB) */
+            memset(kpx_at(set.kslot), 0, sizeof(kick_px_t));   /* (0.9.82: its PRE EQ and SUB SPLIT off) */
             klab.cur.pre = (uint8_t)(ui.kpreset + 1u);   /* (the PRESET it shows, as its memory's, 0.9.2) */
             kpre_extra(ui.kpreset);
             if (KICK_TERROR(k))          /* (0.9.40, FLEXOR: a preset made with its DISTO sounds with it: the DST
@@ -1054,6 +1177,8 @@ static float kick_knob_f(int i)          /* the part's knob i, 0..1 (as its bar)
     const kick_layer_t *l = &k->l[ui.klayer % KICK_LAYERS];
     if (kx2_page())                      /* (0.9.45: TOK, TAIL GATE) */
         return kx2_norm(i);
+    if (kpx_page())                      /* (0.9.82: PRE EQ, PRE EQ +, SUB SPLIT) */
+        return kpx_norm(i);
     if (kick_easy() && ke(i) != KE_PRESET) {   /* (BEGINNER's pages) */
         uint32_t e = ke(i);
         switch (e) {
@@ -1170,21 +1295,25 @@ static void kick_chip(uint32_t p, char *t)   /* (LOAF BREAKER: a part's name at 
     }
     {                                    /* (the long ones short: "SYNTH +" SYN+, "DISTO +" D+, EQ's BANDS, SHAPE;
                                           * a layer's effect S FX .. C FX, below) */
-        static const uint8_t P[8] = {KP_BASE + 8u, KP_BASE + 5u, KP_BASE + 0u, KP_BASE + 1u, KP_BASE + 18u,
-                                     KP_BASE + 2u, KP_BASE + 3u, KP_PART_GATE};
-        static const char *const S[8] = {"SYN+", "D+", "EQ B", "EQ S", "TAIL+", "FX1", "FX2", "GATE"};   /* (FX's: 0.9.2;
+        static const uint8_t P[13] = {KP_BASE + 8u, KP_BASE + 5u, KP_BASE + 0u, KP_BASE + 1u, KP_BASE + 18u,
+                                     KP_BASE + 2u, KP_BASE + 3u, KP_PART_GATE, KP_PART_PREQ, KP_PART_PREQ + 1u,
+                                     KP_PART_PREQ + 2u, KP_BASE + 4u, KP_BASE + 6u};
+        static const char *const S[13] = {"SYN+", "D+", "EQ B", "EQ S", "TAIL+", "FX1", "FX2", "GATE", "PRE", "PRE+",
+                                          "XSUB", "DIST", "SCR"};   /* (0.9.82, FLEXOR: DIRT's ten, DISTO DIST, SCREAM
+                                          * SCR) */   /* (FX's: 0.9.2;
                                           * TAIL GATE's, 0.9.45) */
         uint32_t j;
-        for (j = 0; j < 8u; j++)
+        for (j = 0; j < 13u; j++)
             if (p == P[j]) {
                 text_cat(t, S[j]);
                 return;
             }
     }
-    if (p >= 1u && p < KP_BASE - 2u && ((p - 1u) & 1u)) {   /* (a layer's effect: "S FX" .. "C FX") */
+    if (p >= 1u && p < KP_BASE - 2u && ((p - 1u) & 1u)) {   /* (a layer's effect: "SFX" .. "CFX"; "S FX" until
+                                          * 0.9.81, DIRT's ten parts since) */
         char l[2] = {KICK_LAYER_NAME[(p - 1u) / 2u][0], 0};
         text_cat(t, l);
-        text_cat(t, " FX");
+        text_cat(t, "FX");
         return;
     }
     kick_part_name(p, t);
@@ -1198,9 +1327,9 @@ static void ksect_row(int32_t y)
     const felucca_font_t *f = &FONT_T;
     int32_t cx = 4;
     char c[16];
-    for (j = 0; j < KSECTS * 9u; j++)    /* (the section holding the open part: the EQ and FX pages' own, FX) */
-        if (j % 9u < KSECT_N[j / 9u] && KSECT[j / 9u][j % 9u] == open) {
-            s = j / 9u;
+    for (j = 0; j < KSECTS * 10u; j++)   /* (the section holding the open part: the EQ and FX pages' own, FX) */
+        if (j % 10u < KSECT_N[j / 10u] && KSECT[j / 10u][j % 10u] == open) {
+            s = j / 10u;
             break;
         }
     n = KSECT_N[s];
@@ -1213,13 +1342,13 @@ static void ksect_row(int32_t y)
     uint32_t pad = 8u;
     if (w > KV_W) {                  /* (too wide: the small letters; 0.9.29, MORE's nine: narrower margins too) */
         f = &FONT_XS;
-        for (pad = 6u; pad >= 2u; pad -= 2u) {
+        for (pad = 6u;; pad -= 2u) {     /* (0.9.82: DIRT's ten, down to no margin) */
             for (w = 2u * (n - 1u), j = 0; j < n; j++) {
                 c[0] = 0;
                 kick_chip(KSECT[s][j], c);
                 w += (uint32_t)text_w(&FONT_XS, c) + pad;
             }
-            if (w <= KV_W)
+            if (w <= KV_W || !pad)
                 break;
         }
     }
@@ -1238,6 +1367,125 @@ static void ksect_row(int32_t y)
         cx += sw + 2;
     }
 }
+/* LOAF BREAKER (0.9.82, FLEXOR: "des visuels plus marqués ... quelque chose de visible sur le XSUB (l'endroit où ça
+ * cross)"): DIRT's PRE EQ and SUB SPLIT drawn in frequency, 20 Hz .. 12 kHz across, the kick's note marked under it.
+ * PRE EQ: the three bells' curve, +-18 dB, each band's point (the lit ones on); SUB SPLIT: the lows kept clean (blue)
+ * and the rest going into the drive and the DISTOs (red, rough), split at X FREQ (a white line, its Hz) */
+#define KPX_OCT 9.2288f                  /* (log2(12000 / 20)) */
+static float kpx_fx(int32_t i) { return 20.0f * brk_exp2f_c((float)i * (KPX_OCT / (float)KV_W)); }
+static int32_t kpx_x(float f) { return 4 + (int32_t)(brk_log2f_c(f * (1.0f / 20.0f)) * ((float)KV_W / KPX_OCT) + 0.5f); }
+static void kpx_picture(float hz)
+{
+    const kick_px_t *x = kpx_at(set.kslot);
+    static const uint16_t F[] = {50u, 100u, 200u, 500u, 1000u, 2000u, 5000u, 10000u};
+    static const char *const FN[] = {"50", "100", "200", "500", "1K", "2K", "5K", "10K"};
+    int32_t i, mx, py = 0;
+    uint32_t j;
+    char t[24], u[12];
+    for (j = 0; j < 8u; j++) {           /* the grid, its frequencies under it */
+        mx = kpx_x((float)F[j]);
+        for (i = 18; i < 66; i += 3)
+            cv_rect(mx, i, 1, 1, C_LINE);
+        cv_text(mx - text_w(&FONT_XS, FN[j]) / 2, 67, &FONT_XS, FN[j], C_DIM);
+    }
+    mx = kpx_x(hz);                      /* the kick's note */
+    cv_rect(mx - 2, 64, 5, 2, C_AMB);
+    cv_rect(mx - 1, 62, 3, 2, C_AMB);
+    if (ui.kpage != KP_XSUB) {           /* PRE EQ, PRE EQ +: the bells' curve */
+        static const char BN[3] = {'L', 'M', 'H'};
+        float A[3], Q[3], F0[3];
+        for (j = 0; j < 3u; j++) {
+            A[j] = brk_exp2f_c((float)x->eq_g[j] * 0.0830482f);
+            Q[j] = j == 1u ? brk_exp2f_c((float)x->eq_q * 0.25f) : 0.8f;
+            F0[j] = kpx_hz(x, j);
+        }
+        for (i = 0; i < 232; i += 4)     /* (0 dB) */
+            cv_rect(4 + i, 42, 2, 1, C_LINE);
+        for (i = 0; i < (int32_t)KV_W; i++) {
+            float f = kpx_fx(i), db = 0.0f;
+            int32_t y;
+            for (j = 0; j < 3u; j++) {
+                float w, w2, nu, de;
+                if (!x->eq_g[j])
+                    continue;
+                w = f / F0[j];
+                w2 = (1.0f - w * w) * (1.0f - w * w);
+                nu = w2 + (w * A[j] / Q[j]) * (w * A[j] / Q[j]);
+                de = w2 + (w / (A[j] * Q[j])) * (w / (A[j] * Q[j]));
+                db += 3.0103f * brk_log2f_c(nu / (de > 1e-9f ? de : 1e-9f));
+            }
+            y = 42 - (int32_t)(brk_clampf(db, -21.0f, 21.0f) * (22.0f / 18.0f));
+            if (y != 42)
+                cv_rect(4 + i, y < 42 ? y : 43, 1, y < 42 ? 42 - y : y - 42, MB_DIM[1]);
+            if (i) {                     /* (2 px: marked) */
+                cv_line(3 + i, py, 4 + i, y, MB_COL[1]);
+                cv_line(3 + i, py + 1, 4 + i, y + 1, MB_COL[1]);
+            }
+            py = y;
+        }
+        for (j = 0; j < 3u; j++) {       /* each band's point, at its gain */
+            int32_t by = 42 - (int32_t)((float)x->eq_g[j] * (22.0f / 18.0f)), on = x->eq_g[j] != 0;
+            char b[2] = {BN[j], 0};
+            mx = kpx_x(F0[j]);
+            cv_rect(mx - 2, by - 2, 5, 5, on ? C_WHITE : C_GRAY);
+            if (!on)
+                cv_rect(mx - 1, by - 1, 3, 3, C_BLACK);
+            cv_text(mx - 2, by < 30 ? by + 4 : by - 11, &FONT_XS, b, on ? C_WHITE : C_GRAY);
+        }
+        cv_text(234 - text_w(&FONT_XS, "> INTO THE DISTO"), 18, &FONT_XS, "> INTO THE DISTO", MB_COL[1]);
+        return;
+    }
+    if (!x->xo) {                        /* SUB SPLIT off: the whole kick into the dirt */
+        for (i = 0; i < (int32_t)KV_W; i++)
+            cv_rect(4 + i, 30 + ((i * 7) % 5), 1, 34 - ((i * 7) % 5), MB_DIM[0]);
+        cv_text(10, 40, &FONT_XS, "OFF: ALL OF THE KICK INTO THE DIRT", C_GRAY);
+        return;
+    }
+    {
+        float fc = 40.0f + 5.0f * (float)(x->xo - 1u), lv = (float)(100 + 2 * (int32_t)x->sg) * 0.01f;
+        for (i = 0; i < (int32_t)KV_W; i++) {   /* the LR4's two sides: the lows (by SUB LEVEL), the highs, rough */
+            float r = kpx_fx(i) / fc, r4 = r * r * r * r, lo = 1.0f / (1.0f + r4), hi = r4 / (1.0f + r4);
+            int32_t hh = (int32_t)(hi * 22.0f), hl = (int32_t)(lo * lv * 22.0f);   /* (100 %: 22 px) */
+            if (hh > 0) {
+                int32_t jag = hh > 3 ? ((i * 7) % 5) - 2 : 0;   /* (the dirt: a rough edge) */
+                cv_rect(4 + i, 64 - hh - jag, 1, hh + jag, MB_DIM[0]);
+                cv_rect(4 + i, 64 - hh - jag, 1, 1, MB_COL[0]);
+            }
+            if (hl > 0) {
+                hl = hl > 30 ? 30 : hl;
+                cv_rect(4 + i, 64 - hl, 1, hl, MB_DIM[2]);
+                cv_rect(4 + i, 64 - hl, 1, 1, MB_COL[2]);
+            }
+        }
+        t[0] = 0;                        /* the lows: clean or driven, their fall */
+        if (x->sdrv) {
+            text_cat(t, "SUB DIRT ");
+            int_text(x->sdrv, u);
+            text_cat(t, u);
+            text_cat(t, "%");
+        } else
+            text_cat(t, "CLEAN SUB");
+        cv_text(6, 22, &FONT_XS, t, MB_COL[2]);
+        if (x->sdec) {
+            t[0] = 0;
+            text_cat(t, "DECAY ");
+            kpx_value(3, u);
+            text_cat(t, u);
+            cv_text(6, 32, &FONT_XS, t, MB_COL[2]);
+        }
+        cv_text(234 - text_w(&FONT_XS, "> DRIVE + DISTO"), 22, &FONT_XS, "> DRIVE + DISTO", MB_COL[0]);
+        mx = kpx_x(fc);                  /* where it crosses: a white line, its Hz in a box beside it */
+        cv_rect(mx, 16, 2, 50, C_WHITE);
+        t[0] = 0;
+        text_cat(t, "X ");
+        u[0] = 0;
+        hz_text(fc, u);
+        text_cat(t, u);
+        i = mx + 4 + text_w(&FONT_XS, t) > 236 ? mx - 3 - text_w(&FONT_XS, t) : mx + 4;
+        cv_rect(i - 1, 51, text_w(&FONT_XS, t) + 2, 10, C_WHITE);
+        cv_text(i, 50, &FONT_XS, t, C_BLACK);
+    }
+}
 static void kick_picture(int32_t top)
 {
     const kick_t *k = &set.kick;
@@ -1249,6 +1497,9 @@ static void kick_picture(int32_t top)
     float tms = 120.0f * brk_exp2f_c((float)set.ksyn[KS_TIME] * 0.04f);
     char t[32], u[8];                    /* (t: the part's words, "PRESETS: EARLY NEXT GEN": room to spare) */
     cv_oy = -top;
+    if (kpx_page())                      /* (0.9.82: PRE EQ, SUB SPLIT: in frequency) */
+        kpx_picture(hz);
+    else {                               /* (the kick in time) */
     cv_rect(4, 45, KV_W, 1, C_LINE);     /* (the middle; LOAF BREAKER: up, the parts' bar under it) */
     if (ui.kview == 0u) {                /* LOAF BREAKER: the RGB view, as rekordbox (the CDJ view's colours): each
                                           * column as tall as its peak, its lows red, mids green, highs blue */
@@ -1318,6 +1569,7 @@ static void kick_picture(int32_t top)
                     cv_rect(mx, x, 1, 2, m ? C_AMB : C_WHITE);
         }
     }
+    }                                    /* (the kick in time) */
     t[0] = 0;                            /* KICK 4, its note */
     text_cat(t, "KICK ");
     int_text((int32_t)set.kslot + 1, u);
@@ -1346,6 +1598,8 @@ static void kick_picture(int32_t top)
                                                                                 : "PRESET, DISTO, DRIVE");
         else if (p == KP_PART_PRESET)
             text_cat(t, "THE BUILT-IN KICKS");
+        else if (kpx_part(p))            /* (0.9.82) */
+            text_cat(t, p == KP_PART_PREQ + 2u ? "THE LOWS AROUND THE DIRT" : "EQ BEFORE THE DISTO");
         else if (p < 32u)
             text_cat(t, D[p]);
         cv_text(12 + text_w(&FONT_B, "KICK 10"), 4, &FONT_XS, t, kp_knobs() || ui.kpage == KP_STYLE ? C_HI : C_GRAY);
@@ -1354,7 +1608,7 @@ static void kick_picture(int32_t top)
     int_text((int32_t)(hz + 0.5f), t);
     text_cat(t, " HZ");
     cv_text(234 - text_w(&FONT_XS, t), 4, &FONT_XS, t, C_AMB);
-    if (kv_ms() != (ui.kview == 0u ? 500u : 250u)) {   /* (LOAF BREAKER: KICK VIEW PART or EDIT ZOOM: the picture's
+    if (!kpx_page() && kv_ms() != (ui.kview == 0u ? 500u : 250u)) {   /* (LOAF BREAKER: KICK VIEW PART or EDIT ZOOM: the picture's
                                           * time, under the pitch: the right end, the tail's quiet) */
         uint32_t ms = kv_ms();
         t[0] = 0;
@@ -1446,7 +1700,7 @@ static void draw_kick_classic(const brk_status_t *st)   /* LOAF BREAKER: the men
 static void draw_kick(const brk_status_t *st)
 {
     uint32_t sig = sig_of(&set.kick, sizeof set.kick) ^ sig_of(set.ksyn, sizeof set.ksyn) ^
-                   (sig_of(&klab.cur, sizeof klab.cur) ^ sig_of(kx2_at(set.kslot), sizeof(kick_x2_t)) * 5u) * 3u ^ kv_part_sig() * 7u, top;   /* (LOAF BREAKER: its LAB too, the
+                   (sig_of(&klab.cur, sizeof klab.cur) ^ (sig_of(kx2_at(set.kslot), sizeof(kick_x2_t)) ^ sig_of(kpx_at(set.kslot), sizeof(kick_px_t)) * 11u) * 5u) * 3u ^ kv_part_sig() * 7u, top;   /* (LOAF BREAKER: its LAB too, the
                                           * part shown) */
     kick_t kk;
     if (ui.kclassic) {

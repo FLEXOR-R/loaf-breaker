@@ -308,6 +308,7 @@ static void reset_do(uint32_t w)
             ksmem_at(set.kslot % KICK_MEMS)[j] = 0;
         memset(&klab.cur, 0, sizeof klab.cur);   /* (LOAF BREAKER: its KICK LAB off) */
         memset(kx2_at(set.kslot), 0, sizeof(kick_x2_t));   /* (0.9.45: its TOK and TAIL GATE off) */
+        memset(kpx_at(set.kslot), 0, sizeof(kick_px_t));   /* (0.9.82: its PRE EQ and SUB SPLIT off) */
         (*klmem_at(set.kslot % KICK_MEMS)) = klab.cur;
     }
     changed();

@@ -43,6 +43,8 @@ typedef struct {
     float g_s;                           /* its gain, smoothed (no clicks) */
     float sp_env, sp_g;                  /* (0.9.71) TAIL MODE SPLIT: the kick's level followed, the clean sine's level
                                           * against the SUB's (0: not split yet) */
+    float pq[3][2], xl[4][2], xe;        /* (0.9.82) the PRE EQ's bells, the SUB SPLIT's two low-passes and two
+                                          * high-passes, its fall */
 } kv_t;
 
 /* the block's settings, mapped */
@@ -86,9 +88,16 @@ typedef struct {
     uint32_t g_len, g_on, g_start, g_fade_n;   /* the TAIL GATE: a chop's samples (0 off), those that sound, where it
                                           * starts, its fade in (0 at once) */
     float g_fade_k;
+    uint8_t pq_n;                        /* (0.9.82) the PRE EQ: its bells on (0: none) */
+    uint8_t xo;                          /* the SUB SPLIT on */
+    float pq_a1[3], pq_a2[3], pq_a3[3], pq_m1[3];   /* each bell's coefficients (Simper's SVF) */
+    float xa1, xa2, xa3, xg, xn, xdec;   /* the split's low-pass (LR4: two Butterworths), the lows' drive and their
+                                          * make-up, their fall a sample (1: as the kick) */
 } kc_t;
 static volatile kick_x2_t p_x2;          /* (0.9.45) kick_set_x2 */
 BRK_COLD void kick_set_x2(const kick_x2_t *x) { *(kick_x2_t *)&p_x2 = *x; }
+static volatile kick_px_t p_px;          /* (0.9.82) kick_set_px */
+BRK_COLD void kick_set_px(const kick_px_t *x) { *(kick_px_t *)&p_px = *x; }
 static volatile float p_glide, p_rbl, p_rbs, p_rbk, p_spb = 15562.0f;   /* (TEST) kick_set_bass, kick_set_beat */
 void kick_set_bass(float glide_ms, float rb_level, float rb_start, float rb_curve)
 {
@@ -394,6 +403,43 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c, const volatile int8_t *sy
             c->g_fade_k = fn > 0.0f ? 1.0f / fn : 0.0f;
         }
     }
+    {                                    /* (0.9.82) the PRE EQ and the SUB SPLIT: the kick playing's (kick_set_px) */
+        kick_px_t x = *(const kick_px_t *)&p_px;
+        static const float F0[3] = {80.0f, 600.0f, 3000.0f};
+        static const int8_t FLO[3] = {-24, -24, -18}, FHI[3] = {24, 30, 18};
+        uint32_t b, n = 0u;
+        for (b = 0; b < 3u; b++) {
+            int32_t gd = x.eq_g[b], fs = x.eq_f[b];
+            float A, g, k, q;
+            if (!gd)
+                continue;
+            gd = gd < -KICK_PX_DB ? -KICK_PX_DB : gd > KICK_PX_DB ? KICK_PX_DB : gd;
+            fs = fs < FLO[b] ? FLO[b] : fs > FHI[b] ? FHI[b] : fs;
+            q = b == 1u ? brk_exp2f_c((float)(x.eq_q < -8 ? -8 : x.eq_q > 12 ? 12 : x.eq_q) * 0.25f) : 0.8f;
+            A = brk_exp2f_c((float)gd * 0.0830482f);   /* (10^(dB / 40)) */
+            g = brk_tan_pi_c(F0[b] * brk_exp2f_c((float)fs * (1.0f / 12.0f)) / (float)BRK_SR);
+            k = 1.0f / (q * A);
+            c->pq_a1[n] = 1.0f / (1.0f + g * (g + k));
+            c->pq_a2[n] = g * c->pq_a1[n];
+            c->pq_a3[n] = g * c->pq_a2[n];
+            c->pq_m1[n] = k * (A * A - 1.0f);
+            n++;
+        }
+        c->pq_n = (uint8_t)n;
+        c->xo = x.xo && x.xo <= KICK_XO_N;
+        if (c->xo) {
+            float g = brk_tan_pi_c((40.0f + 5.0f * (float)(x.xo - 1u)) / (float)BRK_SR), k = 1.41421356f;
+            float dr = 1.0f + 0.07f * (float)(x.sdrv > 100u ? 100u : x.sdrv);
+            int32_t sg = x.sg < -50 ? -50 : x.sg > 50 ? 50 : x.sg;
+            c->xa1 = 1.0f / (1.0f + g * (g + k));
+            c->xa2 = g * c->xa1;
+            c->xa3 = g * c->xa2;
+            c->xg = (1.0f + 0.02f * (float)sg) * 1.6f * dr;   /* (as loud as the drive's make-up left it) */
+            c->xn = 0.9f / brk_exp2f_c(brk_log2f_c(dr) * 0.5f);   /* (driven: about as loud, / sqrt) */
+            c->xdec = x.sdec ? decay_factor(30.0f * brk_exp2f_c((float)(x.sdec > 100u ? 100u : x.sdec) * 0.0606f))
+                             : 1.0f;
+        }
+    }
 }
 
 static void kv_hit(kv_t *v)
@@ -418,6 +464,11 @@ static void kv_hit(kv_t *v)
     v->tok_env = v->tok_pe = 1.0f;
     v->g_pos = 0u;
     v->g_s = 1.0f;
+    for (i = 0; i < 3u; i++)             /* (0.9.82: the PRE EQ and the split from the hit) */
+        v->pq[i][0] = v->pq[i][1] = 0.0f;
+    for (i = 0; i < 4u; i++)
+        v->xl[i][0] = v->xl[i][1] = 0.0f;
+    v->xe = 1.0f;
     v->sp_env = v->sp_g = 0.0f;          /* (0.9.71: SPLIT from this hit) */
 }
 
@@ -466,7 +517,7 @@ static inline float layer_fx(kv_t *v, const kc_t *c, uint32_t i, float x)
 
 static inline float kv_tick(kv_t *v, const kc_t *c)
 {
-    float x[KICK_LAYERS], y = 0.0f, d, out, dirt = 1.0f;
+    float x[KICK_LAYERS], y = 0.0f, d, out, dirt = 1.0f, xlow = 0.0f;
     float clean = c->csub > 0.0f ? brk_sin_turns(v->ph[KL_SUB]) * v->env[KL_SUB] : 0.0f;   /* (CLEAN SUB: the SUB's
                                           * sine, this sample, before anything drives it) */
     uint32_t i;
@@ -561,6 +612,29 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
         y += s * v->tok_env * c->tok_lvl;
         v->tok_env *= c->tok_edec;
     }
+    for (i = 0; i < c->pq_n; i++) {      /* (0.9.82) the PRE EQ: its bells, before the drive and the DISTOs */
+        float *q = v->pq[i], v3 = y - q[1], v1 = c->pq_a1[i] * q[0] + c->pq_a2[i] * v3,
+              v2 = q[1] + c->pq_a2[i] * q[0] + c->pq_a3[i] * v3;
+        q[0] = 2.0f * v1 - q[0];
+        q[1] = 2.0f * v2 - q[1];
+        y += c->pq_m1[i] * v1;
+    }
+    if (c->xo) {                         /* (0.9.82) the SUB SPLIT, a Linkwitz-Riley crossover (two Butterworths each
+                                          * side, the two summing flat): the lows out of the drive, the highs into it */
+        float lo = y, hi = y;
+        for (i = 0; i < 4u; i++) {
+            float *q = v->xl[i], z = i < 2u ? lo : hi, v3 = z - q[1], v1 = c->xa1 * q[0] + c->xa2 * v3,
+                  v2 = q[1] + c->xa2 * q[0] + c->xa3 * v3;
+            q[0] = 2.0f * v1 - q[0];
+            q[1] = 2.0f * v2 - q[1];
+            if (i < 2u)
+                lo = v2;
+            else
+                hi = z - 1.41421356f * v1 - v2;
+        }
+        xlow = lo;
+        y = hi;
+    }
     /* the sum: a drive into a clip, soft and then (INTENSITY over half) hard: the distorted kick */
     d = y * c->g;
     if (c->dr_k > 0.0f) {                /* (0.9.71) TAIL MODE DIRTY: 0.35x the drive on the hit, up to 3x along the tail */
@@ -638,6 +712,10 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
         m = v->t2env * 2.5f;
         z = brk_clampf(v->t2lo * 1.3f + z * 0.8f * (m < 1.0f ? m : 1.0f), -1.0f, 1.0f);
         out += (z - out) * c->t2mix;
+    }
+    if (c->xo) {                         /* (0.9.82) the SUB SPLIT: the lows back, clean or driven on their own */
+        out += soft(xlow * c->xg) * c->xn * v->xe;
+        v->xe *= c->xdec;
     }
     if (c->clean) {                      /* LOAF BREAKER LAB CLEAN: the SUB's fall, as loud as the clip made it */
         float et = v->env[KL_SUB] > 1e-4f ? v->env[KL_SUB] : 1e-4f, ge = et * c->g, eg = soft(ge) / soft(c->g);

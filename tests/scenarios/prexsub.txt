@@ -1,0 +1,90 @@
+# LOAF BREAKER (0.9.82, FLEXOR: "l'eq avant la disto (fonction très importante pour la variété des kicks) et le sub
+# séparé"): KICK › DIRT's last three parts: PRE EQ (K1 LOW, K2 MID, K3 HIGH -18 .. +18 dB, K4 MID FREQ), PRE EQ + (K1
+# LO FREQ, K2 MID Q, K3 HI FREQ), three bells before the drive and the DISTOs; SUB SPLIT (K1 X FREQ OFF, 40 .. 300 Hz,
+# K2 SUB LEVEL, K3 SUB DIRT, K4 SUB DECAY), the lows around the dirt. Each kick its own; a built-in PRESET clears them.
+#   app/build/host/loaf-breaker_host tests/scenarios/prexsub.txt app/build/scenarios
+wait 4200
+tap EDIT
+wait 300
+turn SELECT 1 10
+wait 150
+turn SELECT 1 10
+wait 150
+turn SELECT 1 10
+wait 300
+expect ksect 3
+turn ALGO -3 10
+wait 300
+expect kpage 22
+expect pxlow 0
+turn K1 6 60
+wait 200
+expect pxlow 6
+turn K2 12 60
+wait 200
+expect pxmid 12
+turn K3 -30 60
+wait 200
+expect pxhigh -18
+turn K4 5 60
+wait 200
+expect pxmidf 5
+shot preeq.png
+turn ALGO 1 10
+wait 300
+expect kpage 23
+turn K1 -4 60
+wait 200
+expect pxlof -4
+turn K2 3 60
+wait 200
+expect pxq 3
+turn ALGO 1 10
+wait 300
+expect kpage 24
+expect xo 0
+turn K1 17 60
+wait 200
+expect xo 17
+turn K3 20 60
+wait 200
+expect xdrv 40
+turn K4 10 60
+wait 200
+expect xdec 20
+shot subsplit.png
+turn K2 -60 60
+wait 200
+expect xsg -50
+shot subsplit0.png
+turn K1 -17 60
+wait 200
+expect xo 0
+shot subsplitoff.png
+turn K1 17 60
+turn K2 60 60
+wait 200
+turn ALGO 1 10
+wait 300
+expect kpage 5
+# KICK 5: none of it (each kick its own), KICK 4 again: its own back
+turn PRESET 1 10
+wait 200
+expect kslot 4
+expect xo 0
+expect pxlow 0
+turn PRESET -1 10
+wait 200
+expect kslot 3
+expect xo 17
+expect pxlow 6
+# ATTACK's PRESET, a built-in kick: the PRE EQ and SUB SPLIT off
+turn SELECT -3 10
+wait 300
+expect ksect 0
+expect kpage 19
+turn K1 1 10
+wait 300
+expect xo 0
+expect pxlow 0
+expect pxmid 0

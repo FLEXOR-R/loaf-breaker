@@ -2176,6 +2176,56 @@ static void test_kick_lab(void)
         CHECK(ap > bp * 0.6f && tp < bp * 0.3f && rp == 0.0f,
               "CHOP: no jump at the chop (%.3f, %.3f), down fast (%.3f), then silent (%.4f)", bp, ap, tp, rp);
     }
+    {                                    /* (0.9.82, FLEXOR) the PRE EQ and the SUB SPLIT: all 0 the kick bit for bit;
+                                          * HIGH up before the drive a brighter, dirtier kick; the split's lows at 0 % the
+                                          * lows gone, its short DECAY the tail quiet (the 909: its tail the SUB) */
+        kick_px_t px;
+        uint32_t same = 1u;
+        float h0 = 0.0f, h1 = 0.0f, l0, l1, lp, d0, d1;
+        memset(&lab, 0, sizeof lab);
+        kick_set_lab(&lab);
+        memset(&px, 0, sizeof px);
+        kick_set_px(&px);
+        kick_run(&k, BRK_SR / 2, 0u);
+        for (i = 0; i < BRK_SR / 2; i++)
+            same &= kick_buf[i] == ref[i];
+        CHECK(same, "PRE EQ, SUB SPLIT all 0: the kick bit for bit");
+        px.eq_g[1] = 12;                 /* (MID +12 dB, 600 Hz: what the DISTO bites) */
+        kick_set_px(&px);
+        kick_run(&k, BRK_SR / 2, 0u);
+        for (i = 0; i < BRK_SR / 5; i++) {
+            h0 += ref[i] * ref[i];
+            h1 += (kick_buf[i] - ref[i]) * (kick_buf[i] - ref[i]);
+        }
+        CHECK(h1 > h0 * 0.05f, "PRE EQ: MID +12 dB into the drive, another kick (%.1f changed of %.1f)", h1, h0);
+        kick_preset(&a, 0u);
+        a.volume = k.volume;
+        memset(&px, 0, sizeof px);
+        px.xo = 17u;                     /* (120 Hz) */
+        kick_set_px(&px);
+        kick_run(&a, BRK_SR / 2, 0u);
+        for (i = 0, lp = 0.0f, l0 = 0.0f; i < BRK_SR / 2; i++) {   /* (the lows' energy: a one-pole ~80 Hz) */
+            lp += (kick_buf[i] - lp) * 0.0114f;
+            l0 += lp * lp;
+        }
+        d0 = span_peak(BRK_SR / 4, BRK_SR / 2);
+        px.sg = -50;                     /* (the lows at 0 %) */
+        kick_set_px(&px);
+        kick_run(&a, BRK_SR / 2, 0u);
+        for (i = 0, lp = 0.0f, l1 = 0.0f; i < BRK_SR / 2; i++) {
+            lp += (kick_buf[i] - lp) * 0.0114f;
+            l1 += lp * lp;
+        }
+        CHECK(l1 * 4.0f < l0, "SUB SPLIT: the lows its own, at 0 %% gone (%.1f, %.1f)", l1, l0);
+        px.sg = 0;
+        px.sdec = 1u;                    /* (30 ms) */
+        kick_set_px(&px);
+        kick_run(&a, BRK_SR / 2, 0u);
+        d1 = span_peak(BRK_SR / 4, BRK_SR / 2);
+        CHECK(d1 < d0 * 0.5f, "SUB SPLIT: its DECAY 30 ms, the tail gone (%.3f, %.3f open)", d1, d0);
+        memset(&px, 0, sizeof px);
+        kick_set_px(&px);
+    }
     memset(&lab, 0, sizeof lab);
     lab.src = 1u;
     lab.cross = 50u;

@@ -136,6 +136,25 @@ typedef struct {
 #define KICK_TOK_TYPES 3u
 #define KICK_GATES 6u
 void kick_set_x2(const kick_x2_t *x);    /* main loop: the kick playing's */
+/* LOAF BREAKER (0.9.82, FLEXOR: "l'eq avant la disto (fonction très importante pour la variété des kicks) et le sub
+ * séparé", heard on his Kick Lab 3): the PRE EQ, three bells on the layers' sum before INTENSITY and the DISTOs (what
+ * they bite into), and the SUB SPLIT, the kick's lows (below X FREQ) taken out before the drive and the DISTOs and put
+ * back after them, clean or driven on their own, with their own fall. Each kick its own (kx2.px); all 0: as the kick
+ * always sounded, bit for bit */
+typedef struct {
+    int8_t eq_g[3];                      /* LOW, MID, HIGH: -18 .. +18 dB (0: the band off) */
+    int8_t eq_f[3];                      /* their frequency, semitones from 80, 600, 3000 Hz (LOW -24..24, MID -24..30,
+                                          * HIGH -18..18) */
+    int8_t eq_q;                         /* MID Q: 2^(q / 4), -8 .. 12 (0.25 .. 8; 0: 1) */
+    uint8_t xo;                          /* X FREQ: 0 OFF, 1..KICK_XO_N 40 .. 300 Hz by 5 */
+    int8_t sg;                           /* SUB LEVEL: 100 + 2 sg %, -50 .. 50 */
+    uint8_t sdrv;                        /* SUB DIRT: 0 clean .. 100 */
+    uint8_t sdec;                        /* SUB DECAY: 0 OPEN (as the kick), 1..100 30 .. 2000 ms */
+    uint8_t rsv[5];
+} kick_px_t;
+#define KICK_XO_N 53u
+#define KICK_PX_DB 18
+void kick_set_px(const kick_px_t *x);    /* main loop: the kick playing's */
 /* main loop: STACK's attack, its kick, SYNTH and LAB (its own STACK not heard); k 0: off */
 void kick_set_stack(const kick_t *k, const int8_t *syn, const kick_lab_t *l);
 void kick_set_solo(uint32_t s);          /* STACK's SOLO: 0 both, 1 the attack alone, 2 the tail alone */
