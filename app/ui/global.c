@@ -360,15 +360,9 @@ static void sfx_cards(int32_t top)
 {
     uint32_t f, cur = ui.sfx_cur < SFX_CRT || ui.sfx_cur >= SFX_N ? SFX_CRT : ui.sfx_cur;
     cv_oy = -top;
-    for (f = SFX_CRT; f <= SFX_N; f++) {
+    for (f = SFX_CRT; f < SFX_N; f++) {   /* (0.9.87: LOAF RAIN the eighth card, where what the keys do was) */
         int32_t x = 4 + (int32_t)((f - 1u) % 4u) * 59, y = 46 + (int32_t)((f - 1u) / 4u) * 74, i, yy;
         char n[12] = {(char)('0' + f), ' ', 0};
-        if (f == SFX_N) {                /* (the last place: what the keys do here) */
-            cv_text(x + 2, y + 14, &FONT_XS, "KEYS 1-7:", C_DIM);
-            cv_text(x + 2, y + 28, &FONT_XS, "ON / OFF", C_DIM);
-            cv_text(x + 2, y + 42, &FONT_XS, "K1: PICK", C_DIM);
-            break;
-        }
         if (f == cur)
             cv_rect(x - 2, y - 2, 59, 74, C_WHITE);
         cv_rect(x, y, 55, 70, C_BLACK);
@@ -413,8 +407,12 @@ static void sfx_cards(int32_t top)
                 for (i = 0; i < 53; i++)
                     p[i] = p[i - (int32_t)cv_w];   /* (3 x 3 blocks, the row above's) */
         }
+        if (f == SFX_RAIN) {             /* (two LOAF LORDS: one falling, one on the floor) */
+            rain_put(x + 5, y + 3, 0, top);
+            rain_put(x + 27, y + 27, 0, top);
+        }
         cv_rect(x, y + 53, 55, 17, SFX_ON(f) ? C_HI : C_BLOCK);
-        text_cat(n, SFX_NAME[f]);
+        text_cat(n, f == SFX_RAIN ? "RAIN" : SFX_NAME[f]);
         cv_text(x + 3, y + 55, text_w(&FONT_T, n) <= 50 ? &FONT_T : &FONT_XS, n, SFX_ON(f) ? C_BLACK : C_GRAY);
     }
     cv_oy = 0;
@@ -601,7 +599,7 @@ static void draw_global(const brk_status_t *st)
         cv_blit(0, 140);
         return;
     }
-    if (ui.gpage == 3u) {                /* LOAF BREAKER: EFFECTS: the seven, lit when on (keys 1-7), K1's outlined;
+    if (ui.gpage == 3u) {                /* LOAF BREAKER: EFFECTS: the eight, lit when on (keys 1-8), K1's outlined;
                                           * 0.9.30, FLEXOR: bigger, each one's picture with its effect on it */
         static const uint8_t TOP[3] = {44u, 92u, 140u}, HT[3] = {48u, 48u, 52u};
         uint32_t b;

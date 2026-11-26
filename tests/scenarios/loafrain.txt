@@ -1,0 +1,60 @@
+# LOAF BREAKER (0.9.87, FLEXOR: "LOAF RAIN, une pluie de loaf lord pixélisés"): SYSTEM › SCREEN FX's eighth effect,
+# white key 8: LOAF LORDS fall from the top, bounce once on the screen's bottom, then fall through it. SCREEN SET's
+# AMOUNT the steady rain, ON A KICK a loaf a kick, AT THE DROP a burst. The page's card, the rain over HOME playing,
+# then off: none left.
+#   app/build/host/loaf-breaker_host tests/scenarios/loafrain.txt app/build/scenarios
+wait 4200
+tap PLAY
+wait 300
+tap GLO
+wait 100
+turn SELECT 1 10
+wait 100
+turn SELECT 1 10
+wait 100
+turn SELECT 1 10
+wait 300
+expect gpage 3
+expect rain 0
+key w7 down
+wait 30
+key w7 up
+wait 200
+expect sfx_on 128
+turn SELECT 1 10
+wait 200
+expect gpage 4
+turn K1 10 10
+turn K2 10 10
+wait 200
+turn SELECT -1 10
+wait 400
+shot loafrain_page.png
+tap HOME
+wait 700
+expect rain >0
+shot loafrain_1.png
+wait 450
+shot loafrain_2.png
+wait 900
+expect rainhop >-1
+shot loafrain_3.png
+wait 1500
+expect rain >0
+tap GLO
+wait 100
+turn SELECT 1 10
+wait 100
+turn SELECT 1 10
+wait 100
+turn SELECT 1 10
+wait 300
+key w7 down
+wait 30
+key w7 up
+wait 300
+expect sfx_on 0
+expect rain 0
+tap HOME
+wait 500
+shot loafrain_off.png

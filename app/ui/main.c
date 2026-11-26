@@ -84,6 +84,96 @@ static void perc_clip(void)
     changed();
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
+/* LOAF BREAKER (0.9.87): LOAF RAIN's loaves moved, 30 times a second at most (common.c, rain_put): a new one now and then
+ * by AMOUNT (AMOUNT / 25 a second), on a kick by ON A KICK's chance, 1 + DROP / 20 at the drop; each falls (700 px/s
+ * down), bounces once on the screen's bottom (0.6 of its speed) and then falls through it. Returns the parts of the
+ * screen (RG_*) to draw again: where each loaf was and is */
+static uint32_t rain_mask(int32_t y)
+{
+    uint32_t m = 0u;
+    if (y < 28)
+        m |= RG_HEAD;
+    if (y + RAIN_PX > 28 && y < 206)
+        m |= RG_WAVE | RG_BLOCKS | (ui.shown != -1 ? RG_FX : 0u);
+    if (y + RAIN_PX > 188)
+        m |= RG_FOOT;
+    return m;
+}
+static void rain_add(void)
+{
+    uint32_t i;
+    for (i = 0; i < RAIN_N; i++)
+        if (!rain[i].on) {
+            rain[i].on = 1u;
+            rain[i].hop = 0u;
+            rain[i].x = (float)(sfx_rand() % (uint32_t)(241 - RAIN_PX));
+            rain[i].y = (float)-RAIN_PX;
+            rain[i].vx = (float)((int32_t)(sfx_rand() % 81u) - 40);
+            rain[i].vy = (float)(sfx_rand() % 80u);
+            rain[i].sx = (int16_t)rain[i].x;
+            rain[i].sy = (int16_t)-RAIN_PX;
+            return;
+        }
+}
+static uint32_t rain_frame(uint32_t now)
+{
+    static uint32_t last, acc, kseen, dseen;
+    uint32_t i, m = 0u, dt = now - last, on = set.sfx_on && SFX_ON(SFX_RAIN);
+    float t;
+    if (dt < 33u)
+        return 0u;
+    last = now;
+    if (!on) {                           /* (off: the loaves gone, where they were drawn again) */
+        for (i = 0; i < RAIN_N; i++)
+            if (rain[i].on) {
+                rain[i].on = 0u;
+                m |= rain_mask(rain[i].sy);
+            }
+        kseen = sfx_kick_t;
+        dseen = sfx_drop_t;
+        acc = 0u;
+        return m;
+    }
+    dt = dt > 100u ? 100u : dt;
+    acc += dt * (set.scrfx > 100u ? 100u : set.scrfx);
+    if (acc >= 25000u) {
+        acc -= 25000u;
+        rain_add();
+    }
+    if (sfx_kick_t != kseen) {           /* (sfx_live, earlier in the frame, saw the kick) */
+        kseen = sfx_kick_t;
+        if (sfx_rand() % 100u < set.sfx_kick)
+            rain_add();
+    }
+    if (sfx_drop_t != dseen) {
+        dseen = sfx_drop_t;
+        for (i = set.sfx_drop ? 1u + set.sfx_drop / 20u : 0u; i; i--)
+            rain_add();
+    }
+    t = (float)dt * 0.001f;
+    for (i = 0; i < RAIN_N; i++) {
+        if (!rain[i].on)
+            continue;
+        m |= rain_mask(rain[i].sy);
+        rain[i].vy += 700.0f * t;
+        rain[i].y += rain[i].vy * t;
+        rain[i].x += rain[i].vx * t;
+        if (!rain[i].hop && rain[i].y >= (float)(240 - RAIN_PX)) {   /* (the floor: one bounce) */
+            rain[i].y = (float)(240 - RAIN_PX);
+            rain[i].vy *= -0.6f;
+            rain[i].vx *= 0.7f;
+            rain[i].hop = 1u;
+        }
+        if (rain[i].y >= 240.0f || rain[i].x <= (float)-RAIN_PX || rain[i].x >= 240.0f) {
+            rain[i].on = 0u;
+            continue;
+        }
+        rain[i].sx = (int16_t)rain[i].x;
+        rain[i].sy = (int16_t)rain[i].y;
+        m |= rain_mask(rain[i].sy);
+    }
+    return m;
+}
 static uint32_t blk_draws;               /* (0.9.86: the page's strip drawn: the simulator's checks) */
 static int sel_bt_page(void)             /* (0.9.26, FLEXOR: the pages where SEL + ALGORITHM is BREAK TIME) */
 {
@@ -953,8 +1043,8 @@ static void input(void)
                 tap_tempo();
             continue;
         }
-        if (ui.page == PG_GLOBAL && ui.gpage == 3u) {   /* LOAF BREAKER: GLO EFFECTS: keys 1-7 each an effect on or off */
-            if (i < 7u && kdn >> WK[i] & 1u)
+        if (ui.page == PG_GLOBAL && ui.gpage == 3u) {   /* LOAF BREAKER: GLO EFFECTS: keys 1-8 each an effect on or off */
+            if (i < SFX_N - 1u && kdn >> WK[i] & 1u)
                 sfx_toggle(i + 1u, -1);
             continue;
         }
@@ -2453,7 +2543,7 @@ void app_frame(void)
 {
     brk_status_t st;
     const brk_break_t *b;
-    uint32_t now = plat_ms(), hdr;
+    uint32_t now = plat_ms(), hdr, rain_m;
     input();
     if (ctl_on) {                        /* (0.9.79: CONTROLLER: the lights, the still screen; nothing else) */
         leds();
@@ -2881,6 +2971,9 @@ void app_frame(void)
         ui.kick_seen = kick_hit_n;
         ui.kick_t = now;
     }
+    rain_m = rain_frame(now);            /* (0.9.87: LOAF RAIN moved before the header is drawn, so the header and the
+                                          * rest show the loaves in the same place) */
+    ui.redraw |= (uint8_t)(rain_m & RG_HEAD);
     hdr = (uint32_t)st.playing | (uint32_t)set.tempo_x10 << 1 | (uint32_t)set.brk << 13 | (b ? 1u : 0u) << 20 |
           (uint32_t)ext_active() << 21 | (uint32_t)set.pattern << 22 | (uint32_t)ui.rec << 26 |
           (uint32_t)(pat_next >= 0) << 27 | (uint32_t)(now - ui.kick_t < 90u) << 28 |
@@ -2910,6 +3003,8 @@ void app_frame(void)
             forget_t = now;
         }
     }
+    ui.redraw |= (uint8_t)rain_m;        /* (0.9.87: LOAF RAIN: where the loaves were and are drawn again; after the
+                                          * forgetting above, so the rows they leave alone are not sent again) */
     if (ui.shown != -1)                  /* (0.9.86, FLEXOR: "utiliser des touches noires par dessus la waveform, les eq,
                                           * ou le xsub fait un flickering bizarre": a black key's picture (or a key's, the
                                           * help) holds the strip; the page's own, asked for since (the kick's picture a
@@ -4183,8 +4278,8 @@ int app_expect(const char *what, int *got)
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
                                     "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15", "broll", "stut", "fxwet", "tempo10", "kitsel", "kit0kick", "vthru", "dafter",
-                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold", "subfa", "dft", "swon", "strip", "kl_amt", "dbrk", "split", "split_at", "half", "half_ask", "layer", "split_b", "kdec0", "bpitch", "chaos", "cmath", "crolls", "cseed", "rkick", "rsnare", "rhat", "chsw", "ctl", "ctln", "ctllast", "ctllitk", "ctlmidk", "ctlmaster", "pxlow", "pxmid", "pxhigh", "pxmidf", "pxq", "pxlof", "xo", "xsg", "xdrv", "xdec", "phits", "kilwhat", "mo", "morec", "mofn0", "mon0", "blkdraws", "xoff", "hgate", "homek4", "mocur", "mused", "moset"};
-    int v[241];
+                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold", "subfa", "dft", "swon", "strip", "kl_amt", "dbrk", "split", "split_at", "half", "half_ask", "layer", "split_b", "kdec0", "bpitch", "chaos", "cmath", "crolls", "cseed", "rkick", "rsnare", "rhat", "chsw", "ctl", "ctln", "ctllast", "ctllitk", "ctlmidk", "ctlmaster", "pxlow", "pxmid", "pxhigh", "pxmidf", "pxq", "pxlof", "xo", "xsg", "xdrv", "xdec", "phits", "kilwhat", "mo", "morec", "mofn0", "mon0", "blkdraws", "xoff", "hgate", "homek4", "mocur", "mused", "moset", "rain", "rainhop"};
+    int v[243];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -4470,6 +4565,12 @@ int app_expect(const char *what, int *got)
     for (i = 0; i < MO_N; i++)
         v[239] |= mo_used(i) << i;
     v[240] = (int)mo_set();
+    v[241] = 0;                          /* (0.9.87: LOAF RAIN's loaves falling, and those past their bounce) */
+    v[242] = 0;
+    for (i = 0; i < RAIN_N; i++) {
+        v[241] += rain[i].on;
+        v[242] += rain[i].on && rain[i].hop;
+    }
     v[161] = set.vinyl & 3u;             /* (0.9.54: VINYL BREAK's THRU, 0 BOTH 1 BREAK 2 KICK) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */
     v[141] = kx2_at(set.kslot)->gate;    /* (its TAIL GATE's division) */

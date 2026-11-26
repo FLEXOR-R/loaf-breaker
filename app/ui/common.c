@@ -17,8 +17,8 @@ static const char *const CDJ_ZNAME[CDJ_ZN] = {"1/2 BAR", "2/3 BAR", "5/6 BAR", "
  * VHS: bands that slip sideways, more on a kick; GRAIN: specks that move; RGB: the red a few pixels off the rest;
  * SHAKE: the strip pushed aside on a kick, hard at the drop; STROBE: the colours turned over at the drop (and on the
  * kicks, past half); 8-BIT: fewer colours. The kick and the drop are seen through kick_hit_n and build_p (app.c) */
-enum { SFX_OFF, SFX_CRT, SFX_VHS, SFX_GRAIN, SFX_RGB, SFX_SHAKE, SFX_STROBE, SFX_8BIT, SFX_N };
-static const char *const SFX_NAME[SFX_N] = {"OFF", "CRT", "VHS", "GRAIN", "RGB", "SHAKE", "STROBE", "8-BIT"};
+enum { SFX_OFF, SFX_CRT, SFX_VHS, SFX_GRAIN, SFX_RGB, SFX_SHAKE, SFX_STROBE, SFX_8BIT, SFX_RAIN, SFX_N };
+static const char *const SFX_NAME[SFX_N] = {"OFF", "CRT", "VHS", "GRAIN", "RGB", "SHAKE", "STROBE", "8-BIT", "LOAF RAIN"};
 static uint32_t sfx_rand(void)
 {
     static uint32_t x = 0x9E3779B9u;
@@ -66,6 +66,34 @@ static int sfx_live(uint32_t now)       /* a kick's or a drop's moment of SHAKE,
     return ((SFX_ON(SFX_SHAKE) || SFX_ON(SFX_VHS)) && (km || dm)) ||
            (SFX_ON(SFX_STROBE) && ((set.sfx_drop && sd < sfx_win(160u)) || (set.sfx_kick > 50u && km)));
 }
+/* LOAF BREAKER (0.9.87, FLEXOR: "LOAF RAIN, une pluie de loaf lord pixélisés ... pleuvoir et rebondir ... tomberont en bas
+ * de l'écran après leur premier rebond"): SCREEN FX's eighth, LOAF LORDS falling from the top, bouncing once on the
+ * screen's bottom, then through it. Each a 12 x 12 picture, 2 bits a pixel (none, black, bone, shade; LOAF_PX's rows,
+ * the first pixel the low bits), drawn twice its size over every strip in crt_blit (under the other effects); main.c's
+ * rain_frame moves them and redraws the parts of the screen they cross. AMOUNT a steady rain (0: none), ON A KICK a
+ * loaf a kick at that chance, AT THE DROP a burst. RAM only */
+static const uint32_t LOAF_PX[12] = {0x015540u, 0x16AA94u, 0x6AAAA9u, 0x6FAAF9u, 0x65AA59u, 0x6ABEA9u, 0x1ABEA4u,
+                                     0x1BAAE4u, 0x1A55A4u, 0x1A96A4u, 0x1EAAB4u, 0x155554u};
+#define RAIN_N 8u                        /* (loaves at once) */
+#define RAIN_PX 24                       /* (a loaf's size on the screen: 12 x 2) */
+static struct { float x, y, vx, vy; int16_t sx, sy; uint8_t on, hop; } rain[RAIN_N];
+static void rain_put(int32_t sx, int32_t sy, int32_t x0, int32_t y0)   /* a loaf at screen (sx, sy), into the strip
+                                          * whose top left is screen (x0, y0) */
+{
+    static const uint16_t COL[4] = {0u, 0x0841u, 0xEF1Au, 0x9C90u};
+    int32_t r, c, px, py;
+    for (r = 0; r < RAIN_PX; r++) {
+        py = sy + r - y0;
+        if (py < 0 || py >= (int32_t)cv_h)
+            continue;
+        for (c = 0; c < RAIN_PX; c++) {
+            uint32_t k = LOAF_PX[r >> 1] >> ((c >> 1) * 2) & 3u;
+            px = sx + c - x0;
+            if (k && px >= 0 && px < (int32_t)cv_w)
+                cv_px[(uint32_t)py * cv_w + (uint32_t)px] = swap16(COL[k]);
+        }
+    }
+}
 static uint32_t ui_blits;                /* LOAF BREAKER: the strips sent to the screen (GLO MORE's METER) */
 /* LOAF BREAKER: what each screen row shows, as a hash of its pixels (0: not known): a full-width strip sends only its
  * rows that changed (none: nothing sent). A narrower strip, a fill, a page's whole redraw forget the rows they touch */
@@ -102,13 +130,17 @@ static void rows_send(uint32_t x, uint32_t y)
         lcd_blit(x, y + r0, 240u, r1 - r0, cv_px + r0 * 240u);
     }
 }
-static void crt_blit(uint32_t x, uint32_t y)   /* (the effects on, in this order: 8-BIT, GRAIN, CRT, RGB, VHS, SHAKE,
+static void crt_blit(uint32_t x, uint32_t y)   /* (the effects on, in this order: LOAF RAIN, 8-BIT, GRAIN, CRT, RGB, VHS, SHAKE,
                                           * STROBE) */
 {
     uint32_t amt = set.scrfx > 100u ? 100u : set.scrfx, now = plat_ms(), r, i;
     uint32_t sinc_kick = sfx_kick_t ? now - sfx_kick_t : 99999u, sinc_drop = sfx_drop_t ? now - sfx_drop_t : 99999u;
     uint32_t ks = set.sfx_kick > 100u ? 100u : set.sfx_kick, ds = set.sfx_drop > 100u ? 100u : set.sfx_drop;
     int km = ks && sinc_kick < sfx_win(100u), dm = ds && sinc_drop < sfx_win(300u);
+    if (SFX_ON(SFX_RAIN))            /* (0.9.87: the LOAF LORDS falling, the effects after over them too) */
+        for (i = 0; i < RAIN_N; i++)
+            if (rain[i].on)
+                rain_put(rain[i].sx, rain[i].sy, (int32_t)x, (int32_t)y);
     if (SFX_ON(SFX_8BIT)) {          /* 3 bits a colour, or 2 past half */
         uint16_t m = amt > 50u ? 0xC618u : 0xE71Cu;
         for (i = 0; i < cv_w * cv_h; i++)
@@ -478,7 +510,7 @@ static uint8_t lb_ctl_slices;            /* (0.9.80, the VST: the FM-1 playing i
 #define LB_SEQ_KEYS 1
 #endif
 static int slices_page(void) { return (ui.page != PG_SEQ || SEQ_BRK || !LB_SEQ_KEYS) && ui.page != PG_OVL &&
-                                         !(ui.page == PG_GLOBAL && (ui.gpage == 3u || !ui.gpage)); }   /* (0.9.81: MIDI, the keys tap) */   /* (GLO EFFECTS: keys 1-7) */   /* (ARP: overlays) */
+                                         !(ui.page == PG_GLOBAL && (ui.gpage == 3u || !ui.gpage)); }   /* (0.9.81: MIDI, the keys tap) */   /* (GLO EFFECTS: keys 1-8) */   /* (ARP: overlays) */
 enum { RG_HEAD = 1, RG_WAVE = 2, RG_BLOCKS = 4, RG_FOOT = 8, RG_ALL = 15, RG_FX = 16 };
 
 static void text_cat(char *d, const char *s)
