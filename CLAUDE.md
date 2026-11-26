@@ -149,9 +149,13 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   PRE LOW / MID / HIGH (kx2.px eq_g, 1 dB a detent), 25-27 their frequencies (eq_f, a semitone; KPX_FLO..FHI), 28 BRK FLT
   (set.fx.dj, brk_flt_turn: its own say); SK_N / SK_CODES 29 (codes to 29: selk_hi's fifth bit holds up to 31; two more
   at most), `SK_PRE`, `SK_BFLT`. Scenario skpre.
+- ARP › ASSIGN (26 Nov 2026, 0.9.85, FLEXOR: "dans ARP un nouvel onglet Knob assign ... avant motion ... ne modifie
+  pas l'autre"): ui.opage 3 (OPAGE_NAME "ASSIGN", the header KNOB ASSIGN), track.c `as_value` / `as_turn` (selk_assign_k)
+  / `draw_assign`; PRESETS kstyle_turn; ALGORITHM nothing; KICK › MORE's KNOBS, ASSIGN, K1-K4 SET untouched. MOTION is
+  opage 4 since. Scenario arpassign.
 - MOTION (26 Nov 2026, 0.9.85, a TEST, FLEXOR, from issue #5: "motion control recording ... in Edit Mode ... and for the
   white/black key effects"; his choices: SEL + K1-K4 and BRK FLT, four motions, each pattern its own, "utiliser un motion
-  sur l'étendue d'un pattern de 64 steps"; he wants feedback before more): ARP's fourth tab (ui.opage 3, OPAGE_NAME,
+  sur l'étendue d'un pattern de 64 steps"; he wants feedback before more): ARP's fifth tab (ui.opage 4 since ASSIGN, OPAGE_NAME,
   EXPERT), track.c's end `mo_*`: REC (`mo_arm`, RAM only) and playing, main.c's SEL + K1-K4 turn calls `mo_rec`: the
   function's sk_norm 0..254 written at st.bar64 into the pattern's motion (none: the first free taken; a lane with another
   function cleared first); main.c's frame `mo_frame`: each new step, the lanes' written values put back (`mo_put`:

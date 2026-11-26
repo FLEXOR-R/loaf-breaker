@@ -323,11 +323,18 @@ static void ovl_step(int32_t d)          /* (0.9.52, FLEXOR: ALGORITHM, the effe
 static void mo_value(int i, char *t);   /* (0.9.85: ARP › MOTION, track.c) */
 static void mo_turn(int i, int32_t d);
 static void draw_motion(void);
+static void as_value(int i, char *t);   /* (0.9.85: ARP › ASSIGN, track.c) */
+static void as_turn(int i, int32_t d);
+static void draw_assign(void);
 static void ovl_value(int i, char *t)
 {
     t[0] = 0;
-    if (ui.opage == 3u) {
+    if (ui.opage == 4u) {
         mo_value(i, t);
+        return;
+    }
+    if (ui.opage == 3u) {
+        as_value(i, t);
         return;
     }
     if (ui.opage >= 1u) {                /* (BLACK KEYS; 0.9.49 SEL KEYS) */
@@ -353,8 +360,12 @@ static void ovl_value(int i, char *t)
 static void ovl_turn(int i, int32_t d)
 {
     char t[16];
-    if (ui.opage == 3u) {
+    if (ui.opage == 4u) {
         mo_turn(i, d);
+        return;
+    }
+    if (ui.opage == 3u) {
+        as_turn(i, d);
         return;
     }
     if (ui.opage >= 1u) {
@@ -394,8 +405,12 @@ static void draw_ovl(void)
 {
     uint32_t band, i, on = ovl_sounding() | ovl_held | ovl_latched | ovl_pad_bits();
     char t[4];
-    if (ui.opage == 3u) {                /* (0.9.85: MOTION) */
+    if (ui.opage == 4u) {                /* (0.9.85: MOTION) */
         draw_motion();
+        return;
+    }
+    if (ui.opage == 3u) {                /* (0.9.85: ASSIGN) */
+        draw_assign();
         return;
     }
     if (ui.opage >= 1u) {                /* (BLACK KEYS; 0.9.49 SEL KEYS) */

@@ -2106,7 +2106,7 @@ static void mo_rec(uint32_t kn)          /* SEL + K(kn + 1) turned: written, REC
     mo.v[m][kn][(uint32_t)st.bar64 % MO_STEPS] = (uint8_t)(sk_norm(f, 0) * 254.0f + 0.5f);
     mo_hand[kn] = plat_ms() | 1u;
     set_dirty = 1u;
-    if (ui.page == PG_OVL && ui.opage == 3u)
+    if (ui.page == PG_OVL && ui.opage == 4u)
         ui.redraw |= RG_BLOCKS;
 }
 static void mo_frame(const brk_status_t *st)   /* each frame: a new step, the pattern's motion played there */
@@ -2116,7 +2116,7 @@ static void mo_frame(const brk_status_t *st)   /* each frame: a new step, the pa
     if (s == mo_last)
         return;
     mo_last = (int8_t)s;
-    if (ui.page == PG_OVL && ui.opage == 3u)
+    if (ui.page == PG_OVL && ui.opage == 4u)
         ui.redraw |= RG_BLOCKS;          /* (its playhead) */
     if (s < 0 || !m)
         return;
@@ -2228,6 +2228,45 @@ static void draw_motion(void)
             }
             if (st.playing && st.bar64 >= 0)
                 cv_rect(46 + st.bar64 % (int)MO_STEPS * 3, y, 1, h, C_WHITE);
+        }
+        cv_blit(0, 88u + band * 52u);
+    }
+}
+
+/* ---- ARP › ASSIGN (0.9.85, FLEXOR: "dans ARP un nouvel onglet Knob assign ... avant motion"; KICK › MORE's kept as
+ * it is): K1-K4 the function SEL + K1..K4 turn (as K1-K4 SET's PRESETS), PRESETS the styles and PRESET 1-4 (as
+ * ASSIGN's); the page each knob's function, its value and its bar ---- */
+static void as_value(int i, char *t)
+{
+    t[0] = 0;
+    text_cat(t, sk_short(selk_fn((uint32_t)i & 3u)));
+}
+static void as_turn(int i, int32_t d) { selk_assign_k((uint32_t)i & 3u, d); }
+static void draw_assign(void)
+{
+    uint32_t band, k;
+    char t[16];
+    for (band = 0; band < 2u; band++) {
+        cv_begin(240, 52, C_BLACK);
+        for (k = band * 2u; k < band * 2u + 2u; k++) {
+            int32_t y = (int32_t)(k % 2u) * 26, h = 25, w;
+            uint32_t f = selk_fn(k);
+            float n = sk_norm(f, 0);
+            cv_rect(0, y, 240, h, C_BLOCK);
+            cv_rect(0, y, 43, h, C_BLOCK_HI);
+            t[0] = 0;
+            text_cat(t, "SEL +");
+            cv_text(3, y + 2, &FONT_T, t, C_BLACK);
+            t[0] = 0;
+            text_cat(t, "K");
+            int_text((int32_t)k + 1, t + 1);
+            cv_text(3, y + 13, &FONT_T, t, C_BLACK);
+            cv_text(48, y + 2, &FONT_XS, SK_NAME[f % SK_N], C_WHITE);
+            selk_value(f, 0, t);
+            w = text_w(&FONT_XS, t);
+            cv_text(236 - w, y + 2, &FONT_XS, t, C_HI);
+            cv_rect(48, y + h - 5, 188, 3, C_LINE);
+            cv_rect(48, y + h - 5, (int32_t)(n * 188.0f + 0.5f), 3, C_HI);
         }
         cv_blit(0, 88u + band * 52u);
     }

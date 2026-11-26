@@ -626,7 +626,7 @@ static void enc_one(int k, int32_t d, uint32_t btn)   /* an encoder turned d (in
         return;
     }
     if (k == EN_SELECT && ui.page == PG_OVL && !set.novice) {   /* (0.9.2, FLEXOR: OVERLAY, SELECT its tabs) */
-        ui.opage = (uint8_t)((ui.opage + (d > 0 ? 1u : 3u)) % 4u);   /* (0.9.85: MOTION, the fourth) */   /* (0.9.52, FLEXOR: both ways; 0.9.71 SEL WHITE
+        ui.opage = (uint8_t)((ui.opage + (d > 0 ? 1u : 4u)) % 5u);   /* (0.9.85: ASSIGN, then MOTION) */   /* (0.9.52, FLEXOR: both ways; 0.9.71 SEL WHITE
                                       * and KITS gone: ARP, BLACK, SEL BLACK) */
         page_say();
         ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
@@ -681,8 +681,10 @@ static void enc_one(int k, int32_t d, uint32_t btn)   /* an encoder turned d (in
         else if (ui.page == PG_OVL && !ui.opage)
             ovl_step(d);             /* (0.9.52, FLEXOR: ARP, ALGORITHM the 16 effects in order; SEL + ALGORITHM
                                       * the break there) */
+        else if (ui.page == PG_OVL && ui.opage == 4u)
+            mo_turn(2, d);
         else if (ui.page == PG_OVL && ui.opage == 3u)
-            mo_turn(2, d);           /* (0.9.85: MOTION, ALGORITHM the lane, as K3) */
+            ;                        /* (0.9.85: ASSIGN, nothing) */           /* (0.9.85: MOTION, ALGORITHM the lane, as K3) */
         else if (ui.page == PG_OVL && ui.opage >= 1u)
             bk_turn(1, d);           /* (0.9.26, FLEXOR: ARP › BLACK KEYS, ALGORITHM the key, as K2) */
         else if (ui.page == PG_TRACK && ui.tpage == 0u)
@@ -759,6 +761,10 @@ static void enc_one(int k, int32_t d, uint32_t btn)   /* an encoder turned d (in
     else if (k == EN_PRESET && ui.page == PG_FX)
         fx_type_turn(d);   /* the focused slot's effect (LOAF
                                       * BREAKER: BEGINNER, a whole scene) */
+    else if (k == EN_PRESET && ui.page == PG_OVL && ui.opage == 3u) {
+        kstyle_turn(d);              /* (0.9.85: ARP › ASSIGN, PRESETS the styles and PRESET 1-4, as KICK › MORE › ASSIGN) */
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+    }
     else if (k == EN_PRESET && ui.page == PG_PERC)   /* LOAF BREAKER: the snare's, hat's or clap's memories */
         perc_mem_turn(ui.pvoice, d);
     else if (k == EN_PRESET && ui.page == PG_KICK) {   /* LOAF BREAKER: the kick memories; on KNOBS' K1 SET ..
@@ -1919,7 +1925,7 @@ static void knob_value(int i, char *t)  /* the page's knob i (0..3), as shown un
 /* the tab bar under the header: the button's name, then the page's parts as tabs (the one you are on lit: the
  * button again, or ALGORITHM, goes to the next); EDIT and FX also name the part edited, "< SUB FX >" */
 static int8_t build_stut = -1;          /* (a build's break roll: the roll pad it holds, -1 none) */
-static const char *const OPAGE_NAME[4] = {"ARP", "BLACK", "SEL BLACK", "MOTION"};   /* (0.9.85: MOTION, a TEST) */   /* (0.9.53, FLEXOR: BLACK, there is room) */   /* (SETTINGS 0.9.50-0.9.51) */   /* (LOAF BREAKER: ARP's tabs) */
+static const char *const OPAGE_NAME[5] = {"ARP", "BLACK", "SEL BLACK", "ASSIGN", "MOTION"};   /* (0.9.85: MOTION, a TEST) */   /* (0.9.53, FLEXOR: BLACK, there is room) */   /* (SETTINGS 0.9.50-0.9.51) */   /* (LOAF BREAKER: ARP's tabs) */
 #if LB_BIG
 /* (LOAF BREAKER's VST, 24 Nov 2026, FLEXOR: "des contrôles contextuels qui affichent ce qu'ils modifient": the tabs and
  * the part as the screen draws them, noted for the VST's own interface: lbcore.c) */
@@ -1992,7 +1998,7 @@ static void draw_tabs(void)
             x = tab_glo(x, GLO_ORD[i], GLO_ORD[i] == GLO_HSET);
     else if (ui.page == PG_OVL) {        /* (LOAF BREAKER: EXPERT, its three tabs; BEGINNER, ARP EFFECTS alone: no tab) */
         if (!set.novice)
-            for (i = 0; i < 4u; i++)     /* (0.259, FLEXOR: MORE gone for now; 0.9.49 SEL KEYS; SEL WHITE and KITS
+            for (i = 0; i < 5u; i++)     /* (0.259, FLEXOR: MORE gone for now; 0.9.49 SEL KEYS; SEL WHITE and KITS
                                           * 0.9.50-0.9.70) */
                 x = tab(x, OPAGE_NAME[i], i == ui.opage);
     }
@@ -2090,7 +2096,7 @@ static void page_say(void)
     case PG_MIX: text_cat(t, ui.mpage == 3u ? "DYNAMICS" : ui.mpage == 2u ? "MASTER" : ui.mpage ? "ROUTING" : "LEVELS"); break;
     case PG_SEQ: text_cat(t, SEQ_BRK ? "BREAK" : SEQ_LANE_NAME[ui.seq_lane % NSEQL]); break;
     case PG_TRACK: text_cat(t, TPART[ui.tpage % NTPART]); break;
-    case PG_OVL: text_cat(t, ui.opage % 4u ? OPAGE_NAME[ui.opage % 4u] : "EFFECTS"); break;   /* (LOAF BREAKER: its tabs;
+    case PG_OVL: text_cat(t, ui.opage == 3u ? "KNOB ASSIGN" : ui.opage % 5u ? OPAGE_NAME[ui.opage % 5u] : "EFFECTS"); break;   /* (LOAF BREAKER: its tabs;
                                           * 0.9.69: its first EFFECTS, not "ARP ARP") */
     case PG_FX:
         text_cat(t, IS_KFX() ? "KICK FX " : "SLOT ");
@@ -2240,7 +2246,8 @@ static const char *knob_name(int i)
                                               {"", "KEY", "KIND", "VALUE"}};   /* (ARP's
                                       * BLACK KEYS, MORE) */
     static const char *const KN_LIGHTS[4] = {"GLOW", "PULSE", "PULSE ON", "STYLE"};   /* (0.9.57: SYSTEM › LIGHTS) */
-    const char *name = ui.page == PG_OVL && ui.opage == 3u ? MO_KNOB[i] : ui.page == PG_OVL && ui.opage ? KN_BK[(ui.opage - 1u) % 2u][i] :
+    static const char *const AS_KNOB[4] = {"SEL+K1", "SEL+K2", "SEL+K3", "SEL+K4"};
+    const char *name = ui.page == PG_OVL && ui.opage == 4u ? MO_KNOB[i] : ui.page == PG_OVL && ui.opage == 3u ? AS_KNOB[i] : ui.page == PG_OVL && ui.opage ? KN_BK[(ui.opage - 1u) % 2u][i] :
                        ui.page == PG_GLOBAL && ui.gpage == GP_FILL ? KN_FILL[i] : ui.page == PG_GLOBAL &&
                        ui.gpage == GP_LIGHTS ? KN_LIGHTS[i] : RST_ON ? KN_TRK[3][i] : ui.page == PG_TRACK &&
                        ui.tpage ? KN_TRK[ui.tpage == 7u ? 5u : ui.tpage == 6u ? 4u : ui.tpage == 4u ? 2u : (ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&

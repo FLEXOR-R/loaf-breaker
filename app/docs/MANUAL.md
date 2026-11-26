@@ -596,12 +596,21 @@ animation of what it does, and **K1–K4 tune that pad** (the foot shows its set
 ![ROLL held: the caught slice repeating, each copy quieter](img/pad-roll8.png "ROLL held")
 ![VINYL BREAK held: the platter slowing down](img/pad-stop.png "VINYL BREAK held")
 
+### KNOB ASSIGN (0.9.85)
+
+**ARP › ASSIGN** (EXPERT, ARP's fourth tab) is where SEL + K1–K4 get their function, next to MOTION that records them:
+**K1–K4** each pick what SEL + that knob turns (the same list as KICK › MORE › K1–K4 SET, which stays where it was),
+**PRESETS** goes through the styles and PRESET 1–4 (as KICK › MORE › ASSIGN). The page shows each knob's function, its
+value and a bar. The functions are the kick playing's, as everywhere.
+
+![ARP › ASSIGN: SEL + K1 on PRE LOW](img/arpassign.png "KNOB ASSIGN")
+
 ### MOTION (a TEST, 0.9.85)
 
-**ARP › MOTION** (EXPERT, ARP's fourth tab) records your knob moves and plays them back over the pattern: turn K2
+**ARP › MOTION** (EXPERT, ARP's fifth tab, after ASSIGN) records your knob moves and plays them back over the pattern: turn K2
 **REC** ON, press PLAY, then turn **SEL + K1–K4**. Each one's move is written at the step playing, over the pattern's
 64 steps (four bars), and comes back every time the pattern loops. What gets recorded is whatever the four SEL knobs
-do (KICK › MORE › K1–K4 SET): the kick's DRIVE, DISTO, SCREAM, SUB DRIVE, DECAY, PITCH DROP, PUNCH, the drums' filter, the
+do (ARP › ASSIGN, or KICK › MORE › K1–K4 SET): the kick's DRIVE, DISTO, SCREAM, SUB DRIVE, DECAY, PITCH DROP, PUNCH, the drums' filter, the
 PRE EQ's gains and frequencies, the break's filter (BRK FLT)… Each lane keeps the function it was recorded with; recording another function on a lane replaces it.
 Between two written steps the value holds. While you turn a knob, its own lane waits for your hand.
 
