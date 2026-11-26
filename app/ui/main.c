@@ -510,6 +510,321 @@ static void ctl_draw(void)               /* (once: the screen stays still) */
 static uint8_t lb_hw_sel;               /* (0.9.79: the VST's core: SELECT turned on the FM-1 itself, as its CONTROLLER:
                                           * lbcore's lb_turn_hw) */
 #endif
+static void enc_one(int k, int32_t d, uint32_t btn)   /* an encoder turned d (input's: SELECT, ALGORITHM, PRESETS a
+                                          * detent at a time, 0.9.83) */
+{
+    ui.touched = 1u;
+    tut_heard = 0u;                  /* (LOAF BREAKER: a knob turned: heard again only after it) */
+    if (k >= EN_K1 && k <= EN_K4) {  /* (LOAF BREAKER: the TUTORIAL's counts: the kick's knobs, SEL + K4) */
+        if (btn & 1u << B_SEL)
+            tut_sk4 += k == EN_K4 ? (uint32_t)(d < 0 ? -d : d) : 0u;
+        else if (ui.page == PG_KICK)
+            tut_kturn += (uint32_t)(d < 0 ? -d : d);
+    }
+    if (btn & 1u << B_SEL)
+        ui.tap_combo = 1u;           /* (SEL + a knob is no tap) */
+    if (ui.fx_hold)
+        ui.fx_turned = 1u;           /* (FX + a knob: not the next part) */
+    if (!(btn & 1u << B_SEL))
+        ui.help = 0u;                /* (a knob closes the card) */
+    if (k == EN_SELECT && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + SELECT, on any page: the drums' filter
+                                      * (DRUM FLT, HOME's K3; was the kick's memories, now PRESETS on the KICK menu) */
+        kick_flt_turn(d);
+        return;
+    }
+    if (k >= EN_K1 && k <= EN_K4 && btn & 1u << B_LFO) {   /* LOAF BREAKER: LFO + K1 the break's level, K2 the
+                                      * kick's, K3 the drums', K4 (0.9.50, FLEXOR) the FX fader, on any page (the MIXER's LEVELS: the page
+                                      * stays), 5 % a detent */
+        uint8_t pg = ui.page, mp = ui.mpage;
+        ui.page = PG_MIX;
+        ui.mpage = k == EN_K4 ? 1u : 0u;   /* (0.9.50, FLEXOR: K4 the FX fader, SENDS' K1) */
+        lvl_fast = 1u;
+        knob_turn(k == EN_K4 ? EN_K1 : k, d);
+        lvl_fast = 0u;
+        ui.page = pg;
+        ui.mpage = mp;
+        ui.lfo_hold = 2u;
+        ui.redraw |= RG_FOOT | RG_BLOCKS | RG_HEAD;
+        return;
+    }
+    if (k == EN_K1 && ui.page == PG_SEQ && btn & 1u << B_SEQ) {   /* LOAF BREAKER: SEQ held + K1: the lane a
+                                      * step later or earlier, round */
+        seq_rotate(d);
+        seq_wait = 0u;
+        clr_arm = 0u;
+        return;
+    }
+    if (k >= EN_K1 && k <= EN_K4 && btn & 1u << B_SEL && !bk_knobs_held()) {   /* LOAF BREAKER: SEL + K1 DUCK, K2 TERROR 2, K3 COMP
+                                      * (was LIMIT), K4 TERROR, on any page: its amount (its settings: ENV's KNOB) */
+        selk_turn(selk_fn((uint32_t)(k - EN_K1)), 0, d);
+        ui.redraw |= RG_FOOT;        /* (the foot shows them: SEL held or locked) */
+        return;
+    }
+    if (k == EN_SELECT && !set.novice && (ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX())) {
+        kick_sect_turn(d);           /* LOAF BREAKER (0.264, FLEXOR): EXPERT's KICK menu, SELECT the tabs at the top
+                                      * (its sections), ALGORITHM those at the bottom (its parts); the drums: SEL +
+                                      * EDIT */
+        ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
+        return;
+    }
+    if (k == EN_SELECT && (ui.page == PG_KICK || ui.page == PG_PERC) &&
+        (set.novice || (ui.page == PG_KICK && !ui.kclassic) || (ui.page == PG_PERC && ui.pbig))) {   /* (BEGINNER:
+                                      * either view, 0.230) */
+        if (!set.novice && ui.page == PG_PERC)   /* (0.264, FLEXOR: EXPERT's drums, SELECT their tabs at the top,
+                                      * SNARE, HAT, CLAP round; the KICK: SEL + EDIT) */
+            ui.einst = (uint8_t)(1u + (ui.einst + (d > 0 ? 0u : 1u)) % (NDRUMS - 1u));
+        else
+        ui.einst = (uint8_t)((ui.einst + (d > 0 ? 1u : NDRUMS - 1u)) % NDRUMS);   /* LOAF BREAKER: the big view:
+                                      * SELECT goes from drum to drum (the KICK, SNARE, HAT, CLAP), each in
+                                      * it (not the tempo here) */
+        if (ui.einst) {
+            ui.pbig = (uint8_t)!ui.kclassic;   /* (0.231: the view the kick has) */
+            edit_open();
+        } else
+            kick_open();
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        return;
+    }
+    if (k == EN_SELECT && ui.page == PG_FX && !IS_KFX()) {   /* LOAF BREAKER (0.9.2, FLEXOR): EFFECTS, SELECT the
+                                      * slots (the tabs at the top), ALGORITHM their parts (MAIN, MORE, MOD) */
+        fx_algo(d, 0u);
+        return;
+    }
+    if (k == EN_SELECT && ui.page == PG_TRACK) {   /* (0.9.2, FLEXOR: SONG, SELECT its tabs; the tempo: HOME) */
+        track_tab_turn(d);
+        return;
+    }
+    if (k == EN_SELECT && ui.page == PG_SEQ) {   /* (0.9.31, FLEXOR: PATTERN, SELECT its views: FULL, DRUMS,
+                                      * SETTINGS; ALGORITHM the lanes) */
+        seq_view_turn(d);
+        page_say();
+        ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
+        return;
+    }
+    if (k == EN_SELECT && ui.page == PG_GLOBAL && ui.gpage == GP_FILL) {   /* (SETTINGS: on round to FULL, back to
+                                      * DRUMS) */
+        ui.page = PG_SEQ;
+        seq_view_set(d > 0 ? 0u : 1u);
+        page_say();
+        ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
+        return;
+    }
+    if (k == EN_SELECT && ui.page == PG_MIX) {   /* (0.9.2, FLEXOR: MIX, SELECT its tabs: LEVELS, SENDS, MASTER,
+                                      * DYNAMICS; BEGINNER the first two) */
+        uint32_t n = set.novice ? 2u : 4u;
+        ui.mpage = (uint8_t)((ui.mpage % n + (d > 0 ? 1u : n - 1u)) % n);
+        ui.redraw |= RG_HEAD | RG_FOOT | RG_BLOCKS;
+        page_say();
+        return;
+    }
+    if (k == EN_SELECT && ((ui.page == PG_GLOBAL && ui.gpage != GP_FILL && ui.gpage != GP_BREAK) ||
+                           ui.page == PG_HSET)) {   /* (0.9.2,
+                                      * FLEXOR: SYSTEM, SELECT its parts: MIDI, SETUP, EFFECTS, FX SET, RESET) */
+        global_part(glo_next(d));
+        return;
+    }
+    if (k == EN_SELECT && ui.page == PG_OVL && !set.novice) {   /* (0.9.2, FLEXOR: OVERLAY, SELECT its tabs) */
+        ui.opage = (uint8_t)((ui.opage + (d > 0 ? 1u : 2u)) % 3u);   /* (0.9.52, FLEXOR: both ways; 0.9.71 SEL WHITE
+                                      * and KITS gone: ARP, BLACK, SEL BLACK) */
+        page_say();
+        ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
+        return;
+    }
+#if LB_BIG
+    if (k == EN_SELECT && lb_hw_sel)   /* (0.9.79, FLEXOR: "SELECT change le tempo en mode contrôleur": the FM-1's
+                                      * own SELECT, the VST played from it: as on the FM-1, the tempo) */
+        lb_hw_sel = 0;
+    else {
+    if (k == EN_SELECT && HOME_PG(ui.page)) {   /* (the VST, 24 Nov 2026, FLEXOR: "certaines commandes ... montent
+                                      * le BPM": its tabs and arrows turn SELECT; HOME's tabs then, never the tempo,
+                                      * which has its own control in the VST's header: lb_tempo) */
+        static const uint8_t HP[4] = { PG_HOME, PG_GEN, PG_SPLIT, PG_CHAOS };
+        uint32_t i, n = 4u, at = 0u;
+        for (i = 0; i < 4u; i++)
+            if (HP[i] == ui.page)
+                at = i;
+        if (set.novice)              /* (BEGINNER: no SPLIT, as the tabs drawn) */
+            at = at == 3u ? 2u : at, n = 3u;
+        at = (at + (d > 0 ? 1u : n - 1u)) % n;
+        ui.page = set.novice && at == 2u ? PG_CHAOS : HP[at];
+        if (tut_on() && ui.page == PG_CHAOS)
+            ui.page = PG_HOME;       /* (as HOME does while the TUTORIAL runs) */
+        ui.redraw |= RG_HEAD | RG_FOOT | RG_BLOCKS;
+        page_say();
+        return;
+    }
+    if (k == EN_SELECT)              /* (anywhere else: nothing; the tempo is the header's) */
+        return;
+    }
+#endif
+    if (k == EN_SELECT && ext_active()) {
+        app_say("TEMPO", "EXT CLOCK");   /* the outside clock has the tempo */
+    } else if (k == EN_SELECT) {     /* tempo: 1 BPM a detent (SEL held: the kick, above) */
+        set.tempo_x10 = (uint16_t)clamp((int32_t)set.tempo_x10 + d * 10, 400, 3000);
+        changed();
+        {
+            char t[16];
+            tenths_text(set.tempo_x10, t);
+            app_say("BPM", t);
+        }
+    } else if (k == EN_ALGO) {       /* what the page edits; on HOME, ARP, MIXER (and SEL held: anywhere) the break */
+        if (ui.page == PG_FX && btn & 1u << B_FX)
+            fx_algo(d, 1u);          /* FX held: the slot moves along the chain */
+        else if (btn & 1u << B_SEL && sel_bt_page())
+            hset_turn(3, d);         /* (0.9.26, FLEXOR: where ALGORITHM alone is the break, SEL + ALGORITHM
+                                      * BREAK TIME, right HALF, left NORMAL) */
+        else if (btn & 1u << B_SEL)
+            break_turn(d);
+        else if (ui.page == PG_OVL && !ui.opage)
+            ovl_step(d);             /* (0.9.52, FLEXOR: ARP, ALGORITHM the 16 effects in order; SEL + ALGORITHM
+                                      * the break there) */
+        else if (ui.page == PG_OVL && ui.opage >= 1u)
+            bk_turn(1, d);           /* (0.9.26, FLEXOR: ARP › BLACK KEYS, ALGORITHM the key, as K2) */
+        else if (ui.page == PG_TRACK && ui.tpage == 0u)
+            track_turn(-1, d);       /* LOAF BREAKER: ENV's TRACKS: the item (the break: SEL + ALGORITHM; K1 the
+                                      * item's kick) */
+        else if (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK)   /* LOAF BREAKER: SOUNDS' BREAK: the break */
+            break_turn(d);
+        else if (ui.page == PG_GLOBAL && ui.gpage == GP_FILL) {   /* PATTERN's GROOVE: back to SEQ's lanes (left:
+                                      * the last) */
+            ui.page = PG_SEQ;
+            ui.seq_manual = 1u;
+            ui.seq_lane = (uint8_t)(d > 0 ? SL_BREAK1 : seq_last_lane());
+            ui.seq_brk = 0u;
+            if (!lane_ok(ui.seq_lane))
+                seq_lane_step(1);
+            page_say();
+            ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
+        } else if (ui.page == PG_GLOBAL || ui.page == PG_HSET)   /* GLOBAL: its part (LOAF BREAKER: SYSTEM's;
+                                      * 0.9.56 its SETTINGS) */
+            global_part(glo_next(d));
+        else if (ui.page == PG_KICK) {    /* LOAF BREAKER: the KICK menu: the next part of its section */
+            kick_sect_step(d);
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
+        } else if (ui.page == PG_SEQ) {   /* SEQ: the lane its keys edit */
+            ui.seq_manual = 1u;      /* (LOAF BREAKER: picked: not following the bar playing, until stopped) */
+            seq_lane_step(d);        /* (0.9.31, FLEXOR: every lane, top to bottom, round) */
+            page_say();
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
+        } else if (ui.page == PG_KEQ) {   /* (the KICK menu's EQ: MORE's next part; FX1, FX2: their own parts, as the
+                                      * FX page's, below; 0.9.29, FLEXOR) */
+            kick_sect_step(d);
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
+        } else if (ui.page == PG_PERC) {   /* the snare or the hat: SOUND or SHAPE (LOAF BREAKER: MORE; BEGINNER:
+                                      * its one page) */
+            ui.ppage = (uint8_t)((ui.ppage + (d > 0 ? 1u : 2u)) % 3u);
+            page_say();
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
+        } else if (ui.page == PG_FX)
+            fx_part_turn(d);         /* (0.9.2: the slot's parts; SELECT the slots) */
+        else {                     /* the next or previous break */
+            break_turn(d);
+        }
+    } else if (k == EN_PRESET && (ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX())) {
+        if (IS_KFX() && !(btn & 1u << B_SEL))   /* (0.9.29, FLEXOR: FX1, FX2, PRESETS the effects alone; SEL +
+                                      * PRESETS the kick there) */
+            fx_type_turn(d);
+        else if (IS_KFX() || (ui.page == PG_KEQ && btn & 1u << B_SEL))
+            kick_mem_turn(d);
+        else if (ui.page == PG_KEQ)
+            ;                        /* (0.9.29, FLEXOR: EQ B, EQ S, PRESETS nothing, SEL + PRESETS the kick) */
+        else if (ui.page == PG_KICK && (ui.kpage == KP_KNOBS || ui.kpage == KP_STYLE || ui.kpage == KP_KSET)) {
+            if (btn & 1u << B_SEL)   /* (0.9.66, FLEXOR: "dans KNOBS, PRESETS sert à défiler les presets de knobs":
+                                      * KNOBS and ASSIGN, PRESETS the knobs' styles and PRESET 1-4, K1-K4 SET that
+                                      * knob's function; SEL + PRESETS the kick there, as FX1 and FX2) */
+                kick_mem_turn(d);
+            else if (ui.kpage == KP_KSET)
+                selk_assign_k(ui.kks, d);
+            else
+                kstyle_turn(d);
+        } else if (!(btn & 1u << B_SEL))   /* (LOAF BREAKER, 0.9.26, FLEXOR: in the KICK menu, PRESETS the kick on every
+                                      * other page) */
+            kick_mem_turn(d);
+        else
+            pattern_pick(d);
+        ui.redraw |= RG_FOOT;
+    } else if (k == EN_PRESET && btn & 1u << B_SEL &&
+               (HOME_PG(ui.page) || ui.page == PG_HSET || ui.page == PG_SEQ || ui.page == PG_MIX ||
+                ui.page == PG_OVL || (ui.page == PG_GLOBAL && ui.gpage != 2u && ui.gpage != 3u))) {
+        kick_mem_turn(d);            /* (LOAF BREAKER, 0.9.26, FLEXOR: on HOME, SEL + PRESETS the kick, KICK 1-20;
+                                      * PRESETS alone the pattern) */
+        ui.redraw |= RG_FOOT;
+    } else if (k == EN_PRESET && btn & 1u << B_SEL)
+        pattern_pick(d);             /* SEL held: the pattern, on any page (HOME: the kick, above) */
+    else if (k == EN_PRESET && ui.page == PG_FX)
+        fx_type_turn(d);   /* the focused slot's effect (LOAF
+                                      * BREAKER: BEGINNER, a whole scene) */
+    else if (k == EN_PRESET && ui.page == PG_PERC)   /* LOAF BREAKER: the snare's, hat's or clap's memories */
+        perc_mem_turn(ui.pvoice, d);
+    else if (k == EN_PRESET && ui.page == PG_KICK) {   /* LOAF BREAKER: the kick memories; on KNOBS' K1 SET ..
+                                      * K4 SET: that knob's function (as ENV KNOB's PRESETS) */
+        if (ui.kpage == KP_KSET)
+            selk_assign_k(ui.kks, d);
+        else if (ui.kpage == KP_STYLE)
+            kstyle_turn(d);          /* (KNOBS' STYLE: a style, the four knobs at once) */
+        else
+            kick_mem_turn(d);
+    } else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage == 2u) {   /* LOAF BREAKER: DROP's
+                                      * BUILD KICK (BEGINNER too, 0.9.22) */
+        char t[12];
+        set.drop_kick = (uint8_t)clamp((int32_t)set.drop_kick + (d > 0 ? 1 : -1), 0, (int32_t)KICK_MEMS);
+        t[0] = 0;
+        drop_kick_text(t);
+        set_dirty = 1u;
+        app_say("BUILD KICK", t);
+        ui.redraw |= RG_BLOCKS;
+    } else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage < 2u)
+        track_pick(d);               /* LOAF BREAKER: ENV: the track */
+    else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage == 4u) {   /* LOAF BREAKER TEST:
+                                      * BUILD's TEMPO RISE */
+        char t[8];
+        set.drop_accel = (uint8_t)clamp((int32_t)set.drop_accel + (d > 0 ? 2 : -2), 0, 30);
+        changed();
+        t[0] = 0;
+        if (!set.drop_accel)
+            text_cat(t, "OFF");
+        else {
+            t[0] = '+';
+            int_text(set.drop_accel, t + 1);
+            text_cat(t, "%");
+        }
+        app_say("TEMPO RISE", t);
+        ui.redraw |= RG_BLOCKS;
+    }
+    else if (k == EN_PRESET && ui.page == PG_HSET)
+        strip_turn(d);               /* (0.9.70, FLEXOR: SYSTEM › DISPLAY, the strip's style) */
+    else if (k == EN_PRESET && ui.page == PG_GLOBAL && ui.gpage == 2u)
+        global_turn(0, d);           /* (SETUP: PRESETS the skin, as K1; 0.9.70 SEL WHITE's, gone in 0.9.71) */
+    else if (k == EN_PRESET && ui.page == PG_GLOBAL && ui.gpage == 0u && !ui.rst_ask)
+        notes_in_turn(d);            /* (0.9.64, FLEXOR: SYSTEM › MIDI, NOTES IN) */           /* (SETUP: PRESETS the skin, as K1; 0.9.26, FLEXOR: WAVE ZOOM before) */
+    else if (k == EN_PRESET)
+        pattern_pick(d);             /* elsewhere: the pattern */
+    else if (ui.x2_focus && k == EN_K1) {   /* (0.9.48: X2 held, K1: its LATCH, right on, left off; 0.9.55 X4, TRI) */
+        uint8_t lb = (uint8_t)(8u << ((ui.x2_focus - 1u) % 3u));
+        set.half_mt_off = (uint8_t)(d > 0 ? set.half_mt_off & ~lb : set.half_mt_off | lb);
+        if (d > 0)
+            kick_x2 = (uint8_t)(kick_x2 | 1u << ((ui.x2_focus - 1u) % 3u));
+        set_dirty = 1u;
+        app_say(ui.x2_focus == 1u ? "X2 LATCH" : ui.x2_focus == 2u ? "X4 LATCH" : "TRI LATCH", d > 0 ? "ON" : "OFF");
+        ui.redraw |= RG_FOOT;
+    } else if (ui.kil_focus && k == EN_K1) {   /* LOAF BREAKER: KIL held, K1: its LATCH, right on (held now: it
+                                      * stays quiet), left off */
+        set.half_mt_off = (uint8_t)(d > 0 ? set.half_mt_off | 4u : set.half_mt_off & ~4u);
+        if (d > 0)
+            kick_hold = 1u;
+        set_dirty = 1u;
+        app_say("KIL LATCH", d > 0 ? "ON" : "OFF");
+        ui.redraw |= RG_FOOT;
+    } else if (key_tuned() >= 0) {   /* a white key held: K1-K4 tune its loop (LOAF BREAKER: BEGINNER, not) */
+        if (!set.novice)
+            key_knob_turn(key_tuned(), k - EN_K1, d);
+        else
+            easy_no();               /* (0.229: said) */
+    } else if (ui.pad_focus >= 0)    /* a pad held: K1-K4 tune it (LOAF BREAKER, 0.232: BEGINNER too) */
+        pad_knob_turn(ui.pad_focus, k - EN_K1, d);
+    else
+        knob_turn(k, d);
+}
 static void input(void)
 {
     uint32_t keys = plat_keys(), btn = plat_buttons(), now = plat_ms(), i, sel_now = btn >> B_SEL & 1u;
@@ -1340,317 +1655,14 @@ static void input(void)
         int32_t d = plat_enc(k);
         if (!d)
             continue;
-        ui.touched = 1u;
-        tut_heard = 0u;                  /* (LOAF BREAKER: a knob turned: heard again only after it) */
-        if (k >= EN_K1 && k <= EN_K4) {  /* (LOAF BREAKER: the TUTORIAL's counts: the kick's knobs, SEL + K4) */
-            if (btn & 1u << B_SEL)
-                tut_sk4 += k == EN_K4 ? (uint32_t)(d < 0 ? -d : d) : 0u;
-            else if (ui.page == PG_KICK)
-                tut_kturn += (uint32_t)(d < 0 ? -d : d);
+        {                                /* (0.9.83, FLEXOR: "tous les inputs des potards ne sont pas pris": the tabs,
+                                          * parts and every list moved by the turn's sign alone, so the detents come in
+                                          * while a page drew were one; now each detent its own step (the FM-1's counts
+                                          * are raw detents, no speed in them: an amount turned the same in the end) */
+            int32_t s = d > 0 ? 1 : -1, n = d > 0 ? d : -d;
+            for (n = n > 16 ? 16 : n; n > 0; n--)
+                enc_one(k, s, btn);
         }
-        if (btn & 1u << B_SEL)
-            ui.tap_combo = 1u;           /* (SEL + a knob is no tap) */
-        if (ui.fx_hold)
-            ui.fx_turned = 1u;           /* (FX + a knob: not the next part) */
-        if (!(btn & 1u << B_SEL))
-            ui.help = 0u;                /* (a knob closes the card) */
-        if (k == EN_SELECT && btn & 1u << B_SEL) {   /* LOAF BREAKER: SEL + SELECT, on any page: the drums' filter
-                                          * (DRUM FLT, HOME's K3; was the kick's memories, now PRESETS on the KICK menu) */
-            kick_flt_turn(d);
-            continue;
-        }
-        if (k >= EN_K1 && k <= EN_K4 && btn & 1u << B_LFO) {   /* LOAF BREAKER: LFO + K1 the break's level, K2 the
-                                          * kick's, K3 the drums', K4 (0.9.50, FLEXOR) the FX fader, on any page (the MIXER's LEVELS: the page
-                                          * stays), 5 % a detent */
-            uint8_t pg = ui.page, mp = ui.mpage;
-            ui.page = PG_MIX;
-            ui.mpage = k == EN_K4 ? 1u : 0u;   /* (0.9.50, FLEXOR: K4 the FX fader, SENDS' K1) */
-            lvl_fast = 1u;
-            knob_turn(k == EN_K4 ? EN_K1 : k, d);
-            lvl_fast = 0u;
-            ui.page = pg;
-            ui.mpage = mp;
-            ui.lfo_hold = 2u;
-            ui.redraw |= RG_FOOT | RG_BLOCKS | RG_HEAD;
-            continue;
-        }
-        if (k == EN_K1 && ui.page == PG_SEQ && btn & 1u << B_SEQ) {   /* LOAF BREAKER: SEQ held + K1: the lane a
-                                          * step later or earlier, round */
-            seq_rotate(d);
-            seq_wait = 0u;
-            clr_arm = 0u;
-            continue;
-        }
-        if (k >= EN_K1 && k <= EN_K4 && btn & 1u << B_SEL && !bk_knobs_held()) {   /* LOAF BREAKER: SEL + K1 DUCK, K2 TERROR 2, K3 COMP
-                                          * (was LIMIT), K4 TERROR, on any page: its amount (its settings: ENV's KNOB) */
-            selk_turn(selk_fn((uint32_t)(k - EN_K1)), 0, d);
-            ui.redraw |= RG_FOOT;        /* (the foot shows them: SEL held or locked) */
-            continue;
-        }
-        if (k == EN_SELECT && !set.novice && (ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX())) {
-            kick_sect_turn(d);           /* LOAF BREAKER (0.264, FLEXOR): EXPERT's KICK menu, SELECT the tabs at the top
-                                          * (its sections), ALGORITHM those at the bottom (its parts); the drums: SEL +
-                                          * EDIT */
-            ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
-            continue;
-        }
-        if (k == EN_SELECT && (ui.page == PG_KICK || ui.page == PG_PERC) &&
-            (set.novice || (ui.page == PG_KICK && !ui.kclassic) || (ui.page == PG_PERC && ui.pbig))) {   /* (BEGINNER:
-                                          * either view, 0.230) */
-            if (!set.novice && ui.page == PG_PERC)   /* (0.264, FLEXOR: EXPERT's drums, SELECT their tabs at the top,
-                                          * SNARE, HAT, CLAP round; the KICK: SEL + EDIT) */
-                ui.einst = (uint8_t)(1u + (ui.einst + (d > 0 ? 0u : 1u)) % (NDRUMS - 1u));
-            else
-            ui.einst = (uint8_t)((ui.einst + (d > 0 ? 1u : NDRUMS - 1u)) % NDRUMS);   /* LOAF BREAKER: the big view:
-                                          * SELECT goes from drum to drum (the KICK, SNARE, HAT, CLAP), each in
-                                          * it (not the tempo here) */
-            if (ui.einst) {
-                ui.pbig = (uint8_t)!ui.kclassic;   /* (0.231: the view the kick has) */
-                edit_open();
-            } else
-                kick_open();
-            ui.redraw |= RG_BLOCKS | RG_FOOT;
-            continue;
-        }
-        if (k == EN_SELECT && ui.page == PG_FX && !IS_KFX()) {   /* LOAF BREAKER (0.9.2, FLEXOR): EFFECTS, SELECT the
-                                          * slots (the tabs at the top), ALGORITHM their parts (MAIN, MORE, MOD) */
-            fx_algo(d, 0u);
-            continue;
-        }
-        if (k == EN_SELECT && ui.page == PG_TRACK) {   /* (0.9.2, FLEXOR: SONG, SELECT its tabs; the tempo: HOME) */
-            track_tab_turn(d);
-            continue;
-        }
-        if (k == EN_SELECT && ui.page == PG_SEQ) {   /* (0.9.31, FLEXOR: PATTERN, SELECT its views: FULL, DRUMS,
-                                          * SETTINGS; ALGORITHM the lanes) */
-            seq_view_turn(d);
-            page_say();
-            ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
-            continue;
-        }
-        if (k == EN_SELECT && ui.page == PG_GLOBAL && ui.gpage == GP_FILL) {   /* (SETTINGS: on round to FULL, back to
-                                          * DRUMS) */
-            ui.page = PG_SEQ;
-            seq_view_set(d > 0 ? 0u : 1u);
-            page_say();
-            ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
-            continue;
-        }
-        if (k == EN_SELECT && ui.page == PG_MIX) {   /* (0.9.2, FLEXOR: MIX, SELECT its tabs: LEVELS, SENDS, MASTER,
-                                          * DYNAMICS; BEGINNER the first two) */
-            uint32_t n = set.novice ? 2u : 4u;
-            ui.mpage = (uint8_t)((ui.mpage % n + (d > 0 ? 1u : n - 1u)) % n);
-            ui.redraw |= RG_HEAD | RG_FOOT | RG_BLOCKS;
-            page_say();
-            continue;
-        }
-        if (k == EN_SELECT && ((ui.page == PG_GLOBAL && ui.gpage != GP_FILL && ui.gpage != GP_BREAK) ||
-                               ui.page == PG_HSET)) {   /* (0.9.2,
-                                          * FLEXOR: SYSTEM, SELECT its parts: MIDI, SETUP, EFFECTS, FX SET, RESET) */
-            global_part(glo_next(d));
-            continue;
-        }
-        if (k == EN_SELECT && ui.page == PG_OVL && !set.novice) {   /* (0.9.2, FLEXOR: OVERLAY, SELECT its tabs) */
-            ui.opage = (uint8_t)((ui.opage + (d > 0 ? 1u : 2u)) % 3u);   /* (0.9.52, FLEXOR: both ways; 0.9.71 SEL WHITE
-                                          * and KITS gone: ARP, BLACK, SEL BLACK) */
-            page_say();
-            ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
-            continue;
-        }
-#if LB_BIG
-        if (k == EN_SELECT && lb_hw_sel)   /* (0.9.79, FLEXOR: "SELECT change le tempo en mode contrôleur": the FM-1's
-                                          * own SELECT, the VST played from it: as on the FM-1, the tempo) */
-            lb_hw_sel = 0;
-        else {
-        if (k == EN_SELECT && HOME_PG(ui.page)) {   /* (the VST, 24 Nov 2026, FLEXOR: "certaines commandes ... montent
-                                          * le BPM": its tabs and arrows turn SELECT; HOME's tabs then, never the tempo,
-                                          * which has its own control in the VST's header: lb_tempo) */
-            static const uint8_t HP[4] = { PG_HOME, PG_GEN, PG_SPLIT, PG_CHAOS };
-            uint32_t i, n = 4u, at = 0u;
-            for (i = 0; i < 4u; i++)
-                if (HP[i] == ui.page)
-                    at = i;
-            if (set.novice)              /* (BEGINNER: no SPLIT, as the tabs drawn) */
-                at = at == 3u ? 2u : at, n = 3u;
-            at = (at + (d > 0 ? 1u : n - 1u)) % n;
-            ui.page = set.novice && at == 2u ? PG_CHAOS : HP[at];
-            if (tut_on() && ui.page == PG_CHAOS)
-                ui.page = PG_HOME;       /* (as HOME does while the TUTORIAL runs) */
-            ui.redraw |= RG_HEAD | RG_FOOT | RG_BLOCKS;
-            page_say();
-            continue;
-        }
-        if (k == EN_SELECT)              /* (anywhere else: nothing; the tempo is the header's) */
-            continue;
-        }
-#endif
-        if (k == EN_SELECT && ext_active()) {
-            app_say("TEMPO", "EXT CLOCK");   /* the outside clock has the tempo */
-        } else if (k == EN_SELECT) {     /* tempo: 1 BPM a detent (SEL held: the kick, above) */
-            set.tempo_x10 = (uint16_t)clamp((int32_t)set.tempo_x10 + d * 10, 400, 3000);
-            changed();
-            {
-                char t[16];
-                tenths_text(set.tempo_x10, t);
-                app_say("BPM", t);
-            }
-        } else if (k == EN_ALGO) {       /* what the page edits; on HOME, ARP, MIXER (and SEL held: anywhere) the break */
-            if (ui.page == PG_FX && btn & 1u << B_FX)
-                fx_algo(d, 1u);          /* FX held: the slot moves along the chain */
-            else if (btn & 1u << B_SEL && sel_bt_page())
-                hset_turn(3, d);         /* (0.9.26, FLEXOR: where ALGORITHM alone is the break, SEL + ALGORITHM
-                                          * BREAK TIME, right HALF, left NORMAL) */
-            else if (btn & 1u << B_SEL)
-                break_turn(d);
-            else if (ui.page == PG_OVL && !ui.opage)
-                ovl_step(d);             /* (0.9.52, FLEXOR: ARP, ALGORITHM the 16 effects in order; SEL + ALGORITHM
-                                          * the break there) */
-            else if (ui.page == PG_OVL && ui.opage >= 1u)
-                bk_turn(1, d);           /* (0.9.26, FLEXOR: ARP › BLACK KEYS, ALGORITHM the key, as K2) */
-            else if (ui.page == PG_TRACK && ui.tpage == 0u)
-                track_turn(-1, d);       /* LOAF BREAKER: ENV's TRACKS: the item (the break: SEL + ALGORITHM; K1 the
-                                          * item's kick) */
-            else if (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK)   /* LOAF BREAKER: SOUNDS' BREAK: the break */
-                break_turn(d);
-            else if (ui.page == PG_GLOBAL && ui.gpage == GP_FILL) {   /* PATTERN's GROOVE: back to SEQ's lanes (left:
-                                          * the last) */
-                ui.page = PG_SEQ;
-                ui.seq_manual = 1u;
-                ui.seq_lane = (uint8_t)(d > 0 ? SL_BREAK1 : seq_last_lane());
-                ui.seq_brk = 0u;
-                if (!lane_ok(ui.seq_lane))
-                    seq_lane_step(1);
-                page_say();
-                ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
-            } else if (ui.page == PG_GLOBAL || ui.page == PG_HSET)   /* GLOBAL: its part (LOAF BREAKER: SYSTEM's;
-                                          * 0.9.56 its SETTINGS) */
-                global_part(glo_next(d));
-            else if (ui.page == PG_KICK) {    /* LOAF BREAKER: the KICK menu: the next part of its section */
-                kick_sect_step(d);
-                ui.redraw |= RG_BLOCKS | RG_FOOT;
-            } else if (ui.page == PG_SEQ) {   /* SEQ: the lane its keys edit */
-                ui.seq_manual = 1u;      /* (LOAF BREAKER: picked: not following the bar playing, until stopped) */
-                seq_lane_step(d);        /* (0.9.31, FLEXOR: every lane, top to bottom, round) */
-                page_say();
-                ui.redraw |= RG_BLOCKS | RG_FOOT;
-            } else if (ui.page == PG_KEQ) {   /* (the KICK menu's EQ: MORE's next part; FX1, FX2: their own parts, as the
-                                          * FX page's, below; 0.9.29, FLEXOR) */
-                kick_sect_step(d);
-                ui.redraw |= RG_BLOCKS | RG_FOOT;
-            } else if (ui.page == PG_PERC) {   /* the snare or the hat: SOUND or SHAPE (LOAF BREAKER: MORE; BEGINNER:
-                                          * its one page) */
-                ui.ppage = (uint8_t)((ui.ppage + (d > 0 ? 1u : 2u)) % 3u);
-                page_say();
-                ui.redraw |= RG_BLOCKS | RG_FOOT;
-            } else if (ui.page == PG_FX)
-                fx_part_turn(d);         /* (0.9.2: the slot's parts; SELECT the slots) */
-            else {                     /* the next or previous break */
-                break_turn(d);
-            }
-        } else if (k == EN_PRESET && (ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX())) {
-            if (IS_KFX() && !(btn & 1u << B_SEL))   /* (0.9.29, FLEXOR: FX1, FX2, PRESETS the effects alone; SEL +
-                                          * PRESETS the kick there) */
-                fx_type_turn(d);
-            else if (IS_KFX() || (ui.page == PG_KEQ && btn & 1u << B_SEL))
-                kick_mem_turn(d);
-            else if (ui.page == PG_KEQ)
-                ;                        /* (0.9.29, FLEXOR: EQ B, EQ S, PRESETS nothing, SEL + PRESETS the kick) */
-            else if (ui.page == PG_KICK && (ui.kpage == KP_KNOBS || ui.kpage == KP_STYLE || ui.kpage == KP_KSET)) {
-                if (btn & 1u << B_SEL)   /* (0.9.66, FLEXOR: "dans KNOBS, PRESETS sert à défiler les presets de knobs":
-                                          * KNOBS and ASSIGN, PRESETS the knobs' styles and PRESET 1-4, K1-K4 SET that
-                                          * knob's function; SEL + PRESETS the kick there, as FX1 and FX2) */
-                    kick_mem_turn(d);
-                else if (ui.kpage == KP_KSET)
-                    selk_assign_k(ui.kks, d);
-                else
-                    kstyle_turn(d);
-            } else if (!(btn & 1u << B_SEL))   /* (LOAF BREAKER, 0.9.26, FLEXOR: in the KICK menu, PRESETS the kick on every
-                                          * other page) */
-                kick_mem_turn(d);
-            else
-                pattern_pick(d);
-            ui.redraw |= RG_FOOT;
-        } else if (k == EN_PRESET && btn & 1u << B_SEL &&
-                   (HOME_PG(ui.page) || ui.page == PG_HSET || ui.page == PG_SEQ || ui.page == PG_MIX ||
-                    ui.page == PG_OVL || (ui.page == PG_GLOBAL && ui.gpage != 2u && ui.gpage != 3u))) {
-            kick_mem_turn(d);            /* (LOAF BREAKER, 0.9.26, FLEXOR: on HOME, SEL + PRESETS the kick, KICK 1-20;
-                                          * PRESETS alone the pattern) */
-            ui.redraw |= RG_FOOT;
-        } else if (k == EN_PRESET && btn & 1u << B_SEL)
-            pattern_pick(d);             /* SEL held: the pattern, on any page (HOME: the kick, above) */
-        else if (k == EN_PRESET && ui.page == PG_FX)
-            fx_type_turn(d);   /* the focused slot's effect (LOAF
-                                          * BREAKER: BEGINNER, a whole scene) */
-        else if (k == EN_PRESET && ui.page == PG_PERC)   /* LOAF BREAKER: the snare's, hat's or clap's memories */
-            perc_mem_turn(ui.pvoice, d);
-        else if (k == EN_PRESET && ui.page == PG_KICK) {   /* LOAF BREAKER: the kick memories; on KNOBS' K1 SET ..
-                                          * K4 SET: that knob's function (as ENV KNOB's PRESETS) */
-            if (ui.kpage == KP_KSET)
-                selk_assign_k(ui.kks, d);
-            else if (ui.kpage == KP_STYLE)
-                kstyle_turn(d);          /* (KNOBS' STYLE: a style, the four knobs at once) */
-            else
-                kick_mem_turn(d);
-        } else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage == 2u) {   /* LOAF BREAKER: DROP's
-                                          * BUILD KICK (BEGINNER too, 0.9.22) */
-            char t[12];
-            set.drop_kick = (uint8_t)clamp((int32_t)set.drop_kick + (d > 0 ? 1 : -1), 0, (int32_t)KICK_MEMS);
-            t[0] = 0;
-            drop_kick_text(t);
-            set_dirty = 1u;
-            app_say("BUILD KICK", t);
-            ui.redraw |= RG_BLOCKS;
-        } else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage < 2u)
-            track_pick(d);               /* LOAF BREAKER: ENV: the track */
-        else if (k == EN_PRESET && ui.page == PG_TRACK && ui.tpage == 4u) {   /* LOAF BREAKER TEST:
-                                          * BUILD's TEMPO RISE */
-            char t[8];
-            set.drop_accel = (uint8_t)clamp((int32_t)set.drop_accel + (d > 0 ? 2 : -2), 0, 30);
-            changed();
-            t[0] = 0;
-            if (!set.drop_accel)
-                text_cat(t, "OFF");
-            else {
-                t[0] = '+';
-                int_text(set.drop_accel, t + 1);
-                text_cat(t, "%");
-            }
-            app_say("TEMPO RISE", t);
-            ui.redraw |= RG_BLOCKS;
-        }
-        else if (k == EN_PRESET && ui.page == PG_HSET)
-            strip_turn(d);               /* (0.9.70, FLEXOR: SYSTEM › DISPLAY, the strip's style) */
-        else if (k == EN_PRESET && ui.page == PG_GLOBAL && ui.gpage == 2u)
-            global_turn(0, d);           /* (SETUP: PRESETS the skin, as K1; 0.9.70 SEL WHITE's, gone in 0.9.71) */
-        else if (k == EN_PRESET && ui.page == PG_GLOBAL && ui.gpage == 0u && !ui.rst_ask)
-            notes_in_turn(d);            /* (0.9.64, FLEXOR: SYSTEM › MIDI, NOTES IN) */           /* (SETUP: PRESETS the skin, as K1; 0.9.26, FLEXOR: WAVE ZOOM before) */
-        else if (k == EN_PRESET)
-            pattern_pick(d);             /* elsewhere: the pattern */
-        else if (ui.x2_focus && k == EN_K1) {   /* (0.9.48: X2 held, K1: its LATCH, right on, left off; 0.9.55 X4, TRI) */
-            uint8_t lb = (uint8_t)(8u << ((ui.x2_focus - 1u) % 3u));
-            set.half_mt_off = (uint8_t)(d > 0 ? set.half_mt_off & ~lb : set.half_mt_off | lb);
-            if (d > 0)
-                kick_x2 = (uint8_t)(kick_x2 | 1u << ((ui.x2_focus - 1u) % 3u));
-            set_dirty = 1u;
-            app_say(ui.x2_focus == 1u ? "X2 LATCH" : ui.x2_focus == 2u ? "X4 LATCH" : "TRI LATCH", d > 0 ? "ON" : "OFF");
-            ui.redraw |= RG_FOOT;
-        } else if (ui.kil_focus && k == EN_K1) {   /* LOAF BREAKER: KIL held, K1: its LATCH, right on (held now: it
-                                          * stays quiet), left off */
-            set.half_mt_off = (uint8_t)(d > 0 ? set.half_mt_off | 4u : set.half_mt_off & ~4u);
-            if (d > 0)
-                kick_hold = 1u;
-            set_dirty = 1u;
-            app_say("KIL LATCH", d > 0 ? "ON" : "OFF");
-            ui.redraw |= RG_FOOT;
-        } else if (key_tuned() >= 0) {   /* a white key held: K1-K4 tune its loop (LOAF BREAKER: BEGINNER, not) */
-            if (!set.novice)
-                key_knob_turn(key_tuned(), k - EN_K1, d);
-            else
-                easy_no();               /* (0.229: said) */
-        } else if (ui.pad_focus >= 0)    /* a pad held: K1-K4 tune it (LOAF BREAKER, 0.232: BEGINNER too) */
-            pad_knob_turn(ui.pad_focus, k - EN_K1, d);
-        else
-            knob_turn(k, d);
     }
     ui.keys = raw;                       /* (0.9.50: as pressed: SEL WHITE's keys not pressed again next pass) */
     ui.btn = btn;
