@@ -289,8 +289,8 @@ then asks on the screen: **SEL** yes, **HOME** no; the FM-1 then restarts with i
   the foot of the picture, the whole width, the one open lit (BEGINNER: those it passes over dimmed; short names
   there: SYN+ for SYNTH +, D+ for DISTO +, SFX .. CFX for the layers' effects; DIST's ten: DIST, D+, SCR, SFX .. CFX,
   PRE, PRE+, XSUB). **DIST's PRE EQ** (0.9.82, FLEXOR) shapes the kick *before* its drive and its DISTOs, where it
-  changes what they bite into: K1 **LOW**, K2 **MID**, K3 **HIGH** (-18 .. +18 dB, 0 the band off);
-  **PRE EQ +** (0.9.83: the four other settings): K1 **LO FREQ**, K2 **MID FREQ**, K3 **HI FREQ**, K4 **MID Q**. A low band up drives the body harder, a mid cut leaves a
+  changes what they bite into, each band beside its frequency (0.9.83): K1 **LOW**, K2 **LO FREQ**, K3 **MID**,
+  K4 **MID FREQ** (-18 .. +18 dB, 0 the band off); **PRE EQ +**: K1 **HIGH**, K2 **HI FREQ**, K3 **MID Q**. A low band up drives the body harder, a mid cut leaves a
   hole the DISTO cannot fill, a high band up makes it scream. **SUB SPLIT** keeps the lows out of the dirt: K1 **X
   FREQ** (OFF, 40 .. 300 Hz) is where the kick is split, everything under it goes round the drive and the DISTOs and
   comes back after them; K2 **SUB LEVEL** (0 .. 200 %), K3 **SUB DIRT** (CLEAN, or its own saturation), K4 **SUB DECAY**

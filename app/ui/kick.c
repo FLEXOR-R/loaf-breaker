@@ -465,9 +465,10 @@ static const char *const KN_KICK[KPAGES][4] = {{"SUB", "PUNCH", "GRIT", "CLICK"}
                                                {"ATTACK", "CROSS", "FADE", "SOLO"}, {"MUTATE", "A/B", "EDIT VIEW", "DRUM ZOOM"},
                                                {"PRESET", "", "", ""},
                                                {"LEVEL", "TYPE", "PITCH", "LENGTH"}, {"DIVISION", "LENGTH", "FADE IN", ""},
-                                               {"LOW", "MID", "HIGH", ""}, {"LO FREQ", "MID FREQ", "HI FREQ", "MID Q"},
+                                               {"LOW", "LO FREQ", "MID", "MID FREQ"}, {"HIGH", "HI FREQ", "MID Q", ""},
                                                {"X FREQ", "SUB LEVEL", "SUB DIRT", "SUB DECAY"}};   /* (0.9.82: PRE
-                                          * EQ the gains, PRE EQ + the frequencies under them and the MID's Q, 0.9.83, FLEXOR;
+                                          * EQ LOW and MID each beside its frequency, PRE EQ + HIGH's and the MID's Q, 0.9.83,
+                                          * FLEXOR;
                                           * SUB SPLIT) */   /* (KNOBS,
                                           * K SET: kick_knob_name; TOK, TAIL GATE: 0.9.45) */
 /* LOAF BREAKER (0.9.45, FLEXOR's Kick Lab 2, chosen by ear): ATTACK's TOK, a short pitched attack (K1 LEVEL, K2 TYPE
@@ -557,33 +558,36 @@ static void kx2_turn(int i, int32_t d)
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
 /* LOAF BREAKER (0.9.82, FLEXOR: "l'eq avant la disto (fonction très importante pour la variété des kicks) et le sub
- * séparé"): DIST's PRE EQ (K1 LOW, K2 MID, K3 HIGH), PRE EQ + (K1 LO FREQ, K2 MID FREQ, K3 HI FREQ, K4 MID Q; 0.9.83), three
+ * séparé"): DIST's PRE EQ (K1 LOW, K2 LO FREQ, K3 MID, K4 MID FREQ), PRE EQ + (K1 HIGH, K2 HI FREQ, K3 MID Q; 0.9.83), three
  * bells on the layers before the drive and the DISTOs; SUB SPLIT (K1 X FREQ: OFF, 40 .. 300 Hz; K2 SUB LEVEL, K3 SUB
  * DIRT, K4 SUB DECAY), the lows around the dirt. Each kick its own (kx2.px, kick.h kick_px_t) */
 static const float KPX_F0[3] = {80.0f, 600.0f, 3000.0f};
 static const int8_t KPX_FLO[3] = {-24, -24, -18}, KPX_FHI[3] = {24, 30, 18};
 static float kpx_hz(const kick_px_t *x, uint32_t b) { return KPX_F0[b] * brk_exp2f_c((float)x->eq_f[b] * (1.0f / 12.0f)); }
+/* (0.9.83, FLEXOR: "chaque plage à côté de son réglage": PRE EQ K1 LOW, K2 LO FREQ, K3 MID, K4 MID FREQ; PRE EQ + K1
+ * HIGH, K2 HI FREQ, K3 MID Q) the knob's setting: KPX_G a band's gain, KPX_F its frequency, KPX_Q the MID's Q, the band
+ * in bits 0-1; KPX_NONE nothing */
+enum { KPX_G = 0x00, KPX_F = 0x10, KPX_Q = 0x20, KPX_NONE = 0x30 };
+static const uint8_t KPX_KNOB[2][4] = {{KPX_G | 0, KPX_F | 0, KPX_G | 1, KPX_F | 1}, {KPX_G | 2, KPX_F | 2, KPX_Q | 1, KPX_NONE}};
+static uint32_t kpx_knob(int i) { return KPX_KNOB[ui.kpage == KP_PREQ2][i & 3]; }
 static void kpx_value(int i, char *t)
 {
     const kick_px_t *x = kpx_at(set.kslot);
     t[0] = 0;
-    if (ui.kpage == KP_PREQ) {           /* (the three gains) */
-        if (i < 3) {
-            if (!x->eq_g[i])
+    if (ui.kpage == KP_PREQ || ui.kpage == KP_PREQ2) {
+        uint32_t m = kpx_knob(i), b = m & 3u;
+        if ((m & 0x30u) == KPX_G) {
+            if (!x->eq_g[b])
                 text_cat(t, "0 DB");
             else {
-                if (x->eq_g[i] > 0)
+                if (x->eq_g[b] > 0)
                     text_cat(t, "+");
-                int_text(x->eq_g[i], t);
+                int_text(x->eq_g[b], t);
                 text_cat(t, " DB");
             }
-        }
-        return;
-    }
-    if (ui.kpage == KP_PREQ2) {          /* (their frequencies, under them; the MID's Q) */
-        if (i < 3)
-            hz_text(kpx_hz(x, (uint32_t)i), t);
-        else
+        } else if ((m & 0x30u) == KPX_F)
+            hz_text(kpx_hz(x, b), t);
+        else if ((m & 0x30u) == KPX_Q)
             hundredths_text(brk_exp2f_c((float)x->eq_q * 0.25f), t);
         return;
     }
@@ -614,11 +618,12 @@ static void kpx_value(int i, char *t)
 static float kpx_norm(int i)
 {
     const kick_px_t *x = kpx_at(set.kslot);
-    if (ui.kpage == KP_PREQ)
-        return i < 3 ? (float)(x->eq_g[i] + KICK_PX_DB) * (1.0f / (2.0f * KICK_PX_DB)) : 0.0f;
-    if (ui.kpage == KP_PREQ2)
-        return i == 3 ? (float)(x->eq_q + 8) * 0.05f
-               : (float)(x->eq_f[i] - KPX_FLO[i]) / (float)(KPX_FHI[i] - KPX_FLO[i]);
+    if (ui.kpage == KP_PREQ || ui.kpage == KP_PREQ2) {
+        uint32_t m = kpx_knob(i), b = m & 3u;
+        return (m & 0x30u) == KPX_G ? (float)(x->eq_g[b] + KICK_PX_DB) * (1.0f / (2.0f * KICK_PX_DB))
+               : (m & 0x30u) == KPX_F ? (float)(x->eq_f[b] - KPX_FLO[b]) / (float)(KPX_FHI[b] - KPX_FLO[b])
+               : (m & 0x30u) == KPX_Q ? (float)(x->eq_q + 8) * 0.05f : 0.0f;
+    }
     return i == 0 ? (float)x->xo / (float)KICK_XO_N : i == 1 ? (float)(x->sg + 50) * 0.01f
            : i == 2 ? (float)x->sdrv * 0.01f : (float)x->sdec * 0.01f;
 }
@@ -627,16 +632,16 @@ static void kpx_turn(int i, int32_t d)
     kick_px_t *x = kpx_at(set.kslot);
     int dir = d > 0 ? 1 : -1;
     char t[16];
-    if (ui.kpage == KP_PREQ) {
-        if (i < 3)
-            x->eq_g[i] = (int8_t)clamp((int32_t)x->eq_g[i] + d, -KICK_PX_DB, KICK_PX_DB);
-        else
-            return;
-    } else if (ui.kpage == KP_PREQ2) {
-        if (i == 3)
+    if (ui.kpage == KP_PREQ || ui.kpage == KP_PREQ2) {
+        uint32_t m = kpx_knob(i), b = m & 3u;
+        if ((m & 0x30u) == KPX_G)
+            x->eq_g[b] = (int8_t)clamp((int32_t)x->eq_g[b] + d, -KICK_PX_DB, KICK_PX_DB);
+        else if ((m & 0x30u) == KPX_F)
+            x->eq_f[b] = (int8_t)clamp((int32_t)x->eq_f[b] + d, KPX_FLO[b], KPX_FHI[b]);
+        else if ((m & 0x30u) == KPX_Q)
             x->eq_q = (int8_t)clamp((int32_t)x->eq_q + dir, -8, 12);
         else
-            x->eq_f[i] = (int8_t)clamp((int32_t)x->eq_f[i] + d, KPX_FLO[i], KPX_FHI[i]);
+            return;
     } else if (i == 0)
         x->xo = (uint8_t)clamp((int32_t)x->xo + d, 0, (int32_t)KICK_XO_N);
     else if (i == 1)
