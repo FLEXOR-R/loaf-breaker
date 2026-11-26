@@ -305,10 +305,11 @@ static void kick_part_name(uint32_t p, char *t)
 }
 /* LOAF BREAKER (0.205): the KICK menu by the kick's anatomy, EDIT the next section, ALGORITHM the next part in it (a row
  * of them at the picture's foot, the one open lit). ATTACK: PRESET (0.253), CLICK, PUNCH, STACK. BODY: MIX, SUB, GRIT, SYNTH, SYNTH +,
- * MACRO, OUT. TAIL: TAIL, TAIL +, BASS, CLEAN MORPH. DIRT: DISTO, DISTO +, SCREAM, the layers' effects. TONE: EQ
+ * MACRO, OUT. TAIL: TAIL, TAIL +, BASS, CLEAN MORPH. DIST (DIRT until 0.9.81): DISTO, DISTO +, SCREAM, the layers' effects. TONE: EQ
  * BANDS, EQ SHAPE, FX 1, FX 2. KNOBS: KNOBS, K1-K4 SET, STYLE, TOOLS. The menu opens on BODY (app_ui_init) */
 #define KSECTS 7u
-static const char *const KSECT_NAME[KSECTS] = {"ATTACK", "BODY", "TAIL", "DIRT", "FX1", "FX2", "MORE"};   /* (0.9.29,
+static const char *const KSECT_NAME[KSECTS] = {"ATTACK", "BODY", "TAIL", "DIST", "FX1", "FX2", "MORE"};   /* (DIST: DIRT until
+                                          * 0.9.81, FLEXOR) */   /* (0.9.29,
                                           * FLEXOR: FX1 and FX2 sections of their own, ALGORITHM there their parts; the
                                           * EQ in MORE, KNOBS until then) */   /* (FX: TONE until
                                           * 0.9.1, FLEXOR) */
@@ -1308,7 +1309,7 @@ static void kick_chip(uint32_t p, char *t)   /* (LOAF BREAKER: a part's name at 
                                      KP_BASE + 2u, KP_BASE + 3u, KP_PART_GATE, KP_PART_PREQ, KP_PART_PREQ + 1u,
                                      KP_PART_PREQ + 2u, KP_BASE + 4u, KP_BASE + 6u};
         static const char *const S[13] = {"SYN+", "D+", "EQ B", "EQ S", "TAIL+", "FX1", "FX2", "GATE", "PRE", "PRE+",
-                                          "XSUB", "DIST", "SCR"};   /* (0.9.82, FLEXOR: DIRT's ten, DISTO DIST, SCREAM
+                                          "XSUB", "DIST", "SCR"};   /* (0.9.82, FLEXOR: DIST's ten, DISTO DIST, SCREAM
                                           * SCR) */   /* (FX's: 0.9.2;
                                           * TAIL GATE's, 0.9.45) */
         uint32_t j;
@@ -1319,7 +1320,7 @@ static void kick_chip(uint32_t p, char *t)   /* (LOAF BREAKER: a part's name at 
             }
     }
     if (p >= 1u && p < KP_BASE - 2u && ((p - 1u) & 1u)) {   /* (a layer's effect: "SFX" .. "CFX"; "S FX" until
-                                          * 0.9.81, DIRT's ten parts since) */
+                                          * 0.9.81, DIST's ten parts since) */
         char l[2] = {KICK_LAYER_NAME[(p - 1u) / 2u][0], 0};
         text_cat(t, l);
         text_cat(t, "FX");
@@ -1351,7 +1352,7 @@ static void ksect_row(int32_t y)
     uint32_t pad = 8u;
     if (w > KV_W) {                  /* (too wide: the small letters; 0.9.29, MORE's nine: narrower margins too) */
         f = &FONT_XS;
-        for (pad = 6u;; pad -= 2u) {     /* (0.9.82: DIRT's ten, down to no margin) */
+        for (pad = 6u;; pad -= 2u) {     /* (0.9.82: DIST's ten, down to no margin) */
             for (w = 2u * (n - 1u), j = 0; j < n; j++) {
                 c[0] = 0;
                 kick_chip(KSECT[s][j], c);

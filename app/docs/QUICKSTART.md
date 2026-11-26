@@ -26,8 +26,8 @@ one is held, K1–K4 tune it. In EXPERT, **ARP › BLACK** picks another layout 
 ## 4. EDIT: shape the kick
 
 **EDIT** opens the kick, drawn large: what you hear, its pitch falling in amber. K1–K4 change the part shown;
-**ALGORITHM** goes to the next part, **SELECT** to the next section (ATTACK, BODY, TAIL, DIRT, FX1, FX2, MORE: the tabs at the top), and **EDIT** again to the next sound (KICK, SNARE, HAT, CLAP, round). In EXPERT it opens on ATTACK's **PRESET**: KNOB 1 picks a built-in kick, 909 to SPINE. Each part
-says in a few words what it is for. Try **DIRT › DISTO** (K1: the distortion) and **TAIL › BASS** (K2: the
+**ALGORITHM** goes to the next part, **SELECT** to the next section (ATTACK, BODY, TAIL, DIST, FX1, FX2, MORE: the tabs at the top), and **EDIT** again to the next sound (KICK, SNARE, HAT, CLAP, round). In EXPERT it opens on ATTACK's **PRESET**: KNOB 1 picks a built-in kick, 909 to SPINE. Each part
+says in a few words what it is for. Try **DIST › DISTO** (K1: the distortion) and **TAIL › BASS** (K2: the
 rawstyle reverse bass). **PRESETS** there picks one of the 20 kick memories: each keeps its own sound.
 
 ## 5. Build and drop

@@ -53,8 +53,8 @@ kicks' TRI, X4 and X2, SUB, DST, KIL) or your own.
 ### 4. EDIT: shape the kick
 
 **EDIT** opens the kick, drawn large: what you hear, its pitch falling in amber. K1–K4 change the part shown;
-**ALGORITHM** goes to the next part, **SELECT** to the next section (ATTACK, BODY, TAIL, DIRT, FX1, FX2, MORE: the tabs at the top), and **EDIT** again to the next sound (KICK, SNARE, HAT, CLAP, round). In EXPERT it opens on ATTACK's **PRESET**: KNOB 1 picks a built-in kick, 909 to SPINE. Each part
-says in a few words what it is for. Try **DIRT › DISTO** (K1: the distortion) and **TAIL › BASS** (K2: the
+**ALGORITHM** goes to the next part, **SELECT** to the next section (ATTACK, BODY, TAIL, DIST, FX1, FX2, MORE: the tabs at the top), and **EDIT** again to the next sound (KICK, SNARE, HAT, CLAP, round). In EXPERT it opens on ATTACK's **PRESET**: KNOB 1 picks a built-in kick, 909 to SPINE. Each part
+says in a few words what it is for. Try **DIST › DISTO** (K1: the distortion) and **TAIL › BASS** (K2: the
 rawstyle reverse bass). **PRESETS** there picks one of the 20 kick memories: each keeps its own sound.
 
 ### 5. Build and drop
@@ -138,7 +138,7 @@ The slicer view, top to bottom:
 - **Tabs:** the page's domain (on SOUNDS, the source: KICK, DRUMS, BREAK), then its parts as tabs, the one
   you are on lit: the button again (or ALGORITHM) goes to the next. On SOUNDS and EFFECTS the part edited shows at the
   right, "< SUB FX >". Opening a page, or turning to another part, says the same in the header for a moment: the
-  domain, then the part ("SYSTEM SETUP", "SOUNDS KICK DIRT DISTO", "EFFECTS SLOT 2 TREMOLO", "PATTERN H1"). The tabs sit right under the header on every
+  domain, then the part ("SYSTEM SETUP", "SOUNDS KICK DIST DISTO", "EFFECTS SLOT 2 TREMOLO", "PATTERN H1"). The tabs sit right under the header on every
   page, tap tempo's too.
 - **The break:** its waveform, the slice markers, the slice sounding lit, the playhead.
 - **Slice blocks:** sixteen blocks, one per white key, each with its slice's waveform. The slice sounding is lit;
@@ -155,7 +155,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 | Button | Domain | Its parts |
 | --- | --- | --- |
 | HOME | LIVE | PERFORM, GENERATOR, SPLIT (EXPERT, 0.9.71), CHAOS (0.9.75); HOME again: the next tab (its settings are SYSTEM › DISPLAY's since 0.9.56). HOME is the main page: FX, ENV, LFO, GLO or ARP pressed again come back to it, SELECT turning their tabs |
-| EDIT | SOUNDS | Three sources, **SEL + EDIT** the next: **KICK** (its menu, by the kick's anatomy: ATTACK, BODY, TAIL, DIRT, FX1, FX2, MORE; SELECT its next section; EDIT again the next sound, EXPERT: SNARE, HAT, CLAP, then the KICK), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
+| EDIT | SOUNDS | Three sources, **SEL + EDIT** the next: **KICK** (its menu, by the kick's anatomy: ATTACK, BODY, TAIL, DIST, FX1, FX2, MORE; SELECT its next section; EDIT again the next sound, EXPERT: SNARE, HAT, CLAP, then the KICK), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
 | SEQ | PATTERN | The lanes (ALGORITHM); the views FULL, DRUMS and **GROOVE** (SWING, BREAK ROWS, FOLLOW; also SEL + ARP) on SELECT |
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD, BUILD BRK, DROP BANK |
 | LFO | MIX | LEVELS (BREAK, KICK, PERC), ROUTING (FX, the drums' route, DUCKS, ROLL), MASTER, DYNAMICS |
@@ -283,12 +283,12 @@ then asks on the screen: **SEL** yes, **HOME** no; the FM-1 then restarts with i
   stretching as its pitch falls, squared off where it is driven), its level behind, the SUB's pitch falling in amber,
   its memory (KICK 1–20), what the part is for in a few words ("FOLD DISTORTION") and its note; under it the part's four knobs as cards, their values large, at the foot of the screen in place of the knobs' line (0.9.82; the drums' pages too): the black keys' functions are not shown there, their room the picture's; a black key or a white key held, or SEL held or locked, shows its own knobs there as on every page. On the other pages the foot's four knobs are cards too, under the black keys: their name, their value, and a fader under it when the setting has a travel (a level, a filter from its middle, an amount); a list or a mode has none. **SELECT**: the
   next section (**EDIT again**: the next sound, SNARE, HAT, CLAP, then the KICK), the kick's anatomy from its hit to its end: **ATTACK** (PRESET: K1 the built-in kicks, the part the menu opens on; CLICK, PUNCH, STACK, TOK), **BODY** (MIX, SUB, GRIT,
-  SYNTH, SYNTH +, MACRO, OUT), **TAIL** (TAIL, TAIL +, BASS, MORPH, GATE), **DIRT** (DISTO, DISTO +,
+  SYNTH, SYNTH +, MACRO, OUT), **TAIL** (TAIL, TAIL +, BASS, MORPH, GATE), **DIST** (DISTO, DISTO +,
   SCREAM, the layers' effects, then PRE EQ, PRE EQ + and SUB SPLIT, below), **FX1** and **FX2** (its two FX slots, each a section of its own since 0.9.29: ALGORITHM goes through the effect's parts, MAIN, MORE, MOD or the MB COMP's), **MORE** (KNOBS until 0.9.28: KNOBS, ASSIGN, K1–K4, TOOLS, then EQ B and EQ S, its EQ's bands and shape);
   **ALGORITHM**: the next part in it (each section remembers where you were). The section's parts are a bar of tabs at
   the foot of the picture, the whole width, the one open lit (BEGINNER: those it passes over dimmed; short names
-  there: SYN+ for SYNTH +, D+ for DISTO +, SFX .. CFX for the layers' effects; DIRT's ten: DIST, D+, SCR, SFX .. CFX,
-  PRE, PRE+, XSUB). **DIRT's PRE EQ** (0.9.82, FLEXOR) shapes the kick *before* its drive and its DISTOs, where it
+  there: SYN+ for SYNTH +, D+ for DISTO +, SFX .. CFX for the layers' effects; DIST's ten: DIST, D+, SCR, SFX .. CFX,
+  PRE, PRE+, XSUB). **DIST's PRE EQ** (0.9.82, FLEXOR) shapes the kick *before* its drive and its DISTOs, where it
   changes what they bite into: K1 **LOW**, K2 **MID**, K3 **HIGH** (-18 .. +18 dB, 0 the band off), K4 **MID FREQ**;
   **PRE EQ +**: K1 **LO FREQ**, K2 **MID Q**, K3 **HI FREQ**. A low band up drives the body harder, a mid cut leaves a
   hole the DISTO cannot fill, a high band up makes it scream. **SUB SPLIT** keeps the lows out of the dirt: K1 **X
@@ -318,7 +318,7 @@ then asks on the screen: **SEL** yes, **HOME** no; the FM-1 then restarts with i
   kick selected, its volume kept (pick the kick to fill with PRESETS, then the one to copy with K4). Quicker (0.9.26),
   anywhere in the KICK menu: **SEL + ARP** copies the kick (COPIED KICK n), PRESETS to another, **SEL + ARP** again pastes
   it there whole, its FX section too (PASTED KICK a > b); on a drum's page the same copies the drum's sound onto another
-  of its memories. On the KICK menu, **SELECT** goes through the tabs at the top (its sections: ATTACK, BODY, TAIL, DIRT, FX1,
+  of its memories. On the KICK menu, **SELECT** goes through the tabs at the top (its sections: ATTACK, BODY, TAIL, DIST, FX1,
   FX2, MORE) and **ALGORITHM** through those at the bottom (the section's parts) (0.264). **SEL + EDIT** opens the drums; there,
   SELECT goes from drum to drum (SNARE, HAT, CLAP, and round; BEGINNER: the KICK too), each in a big view of its own: its hit drawn large over its level, its decay
   marked in amber, its memory and tune, the four drums along the bottom (stopped: keys 1–4 play them), the part's
@@ -331,7 +331,7 @@ then asks on the screen: **SEL** yes, **HOME** no; the FM-1 then restarts with i
   - **The layers**: MIX, SUB, GRIT and OUT in BODY; PUNCH and CLICK in ATTACK.
   - **SYNTH** (BODY): SYNTH, SYNTH +, MACRO; in TAIL, BASS and **CLEAN MORPH** (K1 CLEAN SUB, K2 MORPH, K3 TO KICK:
     the kick's own, no knob needed).
-  - **DIRT**: DISTO, DISTO + (DRIVE, TYPE, SCREECH, TAIL), SCREAM, then each layer's effect.
+  - **DIST** (DIRT until 0.9.81): DISTO, DISTO + (DRIVE, TYPE, SCREECH, TAIL), SCREAM, then each layer's effect.
     (DISTO, DISTO + and SCREAM were called TERROR, TERROR + and TERROR 2 before 0.191: names a newcomer reads.)
   - **FX1**, **FX2** (FX until 0.9.28, TONE until 0.9.1): its two FX slots, a section each: ALGORITHM the effect's parts
     (MAIN, MORE, MOD), as on the FX page. Its EQ (EQ B, EQ S) is in **MORE**, after TOOLS.
@@ -468,7 +468,7 @@ hard turn deletes one item, not the ones moving into its place, 0.9.26),
     playing its four functions and puts their values where they were: any kick, KICK 1 as KICK 10. To change one: pick
     it, change the knobs (SEL + them, or K1–K4 their functions), SAVE again.
   Every one of them has its place on the KICK menu too, the kick's own with no knob given it: the DISTO and SCREAM and DISTO +
-  (DIRT), DRIVE (BODY's MACRO, INTENSITY), DECAY (BODY's SUB), REV BASS and GLIDE (TAIL's BASS),
+  (DIST), DRIVE (BODY's MACRO, INTENSITY), DECAY (BODY's SUB), REV BASS and GLIDE (TAIL's BASS),
   CLEAN SUB and MORPH (TAIL's CLEAN MORPH).
   **KNOB is the kick's own**: each kick memory (KICK 1–20) keeps its four functions and their settings (CLEAN SUB,
   REV BASS, GLIDE, MORPH and its target; the DISTO and SCREAM, TUNE and DECAY were already its own). Change kick (PRESETS on the KICK
