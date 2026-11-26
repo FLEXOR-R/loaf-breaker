@@ -130,6 +130,13 @@ static void global_value(int i, char *t)
         }
         return;
     }
+    if (i == 3) {                        /* (0.9.81, FLEXOR: K4 TEMPO, 0.1 BPM a detent) */
+        if (ext_active())
+            text_cat(t, "EXT CLOCK");
+        else
+            tenths_text(set.tempo_x10, t);
+        return;
+    }
     text_cat(t, i == 0 ? (set.clk_in ? "FOLLOW" : "OFF") : i == 1 ? (set.clk_out ? "ON" : "OFF")
                 : i == 2 && !set.novice ? (ui.meter_on ? "ON" : "OFF")
                 : "");                   /* (LOAF BREAKER: K3 the METER, EXPERT only; K4 BREAK TIME 0.256-0.9.1: HOME's
@@ -145,6 +152,40 @@ static void notes_in_turn(int32_t d)
     app_say("NOTES IN", notes_in() == NI_ALL ? "ALL: SLICES AND DRUMS" : notes_in() == NI_DRUMS
             ? "DRUMS ONLY: 36-46" : "OFF: CLOCK ALONE");
     ui.redraw |= RG_BLOCKS;
+}
+/* (0.9.81, FLEXOR, from CHOPPAH's: "tap it in and roll out") SYSTEM › MIDI: any white key a tap. From the second, the
+ * tempo the mean of the last four gaps, to 0.1 BPM, 40-300; 2 s without one: a new count. Not while CLOCK IN follows */
+static uint32_t tap_t[5], tap_last;
+static uint8_t tap_n;
+static void tap_tempo(void)
+{
+    uint32_t now = plat_ms(), i, ms;
+    char t[16];
+    if (ext_active()) {
+        app_say("TAP", "EXT CLOCK");
+        return;
+    }
+    if (tap_n && now - tap_t[tap_n - 1u] > 2000u)
+        tap_n = 0u;
+    if (tap_n == 5u) {                   /* (the last five taps: four gaps) */
+        for (i = 0; i < 4u; i++)
+            tap_t[i] = tap_t[i + 1u];
+        tap_n = 4u;
+    }
+    tap_t[tap_n++] = now;
+    tap_last = now | 1u;
+    if (tap_n < 2u) {
+        app_say("TAP", "AGAIN, IN TIME");
+        ui.redraw |= RG_BLOCKS;
+        return;
+    }
+    ms = (tap_t[tap_n - 1u] - tap_t[0]) / (tap_n - 1u);
+    set.tempo_x10 = (uint16_t)clamp((int32_t)((600000u + ms / 2u) / (ms ? ms : 1u)), 400, 3000);
+    changed();
+    tenths_text(set.tempo_x10, t);
+    text_cat(t, " BPM");
+    app_say("TAP", t);
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
 /* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's BREAK its LEVEL alone (K4; the pitch: OCT), GROOVE its SWING alone */
 static int glo_knob_ok(int i)
@@ -292,8 +333,20 @@ static void global_turn(int i, int32_t d)
         app_say("METER", ui.meter_on ? "ON: CPU, IMG, FR" : "OFF");
         ui.redraw |= RG_HEAD | RG_FOOT;
         return;
-    } else                               /* (K4 REC KEY 0.9.58-0.9.69: gone, FLEXOR: REC set on ARP › BLACK alone) */
+    } else {                             /* (K4 REC KEY 0.9.58-0.9.69: gone, FLEXOR: REC set on ARP › BLACK alone;
+                                          * 0.9.81, FLEXOR: K4 TEMPO, 0.1 BPM a detent, SELECT's 1 BPM kept) */
+        if (ext_active()) {
+            app_say("TEMPO", "EXT CLOCK");
+            return;
+        }
+        set.tempo_x10 = (uint16_t)clamp((int32_t)set.tempo_x10 + d, 400, 3000);
+        changed();
+        tenths_text(set.tempo_x10, t);
+        text_cat(t, " BPM");
+        app_say("TEMPO", t);
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
         return;
+    }
     global_value(i, t);
     app_say(NAME[i], t);
     changed();
@@ -558,6 +611,15 @@ static void draw_global(const brk_status_t *st)
     cv_blit(0, 88);
     cv_begin(240, 52, C_BLACK);          /* the clock out, and MIDI through each port (lit: in the last 0.3 s) */
     cv_text(6, 2, &FONT_T, "CLOCK OUT", C_GRAY);
+    cv_text(6, 16, &FONT_T, "TEMPO", C_GRAY);   /* (0.9.81: K4 0.1 BPM, the white keys a tap) */
+    t[0] = 0;
+    if (ext_active())
+        text_cat(t, "EXT CLOCK");
+    else {
+        tenths_text(set.tempo_x10, t);
+        text_cat(t, plat_ms() - tap_last < 2000u && tap_last ? "  TAPPING" : "  K4 FINE, KEYS TAP");
+    }
+    cv_text(96, 16, &FONT_T, t, ext_active() ? C_DIM : C_WHITE);
     t[0] = 0;
     if (!set.clk_out)
         text_cat(t, "OFF");

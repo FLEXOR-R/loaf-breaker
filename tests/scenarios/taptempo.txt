@@ -1,0 +1,52 @@
+# LOAF BREAKER (0.9.81, FLEXOR, from a player's request: CHOPPAH's fine tempo and tap tempo): SYSTEM › MIDI K4 TEMPO,
+# 0.1 BPM a detent (SELECT stays 1 BPM); on that page any white key is a tap: from the second, the mean of the last
+# four gaps; 2 s without one starts a new count. The keys don't play slices there.
+#   app/build/host/loaf-breaker_host tests/scenarios/taptempo.txt app/build/scenarios
+wait 4200
+expect tempo10 1700
+tap GLO
+wait 300
+expect page 3
+expect gpage 0
+turn K4 3 60
+wait 200
+expect tempo10 1703
+turn K4 -5 60
+wait 200
+expect tempo10 1698
+# taps every 375 ms: 160.0 BPM (the simulator spends ~4 ms on the two key lines: 341 + 30 + 4)
+key w4 down
+wait 30
+key w4 up
+wait 341
+key w9 down
+wait 30
+key w9 up
+wait 341
+expect tempo10 1600
+key w0 down
+wait 30
+key w0 up
+wait 341
+key w15 down
+wait 30
+key w15 up
+wait 100
+expect tempo10 1600
+expect key -1
+shot taptempo.png
+# a pause over 2 s: a new count, then every 400 ms: 150.0 BPM
+wait 2500
+key w2 down
+wait 30
+key w2 up
+wait 366
+key w2 down
+wait 30
+key w2 up
+wait 366
+key w2 down
+wait 30
+key w2 up
+wait 100
+expect tempo10 1500

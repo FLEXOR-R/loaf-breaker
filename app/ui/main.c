@@ -617,6 +617,11 @@ static void input(void)
             }
             continue;
         }
+        if (ui.page == PG_GLOBAL && !ui.gpage) {   /* (0.9.81, FLEXOR: SYSTEM › MIDI: any white key a tap) */
+            if (kdn >> WK[i] & 1u)
+                tap_tempo();
+            continue;
+        }
         if (ui.page == PG_GLOBAL && ui.gpage == 3u) {   /* LOAF BREAKER: GLO EFFECTS: keys 1-7 each an effect on or off */
             if (i < 7u && kdn >> WK[i] & 1u)
                 sfx_toggle(i + 1u, -1);
@@ -2160,7 +2165,7 @@ static const char *knob_name(int i)
     static const char *const KN[NPAGES][4] = {{"GATE", "FILTER", "DRUM FLT", "SUB DECAY"},
                                               {"CMPLX", "ANCHOR", "ROLL", "FILL"},
                                               {"P1", "P2", "P3", "MIX"},
-                                              {"CLOCK IN", "CLOCK OUT", "", ""},
+                                              {"CLOCK IN", "CLOCK OUT", "", "TEMPO"},
                                               {"", "", "", ""},
                                               {"BREAK", "KICK", "PERC", ""},
                                               {"SLICE", "PITCH", "HITS", "REVERSE"},

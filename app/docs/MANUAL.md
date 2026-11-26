@@ -160,7 +160,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD, BUILD BRK, DROP BANK |
 | LFO | MIX | LEVELS (BREAK, KICK, PERC), ROUTING (FX, the drums' route, DUCKS, ROLL), MASTER, DYNAMICS |
 | FX | EFFECTS | The four slots: MAIN, MORE, MOD |
-| GLO | SYSTEM | MIDI (EXPERT: K3 METER), SETUP (K1 SKIN, K2 KICK EQ (EXPERT), K3 MODE, K4 AUTO SAVE; PRESETS the skin, as K1), DISPLAY (K1 VIEW, K2 WAVE TYPE, K3 WAVE ZOOM, K4 BREAK TIME; HOME's until 0.9.55), SCREEN FX (the screen's effects; K3 DRUM FILTER, K4 KICK SWITCH), SCREEN SET (their settings), LIGHTS (K1 GLOW, K2 PULSE, K3 PULSE ON, K4 STYLE; 0.9.57), RESET |
+| GLO | SYSTEM | MIDI (K4 TEMPO 0.1 BPM, the white keys TAP TEMPO, 0.9.81; EXPERT: K3 METER), SETUP (K1 SKIN, K2 KICK EQ (EXPERT), K3 MODE, K4 AUTO SAVE; PRESETS the skin, as K1), DISPLAY (K1 VIEW, K2 WAVE TYPE, K3 WAVE ZOOM, K4 BREAK TIME; HOME's until 0.9.55), SCREEN FX (the screen's effects; K3 DRUM FILTER, K4 KICK SWITCH), SCREEN SET (their settings), LIGHTS (K1 GLOW, K2 PULSE, K3 PULSE ON, K4 STYLE; 0.9.57), RESET |
 
 The same gestures everywhere: **the button again** is the next part; **ALGORITHM** the element in the part (a slot, a
 lane, a drum's part; where there is nothing to pick, the break); **PRESETS** the pattern, but on SOUNDS the source's
@@ -205,6 +205,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 | MIDI notes | Notes 48–63 (C3–D#4) play slices 1–16, held like the white keys; 36 the kick, 38 the snare, 39 the clap, 42 / 44 / 46 the hat (§8); any channel. SYSTEM › MIDI's PRESETS, NOTES IN: ALL, DRUMS (the drums alone), OFF |
 | ALGORITHM | (HOME, MIXER; SEL held: any page) The next or previous break: its name shows at once (amber in the header) and, while playing, it comes in at the next bar (the old one goes quiet for the bar's last 16th meanwhile); stopped, at once. AMEN10 135, AMEN05 158, AMEN20 164, UPDOWN 165, AMEN06 169, AMEN19 172, AMEN13 173 (the Amens: The Winstons, cut by Cyberworm), FOCUZ 175 (DNGN DRGNS, "Focuz (DNGN DRGNS Remix)"): 2 bars each, slowest first, played at the tempo you set; then **your own breaks**, if you sent some (below) |
 | MASTER | Volume |
+| TEMPO, FINE AND TAP | **SELECT** moves the tempo 1 BPM a click. **SYSTEM › MIDI, K4 TEMPO**: 0.1 BPM a click (172.3, not 172), 40–300 BPM. On SYSTEM › MIDI **any white key is a tap**: from the second tap the tempo follows (the mean of the last four gaps, to 0.1 BPM); 2 s without a tap starts a new count. The keys light on the beat there. While CLOCK IN follows an outside clock, the clock has the tempo: EXT CLOCK (0.9.81, from CHOPPAH's) |
 | CONTROLLER | **The FM-1 as the VST's hands** (0.9.79): plugged in by USB, the VST's FM-1 button turns it on. Its keys, buttons, knobs and MASTER then play the VST, and its lights show the VST's (the keys lit as the VST lights them). The FM-1 is silent meanwhile and its screen says CONTROLLER; unplug it or close the VST and it is itself again within 3 s, its settings untouched. In a DAW, the FM-1's MIDI goes to the VST's track (channel 16), and the VST's MIDI out back to the FM-1 for the lights |
 
 ### The app (Android)
@@ -342,7 +343,7 @@ then asks on the screen: **SEL** yes, **HOME** no; the FM-1 then restarts with i
 - **LFO** (MIX): LEVELS, ROUTING, MASTER (K1 COMP, K2 its RATIO, K3 DUCK, K4 MAX OUT; COMP's reduction metered),
   DYNAMICS (COMP's ATTACK and RELEASE, DUCK's RELEASE, DUCKS: BREAK, PERC or BOTH; ROUTING' K3 too, 0.9.64).
 - **ENV**: the song. TRACKS, PLAY, DROP, BUILD, BUILD BRK, DROP BANK. (What SEL + each knob does: EDIT › KNOBS; RESET: GLO.)
-- **GLO** (SYSTEM): MIDI (EXPERT: the METER), SETUP (SKIN, KICK EQ (EXPERT), MODE, AUTO SAVE: K1–K4, top to bottom; PRESETS the skin too; SEL WHITE on / off in 0.9.70, gone in 0.9.71), DISPLAY (0.9.56: VIEW, WAVE TYPE, WAVE ZOOM, BREAK TIME, HOME's before; SETTINGS until 0.9.67), SCREEN FX (several at once, keys 1–7; K3 DRUM FILTER, the drums' filter's kind, K4 KICK SWITCH; each effect's card a small picture with that effect done to it, lit when on, since 0.9.30; the waves' colours are SYSTEM › DISPLAY's WAVE TYPE since 0.9.25; EDIT VIEW and DRUM VIEW ZOOM are KICK › MORE › TOOLS since 0.9.29), SCREEN SET, LIGHTS, RESET.
+- **GLO** (SYSTEM): MIDI (K4 TEMPO by 0.1 BPM; any white key taps the tempo; EXPERT: K3 the METER), SETUP (SKIN, KICK EQ (EXPERT), MODE, AUTO SAVE: K1–K4, top to bottom; PRESETS the skin too; SEL WHITE on / off in 0.9.70, gone in 0.9.71), DISPLAY (0.9.56: VIEW, WAVE TYPE, WAVE ZOOM, BREAK TIME, HOME's before; SETTINGS until 0.9.67), SCREEN FX (several at once, keys 1–7; K3 DRUM FILTER, the drums' filter's kind, K4 KICK SWITCH; each effect's card a small picture with that effect done to it, lit when on, since 0.9.30; the waves' colours are SYSTEM › DISPLAY's WAVE TYPE since 0.9.25; EDIT VIEW and DRUM VIEW ZOOM are KICK › MORE › TOOLS since 0.9.29), SCREEN SET, LIGHTS, RESET.
   The break's PITCH, GRAIN and SNAP are SOUNDS › BREAK; SWING is PATTERN › GROOVE.
 
 ### The CDJ view (HOME)
@@ -361,7 +362,7 @@ instead, hold it again for the waveform; neither moves to HOME's next part.
 
 **ENV** opens TRACK; **SELECT** goes through its tabs: TRACKS, PLAY, DROP, BUILD, BUILD BRK, DROP BANK (0.9.2: ALGORITHM still the items on
 TRACKS); **ENV again** goes back to HOME (ENV held on TRACKS: a space after the item, as before). The tempo is SELECT's
-on HOME and the other pages (the metronome and tap tempo are gone).
+on HOME and the other pages; SYSTEM › MIDI's K4 nudges it by 0.1 BPM and its white keys tap it (0.9.81; the metronome is gone).
 
 - **TRACKS**: eight tracks (**PRESETS** picks one), each up to 32 items in four rows of eight: a pattern (P1–P64)
   played for its loops (×1–×16), a **DROP** (the build, then the drop into the pattern after it), and its END.

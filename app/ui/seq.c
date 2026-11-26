@@ -745,7 +745,8 @@ static uint32_t keys_lit(const brk_status_t *st)   /* the white keys' lights on 
                                           * ARP key's) */
         return ui.opage ? 0u : ovl_held | ovl_latched | ovl_pad_bits();
     if (ui.page == PG_GLOBAL)            /* (LOAF BREAKER: GLO EFFECTS: the effects on) */
-        return ui.gpage == 3u ? set.sfx_on : 0u;
+        return ui.gpage == 3u ? set.sfx_on : !ui.gpage && ((tap_last && plat_ms() - tap_last < 90u) ||
+               (st->playing && st->step >= 0 && !(st->step & 3))) ? 0xFFFFu : 0u;   /* (0.9.81: MIDI, the beat) */
     uint32_t m = 0u, i;
     if (ui.seq_lane >= SL_KICK) {
         int now = sl_now(st, ui.seq_lane);
