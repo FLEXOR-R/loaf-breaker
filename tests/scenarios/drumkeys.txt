@@ -1,0 +1,67 @@
+# LOAF BREAKER (0.9.81, FLEXOR, from a player's request: "map them to the Kick, Snare, Hi-Hat, and Clap ... to
+# finger-drum and live-record"): KCK SNR HAT CLP, four black-key functions (ARP › BLACK K3, the last four): a press
+# plays the drum, on any page; with REC on and playing it is written into its lane, as MIDI notes 36 38 42 39.
+#   app/build/host/loaf-breaker_host tests/scenarios/drumkeys.txt app/build/scenarios
+wait 4200
+layout_0961   # (written as CUSTOM on the 0.9.61-0.9.77 layout)
+tap ARP
+wait 300
+turn SELECT 1 10
+wait 300
+turn K3 -4 60
+wait 200
+expect bk_pre 2
+expect bk_fn 23
+turn K2 1 60
+wait 200
+turn K3 -4 60   # (key 2: R16 to SNR)
+wait 200
+expect bk_fn 24
+turn K2 1 60
+wait 200
+turn K3 -4 60   # (key 3: R32 to HAT)
+wait 200
+expect bk_fn 25
+turn K2 1 60
+wait 200
+turn K3 15 60   # (key 4: ARP to CLP)
+wait 200
+expect bk_fn 26
+shot drumkeys.png
+tap HOME
+wait 300
+expect llitk 2
+key b0 down
+wait 60
+expect aud_d 0
+expect llitk 3
+key b0 up
+wait 200
+key b1 down
+key b1 up
+wait 100
+expect aud_d 1
+key b2 down
+key b2 up
+wait 100
+expect aud_d 2
+key b3 down
+key b3 up
+wait 100
+expect aud_d 3
+# REC on, playing: written into the pattern (unsaved since)
+tap SAVE
+wait 800
+expect dirty 0
+tap PLAY
+wait 600
+tap REC
+wait 200
+expect dirty 0
+key b1 down
+key b1 up
+wait 200
+expect dirty 1
+tap REC
+wait 100
+tap PLAY

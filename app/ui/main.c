@@ -837,6 +837,20 @@ static void input(void)
             ui.redraw |= RG_FOOT | RG_BLOCKS;
         }
     }
+    {                                    /* LOAF BREAKER (0.9.81, FLEXOR, from a player's request: "map them to the
+                                          * Kick, Snare, Hi-Hat, and Clap ... to finger-drum and live-record"): KCK SNR
+                                          * HAT CLP, each press its drum hit now, written into its lane with REC playing
+                                          * (midi_drum, as MIDI notes 36 38 42 39); any page, SEL BLACK and REC too */
+        uint32_t d;
+        for (d = 0; d < NDRUMS; d++)
+            if (kdn & PAD_BIT(BKF_KCK + d)) {
+                midi_drum(d);
+                app_say(DRUM_NAME[d], ui.rec && playing_now() ? "REC" : "");
+                ui.aud_t = now;
+                ui.aud_d = (uint8_t)d;
+                ui.redraw |= RG_BLOCKS;
+            }
+    }
     if (kdn & PAD_BIT(BKF_KBR)) {        /* LOAF BREAKER (0.9.58, FLEXOR): KILL BREAK: the break out (FADE, CUT, or at the
                                           * bar's end into the reverb), back when let go; LATCH: a press out, the next back */
         kbrk_mode = (uint8_t)kb_mode();
