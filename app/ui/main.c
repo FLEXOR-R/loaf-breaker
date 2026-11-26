@@ -1148,16 +1148,11 @@ static void input(void)
         ui.redraw |= RG_FOOT | RG_BLOCKS;
     }
     if (kdn & PAD_BIT(BKF_XSB)) {        /* LOAF BREAKER (0.9.86, FLEXOR: "une touche noire assignable pour le ON/OFF xsub
-                                          * freq afin de jouer en live"): XSB, a switch: the kick's SUB SPLIT off (its X FREQ
-                                          * kept) or on again; no X FREQ set yet: on at 100 Hz, to hear it */
+                                          * freq afin de jouer en live"): XSB, a switch: the kick's SUB SPLIT muted (its X FREQ
+                                          * kept) or on again */
         kick_px_t *x = kpx_at(set.kslot);
-        if (x->xo && !(x->xoff & 1u))    /* (heard: off) */
-            x->xoff = 1u;
-        else {                           /* (not heard: on; no X FREQ yet, 100 Hz: 40 + 5 (13 - 1)) */
-            x->xoff = 0u;
-            if (!x->xo)
-                x->xo = 13u;
-        }
+        x->xoff ^= 1u;                   /* (FLEXOR: "un on off qui ne remet pas le sub split à 100hz, juste activation
+                                          * désactivation, comme un mute": X FREQ never touched) */
         changed_kick();
         set_dirty = 1u;
         app_say("SUB SPLIT", x->xoff & 1u ? "OFF" : "ON");
@@ -2348,9 +2343,17 @@ static void draw_foot(const brk_status_t *st)
             perc_cards();
         return;
     }
-    cv_begin(240, 48, C_BLACK);
-    if (ed)
-        cv_oy = -8;                      /* (a key or SEL held: its knobs, no keys' row) */
+    {                                    /* (0.9.86, FLEXOR: SEQ, no black keys' row: its cards alone, 34 rows from y 206,
+                                          * the grid down to 205) */
+        int sq = ui.page == PG_SEQ;
+        cv_begin(240, sq ? 34u : 48u, C_BLACK);
+        if (sq)
+            cv_oy = -15;
+        else if (ed)
+            cv_oy = -8;                  /* (a key or SEL held: its knobs, no keys' row) */
+        if (sq)
+            ed = 1;                      /* (no keys' row below) */
+    }
     for (i = 0; !ed && i < 11u; i++) {   /* (LOAF BREAKER: each key's function, the layout's) */
         uint32_t f = bk_fn_shown(i);
         int on = f == BKF_ARP ? arpk_on(i) : bkf_lit(f, st);
@@ -2405,7 +2408,7 @@ static void draw_foot(const brk_status_t *st)
         }
     }
     cv_oy = 0;
-    cv_blit(0, 192);
+    cv_blit(0, ui.page == PG_SEQ ? 206u : 192u);
 }
 
 void app_ui_init(void)

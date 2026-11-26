@@ -12,7 +12,9 @@ static const char *const SEQ_LANE_NAME[NSEQL] = {"STEPS 1-16", "STEPS 17-32", "K
 #define SQ_BRK_MIN 18                    /* LOAF BREAKER (0.242, FLEXOR): a break row's pitch, the rows' average (the grid's
                                           * height over its rows), between this (its number inside its box) and 24 */
 #define SQ_BRK_MAX 24
-#define SQ_H 148                         /* the picture's rows (screen 44..191) */
+#define SQ_H 162                         /* the picture's rows (screen 44..205; 0.9.86, FLEXOR: "enlève la ligne des
+                                          * touches noires au dessus des carrés de knob pour gagner de la place pour le
+                                          * séquenceur": 148 before, 44..191, the black keys' row under it) */
 #define SQ_X 30                          /* the steps begin (the names before) */
 static uint32_t text_n(const char *t) { uint32_t n = 0u; while (t[n]) n++; return n; }   /* (no libc's strlen on the FM-1) */
 static const char *const DRUM_NAME[NDRUMS] = {"KICK", "SNARE", "HAT", "CLAP"};

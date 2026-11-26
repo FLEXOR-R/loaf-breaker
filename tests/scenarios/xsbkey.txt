@@ -1,7 +1,7 @@
-# LOAF BREAKER (0.9.86, FLEXOR: "une touche noire assignable pour le ON/OFF xsub freq afin de jouer en live"): XSB, the
-# last black-key function (ARP › BLACK K3, left of R8): a press switches the kick's SUB SPLIT off, its X FREQ kept, the
-# next on; no X FREQ yet, on at 100 Hz; lit while heard; X FREQ turned (KICK › DIST › SUB SPLIT, or a knob given XSUB
-# FREQ) switches it back on.
+# LOAF BREAKER (0.9.86, FLEXOR: "une touche noire assignable pour le ON/OFF xsub freq afin de jouer en live ... un on
+# off qui ne remet pas le sub split à 100hz, juste activation désactivation, comme un mute"): XSB, the last black-key
+# function (ARP › BLACK K3, left of R8): a press mutes the kick's SUB SPLIT, its X FREQ kept, the next brings it back;
+# X FREQ never set by it; X FREQ turned (KICK › DIST › SUB SPLIT, or a knob given XSUB FREQ) switches it back on.
 #   app/build/host/loaf-breaker_host tests/scenarios/xsbkey.txt app/build/scenarios
 wait 4200
 layout_0961   # (written as CUSTOM on the 0.9.61-0.9.77 layout)
@@ -12,12 +12,20 @@ wait 300
 turn K3 -1 60
 wait 200
 expect bk_fn 27
+# SEL + K1 given XSUB FREQ (ARP › ASSIGN): an X FREQ of 100 Hz
+turn SELECT 2 10
+wait 200
+expect opage 3
+turn K1 40 10
+wait 150
+turn K1 -2 10
+wait 150
+expect selk1_fn 29
 tap HOME
 wait 300
-expect xo 0
-key b0 down
-wait 60
-key b0 up
+press SEL
+turn K1 13 10
+release SEL
 wait 100
 expect xo 13
 expect xoff 0
@@ -28,20 +36,32 @@ wait 100
 expect xo 13
 expect xoff 1
 shot xsbkey.png
-# a knob given XSUB FREQ (ARP › ASSIGN): turned, the split on again, a step on
-tap ARP
-wait 200
-turn SELECT 3 10
-wait 200
-expect opage 3
-turn K1 40 10
-wait 150
-turn K1 -2 10
-wait 150
-expect selk1_fn 29
+key b0 down
+wait 60
+key b0 up
+wait 100
+expect xo 13
+expect xoff 0
+# muted, then X FREQ turned: on again, a step on
+key b0 down
+wait 60
+key b0 up
+wait 100
+expect xoff 1
 press SEL
 turn K1 1 10
 release SEL
 wait 100
 expect xoff 0
 expect xo 14
+# no X FREQ: a press changes nothing heard, X FREQ stays OFF
+press SEL
+turn K1 -20 10
+release SEL
+wait 100
+expect xo 0
+key b0 down
+wait 60
+key b0 up
+wait 100
+expect xo 0
