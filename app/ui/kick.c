@@ -1239,13 +1239,14 @@ static float kick_knob_f(int i)          /* the part's knob i, 0..1 (as its bar)
  * note), its memory, its note and the layers' levels; under it (y 144..191) the part's four knobs as cards, their
  * values large */
 #define KV_W 232u
-/* (0.9.82, FLEXOR: "priorité à la forme d'onde et aux visuels ludiques", "n'affiche pas les effets des black keys
- * pour gagner de la place et remets les carrés d'avant mais optimise leur place": the foot without the black keys
- * (y 206 on, edit_page), the cards 36 rows (48), the picture 126 (100)) */
-#define KV_PH 126u                       /* the picture's rows, y 44 .. 169 */
-#define KV_CARDS 36u                     /* the cards' rows, y 170 .. 205 */
-#define KV_MID 60                        /* its middle */
-#define KV_AMP 42                        /* the wave's height each way (29 before) */
+/* (0.9.82, FLEXOR: "priorité à la forme d'onde et aux visuels ludiques", "n'affiche pas les effets des black keys",
+ * "remplacer la ligne de knob du bas par les carrés et du coup leur donner un peu plus de place": on the KICK menu
+ * and the drums' big view the cards are the foot (main.c draw_foot, edit_page), 48 rows from y 192; the picture
+ * 148 rows (100 before), down to them) */
+#define KV_PH 148u                       /* the picture's rows, y 44 .. 191 */
+#define KV_CARDS 48u                     /* the cards' rows, y 192 .. 239: the foot's */
+#define KV_MID 72                        /* its middle */
+#define KV_AMP 52                        /* the wave's height each way (29 before) */
 #define KV_BOT (KV_MID + KV_AMP)         /* its foot: the parts' tabs under it */
 /* (the picture's time: a quarter of a second; LOAF BREAKER: the RGB view half a second, the tail's fall in it; GLO
  * EFFECTS K4 KICK VIEW on PART: CLICK's 50 ms, PUNCH's and STACK's 150, the TAIL section's whole second) */
@@ -1390,7 +1391,7 @@ static void kpx_picture(float hz)
     int32_t i, mx, py = 0;
     uint32_t j;
     char t[24], u[12];
-    cv_oy += 2;                          /* (0.9.82: the picture taller, this one lower) */
+    cv_oy += 14;                         /* (0.9.82: the picture taller, this one lower) */
     for (j = 0; j < 8u; j++) {           /* the grid, its frequencies under it */
         mx = kpx_x((float)F[j]);
         for (i = 18; i < 90; i += 3)
@@ -1442,14 +1443,14 @@ static void kpx_picture(float hz)
             cv_text(mx - 2, by < 40 ? by + 4 : by - 11, &FONT_XS, b, on ? C_WHITE : C_GRAY);
         }
         cv_text(234 - text_w(&FONT_XS, "> INTO THE DISTO"), 18, &FONT_XS, "> INTO THE DISTO", MB_COL[1]);
-        cv_oy -= 2;
+        cv_oy -= 14;
         return;
     }
     if (!x->xo) {                        /* SUB SPLIT off: the whole kick into the dirt */
         for (i = 0; i < (int32_t)KV_W; i++)
             cv_rect(4 + i, 40 + ((i * 7) % 5), 1, 48 - ((i * 7) % 5), MB_DIM[0]);
         cv_text(10, 58, &FONT_XS, "OFF: ALL OF THE KICK INTO THE DIRT", C_GRAY);
-        cv_oy -= 2;
+        cv_oy -= 14;
         return;
     }
     {
@@ -1496,7 +1497,7 @@ static void kpx_picture(float hz)
         cv_rect(i - 1, 73, text_w(&FONT_XS, t) + 2, 10, C_WHITE);
         cv_text(i, 72, &FONT_XS, t, C_BLACK);
     }
-    cv_oy -= 2;
+    cv_oy -= 14;
 }
 
 static void kick_picture(int32_t top)
@@ -1654,8 +1655,8 @@ static void kick_picture(int32_t top)
     }
     cv_oy = 0;
 }
-static void kick_cards(void)             /* the part's four knobs: its name, its value large, its bar (0.9.82: 36 rows,
-                                          * 48 before) */
+static void kick_cards(void)             /* the part's four knobs: its name, its value large, its bar (0.9.82: the foot,
+                                          * draw_foot) */
 {
     uint32_t i;
     char t[16];
@@ -1670,14 +1671,14 @@ static void kick_cards(void)             /* the part's four knobs: its name, its
                                           * long for both, the value alone) */
             selk_value(selk_fn(i), 0, t);
             if (text_w(&FONT_XS, t) <= 34)
-                cv_text(x + 4, 0, &FONT_XS, n, C_GRAY);
-            cv_text(x + 52 - text_w(&FONT_XS, t), 0, &FONT_XS, t, C_WHITE);
+                cv_text(x + 4, 3, &FONT_XS, n, C_GRAY);
+            cv_text(x + 52 - text_w(&FONT_XS, t), 3, &FONT_XS, t, C_WHITE);
         } else
-            cv_text(x + 4, 0, &FONT_XS, n, C_GRAY);
+            cv_text(x + 4, 3, &FONT_XS, n, C_GRAY);
         kick_value((int)i, t);
-        cv_text(x + 4, 13, text_w(&FONT_B, t) <= 50 ? &FONT_B : &FONT_XS, t, C_WHITE);
-        cv_rect(x + 4, 30, 48, 3, C_BLACK);
-        cv_rect(x + 4, 30, (int32_t)(48.0f * brk_clampf(kick_knob_f((int)i), 0.0f, 1.0f) + 0.5f), 3, C_HI);
+        cv_text(x + 4, 16, text_w(&FONT_B, t) <= 50 ? &FONT_B : &FONT_XS, t, C_WHITE);
+        cv_rect(x + 4, 38, 48, 3, C_BLACK);
+        cv_rect(x + 4, 38, (int32_t)(48.0f * brk_clampf(kick_knob_f((int)i), 0.0f, 1.0f) + 0.5f), 3, C_HI);
     }
     cv_blit(0, 44u + KV_PH);
 }
@@ -1749,7 +1750,6 @@ static void draw_kick(const brk_status_t *st)
         kick_picture((int32_t)top);
         cv_blit(0, 44u + top);
     }
-    kick_cards();
 }
 
 /* LOAF BREAKER: HOME's third part, the KICK EQ: the FX chain's EQ on the kick alone (its curve drawn as the FX page

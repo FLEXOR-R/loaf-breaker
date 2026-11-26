@@ -130,9 +130,10 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   (appended to kx2_t, `kpx_at`, PX_TAG 0x82), copied with COPY, cleared as TOK. Drawn in frequency (ui/kick.c
   `kpx_picture`). The KICK and drum pages' layout (FLEXOR: "priorité à la forme d'onde et aux visuels ludiques"; gauges
   alone went too far, "remets les carrés d'avant mais optimise leur place", "n'affiche pas les effets des black
-  keys"): main.c `edit_page()` (the KICK menu but CLASSIC, the drums' big view): the foot without the black keys'
-  row, 34 rows from y 206; the picture KV_PH 126 rows (KV_MID, KV_AMP; perc.c PW_MID, PW_AMP), the cards KV_CARDS 36
-  (name, value in FONT_B, bar) from y 170. DIRT's chips short (DIST D+ SCR SFX .. CFX PRE PRE+ XSUB, FLEXOR). Host `kset px.*`; probes pxlow ..
+  keys", "remplacer la ligne de knob du bas par les carrés"): main.c `edit_page()` (the KICK menu but CLASSIC,
+  the drums' big view): draw_foot draws the cards there (kick_cards, perc_cards: name, value in FONT_B, bar; 48 rows
+  from y 192), no black keys' row; a key held or SEL (sel_foot, shown, x2_focus, kil_focus) its knobs as before;
+  the picture KV_PH 148 rows (KV_MID, KV_AMP; perc.c PW_MID, PW_AMP). DIRT's chips short (DIST D+ SCR SFX .. CFX PRE PRE+ XSUB, FLEXOR). Host `kset px.*`; probes pxlow ..
   xdec; engine test; scenario prexsub. Image 567,556 B, RAM 94,892, pool 337,816.
 - DROP BREAK NEXT (20 Nov 2026, 0.9.71, FLEXOR): SONG › DROP K3 SAME, NEXT, then each break; `DBRK_NEXT` 0xFF in set.drop_brk (an older firmware reads it as SAME), track.c `trk_drop_brk` the break after set.brk, round; probe dbrk; scenario dropnext.
 - White keys per break; SEL WHITE and KITS gone (20 Nov 2026, 0.9.71, FLEXOR: "assigner des réglages de length de white key pour chaque break afin de mieux chopper ... tu peux supprimer la fonction d'assignation des white keys"; KITS too, his choice): set.keys is the break playing's, every break's in kx2.wk (24 x 16, packed 2 bytes: LENGTH, DECAY, MODE, PITCH, bit 15 set; appended to OBJ_KX2 after `selrec`), app.c `wk_follow` (break_ask), `wk_store` (store_all), `wk_fill` (an older save, RESET WHITE KEYS, RESET ALL); slice effects (set.slx) still shared. ARP's tabs ARP, BLACK, SEL BLACK (`ui.opage` 0..2); SETUP's PRESETS the skin again; RESET's KITS gone; kx2.kit and kx2.rsv[0..47] unused now (kept for the layout), set.rsv6[2] bit 3 free; the notes on SEL WHITE, KITS and the TRACK shortcut below are history. Scenario wkbreak.

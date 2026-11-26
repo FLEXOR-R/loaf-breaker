@@ -2246,8 +2246,8 @@ static const char *knob_name(int i)
     return name ? name : "";
 }
 /* the foot: the pads, then the page and its knobs with their values */
-static int edit_page(void)              /* (0.9.82, FLEXOR: the KICK menu and the drums' big view: the foot without the
-                                          * black keys' functions, its 14 rows the picture's) */
+static int edit_page(void)              /* (0.9.82, FLEXOR: the KICK menu and the drums' big view: no black keys' row;
+                                          * the foot their cards, unless a key or SEL is held: their knobs then) */
 {
     return (ui.page == PG_KICK && !ui.kclassic) || (ui.page == PG_PERC && ui.pbig);
 }
@@ -2257,9 +2257,16 @@ static void draw_foot(const brk_status_t *st)
     char t[16];
     int ed = edit_page();
     draw_tabs();
-    cv_begin(240, ed ? 34 : 48, C_BLACK);
+    if (ed && !ui.sel_foot && ui.shown < 0 && !ui.x2_focus && !ui.kil_focus) {
+        if (ui.page == PG_KICK)          /* (the part's knobs: its cards, as large as they were) */
+            kick_cards();
+        else
+            perc_cards();
+        return;
+    }
+    cv_begin(240, 48, C_BLACK);
     if (ed)
-        cv_oy = -14;                     /* (the knobs' rows up where the keys were) */
+        cv_oy = -8;                      /* (a key or SEL held: its knobs, no keys' row) */
     for (i = 0; !ed && i < 11u; i++) {   /* (LOAF BREAKER: each key's function, the layout's) */
         uint32_t f = bk_fn_shown(i);
         int on = f == BKF_ARP ? arpk_on(i) : bkf_lit(f, st);
@@ -2326,7 +2333,7 @@ static void draw_foot(const brk_status_t *st)
         }
     }
     cv_oy = 0;
-    cv_blit(0, ed ? 206u : 192u);
+    cv_blit(0, 192);
 }
 
 void app_ui_init(void)

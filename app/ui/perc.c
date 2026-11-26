@@ -293,8 +293,8 @@ static void perc_turn(int i, int32_t d)
  * name, memory and tune; the five drums along the bottom, the one edited lit (stopped: their keys 1-5 play them); under
  * it the part's knobs as cards */
 #define PW_W 232u
-#define PW_MID 56                        /* (0.9.82, FLEXOR: the picture larger, as the kick's: KV_PH rows, its middle, */
-#define PW_AMP 40                        /* the wave's height each way; 50 and 34 before) */
+#define PW_MID 66                        /* (0.9.82, FLEXOR: the picture larger, as the kick's: KV_PH rows, its middle, */
+#define PW_AMP 48                        /* the wave's height each way; 50 and 34 before) */
 static uint8_t pw_px[PW_W];
 static int8_t pw_wave[PW_W];
 static uint32_t pw_sig = 1u, pw_ms = 300u;
@@ -378,7 +378,7 @@ static void perc_picture(const brk_status_t *st, int32_t top)
     }
     cv_oy = 0;
 }
-static void perc_cards(void)             /* the part's knobs: its name, its value large, its bar (0.9.82: 36 rows) */
+static void perc_cards(void)             /* the part's knobs: its name, its value large, its bar (0.9.82: the foot) */
 {
     uint32_t i;
     char t[16];
@@ -389,11 +389,11 @@ static void perc_cards(void)             /* the part's knobs: its name, its valu
         cv_rect(x, 0, 56, (int32_t)KV_CARDS - 2, C_BLOCK);
         if (!n[0])
             continue;
-        cv_text(x + 4, 0, &FONT_XS, n, C_GRAY);
+        cv_text(x + 4, 3, &FONT_XS, n, C_GRAY);
         perc_value((int)i, t);
-        cv_text(x + 4, 13, text_w(&FONT_B, t) <= 50 ? &FONT_B : &FONT_XS, t, C_WHITE);
-        cv_rect(x + 4, 30, 48, 3, C_BLACK);
-        cv_rect(x + 4, 30, (int32_t)(48.0f * brk_clampf(perc_knob_f((int)i), 0.0f, 1.0f) + 0.5f), 3, C_HI);
+        cv_text(x + 4, 16, text_w(&FONT_B, t) <= 50 ? &FONT_B : &FONT_XS, t, C_WHITE);
+        cv_rect(x + 4, 38, 48, 3, C_BLACK);
+        cv_rect(x + 4, 38, (int32_t)(48.0f * brk_clampf(perc_knob_f((int)i), 0.0f, 1.0f) + 0.5f), 3, C_HI);
     }
     cv_blit(0, 44u + KV_PH);
 }
@@ -429,7 +429,6 @@ static void draw_perc_big(const brk_status_t *st)
         perc_picture(st, (int32_t)top);
         cv_blit(0, 44u + top);
     }
-    perc_cards();
 }
 
 /* the SNARE / HAT page (EDIT): the voice's six settings as bars (the part's lit); then the three drums (LOAF BREAKER:
