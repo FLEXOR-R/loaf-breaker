@@ -1239,6 +1239,12 @@ static float kick_knob_f(int i)          /* the part's knob i, 0..1 (as its bar)
  * note), its memory, its note and the layers' levels; under it (y 144..191) the part's four knobs as cards, their
  * values large */
 #define KV_W 232u
+/* (0.9.82, FLEXOR: "priorité à la forme d'onde et aux visuels ludiques": the picture 136 rows (100 before), the cards
+ * four gauges of 12 (48 rows of name, value and bar: the foot under them says both) */
+#define KV_PH 136u                       /* the picture's rows, y 44 .. 179 */
+#define KV_MID 63                        /* its middle */
+#define KV_AMP 47                        /* the wave's height each way (29 before) */
+#define KV_BOT (KV_MID + KV_AMP)         /* its foot: the parts' tabs under it */
 /* (the picture's time: a quarter of a second; LOAF BREAKER: the RGB view half a second, the tail's fall in it; GLO
  * EFFECTS K4 KICK VIEW on PART: CLICK's 50 ms, PUNCH's and STACK's 150, the TAIL section's whole second) */
 static uint32_t kv_ms(void)
@@ -1382,15 +1388,16 @@ static void kpx_picture(float hz)
     int32_t i, mx, py = 0;
     uint32_t j;
     char t[24], u[12];
+    cv_oy += 8;                          /* (0.9.82: the picture taller, this one lower) */
     for (j = 0; j < 8u; j++) {           /* the grid, its frequencies under it */
         mx = kpx_x((float)F[j]);
-        for (i = 18; i < 66; i += 3)
+        for (i = 18; i < 90; i += 3)
             cv_rect(mx, i, 1, 1, C_LINE);
-        cv_text(mx - text_w(&FONT_XS, FN[j]) / 2, 67, &FONT_XS, FN[j], C_DIM);
+        cv_text(mx - text_w(&FONT_XS, FN[j]) / 2, 91, &FONT_XS, FN[j], C_DIM);
     }
     mx = kpx_x(hz);                      /* the kick's note */
-    cv_rect(mx - 2, 64, 5, 2, C_AMB);
-    cv_rect(mx - 1, 62, 3, 2, C_AMB);
+    cv_rect(mx - 2, 88, 5, 2, C_AMB);
+    cv_rect(mx - 1, 86, 3, 2, C_AMB);
     if (ui.kpage != KP_XSUB) {           /* PRE EQ, PRE EQ +: the bells' curve */
         static const char BN[3] = {'L', 'M', 'H'};
         float A[3], Q[3], F0[3];
@@ -1400,7 +1407,7 @@ static void kpx_picture(float hz)
             F0[j] = kpx_hz(x, j);
         }
         for (i = 0; i < 232; i += 4)     /* (0 dB) */
-            cv_rect(4 + i, 42, 2, 1, C_LINE);
+            cv_rect(4 + i, 54, 2, 1, C_LINE);
         for (i = 0; i < (int32_t)KV_W; i++) {
             float f = kpx_fx(i), db = 0.0f;
             int32_t y;
@@ -1414,9 +1421,9 @@ static void kpx_picture(float hz)
                 de = w2 + (w / (A[j] * Q[j])) * (w / (A[j] * Q[j]));
                 db += 3.0103f * brk_log2f_c(nu / (de > 1e-9f ? de : 1e-9f));
             }
-            y = 42 - (int32_t)(brk_clampf(db, -21.0f, 21.0f) * (22.0f / 18.0f));
-            if (y != 42)
-                cv_rect(4 + i, y < 42 ? y : 43, 1, y < 42 ? 42 - y : y - 42, MB_DIM[1]);
+            y = 54 - (int32_t)(brk_clampf(db, -19.0f, 19.0f) * (32.0f / 18.0f));
+            if (y != 54)
+                cv_rect(4 + i, y < 54 ? y : 55, 1, y < 54 ? 54 - y : y - 54, MB_DIM[1]);
             if (i) {                     /* (2 px: marked) */
                 cv_line(3 + i, py, 4 + i, y, MB_COL[1]);
                 cv_line(3 + i, py + 1, 4 + i, y + 1, MB_COL[1]);
@@ -1424,37 +1431,39 @@ static void kpx_picture(float hz)
             py = y;
         }
         for (j = 0; j < 3u; j++) {       /* each band's point, at its gain */
-            int32_t by = 42 - (int32_t)((float)x->eq_g[j] * (22.0f / 18.0f)), on = x->eq_g[j] != 0;
+            int32_t by = 54 - (int32_t)((float)x->eq_g[j] * (32.0f / 18.0f)), on = x->eq_g[j] != 0;
             char b[2] = {BN[j], 0};
             mx = kpx_x(F0[j]);
             cv_rect(mx - 2, by - 2, 5, 5, on ? C_WHITE : C_GRAY);
             if (!on)
                 cv_rect(mx - 1, by - 1, 3, 3, C_BLACK);
-            cv_text(mx - 2, by < 30 ? by + 4 : by - 11, &FONT_XS, b, on ? C_WHITE : C_GRAY);
+            cv_text(mx - 2, by < 40 ? by + 4 : by - 11, &FONT_XS, b, on ? C_WHITE : C_GRAY);
         }
         cv_text(234 - text_w(&FONT_XS, "> INTO THE DISTO"), 18, &FONT_XS, "> INTO THE DISTO", MB_COL[1]);
+        cv_oy -= 8;
         return;
     }
     if (!x->xo) {                        /* SUB SPLIT off: the whole kick into the dirt */
         for (i = 0; i < (int32_t)KV_W; i++)
-            cv_rect(4 + i, 30 + ((i * 7) % 5), 1, 34 - ((i * 7) % 5), MB_DIM[0]);
-        cv_text(10, 40, &FONT_XS, "OFF: ALL OF THE KICK INTO THE DIRT", C_GRAY);
+            cv_rect(4 + i, 40 + ((i * 7) % 5), 1, 48 - ((i * 7) % 5), MB_DIM[0]);
+        cv_text(10, 58, &FONT_XS, "OFF: ALL OF THE KICK INTO THE DIRT", C_GRAY);
+        cv_oy -= 8;
         return;
     }
     {
         float fc = 40.0f + 5.0f * (float)(x->xo - 1u), lv = (float)(100 + 2 * (int32_t)x->sg) * 0.01f;
         for (i = 0; i < (int32_t)KV_W; i++) {   /* the LR4's two sides: the lows (by SUB LEVEL), the highs, rough */
             float r = kpx_fx(i) / fc, r4 = r * r * r * r, lo = 1.0f / (1.0f + r4), hi = r4 / (1.0f + r4);
-            int32_t hh = (int32_t)(hi * 22.0f), hl = (int32_t)(lo * lv * 22.0f);   /* (100 %: 22 px) */
+            int32_t hh = (int32_t)(hi * 32.0f), hl = (int32_t)(lo * lv * 32.0f);   /* (100 %: 32 px) */
             if (hh > 0) {
                 int32_t jag = hh > 3 ? ((i * 7) % 5) - 2 : 0;   /* (the dirt: a rough edge) */
-                cv_rect(4 + i, 64 - hh - jag, 1, hh + jag, MB_DIM[0]);
-                cv_rect(4 + i, 64 - hh - jag, 1, 1, MB_COL[0]);
+                cv_rect(4 + i, 88 - hh - jag, 1, hh + jag, MB_DIM[0]);
+                cv_rect(4 + i, 88 - hh - jag, 1, 1, MB_COL[0]);
             }
             if (hl > 0) {
-                hl = hl > 30 ? 30 : hl;
-                cv_rect(4 + i, 64 - hl, 1, hl, MB_DIM[2]);
-                cv_rect(4 + i, 64 - hl, 1, 1, MB_COL[2]);
+                hl = hl > 46 ? 46 : hl;
+                cv_rect(4 + i, 88 - hl, 1, hl, MB_DIM[2]);
+                cv_rect(4 + i, 88 - hl, 1, 1, MB_COL[2]);
             }
         }
         t[0] = 0;                        /* the lows: clean or driven, their fall */
@@ -1475,17 +1484,19 @@ static void kpx_picture(float hz)
         }
         cv_text(234 - text_w(&FONT_XS, "> DRIVE + DISTO"), 22, &FONT_XS, "> DRIVE + DISTO", MB_COL[0]);
         mx = kpx_x(fc);                  /* where it crosses: a white line, its Hz in a box beside it */
-        cv_rect(mx, 16, 2, 50, C_WHITE);
+        cv_rect(mx, 16, 2, 74, C_WHITE);
         t[0] = 0;
         text_cat(t, "X ");
         u[0] = 0;
         hz_text(fc, u);
         text_cat(t, u);
         i = mx + 4 + text_w(&FONT_XS, t) > 236 ? mx - 3 - text_w(&FONT_XS, t) : mx + 4;
-        cv_rect(i - 1, 51, text_w(&FONT_XS, t) + 2, 10, C_WHITE);
-        cv_text(i, 50, &FONT_XS, t, C_BLACK);
+        cv_rect(i - 1, 73, text_w(&FONT_XS, t) + 2, 10, C_WHITE);
+        cv_text(i, 72, &FONT_XS, t, C_BLACK);
     }
+    cv_oy -= 8;
 }
+
 static void kick_picture(int32_t top)
 {
     const kick_t *k = &set.kick;
@@ -1500,7 +1511,7 @@ static void kick_picture(int32_t top)
     if (kpx_page())                      /* (0.9.82: PRE EQ, SUB SPLIT: in frequency) */
         kpx_picture(hz);
     else {                               /* (the kick in time) */
-    cv_rect(4, 45, KV_W, 1, C_LINE);     /* (the middle; LOAF BREAKER: up, the parts' bar under it) */
+    cv_rect(4, KV_MID, KV_W, 1, C_LINE);   /* (the middle; LOAF BREAKER: up, the parts' bar under it) */
     if (ui.kview == 0u) {                /* LOAF BREAKER: the RGB view, as rekordbox (the CDJ view's colours): each
                                           * column as tall as its peak, its lows red, mids green, highs blue */
         uint32_t pk = 1u;
@@ -1508,24 +1519,24 @@ static void kick_picture(int32_t top)
             pk = kv_rgb[i][3] > pk ? kv_rgb[i][3] : pk;
         for (i = 0; i < KV_W; i++) {
             const uint8_t *v = kv_rgb[i];
-            uint32_t m = v[0] > v[1] ? v[0] : v[1], h = (uint32_t)v[3] * 29u / pk, br;
+            uint32_t m = v[0] > v[1] ? v[0] : v[1], h = (uint32_t)v[3] * (uint32_t)KV_AMP / pk, br;
             m = v[2] > m ? v[2] : m;
             if (!m || !h)
                 continue;
             br = 120u + (uint32_t)v[3] * 135u / pk;
             /* (each band against the strongest, squared in RGB: the colour saturated, a distorted kick orange, a
              * clean one red, a screech green-white; WAVE TYPE's other styles, 0.9.70) */
-            wave_col(4 + (int32_t)i, 45, (int32_t)h, v[0], v[1], v[2], br, ws_style(), 1);
+            wave_col(4 + (int32_t)i, KV_MID, (int32_t)h, v[0], v[1], v[2], br, ws_style(), 1);
         }
     } else
     for (i = 0; i < KV_W; i++) {         /* the hit: its level (dim, mirrored), its wave over it */
         int32_t h = kv_px[i], w = kv_wave[i];
         if (h)
-            cv_rect(4 + (int32_t)i, 45 - h, 1, 2 * h + 1, C_BLOCK);
+            cv_rect(4 + (int32_t)i, KV_MID - h, 1, 2 * h + 1, C_BLOCK);
         if (w > 0)
-            cv_rect(4 + (int32_t)i, 45 - w, 1, w, C_HI);
+            cv_rect(4 + (int32_t)i, KV_MID - w, 1, w, C_HI);
         else if (w < 0)
-            cv_rect(4 + (int32_t)i, 46, 1, -w, C_HI);
+            cv_rect(4 + (int32_t)i, KV_MID + 1, 1, -w, C_HI);
     }
     if (kscope_hit && !(set.kfocus && (ui.kpage == KP_LAYER || ui.kpage == KP_FX || ui.kpage == KP_STACK))) {
                                           /* LOAF BREAKER TEST: the kick as it really sounds, its last hit: white over it
@@ -1536,11 +1547,11 @@ static void kick_picture(int32_t top)
             pk = (v < 0 ? -v : v) > pk ? (v < 0 ? -v : v) : pk;
         }
         for (i = 0; i < KV_W && i < KSC_W; i++) {
-            v = kscope[i] * 29 / pk;
+            v = kscope[i] * KV_AMP / pk;
             if (v) {
                 uint32_t sx = i * 250u / KV_MS;   /* (its 250 ms, on the picture's time) */
                 if (sx < KV_W)
-                    cv_rect(4 + (int32_t)sx, 45 - v, 1, 1, C_WHITE);
+                    cv_rect(4 + (int32_t)sx, KV_MID - v, 1, 1, C_WHITE);
             }
         }
     }
@@ -1552,7 +1563,7 @@ static void kick_picture(int32_t top)
         else if (klab.cur.curve == 2u)
             pe = 1.0f - (1.0f - pl) * (1.0f - pl) * (1.0f - pl);
         f = hz * (1.0f + drop * pe);
-        int32_t y = 74 - (int32_t)(brk_clampf(brk_log2f(f / 30.0f) / 5.06f, 0.0f, 1.0f) * 58.0f);
+        int32_t y = KV_BOT - (int32_t)(brk_clampf(brk_log2f(f / 30.0f) / 5.06f, 0.0f, 1.0f) * (float)(KV_BOT - 16));
         if (x)
             cv_line(2 + x, py, 4 + x, y, ui.kview == 0u ? C_WHITE : C_AMB);   /* (white over the RGB) */
         py = y;
@@ -1565,7 +1576,7 @@ static void kick_picture(int32_t top)
                          : (klab.cur.end ? kick_lab_ms(KLM_END, klab.cur.end) : -1.0f);
             int32_t mx = 4 + (int32_t)(ms * ((float)KV_W / (float)KV_MS));
             if (ms >= 0.0f && mx < 4 + (int32_t)KV_W)
-                for (x = 16; x < 74; x += 4)
+                for (x = 16; x < KV_BOT; x += 4)
                     cv_rect(mx, x, 1, 2, m ? C_AMB : C_WHITE);
         }
     }
@@ -1627,7 +1638,7 @@ static void kick_picture(int32_t top)
                                           * tabs: the whole width, the one open lit (BEGINNER: those it passes over
                                           * dim); the tabs' letters if they fit, else smaller */
         uint32_t j;
-        int32_t cx = 4, y = 80;
+        int32_t cx = 4, y = KV_BOT + 6;
         if (set.novice) {                /* (BEGINNER: its pages, KICK, SHAPE, MIX, as tabs; EDIT the next) */
             for (j = 0; j < KE_PAGES; j++) {
                 int32_t x = cx + (int32_t)j * 64;
@@ -1641,31 +1652,19 @@ static void kick_picture(int32_t top)
     }
     cv_oy = 0;
 }
-static void kick_cards(void)             /* the part's four knobs: its name, its value large, its bar */
+static void kick_cards(void)             /* the part's four knobs as gauges (0.9.82: their names and values the foot's) */
 {
     uint32_t i;
-    char t[16];
-    cv_begin(240, 48, C_BLACK);
+    cv_begin(240, 12, C_BLACK);
     for (i = 0; i < 4u; i++) {
-        int32_t x = 2 + (int32_t)i * 60;
-        const char *n = kick_knob_name((int)i);
-        cv_rect(x, 0, 56, 46, C_BLOCK);
-        if (!n[0])
+        int32_t x = 2 + (int32_t)i * 60, w;
+        if (!kick_knob_name((int)i)[0])
             continue;
-        if (ui.kpage == KP_STYLE) {      /* (LOAF BREAKER: STYLE: the function's value too, by its knob's name; too
-                                          * long for both, the value alone) */
-            selk_value(selk_fn(i), 0, t);
-            if (text_w(&FONT_XS, t) <= 34)
-                cv_text(x + 4, 3, &FONT_XS, n, C_GRAY);
-            cv_text(x + 52 - text_w(&FONT_XS, t), 3, &FONT_XS, t, C_WHITE);
-        } else
-            cv_text(x + 4, 3, &FONT_XS, n, C_GRAY);
-        kick_value((int)i, t);
-        cv_text(x + 4, 16, text_w(&FONT_B, t) <= 50 ? &FONT_B : &FONT_XS, t, C_WHITE);
-        cv_rect(x + 4, 38, 48, 3, C_BLACK);
-        cv_rect(x + 4, 38, (int32_t)(48.0f * brk_clampf(kick_knob_f((int)i), 0.0f, 1.0f) + 0.5f), 3, C_HI);
+        w = (int32_t)(56.0f * brk_clampf(kick_knob_f((int)i), 0.0f, 1.0f) + 0.5f);
+        cv_rect(x, 3, 56, 6, C_BLOCK);
+        cv_rect(x, 3, w, 6, C_HI);
     }
-    cv_blit(0, 144);
+    cv_blit(0, 44u + KV_PH);
 }
 static void draw_kick_classic(const brk_status_t *st)   /* LOAF BREAKER: the menu as it was (EDIT held: either):
                                           * the part's knobs as bars, the layers' levels, the five drums' shapes */
@@ -1719,18 +1718,18 @@ static void draw_kick(const brk_status_t *st)
         if (ui.kview == 0u)              /* (LOAF BREAKER: the RGB view, its peaks its own; or the wave over its level) */
             kick_rgb(&kk, kv_rgb, KV_W, KV_MS);
         else {
-            kick_shape(&kk, kv_px, KV_W, KV_MS, 29u);
-            kick_wave(&kk, kv_wave, KV_W, KV_MS, 29u);
+            kick_shape(&kk, kv_px, KV_W, KV_MS, (uint32_t)KV_AMP);
+            kick_wave(&kk, kv_wave, KV_W, KV_MS, (uint32_t)KV_AMP);
         }
         for (top = 0; top < KV_W; top++)
             pk = kv_px[top] > pk ? kv_px[top] : pk;
         for (top = 0; pk && top < KV_W; top++) {   /* (as tall as it goes) */
-            kv_px[top] = (uint8_t)((uint32_t)kv_px[top] * 29u / pk);
-            kv_wave[top] = (int8_t)((int32_t)kv_wave[top] * 29 / (int32_t)pk);
+            kv_px[top] = (uint8_t)((uint32_t)kv_px[top] * (uint32_t)KV_AMP / pk);
+            kv_wave[top] = (int8_t)((int32_t)kv_wave[top] * KV_AMP / (int32_t)pk);
         }
     }
-    for (top = 0; top < 100u; top += 60u) {   /* (y 44..143, strips of 60 rows) */
-        uint32_t h = 100u - top < 60u ? 100u - top : 60u;
+    for (top = 0; top < KV_PH; top += 60u) {   /* (y 44..167, strips of 60 rows) */
+        uint32_t h = KV_PH - top < 60u ? KV_PH - top : 60u;
         cv_begin(240, h, C_BLACK);
         kick_picture((int32_t)top);
         cv_blit(0, 44u + top);
