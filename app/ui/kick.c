@@ -592,7 +592,7 @@ static void kpx_value(int i, char *t)
         return;
     }
     if (i == 0) {
-        if (!x->xo)
+        if (!x->xo || x->xoff & 1u)      /* (0.9.86: XSB switched it off, its X FREQ kept) */
             text_cat(t, "OFF");
         else
             hz_text(40.0f + 5.0f * (float)(x->xo - 1u), t);
@@ -642,8 +642,10 @@ static void kpx_turn(int i, int32_t d)
             x->eq_q = (int8_t)clamp((int32_t)x->eq_q + dir, -8, 12);
         else
             return;
-    } else if (i == 0)
+    } else if (i == 0) {
         x->xo = (uint8_t)clamp((int32_t)x->xo + d, 0, (int32_t)KICK_XO_N);
+        x->xoff = 0u;                    /* (0.9.86: X FREQ turned: the XSB switch on again) */
+    }
     else if (i == 1)
         x->sg = (int8_t)clamp((int32_t)x->sg + d, -50, 50);
     else if (i == 2)

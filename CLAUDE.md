@@ -158,6 +158,12 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   `as_turn` a place on (a knob not lit: lit only, its detents ignored AS_LOCK_MS 400 after, FLEXOR: "se débloque au bout
   d'un temps pertinent"), ALGORITHM `as_fam_turn` a family on. SK 29 XSUB FREQ (`SK_XO`, kx2.px xo, OFF / 40-300 Hz),
   SK_N / SK_CODES 30: code 31, one function more at most.
+- XSB (26 Nov 2026, 0.9.86, FLEXOR: "une touche noire assignable pour le ON/OFF xsub freq afin de jouer en live"):
+  `BKF_XSB`, last in BKF_* (after CLP): a press, the kick's SUB SPLIT off (kick_px_t `xoff`, its old rsv[0]; X FREQ kept;
+  app.c klab_send hands kick_set_px xo 0 then) or on (no X FREQ yet: 13, 100 Hz); lit while heard; X FREQ turned (kpx_turn,
+  SK_XO) clears xoff; each kick's (kx2.px), COPY copies it, a built-in PRESET clears it. CUSTOM / SEL BLACK / REC; probe
+  xoff; scenario xsbkey; the scenarios turning K3 left of R8 one more (recsel kickx2 kickx4 kiltri killbreak reckey chskey
+  splkey drumkeys).
 - Black keys over the pictures (26 Nov 2026, 0.9.86, FLEXOR: "utiliser des touches noires par dessus la waveform, les eq,
   ou le xsub fait un flickering bizarre"): a held key's picture (ui.shown != -1) holds the strip; main.c drops RG_BLOCKS
   again right before drawing (kv_poll and the kick's live scope set it after the frame's first clear: the page drew over

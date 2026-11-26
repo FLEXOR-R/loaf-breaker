@@ -245,7 +245,9 @@ static settings_t set;
  * A layout: the function of each key, left to right. Presets: CHOPPAH (CHOPPAH's keys; BEGINNER's only), FLEXOR LAYOUT
  * (LOAF BREAKER's until 0.244), CUSTOM (each key its own: ARP › BLACK KEYS) */
 enum { BKF_ARP = BRK_NPADS, BKF_KIL, BKF_DST, BKF_SUB, BKF_DRV, BKF_X2, BKF_X4, BKF_TRI, BKF_SDR, BKF_KBR, BKF_CHS, BKF_SPL,
-       BKF_KCK, BKF_SNR, BKF_HAT, BKF_CLP, BKF_N };   /* (0.9.81, FLEXOR: a key per drum, in DR_* order: KCK the
+       BKF_KCK, BKF_SNR, BKF_HAT, BKF_CLP, BKF_XSB, BKF_N };   /* (0.9.86, FLEXOR: "une touche noire assignable pour le
+                                          * ON/OFF xsub freq afin de jouer en live": XSB, the kick's SUB SPLIT on or off,
+                                          * its X FREQ kept: kx2.px xoff) */   /* (0.9.81, FLEXOR: a key per drum, in DR_* order: KCK the
                                           * kick, SNR the snare, HAT, CLP; a hit each press, written with REC) */   /* (0.9.55: X4, TRI; 0.9.57 SDR, SUB DRIVE on / off again;
                                           * 0.9.58 KBR, KILL BREAK; 0.9.76 CHS, CHAOS on / off; 0.9.78 SPL, the
                                           * break's SPLIT on / off) */   /* (BKF_DRV: the kick's DRIVE, 0.9.43;
@@ -773,7 +775,12 @@ static void klab_send(void)              /* the LAB to the engine, STACK's attac
     uint32_t n = klab.cur.src ? (uint32_t)(klab.cur.src - 1u) % KICK_MEMS : 0u;
     kick_set_lab(&klab.cur);
     kick_set_x2(kx2_at(set.kslot));      /* (0.9.45: its TOK and TAIL GATE) */
-    kick_set_px(kpx_at(set.kslot));      /* (0.9.82: its PRE EQ and SUB SPLIT) */
+    {                                    /* (0.9.82: its PRE EQ and SUB SPLIT; 0.9.86 XSB off: no split, X FREQ kept) */
+        kick_px_t x = *kpx_at(set.kslot);
+        if (x.xoff & 1u)
+            x.xo = 0u;
+        kick_set_px(&x);
+    }
     if (!klab.cur.src)
         kick_set_stack(0, 0, 0);
     else if (n == set.kslot % KICK_MEMS)   /* (its own: the kick playing, as it is) */

@@ -150,7 +150,9 @@ typedef struct {
     int8_t sg;                           /* SUB LEVEL: 100 + 2 sg %, -50 .. 50 */
     uint8_t sdrv;                        /* SUB DIRT: 0 clean .. 100 */
     uint8_t sdec;                        /* SUB DECAY: 0 OPEN (as the kick), 1..100 30 .. 2000 ms */
-    uint8_t rsv[5];
+    uint8_t xoff;                        /* (0.9.86, the XSB key: 1 the SUB SPLIT switched off, X FREQ kept; the app's
+                                          * alone: kick_set_px is handed xo 0 then) */
+    uint8_t rsv[4];
 } kick_px_t;
 #define KICK_XO_N 53u
 #define KICK_PX_DB 18

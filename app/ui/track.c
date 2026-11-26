@@ -782,7 +782,7 @@ static void selk_value(uint32_t f, int i, char *t)
         if (i)
             return;
         if (f == SK_XO) {
-            if (!x->xo)
+            if (!x->xo || x->xoff & 1u)
                 text_cat(t, "OFF");
             else
                 hz_text(40.0f + 5.0f * (float)(x->xo - 1u), t);
@@ -965,8 +965,10 @@ static void selk_turn(uint32_t f, int i, int32_t d)
         uint32_t b = (f - SK_PRE) % 3u;
         if (i)
             return;
-        if (f == SK_XO)
+        if (f == SK_XO) {
             x->xo = (uint8_t)clamp((int32_t)x->xo + d, 0, (int32_t)KICK_XO_N);
+            x->xoff = 0u;                /* (the XSB switch on again) */
+        }
         else if (f >= SK_PRE + 3u)
             x->eq_f[b] = (int8_t)clamp((int32_t)x->eq_f[b] + d, KPX_FLO[b], KPX_FHI[b]);
         else
