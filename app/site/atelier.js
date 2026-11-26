@@ -5,6 +5,8 @@
    logicalImage, checkUfw. A .fwsc, or a zip holding one (a GitHub Actions artifact, the site's zip), dropped or
    chosen; only LOAF BREAKER's identity (meta.product) is taken, so the resources and the confetti stay right. */
 const AT_REPO = "https://github.com/FLEXOR-R/loaf-breaker";
+const atSite = meta.product;             /* (the site's release's identity, kept: meta.product becomes the package's) */
+const atFamily = (p) => String(p || "").replace(/\d{6}$/, "");
 const atSay = (txt, bad) => { const el = $("atstate"); el.textContent = txt; el.classList.toggle("bad", !!bad); };
 
 /* a zip's entry ending in .fwsc (stored or deflated: what GitHub's artifacts and release zips use) */
@@ -41,11 +43,15 @@ async function atTake(file) {
     let name = file.name, raw = new Uint8Array(await file.arrayBuffer());
     if (raw[0] === 0x50 && raw[1] === 0x4b) ({ name, raw } = await atFromZip(raw));
     const product = productOf(raw);
-    if (product !== meta.product) {
+    /* (0.9.83: the identity is the id_prefix then the package's version, six digits, FM-1_2623 + 020983: a TEST or an
+       older version is another number. LOAF BREAKER's family is the prefix; the package then goes in under its own
+       identity, not the site's release's) */
+    if (!product || atFamily(product) !== atFamily(atSite)) {
       atSay(`${name} : ce n'est pas un LOAF BREAKER (${product || "pas un paquet FM-1"}). Ici, seulement les LOAF BREAKER ` +
-            `(${meta.product}) ; le firmware d'origine se remet sur la page Install.`, true);
+            `(${atFamily(atSite)}…) ; le firmware d'origine se remet sur la page Install.`, true);
       return;
     }
+    meta.product = product;
     const img = logicalImage(raw);
     try { checkUfw(img); } catch (_) { atSay(`${name} : paquet abîmé, ne l'installe pas.`, true); return; }
     image = img;

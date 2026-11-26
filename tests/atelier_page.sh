@@ -3,7 +3,8 @@
 # The ATELIER (LOAF BREAKER 0.9.75, FLEXOR: a secret page to install TEST and personal builds): the installer as
 # make_site writes it (fm1-base's web/installer.html, its libraries inlined, the package's metadata), then
 # tools/site_style.py (install, atelier); in Chromium: a LOAF BREAKER .fwsc chosen is taken (Install enabled), a zip
-# holding one too, another identity (m-bootloader's) refused; the page is noindex and no other page links it.
+# holding one too, another version (a TEST: the site's release is another number) too, another identity (m-bootloader's)
+# refused; the page is noindex and no other page links it.
 # Needs app/build/loaf-breaker.fwsc (./build.sh) and Playwright with its Chromium; without either it says so and passes.
 #   tests/atelier_page.sh
 set -e
@@ -25,7 +26,8 @@ import make_site as m
 site, pkg, out = Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3])
 html = (m.SRC / "web" / "installer.html").read_text(encoding="utf-8")
 lib = "\n".join(m.strip_module((m.SRC / "web" / f).read_text(encoding="utf-8")) for f in ("fm1ports.js", "fm1pkg.js", "fm1ota.js"))
-meta = json.dumps({"version": "0.0.0", "product": m.product_of(pkg.read_bytes()), "pkg": "../firmware/none.fwsc",
+# (0.9.83: the site's release another version than the package dropped, as a TEST's always is: the same family, taken)
+meta = json.dumps({"version": "0.0.0", "product": m.product_of(pkg.read_bytes())[:-6] + "000001", "pkg": "../firmware/none.fwsc",
                    "backup": False, "res": None, "boot": None})
 for k, v in (("RES", "data"), ("RES_JA", "data"), ("NAME", "LOAF BREAKER"), ("REPO", ""), ("REPO_SHORT", ""),
              ("LICENSE", "MPL-2.0"), ("CREDITS", "")):
