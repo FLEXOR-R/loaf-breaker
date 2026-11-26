@@ -194,7 +194,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - LOAF RAIN, named LOAF LORD on the screen and in the docs (26 Nov 2026, 0.9.87, FLEXOR: "une pluie de loaf lord pixélisés ... rebondir ... tomberont en bas de l'écran
   après leur premier rebond"): SYSTEM › SCREEN FX's eighth (`SFX_RAIN`, set.sfx_on bit 7: the byte is full, a ninth
   effect needs another byte; white key 8; the cards' help card gone for its card). common.c `LOAF_PX` (FLEXOR's choice C
-  of five, "moins pixélisées": the VST's loaflord_face.png, its shadows lifted, the whole face to the chin (FLEXOR: "il manque un bout du bas de son visage"), its outline the photo's own, the dome over the slice (FLEXOR: "moins droits, comme sur le dessin original"), 32 x 32 at the screen's pixels, 4 bits a
+  of five, "moins pixélisées": the VST's loaflord_face.png, its shadows lifted, the whole face to the chin (FLEXOR: "il manque un bout du bas de son visage"), its outline the photo's own, the dome over the slice (FLEXOR: "moins droits, comme sur le dessin original"; under the nose the right side the left's mirror, "exactement comme le coté gauche"), 32 x 32 at the screen's pixels, 4 bits a
   pixel: 0 none, 1..15 `LOAF_PAL` near black to bone; 512 B; 12 x 12 doubled in the first TEST), `rain[RAIN_N 8]` (RAM),
   `rain_put` in crt_blit before the other effects; main.c `rain_frame` (33 ms at most): AMOUNT / 25 a second, ON A KICK its chance a kick, AT THE DROP 1 +
   DROP / 20; 700 px/s², one bounce (0.6), then through the bottom; it returns the RG_* the loaves were and are in
