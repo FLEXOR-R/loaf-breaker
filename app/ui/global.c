@@ -410,7 +410,7 @@ static void sfx_cards(int32_t top)
         if (f == SFX_RAIN)               /* (a LOAF LORD over the picture) */
             rain_put(x + 11, y + 10, 0, top);
         cv_rect(x, y + 53, 55, 17, SFX_ON(f) ? C_HI : C_BLOCK);
-        text_cat(n, f == SFX_RAIN ? "RAIN" : SFX_NAME[f]);
+        text_cat(n, SFX_NAME[f]);
         cv_text(x + 3, y + 55, text_w(&FONT_T, n) <= 50 ? &FONT_T : &FONT_XS, n, SFX_ON(f) ? C_BLACK : C_GRAY);
     }
     cv_oy = 0;
