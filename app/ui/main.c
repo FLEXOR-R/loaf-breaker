@@ -2148,18 +2148,28 @@ static void draw_help(void)
     cv_blit(0, 140u);
 }
 
-/* LOAF BREAKER TEST: a knob's value as an arc (a 270 degree gauge, 13 px, lit as far as it is turned), where the page
- * knows it 0..1: the FX slots, the kick, the MIXER's levels */
-static const int8_t ARC[19][2] = {{-4, 4}, {-5, 3}, {-6, 2}, {-6, 0}, {-6, -2}, {-5, -3}, {-4, -4}, {-3, -5}, {-2, -6},
-                                  {0, -6}, {2, -6}, {3, -5}, {4, -4}, {5, -3}, {6, -2}, {6, 0}, {6, 2}, {5, 3}, {4, 4}};
-static void knob_arc(int32_t cx, int32_t cy, float v)
-{
-    int32_t j, lit = (int32_t)(brk_clampf(v, 0.0f, 1.0f) * 18.0f + 0.5f);
-    for (j = 0; j < 19; j++)
-        cv_rect(cx + ARC[j][0], cy + ARC[j][1], j <= lit ? 2 : 1, j <= lit ? 2 : 1, j <= lit ? C_HI : C_LINE);
-}
+/* (the knobs' arc, LOAF BREAKER TEST .. 0.9.81: the foot's cards' faders since, foot_card) */
+static uint8_t foot_bip;                 /* (0.9.82: the last foot_norm's setting both ways, its fader from the middle:
+                                          * the DJ filters) */
 static float foot_norm(int i)            /* the page's knob i, 0..1, or -1 (no gauge) */
 {
+    foot_bip = 0u;
+    if (ui.page == PG_HOME) {            /* (0.9.82, FLEXOR: the foot's cards a fader where it means something) */
+        if (i == 0)
+            return set.gate && set.gate < 100u ? (float)set.gate * 0.01f : 0.0f;
+        if (i == 3)
+            return set.kick.l[KL_SUB].decay;
+        foot_bip = 1u;                   /* (the break's and the drums' filters: LP left, HP right) */
+        return 0.5f + 0.5f * brk_clampf(i == 1 ? set.fx.dj : (float)set.kick_dj * 0.01f, -1.0f, 1.0f);
+    }
+    if (ui.page == PG_GEN)
+        return i == 0 ? set.gen.complexity : i == 1 ? set.gen.anchor : i == 2 ? set.gen.roll : set.gen.fill;
+    if (ui.page == PG_CHAOS)
+        return i == 0 || i == 2 ? (float)kx2.chaos[i] * 0.01f : i == 3 ? (float)kx2.chaos[3] * (1.0f / 99.0f) : -1.0f;
+    if (ui.page == PG_OVL && !ui.opage && i == 0)
+        return (float)set.ovl_amt[ovl_last & 15u] * 0.01f;
+    if (ui.page == PG_MIX && ui.mpage == 1u && i == 0)
+        return set.fx.wet;
     if (ui.page == PG_FX && !mb_detail(fx_foc()) && !x_detail(fx_foc())) {
         const brk_fxslot_t *sl = fx_sl(fx_foc());
         return sl->type ? (i == 3 ? sl->mix : sl->p[i & 3]) : -1.0f;
@@ -2251,6 +2261,32 @@ static int edit_page(void)              /* (0.9.82, FLEXOR: the KICK menu and th
 {
     return (ui.page == PG_KICK && !ui.kclassic) || (ui.page == PG_PERC && ui.pbig);
 }
+/* LOAF BREAKER (0.9.82, FLEXOR: "ces fameux carrés ... sur les autres pages si ils prennent pas plus de place ... un
+ * fader sur l'avancée de certains paramètres quand c'est pertinent, et quand ça ne l'est pas, garder le carré sans la
+ * barre"): each knob of the foot a card under the black keys' row, its name, its value, and a fader where the setting
+ * has a travel (foot_norm, sk_norm >= 0; a list, a mode, a preset: none). The arc beside the value before */
+static void foot_card(uint32_t i, const char *name, uint16_t ncol, const char *v, float norm, int bip)
+{
+    int32_t x = 2 + (int32_t)i * 60;
+    cv_rect(x, 16, 56, 31, C_BLOCK);
+    if (name[0])
+        cv_text(x + 3, 17, &FONT_T, name, ncol);
+    if (v[0]) {
+        if (text_w(&FONT_XS, v) > 51)    /* (a value wider than its card: the smaller letters, 0.238) */
+            cv_text(x + 1, 30, &FONT_T, v, C_WHITE);
+        else
+            cv_text(x + 3, 29, &FONT_XS, v, C_WHITE);
+    }
+    if (norm >= 0.0f) {
+        int32_t w = (int32_t)(50.0f * brk_clampf(norm, 0.0f, 1.0f) + 0.5f);
+        cv_rect(x + 3, 42, 50, 2, C_BLACK);
+        if (bip) {                       /* (both ways: from the middle, its notch) */
+            cv_rect(x + 3 + (w < 25 ? w : 25), 42, w < 25 ? 25 - w : w - 25, 2, C_HI);
+            cv_rect(x + 27, 41, 2, 4, C_GRAY);
+        } else
+            cv_rect(x + 3, 42, w, 2, C_HI);
+    }
+}
 static void draw_foot(const brk_status_t *st)
 {
     uint32_t i;
@@ -2279,57 +2315,45 @@ static void draw_foot(const brk_status_t *st)
         if (ui.sel_foot) {               /* LOAF BREAKER (0.258, FLEXOR): SEL held or locked (SEL x2): the knobs are
                                           * SEL + K1-K4's, their functions (EDIT KICK › KNOBS) and their values */
             selk_value(selk_fn(i), 0, t);
-            cv_text(4 + (int32_t)i * 60, 18, &FONT_T, SK_NAME[selk_fn(i)], C_AMB);
-            if (text_w(&FONT_XS, t) > 54)
-                cv_text(2 + (int32_t)i * 60, 31, &FONT_T, t, C_WHITE);
-            else
-                cv_text(4 + (int32_t)i * 60, 30, &FONT_XS, t, C_WHITE);
+            foot_card(i, SK_NAME[selk_fn(i)], C_AMB, t, sk_norm(selk_fn(i), 0), 0);
             continue;
         }
-        if (ui.shown >= 100 && set.novice)
-            continue;                    /* (LOAF BREAKER: BEGINNER, a key held: no knob) */
+        if (ui.shown >= 100 && set.novice) {
+            foot_card(i, "", C_GRAY, "", -1.0f, 0);   /* (LOAF BREAKER: BEGINNER, a key held: no knob) */
+            continue;
+        }
         if (ui.shown >= 100) {           /* a white key held: its loop, or its slice's effect */
-            cv_text(4 + (int32_t)i * 60, 18, &FONT_T, ui.key_layer ? SLX_KNOB[i] : KEY_KNOB[i], C_HI);
             if (ui.key_layer)
                 slx_knob_value(ui.shown - 100, (int)i, t);
             else
                 key_knob_value(ui.shown - 100, (int)i, t);
-            cv_text(4 + (int32_t)i * 60, 30, &FONT_XS, t, C_WHITE);
+            foot_card(i, ui.key_layer ? SLX_KNOB[i] : KEY_KNOB[i], C_HI, t, -1.0f, 0);
             continue;
         }
         if (ui.x2_focus && i == 0u && ui.shown < 100) {   /* (0.9.48: X2 held: K1 its LATCH) */
-            cv_text(4, 18, &FONT_T, "LATCH", C_HI);
-            cv_text(4, 30, &FONT_XS, set.half_mt_off & (8u << ((ui.x2_focus - 1u) % 3u)) ? "OFF" : "ON", C_WHITE);
+            foot_card(0u, "LATCH", C_HI, set.half_mt_off & (8u << ((ui.x2_focus - 1u) % 3u)) ? "OFF" : "ON", -1.0f, 0);
             continue;
         }
         if (ui.kil_focus && i == 0u && ui.shown < 100) {   /* LOAF BREAKER: KIL held: K1 its LATCH */
-            cv_text(4, 18, &FONT_T, "LATCH", C_HI);
-            cv_text(4, 30, &FONT_XS, set.half_mt_off & 4u ? "ON" : "OFF", C_WHITE);
+            foot_card(0u, "LATCH", C_HI, set.half_mt_off & 4u ? "ON" : "OFF", -1.0f, 0);
             continue;
         }
         if (ui.shown >= 0) {             /* a pad held: its own settings */
             name = pad_knob_name(ui.shown, (int)i);
-            if (!name)
-                continue;
-            cv_text(4 + (int32_t)i * 60, 18, &FONT_T, name, C_HI);
-            pad_knob_value(ui.shown, (int)i, t);
-            cv_text(4 + (int32_t)i * 60, 30, &FONT_XS, t, C_WHITE);
+            t[0] = 0;
+            if (name)
+                pad_knob_value(ui.shown, (int)i, t);
+            foot_card(i, name ? name : "", C_HI, t, -1.0f, 0);
             continue;
         }
-        if (!trk_knob_ok((int)i) || !glo_knob_ok((int)i))   /* (LOAF BREAKER: BEGINNER, a knob it leaves out: blank) */
+        if (!trk_knob_ok((int)i) || !glo_knob_ok((int)i)) {   /* (LOAF BREAKER: BEGINNER, a knob it leaves out: blank) */
+            foot_card(i, "", C_GRAY, "", -1.0f, 0);
             continue;
-        cv_text(4 + (int32_t)i * 60, 18, &FONT_T, name, ui.page == PG_FX
-                ? (fx_sl(fx_foc())->on ? C_HI : C_DIM) : C_GRAY);
+        }
         knob_value((int)i, t);
-        if (text_w(&FONT_XS, t) > 54)    /* (LOAF BREAKER, 0.238: a value wider than its column, GLUCKSMAN: the
-                                          * smaller letters, from 2 px to the left, not into the next; 0.239: 54) */
-            cv_text(2 + (int32_t)i * 60, 31, &FONT_T, t, C_WHITE);
-        else
-            cv_text(4 + (int32_t)i * 60, 30, &FONT_XS, t, C_WHITE);
-        {                                /* (TEST: its arc, where there is room beside the value) */
-            float nv = foot_norm((int)i);
-            if (nv >= 0.0f && text_w(&FONT_XS, t) <= 38)
-                knob_arc(4 + (int32_t)i * 60 + 49, 37, nv);
+        {
+            float nv = name[0] ? foot_norm((int)i) : -1.0f;
+            foot_card(i, name, ui.page == PG_FX ? (fx_sl(fx_foc())->on ? C_HI : C_DIM) : C_GRAY, t, nv, foot_bip);
         }
     }
     cv_oy = 0;

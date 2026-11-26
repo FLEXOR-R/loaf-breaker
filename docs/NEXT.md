@@ -7,3 +7,5 @@ the release's notes. Emptied (this comment kept) once the release is out. -->
 - DIRT's tabs shortened (DIST, SCR, SFX ..) so the ten fit.
 - The KICK and drum pages: the knobs' cards take the place of the knobs' line at the foot (it said the same), the
   black keys' functions are no longer shown there, and the picture is half as tall again.
+- Every page's foot: each knob a card (its name, its value) with a fader under it when the setting has a travel (the
+  levels, the filters from their middle, the FX, GENERATOR, CHAOS, ARP's amount ..); a list or a mode, no fader.
