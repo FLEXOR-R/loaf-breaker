@@ -161,6 +161,7 @@ jobs:
           sh tests/drum_kit.sh       # (0.9.45: your drum samples, the IMPORT page)
           sh tests/import_page.sh
           sh tests/live_page.sh      # (0.9.71: the app's LIVE page against the simulator; skipped without Playwright)
+          sh tests/studio_page.sh    # (0.9.87: the Studio, the VST's look, against the simulator; skipped without Playwright)
           sh tests/atelier_page.sh   # (0.9.75: the secret installer atelier/ and the app's tile; skipped without Playwright)
 
       # LOAF BREAKER's site, as CHOPPAH's: the front page, the web installer, the emulator in the browser and the

@@ -9,7 +9,7 @@ const h = (tag, cls, html) => { const e = document.createElement(tag); if (cls) 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const PG = { HOME: 0, GEN: 1, FX: 2, GLOBAL: 3, KICK: 4, MIX: 5, SEQ: 6, PERC: 7, TRACK: 8, OVL: 9, KEQ: 10, HSET: 11 };
 const LANE = ["KICK", "SNARE", "HAT", "CLAP"], LANEC = ["var(--k)", "var(--s)", "var(--h)", "var(--c)"];
-const LANEHEX = ["#ff6b57", "#ffc94a", "#4fd1e8", "#b48cff"];
+const LANEHEX = ["#d8463a", "#e0a53a", "#5fae5a", "#5b9bd5"];   /* (0.9.87: the VST's layer colours) */
 const DRUM = ["SNARE", "HAT", "CLAP"], DPAGE = ["SOUND", "SHAPE", "MORE"];
 
 /* ================================================================== the link (as the BREAKS page's) */
@@ -69,7 +69,7 @@ function toast(t, ok) {
 }
 
 /* ================================================================== colours: the FM-1's own (common.c serato_col, cdj.c) */
-let accent = "#ff8470";                    /* (the design's own, for the canvases) */
+let accent = "#f4efe4";                    /* (the design's own, for the canvases) */
 let wstyle = 0;                             /* 0 RGB, 1 SERATO, 2 3 BAND, 3 BLUE (the FM-1's WAVE TYPE; 0.9.70 the last two) */
 const WS_NAMES = ["RGB", "Serato", "3 Band", "Blue"];
 function colOf(v, bright) {                 /* v: lows, mids, highs, peak (0..255) -> [r, g, b] */
@@ -151,12 +151,6 @@ async function knobReq(a, knob, d) {
   const r = await ask(13, [2, a.pg, a.a || 0, a.b || 0, knob, d & 255]);
   return { code: r.code, ks: parseKnobs(r.data, 4, 120) };
 }
-const ARC0 = -135, ARC1 = 135;
-function arcPath(cx, cy, r, a0, a1) {
-  const p = (a) => [cx + r * Math.sin(a * Math.PI / 180), cy - r * Math.cos(a * Math.PI / 180)];
-  const [x0, y0] = p(a0), [x1, y1] = p(a1);
-  return `M${x0.toFixed(2)} ${y0.toFixed(2)}A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
-}
 let lastTurn = 0, turnedAny = false, turnedAll = false, lastPollT = 0, polling = false;
 const pending = new Map();                  /* panel -> [clicks per knob] */
 let flushing = false;
@@ -177,14 +171,14 @@ class Panel {
     this.held = [0, 0, 0, 0];               /* (the last local move: the FM-1's own value back once quiet) */
   }
   knob(i) {
-    const el = h("div", "kn blank", `<svg viewBox="0 0 46 38" aria-hidden="true"><path class="tr" d="${arcPath(23, 21, 16, ARC0, ARC1)}"/>` +
-      `<path class="vl" d=""/><line class="pt" x1="23" y1="21" x2="23" y2="9"/></svg><div class="v"></div><div class="n"></div>`);
+    /* (0.9.87, as the VST's cards: the name, a bar of the value, the value; dragged sideways or up) */
+    const el = h("div", "kn blank", `<div class="n"></div><div class="bar" aria-hidden="true"><i></i><em></em></div><div class="v"></div>`);
     el.tabIndex = 0; el.setAttribute("role", "slider");
-    let y0 = null, acc = 0, moved = false;
-    el.addEventListener("pointerdown", (e) => { if (e.button) return; y0 = e.clientY; acc = 0; moved = false; el.setPointerCapture(e.pointerId); });
+    let y0 = null, x0 = 0, acc = 0, moved = false;
+    el.addEventListener("pointerdown", (e) => { if (e.button) return; y0 = e.clientY; x0 = e.clientX; acc = 0; moved = false; el.setPointerCapture(e.pointerId); });
     el.addEventListener("pointermove", (e) => {
       if (y0 === null) return;
-      acc += (y0 - e.clientY) / (e.shiftKey ? 14 : 5); y0 = e.clientY;
+      acc += ((e.clientX - x0) + (y0 - e.clientY)) / (e.shiftKey ? 14 : 5); y0 = e.clientY; x0 = e.clientX;
       const n = Math.trunc(acc);
       if (n) { acc -= n; moved = true; this.turn(i, n); }
     });
@@ -236,11 +230,9 @@ class Panel {
       el.querySelector(".v").textContent = k.text;
       el.querySelector(".n").textContent = k.name;
       if (k.bar !== null) {
-        const a = ARC0 + (ARC1 - ARC0) * clamp(k.bar, 0, 1);
-        el.querySelector(".vl").setAttribute("d", k.bar > 0.004 ? arcPath(23, 21, 16, ARC0, a) : "");
-        const r = a * Math.PI / 180;
-        el.querySelector(".pt").setAttribute("x2", (23 + 11 * Math.sin(r)).toFixed(2));
-        el.querySelector(".pt").setAttribute("y2", (21 - 11 * Math.cos(r)).toFixed(2));
+        const pc = (clamp(k.bar, 0, 1) * 100).toFixed(1) + "%";
+        el.querySelector(".bar i").style.width = pc;
+        el.querySelector(".bar em").style.left = pc;
         el.setAttribute("aria-valuenow", String(Math.round(k.bar * 100)));
       } else el.removeAttribute("aria-valuenow");
       el.setAttribute("aria-valuemin", "0"); el.setAttribute("aria-valuemax", "100");
@@ -363,7 +355,7 @@ async function poll(force) {               /* (force: between a view's own reque
 }
 function fmtTempo(t) { return (t / 10).toFixed(1); }
 function showStatus(was) {
-  $("play").textContent = S.playing ? "■" : "▶"; $("play").classList.toggle("on", S.playing);
+  $("play").textContent = S.playing ? "Stop" : "Play"; $("play").classList.toggle("on", S.playing);
   if (document.activeElement !== $("tempo") || !tempoDrag) $("tempo").textContent = fmtTempo(S.tempo) + (S.ext ? " EXT" : "");
   $("patNow").textContent = "P" + (S.pat + 1);
   $("patNext").textContent = S.next !== 255 ? "→ P" + (S.next + 1) : "";
@@ -485,36 +477,42 @@ function frame() {
 requestAnimationFrame(frame);
 
 /* ================================================================== the views */
-const ICONS = {
-  live: '<path d="M2 8h2l2-5 3 10 2-6 1.5 3H14"/>',
-  kick: '<circle cx="8" cy="8" r="5.5"/><circle cx="8" cy="8" r="2"/>',
-  drums: '<path d="M2 6c0-1.7 2.7-3 6-3s6 1.3 6 3v4c0 1.7-2.7 3-6 3s-6-1.3-6-3z"/><path d="M2 6c0 1.7 2.7 3 6 3s6-1.3 6-3"/>',
-  seq: '<rect x="2" y="3" width="3" height="3"/><rect x="6.5" y="3" width="3" height="3"/><rect x="11" y="10" width="3" height="3"/><rect x="2" y="10" width="3" height="3"/>',
-  pat: '<rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/>',
-  trk: '<rect x="1.5" y="4" width="5" height="3" rx="1"/><rect x="7.5" y="4" width="7" height="3" rx="1"/><rect x="3.5" y="9.5" width="8" height="3" rx="1"/>',
-  fx: '<path d="M3 13V8M3 5V3M8 13v-2M8 8V3M13 13V9M13 6V3"/><path d="M1.5 6.5h3M6.5 9.5h3M11.5 7.5h3"/>',
-  mix: '<path d="M4 2v12M8 2v12M12 2v12"/><rect x="2.5" y="9" width="3" height="2" rx=".5"/><rect x="6.5" y="4" width="3" height="2" rx=".5"/><rect x="10.5" y="7" width="3" height="2" rx=".5"/>',
-  arp: '<path d="M2 12l3-4 3 2 3-5 3 3"/><circle cx="14" cy="8" r="0.5"/>',
-  sys: '<circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/>',
-};
 const VIEWS = [];
 let view = null, viewTimer = 0;
 function defView(v) { VIEWS.push(v); }
-function buildNav() {
-  const nav = $("nav");
+/* (0.9.87, as the VST: the categories, the FM-1's page buttons, and each one's tabs; where you are on the right) */
+const CATS = [["Live", ["live"]], ["Sounds", ["kick", "drums"]], ["Pattern", ["seq", "pat"]], ["Song", ["trk"]], ["Mix", ["mix"]],
+  ["Effects", ["fx"]], ["ARP", ["arp"]], ["System", ["sys"]]];
+const TABNAME = { live: "Live", kick: "Kick", drums: "Drums", seq: "Sequencer", pat: "Patterns", trk: "Tracks", mix: "Levels",
+  fx: "FX chain", arp: "ARP · Black keys", sys: "Settings" };
+const catOf = (id) => CATS.find((c) => c[1].includes(id)) || CATS[0];
+const lastTab = {};
+function buildNav(id) {
+  const cats = $("cats"), nav = $("nav"), cur = catOf(id || "live");
+  cats.innerHTML = "";
+  CATS.forEach((c) => {
+    const b = h("button", "", esc(c[0]));
+    b.setAttribute("aria-current", String(c === cur));
+    b.onclick = () => openView(lastTab[c[0]] || c[1][0]);
+    cats.appendChild(b);
+  });
   nav.innerHTML = "";
-  VIEWS.forEach((v, i) => {
-    const b = h("button", "", `<svg viewBox="0 0 16 16" aria-hidden="true">${ICONS[v.icon]}</svg>${v.title}<span class="k">⌥${(i + 1) % 10}</span>`);
-    b.onclick = () => openView(v.id);
-    b.dataset.id = v.id;
+  cur[1].forEach((vid) => {
+    const i = VIEWS.findIndex((v) => v.id === vid);
+    const b = h("button", "", `${esc(TABNAME[vid] || vid)}<span class="k">⌥${(i + 1) % 10}</span>`);
+    b.onclick = () => openView(vid);
+    b.dataset.id = vid;
+    b.setAttribute("aria-current", String(vid === id));
     nav.appendChild(b);
   });
+  $("crumb").textContent = cur[0] + " / " + (TABNAME[id] || "");
 }
 function openView(id) {
   const v = VIEWS.find((x) => x.id === id) || VIEWS[0];
   if (view && view.leave) view.leave();
   view = v;
-  document.querySelectorAll("#nav button").forEach((b) => b.setAttribute("aria-current", String(b.dataset.id === id)));
+  lastTab[catOf(v.id)[0]] = v.id;
+  buildNav(v.id);
   const root = $("view");
   root.innerHTML = "";
   root.scrollTop = 0;
@@ -555,17 +553,28 @@ function vh(root, title, sub, right) {
   root.appendChild(e);
   return e;
 }
-function welcome(root) {
-  root.innerHTML = `<div class="welcome"><h1>LOAF BREAKER Studio</h1>
-  <p>Your FM-1 on the computer, as a DAW: the kick and the drums with every setting at once, the sequencer, the 64
-  patterns, the tracks of your live set, the effects and the mix, the waveforms in RGB as on its screen. Plug the FM-1 in
-  by USB (LOAF BREAKER 0.9.43 or later), then <b>Connect</b> above. Chrome or Edge, on a computer.</p>
-  <div class="feat"><div><b>KICK</b><span>Every part of the KICK menu, FX1 and FX2, the EQ, its RGB waveform redrawn as you turn.</span></div>
-  <div><b>SEQUENCER</b><span>The break's 32 steps over its own waveform, the kick, snare, hat and clap over four bars.</span></div>
-  <div><b>PATTERNS</b><span>The 64 patterns as cards, each with its picture: click to play it next.</span></div>
-  <div><b>TRACKS</b><span>Your set as blocks on a timeline: drag patterns, drops and gaps, loops, kicks and breaks.</span></div>
-  <div><b>LIVE</b><span>The break, the launcher, the track and its next drop, the macros: ready to play.</span></div>
-  <div><b>FX · MIX</b><span>The effects chain as a rack, the levels as faders, the master and the sends.</span></div></div>
+function welcome(root) {                     /* (0.9.87, FLEXOR: "le studio c'est bien, mais la VST c'est beaucoup mieux") */
+  root.innerHTML = `<div class="welcome"><h1>LOAF BREAKER <span>Studio</span></h1>
+  <p>Your FM-1 on the computer, in the VST's look: the kick and the drums, the sequencer, the 64 patterns, the tracks of
+  your set, the effects and the mix. Plug the FM-1 in by USB (LOAF BREAKER 0.9.43 or later), then <b>Connect</b> above.
+  Chrome or Edge, on a computer.</p>
+  <div class="vs">
+    <div><h2>Studio <small>THIS PAGE · THE FM-1 WORKS</small></h2>
+      <ul><li><b>The FM-1's own power</b>: every sound and every step is worked out by the machine, over USB.</li>
+      <li>A setting at a time, as fast as the cable and the FM-1 answer.</li>
+      <li>Good to <b>tweak your machine</b> from a computer, see its patterns and tracks, check a setting.</li>
+      <li>Nothing to install: a web page.</li></ul></div>
+    <div class="win"><span class="tag">Recommended</span><h2>VST <small>YOUR COMPUTER WORKS</small></h2>
+      <ul><li><b>The whole LOAF BREAKER firmware on your PC</b>, in your DAW (Ableton, FL Studio…) or on its own.</li>
+      <li><b>A real sequencer and arranger</b>, every setting of a page at once, EQ curves you drag, the kick drawn big.</li>
+      <li><b>128 breaks</b> in full quality, no wait, no cable in the way.</li>
+      <li>Still made for the FM-1: <b>send your work to the machine</b>, or play the VST with it as a controller.</li></ul>
+      <a class="go" href="../vst/">Get the VST</a></div>
+  </div>
+  <div class="feat"><div><b>SOUNDS</b><span>Every part of the KICK menu, FX1 and FX2, the EQ, its RGB waveform redrawn as you turn; the drums.</span></div>
+  <div><b>PATTERN</b><span>The break's 32 steps over its own waveform, the kick, snare, hat and clap over four bars; the 64 patterns.</span></div>
+  <div><b>SONG</b><span>Your set as blocks on a timeline: drag patterns, drops and gaps, loops, kicks and breaks.</span></div>
+  <div><b>LIVE · MIX · EFFECTS</b><span>The launcher, the track and its next drop; the levels as faders; the effects chain as a rack.</span></div></div>
   <p class="hint">Every change is the FM-1's own: you hear it at once and its screen stays where it is. SAVE keeps it, as on the FM-1.
   <kbd>Space</kbd> play / stop · <kbd>Ctrl</kbd>+<kbd>S</kbd> save · <kbd>H</kbd> the kick · <kbd>Alt</kbd>+<kbd>1</kbd>…<kbd>0</kbd> the views.</p></div>`;
 }
@@ -654,7 +663,7 @@ function stepPos() {                           /* the break's step now, with its
   const ms = 60000 / (S.tempo / 10 * 4) * (S.bhalf ? 2 : 1);
   return S.bstep + Math.min(0.999, (performance.now() - S.t) / ms);
 }
-defView({ id: "live", title: "Live", icon: "live", every: 4000,
+defView({ id: "live", title: "Live", every: 4000,
   render(root) {
     vh(root, "Live", "The break, the launcher, the track and its next drop, the macros: your set at a glance.");
     const L = h("div", "live");
@@ -759,7 +768,7 @@ defView({ id: "live", title: "Live", icon: "live", every: 4000,
 
 /* ================================================================== KICK */
 let kickZoom = 500, kickMode = "rgb";
-defView({ id: "kick", title: "Kick", icon: "kick", every: 6000,
+defView({ id: "kick", title: "Kick", every: 6000,
   render(root) {
     vh(root, "Kick", "Every part of the KICK menu at once, FX1 and FX2 too. Drag a knob, roll the wheel, or the arrows (Shift: five).", (r) => {
       r.innerHTML = `<span class="lab">Kick</span><div class="tabs" id="kSlots"></div><button id="kHit" class="go">▶ Hit <kbd>H</kbd></button>`;
@@ -852,7 +861,7 @@ defView({ id: "kick", title: "Kick", icon: "kick", every: 6000,
 });
 
 /* ================================================================== DRUMS */
-defView({ id: "drums", title: "Drums", icon: "drums", every: 6000,
+defView({ id: "drums", title: "Drums", every: 6000,
   render(root) {
     vh(root, "Drums", "The snare, the hat and the clap: every page of each, side by side. Keys 1 2 3 play them.");
     const g = h("div", "grid3");
@@ -903,7 +912,7 @@ async function seqOp(op, a, b, c, d) {
     if (view && view.id === "seq") view.draw();
   } catch (e) { /* lost */ }
 }
-defView({ id: "seq", title: "Sequencer", icon: "seq", every: 2500,
+defView({ id: "seq", title: "Sequencer", every: 2500,
   render(root) {
     vh(root, "Sequencer", "Click a step: on or off, then its settings on the right. Right click: pick it without turning it. ← → ↑ ↓ move, Enter on / off, + − its HITS.", (r) => {
       r.innerHTML = `<button id="sqUndo">Undo</button>`;
@@ -1083,7 +1092,7 @@ defView({ id: "seq", title: "Sequencer", icon: "seq", every: 2500,
 });
 
 /* ================================================================== PATTERNS */
-defView({ id: "pat", title: "Patterns", icon: "pat", every: 3000,
+defView({ id: "pat", title: "Patterns", every: 3000,
   render(root) {
     vh(root, "Patterns", "The 64 patterns, each with its picture: the kick, snare, hat and clap over four bars, the break's steps under them. Click: it plays next (at the loop's end). Double click: open it in the sequencer.");
     const b = h("div", "bank");
@@ -1153,7 +1162,7 @@ function trkEdit(fn) {                        /* a change to the track shown: it
   trkSave();
 }
 const newItem = (kind) => kind === "drop" ? { it: 0xFE, rep: 1, tb: 0, tk: 0 } : kind === "gap" ? { it: 0xFD, rep: 1, tb: 0, tk: 0 } : { it: +kind + 1, rep: 2, tb: 0, tk: 0 };
-defView({ id: "trk", title: "Tracks", icon: "trk", every: 3000,
+defView({ id: "trk", title: "Tracks", every: 3000,
   render(root) {
     if (tv.t < 0) tv.t = S.trk;
     vh(root, "Tracks", "Your set as blocks: drag patterns, DROPs and gaps in from the right, drag a block to move it. Click one to set its loops, kick and break. Delete removes it, Ctrl+D doubles it.");
@@ -1357,7 +1366,7 @@ defView({ id: "trk", title: "Tracks", icon: "trk", every: 3000,
 });
 
 /* ================================================================== FX: the chain as a rack */
-defView({ id: "fx", title: "FX", icon: "fx", every: 5000,
+defView({ id: "fx", title: "FX", every: 5000,
   render(root) {
     vh(root, "FX", "The break's effects chain, slot by slot as on the FM-1's FX page: ◀ ▶ picks the effect, On bypasses it, its tabs are its parts.");
     const rack = h("div", "rack");
@@ -1379,7 +1388,7 @@ defView({ id: "fx", title: "FX", icon: "fx", every: 5000,
 });
 
 /* ================================================================== MIX */
-defView({ id: "mix", title: "Mix", icon: "mix", every: 4000,
+defView({ id: "mix", title: "Mix", every: 4000,
   render(root) {
     vh(root, "Mix", "The levels as faders (drag them, or the wheel), the sends, the master and its dynamics.");
     const row = h("div", "row");
@@ -1419,7 +1428,7 @@ defView({ id: "mix", title: "Mix", icon: "mix", every: 4000,
 });
 
 /* ================================================================== ARP and the black keys */
-defView({ id: "arp", title: "ARP · Keys", icon: "arp", every: 6000,
+defView({ id: "arp", title: "ARP · Keys", every: 6000,
   render(root) {
     vh(root, "ARP · Black keys", "The ARP key's effects, and what each of the eleven black keys does: click a key, then turn its function.");
     const c = h("div", "card", "<h2>ARP effects</h2>");
@@ -1458,7 +1467,7 @@ defView({ id: "arp", title: "ARP · Keys", icon: "arp", every: 6000,
 });
 
 /* ================================================================== SYSTEM */
-defView({ id: "sys", title: "System", icon: "sys", every: 6000,
+defView({ id: "sys", title: "System", every: 6000,
   render(root) {
     vh(root, "System", "The FM-1's settings: setup, MIDI, HOME's settings, the lights, the generator, the groove, the break's own. RESET stays on the FM-1.");
     const g = h("div", "grid3");
@@ -1503,11 +1512,39 @@ $("connect").onclick = async () => {
   if (!out) { $("dot").className = "dot bad"; if (!$("toast").textContent.includes("old")) toast("No LOAF BREAKER found. Plug it in by USB, update it if needed, and connect again."); return; }
   $("dot").className = "dot on"; lost = false; ready = true;
   ["play", "brkPrev", "brkNext", "brkSel", "wstyle", "save"].forEach((id) => { $(id).disabled = false; });
+  document.querySelectorAll("#pads .hit").forEach((b) => { b.disabled = false; });
   await readBreaks().catch(() => {});
+  bkPads().catch(() => {});
   await poll();
   let v = "live"; try { v = localStorage.getItem("lb.view") || "live"; } catch (e) { /* no storage */ }
   openView(v);
 };
+/* the pads (0.9.87, at the foot as the VST's): the drums heard on the FM-1 (ED_ACT 2), the black keys' functions as the
+ * layout has them, a click their settings (ARP); the keys themselves are played on the FM-1 */
+document.querySelectorAll("#pads .hit").forEach((b) => { b.onclick = () => act(2, +b.dataset.d); });
+/* (the FM-1's own short names, app/ui/common.c BKF_NAME, for its long ones, BKF_LONG: the pads as on its screen) */
+const BK_LONG = ["ROLL 1/8", "ROLL 1/16", "ROLL 1/32", "REVERSE", "FREEZE", "HALF SPEED", "VINYL BREAK", "GATE", "RANDOM", "FILTER",
+  "DUB", "ARP (OVERLAY)", "KICKS OFF", "DISTO", "SUB FX", "DRIVE", "KICKS X2", "KICKS X4", "KICK TRIPLETS", "SUB DRIVE", "KILL BREAK",
+  "CHAOS", "SPLIT", "KICK", "SNARE", "HI-HAT", "CLAP", "SUB SPLIT", "MOTION"];
+const BK_SHORT = ["R8", "R16", "R32", "REV", "FRZ", "HLF", "VNL", "GAT", "RND", "FLT", "DUB", "ARP", "KIL", "DST", "SUB", "DRV", "X2",
+  "X4", "TRI", "SDR", "KBR", "CHS", "SPL", "KCK", "SNR", "HAT", "CLP", "XSB", "MOT"];
+async function bkPads() {
+  const box = $("bkPads");
+  box.innerHTML = "";
+  for (let i = 0; i < 11; i++) {
+    const r = await knobReq({ t: "p", pg: PG.OVL, a: 1, b: i }, 0, 0);
+    const long = r.ks[2].text || "", j = BK_LONG.indexOf(long);
+    const b = h("button", "", esc(j >= 0 ? BK_SHORT[j] : long.slice(0, 4) || String(i + 1)));
+    b.title = "Black key " + (i + 1) + ", " + long + ": its settings (ARP)";
+    b.onclick = () => { const v = VIEWS.find((x) => x.id === "arp"); v.key = i; openView("arp"); };
+    box.appendChild(b);
+  }
+}
+(() => {                                     /* the VST's word: hidden for this visit, back the next */
+  let off = false; try { off = sessionStorage.getItem("lb.vstbar") === "0"; } catch (e) { /* no storage */ }
+  if (off) $("vstbar").classList.add("hidden");
+  $("vstX").onclick = () => { $("vstbar").classList.add("hidden"); try { sessionStorage.setItem("lb.vstbar", "0"); } catch (e) { /* no storage */ } };
+})();
 document.addEventListener("keydown", (e) => {
   if (e.target.closest && e.target.closest("input, select, textarea")) return;
   if (e.altKey && /^[0-9]$/.test(e.key)) { const i = (+e.key + 9) % 10; if (VIEWS[i]) { openView(VIEWS[i].id); e.preventDefault(); } return; }
@@ -1520,14 +1557,15 @@ document.addEventListener("keydown", (e) => {
   else if (["1", "2", "3"].includes(e.key) && !(e.target.closest && e.target.closest("[role=grid]"))) act(2, +e.key);
 });
 window.addEventListener("resize", () => { if (view && view.redrawWaves) view.redrawWaves(); if (view && view.id === "trk") view.draw(); });
-buildNav();
+buildNav("live");
 (() => {                                     /* the design, as left */
   let t = ""; try { t = localStorage.getItem("lb.theme") || ""; } catch (e) { /* no storage */ }
   const set = (v) => {
     if (v) document.body.dataset.theme = v; else delete document.body.dataset.theme;
-    accent = getComputedStyle(document.body).getPropertyValue("--amber").trim() || "#ff8470";
+    accent = getComputedStyle(document.body).getPropertyValue("--amber").trim() || "#f4efe4";
     try { localStorage.setItem("lb.theme", v); } catch (e) { /* no storage */ }
   };
+  if (![...$("theme").options].some((o) => o.value === t)) t = "";   /* (the Studio's designs before 0.9.87: LOAF LORD) */
   $("theme").value = t; set(t);
   $("theme").onchange = () => { set($("theme").value); if (view && view.redrawWaves) view.redrawWaves(); };
 })();

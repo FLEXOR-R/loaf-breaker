@@ -375,6 +375,17 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   click's worth learned), the FM-1's value back `SETTLE` 450 ms after the hand stops; status, view reads and waves wait
   while it turns (`busyNow`); `ready` and `ask1` (an older request fails, never hangs) keep connecting clean. tests/editor_link.sh in CI. A local test bench (not in the repository): the host simulator reading its
   scenario from a FIFO (sysex, wait, sysex_log, said_none as a marker) drives the page live in Playwright.
+- The Studio in the VST's look (27 Nov 2026, 0.9.87, FLEXOR: "quelque chose qui ressemble le plus possible à la VST ...
+  contrôlé avec la machine ... mettre une emphase ... la VST c'est beaucoup mieux pour éditer"): app/site/editor.html
+  restyled as the plugin (LOAF LORD skin, Barlow Condensed, the VST's skins BLOOD TOXIC ICE RUST PAPER in the theme menu;
+  Studio's Loaf / Nexus / Acid gone, an old choice read as LOAF LORD), its header (the LOAF LORD, app/site/studio_img/face.png,
+  copied by site_style.py `editor`; PLAY, TEMPO, BREAK, PATTERN, the master's live scope as the VST's), `CATS` the eight
+  categories and `TABNAME` their tabs (editor.js buildNav; the views as before), every knob a card row with a value bar
+  (Panel.knob: dragged sideways or up), the pads (the drums by ED_ACT 2, the black keys' functions by their short names
+  BK_SHORT, a click their settings in ARP; the keys themselves stay on the FM-1: the mirror's remote needs the mirror on),
+  the VST's word (`vstbar`, hidden for the visit by its ✕) and the welcome's STUDIO / VST side by side. Test
+  tests/studio_page.sh (tests/studio_page.mjs: the simulator driven as a scenario through a FIFO, "sysex", "wait 30",
+  a "sysex_log" file a cycle: --serve hands the app no SysEx), in CI.
 - Drum samples (15 Nov 2026, 0.9.45, FLEXOR: "importer des samples type snare, hi-hat, clap", the site's IMPORT tab): a kit
   of three in OBJ_BLE's two sectors (0xDE000, 8 KB: no Bluetooth, nothing else writes there; app.c `KIT_AT`, `kit_scan`,
   `kit_ent`, `kit_name`, `kit_has`), IMA ADPCM read from flash as it plays (perc.c `perc_set_sample`, `sample_tick`;

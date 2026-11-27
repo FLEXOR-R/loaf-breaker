@@ -18,6 +18,7 @@
 
 The pages keep everything else make_site.py gave them: their text, links, images, tables and the contents."""
 import re
+import shutil
 import sys
 from pathlib import Path
 
@@ -253,6 +254,8 @@ def editor(site):
     page = page.replace("/*SCRIPT*/", js.replace("</script", "<\\/script"), 1)
     (site / "editor").mkdir(parents=True, exist_ok=True)
     (site / "editor" / "index.html").write_text(page, encoding="utf-8")
+    for f in (APP / "site" / "studio_img").glob("*.png"):   # (0.9.87: the VST's look, the LOAF LORD in the header)
+        shutil.copyfile(f, site / "editor" / f.name)
 
 
 def page_of(site, name, current):
