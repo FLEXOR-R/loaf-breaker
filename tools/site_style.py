@@ -23,6 +23,9 @@ import sys
 from pathlib import Path
 
 APP = Path(__file__).resolve().parents[1] / "app"
+# LOAF BREAKER (27 Nov 2026, FLEXOR: the site's visits): GoatCounter (no cookies, so no consent banner), its site code
+# (https://CODE.goatcounter.com); empty, nothing added
+GOATCOUNTER = ""
 FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">\n'
          '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
          '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800'
@@ -424,6 +427,26 @@ def pwa(site):
         f.write_text(s, encoding="utf-8")
 
 
+def stats(site):
+    """LOAF BREAKER: GoatCounter's counter on every page (but the secret atelier/), and an event for each download (a
+    .fwsc, a .zip, a release page) as its link is clicked"""
+    if not GOATCOUNTER:
+        return
+    tag = (f'<script data-goatcounter="https://{GOATCOUNTER}.goatcounter.com/count" async '
+           'src="https://gc.zgo.at/count.js"></script>\n'
+           '<script>document.addEventListener("click", function (e) { var a = e.target.closest && '
+           'e.target.closest("a[href]"); if (!a || !window.goatcounter || !goatcounter.count) return; var h = '
+           'a.getAttribute("href"); if (/\\.(fwsc|zip)(\\?|$)|\\/releases/.test(h)) goatcounter.count({path: '
+           '"download: " + h.split("/").pop(), title: a.textContent.trim(), event: true}); });</script>\n')
+    for f in site.rglob("index.html"):
+        if f.relative_to(site).parts[0] == "atelier":
+            continue
+        s = f.read_text(encoding="utf-8")
+        if "data-goatcounter" in s:
+            continue
+        f.write_text(s.replace("</body>", tag + "</body>", 1), encoding="utf-8")
+
+
 def main(site):
     site = Path(site)
     rebrand(site)
@@ -448,6 +471,7 @@ def main(site):
     man = site / "manual" / "index.html"
     if not man.exists():
         pwa(site)
+        stats(site)
         print(f"site_style: {site}: front page restyled (no manual)")
         return
     s = restyle(man, "manual", "#controls")
@@ -464,6 +488,7 @@ def main(site):
     man.write_text(s, encoding="utf-8")
     logo(site)
     pwa(site)
+    stats(site)
     print(f"site_style: {site}: the front page and the manual restyled, the control map in section {h.group(1)}")
 
 

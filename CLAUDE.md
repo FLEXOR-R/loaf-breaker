@@ -462,6 +462,10 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   the VST's word (`vstbar`, hidden for the visit by its ✕) and the welcome's STUDIO / VST side by side. Test
   tests/studio_page.sh (tests/studio_page.mjs: the simulator driven as a scenario through a FIFO, "sysex", "wait 30",
   a "sysex_log" file a cycle: --serve hands the app no SysEx), in CI.
+- Site stats (27 Nov 2026, FLEXOR: "connaître la fréquentation du site"; his choice GoatCounter: no cookies, no consent
+  banner): tools/site_style.py `GOATCOUNTER` (the account's code; empty: nothing added) and `stats`: its counter on every
+  page but atelier/, and an event (`download: NAME`) for each link to a .fwsc, a .zip or a release page clicked. The
+  dashboard: https://CODE.goatcounter.com (FLEXOR's account).
 - The site in look A (27 Nov 2026, 0.9.88, FLEXOR: "une identité visuelle un petit peu plus marquée, un petit peu plus
   LOAF BREAKER, avec des onglets un peu plus digestes"; "des choses plus claires et plus simples"; "publie le site"):
   the VST's LOAF LORD look (app/site/site.css: near black, bone, a halftone grain; Barlow Condensed, Barlow, Pirata One
