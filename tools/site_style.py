@@ -25,7 +25,7 @@ from pathlib import Path
 APP = Path(__file__).resolve().parents[1] / "app"
 # LOAF BREAKER (27 Nov 2026, FLEXOR: the site's visits): GoatCounter (no cookies, so no consent banner), its site code
 # (https://CODE.goatcounter.com); empty, nothing added
-GOATCOUNTER = ""
+GOATCOUNTER = "loafbreaker"
 FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">\n'
          '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
          '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800'
