@@ -39,7 +39,7 @@ SECTIONS = [
     ("Sounds", "breaks/", [("breaks/", "Breaks"), ("import/", "Drum samples")]),
     ("Tools", "tools/", [("tools/", "All tools"), ("editor/", "Studio"), ("live/", "Live"), ("mirror/", "Mirror"),
                          ("app/", "App")]),
-    ("Manual", "manual/", [("manual/#start-in-five-minutes", "Start in 5 minutes"), ("manual/", "The manual"),
+    ("Manual", "manual/", [("start/", "Start in 5 minutes"), ("manual/", "The manual"),
                            ("manual/#controls", "Control map")]),
 ]
 # the header's own style: on every page, whatever the page's own (fm1-base's backup and mirror, the Studio)
@@ -128,7 +128,7 @@ def restyle(path, cls, controls_href, extra=""):
 
 PAGE_OF = {"VST": "vst/", "Emulator": "emu/", "Install": "install/", "Manual": "manual/", "Breaks": "breaks/",
            "Import": "import/", "Studio": "editor/", "Live": "live/", "App": "app/", "Tools": "tools/",
-           "Backup": "backup/", "Mirror": "mirror/"}
+           "Backup": "backup/", "Mirror": "mirror/", "Start": "start/"}
 
 
 def header(current):
@@ -460,6 +460,7 @@ def main(site):
     page_of(site, "app", "App")
     page_of(site, "vst", "VST")          # (24 Nov 2026, FLEXOR: "un onglet VST sur le site": the plugin, its pictures)
     page_of(site, "tools", "Tools")      # (27 Nov 2026, look A: the four tools on one page)
+    page_of(site, "start", "Start")      # (27 Nov 2026, FLEXOR: "Start in 5 minutes" as its own page)
     fm1_page(site, "backup", "Backup", "Keep your work safe",
              "Your kicks, patterns and tracks, saved as one file on your computer. Put them back after an update, or on "
              "another FM-1. Connect the FM-1 with a USB cable; this page works in Chrome or Edge, nothing to install.")

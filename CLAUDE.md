@@ -466,6 +466,10 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   banner): tools/site_style.py `GOATCOUNTER` (the account's code; empty: nothing added) and `stats`: its counter on every
   page but atelier/, and an event (`download: NAME`) for each link to a .fwsc, a .zip or a release page clicked. The
   dashboard: https://loafbreaker.goatcounter.com (FLEXOR's account, code loafbreaker).
+- Start in 5 minutes (27 Nov 2026, FLEXOR: "la page start in 5 minutes ... un bouton blanc comme install ... dans la page
+  d'accueil"): app/site/start.html at start/ (site_style.py page_of "Start", PAGE_OF, SECTIONS' Manual tab): the tutorial,
+  five steps with the manual's screens (../manual/img/), three things to remember, the way on; the front page's hero and
+  "Three steps" a white button to it (.btn.p); fmhub.json's `cheat` link to it. Keep its steps true when a control moves.
 - The site in look A (27 Nov 2026, 0.9.88, FLEXOR: "une identité visuelle un petit peu plus marquée, un petit peu plus
   LOAF BREAKER, avec des onglets un peu plus digestes"; "des choses plus claires et plus simples"; "publie le site"):
   the VST's LOAF LORD look (app/site/site.css: near black, bone, a halftone grain; Barlow Condensed, Barlow, Pirata One
