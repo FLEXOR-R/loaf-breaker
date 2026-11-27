@@ -757,7 +757,8 @@ tabs appear after SEL BLACK, only in BLACK KEYS:
 
 While REC is held or locked, the foot shows the REC + K1–K4 functions (the others the page's), the strip and the
 lights the black keys' REC functions. SAVE keeps them; RESET's SEL KEYS clears the REC layer too (REC MODE kept),
-RESET ALL all of it. Only one of SEL and REC stays locked: locking one (twice) frees the other.
+RESET ALL all of it. SEL and REC never cross: pressing one (even once) frees the other, locked or held, and holding SEL turns REC's
+layer off.
 
 ![ARP › REC: key 1 with REC, KICKS OFF](img/reclayer_recblk.png "REC BLACK")
 

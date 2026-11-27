@@ -218,7 +218,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   gone, flexlay without its REC. REC + K1-K4 the same for every kick (FLEXOR: "généraux et ne dépendent pas d'un
   kick"; kx2.rsv, not kx_put's per-kick selk_asg as SEL + K1-K4's): reclayer checks it across a kick change. One
   locked at a time (0.9.94, FLEXOR: "les deux ne pourront pas clignoter comme si elles étaient activées en même temps"):
-  SEL x2 frees REC's lock, REC x2 frees SEL's; REC is the modifier unless SEL is physically held (`sel_now`), so REC x2
+  SEL x2 frees REC's lock, REC x2 frees SEL's; then (FLEXOR: "les deux ne peuvent pas se croiser") a
+  single press of one frees the other, locked or held (REC held: no longer the modifier, its release no click); REC is the modifier unless SEL is physically held (`sel_now`), so REC x2
   works with SEL locked. SEL + REC clears on SEQ only (the lane shown; 0.9.94, FLEXOR: "sur le séquenceur, pas sur
   le reste": elsewhere nothing, the pattern never wiped; the FX pages' effect reset kept). Probes recmode reclock recb
   reck1 bkfn0; scenario reclayer. Image 550,488 B

@@ -110,10 +110,47 @@ tap REC
 wait 200
 expect reclock 1
 expect sel_lock 0
-tap REC
-wait 200
+# (0.9.94, FLEXOR: "les deux ne peuvent pas se croiser") REC locked, SEL pressed once: REC freed
+tap SEL
+wait 600
 expect reclock 0
 expect sel_lock 0
+# SEL locked, REC pressed once: SEL freed
+tap SEL
+wait 100
+tap SEL
+wait 200
+expect sel_lock 1
+tap REC
+wait 600
+expect sel_lock 0
+expect reclock 0
+# REC held, SEL pressed: REC no longer the modifier (key 1 its own again), its release no click
+press REC
+wait 100
+key b0 down
+wait 100
+expect bkfn0 12
+key b0 up
+wait 100
+press SEL
+wait 100
+key b0 down
+wait 100
+expect bkfn0 0
+key b0 up
+wait 100
+release SEL
+wait 100
+key b0 down
+wait 100
+expect bkfn0 0
+key b0 up
+release REC
+wait 100
+tap REC
+wait 600
+expect reclock 0
 # CLASSIC again: REC as ever (here FLEXOR LAYOUT's VINYL BREAK), no REC layer, the REC tabs gone
 tap ARP
 wait 300

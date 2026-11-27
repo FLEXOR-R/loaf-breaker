@@ -994,6 +994,13 @@ static void input(void)
                 } else if (rk_mod) {
                     rm_free = rm_combo = 0u;
                     rm_t = now;
+                    if (ui.sel_lock) {   /* (0.9.94, FLEXOR: "les deux ne peuvent pas se croiser": REC pressed frees
+                                          * a locked SEL, and is REC from there) */
+                        ui.sel_lock = 0u;
+                        ui.tap_pend = 0u;
+                        btn &= ~(1u << B_SEL);
+                        app_say("SEL", "FREE");
+                    }
                 }
                 rm_hold = rk_mod;
             }
@@ -1018,6 +1025,12 @@ static void input(void)
         }
         if (!rec_bk())
             rm_lock = 0u;
+        else if (sel_now && !ui.sel_raw && (rm_lock || rm_hold)) {   /* (0.9.94, FLEXOR: SEL pressed frees REC,
+                                          * locked or held: SEL from there; REC still held does nothing, no click) */
+            rm_lock = rm_hold = 0u;
+            rm_free = 1u;
+            app_say("REC", "FREE");
+        }
     }
     if (sel_now && !ui.sel_raw)
         ui.sel_t = now;                  /* (LOAF BREAKER: SEL down: held a moment, the foot shows its knobs) */
