@@ -202,13 +202,13 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   not one integer pitch); scenario seqfill (the break's two rows, every drum 64).
 - Smoother for live (27 Nov 2026, 0.9.92, FLEXOR: "le changement se fait trop brut ... des settings adaptés au live ...
   plus doux"; for every player, no option for now): brk_fx.c HOME's DJ filter (`dj_s`) and the drums' (`djk_s`) 0.07 a
-  block (~80 ms, 0.3 before); each main-chain slot's p[0..2] glide (`ps_s`, 0.15 a block, before its MOD so a LFO stays
-  fast; a new effect takes them as set), its MIX (`mix_s`, 0.25) and the FX amount (`wet_s`, 0.15) through `glide()`
-  (lands exactly once within 1e-3: 0 stays 0); `fx_snap` (brk_fx_init) takes them as set at the start. kick.c: the PRE EQ
-  runs its bells by band (a band at 0 dB is no bell, bit for bit; one switched no longer shifts the others' state), the
-  SUB SPLIT going OFF (X FREQ or XSB) fades its lows back into the drive per sample over ~15 ms (`kv_t.xw`, `xw_fix`
-  keeps its last settings, `xk_s`). Engine tests: HOME's filter glides; X FREQ OFF mid-kick no step (1.04 a sample
-  without the fade). The kick's other settings still change at the next block (5.8 ms).
+  block (~80 ms, 0.3 before); each slot's p[0..2] and MIX (p[3]: mix follows p[] in brk_fxslot_t, `pm`) glide in
+  mod_block (`ps_s`, 0.15 a block, `glide()` lands exactly within 1e-3), before its MOD (a LFO as fast as ever); a new
+  effect, or brk_fx_init (`ps_t` 0xFF), takes them as set. kick.c: the PRE EQ runs its bells by band (a band at 0 dB is
+  no bell, bit for bit; one switched no longer shifts the others' state); the SUB SPLIT going OFF (X FREQ or XSB) keeps
+  its last X FREQ (`xo_last`, kc_make) while a voice's weight (`kv_t.xw`, kv_tick, ~15 ms a sample at a time) sends
+  its lows back into the drive. Engine tests: HOME's filter glides; X FREQ OFF mid-kick no step (1.04 a sample without
+  the fade). The FX amount (MIX's FX) and the kick's other settings still step (flash: 581,468 B locally, ~96 B left).
 - Black keys over the pictures (26 Nov 2026, 0.9.86, FLEXOR: "utiliser des touches noires par dessus la waveform, les eq,
   ou le xsub fait un flickering bizarre"): a held key's picture (ui.shown != -1) holds the strip; main.c drops RG_BLOCKS
   again right before drawing (kv_poll and the kick's live scope set it after the frame's first clear: the page drew over

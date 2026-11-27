@@ -99,7 +99,7 @@ typedef struct {
 static volatile kick_x2_t p_x2;          /* (0.9.45) kick_set_x2 */
 BRK_COLD void kick_set_x2(const kick_x2_t *x) { *(kick_x2_t *)&p_x2 = *x; }
 static volatile kick_px_t p_px;          /* (0.9.82) kick_set_px */
-static float xk_s[6];                    /* (0.9.92) the SUB SPLIT's last settings (xw_fix) */
+static uint8_t xo_last;                  /* (0.9.92) the SUB SPLIT's last X FREQ (its fade to OFF) */
 BRK_COLD void kick_set_px(const kick_px_t *x) { *(kick_px_t *)&p_px = *x; }
 static volatile float p_glide, p_rbl, p_rbs, p_rbk, p_spb = 15562.0f;   /* (TEST) kick_set_bass, kick_set_beat */
 void kick_set_bass(float glide_ms, float rb_level, float rb_start, float rb_curve)
@@ -431,8 +431,15 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c, const volatile int8_t *sy
             c->pq_m1[b] = k * (A * A - 1.0f);
         }
         c->pq_n = (uint8_t)(n ? 3u : 0u);
+        c->xw = x.xo ? 1.0f : 0.0f;      /* (0.9.92, FLEXOR: "du sub split à 40 % jusqu'à off, que ce soit pas
+                                          * brutal": where each voice's weight goes, kv_tick; X FREQ OFF (or XSB) while a
+                                          * voice still holds some, the split on at its last X FREQ, its lows going back
+                                          * into the drive sample by sample) */
+        if (x.xo)
+            xo_last = x.xo;
+        else if (kv.xw > 0.002f || kv2.xw > 0.002f)
+            x.xo = xo_last;
         c->xo = x.xo && x.xo <= KICK_XO_N;
-        c->xw = c->xo ? 1.0f : 0.0f;     /* (0.9.92: where each voice's weight goes, xw_fix) */
         if (c->xo) {
             float g = brk_tan_pi_c((40.0f + 5.0f * (float)(x.xo - 1u)) / (float)BRK_SR), k = 1.41421356f;
             float dr = 1.0f + 0.07f * (float)(x.sdrv > 100u ? 100u : x.sdrv);
@@ -853,18 +860,6 @@ static inline float kk_tick(const kc_t *c, const kc_t *c2)
         kv2.last = kv2.declick = 0.0f;
     return (p_solo == 2u ? 0.0f : a * (1.0f - x)) + (p_solo == 1u ? 0.0f : b * x);
 }
-/* (0.9.92, FLEXOR: "du sub split à 40 % jusqu'à off, que ce soit pas brutal"): X FREQ turned OFF (or the XSB key),
- * the split goes on at its last frequency while its lows go back into the drive, sample by sample over ~15 ms (each
- * voice's xw, kv_tick); on again, the same the other way. The render's alone: the pictures draw it as set */
-static void xw_fix(kc_t *c)
-{
-    if (c->xo) {
-        xk_s[0] = c->xa1, xk_s[1] = c->xa2, xk_s[2] = c->xa3, xk_s[3] = c->xg, xk_s[4] = c->xn, xk_s[5] = c->xdec;
-    } else if (kv.xw > 0.002f || kv2.xw > 0.002f) {
-        c->xo = 1u;                      /* (c->xw stays 0: where the voices go) */
-        c->xa1 = xk_s[0], c->xa2 = xk_s[1], c->xa3 = xk_s[2], c->xg = xk_s[3], c->xn = xk_s[4], c->xdec = xk_s[5];
-    }
-}
 void kick_render(float *out, uint32_t n, const uint16_t *at, uint32_t nat)
 {
     kick_t k = *(const kick_t *)&p_k;
@@ -889,12 +884,10 @@ void kick_render(float *out, uint32_t n, const uint16_t *at, uint32_t nat)
         return;
     }
     kc_make(&k, &c, p_syn, &lab);
-    xw_fix(&c);
     if (st_on) {                         /* (the attack's settings: no rumble, reverse bass or clean sub of its own) */
         kick_t ak = *(const kick_t *)&p_ak;
         kick_lab_t al = *(const kick_lab_t *)&p_alab;
         kc_make(&ak, &c2, p_asyn, &al);
-        xw_fix(&c2);
         c2.rum = c2.rb_lvl = c2.csub = 0.0f;
         c2.tok_lvl = 0.0f;               /* (0.9.45: TOK and the gate the tail kick's alone) */
         c2.g_len = 0u;
