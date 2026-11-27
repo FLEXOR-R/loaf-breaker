@@ -52,7 +52,7 @@ jobs:
           # workflow). On loaf, nothing else changed since the last release: SITE=1, the site goes up under the last
           # release's number, no new release, no tag. On dev, nothing else changed in this push: the TEST draft stays.
           SITE_ONLY='^(app/site/|app/docs/|docs/|art/|tools/(site_style|break_lib|readme_shots|make_site_logo)\.py$|tools/site_shots\.sh$|tests/[a-z_]*_page\.(sh|mjs)$|fmhub\.json$|README\.md$|CLAUDE\.md$|\.github/workflows/loaf\.yml$|breaks/([^/]*/)*README\.md$)'
-          LAST="$(printf '%s\n' "$TAGS" | sed -n 's|.*refs/tags/loaf-v||p' | sort -V | tail -1)"
+          LAST="$(printf '%s\n' "$TAGS" | sed -n 's|.*refs/tags/loaf-v||p' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)"   # (A.B.C only: 0.267 sorts above 0.9.x)
           if [ "$GITHUB_REF_NAME" = loaf ] && [ "$V" != "$LAST" ] && [ -n "$LAST" ] && git rev-parse -q --verify "refs/tags/loaf-v$LAST" > /dev/null; then
             FW="$(git diff --name-only "loaf-v$LAST" HEAD | grep -Ev "$SITE_ONLY" || true)"
             if [ -z "$FW" ]; then
