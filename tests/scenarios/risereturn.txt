@@ -1,0 +1,45 @@
+# LOAF BREAKER (0.9.95, FLEXOR: "quand j'utilise le rise et que je le relâche je veux un fondu paramétrable sur le
+# retour, enlève le latch de rise et remplace le par un sweep dans l'autre sens"): RISE never latches; its K4 is RETURN
+# (CUT, 1/4 BAR .. 2 BARS), the sweep back down once let go. On the ARP page and on an ARP key set to RISE.
+#   app/build/host/loaf-breaker_host tests/scenarios/risereturn.txt app/build/scenarios
+wait 4200
+tap ARP
+wait 300
+expect opage 0
+tapkey w0
+wait 200
+expect ovl_last 0
+turn K4 1 10
+wait 200
+expect ovl_latch 1
+# RISE with LATCH on: held only
+key w1 down
+wait 200
+expect ovl_last 1
+expect ovl_on 2
+shot risereturn.png
+key w1 up
+wait 200
+expect ovl_on 0
+expect rret 1
+turn K4 2 60
+wait 200
+expect rret 3
+expect ovl_latch 1
+turn K4 -6 60
+wait 200
+expect rret 0
+turn K4 1 60
+wait 200
+expect rret 1
+# FLEXOR LAYOUT's key 5 (ARP, RISE): K4 held is RETURN too
+tap HOME
+wait 300
+key b4 down
+wait 100
+turn K4 1 60
+wait 200
+key b4 up
+wait 200
+expect rret 2
+expect ovl_on 0

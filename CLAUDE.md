@@ -194,6 +194,12 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   SK_XO) clears xoff; each kick's (kx2.px), COPY copies it, a built-in PRESET clears it. CUSTOM / SEL BLACK / REC; probe
   xoff; scenario xsbkey; the scenarios turning K3 left of R8 one more (recsel kickx2 kickx4 kiltri killbreak reckey chskey
   splkey drumkeys).
+- RISE's RETURN (27 Nov 2026, 0.9.95, FLEXOR: "un fondu paramétrable sur le retour, enlève le latch de rise et
+  remplace le par un sweep dans l'autre sens"): set.ovl_sweep bits 4-6 (0 CUT: older saves; 1..4 1/4 BAR .. 2 BARS;
+  defaults 1/4 BAR), pads.c `rise_ret` / `rise_ret_turn` / `sweep_turn` (SWEEP's writes keep those bits); RISE never
+  latches (`arpk_latch` 0, the ARP page's keys held); K4 RETURN on the ARP page and an ARP key on RISE; dsp/ovl.c
+  `p_ret`, `rise_tr`: let go, RISE stays on while rise_tr comes down to 0 over RETURN, then its 5 ms fade. Probe rret,
+  scenario risereturn, engine test.
 - X FREQ's floor (27 Nov 2026, 0.9.95, FLEXOR: "descendre sur 40hz rapidement sans couper"): ui/kick.c `xo_turn`
   (the page's X FREQ and SK_XO alike): down, it stops at 40 Hz; OFF only a detent XO_GUARD_MS 300 after the one
   before. Scenarios prexsub, xsbkey.

@@ -34,6 +34,8 @@ static uint32_t arpk_fx(uint32_t j)
 static uint32_t arpk_latch(uint32_t j)
 {
     j %= 11u;
+    if (arpk_fx(j) == OV_RISE)
+        return 0u;                       /* (0.9.95, FLEXOR: RISE never latches: RETURN instead) */
     if (set.rsv2[0] != ARPK_TAG)
         return (uint32_t)(set.ovl_pad >> 4) & 1u;
     return j < 8u ? (uint32_t)(set.rsv2[7] >> j) & 1u : (uint32_t)(set.rsv2[6] >> (j - 4u)) & 1u;
@@ -180,6 +182,21 @@ static int ovl_time_kind(uint32_t e)     /* 1 RATE, 2 SWEEP, 0 none */
 {
     return e == OV_CHOP || e == OV_GATE || e == OV_PAN ? 1 : e == OV_DIVE || e == OV_RISE ? 2 : 0;
 }
+/* LOAF BREAKER (0.9.95, FLEXOR: "quand j'utilise le rise et que je le relâche je veux un fondu paramétrable sur le
+ * retour, enlève le latch de rise et remplace le par un sweep dans l'autre sens"): RISE never latches; its K4 is
+ * RETURN, the sweep back down once let go: CUT (as before, 5 ms) or 1/4 BAR .. 2 BARS, as SWEEP's. set.ovl_sweep
+ * bits 0-1 the SWEEP, bits 4-6 RETURN (0 CUT: an older save's) */
+static uint32_t rise_ret(void) { uint32_t r = set.ovl_sweep >> 4 & 7u; return r > 4u ? 4u : r; }
+static const char *rise_ret_name(void) { return rise_ret() ? OVL_SWEEP_NAME[rise_ret() - 1u] : "CUT"; }
+static void rise_ret_turn(int32_t d)
+{
+    uint32_t r = (uint32_t)clamp((int32_t)rise_ret() + (d > 0 ? 1 : -1), 0, 4);
+    set.ovl_sweep = (uint8_t)((set.ovl_sweep & ~0x70u) | r << 4);
+}
+static void sweep_turn(int32_t d)        /* (SWEEP alone: RETURN's bits kept) */
+{
+    set.ovl_sweep = (uint8_t)((set.ovl_sweep & ~3u) | (uint32_t)clamp((int32_t)(set.ovl_sweep & 3u) + (d > 0 ? 1 : -1), 0, 3));
+}
 /* LOAF BREAKER (FLEXOR, 11 Nov 2026): BEGINNER's pads have their knobs as EXPERT's (0.232; 0.224-0.231 none but the
  * ARP key's K1, K2); the DST and SUB keys do nothing there (main.c) */
 static const char *pad_knob_name(int pad, int k)
@@ -196,6 +213,8 @@ static const char *pad_knob_name(int pad, int k)
             int tk = ovl_time_kind(arpk_fx(arpk_focus()));
             return tk == 1 ? "RATE" : tk == 2 ? "SWEEP" : "TIME";
         }
+        if (k == 3 && arpk_fx(arpk_focus()) == OV_RISE)
+            return "RETURN";             /* (0.9.95: RISE's sweep back, no LATCH) */
     }
     if (pad == BKF_KBR && k == 1 && kb_mode() == KB_BAR)
         return "ECHO";                   /* (0.9.60: BAR END's K2, its echo) */
@@ -415,6 +434,8 @@ static void pad_knob_value(int pad, int k, char *t)
             text_cat(t, "%");
         } else if (k == 2)
             text_cat(t, tk == 1 ? OVL_RATE_NAME[set.ovl_rate & 3u] : tk == 2 ? OVL_SWEEP_NAME[set.ovl_sweep & 3u] : "-");
+        else if (e == OV_RISE)
+            text_cat(t, rise_ret_name());
         else
             text_cat(t, arpk_latch(arpk_focus()) ? "ON" : "OFF");
         break;
@@ -547,7 +568,7 @@ static void pad_knob_turn(int pad, int k, int32_t d)
                 else if (k == 2)
                     set.ovl_rate = (uint8_t)clamp((int32_t)set.ovl_rate + dir, 0, 3);
                 else
-                    set.ovl_sweep = (uint8_t)clamp((int32_t)set.ovl_sweep + dir, 0, 3);
+                    sweep_turn(dir);
             } else if (k == 0) {         /* MAIN: K1 the effect (the OVERLAY page's K1 follows it: ovl_last) */
                 e = (e + (d > 0 ? 1u : 15u)) & 15u;
                 arpk_set_fx(arpk_focus(), e);
@@ -559,10 +580,12 @@ static void pad_knob_turn(int pad, int k, int32_t d)
                 if (tk == 1)
                     set.ovl_rate = (uint8_t)clamp((int32_t)set.ovl_rate + dir, 0, 3);
                 else if (tk == 2)
-                    set.ovl_sweep = (uint8_t)clamp((int32_t)set.ovl_sweep + dir, 0, 3);
+                    sweep_turn(dir);
                 else
                     return;
-            } else {                     /* K4 LATCH, right on (each press on or off), left off */
+            } else if (e == OV_RISE)     /* (0.9.95: RISE's K4 RETURN) */
+                rise_ret_turn(d);
+            else {                       /* K4 LATCH, right on (each press on or off), left off */
                 arpk_set_latch(arpk_focus(), d > 0);
                 if (d < 0)
                     arp_lat &= (uint16_t)~(1u << arpk_focus());   /* (latched on: off with it) */
@@ -823,7 +846,7 @@ static void draw_fx_band(int pad, const brk_status_t *st, uint32_t now, int32_t 
         cv_rect(6, 72, 228, 3, C_BLOCK); /* (LOAF BREAKER: its amount) */
         cv_rect(6, 72, (int32_t)set.ovl_amt[e] * 228 / 100, 3, on ? C_HI : C_GRAY);
         cv_text(6, 78, &FONT_XS, set.ovl_pad & 32u ? "OFF (FX: MORE, K2): K1 BROWSES, SILENT"
-                                 : arpk_latch(arpk_focus()) ? "LATCH: EACH PRESS ON OR OFF" : "ON WHILE HELD", C_DIM);
+                                 : arpk_latch(arpk_focus()) && e != OV_RISE ? "LATCH: EACH PRESS ON OR OFF" : "ON WHILE HELD", C_DIM);
         if (arpk_count() > 1u) {         /* (0.9.45: several ARP keys: which one, each its own effect) */
             char k[12] = "KEY ";
             int_text((int32_t)arpk_focus() + 1, k + 4);

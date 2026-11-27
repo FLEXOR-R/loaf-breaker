@@ -2453,6 +2453,7 @@ static void test_kick(void)
 /* the overlay effects (ARP): nothing on passes the sound through as it is; each one changes it and stays bounded;
  * REESE (LOAF BREAKER, was CUT) adds its bass, DIVE darkens over its sweep, RISE thins; let go, it fades back to the dry sound */
 static int16_t ovl_buf[2u * OVL_LINE];
+static uint32_t ovl_sw;                  /* (the sweep byte: 0.9.95, RISE's RETURN in bits 4-6) */
 static float ovl_tone(uint32_t i, float hz) { return 0.4f * sinf(6.2831853f * hz * (float)i / (float)BRK_SR); }
 static void ovl_run(uint32_t on, uint32_t from, uint32_t n, float hz, float *peak, float *diff)
 {
@@ -2461,7 +2462,7 @@ static void ovl_run(uint32_t on, uint32_t from, uint32_t n, float hz, float *pea
     float l[BLOCK], r[BLOCK], spb = (float)BRK_SR * 60.0f / 120.0f;
     for (i = 0; i < OVL_N; i++)
         amt[i] = 100u;
-    ovl_set(on, amt, 2u, 0u);
+    ovl_set(on, amt, 2u, ovl_sw);
     *peak = 0.0f;
     *diff = 0.0f;
     for (i = from; i < from + n; i += BLOCK) {
@@ -2505,6 +2506,14 @@ static void test_ovl(void)
     CHECK(pk < 0.1f, "OVERLAY RISE: the low end gone past the sweep (peak %.3f)", pk);
     ovl_run(0u, 88200u, 22050u, 2000.0f, &pk, &df);   /* let go: back to dry (the filter's tail aside) */
     CHECK(df < 0.002f && ovl_sounding() == 0u, "OVERLAY: let go, back to the dry sound (%.4f off)", df);
+    ovl_init(ovl_buf);                   /* (0.9.95, FLEXOR: RISE's RETURN, 1/4 bar: let go, it comes back down) */
+    ovl_sw = 1u << 4;
+    ovl_run(1u << OV_RISE, 0u, 88200u, 97.0f, &pk, &df);
+    ovl_run(0u, 88200u, 4096u, 97.0f, &pk, &df);
+    CHECK(pk < 0.25f && ovl_sounding() != 0u, "OVERLAY RISE RETURN: just let go, the low end still swept (peak %.3f)", pk);
+    ovl_run(0u, 92296u, 44100u, 2000.0f, &pk, &df);
+    CHECK(df < 0.002f && ovl_sounding() == 0u, "OVERLAY RISE RETURN: a beat on, back to the dry sound (%.4f off)", df);
+    ovl_sw = 0u;
 }
 
 /* LOAF BREAKER: the VINYL BREAK. A gated slice gone quiet comes back and slows (the stop no longer cuts off), and the

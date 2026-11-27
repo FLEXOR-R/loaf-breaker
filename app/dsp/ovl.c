@@ -12,7 +12,8 @@ const char *const OVL_SWEEP_NAME[4] = {"1/4 BAR", "1/2 BAR", "1 BAR", "2 BARS"};
 #define SR ((float)BRK_SR)
 #define RAMP (1.0f / 220.0f)             /* on / off: 5 ms */
 
-static volatile uint32_t p_on, p_rate, p_sweep;
+static volatile uint32_t p_on, p_rate, p_sweep, p_ret;
+static float rise_tr;                    /* (0.9.95: RISE's place in its sweep, 0..1: RETURN takes it back down) */
 static volatile uint8_t p_amt[OVL_N];
 static float env[OVL_N];                 /* each one's fade, 0..1 */
 static uint32_t held[OVL_N];             /* samples since it came on (the sweeps) */
@@ -67,6 +68,7 @@ BRK_COLD void ovl_set(uint32_t on, const uint8_t *amount, uint32_t rate, uint32_
         p_amt[i] = amount[i] > 100u ? 100u : amount[i];
     p_rate = rate & 3u;
     p_sweep = sweep & 3u;
+    p_ret = sweep >> 4 & 7u;             /* (0.9.95: RISE's RETURN: 0 CUT, 1..4 1/4 bar .. 2 bars) */
     p_on = on;
 }
 
@@ -86,6 +88,18 @@ void ovl_process(float *l, float *r, uint32_t n, float beat, float spb, uint32_t
     float amt[OVL_N], div = (float)(1u << rate), sweep_n = (float)(1u << p_sweep) * spb, inv = spb > 1.0f ? 1.0f / spb : 0.0f;
     svc_t c_dive, c_rise, c_radio;
     own = (mask >> OV_JET & 1u) != 0u;   /* (the line JET's pass's; 0.9.55: WOBBLE gone, JET its only reader) */
+    {                                    /* (0.9.95, FLEXOR: RISE let go sweeps back down over RETURN, then fades) */
+        uint32_t ret = p_ret > 4u ? 4u : p_ret;
+        if (mask >> OV_RISE & 1u && !(on >> OV_RISE & 1u) && ret && env[OV_RISE] > 0.0f && rise_tr > 0.0f) {
+            float rn = (float)(1u << (ret - 1u)) * spb;
+            rise_tr -= (float)n / (rn > 1.0f ? rn : 1.0f);
+            if (rise_tr > 0.0f) {
+                on |= 1u << OV_RISE;     /* (still sounding: its level kept while it comes down) */
+                held[OV_RISE] = (uint32_t)(rise_tr * (sweep_n > 1.0f ? sweep_n : 1.0f));
+            } else
+                rise_tr = 0.0f;
+        }
+    }
     for (k = 0; k < OVL_N; k++) {
         amt[k] = (float)p_amt[k] * 0.01f;
         if (!(mask >> k & 1u))
@@ -108,6 +122,8 @@ void ovl_process(float *l, float *r, uint32_t n, float beat, float spb, uint32_t
     {                                    /* the filters' coefficients, for this block */
         float td = brk_clampf((float)held[OV_DIVE] / (sweep_n > 1.0f ? sweep_n : 1.0f), 0.0f, 1.0f);
         float tr = brk_clampf((float)held[OV_RISE] / (sweep_n > 1.0f ? sweep_n : 1.0f), 0.0f, 1.0f);
+        if (on >> OV_RISE & 1u && mask >> OV_RISE & 1u)
+            rise_tr = tr;                /* (where RETURN starts from) */
         svc(&c_dive, 18000.0f * brk_exp2f(-td * (2.0f + 5.5f * amt[OV_DIVE])), 0.8f + 0.9f * amt[OV_DIVE]);
         svc(&c_rise, 20.0f * brk_exp2f(tr * (3.0f + 5.5f * amt[OV_RISE])), 0.8f + 0.9f * amt[OV_RISE]);
         svc(&c_radio, 1300.0f, 1.2f + 3.0f * amt[OV_RADIO]);

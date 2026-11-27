@@ -237,7 +237,7 @@ static void reset_do(uint32_t w)
         for (k = 0; k < 16u; k++)
             set.ovl_amt[k] = k == OV_DIVE || k == OV_RISE || k == OV_CRUSH || k == OV_DIST || k == OV_BOOM ? 70u : 100u;
         set.ovl_rate = 2u;
-        set.ovl_sweep = 2u;
+        set.ovl_sweep = 2u | 1u << 4;
         set.ovl_latch = 0u;
         ovl_push();
     } else if (w == RST_SELK) {          /* (0.9.52, FLEXOR) SEL KEYS: SEL BLACK's, none (SEL WHITE's until 0.9.70) */

@@ -92,7 +92,7 @@ typedef struct {
     /* (appended 3 Nov 2026: the overlay effects, ARP's page, PRD B-52) */
     uint8_t ovl_amt[16];                 /* each white key's effect's amount, 0..100 (OV_*) */
     uint8_t ovl_rate;                    /* CHOP's rate (GATE, WAH, PAN follow it): 0 1/4 .. 3 1/32 */
-    uint8_t ovl_sweep;                   /* DIVE's and RISE's sweep: 0 1/4 bar .. 3 2 bars */
+    uint8_t ovl_sweep;                   /* DIVE's and RISE's sweep: 0 1/4 bar .. 3 2 bars; bits 4-6 RISE's RETURN (0.9.95) */
     uint8_t ovl_latch;                   /* 1: a white key switches its effect on and off (0: on while held) */
     uint8_t ovl_rsv;
     /* (appended 4 Nov 2026: MB COMP's detail per FX slot, PRD A-49a; it moves with its slot) */
@@ -997,7 +997,7 @@ static void settings_defaults(void)
     for (k = 0; k < 16u; k++)            /* the overlays: full, the sweeps and the dirt a little less */
         set.ovl_amt[k] = k == OV_DIVE || k == OV_RISE || k == OV_CRUSH || k == OV_DIST || k == OV_BOOM ? 70u : 100u;
     set.ovl_rate = 2u;                   /* 1/16 */
-    set.ovl_sweep = 2u;                  /* a bar */
+    set.ovl_sweep = 2u | 1u << 4;        /* a bar; RISE's RETURN 1/4 BAR (0.9.95; an older save's bits 4-6: 0, CUT) */
     for (k = 0; k < BRK_FX_SLOTS; k++) {
         brk_mbc_defaults(&set.mbc[k]);
         brk_fxx_defaults(&set.fxx[k], set.fx.slot[k].type);

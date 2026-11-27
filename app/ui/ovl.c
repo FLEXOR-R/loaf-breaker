@@ -38,6 +38,7 @@ static void ovl_pad_key(uint32_t j, int down)   /* GLOUPI BREAKS: the ARP black 
         arp_held &= (uint16_t)~b;
     } else {                             /* (off: on while held) */
         arp_held = (uint16_t)(down ? arp_held | b : arp_held & ~b);
+        arp_lat &= (uint16_t)~b;         /* (0.9.95: a key turned to RISE, latched before: let go) */
         arp_lat &= (uint16_t)~b;
     }
     ovl_push();
@@ -54,12 +55,12 @@ static void ovl_keys(uint32_t keys, uint32_t kdn)   /* every input: the white ke
                 set.ovl_pad = (uint8_t)((set.ovl_pad & ~15u) | i);
                 set_dirty = 1u;
                 tut_ovl++;               /* (LOAF BREAKER: the TUTORIAL's count) */
-                if (set.ovl_latch)
+                if (set.ovl_latch && i != OV_RISE)   /* (0.9.95: RISE never latches) */
                     ovl_latched ^= 1u << i;
-                app_say(OVL_NAME[i], set.ovl_latch ? (ovl_latched >> i & 1u ? "ON" : "OFF") : "");
+                app_say(OVL_NAME[i], set.ovl_latch && i != OV_RISE ? (ovl_latched >> i & 1u ? "ON" : "OFF") : "");
                 ui.redraw |= RG_BLOCKS | RG_FOOT;   /* (K1: its amount) */
             }
-            if (!set.ovl_latch && keys >> WK[i] & 1u)
+            if ((!set.ovl_latch || i == OV_RISE) && keys >> WK[i] & 1u)
                 held |= 1u << i;
         }
     if (held != ovl_held)
@@ -414,7 +415,9 @@ static void ovl_value(int i, char *t)
     else if (i == 2) {
         int tk = ovl_time_kind(ovl_last);
         text_cat(t, tk == 1 ? OVL_RATE_NAME[set.ovl_rate & 3u] : tk == 2 ? OVL_SWEEP_NAME[set.ovl_sweep & 3u] : "-");
-    } else
+    } else if (ovl_last == OV_RISE)
+        text_cat(t, rise_ret_name());    /* (0.9.95: RISE's K4 RETURN) */
+    else
         text_cat(t, set.ovl_latch ? "ON" : "OFF");
 }
 static void ovl_turn(int i, int32_t d)
@@ -453,9 +456,11 @@ static void ovl_turn(int i, int32_t d)
     } else if (i == 2 && ovl_time_kind(ovl_last) == 1)
         set.ovl_rate = (uint8_t)clamp((int32_t)set.ovl_rate + (d > 0 ? 1 : -1), 0, 3);
     else if (i == 2 && ovl_time_kind(ovl_last) == 2)
-        set.ovl_sweep = (uint8_t)clamp((int32_t)set.ovl_sweep + (d > 0 ? 1 : -1), 0, 3);
+        sweep_turn(d);
     else if (i == 2)
         return;
+    else if (ovl_last == OV_RISE)
+        rise_ret_turn(d);
     else {
         set.ovl_latch = d > 0 ? 1u : 0u;
         if (!set.ovl_latch)
@@ -464,7 +469,7 @@ static void ovl_turn(int i, int32_t d)
     changed();
     ovl_push();
     ovl_value(i, t);
-    app_say(i == 0 ? OVL_NAME[ovl_last & 15u] : i == 2 ? (ovl_time_kind(ovl_last) == 1 ? "RATE" : "SWEEP") : "LATCH", t);
+    app_say(i == 0 ? OVL_NAME[ovl_last & 15u] : i == 2 ? (ovl_time_kind(ovl_last) == 1 ? "RATE" : "SWEEP") : ovl_last == OV_RISE ? "RETURN" : "LATCH", t);
     ui.redraw |= RG_BLOCKS;
 }
 
