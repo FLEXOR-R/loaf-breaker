@@ -1,0 +1,66 @@
+# LOAF BREAKER (27 Nov 2026, FLEXOR: "pour l'image où y'a marqué go hard ... remplis un peu le séquenceur, genre 4 to
+# the floor pour le kick et quelque chose de logique pour le snare, le HH et le clap"): the site's front page's GO HARD
+# picture (app/site/img/home_seq.png): SEQ, FULL, a hardcore beat over two bars: the kick on every beat, the snare on
+# 2 and 4, the hat on the off-beats (a 16th more before the turn), the clap on bar 1's last beat and bar 2's 2, 4 and
+# its last 8th.
+#   app/build/host/loaf-breaker_host tests/scenarios/homeseq.txt app/build/scenarios
+wait 4200
+tap SEQ
+wait 300
+expect seq_lane 2
+# K: four to the floor, both bars
+tapkey w0
+tapkey w4
+tapkey w8
+tapkey w12
+turn ALGO 1 80
+wait 150
+expect seq_lane 3
+tapkey w0
+tapkey w4
+tapkey w8
+tapkey w12
+turn ALGO 1 80
+wait 150
+expect seq_lane 6
+# SN: 2 and 4
+tapkey w4
+tapkey w12
+turn ALGO 1 80
+wait 150
+expect seq_lane 7
+tapkey w4
+tapkey w12
+turn ALGO 1 80
+wait 150
+expect seq_lane 10
+# HH: the off-beats, and a 16th before the bar's end in bar 2
+tapkey w2
+tapkey w6
+tapkey w10
+tapkey w14
+turn ALGO 1 80
+wait 150
+expect seq_lane 11
+tapkey w2
+tapkey w6
+tapkey w10
+tapkey w13
+tapkey w14
+tapkey w15
+turn ALGO 1 80
+wait 150
+expect seq_lane 14
+# CP: bar 1's 4, bar 2's 2, 4 and its last 8th
+tapkey w12
+turn ALGO 1 80
+wait 150
+expect seq_lane 15
+tapkey w4
+tapkey w12
+tapkey w14
+turn ALGO 1 80
+wait 150
+expect seq_lane 0
+wait 600
+shot home_seq.png
