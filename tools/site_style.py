@@ -25,8 +25,74 @@ from pathlib import Path
 APP = Path(__file__).resolve().parents[1] / "app"
 FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">\n'
          '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
-         '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700'
-         '&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">\n')
+         '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800'
+         '&family=Barlow:wght@400;500;600&family=Pirata+One&family=JetBrains+Mono:wght@400;500&display=swap">\n')
+
+# Look A (27 Nov 2026, FLEXOR: "une identité visuelle un petit peu plus marquée ... des onglets un peu plus digestes"):
+# the site in five entries, each its pages (a row of tabs under the header): (entry, its first page, its pages)
+SECTIONS = [
+    ("VST", "vst/", [("vst/", "The plugin")]),
+    ("Firmware", "install/", [("install/", "Install · Update"), ("emu/", "Try it"), ("backup/", "Backup")]),
+    ("Sounds", "breaks/", [("breaks/", "Breaks"), ("import/", "Drum samples")]),
+    ("Tools", "tools/", [("tools/", "All tools"), ("editor/", "Studio"), ("live/", "Live"), ("mirror/", "Mirror"),
+                         ("app/", "App")]),
+    ("Manual", "manual/", [("manual/#start-in-five-minutes", "Start in 5 minutes"), ("manual/", "The manual"),
+                           ("manual/#controls", "Control map")]),
+]
+# the header's own style: on every page, whatever the page's own (fm1-base's backup and mirror, the Studio)
+TOP_CSS = """<style>
+.lbtop { position: sticky; top: 0; z-index: 50; margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))) 30px;
+  padding: 0 max(16px, env(safe-area-inset-left, 0px)); background: rgba(8, 8, 8, .94); backdrop-filter: blur(6px);
+  border-bottom: 1px solid #2a2926; font-family: "Barlow Condensed", "Arial Narrow", sans-serif; color: #ebe5d8; }
+.lbtop .lbin { max-width: 1160px; margin: 0 auto; }
+.lbtop .lbbar { display: flex; align-items: center; gap: 10px 18px; padding: 10px 0; flex-wrap: wrap; }
+.lbtop a { color: inherit; text-decoration: none; }
+.lbtop .lbhome { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+.lbtop .lbhome img { width: 36px; height: 36px; border-radius: 2px; display: block; }
+.lbtop .lbhome span { font: 400 26px/1 "Pirata One", "Times New Roman", serif; letter-spacing: .01em; }
+.lbtop .lbmenu { display: flex; gap: 2px; flex-wrap: wrap; }
+.lbtop .lbmenu a { font: 600 15px/1 "Barlow Condensed", sans-serif; letter-spacing: .14em; text-transform: uppercase;
+  color: #8f897e; padding: 10px 12px; border-radius: 2px; }
+.lbtop .lbmenu a:hover { color: #ebe5d8; background: #1a1917; }
+.lbtop .lbmenu a[aria-current] { color: #ebe5d8; box-shadow: inset 0 -2px 0 #ebe5d8; }
+.lbtop .lbinst { font: 700 15px/1 "Barlow Condensed", sans-serif; letter-spacing: .13em; text-transform: uppercase;
+  background: #ebe5d8; color: #000; padding: 11px 15px; border-radius: 2px; }
+.lbtop .lbinst:hover { background: #fff; }
+.lbtop .lbsub { display: flex; gap: 4px; flex-wrap: wrap; padding: 0 0 10px; }
+.lbtop .lbsub a { font: 600 13px/1 "Barlow Condensed", sans-serif; letter-spacing: .12em; text-transform: uppercase;
+  padding: 7px 10px; border: 1px solid #2a2926; border-radius: 2px; color: #8f897e; }
+.lbtop .lbsub a:hover { color: #ebe5d8; border-color: #5c5852; }
+.lbtop .lbsub a[aria-current] { background: #ebe5d8; color: #000; border-color: #ebe5d8; }
+.lbtop a:focus-visible { outline: 2px solid #ebe5d8; outline-offset: 2px; }
+@media (max-width: 760px) {
+  .lbtop { position: static; }
+  .lbtop .lbmenu { order: 3; width: 100%; }
+  .lbtop .lbmenu a { padding: 9px 8px; font-size: 14px; letter-spacing: .1em; }
+  .lbtop .lbhome span { font-size: 22px; }
+}
+</style>
+"""
+TOP_FONTS = ('<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700'
+             '&family=Pirata+One&display=swap">\n')
+
+
+def top(page, up="../", fonts=True):
+    """the site's header (look A): the LOAF LORD and the name, the five entries, INSTALL, and the entry's pages as tabs;
+    page: one of SECTIONS' pages ("install/", "manual/#controls" ...) or "" (the front page); up: the way to the root"""
+    entry = next((e for e in SECTIONS if any(h == page for h, _ in e[2])), None)
+    menu = "".join(f'<a href="{up}{first}"' + (' aria-current="page"' if e is entry else "") + f">{name}</a>"
+                   for e in SECTIONS for name, first, _ in [e])
+    sub = ""
+    if entry and len(entry[2]) > 1:
+        sub = (f'<nav class="lbsub" aria-label="{entry[0]}">' +
+               "".join(f'<a href="{up}{h}"' + (' aria-current="page"' if h == page else "") + f">{t}</a>"
+                       for h, t in entry[2]) + "</nav>")
+    return ((TOP_FONTS if fonts else "") + TOP_CSS + '<div class="lbtop"><div class="lbin"><div class="lbbar">'
+            f'<a class="lbhome" href="{up or "./"}"><img src="{up}img/favicon.png" alt=""><span>Loaf Breaker</span></a>'
+            f'<nav class="lbmenu" aria-label="Site">{menu}</nav><a class="lbinst" href="{up}install/">Install</a></div>'
+            f"{sub}</div></div>\n")
+
+
 SPY = """<script>
 (function () {                         /* the contents follow the reading: the section on screen marked */
   var links = {}, nav = document.querySelector("nav.contents");
@@ -54,40 +120,45 @@ def restyle(path, cls, controls_href, extra=""):
     if n != 1:
         raise SystemExit(f"{path}: no <style> to replace")
     s = s.replace("<body>", f'<body class="{cls}">', 1)
-    nav = re.search(r'(<header class="site">.*?<nav>)(.*?)(</nav>)', s, re.S)
-    if nav:                                          # "Controls" after "Manual"
-        breaks = "breaks/" if controls_href.startswith("manual/") else "../breaks/"   # (the front page, the manual)
-        links = re.sub(r'(<a href="[^"]*manual/"[^>]*>Manual</a>)',
-                       r'\1<a href="' + controls_href + '">Controls</a><a href="' + breaks + '">Breaks</a><a href="' + breaks.replace("breaks", "import") + '">Import</a><a href="' + breaks.replace("breaks", "editor") + '">Studio</a><a href="' + breaks.replace("breaks", "vst") + '">VST</a>',
-                       nav.group(2), count=1)
-        s = s[:nav.start(2)] + links + s[nav.end(2):]
     return s
 
 
+PAGE_OF = {"VST": "vst/", "Emulator": "emu/", "Install": "install/", "Manual": "manual/", "Breaks": "breaks/",
+           "Import": "import/", "Studio": "editor/", "Live": "live/", "App": "app/", "Tools": "tools/",
+           "Backup": "backup/", "Mirror": "mirror/"}
+
+
 def header(current):
-    conf = (APP / "fm1.toml").read_text(encoding="utf-8")
-    name = re.search(r'^title\s*=\s*"([^"]+)"', conf, re.M) or re.search(r'^name\s*=\s*"([^"]+)"', conf, re.M)
-    repo = re.search(r'^repo\s*=\s*"([^"]+)"', conf, re.M)
-    links = [("../vst/", "VST"), ("../emu/", "Emulator"), ("../install/", "Install"), ("../manual/", "Manual"), ("../manual/#controls", "Controls"),
-             ("../breaks/", "Breaks"), ("../import/", "Import"), ("../editor/", "Studio"), ("../live/", "Live"),
-             ("../app/", "App")]
-    if repo:
-        links.append((repo.group(1), "Source"))
-    return ('<div class="page"><header class="site"><a class="home" href="../">' + (name.group(1) if name else "CHOPPAH") +
-            "</a><nav>" + "".join(f'<a href="{h}"' + (' aria-current="page"' if t == current else "") + f">{t}</a>"
-                                  for h, t in links) + "</nav></header></div>\n")
+    """the header of a page one level down (its name as before: "Install", "Studio" ...)"""
+    return top(PAGE_OF.get(current, ""))
 
 
 EMU_START = """<div class="start-here" aria-label="Where to start">
-  <div><b>Switch on, then PLAY</b><p>The break plays at 170 BPM, the mix scrolling by as on a CDJ. The white keys are its sixteen slices: press one and it lands on the next snap point; hold it and it loops.</p></div>
-  <div><b>Throw the pads</b><p>The black keys are momentary effects: rolls on the break or the kick, reverse, filter, half speed, vinyl break, gate, random, SUB DRIVE. Hold one and turn K1–K4 to tune it. EDIT opens the kick.</p></div>
-  <div><b>Find your way</b><p>Each button opens a page; press it again for its next part. <span class="k">SEL</span> held a second lists every combination. All of it is in the <a href="../manual/#controls">control map</a>.</p></div>
+  <div><b>Press PLAY</b><p>A breakbeat starts, with a kick under it. The screen scrolls the sound by.</p></div>
+  <div><b>Tap the white keys</b><p>Each one plays a piece of the break. Tap a few to rearrange the groove; hold one and it repeats.</p></div>
+  <div><b>Hold a black key</b><p>An effect while you hold it: a roll, a filter, a stop like a record. The big knob changes the break.</p></div>
 </div>
 """
 
+FOOT = """<footer class="lbfoot"><div class="lbin"><span>LOAF BREAKER by FLEXOR · built on CHOPPAH</span><nav>
+<a href="{up}manual/">Manual</a><a href="{up}install/">Install</a><a href="{up}vst/">VST</a>
+<a href="https://github.com/FLEXOR-R/loaf-breaker">Source</a></nav></div></footer>
+<style>
+.lbfoot { border-top: 1px solid #2a2926; margin-top: 70px; padding: 26px 0 10px; color: #5c5852; font: 400 14px/1.5 "Barlow", sans-serif; }
+.lbfoot .lbin { max-width: 1160px; margin: 0 auto; display: flex; gap: 16px; flex-wrap: wrap; justify-content: space-between; }
+.lbfoot nav { display: flex; gap: 16px; flex-wrap: wrap; }
+.lbfoot a { color: #8f897e; text-decoration: none; }
+.lbfoot a:hover { color: #ebe5d8; }
+</style>
+"""
+
+
+def foot(s, up="../"):
+    return s.replace("</body>", FOOT.replace("{up}", up) + "</body>", 1)
+
 
 def emu(site):
-    """the emulator: CHOPPAH's style and fonts, the site's header, an introduction, a row of where to start"""
+    """the emulator ("Try it"): the site's style and fonts, its header, a sentence, three gestures under the panel"""
     page = site / "emu" / "index.html"
     if not page.exists():
         return
@@ -95,20 +166,62 @@ def emu(site):
     m = re.search(r"<header>\s*<h1>([^<]*)</h1>\s*</header>\s*<main>", s)
     if not m:
         raise SystemExit(f"{page}: no <header><h1> then <main> to replace")
-    s = (s[:m.start()] + header("Emulator") + '<main>\n<div class="intro"><h1>' + m.group(1) + " in the browser</h1><p>The "
-         "same code the FM-1 runs, with sound. Play it with the mouse, a touch screen or the keyboard.</p></div>" + s[m.end():])
+    s = (s[:m.start()] + header("Emulator") + '<main>\n<div class="intro-lb"><div class="eyebrow">Try it</div>'
+         "<h1>Play it in your browser</h1><p>The real firmware, running in this page, with sound. <b>No FM-1 needed</b>: "
+         "click the keys and the knobs, touch them, or use your computer's keyboard.</p></div>" + s[m.end():])
     s = s.replace('<details class="speak" id="speak">', EMU_START + '<details class="speak" id="speak">', 1)
-    page.write_text(s, encoding="utf-8")
+    page.write_text(foot(s), encoding="utf-8")
+
+
+INSTALL_INTRO = """<div class="intro-lb"><div class="eyebrow">Install · Update</div><h1>Put LOAF BREAKER on your FM-1</h1>
+  <p>About a minute, from this page. <b>You need</b> the FM-1, its USB cable, and Chrome or Edge on a computer. Already on
+  LOAF BREAKER? The same button updates it. Your FM-1 can go back to its original firmware at any time, from here too.</p></div>
+  <div class="steps-lb"><div><b><em>1</em>Plug in</b>The FM-1, by USB, to this computer.</div>
+  <div><b><em>2</em>Install</b>Press Install below; the browser asks once to use MIDI devices: allow it.</div>
+  <div><b><em>3</em>Wait</b>For the bar to fill. Don't unplug the cable while it writes.</div></div>"""
 
 
 def install(site):
-    """the installer: CHOPPAH's style, and the site's header (the same pages as the manual's) above its main"""
+    """the installer: the site's style, its header above its main, a sentence and three steps in place of its title"""
     page = site / "install" / "index.html"
     if not page.exists():
         return
     s = restyle(page, "install", "", (APP / "site" / "install.css").read_text(encoding="utf-8"))
     s = s.replace('<body class="install">', '<body class="install">\n' + header("Install"), 1)
-    page.write_text(s, encoding="utf-8")
+    s, n = re.subn(r"<h1>[^<]*</h1>", INSTALL_INTRO, s, count=1)
+    if n != 1:
+        raise SystemExit(f"{page}: no <h1>")
+    page.write_text(foot(s), encoding="utf-8")
+
+
+FM1_CSS = """<style>
+:root:root:root { --ground: #080808; --ink: #ebe5d8; --muted: #8f897e; --rule: #2a2926; --accent: #ebe5d8; --teal: #ebe5d8;
+  --card: #111110; --accent-ink: #ebe5d8; --on-accent: #000; color-scheme: dark; }
+body { padding-top: 0 !important; }
+main h1 { font-family: "Barlow Condensed", "Arial Narrow", sans-serif !important; font-weight: 700 !important;
+  text-transform: uppercase; letter-spacing: .02em; font-size: clamp(34px, 5vw, 54px) !important; line-height: 1.02 !important; }
+main h2 { font-family: "Barlow Condensed", "Arial Narrow", sans-serif !important; text-transform: uppercase; letter-spacing: .04em; }
+button, label.pick { border-radius: 2px !important; font-family: "Barlow Condensed", sans-serif !important; letter-spacing: .1em;
+  text-transform: uppercase; }
+.card { border-radius: 3px !important; }
+</style>
+"""
+
+
+def fm1_page(site, name, current, h1, lede):
+    """fm1-base's own pages (backup/, mirror/): their markup and script as they are, the site's header and colours, a
+    plain title and sentence"""
+    page = site / name / "index.html"
+    if not page.exists():
+        return
+    s = page.read_text(encoding="utf-8")
+    s = s.replace("</head>", FM1_CSS + "</head>", 1)
+    s = re.sub(r"<body([^>]*)>", lambda m: "<body" + m.group(1) + ">\n" + header(current), s, count=1)
+    s = re.sub(r"<h1>[^<]*</h1>", "<h1>" + h1 + "</h1>", s, count=1)
+    if lede:
+        s = re.sub(r'(<p class="lede">|<header>\s*<h1>[^<]*</h1>\s*<p>)(.*?)(</p>)',
+                   lambda m: m.group(1) + lede + m.group(3), s, count=1, flags=re.S)
+    page.write_text(foot(s), encoding="utf-8")
 
 
 ATELIER_HTML = """<h1>Atelier</h1>
@@ -224,6 +337,7 @@ def breaks(site):
     if "/*SITE_CSS*/" not in page or "<!--HEADER-->" not in page:
         raise SystemExit("app/site/breaks.html: no /*SITE_CSS*/ or <!--HEADER--> to fill")
     page = page.replace("<style>/*SITE_CSS*/", FONTS + "<style>" + css, 1).replace("<!--HEADER-->", header("Breaks"), 1)
+    page = foot(page)
     (site / "breaks").mkdir(parents=True, exist_ok=True)
     (site / "breaks" / "index.html").write_text(page, encoding="utf-8")
     import break_lib                               # (0.9.32, FLEXOR: the library the page plays and sends: lib/)
@@ -238,6 +352,7 @@ def imp(site):
     if "/*SITE_CSS*/" not in page or "<!--HEADER-->" not in page:
         raise SystemExit("app/site/import.html: no /*SITE_CSS*/ or <!--HEADER--> to fill")
     page = page.replace("<style>/*SITE_CSS*/", FONTS + "<style>" + css, 1).replace("<!--HEADER-->", header("Import"), 1)
+    page = foot(page)
     (site / "import").mkdir(parents=True, exist_ok=True)
     (site / "import" / "index.html").write_text(page, encoding="utf-8")
 
@@ -265,8 +380,30 @@ def page_of(site, name, current):
     if "/*SITE_CSS*/" not in page or "<!--HEADER-->" not in page:
         raise SystemExit(f"app/site/{name}.html: no /*SITE_CSS*/ or <!--HEADER--> to fill")
     page = page.replace("<style>/*SITE_CSS*/", FONTS + "<style>" + css, 1).replace("<!--HEADER-->", header(current), 1)
+    if "<!--FOOT-->" in page:
+        page = page.replace("<!--FOOT-->", FOOT.replace("{up}", "../"), 1)
+    elif name == "vst":
+        page = foot(page)
     (site / name).mkdir(parents=True, exist_ok=True)
     (site / name / "index.html").write_text(page, encoding="utf-8")
+
+
+def home(site):
+    """the front page (look A, 27 Nov 2026): app/site/home.html in place of make_site.py's, the release's version read
+    from it"""
+    page = site / "index.html"
+    old = page.read_text(encoding="utf-8") if page.exists() else ""
+    v = re.search(r"Version ([0-9][^ <]*)", old)
+    s = (APP / "site" / "home.html").read_text(encoding="utf-8")
+    css = (APP / "site" / "site.css").read_text(encoding="utf-8")
+    s = s.replace("<style>/*SITE_CSS*/", FONTS + "<style>" + css, 1).replace("<!--HEADER-->", top("", ""), 1)
+    s = s.replace("<!--FOOT-->", FOOT.replace("{up}", ""), 1).replace("{{VERSION}}", v.group(1) if v else "dev")
+    page.write_text(s, encoding="utf-8")
+    for f in ("lord_title.png", "lord_face.png"):
+        src = APP / "site" / "img" / f
+        if src.exists() and not (site / "img" / f).exists():
+            (site / "img").mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(src, site / "img" / f)
 
 
 def pwa(site):
@@ -299,17 +436,23 @@ def main(site):
     page_of(site, "live", "Live")        # (0.9.71: the FM-1 in the hand, the app's)
     page_of(site, "app", "App")
     page_of(site, "vst", "VST")          # (24 Nov 2026, FLEXOR: "un onglet VST sur le site": the plugin, its pictures)
+    page_of(site, "tools", "Tools")      # (27 Nov 2026, look A: the four tools on one page)
+    fm1_page(site, "backup", "Backup", "Keep your work safe",
+             "Your kicks, patterns and tracks, saved as one file on your computer. Put them back after an update, or on "
+             "another FM-1. Connect the FM-1 with a USB cable; this page works in Chrome or Edge, nothing to install.")
+    fm1_page(site, "mirror", "Mirror", "The FM-1's screen, big",
+             "Its screen and panel live on your computer, to film it, stream it or play it from here.")
     for f in (APP / "site" / "vst_img").glob("*.png"):
         (site / "vst" / f.name).write_bytes(f.read_bytes())
-    home = site / "index.html"
-    if home.exists():
-        home.write_text(restyle(home, "home", "manual/#controls"), encoding="utf-8")
+    home(site)
     man = site / "manual" / "index.html"
     if not man.exists():
         pwa(site)
         print(f"site_style: {site}: front page restyled (no manual)")
         return
     s = restyle(man, "manual", "#controls")
+    s = s.replace('<body class="manual">', '<body class="manual">\n' + top("manual/"), 1)
+    s = foot(s)
     h = re.search(r'<h2 id="(s\d+)"><span class="num">\d+</span>The control map</h2>', s)
     if not h:
         raise SystemExit(f"{man}: no section \"The control map\" (app/docs/MANUAL.md)")

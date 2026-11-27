@@ -1,0 +1,50 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<!-- LOAF BREAKER's Tools page (27 Nov 2026, look A, FLEXOR: "des onglets un peu plus digestes"): the four ways to see
+     and drive the FM-1 from a screen while it is plugged in (Studio, Live, Mirror, App), what each is for, and the VST
+     for real editing. tools/site_style.py puts it at tools/ with the site's style and header. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LOAF BREAKER · Tools</title>
+<meta name="description" content="Four ways to see and drive your FM-1 from a computer or a phone, over USB: Studio, Live, Mirror and the app.">
+<style>/*SITE_CSS*/
+.tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 0 0 30px; }
+.tools a { display: grid; gap: 8px; align-content: start; text-decoration: none; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 3px; padding: 20px 22px 22px; color: var(--fg); }
+.tools a:hover { border-color: var(--fg); color: var(--fg); }
+.tools b { font: 700 30px/1 var(--f-display); text-transform: uppercase; letter-spacing: .03em; }
+.tools span { color: var(--dim); font-size: 16px; }
+.tools i { font: 600 13px/1 var(--f-display); font-style: normal; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
+.better { border-left: 3px solid var(--fg); padding: 6px 0 6px 16px; max-width: 70ch; }
+.better p { margin: 0 0 12px; color: var(--dim); }
+.better b { color: var(--fg); }
+@media (max-width: 700px) { .tools { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<div class="page">
+<main id="content">
+<div class="intro-lb"><div class="eyebrow">Tools</div><h1>Your FM-1, from a screen</h1>
+<p>Four ways to see and drive the FM-1 while it's plugged in. <b>All of them work over USB</b>, in Chrome or Edge;
+nothing to install.</p></div>
+<div class="tools">
+  <a href="../editor/"><i>On a computer</i><b>Studio</b><span>Every setting of the FM-1 on a big screen, in the VST's look:
+  the kick and the drums, the sequencer, your patterns and songs, the effects and the mix.</span></a>
+  <a href="../live/"><i>On a phone</i><b>Live</b><span>The FM-1's screen and all its buttons, keys and knobs in your hand,
+  on a phone plugged in by USB.</span></a>
+  <a href="../mirror/"><i>To film or stream</i><b>Mirror</b><span>The FM-1's screen, big and live on your computer, to
+  record it or show it. You can play its panel from there too.</span></a>
+  <a href="../app/"><i>On Android</i><b>App</b><span>All of this on your phone's home screen, as an app: Live, Studio,
+  the breaks, your drum samples, the updates.</span></a>
+</div>
+<div class="better"><p><b>Want to edit for real? The VST is far better.</b> The same LOAF BREAKER on your computer, with
+every setting at once, a big sequencer and a song arranger, and your work sent to the FM-1 when you're done.</p>
+<a class="btn" href="../vst/">See the VST</a></div>
+</main>
+</div>
+<!--FOOT-->
+</body>
+</html>

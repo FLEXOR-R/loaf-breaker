@@ -386,6 +386,20 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   the VST's word (`vstbar`, hidden for the visit by its ✕) and the welcome's STUDIO / VST side by side. Test
   tests/studio_page.sh (tests/studio_page.mjs: the simulator driven as a scenario through a FIFO, "sysex", "wait 30",
   a "sysex_log" file a cycle: --serve hands the app no SysEx), in CI.
+- The site in look A (27 Nov 2026, 0.9.88, FLEXOR: "une identité visuelle un petit peu plus marquée, un petit peu plus
+  LOAF BREAKER, avec des onglets un peu plus digestes"; "des choses plus claires et plus simples"; "publie le site"):
+  the VST's LOAF LORD look (app/site/site.css: near black, bone, a halftone grain; Barlow Condensed, Barlow, Pirata One
+  for the name, JetBrains Mono; CHOPPAH's variable names kept, --amber the bone accent). tools/site_style.py `top`: every
+  page's header, the LOAF LORD and the name, five entries (`SECTIONS`: VST; Firmware: Install · Update, Try it (emu/),
+  Backup; Sounds: Breaks, Drum samples (import/); Tools: tools/, Studio, Live, Mirror, App; Manual: Start in 5 minutes,
+  The manual, Control map), INSTALL, the entry's pages as tabs under it; `FOOT` the footer; its own CSS (TOP_CSS) so it
+  holds on fm1-base's backup/ and mirror/ (`fm1_page`: their colours over theirs, a plain title) and the Studio (compact).
+  The front page is app/site/home.html (`home`: make_site.py's replaced, its version read from it): the LOAF LORD's
+  title and face (app/site/img/lord_title.png, lord_face.png, the VST's), "Hardcore kicks and breakbeats on your FM-1",
+  three things you do, three steps, the VST, the genres; the machine's own words (DISTO, PRE EQ, R8 ...) stay in the
+  manual. Every page opens on a plain sentence (`.intro-lb`, `.steps-lb`: install, emu, backup, mirror, breaks, import,
+  vst, tools). app/site/tools.html (tools/): the four tools, the VST "far better" for editing. Still to come (FLEXOR's
+  pages artifact): Start in 5 minutes as its own page, the manual's contents by task, What's new, Kicks.
 - Drum samples (15 Nov 2026, 0.9.45, FLEXOR: "importer des samples type snare, hi-hat, clap", the site's IMPORT tab): a kit
   of three in OBJ_BLE's two sectors (0xDE000, 8 KB: no Bluetooth, nothing else writes there; app.c `KIT_AT`, `kit_scan`,
   `kit_ent`, `kit_name`, `kit_has`), IMA ADPCM read from flash as it plays (perc.c `perc_set_sample`, `sample_tick`;

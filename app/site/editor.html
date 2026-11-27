@@ -34,10 +34,14 @@ body.studio[data-theme="rust"] { --bg: #0a0806; --panel: #13100c; --raise: #1c17
 body.studio[data-theme="paper"] { --bg: #e9e4d8; --panel: #dcd6c8; --raise: #d0c9b9; --line: #a59d8b; --fg: #121110; --dim: #5d574d; --faint: #7d776c; --amber: #121110; --hot: #000; --ink: #f4efe4; }
 body.studio[data-theme="paper"] { background: var(--bg); }
 .studio > .page { max-width: none; padding: 0 14px; width: auto; flex: none; }
-.studio header.site { padding: 3px 0; margin: 0; border-bottom: 1px solid var(--line); background: transparent; }
-.studio header.site .home { font-size: 13px; }
-.studio header.site .home::before { width: 9px; height: 9px; }
-.studio header.site nav a { padding: 4px 7px; font-size: 10px; }
+.studio .lbtop { position: static; margin: 0; }
+.studio .lbtop .lbbar { padding: 4px 0; }
+.studio .lbtop .lbhome img { width: 22px; height: 22px; }
+.studio .lbtop .lbhome span { font-size: 18px; }
+.studio .lbtop .lbmenu a { padding: 6px 8px; font-size: 12px; }
+.studio .lbtop .lbinst { padding: 6px 9px; font-size: 12px; }
+.studio .lbtop .lbsub { padding-bottom: 4px; }
+.studio .lbtop .lbsub a { padding: 4px 7px; font-size: 11px; }
 .studio button { font: 600 13px/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--fg);
   background: var(--raise); border: 1px solid var(--line); padding: 7px 11px; border-radius: 3px; box-shadow: none; cursor: pointer; }
 .studio button:hover:not(:disabled):not([aria-current="true"]):not([aria-pressed="true"]):not(.go) { border-color: var(--dim); background: var(--raise); }

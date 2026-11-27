@@ -1,0 +1,132 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<!-- LOAF BREAKER's front page, look A (27 Nov 2026, FLEXOR: "une identité visuelle un petit peu plus marquée ... des
+     choses plus claires et plus simples à expliquer", on the preview of this page): the
+     LOAF LORD, one plain sentence, two paths (the FM-1, the VST), three things you do, three steps, the VST, the genres.
+     The machine's own words (DISTO, SCREAM, PRE EQ, R8 ...) stay in the manual. tools/site_style.py `home` puts it in
+     place of make_site.py's front page (its head kept: title, icons), {{VERSION}} the release's. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LOAF BREAKER · Hardcore kicks and breakbeats on your FM-1</title>
+<meta name="description" content="LOAF BREAKER is free firmware for the M-VAVE FM-1: design your own hardcore kick, chop breakbeats on the keys, build beats and play them live. Also a VST plugin.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="LOAF BREAKER">
+<meta property="og:description" content="Hardcore kicks and breakbeats on your FM-1: free firmware for the M-VAVE FM-1, and a plugin for your computer.">
+<meta property="og:image" content="https://flexor-r.github.io/loaf-breaker/img/app-512.png">
+<style>/*SITE_CSS*/
+body.home main { display: block; }
+.hero { display: grid; grid-template-columns: 1.15fr .85fr; gap: 24px; align-items: center; padding: 26px 0 48px; }
+.hero .name { width: min(430px, 100%); display: block; mix-blend-mode: screen; }
+.hero h1 { font-size: clamp(36px, 4.8vw, 56px); line-height: 1.02; margin: 18px 0 14px; max-width: 18ch; }
+.hero p { margin: 0 0 24px; color: var(--dim); font-size: 19px; max-width: 46ch; }
+.hero p b { color: var(--fg); font-weight: 600; }
+.paths { display: flex; gap: 10px; flex-wrap: wrap; }
+.small { margin-top: 16px; font: 500 14px/1.45 var(--f-body); color: var(--faint); max-width: 60ch; }
+.small a { color: var(--dim); }
+.face { justify-self: center; width: min(360px, 100%); aspect-ratio: 1; display: grid; place-items: center;
+  background: radial-gradient(circle at 50% 45%, rgba(235, 229, 216, .13), transparent 62%); }
+.face img { width: 94%; filter: contrast(1.15) brightness(1.05);
+  -webkit-mask: radial-gradient(circle, #000 55%, transparent 72%); mask: radial-gradient(circle, #000 55%, transparent 72%); }
+.sec { border-top: 1px solid var(--line); padding: 54px 0; display: grid; gap: 26px; }
+.sec h2 { font-size: clamp(30px, 4vw, 42px); line-height: 1.05; margin: 8px 0 0; padding: 0; border: 0; display: block; }
+.does { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.does article { background: var(--panel); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; min-width: 0; }
+.does img { width: 100%; aspect-ratio: 1; display: block; image-rendering: pixelated; border-bottom: 1px solid var(--line); background: #000; }
+.does div { padding: 16px 18px 20px; }
+.does h3 { font-size: 26px; margin: 0 0 8px; color: var(--fg); }
+.does p { margin: 0; color: var(--dim); font-size: 16px; }
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.steps div { border-left: 2px solid var(--fg); padding: 2px 0 2px 16px; }
+.steps b { display: block; font: 700 24px/1.05 var(--f-display); text-transform: uppercase; letter-spacing: .03em; margin-bottom: 6px; }
+.steps b em { font-style: normal; color: var(--faint); margin-right: 8px; }
+.steps p { margin: 0; color: var(--dim); font-size: 16px; }
+.vstsec { grid-template-columns: .9fr 1.1fr; align-items: center; gap: 34px; }
+.vstsec img { width: 100%; display: block; border: 1px solid var(--line); border-radius: 3px; box-shadow: 0 24px 60px -24px #000; }
+.vstsec p { color: var(--dim); margin: 12px 0 20px; max-width: 46ch; }
+.vstsec ul { margin: 0 0 22px; padding: 0; list-style: none; display: grid; gap: 6px; }
+.vstsec li { margin: 0; }
+.vstsec li::before { content: "—"; color: var(--faint); margin-right: 10px; }
+.genres { font: 800 clamp(26px, 5vw, 58px)/1 var(--f-display); text-transform: uppercase; letter-spacing: .02em;
+  display: flex; flex-wrap: wrap; gap: 4px 18px; color: var(--faint); }
+.genres span:nth-child(odd) { color: var(--fg); }
+.ver { font: 500 13px/1.5 var(--f-body); color: var(--faint); max-width: 80ch; }
+@media (max-width: 860px) {
+  .hero, .vstsec { grid-template-columns: 1fr; padding-top: 10px; }
+  .face { width: 220px; order: -1; }
+  .does, .steps { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body class="home">
+<a class="skip" href="#content">Skip to content</a>
+<!--HEADER-->
+<div class="page">
+<main id="content" tabindex="-1">
+
+<section class="hero">
+  <div>
+    <img class="name" src="img/lord_title.png" alt="Loaf Lord" width="456" height="180">
+    <h1>Hardcore kicks and breakbeats on your FM-1</h1>
+    <p>LOAF BREAKER is <b>free firmware for the M-VAVE FM-1</b>. Design your own kick, from a clean thump to a
+    distorted gabber kick. Cut a breakbeat into pieces and replay it on the keys. Build beats and play them live.
+    Made by FLEXOR, and also <b>a plugin for your computer</b>.</p>
+    <div class="paths"><a class="btn p" href="install/">Install on my FM-1</a><a class="btn" href="vst/">Get the VST</a></div>
+    <div class="small">Free · Installs from Chrome or Edge in about a minute · The original firmware can go back on at any time ·
+    No FM-1? <a href="emu/">Try it in your browser</a></div>
+  </div>
+  <div class="face"><img src="img/lord_face.png" alt="The LOAF LORD, the face of LOAF BREAKER" width="360" height="360"></div>
+</section>
+
+<section class="sec" id="does">
+  <div><div class="eyebrow">What you do with it</div><h2>Three things, from the first minute</h2></div>
+  <div class="does">
+    <article><img src="manual/img/screen-kick.png" alt="The FM-1's screen: a kick drawn as a waveform, its four knobs below" loading="lazy">
+      <div><h3>Make your kick</h3><p>Start from one of eleven ready-made kicks (909, Rotterdam, gabber, terror…) and turn
+      four knobs to make it harder, longer or dirtier. Keep up to twenty of your own.</p></div></article>
+    <article><img src="manual/img/screen-slicer.png" alt="The FM-1's screen: a breakbeat scrolling by, cut into sixteen pieces" loading="lazy">
+      <div><h3>Chop a break</h3><p>A breakbeat loops, and each of the sixteen white keys plays one piece of it. Tap them
+      to rearrange the groove on the fly. Eight breaks inside, many more in the library, or your own samples.</p></div></article>
+    <article><img src="manual/img/screen-seq.png" alt="The FM-1's screen: a step sequencer with kick, snare, hat and clap" loading="lazy">
+      <div><h3>Play a set</h3><p>Program the kick, snare, hat and clap step by step, chain your beats into a set with
+      build-ups and drops, and throw effects with the black keys while it plays.</p></div></article>
+  </div>
+</section>
+
+<section class="sec" id="start">
+  <div><div class="eyebrow">Get started</div><h2>Three steps</h2></div>
+  <div class="steps">
+    <div><b><em>1</em>Plug in</b><p>Connect the FM-1 to a computer with its USB cable.</p></div>
+    <div><b><em>2</em>Install</b><p>Open <a href="install/">Install</a> on this site in Chrome or Edge, click, wait about a
+    minute. Your FM-1 can go back to its original firmware whenever you like.</p></div>
+    <div><b><em>3</em>Play</b><p>Press PLAY. A short tutorial on the FM-1's own screen shows you the rest, and Beginner
+    mode keeps things simple until you want more.</p></div>
+  </div>
+  <div class="paths"><a class="btn p" href="install/">Install on my FM-1</a><a class="btn" href="manual/#start-in-five-minutes">Start in five minutes</a></div>
+</section>
+
+<section class="sec vstsec" id="vst">
+  <div><div class="eyebrow">On your computer</div><h2>The VST</h2>
+    <p>The same LOAF BREAKER, running on your computer as a plugin for Ableton, FL Studio and other DAWs, or on its own.
+    Everything the FM-1 does, with room to see it.</p>
+    <ul><li>A big sequencer and a song arranger</li><li>Every setting of a page on screen at once</li>
+      <li>98 breakbeats in full quality</li><li>Send your work to the FM-1, or play the VST with it</li></ul>
+    <div class="paths"><a class="btn p" href="vst/">Get the VST</a><a class="btn" href="emu/">Try it in your browser</a></div>
+    <div class="small">VST3 and standalone, Windows.</div></div>
+  <img src="vst/menus.png" alt="The LOAF BREAKER VST: a kick drawn big, its settings as cards, pads at the bottom" loading="lazy" width="1200" height="750">
+</section>
+
+<section class="sec">
+  <div class="eyebrow">Made for</div>
+  <div class="genres"><span>Hardcore</span><span>Gabber</span><span>Breakcore</span><span>Terror</span><span>Speedcore</span></div>
+  <p class="ver">Version {{VERSION}} (beta). Installing is at your own risk; the installer can put M-VAVE's own firmware
+  back. Built on CHOPPAH by Laurens Profittlich, on fm1-base and felucca-bsp, from Felucca by Leo Kuroshita, Hügelton
+  Instruments. MPL-2.0. M-VAVE and FM-1 are trademarks of their owners. LOAF BREAKER is not affiliated with M-VAVE.</p>
+</section>
+
+</main>
+</div>
+<!--FOOT-->
+</body>
+</html>
