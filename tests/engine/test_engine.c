@@ -2198,6 +2198,31 @@ static void test_kick_lab(void)
             h1 += (kick_buf[i] - ref[i]) * (kick_buf[i] - ref[i]);
         }
         CHECK(h1 > h0 * 0.05f, "PRE EQ: MID +12 dB into the drive, another kick (%.1f changed of %.1f)", h1, h0);
+        {                                /* (0.9.91, FLEXOR: "la fréquence qui bouge ... le son reste pareil": 0.9.87-0.9.90
+                                          * wrote the Q over the frequency) MID's FREQ moved two octaves, with a Q set: another
+                                          * kick again; its Q moved: another kick too */
+            static float pf[BRK_SR / 5];
+            float f1 = 0.0f, f2 = 0.0f;
+            px.eq_q = 4;
+            kick_set_px(&px);
+            kick_run(&k, BRK_SR / 2, 0u);
+            memcpy(pf, kick_buf, sizeof pf);
+            px.eq_f[1] = 24;             /* (600 Hz -> 2.4 kHz) */
+            kick_set_px(&px);
+            kick_run(&k, BRK_SR / 2, 0u);
+            for (i = 0; i < BRK_SR / 5; i++)
+                f1 += (kick_buf[i] - pf[i]) * (kick_buf[i] - pf[i]);
+            CHECK(f1 > h1 * 0.2f, "PRE EQ: MID's FREQ two octaves up, another kick (%.1f changed, the band's own %.1f)", f1, h1);
+            memcpy(pf, kick_buf, sizeof pf);
+            px.eq_q = -8;
+            kick_set_px(&px);
+            kick_run(&k, BRK_SR / 2, 0u);
+            for (i = 0; i < BRK_SR / 5; i++)
+                f2 += (kick_buf[i] - pf[i]) * (kick_buf[i] - pf[i]);
+            CHECK(f2 > h1 * 0.05f, "PRE EQ: MID's Q from 2 to 0.25, another kick (%.1f changed)", f2);
+            px.eq_q = 0;
+            px.eq_f[1] = 0;
+        }
         kick_preset(&a, 0u);
         a.volume = k.volume;
         memset(&px, 0, sizeof px);

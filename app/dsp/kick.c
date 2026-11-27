@@ -409,15 +409,16 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c, const volatile int8_t *sy
         static const int8_t FLO[3] = {-24, -24, -18}, FHI[3] = {24, 30, 18};
         uint32_t b, n = 0u;
         for (b = 0; b < 3u; b++) {
-            int32_t gd = x.eq_g[b], fs = x.eq_f[b];
+            int32_t gd = x.eq_g[b], fs = x.eq_f[b], qs;
             float A, g, k, q;
             if (!gd)
                 continue;
             gd = gd < -KICK_PX_DB ? -KICK_PX_DB : gd > KICK_PX_DB ? KICK_PX_DB : gd;
             fs = fs < FLO[b] ? FLO[b] : fs > FHI[b] ? FHI[b] : fs;
-            fs = b == 1u ? x.eq_q : x.eq_qe[b >> 1];   /* (0.9.87: LOW's and HIGH's Q too, 0.8 at 0) */
-            fs = fs < -8 ? -8 : fs > 12 ? 12 : fs;
-            q = b == 1u ? brk_exp2f_c((float)fs * 0.25f) : fs ? 0.8f * brk_exp2f_c((float)fs * 0.25f) : 0.8f;
+            qs = b == 1u ? x.eq_q : x.eq_qe[b >> 1];   /* (0.9.87: LOW's and HIGH's Q too, 0.8 at 0; its own variable
+                                          * since 0.9.91: 0.9.87-0.9.90 wrote it over the frequency, FREQ did nothing) */
+            qs = qs < -8 ? -8 : qs > 12 ? 12 : qs;
+            q = b == 1u ? brk_exp2f_c((float)qs * 0.25f) : qs ? 0.8f * brk_exp2f_c((float)qs * 0.25f) : 0.8f;
             A = brk_exp2f_c((float)gd * 0.0830482f);   /* (10^(dB / 40)) */
             g = brk_tan_pi_c(F0[b] * brk_exp2f_c((float)fs * (1.0f / 12.0f)) / (float)BRK_SR);
             k = 1.0f / (q * A);

@@ -221,7 +221,9 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   2^(q / 4), -8 .. 12, 0 as always, bit for bit). KSECT rows of 11: ATTACK PRESET CLICK CFX PUNCH PFX STACK TOK, BODY MIX
   SUB SFX GRIT GFX SYNTH SYN+ MACRO OUT, DIST DIST D+ SCR PRE L PRE M PRE H XSUB (the chips; FLEXOR: "PRE L PRE M ET pre h", PRL PRM PRH at first). Host `kset px.ql / px.qh`; probes pxql pxqh;
   scenario prexsub (fxmem synth kpreset kickcopy klab kicklab2 encfast's ALGORITHM counts moved). Image 580,800 B (764 B
-  left). The VST's PRE EQ card (eqPreFor: PRE EQ / PRE EQ +) needs the new names.
+  left). The VST's PRE EQ card (eqPreFor: PRE EQ / PRE EQ +) needs the new names. 0.9.91 (FLEXOR: "la fréquence qui bouge ... le son reste
+  pareil"): kick.c read the band's Q into the frequency's variable (`fs`), so FREQ did nothing in 0.9.87-0.9.90; its own
+  `qs` now, and the engine test moves MID's FREQ and Q (each must change the kick).
 - MOTION (26 Nov 2026, 0.9.85, a TEST, FLEXOR, from issue #5: "motion control recording ... in Edit Mode ... and for the
   white/black key effects"; his choices: SEL + K1-K4 and BRK FLT, four motions, each pattern its own, "utiliser un motion
   sur l'étendue d'un pattern de 64 steps"; he wants feedback before more): ARP's fifth tab (ui.opage 4 since ASSIGN, OPAGE_NAME,
