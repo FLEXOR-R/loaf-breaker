@@ -1016,7 +1016,7 @@ static void selk_turn(uint32_t f, int i, int32_t d)
             int8_t *q = kpx_q(x, f - SK_PREQ);
             *q = (int8_t)clamp((int32_t)*q + d, -8, 12);
         } else if (f == SK_XO) {
-            x->xo = (uint8_t)clamp((int32_t)x->xo + d, 0, (int32_t)KICK_XO_N);
+            x->xo = xo_turn(x->xo, d);   /* (0.9.95: a quick turn down stops at 40 Hz, OFF after a pause) */
             x->xoff &= ~1u;              /* (the XSB switch on again) */
         }
         else if (f >= SK_PRE + 3u)

@@ -645,7 +645,21 @@ static float kpx_norm(int i)
     return i == 0 ? (float)x->xo / (float)KICK_XO_N : i == 1 ? (float)(x->sg + 50) * 0.01f
            : i == 2 ? (float)x->sdrv * 0.01f : (float)x->sdec * 0.01f;
 }
-__attribute__((noinline)) static void kpx_turn(int i, int32_t d)
+__attribute__((noinline)) /* X FREQ a detent (0.9.95, FLEXOR: "une sécurité ... descendre sur 40hz rapidement sans couper"): turned down it
+ * stops at 40 Hz; OFF only by a detent XO_GUARD_MS after the one before (a pause at 40, then one more): a quick turn
+ * down never cuts the split. The page's X FREQ and the knob function XSUB FREQ alike. */
+#define XO_GUARD_MS 300u
+static uint32_t xo_last;
+static uint8_t xo_turn(uint8_t xo, int32_t d)
+{
+    uint32_t now = plat_ms(), held = now - xo_last >= XO_GUARD_MS;
+    int32_t n = (int32_t)xo + d;
+    xo_last = now;
+    if (d < 0 && xo >= 1u && n < 1)
+        n = xo == 1u && held ? 0 : 1;    /* (at 40: OFF after a pause alone; from above: 40) */
+    return (uint8_t)clamp(n, 0, (int32_t)KICK_XO_N);
+}
+static void kpx_turn(int i, int32_t d)
 {
     kick_px_t *x = kpx_at(set.kslot);
     int dir = d > 0 ? 1 : -1;
@@ -670,7 +684,7 @@ __attribute__((noinline)) static void kpx_turn(int i, int32_t d)
             }
         }
     } else if (i == 0) {
-        x->xo = (uint8_t)clamp((int32_t)x->xo + d, 0, (int32_t)KICK_XO_N);
+        x->xo = xo_turn(x->xo, d);
         x->xoff &= ~1u;                  /* (0.9.86: X FREQ turned: the XSB switch on again) */
     }
     else if (i == 1)

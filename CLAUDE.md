@@ -194,6 +194,9 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   SK_XO) clears xoff; each kick's (kx2.px), COPY copies it, a built-in PRESET clears it. CUSTOM / SEL BLACK / REC; probe
   xoff; scenario xsbkey; the scenarios turning K3 left of R8 one more (recsel kickx2 kickx4 kiltri killbreak reckey chskey
   splkey drumkeys).
+- X FREQ's floor (27 Nov 2026, 0.9.95, FLEXOR: "descendre sur 40hz rapidement sans couper"): ui/kick.c `xo_turn`
+  (the page's X FREQ and SK_XO alike): down, it stops at 40 Hz; OFF only a detent XO_GUARD_MS 300 after the one
+  before. Scenarios prexsub, xsbkey.
 - PEQ (27 Nov 2026, 0.9.93, FLEXOR: "un setting touche noire on / off pour la totalité des eq pré disto (qui ne modifie
   rien a l'allumage comme le setting touche noir xsub)"): `BKF_PEQ`, last in BKF_* (after MOT): a press, the kick's PRE
   EQ (PRE L / M / H) flat or back, `xoff` bit 1 (XSB's bit 0; X FREQ turned clears bit 0 alone), klab_send hands

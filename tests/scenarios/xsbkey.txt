@@ -57,6 +57,8 @@ expect xo 14
 # no X FREQ: a press changes nothing heard, X FREQ stays OFF
 press SEL
 turn K1 -20 10
+wait 400
+turn K1 -1 10
 release SEL
 wait 100
 expect xo 0

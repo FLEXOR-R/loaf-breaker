@@ -68,7 +68,15 @@ turn K2 -60 60
 wait 200
 expect xsg -50
 shot subsplit0.png
-turn K1 -17 60
+turn K1 -30 10
+wait 200
+expect xo 1
+# (0.9.95, FLEXOR) a quick turn down stops at 40 Hz; a pause, then one detent: OFF
+turn K1 -3 60
+wait 100
+expect xo 1
+wait 300
+turn K1 -1 10
 wait 200
 expect xo 0
 shot subsplitoff.png
