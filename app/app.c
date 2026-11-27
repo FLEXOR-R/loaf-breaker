@@ -274,8 +274,14 @@ static const uint8_t BK_LAY[2][11] = {{PAD_ROLL8, PAD_ROLL16, PAD_ROLL32, PAD_RE
 /* (0.9.78, FLEXOR) FLEXOR LAYOUT's SEL layer (1 + BKF_*, 0 the key's own) and its REC key, part of the preset: read
  * while it is in use (selb_fn, rec_fn, rec_key_on), the player's own SEL BLACK and REC kept for the other layouts;
  * edited on FLEXOR LAYOUT, they become a CUSTOM's (ovl.c bk_custom_of). Keys 1-11, then REC */
-static const uint8_t FLX_SEL[12] = {0u, 0u, 0u, 1u + BKF_ARP, 1u + PAD_GATE, 1u + PAD_FILTER, 1u + PAD_RANDOM,
-                                    1u + PAD_FREEZE, 1u + BKF_SUB, 1u + BKF_DST, 0u, 1u + BKF_KBR};
+static const uint8_t FLX_SEL[12] = {0u, 0u, 0u, 1u + BKF_ARP, 1u + PAD_REVERSE, 1u + PAD_FILTER, 1u + PAD_FILTER,
+                                    1u + PAD_RANDOM, 1u + PAD_GATE, 1u + PAD_TAPESTOP, 0u, 0u};   /* (0.9.93, FLEXOR, on
+                                          * https://claude.ai/artifact/DXWx8YDeebqUcxRAc3PwRG, store preset/flexor: alone
+                                          * the live, with SEL chopping the break as CHOPPAH, with REC the kick's switches
+                                          * while shaping it) */
+static const uint8_t FLX_RL[11] = {0u, 0u, 0u, 1u + BKF_SPL, 1u + BKF_CHS, 1u + BKF_PEQ, 1u + BKF_XSB, 1u + BKF_DRV,
+                                   1u + BKF_DST, 1u + BKF_KBR, 0u};   /* (0.9.93: its REC layer; REC + K1-K4 the player's
+                                          * own, none set: FLEXOR, "tout à assigner soi-même") */
 #define FLX_REC PAD_TAPESTOP             /* (its REC key: VINYL BREAK) */
 #define BK_PLAT 15u                      /* (bk[15]: 0xA0 | the LATCH bits of REVERSE, FREEZE, GATE, RANDOM (their K4),
                                           * 0.9.26, FLEXOR; tagged: an older save's byte there the STAB's leftover) */
@@ -746,6 +752,8 @@ static uint8_t *rl_at(uint32_t i)        /* (i 0..14: the keys', then the knobs'
 static uint32_t recb_fn(uint32_t j)      /* (black key j's REC function, 1 + BKF_*; 0: none) */
 {
     uint32_t f = j < 11u && rl_ok() ? kx2.rsv[RL_RSV + 1u + j] : 0u;
+    if (bk_preset() == BKP_FLEXOR)       /* (0.9.93: FLEXOR LAYOUT's own REC layer) */
+        f = j < 11u ? FLX_RL[j] : 0u;
     return f <= BKF_N ? f : 0u;
 }
 static uint32_t reck_fn(uint32_t k)      /* (REC + K(k + 1)'s function, 1 + SK_*; 0: none) */

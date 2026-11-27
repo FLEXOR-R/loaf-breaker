@@ -217,6 +217,14 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   rk_key never; SEL + REC as ever (the clear, an effect back), REC not the modifier then; scenarios reckey and recsel
   gone, flexlay without its REC. Probes recmode reclock recb reck1 bkfn0; scenario reclayer. Image 550,488 B
   (AMEN06 169 out, seven breaks: ~31 KB left; Break Lab 4's eight then: 573,380 B, ~8 KB left).
+- FLEXOR LAYOUT's three layers (27 Nov 2026, 0.9.94, FLEXOR, on https://claude.ai/artifact/DXWx8YDeebqUcxRAc3PwRG, store
+  `preset/flexor`: "le premier ... le live de base ... le deuxième ... chop le break à la CHOPPAH ... le dernier ... quand
+  je sculpte des kicks"): alone as 0.9.78; app.c `FLX_SEL` key 4 ARP, 5 REV, 6 FLT, 7 FLT, 8 RND, 9 GAT, 10 VNL; `FLX_RL`
+  (recb_fn while FLEXOR LAYOUT is in use) key 4 SPL, 5 CHS, 6 PEQ, 7 XSB, 8 DRV, 9 DST, 10 KBR; REC + K1-K4 the
+  player's own (FLEXOR: "tout à assigner soi-même"). ovl.c flexor_lay_fix: the preset picked (force), or an FM-1 on it
+  whose REC MODE was never set (untagged), REC MODE BLACK KEYS; bk_custom_of copies FLX_RL into the REC layer; REC BLK
+  edited on FLEXOR LAYOUT makes a CUSTOM first. The host simulator tags REC MODE CLASSIC at app_ui_init (its scenarios
+  record with REC); flexlay picks the preset again for the REC layer. Image 573,492 B.
 - SEQ without the black keys' row (26 Nov 2026, 0.9.86, FLEXOR: "enlève la ligne des touches noires au dessus des
   carrés de knob pour gagner de la place pour le séquenceur"): seq.c SQ_H 162 (44..205, 148 before), main.c draw_foot on
   PG_SEQ its cards alone, 34 rows blitted at 206 (cv_oy -15).

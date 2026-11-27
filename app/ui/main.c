@@ -2593,6 +2593,11 @@ static void draw_foot(const brk_status_t *st)
 
 void app_ui_init(void)
 {
+#if defined(PLAT_HOST) && !defined(PLAT_WEB) && !LB_BIG
+    if (!rl_ok())                        /* (0.9.93: the simulator's scenarios, on FLEXOR LAYOUT, written with REC
+                                          * recording: REC MODE CLASSIC there unless one sets it) */
+        (void)rl_at(0u);
+#endif
     flexor_lay_fix(0);                   /* (0.9.58: FLEXOR LAYOUT's key 5 RISE, once) */
     ab_take();                           /* (LOAF BREAKER: TOOLS' A/B: the kick as it was saved) */
     ui.kpreset = (uint8_t)kpre_mem(set.kslot);   /* (0.9.2: the PRESET page names the kick's own) */

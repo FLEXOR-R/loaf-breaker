@@ -110,7 +110,15 @@ static void flexor_lay_fix(int force)    /* (0.9.58, FLEXOR; 0.9.78, FLEXOR's ne
                                           * SEL layer and its REC key, set once on an FM-1 on it and each time the preset
                                           * is picked; changed after, they stay as changed) */
 {
-    if (bk_preset() != BKP_FLEXOR || (!force && kx2.rsv[52] == FLAY_TAG))
+    if (bk_preset() != BKP_FLEXOR)
+        return;
+    if (force || !rl_ok()) {             /* (0.9.93, FLEXOR: the preset picked, REC MODE BLACK KEYS: its REC layer at once;
+                                          * an FM-1 on it whose REC MODE was never set, once) */
+        (void)rl_at(0u);
+        kx2.rsv[RL_RSV] |= 1u;
+        set_dirty = 1u;
+    }
+    if (!force && kx2.rsv[52] == FLAY_TAG)
         return;
     arpk_set_fx(4u, OV_RISE);            /* (key 5 RISE, key 9 CHOP; its SEL layer and REC: app.c FLX_SEL, read as is) */
     arpk_set_fx(8u, OV_CHOP);
@@ -128,6 +136,8 @@ static void bk_custom_of(void)           /* a preset edited: CUSTOM, its copy (0
     if (p == BKP_FLEXOR) {
         memcpy(kx2.selk, FLX_SEL, sizeof kx2.selk);
         kx2.selrec = FLX_SEL[11];
+        for (j = 0; j < 11u; j++)        /* (0.9.93: its REC layer too) */
+            *rl_at(j) = FLX_RL[j];
         kx2.rsv[RK_RSV] = (uint8_t)(0x80u | FLX_REC);
         kx2.rsv[RK_RSV + 1u] = 0xA1u;
     }
@@ -200,10 +210,13 @@ static void bk_turn(int i, int32_t d)
     }
     if (ui.opage == 7u && i != 1) {      /* (0.9.93: REC BLK: K3 the key's function with REC, ITS OWN then every
                                           * function, round) */
-        uint8_t *v = rl_at(ui.bk_sel % 11u);
+        uint8_t *v;
         if (i != 2)
             return;
         bk_release_all();
+        if (bk_preset() == BKP_FLEXOR)   /* (FLEXOR LAYOUT's REC layer the preset's: edited, a CUSTOM of it first) */
+            bk_custom_of();
+        v = rl_at(ui.bk_sel % 11u);
         *v = (uint8_t)((recb_fn(ui.bk_sel) + (uint32_t)(dir > 0 ? 1 : BKF_N)) % (BKF_N + 1u));
         bk_say();
         set_dirty = 1u;

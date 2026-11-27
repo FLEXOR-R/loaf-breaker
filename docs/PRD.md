@@ -445,6 +445,7 @@ ABG's four, plus the master section a live unit needs.
 | A-96 | **PEQ, PRE EQ on / off** (LOAF BREAKER, 27 Nov 2026, 0.9.93, FLEXOR: "un setting touche noire on / off pour la totalité des eq pré disto"): BKF_PEQ, last; kx2.px xoff bit 1; the bands kept | P1 | *Done* |
 | A-97 | **REC MODE: REC as a second SEL** (LOAF BREAKER, 27 Nov 2026, 0.9.93, FLEXOR: "une toute nouvelle section de touches noires grâce à la touche REC qui fonctionnera comme SEL"): ARP › SEL BLK K4 REC MODE CLASSIC / BLACK KEYS; BLACK KEYS: REC held or locked (x2), the black keys' REC functions (ARP › REC) and REC + K1-K4's (ARP › REC K), those tabs only then; REC alone nothing; kx2.rsv[32..47]; AMEN06 169 out of the bank for the room | P1 | *Done* |
 | A-98 | **Break Lab 4: the bank** (LOAF BREAKER, 27 Nov 2026, 0.9.93, FLEXOR, on https://claude.ai/artifact/4Bd5DR4RP3YbkUxENmBpCg, store `lab4/choix`): AMEN10 135, AMEN20 164, UPDOWN 165, AMEN19 172, FOCUZ 175, DETEST 175, AMEN14 175, SATAN 200, by BPM; AMEN05 158, AMEN06 169, AMEN13 173 to the library | P1 | *Done* |
+| A-99 | **FLEXOR LAYOUT's three layers** (LOAF BREAKER, 27 Nov 2026, 0.9.94, FLEXOR, on https://claude.ai/artifact/DXWx8YDeebqUcxRAc3PwRG): alone the live, SEL the break's chop, REC the kick's switches; picked, REC MODE BLACK KEYS | P1 | *Done* |
 
 ---
 

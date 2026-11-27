@@ -52,20 +52,41 @@ wait 50
 key b10 up
 wait 150
 expect bk_fn 12
+# (0.9.93, FLEXOR, on https://claude.ai/artifact/DXWx8YDeebqUcxRAc3PwRG: with SEL key 4 ARP, 5 REV, 6 FLT, 7 FLT, 8 RND,
+# 9 GAT, 10 VNL; with REC key 4 SPL, 5 CHS, 6 PEQ, 7 XSB, 8 DRV, 9 DST, 10 KBR; the preset picked, REC MODE BLACK KEYS)
+turn SELECT 1 10
+wait 200
+expect opage 2
+key b4 down
+wait 50
+key b4 up
+wait 150
+expect selk 4
+turn SELECT -1 10
+wait 200
+expect opage 1
+expect recmode 0
+turn K1 1 60
+wait 150
+turn K1 -1 60
+wait 200
+expect bk_pre 1
+expect recmode 1
 tap HOME
 wait 300
 expect ter_off 0
-press SEL
+press REC
 wait 200
-key b9 down
+key b8 down
 wait 100
-key b9 up
+key b8 up
 wait 200
 expect ter_off 1
-key b9 down
+key b8 down
 wait 100
-key b9 up
+key b8 up
 wait 200
 expect ter_off 0
-release SEL
+release REC
 wait 200
+expect recording 0
