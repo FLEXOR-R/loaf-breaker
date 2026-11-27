@@ -44,6 +44,19 @@ shot reclayer_knob.png
 release REC
 wait 100
 expect terror 8
+# REC + K1-K4 the same for every kick (FLEXOR: "généraux et ne dépendent pas d'un kick"; SEL + K1-K4 each kick's own):
+# another kick, REC + K1 still DISTO
+press SEL
+turn PRESET 1 10
+release SEL
+wait 300
+expect kslot 4
+expect reck1 4
+press SEL
+turn PRESET -1 10
+release SEL
+wait 300
+expect kslot 3
 # REC held: key 1 plays its REC function (KIL), its own (R8) again without
 expect bkfn0 0
 press REC

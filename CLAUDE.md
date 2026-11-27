@@ -215,7 +215,8 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   fonctionne comme une touche noire ... rec sera utilisé comme SEL"): app.c `rec_key_on` always 0, `nbk` 11, selb_fn
   no key 11 (kx2.rsv[50..51], kx2.selrec, FLX_REC, FLX_SEL[11] kept, unread; the REC_KEY code paths unreached), main.c's
   rk_key never; SEL + REC as ever (the clear, an effect back), REC not the modifier then; scenarios reckey and recsel
-  gone, flexlay without its REC. Probes recmode reclock recb reck1 bkfn0; scenario reclayer. Image 550,488 B
+  gone, flexlay without its REC. REC + K1-K4 the same for every kick (FLEXOR: "généraux et ne dépendent pas d'un
+  kick"; kx2.rsv, not kx_put's per-kick selk_asg as SEL + K1-K4's): reclayer checks it across a kick change. Probes recmode reclock recb reck1 bkfn0; scenario reclayer. Image 550,488 B
   (AMEN06 169 out, seven breaks: ~31 KB left; Break Lab 4's eight then: 573,380 B, ~8 KB left).
 - FLEXOR LAYOUT's three layers (27 Nov 2026, 0.9.94, FLEXOR, on https://claude.ai/artifact/DXWx8YDeebqUcxRAc3PwRG, store
   `preset/flexor`: "le premier ... le live de base ... le deuxième ... chop le break à la CHOPPAH ... le dernier ... quand
