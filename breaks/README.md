@@ -3,8 +3,8 @@
 The source of the breaks built into LOAF BREAKER, and which of them go in: [`breaks.txt`](breaks.txt) lists every WAV here
 with its tempo, its bars and a name, and marks with `*` the ones in the firmware; ALGORITHM steps through them by
 tempo, slowest first (the slowest is the break at power-on). All paths are relative to this folder. The firmware has
-eight: AMEN10 135, AMEN20 164, UPDOWN 165, AMEN19 172, AMEN14 175 (five of Cyberworm's Amens, from `cw/` and
-`huge/`), FOCUZ 175, DETEST 175 and SATAN 200 (from `flexor/`; FLEXOR's Break Lab 4, 0.9.93); every other line is in
+seven: AMEN10 135, AMEN20 164, UPDOWN 165, AMEN19 172, AMEN14 175 (five of Cyberworm's Amens, from `cw/` and
+`huge/`), FOCUZ 175 and DETEST 175 (from `flexor/`; FLEXOR's Break Lab 4, 0.9.93; SATAN 200 to the library in 0.9.95); every other line is in
 the site's library.
 
 ## classics/: the records

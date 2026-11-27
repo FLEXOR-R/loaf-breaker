@@ -15,7 +15,7 @@ library shows (0.9.40, FLEXOR: `Artist – Track (kind)`, the FM-1's short name 
 | `akira_custom_grind.wav` | Akira, "Custom Grind" (drop break) | 190 | 2 | AKIRA 190 (0.9.34-0.9.39; the library since 0.9.40) |
 | `detest_tripped_hardcore_to_the_penis.wav` | Detest & Tripped, "Hardcore To The Penis" (intro break) | 175 | 2 | the library (DETEST 175: the firmware's 0.9.34-0.9.49) |
 | `lil_texas_louder.wav` | Lil Texas, "LOUDER" (break) | 175 | 2 | the library (LOUDER 175: the firmware's 0.9.34-0.9.69) |
-| `the_satan_gangzta_cash.wav` | The Satan, "Gangzta Cash" (intro break) | 200 | 2 | the library (SATAN 200: the firmware's 0.9.34-0.9.69) |
+| `the_satan_gangzta_cash.wav` | The Satan, "Gangzta Cash" (intro break) | 200 | 2 | the library (SATAN 200: the firmware's 0.9.34-0.9.69 and 0.9.93-0.9.94) |
 | `tripped_matt_green_underground_panther_jacket.wav` | Tripped & Matt Green, "Underground Panther Jacket" (break) | 170 | 2 | the library (PANTHER 170: the firmware's 0.9.34-0.9.69) |
 | `artheist_the_obedience_algorithm.wav` | Artheist, "The Obedience Algorithm" (break) | 165 | 2 | OBEDIENC165 in 0.9.37; in the library since 0.9.38 |
 | `dolphin_rotterdam_shuffle.wav` | Dolphin, "Rotterdam Shuffle" (intro break) | 190 | 2 | the library (SHUFFLE 190: the firmware's 0.9.38-0.9.66) |

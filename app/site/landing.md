@@ -13,7 +13,7 @@ started on the FM-1 itself.
 ![LOAF BREAKER playing: the mix scrolling in as on a CDJ, in rekordbox's colours](manual/img/screen-slicer.png "Playing")
 
 Version {{VERSION}} (beta). Installing is at your own risk; the installer can put M-VAVE's own firmware back. 8 breaks, 2 bars
-each, slowest first: AMEN10 135, AMEN20 164, UPDOWN 165, AMEN19 172, FOCUZ 175, DETEST 175, AMEN14 175, SATAN 200. Five to seven of your own after them: [Breaks](breaks/), the library's breaks to hear, or a sample of yours.
+each, slowest first: AMEN10 135, AMEN20 164, UPDOWN 165, AMEN19 172, FOCUZ 175, DETEST 175, AMEN14 175. Five to seven of your own after them: [Breaks](breaks/), the library's breaks to hear, or a sample of yours.
 
 - [**VST**](vst/) **New: LOAF BREAKER on the computer**, a plugin for your DAW (VST3 and Standalone, Windows): the same firmware with real menus, a full sequencer, 98 breaks in CD quality, a kick library and your FM-1 managed from it.
 - [Emulator](emu/) The same code the FM-1 runs, in the browser, with sound. No FM-1 needed.

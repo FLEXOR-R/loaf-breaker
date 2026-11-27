@@ -2,3 +2,4 @@
 the release's notes. Emptied (this comment kept) once the release is out. -->
 - XSUB FREQ (SUB SPLIT's X FREQ, on its page or on a knob) turned down quickly stops at 40 Hz: OFF is one more detent after a short pause, so a fast sweep down never cuts the split.
 - RISE no longer latches: its K4 (on the ARP page and on an ARP key set to RISE) is RETURN, the filter sweeping back down once you let go, over 1/4 BAR to 2 BARS (or CUT, as before).
+- SATAN 200 leaves the built-in breaks for room (it stays in the site's library, to load as one of your own): seven built in. Your own breaks move one number down.

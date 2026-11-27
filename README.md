@@ -93,8 +93,8 @@ SYSTEM (GLO). The button again: the next part; SEL + a button: that domain's sec
 
 ## Breaks
 
-LOAF BREAKER has 8 breaks on ALGORITHM, 2 bars each, slowest first: AMEN10 135, AMEN20 164, UPDOWN 165, AMEN19 172,
-FOCUZ 175, DETEST 175, AMEN14 175 and SATAN 200 (FLEXOR's choice, 0.9.93; FOCUZ, DETEST, SATAN from `breaks/flexor/`), every break
+LOAF BREAKER has 7 breaks on ALGORITHM, 2 bars each, slowest first: AMEN10 135, AMEN20 164, UPDOWN 165, AMEN19 172,
+FOCUZ 175, DETEST 175 and AMEN14 175 (FLEXOR's choice; FOCUZ and DETEST from `breaks/flexor/`), every break
 on an even grid and at the same level (-12 LUFS). [`breaks/breaks.txt`](breaks/breaks.txt) marks with `*` the ones
 built in (the bank has 400 KB); `./build.sh` builds them into `app/bank_data.h` (generated, git-ignored). The breaks
 are built in, and your own go after them, five to seven in 232 KB (0.9.32, from CHOPPAH 1.4's break manager): the site's
