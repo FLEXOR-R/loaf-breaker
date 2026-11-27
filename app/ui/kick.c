@@ -652,6 +652,7 @@ __attribute__((noinline)) static void kpx_turn(int i, int32_t d)
     char t[16];
     if (ui.kpage != KP_XSUB) {
         uint32_t m = kpx_knob(i), b = m & 3u;
+        x->xoff &= ~2u;                  /* (0.9.93: a PRE band edited here: the PEQ switch on again) */
         if ((m & 0x30u) == KPX_G)
             x->eq_g[b] = (int8_t)clamp((int32_t)x->eq_g[b] + d, -KICK_PX_DB, KICK_PX_DB);
         else if ((m & 0x30u) == KPX_F)
@@ -670,7 +671,7 @@ __attribute__((noinline)) static void kpx_turn(int i, int32_t d)
         }
     } else if (i == 0) {
         x->xo = (uint8_t)clamp((int32_t)x->xo + d, 0, (int32_t)KICK_XO_N);
-        x->xoff = 0u;                    /* (0.9.86: X FREQ turned: the XSB switch on again) */
+        x->xoff &= ~1u;                  /* (0.9.86: X FREQ turned: the XSB switch on again) */
     }
     else if (i == 1)
         x->sg = (int8_t)clamp((int32_t)x->sg + d, -50, 50);

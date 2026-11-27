@@ -8,18 +8,18 @@ tap ARP
 wait 300
 turn SELECT 1 10
 wait 300
-turn K3 -6 60   # (0.9.86: XSB, MOT last)
+turn K3 -7 60   # (0.9.86: XSB, MOT last; 0.9.93 PEQ last)
 wait 200
 expect bk_pre 2
 expect bk_fn 23
 turn K2 1 60
 wait 200
-turn K3 -6 60   # (key 2: R16 to SNR; 0.9.86 XSB, MOT last)
+turn K3 -7 60   # (key 2: R16 to SNR; 0.9.86 XSB, MOT last; 0.9.93 PEQ last)
 wait 200
 expect bk_fn 24
 turn K2 1 60
 wait 200
-turn K3 -6 60   # (key 3: R32 to HAT; 0.9.86 XSB, MOT last)
+turn K3 -7 60   # (key 3: R32 to HAT; 0.9.86 XSB, MOT last; 0.9.93 PEQ last)
 wait 200
 expect bk_fn 25
 turn K2 1 60

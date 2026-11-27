@@ -17,7 +17,7 @@ expect bk_key 11
 expect reckey 0
 expect recording 0
 shot a_blackkeys_recnone.png
-turn K3 -9 10   # (0.9.81: KCK SNR HAT CLP last; 0.9.86 XSB, MOT last)
+turn K3 -10 10   # (0.9.81: KCK SNR HAT CLP last; 0.9.86 XSB, MOT last; 0.9.93 PEQ last)
 wait 200
 expect reckey 1
 expect recfn 20
@@ -47,7 +47,7 @@ wait 300
 tap REC
 wait 200
 expect bk_key 11
-turn K3 16 10   # (DST to NONE: 0.9.78 SPL one more; 0.9.81 KCK SNR HAT CLP four more; 0.9.86 XSB, MOT last)
+turn K3 17 10   # (DST to NONE: 0.9.78 SPL one more; 0.9.81 KCK SNR HAT CLP four more; 0.9.86 XSB, MOT last; 0.9.93 PEQ last)
 wait 200
 expect reckey 0
 tap HOME

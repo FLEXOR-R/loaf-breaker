@@ -194,6 +194,12 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   SK_XO) clears xoff; each kick's (kx2.px), COPY copies it, a built-in PRESET clears it. CUSTOM / SEL BLACK / REC; probe
   xoff; scenario xsbkey; the scenarios turning K3 left of R8 one more (recsel kickx2 kickx4 kiltri killbreak reckey chskey
   splkey drumkeys).
+- PEQ (27 Nov 2026, 0.9.93, FLEXOR: "un setting touche noire on / off pour la totalité des eq pré disto (qui ne modifie
+  rien a l'allumage comme le setting touche noir xsub)"): `BKF_PEQ`, last in BKF_* (after MOT): a press, the kick's PRE
+  EQ (PRE L / M / H) flat or back, `xoff` bit 1 (XSB's bit 0; X FREQ turned clears bit 0 alone), klab_send hands
+  kick_set_px eq_g 0 then, the bands' DB / FREQ / Q never touched; lit while heard (a band's DB set, bit 1 clear); a band
+  edited on its page (kpx_turn) clears bit 1, the knob functions (SK_PRE.., motions) don't. Probe peqoff; scenario
+  peqkey; the scenarios turning K3 left of R8 one more (and mset's R8 to MOT, -2).
 - SEQ without the black keys' row (26 Nov 2026, 0.9.86, FLEXOR: "enlève la ligne des touches noires au dessus des
   carrés de knob pour gagner de la place pour le séquenceur"): seq.c SQ_H 162 (44..205, 148 before), main.c draw_foot on
   PG_SEQ its cards alone, 34 rows blitted at 206 (cv_oy -15).

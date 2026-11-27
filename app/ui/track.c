@@ -1005,7 +1005,7 @@ static void selk_turn(uint32_t f, int i, int32_t d)
             return;
         if (f == SK_XO) {
             x->xo = (uint8_t)clamp((int32_t)x->xo + d, 0, (int32_t)KICK_XO_N);
-            x->xoff = 0u;                /* (the XSB switch on again) */
+            x->xoff &= ~1u;              /* (the XSB switch on again) */
         }
         else if (f >= SK_PRE + 3u)
             x->eq_f[b] = (int8_t)clamp((int32_t)x->eq_f[b] + d, KPX_FLO[b], KPX_FHI[b]);

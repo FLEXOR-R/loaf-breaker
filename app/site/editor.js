@@ -1527,7 +1527,7 @@ const BK_LONG = ["ROLL 1/8", "ROLL 1/16", "ROLL 1/32", "REVERSE", "FREEZE", "HAL
   "DUB", "ARP (OVERLAY)", "KICKS OFF", "DISTO", "SUB FX", "DRIVE", "KICKS X2", "KICKS X4", "KICK TRIPLETS", "SUB DRIVE", "KILL BREAK",
   "CHAOS", "SPLIT", "KICK", "SNARE", "HI-HAT", "CLAP", "SUB SPLIT", "MOTION"];
 const BK_SHORT = ["R8", "R16", "R32", "REV", "FRZ", "HLF", "VNL", "GAT", "RND", "FLT", "DUB", "ARP", "KIL", "DST", "SUB", "DRV", "X2",
-  "X4", "TRI", "SDR", "KBR", "CHS", "SPL", "KCK", "SNR", "HAT", "CLP", "XSB", "MOT"];
+  "X4", "TRI", "SDR", "KBR", "CHS", "SPL", "KCK", "SNR", "HAT", "CLP", "XSB", "MOT", "PEQ"];
 async function bkPads() {
   const box = $("bkPads");
   box.innerHTML = "";

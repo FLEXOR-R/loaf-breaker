@@ -159,13 +159,14 @@ static const char *const PAD_KNOB[BKF_N][4] = {   /* (LOAF BREAKER: by function,
     {0, 0, 0, 0},                        /* (0.9.78: SPL, a press each) */
     {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0},   /* (0.9.81: KCK SNR HAT CLP, a hit each press) */
     {0, 0, 0, 0},                        /* (0.9.86: XSB, a press each) */
-    {0, 0, 0, 0}};                       /* (0.9.86: MOT, a press each) */   /* (KIL, X2: their LATCH, main.c; DST,
+    {0, 0, 0, 0},                        /* (0.9.86: MOT, a press each) */
+    {0, 0, 0, 0}};                       /* (0.9.93: PEQ, a press each) */   /* (KIL, X2: their LATCH, main.c; DST,
                                           * SUB, DRV: a press each) */
 static const char *const PAD_TITLE[BKF_N] = {"ROLL", "ROLL", "ROLL", "REVERSE", "FREEZE", "HALF SPEED",
                                               "VINYL BREAK", "GATE", "RANDOM", "FILTER", "DUB", "OVERLAY", "KICKS OFF",
                                               "DISTO", "SUB FX", "DRIVE", "KICKS X2", "KICKS X4", "KICK TRIPLETS",
                                               "SUB DRIVE", "KILL BREAK", "CHAOS", "SPLIT", "KICK", "SNARE", "HI-HAT",
-                                              "CLAP", "SUB SPLIT", "MOTION"};
+                                              "CLAP", "SUB SPLIT", "MOTION", "PRE EQ"};
 static const char *const FRZ_LEN_NAME[4] = {"SLICE", "1/2", "1/4", "1/8"};
 
 /* LOAF BREAKER: the ARP key's knobs (the OVERLAY page gone, its settings here). MAIN: K1 EFFECT, K2 its AMOUNT, K3
@@ -976,6 +977,10 @@ static int bkf_lit(uint32_t f, const brk_status_t *st)
         return (ui.keys & PAD_BIT(f)) != 0u;
     if (f == BKF_MOT)                    /* (0.9.86: the motions played) */
         return !mo_off();
+    if (f == BKF_PEQ) {                  /* (0.9.93: the kick's PRE EQ heard: a band set, not switched off) */
+        const kick_px_t *x = kpx_at(set.kslot);
+        return !(x->xoff & 2u) && (x->eq_g[0] || x->eq_g[1] || x->eq_g[2]);
+    }
     if (f == BKF_XSB)                    /* (0.9.86: the kick's SUB SPLIT heard: an X FREQ, not switched off) */
         return kpx_at(set.kslot)->xo && !(kpx_at(set.kslot)->xoff & 1u);
     if (f == BKF_SPL)                    /* (0.9.78: the break playing's SPLIT on) */

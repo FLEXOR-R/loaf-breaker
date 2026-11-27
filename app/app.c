@@ -245,7 +245,9 @@ static settings_t set;
  * A layout: the function of each key, left to right. Presets: CHOPPAH (CHOPPAH's keys; BEGINNER's only), FLEXOR LAYOUT
  * (LOAF BREAKER's until 0.244), CUSTOM (each key its own: ARP › BLACK KEYS) */
 enum { BKF_ARP = BRK_NPADS, BKF_KIL, BKF_DST, BKF_SUB, BKF_DRV, BKF_X2, BKF_X4, BKF_TRI, BKF_SDR, BKF_KBR, BKF_CHS, BKF_SPL,
-       BKF_KCK, BKF_SNR, BKF_HAT, BKF_CLP, BKF_XSB, BKF_MOT, BKF_N };   /* (0.9.86, FLEXOR: "une touche noire motion on off":
+       BKF_KCK, BKF_SNR, BKF_HAT, BKF_CLP, BKF_XSB, BKF_MOT, BKF_PEQ, BKF_N };   /* (0.9.93, FLEXOR: "un setting touche noire on / off pour
+                                          * la totalité des eq pré disto": PEQ, the kick's PRE EQ, its three bands kept: kx2.px
+                                          * xoff bit 1) */   /* (0.9.86, FLEXOR: "une touche noire motion on off":
                                           * MOT, the motions played or not, their recording kept) */   /* (0.9.86, FLEXOR: "une touche noire assignable pour le
                                           * ON/OFF xsub freq afin de jouer en live": XSB, the kick's SUB SPLIT on or off,
                                           * its X FREQ kept: kx2.px xoff) */   /* (0.9.81, FLEXOR: a key per drum, in DR_* order: KCK the
@@ -780,6 +782,8 @@ static void klab_send(void)              /* the LAB to the engine, STACK's attac
         kick_px_t x = *kpx_at(set.kslot);
         if (x.xoff & 1u)
             x.xo = 0u;
+        if (x.xoff & 2u)                 /* (0.9.93 PEQ off: the bells flat, their settings kept) */
+            x.eq_g[0] = x.eq_g[1] = x.eq_g[2] = 0;
         kick_set_px(&x);
     }
     if (!klab.cur.src)

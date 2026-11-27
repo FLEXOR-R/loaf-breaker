@@ -1,0 +1,54 @@
+# LOAF BREAKER (27 Nov 2026, 0.9.93, FLEXOR: "un setting touche noire on / off pour la totalité des eq pré disto (qui
+# ne modifie rien a l'allumage comme le setting touche noir xsub)"): PEQ, the last black-key function (ARP › BLACK K3,
+# left of R8): a press switches the kick's whole PRE EQ (PRE L, PRE M, PRE H) flat, its bands kept, the next brings it
+# back as it was; a band edited on KICK › DIST › PRE L / M / H switches it back on.
+#   app/build/host/loaf-breaker_host tests/scenarios/peqkey.txt app/build/scenarios
+wait 4200
+layout_0961   # (written as CUSTOM on the 0.9.61-0.9.77 layout)
+tap ARP
+wait 300
+turn SELECT 1 10
+wait 300
+turn K3 -1 60   # (0.9.93: PEQ last)
+wait 200
+expect bk_fn 29
+tap HOME
+wait 300
+kset px.low 6
+kset px.mid -4
+kset px.hif 20
+wait 100
+expect peqoff 0
+key b0 down
+wait 60
+key b0 up
+wait 100
+expect peqoff 1
+expect pxlow 6
+expect pxmid -4
+shot peqkey.png
+key b0 down
+wait 60
+key b0 up
+wait 100
+expect peqoff 0
+expect pxlow 6
+expect pxmid -4
+# off, then PRE L's DB turned: on again, a dB more
+key b0 down
+wait 60
+key b0 up
+wait 100
+expect peqoff 1
+tap EDIT
+wait 300
+turn SELECT 3 10
+wait 300
+expect ksect 3
+turn ALGO 3 10
+wait 300
+expect kpage 22
+turn K1 1 60
+wait 200
+expect peqoff 0
+expect pxlow 7
