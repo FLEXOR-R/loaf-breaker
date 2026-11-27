@@ -141,6 +141,7 @@ static void reset_do(uint32_t w)
         steps.dm[drop_sel()][11] = 0u;   /* (0.9.58: its GAP keeping nothing) */
     } else if (w == RST_KNOB) {          /* KNOB: the knobs' functions */
         set.selk_asg = set.selk_asg2 = 0u;
+        memset(set2.skx, 0, 4u);
         set.selk_hi &= 112u;             /* (the knobs alone: TER's, DRV's and SUB's state kept) */
     } else if (w == RST_KTONE) {           /* KICK TONE: its EQ flat, its FX slots empty, their memory forgotten */
         uint32_t k;
@@ -166,6 +167,7 @@ static void reset_do(uint32_t w)
         for (j = 0; j < KS_N; j++)
             set.ksyn[j] = 0;
         set.selk_asg = set.selk_asg2 = set.selk_hi = set.csub = set.kmorph = set.kmorph_to = 0u;   /* (their knobs as they start) */
+        memset(set2.skx, 0, 4u);
         set.kbass[0] = set.kbass[1] = 0u;
         set.kbass[2] = set.kbass[3] = 50u;
         kx_all();
@@ -733,13 +735,17 @@ static int sk_live(uint32_t f);
 static uint32_t home_k4(void)
 {
     uint32_t v = kx2.rsv[HK4_RSV];
+    if (set2.hk4 && set2.hk4 <= SK_N && sk_live(set2.hk4 - 1u))   /* (0.9.95: set2's whole byte, any function) */
+        return set2.hk4 - 1u;
     if ((v & 0xE0u) == 0xC0u && (v & 0x1Fu) < 3u)   /* (0.9.94: the PRE Qs, past the five bits: 0xC0 | Q's band) */
         return SK_PREQ + (v & 0x1Fu);
     return (v & 0xE0u) == HK4_TAG && (v & 0x1Fu) && (v & 0x1Fu) <= 31u && sk_live((v & 0x1Fu) - 1u) ? (v & 0x1Fu) - 1u : 10u;
 }
 static void home_k4_set(uint32_t f)
 {
-    kx2.rsv[HK4_RSV] = (uint8_t)(f >= SK_PREQ ? 0xC0u | (f - SK_PREQ) : HK4_TAG | ((f + 1u) & 0x1Fu));
+    kx2.rsv[HK4_RSV] = (uint8_t)(f >= SK_PREQ ? 0xC0u | (f - SK_PREQ) : HK4_TAG | ((f + 1u) & 0x1Fu));   /* (an older
+                                          * firmware's) */
+    set2.hk4 = (uint8_t)(f + 1u);
     set_dirty = 1u;
 }   /* (EDIT KICK's KNOBS) */
 static const char *sk_kname(uint32_t f, int i) { return SK_KNOB[f % SK_N][i & 3]; }
@@ -760,7 +766,8 @@ static int sk_live(uint32_t f) { return f != 0u && f != 2u && f != 9u; }   /* (a
 static uint32_t sk_code(uint32_t knob)   /* the knob's code, 0 its own */
 {
     uint8_t b = knob == 1u || knob == 3u ? set.selk_asg : set.selk_asg2;
-    return (knob >= 2u ? b >> 4 : b & 15u) | (uint32_t)(set.selk_hi >> (knob & 3u) & 1u) << 4;
+    return (knob >= 2u ? b >> 4 : b & 15u) | (uint32_t)(set.selk_hi >> (knob & 3u) & 1u) << 4 |
+           (uint32_t)(set2.skx[knob & 3u] & 7u) << 5;   /* (0.9.95: set2's three bits more, codes to 255) */
 }
 static void sk_code_set(uint32_t kn, uint32_t code)   /* (LOAF BREAKER: its code, the fifth bit in selk_hi) */
 {
@@ -768,6 +775,7 @@ static void sk_code_set(uint32_t kn, uint32_t code)   /* (LOAF BREAKER: its code
     uint32_t sh = kn >= 2u ? 4u : 0u;
     *b = (uint8_t)((*b & ~(15u << sh)) | (code & 15u) << sh);
     set.selk_hi = (uint8_t)((set.selk_hi & ~(1u << (kn & 3u))) | (code >> 4 & 1u) << (kn & 3u));
+    set2.skx[kn & 3u] = (uint8_t)(code >> 5 & 7u);
 }
 static uint32_t selk_fn(uint32_t knob)   /* the function SEL + K1..K4 turns */
 {

@@ -46,3 +46,11 @@ turn K1 2 10
 release SEL
 wait 100
 expect hgate 90
+# (0.9.95: set2, after the KICK LAB in its object) SAVE, a restart: HOME K4 and SEL + K1 read back
+expect homek4 28
+tap SAVE
+wait 800
+reboot
+wait 4200
+expect homek4 28
+expect selk1_fn 30

@@ -194,6 +194,15 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   SK_XO) clears xoff; each kick's (kx2.px), COPY copies it, a built-in PRESET clears it. CUSTOM / SEL BLACK / REC; probe
   xoff; scenario xsbkey; the scenarios turning K3 left of R8 one more (recsel kickx2 kickx4 kiltri killbreak reckey chskey
   splkey drumkeys).
+- set2, the settings past settings_t (27 Nov 2026, 0.9.95, FLEXOR: "tu peux faire le nouvel objet de réglages"): app.c
+  `set2_t set2` (S2_MAGIC "LBS2"), saved after the KICK LAB in OBJ_KLAB (`klab_save`, through lb_bu_buf; read back the
+  same way: an older firmware reads klab alone, the store cuts the rest; OBJ_KLAB is in the backup and the VST copies
+  objects whole). It grows at its end, every field 0 by default (`set2_defaults`, RESET ALL). Holds: `skx[4]` the SEL +
+  K1-K4 function codes' bits 5-7 (track.c sk_code / sk_code_set: codes up to 255 now; SK_CODES may grow past 31),
+  `skxm[20][4]` each kick's (kx_put / kx_get), `hk4` HOME K4 as 1 + SK_* (home_k4 reads it first; kx2.rsv's still
+  written for an older firmware), `ch[8]` CHAOS+. A new setting: append a field before `rsv` and shrink `rsv`. The
+  VST's kick blobs (.lbkick) don't carry skx yet: they will need it once a knob code passes 31. Scenario homek4 (SAVE,
+  reboot).
 - RISE's RETURN (27 Nov 2026, 0.9.95, FLEXOR: "un fondu paramétrable sur le retour, enlève le latch de rise et
   remplace le par un sweep dans l'autre sens"): set.ovl_sweep bits 4-6 (0 CUT: older saves; 1..4 1/4 BAR .. 2 BARS;
   defaults 1/4 BAR), pads.c `rise_ret` / `rise_ret_turn` / `sweep_turn` (SWEEP's writes keep those bits); RISE never

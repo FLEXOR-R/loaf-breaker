@@ -364,6 +364,7 @@ static void reset_all(void)
     drops_init();                        /* (0.9.58: DROP 1-8 all as the defaults, DROP 1 selected) */
     mo_defaults();                       /* (0.9.85: no motion) */
     kx2.rsv[HK4_RSV] = 0u;               /* (0.9.86: HOME's K4 SUB DECAY again) */
+    set2_defaults();                     /* (0.9.95: set2's, CHAOS+ too) */
     klab_defaults();                     /* (LOAF BREAKER: the KICK LAB off on every kick) */
     kx2_defaults();                      /* (0.9.45: TOK and the TAIL GATE off on every kick) */
     selk_clear();                        /* (0.9.49: no SEL layer) */

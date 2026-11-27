@@ -468,6 +468,26 @@ typedef struct {
     kick_lab_t mem[KMEM_A];              /* each kick memory's (KICK 1..10; 11..20: km2's) */
 } klab_obj_t;
 static klab_obj_t klab;
+/* LOAF BREAKER (0.9.95, FLEXOR: "le nouvel objet de réglages"): the settings past settings_t's 3840 bytes, saved after
+ * the KICK LAB in its object (OBJ_KLAB: 136 B of its 3840 used before; an older firmware reads klab alone, the store
+ * cutting the rest). Grows at its end, each field's default 0: a shorter (older) one keeps its own and 0 after it */
+#define S2_MAGIC 0x3253424Cu             /* "LBS2" */
+typedef struct {
+    uint32_t magic;
+    uint8_t skx[4];                      /* SEL + K1..K4's function codes' bits 5-7 (code >> 5), the kick playing's: codes
+                                          * past 31 (selk_asg / selk_asg2 / selk_hi hold the five below) */
+    uint8_t skxm[20][4];                 /* each kick memory's (KICK 1-20: kx_put / kx_get) */
+    uint8_t hk4;                         /* HOME K4's function: 0 kx2.rsv's (older), else 1 + SK_* */
+    uint8_t ch[8];                       /* CHAOS+ (0.9.95): EVOLVE, TARGET, WHERE, COLOR, flags (bit 0 CHS held only,
+                                          * bit 1 MATH SHIFT), the CHAOS style picked last, 2 spare */
+    uint8_t rsv[31];
+} set2_t;
+static set2_t set2;
+static void set2_defaults(void)
+{
+    memset(&set2, 0, sizeof set2);
+    set2.magic = S2_MAGIC;
+}
 static kick_t *kmem_at(uint32_t n);     /* (the kick memory n, 0..19, wherever it is kept: below) */
 static int8_t *ksmem_at(uint32_t n);
 static kick_lab_t *klmem_at(uint32_t n);
@@ -1576,6 +1596,12 @@ static int km2_save(void)                /* (km2, then the motions, one object) 
     memcpy(lb_bu_buf + sizeof km2, &mo, sizeof mo);
     return plat_store_save(OBJ_KMEM2, lb_bu_buf, sizeof km2 + sizeof mo);
 }
+static int klab_save(void)               /* (0.9.95: the KICK LAB and set2 after it, one object) */
+{
+    memcpy(lb_bu_buf, &klab, sizeof klab);
+    memcpy(lb_bu_buf + sizeof klab, &set2, sizeof set2);
+    return plat_store_save(OBJ_KLAB, lb_bu_buf, sizeof klab + sizeof set2);
+}
 static int store_all(void)               /* SAVE: the settings, the patterns (the group in RAM too), the steps: 1 done */
 {
     if (wiped || bu_held)                /* (LOAF BREAKER, 0.263: WIPE MEMORY done: nothing saved until a restart) */
@@ -1583,7 +1609,7 @@ static int store_all(void)               /* SAVE: the settings, the patterns (th
     dm_put(steps.dm[drop_sel()]);        /* (0.9.58: the drop selected, as set, into its memory) */
     return plat_store_save(OBJ_SETTINGS, &set, sizeof set) == 0 && plat_store_save(OBJ_PAT, &pats, sizeof pats) == 0 &&
            plat_store_save(OBJ_STEP, &steps, sizeof steps) == 0 && grp_save() &&
-           plat_store_save(OBJ_KLAB, &klab, sizeof klab) == 0 &&
+           klab_save() == 0 &&
            km2_save() == 0 &&            /* (KICK 11..20, 0.9.2; 0.9.85 the motions after them) */
            (kfx_put(set.kslot), plat_store_save(OBJ_KFXM, &kfxm, sizeof kfxm) == 0) &&   /* (each kick's FX, 0.9.26) */
            (wk_store(), kx2_save() == 0);   /* (each kick's TOK and TAIL GATE, 0.9.45; each
@@ -1607,6 +1633,7 @@ static void kx_put(uint32_t k)
     x[7] = set.kmorph;
     x[8] = set.kmorph_to;
     (*kxh_at(k % KICK_MEMS)) = set.selk_hi;
+    memcpy(set2.skxm[k % KICK_MEMS], set2.skx, 4u);   /* (0.9.95: the codes' bits past five) */
 }
 static void kx_get(uint32_t k)
 {
@@ -1618,6 +1645,7 @@ static void kx_get(uint32_t k)
     set.kmorph = x[7];
     set.kmorph_to = x[8];
     set.selk_hi = (*kxh_at(k % KICK_MEMS));
+    memcpy(set2.skx, set2.skxm[k % KICK_MEMS], 4u);
 }
 static void kx_all(void)
 {
@@ -2484,8 +2512,18 @@ void app_init(void)
     }
     if (pats.magic != PAT_MAGIC && pats.magic != PAT2_MAGIC && pats.magic != PAT1_MAGIC)
         pat_defaults();
-    if (plat_store_load(OBJ_KLAB, &klab, sizeof klab) != (int)sizeof klab || klab.magic != KLAB_MAGIC)
-        klab_defaults();
+    {                                    /* (0.9.95: the KICK LAB, set2 after it) */
+        int n = plat_store_load(OBJ_KLAB, lb_bu_buf, sizeof lb_bu_buf);
+        set2_defaults();
+        if (n >= (int)sizeof klab) {
+            memcpy(&klab, lb_bu_buf, sizeof klab);
+            if (n >= (int)(sizeof klab + 4u) && !memcmp(lb_bu_buf + sizeof klab, &set2.magic, 4u))
+                memcpy(&set2, lb_bu_buf + sizeof klab,
+                       (uint32_t)n - sizeof klab < sizeof set2 ? (uint32_t)n - sizeof klab : sizeof set2);
+        }
+        if (n < (int)sizeof klab || klab.magic != KLAB_MAGIC)
+            klab_defaults();
+    }
     {                                    /* (0.9.45: a save before TOK and the TAIL GATE: none on any kick; 0.9.49: a
                                           * shorter one, before the SEL layer: none) */
         int sz = kx2_size();
