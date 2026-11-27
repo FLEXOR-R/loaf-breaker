@@ -20,7 +20,7 @@ zven confirmed on 12 Nov 2026 that LOAF BREAKER is welcome on the hub.
   artists named: rights with their owners); plain text, at most 300 characters, no web address (the hub's check); see
   `breaks/README.md`, `breaks/flexor/README.md`. FLEXOR (14 Nov 2026): keep it current as he adds breaks (a new
   artist of `breaks/flexor/` named there; shorten the rest to fit). The card's `what`: at most 300 characters (more is
-  cut at a word), the editor's breaks last (FLEXOR). FLEXOR answers for them. Then "Check again" on the hub's status page (it reads `loaf`).
+  cut at a word), the editor's breaks last (FLEXOR); the VST named in it (27 Nov 2026, FLEXOR: "mentionne la dessus la VST"; the Studio left out for room). FLEXOR answers for them. Then "Check again" on the hub's status page (it reads `loaf`).
 - **Card:** `fmhub.json` (root): LOAF BREAKER's text, FLEXOR as author, the site's emulator, its BREAKS page as the `editor` (0.9.37, FLEXOR) and the manual, the picture
   `docs/img/loaf_breaker_card.png` (480 × 480 PNG), the screen's red.
 
