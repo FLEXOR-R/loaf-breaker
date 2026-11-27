@@ -2,5 +2,5 @@
 the release's notes. Emptied (this comment kept) once the release is out. -->
 - A new black-key function, PEQ: switches the kick's whole PRE EQ (PRE L, PRE M, PRE H) off and on again, its bands kept, to play it live. Assign it in ARP › BLK (CUSTOM), SEL BLACK or the REC key.
 - REC as a second SEL: ARP › SEL BLK, K4 REC MODE BLACK KEYS. Then hold REC (or press it twice to lock it) and the black keys play their REC functions, the knobs their REC + K1-K4 functions; set them on ARP's new REC and REC K tabs, shown only in that mode. REC alone does nothing in that mode; CLASSIC keeps REC as before.
-- The bank has seven breaks: AMEN06 169 moves to the site's library (the room for the REC layer).
+- A new bank of eight breaks, by tempo: AMEN10 135, AMEN20 164, UPDOWN 165, AMEN19 172, FOCUZ 175, DETEST 175, AMEN14 175, SATAN 200. AMEN05 158, AMEN06 169 and AMEN13 173 move to the site's library (you can still put them on the FM-1 from the BREAKS page). The breaks' numbers change: on an FM-1 already in use, check the break it starts on, and each break's split and white keys.
 - REC is no longer a black key (it played KILL BREAK, or VINYL BREAK on FLEXOR LAYOUT, and had a SEL function): it records (REC MODE CLASSIC) or is the second SEL (BLACK KEYS). SEL + REC still clears.
