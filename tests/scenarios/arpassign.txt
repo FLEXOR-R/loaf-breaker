@@ -22,7 +22,7 @@ wait 400
 turn K1 40 10
 wait 150
 expect selk1_fn 18
-turn K1 -9 10
+turn K1 -12 10   # (0.9.94: the PRE Qs, three more in PRE EQ)
 wait 150
 expect selk1_fn 22
 shot arpassign.png

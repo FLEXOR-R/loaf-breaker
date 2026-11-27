@@ -1,0 +1,36 @@
+# LOAF BREAKER (27 Nov 2026, 0.9.94, FLEXOR: "j'ai besoin de réglages mid q, low q et high q sur les knobs aussi"): the
+# PRE EQ bands' Qs as knob functions (PRE LOW Q, PRE MID Q, PRE HIGH Q), after each band's frequency in ARP › ASSIGN's
+# list: SEL + K1 given PRE MID Q turns the kick's MID Q; HOME K4 given PRE HIGH Q turns HIGH's.
+#   app/build/host/loaf-breaker_host tests/scenarios/skpreq.txt app/build/scenarios
+wait 4200
+tap ARP
+wait 300
+turn SELECT 3 10
+wait 300
+expect opage 3
+expect selk1_fn 5
+turn K1 21 30
+wait 200
+expect selk1_fn 32
+shot skpreq_assign.png
+turn SELECT 1 10
+wait 300
+expect opage 4
+expect homek4 10
+turn K1 17 30
+wait 200
+expect homek4 33
+tap HOME
+wait 300
+expect pxq 0
+press SEL
+wait 100
+turn K1 4 60
+wait 100
+release SEL
+wait 150
+expect pxq 4
+expect pxqh 0
+turn K4 3 60
+wait 150
+expect pxqh 3

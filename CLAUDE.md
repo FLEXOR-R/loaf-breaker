@@ -229,6 +229,13 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   whose REC MODE was never set (untagged), REC MODE BLACK KEYS; bk_custom_of copies FLX_RL into the REC layer; REC BLK
   edited on FLEXOR LAYOUT makes a CUSTOM first. The host simulator tags REC MODE CLASSIC at app_ui_init (its scenarios
   record with REC); flexlay picks the preset again for the REC layer. Image 573,492 B.
+- The PRE Qs as knob functions (27 Nov 2026, 0.9.94, FLEXOR: "réglages mid q low q et high q sur les knobs aussi"): track.c
+  SK_N 34, `SK_PREQ` 31 + b (PRE LOW Q, PRE MID Q, PRE HIGH Q: kpx_q, a step a detent, -8 .. 12, shown as kpx_qv); SEL + K
+  reaches them by SK_CODE's places 0, 2, 9 (codes 1, 3, 10: DUCK, COMP, TUNE, which no knob could be given since long
+  before; a knob saved with one of those now gets a Q); KICK › MORE's K SET walks them last (selk_assign_k, QAT), the
+  others' order as before; ARP › ASSIGN's PRE EQ family each band's gain, frequency, Q (AS_FAM_AT 0 8 18 27 28); HOME K4
+  stores them as 0xC0 | band (home_k4, its five bits full); REC + K's bytes and the motions' 1 + SK_* hold them as
+  any. Scenario skpreq (arpassign, skpre recounted). Image 573,792 B.
 - SEQ without the black keys' row (26 Nov 2026, 0.9.86, FLEXOR: "enlève la ligne des touches noires au dessus des
   carrés de knob pour gagner de la place pour le séquenceur"): seq.c SQ_H 162 (44..205, 148 before), main.c draw_foot on
   PG_SEQ its cards alone, 34 rows blitted at 206 (cv_oy -15).

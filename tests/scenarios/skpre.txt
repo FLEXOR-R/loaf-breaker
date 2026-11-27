@@ -24,6 +24,9 @@ expect kpage 12
 expect kpage 12
 turn PRESET 40 10
 wait 100
+expect selk1_fn 33
+turn PRESET -3 10   # (0.9.94: the PRE Qs last, after GATE)
+wait 100
 expect selk1_fn 30
 turn PRESET -2 10
 wait 100

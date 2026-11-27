@@ -759,7 +759,7 @@ static uint32_t recb_fn(uint32_t j)      /* (black key j's REC function, 1 + BKF
 static uint32_t reck_fn(uint32_t k)      /* (REC + K(k + 1)'s function, 1 + SK_*; 0: none) */
 {
     uint32_t f = rl_ok() ? kx2.rsv[RL_RSV + 12u + (k & 3u)] : 0u;
-    return f <= 31u ? f : 0u;
+    return f <= 34u ? f : 0u;            /* (1 + SK_*: SK_N 34 since 0.9.94) */
 }
 static void selk_clear(void)             /* (0.9.49: the SEL layer, none: RESET ALL, RESET's PADS) */
 {
