@@ -1,0 +1,30 @@
+# LOAF BREAKER (27 Nov 2026, FLEXOR: "quand tout est à 64 steps et que y'a les breaks en haut (onglet FULL) les 64 steps
+# ne prennent pas toute la place, il y a un écart en bas"): SEQ, FULL, the break's two rows on top, the kick, snare, hat
+# and clap at 64 steps each: the grid down to its foot (the height's remainder spread over the rows).
+#   app/build/host/loaf-breaker_host tests/scenarios/seqfill.txt app/build/scenarios
+wait 4200
+tap SEQ
+wait 300
+expect page 6
+expect seq_lane 2
+expect brkview 2
+turn K4 4 10
+wait 150
+expect lane_steps 64
+turn ALGO 4 80
+wait 150
+turn K4 4 10
+wait 150
+expect lane_steps 64
+turn ALGO 4 80
+wait 150
+turn K4 4 10
+wait 150
+expect lane_steps 64
+turn ALGO 4 80
+wait 150
+turn K4 4 10
+wait 150
+expect lane_steps 64
+wait 800
+shot seqfill.png

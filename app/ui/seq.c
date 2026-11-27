@@ -785,18 +785,21 @@ static void seq_picture(const brk_status_t *st, int32_t top)
     const pat_t *p = pat_now();
     uint8_t row[NSEQL];
     uint32_t i, r, n = seq_rows(row), nb = 0u;
-    int32_t y0, pitch, bh;
+    int32_t y0, nd, bh;
     char t[8];
     while (nb < n && row[nb] < SL_KICK)  /* (the break's rows on top: one, or BEGINNER's two) */
         nb++;
     bh = SQ_H / (int32_t)(n ? n : 1u);   /* (0.242: the break's rows as tall as the grid's average, its numbers in) */
     bh = bh < SQ_BRK_MIN ? SQ_BRK_MIN : bh > SQ_BRK_MAX ? SQ_BRK_MAX : bh;
     y0 = bh * (int32_t)nb;
-    pitch = (SQ_H - y0) / (int32_t)(n - nb ? n - nb : 1u);
+    nd = (int32_t)(n - nb ? n - nb : 1u);
     cv_oy = -top;
     for (r = 0; r < n; r++) {
         uint32_t sl = row[r], brk = sl < SL_KICK, m = brk ? 0u : sl_get(p, sl);
-        int32_t y = brk ? bh * (int32_t)r : y0 + (int32_t)(r - nb) * pitch, at = brk ? -1 : sl_now(st, sl);
+        int32_t y = brk ? bh * (int32_t)r : y0 + (int32_t)(r - nb) * (SQ_H - y0) / nd, at = brk ? -1 : sl_now(st, sl);
+        /* (27 Nov 2026, FLEXOR: "les 64 steps ne prennent pas toute la place il y a un écart en bas": the height's
+         * remainder spread over the rows, a row a pixel taller here and there, down to the grid's last row) */
+        int32_t pitch = brk ? bh : y0 + (int32_t)(r - nb + 1u) * (SQ_H - y0) / nd - y;
         int32_t ch = brk ? bh - 2 : pitch > 4 ? pitch - 2 : pitch;   /* (the break's half: tall enough for its
                                           * numbers) */
         int picked = SEQ_BRK ? brk : sl == ui.seq_lane;   /* (on BREAK: the break's rows named lit) */

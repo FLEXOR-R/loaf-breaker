@@ -197,6 +197,9 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - SEQ without the black keys' row (26 Nov 2026, 0.9.86, FLEXOR: "enlève la ligne des touches noires au dessus des
   carrés de knob pour gagner de la place pour le séquenceur"): seq.c SQ_H 162 (44..205, 148 before), main.c draw_foot on
   PG_SEQ its cards alone, 34 rows blitted at 206 (cv_oy -15).
+- SEQ's rows to the foot (27 Nov 2026, FLEXOR: "les 64 steps ne prennent pas toute la place il y a un écart en bas"):
+  seq.c seq_picture spreads the height's remainder over the drum rows (each row's y and pitch from (SQ_H - y0) / nd,
+  not one integer pitch); scenario seqfill (the break's two rows, every drum 64).
 - Black keys over the pictures (26 Nov 2026, 0.9.86, FLEXOR: "utiliser des touches noires par dessus la waveform, les eq,
   ou le xsub fait un flickering bizarre"): a held key's picture (ui.shown != -1) holds the strip; main.c drops RG_BLOCKS
   again right before drawing (kv_poll and the kick's live scope set it after the frame's first clear: the page drew over
