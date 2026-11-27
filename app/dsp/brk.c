@@ -92,7 +92,7 @@ static float rat_len, rat_left;
 static uint32_t rat_count;
 static int32_t rat_slice;
 static int rat_rev;
-static float rat_pitch, step_pitch;
+static float rat_pitch, step_pitch, rat_dp;   /* (rat_dp, 0.9.95: a big roll's pitch a repeat) */
 static uint32_t step_in_len;             /* the length of the step playing, for the gate */
 static float step_age;
 static brk_status_t status;
@@ -416,7 +416,7 @@ static int32_t follow_slice(const brk_break_t *b, uint32_t i)
 }
 
 /* LOAF BREAKER (0.9.75): CHAOS, HOME's fourth part (brk.h brk_chaos) */
-static uint32_t p_chaos;
+static uint32_t p_chaos, p_chaos2;
 static uint32_t ch_hash(uint32_t a)       /* (a step's dice: the same seed and step, the same numbers) */
 {
     a ^= a >> 16;
@@ -425,6 +425,19 @@ static uint32_t ch_hash(uint32_t a)       /* (a step's dice: the same seed and s
     a *= 0x846CA68Bu;
     a ^= a >> 16;
     return a;
+}
+static int ch_where(uint32_t st, uint32_t n, uint32_t lp)   /* (0.9.95: CHAOS+'s WHERE: this step of loop lp) */
+{
+    uint32_t w = p_chaos2 >> 5 & 3u;
+    return !w || (w == 1u && st % BRK_STEPS_PER_BAR >= BRK_STEPS_PER_BAR - 4u) || (w == 2u && st >= n / 2u) ||
+           (w == 3u && (lp & 1u));
+}
+static uint32_t ch_mathq(uint32_t st, uint32_t n, uint32_t lp)   /* MATH: the step the loop takes its slice from */
+{
+    uint32_t m = p_chaos >> 8 & 0xFFu;
+    if (m < 2u || m >= BRK_STEPS_PER_BAR || !ch_where(st, n, lp))
+        return st;
+    return st - st % BRK_STEPS_PER_BAR + (p_chaos2 >> 9 & 1u ? (lp * n + st) % m : st % BRK_STEPS_PER_BAR % m);
 }
 static uint32_t ch_role(const brk_break_t *b, int32_t s)   /* the slice's one role (kick first), or 4: none */
 {
@@ -447,6 +460,48 @@ static int32_t ch_swap(const brk_break_t *b, int32_t s, uint32_t role, uint32_t 
         if ((int32_t)i != s && b->roles[i] >> role & 1u && !pick--)
             return (int32_t)i;
     return s;
+}
+
+/* CHAOS on one hit (on_step's and brk_chaos_peek's): s and rev in and out; ratch the step's ratchet in and out, dp
+ * its pitch a repeat, pitch and cut out */
+static void ch_apply(const brk_break_t *b, uint32_t st, uint32_t n, uint32_t lp, int32_t *s, int *rev, uint32_t *ratch,
+                     float *dp, float *pitch, int *cut)
+{
+    static const int8_t CPITCH[4] = {-12, -7, 7, 12};
+    uint32_t amt = p_chaos & 0xFFu, rolls = p_chaos >> 16 & 0xFFu, seed = p_chaos >> 24, ev = p_chaos2 & 7u,
+             tg = p_chaos2 >> 3 & 3u, col = p_chaos2 >> 7 & 3u, h, h2, r;
+    if (!(amt || rolls) || !ch_where(st, n, lp))
+        return;
+    if (ev)
+        seed += lp >> (ev > 4u ? 3u : ev - 1u);   /* (EVOLVE: another seed every 1, 2, 4, 8 loops) */
+    h = ch_hash(seed * 0x9E3779B9u + st * 0x85EBCA6Bu + 0x1234567u);
+    r = ch_role(b, *s);
+    if (tg && !(tg == 1u ? r != BRK_ROLE_KICK : tg == 2u ? r == BRK_ROLE_SNARE || r == BRK_ROLE_PERC : r == BRK_ROLE_HAT))
+        return;                          /* (TARGET: not this hit) */
+    if (r < 4u && (h & 0xFFFFu) * 125u < amt * 65536u) {   /* (up to 80 % of the hits) */
+        *s = fold(b, ch_swap(b, *s, r, h >> 16));
+        r = ch_role(b, *s);
+    }
+    h = ch_hash(h);                      /* (fresh dice for the rest) */
+    if (amt > 50u && (h & 0xFFu) * 100u < (amt - 50u) * 230u)
+        *rev ^= 1;                       /* (from 50: up to 45 % of the hits backwards) */
+    if (*ratch <= 1u && rolls) {
+        uint32_t d = h >> 24, big = rolls > 50u && (h >> 8 & 0xFFu) * 100u < (rolls - 50u) * 300u;
+        if ((r == BRK_ROLE_SNARE || r == BRK_ROLE_PERC) && d * 100u < rolls * 115u)
+            *ratch = big ? (h >> 16 & 1u ? 6u : 4u) : 3u;   /* (a snare in three: up to 45 %; past 50, in 4 or 6) */
+        else if (r == BRK_ROLE_HAT && d * 100u < rolls * 77u)
+            *ratch = big ? 4u : 2u;      /* (a hat in two: up to 30 %; past 50, in 4) */
+        if (big && *ratch > 3u)
+            *dp = h >> 17 & 1u ? 1.0f : -1.0f;   /* (0.9.95: the big rolls climb or fall, a semitone a repeat) */
+    }
+    h2 = ch_hash(h ^ 0x5BD1E995u);
+    if (col && (h2 & 0xFFu) * 100u < amt * 90u) {   /* (COLOR: up to 35 % of the hits) */
+        uint32_t c = col == 3u ? 1u + (h2 >> 10 & 1u) : col;
+        if (c == 1u)
+            *pitch += (float)CPITCH[h2 >> 8 & 3u];
+        else
+            *cut = 1;
+    }
 }
 
 /* the generator (PRD A-10): f is the loop's own slice at this step */
@@ -560,7 +615,7 @@ static void on_step(const brk_break_t *b)
     uint32_t n = loop_steps(b), hl = n / 2u;
     const brk_step_t *p;
     int32_t s = BRK_NO_SLICE;
-    int rev = (pads_now >> PAD_REVERSE) & 1u;
+    int rev = (pads_now >> PAD_REVERSE) & 1u, cut = 0;
     step = (int32_t)(((uint32_t)(step + 1)) % n);
     if (hl && !((uint32_t)step % hl)) {  /* a bar line (a split's halves are its bars): the half asked for */
         half_on = b->split ? p_half : -1;
@@ -599,12 +654,8 @@ static void on_step(const brk_break_t *b)
             return;
         if (p->prob < 100u && brk_randf(&rng) * 100.0f >= (float)p->prob)
             return;
-        {
-            uint32_t m = p_chaos >> 8 & 0xFFu, q = (uint32_t)step;
-            if (m >= 2u && m < BRK_STEPS_PER_BAR)   /* (CHAOS's MATH: the bar's first m 16ths round again) */
-                q = q - q % BRK_STEPS_PER_BAR + q % BRK_STEPS_PER_BAR % m;
-            f = follow_slice(b, q);
-        }
+        f = follow_slice(b, ch_mathq((uint32_t)step, n, bar));   /* (CHAOS's MATH: the bar's first m 16ths round
+                                          * again; 0.9.95 SHIFT: on across the bars) */
         if (p->slice >= 0)
             s = p->slice;
         else if (f >= 0)
@@ -615,33 +666,20 @@ static void on_step(const brk_break_t *b)
         if (p->flags & STEP_REVERSE)
             rev ^= 1;
         step_pitch = (float)p->pitch;
-        {                                /* (0.9.75: CHAOS: the hit swapped for one of its role, reversed, rolled) */
-            uint32_t amt = p_chaos & 0xFFu, rolls = p_chaos >> 16 & 0xFFu, ratch = p->ratchet;
-            if (amt || rolls) {
-                uint32_t h = ch_hash((p_chaos >> 24) * 0x9E3779B9u + (uint32_t)step * 0x85EBCA6Bu + 0x1234567u),
-                         r = ch_role(b, s);
-                if (r < 4u && (h & 0xFFFFu) * 125u < amt * 65536u) {   /* (up to 80 % of the hits) */
-                    s = fold(b, ch_swap(b, s, r, h >> 16));
-                    r = ch_role(b, s);
-                }
-                h = ch_hash(h);          /* (fresh dice for the rest) */
-                if (amt > 50u && (h & 0xFFu) * 100u < (amt - 50u) * 230u)
-                    rev ^= 1;            /* (from 50: up to 45 % of the hits backwards) */
-                if (ratch <= 1u && rolls) {
-                    uint32_t d = h >> 24;
-                    if ((r == BRK_ROLE_SNARE || r == BRK_ROLE_PERC) && d * 100u < rolls * 115u)
-                        ratch = 3u;      /* (a snare in three: up to 45 %) */
-                    else if (r == BRK_ROLE_HAT && d * 100u < rolls * 77u)
-                        ratch = 2u;      /* (a hat in two: up to 30 %) */
-                }
-            }
+        {                                /* (0.9.75: CHAOS: the hit swapped for one of its role, reversed, rolled;
+                                          * 0.9.95: CHAOS+) */
+            uint32_t ratch = p->ratchet;
+            float dp = 0.0f;
+            cut = (p->flags & STEP_CUT) != 0u;
+            ch_apply(b, (uint32_t)step, n, bar, &s, &rev, &ratch, &dp, &step_pitch, &cut);
             if (ratch > 1u) {            /* the step's ratchet: the rest of the hits inside the step */
                 rat_count = ratch - 1u;
                 rat_len = (float)step_in_len / (float)ratch;
                 rat_left = rat_len;
                 rat_slice = s;
                 rat_rev = rev;
-                rat_pitch = step_pitch;
+                rat_pitch = step_pitch + dp;
+                rat_dp = dp;
             }
         }
     }
@@ -650,6 +688,8 @@ static void on_step(const brk_break_t *b)
         float keep = step_pitch;         /* (trigger leaves it; the random step set its own) */
         trigger(b, s, rev);
         step_pitch = keep;
+        if (cut && s >= 0 && (uint32_t)s < b->nslices)   /* (0.9.95: CUT: a quarter of the slice, then its fade) */
+            v[cur].gate_left = 0.25f * (float)(b->slice[s + 1] - b->slice[s]);
     }
     if (roll_arm)
         roll_begin(b);
@@ -951,6 +991,7 @@ void brk_render(float *out, uint32_t n)
                     rat_count--;
                     trigger(b, rat_slice, rat_rev);
                     step_pitch = rat_pitch;
+                    rat_pitch += rat_dp;
                 }
             }
         }
@@ -1257,6 +1298,31 @@ BRK_COLD void brk_gate(float g) { p_gate = brk_clampf(g, 0.05f, 1.0f); }
 BRK_COLD void brk_snap(float slices) { p_snap = brk_clampf(slices, 0.0f, 16.0f); }
 BRK_COLD void brk_gen(const brk_gen_t *g) { p_gen = *g; }
 BRK_COLD void brk_chaos(uint32_t packed) { p_chaos = packed; }
+BRK_COLD void brk_chaos2(uint32_t packed) { p_chaos2 = packed; }
+BRK_COLD void brk_chaos_peek(uint32_t st, brk_step_t *io)
+{
+    const brk_break_t *b = brk_now;
+    uint32_t n, ratch;
+    int32_t s;
+    int rev, cut;
+    float dp = 0.0f, pitch;
+    if (!b || !io->on || !b->nslices)
+        return;
+    n = loop_steps(b);
+    s = io->slice >= 0 ? io->slice : follow_slice(b, ch_mathq(st % n, n, bar));
+    if (s < 0)
+        return;                          /* (no slice starts here: the step stays as it is) */
+    s = fold(b, s);
+    rev = (io->flags & STEP_REVERSE) != 0u;
+    cut = (io->flags & STEP_CUT) != 0u;
+    ratch = io->ratchet ? io->ratchet : 1u;
+    pitch = (float)io->pitch;
+    ch_apply(b, st % n, n, bar, &s, &rev, &ratch, &dp, &pitch, &cut);
+    io->slice = (int8_t)s;
+    io->flags = (uint8_t)((rev ? STEP_REVERSE : 0u) | (cut ? STEP_CUT : 0u));
+    io->ratchet = (uint8_t)(ratch > 4u ? 4u : ratch);
+    io->pitch = (int8_t)(pitch > 24.0f ? 24 : pitch < -24.0f ? -24 : (int32_t)pitch);
+}
 
 /* LOAF BREAKER (0.9.75): the break's Slice Map, heard: CHOPPAH's mc_auto_roles (MATHCORE, MM-SM, MPL-2.0, Laurens
  * Profittlich), the same rules. The first 60 ms of each slice through three bands: a low one (under ~120 Hz, a kick's

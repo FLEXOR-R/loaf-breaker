@@ -160,7 +160,8 @@ static const char *const PAD_KNOB[BKF_N][4] = {   /* (LOAF BREAKER: by function,
     {"LATCH", 0, 0, 0}, {"LATCH", 0, 0, 0}, {"LATCH", 0, 0, 0},   /* (X2, X4, TRI: their K1 LATCH, as KIL's) */
     {0, 0, 0, 0},                        /* (SDR: a press each) */
     {"MODE", "TIME", "REVERB", "LATCH"},   /* (0.9.58: KILL BREAK) */
-    {0, 0, 0, 0},                        /* (0.9.76: CHS, a press each) */
+    {"LATCH", "SEED", 0, 0},             /* (0.9.76: CHS, a press each; 0.9.95, FLEXOR: K1 LATCH (OFF: CHAOS while held),
+                                          * K2 SEED, another variation) */
     {0, 0, 0, 0},                        /* (0.9.78: SPL, a press each) */
     {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0},   /* (0.9.81: KCK SNR HAT CLP, a hit each press) */
     {0, 0, 0, 0},                        /* (0.9.86: XSB, a press each) */
@@ -446,6 +447,12 @@ static void pad_knob_value(int pad, int k, char *t)
     case BKF_X2: case BKF_X4: case BKF_TRI:   /* (K1 LATCH: half_mt_off bits 3-5 are LATCH OFF) */
         text_cat(t, set.half_mt_off & (8u << (pad - BKF_X2)) ? "OFF" : "ON");
         break;
+    case BKF_CHS:                        /* (0.9.95: K1 LATCH, K2 SEED) */
+        if (k == 1)
+            int_text(kx2.ch_tag == CH_TAG ? kx2.chaos[3] : 0, t);
+        else
+            text_cat(t, set2.ch[4] & 1u ? "OFF" : "ON");
+        break;
     default: break;
     }
     return;
@@ -607,6 +614,19 @@ static void pad_knob_turn(int pad, int k, int32_t d)
         }
         set_dirty = 1u;
         ui.redraw |= RG_FOOT;
+        break;
+    case BKF_CHS:                        /* (0.9.95: K1 LATCH right on, left off (CHAOS while held); K2 SEED) */
+        if (kx2.ch_tag != CH_TAG) {
+            kx2.ch_tag = CH_TAG;
+            memset(kx2.chaos, 0, sizeof kx2.chaos);
+        }
+        if (k == 1) {
+            kx2.chaos[3] = (uint8_t)clamp((int32_t)kx2.chaos[3] + d, 0, 99);
+            chaos_push();
+        } else if (k == 0)
+            set2.ch[4] = (uint8_t)(d > 0 ? set2.ch[4] & ~1u : set2.ch[4] | 1u);
+        set_dirty = 1u;
+        ui.redraw |= RG_FOOT | RG_BLOCKS;
         break;
     case BKF_X2: case BKF_X4: case BKF_TRI: {   /* (K1 LATCH, right on, left off; as main.c's x2_focus) */
         uint8_t lb = (uint8_t)(8u << (pad - BKF_X2));

@@ -47,6 +47,7 @@ typedef struct {
     uint8_t rsv[2];
 } brk_step_t;
 #define STEP_REVERSE 1u
+#define STEP_CUT 2u                      /* (LOAF BREAKER 0.9.95: the slice cut short, a stab: brk_chaos_peek says it; the app's patterns don't keep it) */
 
 typedef struct {
     float complexity, anchor, roll, fill;    /* 0..1 (PRD A-10) */
@@ -207,6 +208,15 @@ void brk_gen(const brk_gen_t *g);
  * same chaos every loop, so it grooves). 0: the break as it is */
 void brk_auto_roles(brk_break_t *b);
 void brk_chaos(uint32_t packed);
+/* (0.9.95, FLEXOR: CHAOS+) packed: EVOLVE bits 0-2 (0 off; 1..4: a new seed every 1, 2, 4, 8 loops), TARGET 3-4 (0 all,
+ * 1 no kick, 2 snares, 3 hats), WHERE 5-6 (0 all, 1 each bar's last beat, 2 the loop's second bar, 3 every other
+ * loop), COLOR 7-8 (0 off, 1 PITCH: a hit up or down -12 -7 +7 +12, 2 CUT: a hit cut short, 3 both), bit 9 MATH SHIFT
+ * (the N 16ths round on across the bars, not again from each bar's first); ROLLS past 50 bring rolls in 4 and 6 with
+ * their pitch climbing or falling */
+void brk_chaos2(uint32_t packed);
+/* main loop (CHAOS+'s PRINT): step st of the pattern (io as brk_step_set wants it) as CHAOS plays it this loop: its
+ * slice written, reversed, ratchet (4 at most), pitch, cut; a step off stays off */
+void brk_chaos_peek(uint32_t st, brk_step_t *io);
 void brk_padset_defaults(brk_padset_t *p);
 void brk_padset(const brk_padset_t *p);  /* main loop; the render follows it at once, also while a pad is held */
 void brk_seed(uint32_t seed);

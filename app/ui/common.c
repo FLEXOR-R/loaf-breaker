@@ -443,6 +443,7 @@ static struct {
     uint32_t aud_t;                      /* LOAF BREAKER: a drum played on its key (the classic view, the drums' pages):
                                           * when, which */
     uint8_t aud_d;
+    uint8_t chpg;                        /* (0.9.95: HOME's CHAOS page: 0 CHAOS, 1 CHAOS+) */
     uint8_t opage, bk_sel;               /* LOAF BREAKER: the ARP page's tab (0 ARP EFFECTS, 1 BLACK KEYS, 2 MORE;
                                           * BEGINNER: the first only), the key BLACK KEYS edits (0..10) */
     uint8_t pad_more;                    /* LOAF BREAKER: the ARP key's knobs: 0 MAIN, 1 MORE (FX while it is held) */

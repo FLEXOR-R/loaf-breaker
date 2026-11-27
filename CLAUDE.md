@@ -194,6 +194,19 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   SK_XO) clears xoff; each kick's (kx2.px), COPY copies it, a built-in PRESET clears it. CUSTOM / SEL BLACK / REC; probe
   xoff; scenario xsbkey; the scenarios turning K3 left of R8 one more (recsel kickx2 kickx4 kiltri killbreak reckey chskey
   splkey drumkeys).
+- CHAOS+ (27 Nov 2026, 0.9.95, FLEXOR: "ok pour les presets de chaos mais pas de mention mathcore en gardant l'idée";
+  "ok pour la page CHAOS +"; "ok pour le comportement de la touche noire quand elle est maintenue"): HOME › CHAOS's
+  second part (`ui.chpg` 1, not a page of its own: HOME on CHAOS goes to CHAOS+, then PERFORM; the tabs narrower in
+  EXPERT, pad 2 gap 2, so the five fit), global.c `CH2_NAME`, `CH_EVOLVE` .. `CH_COLOR`, `chaos_turn` both parts,
+  `chaos_style` / `CH_STYLE` (PRESETS on CHAOS: LIGHT, ODD METER, BREAKCORE, STUTTER, GLITCH, FILLS; no "mathcore" on
+  the screen, FLEXOR), `chaos_preset_turn` (CHAOS+'s PRESETS: PRINT, five detents right within 2 s, `chaos_print`:
+  brk_chaos_peek over every step, pat_read_back, undo_mark(UNDO_RANDOM), CHAOS off; CUT isn't kept: st[k][2]'s bits
+  3-7 may hold 0.200-0.208's melody). Stored in set2.ch: [0] EVOLVE 0-4, [1] TARGET, [2] WHERE, [3] COLOR, [4] bit 0
+  CHS LATCH OFF, bit 1 MATH SHIFT, [5] the style picked last (1 + n). dsp brk.c `brk_chaos2` (packed, brk.h),
+  `ch_where`, `ch_mathq`, `ch_apply` (on_step's and `brk_chaos_peek`'s), the big rolls' `rat_dp`, CUT the slice's
+  gate a quarter. The CHS key: K1 LATCH, K2 SEED (pads.c), `ui.pad_focus` while held (its knobs win over SEL / REC +
+  K, as every held key's with knobs). Probes chpg chev chtg chwh chco chfl chsty pslices; scenario chaosplus; engine
+  test (TARGET NO KICK, WHERE BAR 2, EVOLVE). Image 551,412 B.
 - set2, the settings past settings_t (27 Nov 2026, 0.9.95, FLEXOR: "tu peux faire le nouvel objet de réglages"): app.c
   `set2_t set2` (S2_MAGIC "LBS2"), saved after the KICK LAB in OBJ_KLAB (`klab_save`, through lb_bu_buf; read back the
   same way: an older firmware reads klab alone, the store cuts the rest; OBJ_KLAB is in the backup and the VST copies

@@ -897,45 +897,141 @@ static void draw_split(void)
  * kick, a snare for a snare; backwards from 50), K2 MATH (OFF, 3, 5, 7, 11, 13: each bar's first N 16ths round against
  * the bar), K3 ROLLS (snares in three, hats in two), K4 SEED (the variation: the same seed, the same chaos every loop).
  * The roles: CHOPPAH's Slice Map, heard (brk.c brk_auto_roles); in at the next step */
-static const uint8_t CH_MATH[6] = {0u, 3u, 5u, 7u, 11u, 13u};
+static const uint8_t CH_MATH[9] = {0u, 3u, 5u, 7u, 11u, 13u, 3u, 5u, 7u};   /* (0.9.95: then SHIFT 3, 5, 7: set2.ch[4]
+                                          * bit 1, the N 16ths round on across the bars) */
+#define CH_SHIFT (set2.ch[4] & 2u)
 static uint32_t chaos_math_idx(void)
 {
     uint32_t i;
-    for (i = 0; i < 6u; i++)
+    for (i = CH_SHIFT ? 6u : 0u; i < 9u; i++)
         if (kx2.chaos[1] == CH_MATH[i])
             return i;
     return 0u;
 }
+/* LOAF BREAKER (0.9.95, FLEXOR: "ok pour les presets de chaos mais pas de mention mathcore"; "ok pour la page CHAOS +"):
+ * CHAOS+, the page's second part (ui.chpg 1; HOME again after CHAOS): K1 EVOLVE, K2 TARGET, K3 WHERE, K4 COLOR, its
+ * PRESETS PRINT (five detents right within 2 s: the chaos this loop written into the pattern's break steps; SEL + SAVE
+ * takes it back). CHAOS's PRESETS: styles, every setting of both at once (set2.ch[5] the one picked last) */
+static const char *const CH2_NAME[4] = {"EVOLVE", "TARGET", "WHERE", "COLOR"};
+static const char *const CH_EVOLVE[5] = {"OFF", "1 LOOP", "2 LOOPS", "4 LOOPS", "8 LOOPS"};
+static const char *const CH_TARGET[4] = {"ALL", "NO KICK", "SNARES", "HATS"};
+static const char *const CH_WHERE[4] = {"ALL", "BAR END", "BAR 2", "1 LOOP/2"};
+static const char *const CH_COLOR[4] = {"OFF", "PITCH", "CUT", "BOTH"};
+static const uint8_t CH2_MAX[4] = {4u, 3u, 3u, 3u};
+#define CH_STYLES 6u
+static const char *const CH_STYLE_NAME[CH_STYLES] = {"LIGHT", "ODD METER", "BREAKCORE", "STUTTER", "GLITCH", "FILLS"};
+/* (each: CHAOS, MATH, ROLLS, SEED, EVOLVE, TARGET, WHERE, COLOR, SHIFT) */
+static const uint8_t CH_STYLE[CH_STYLES][9] = {
+    {24u, 0u, 10u, 7u, 0u, 1u, 0u, 0u, 0u},     /* LIGHT: a few hits swapped, never the kick */
+    {20u, 5u, 0u, 11u, 0u, 0u, 0u, 0u, 1u},     /* ODD METER: five against four, sliding across the bars */
+    {70u, 0u, 60u, 23u, 2u, 0u, 0u, 1u, 0u},    /* BREAKCORE: hard, backwards, big rolls, pitched, a new seed each 2 loops */
+    {30u, 0u, 90u, 5u, 1u, 2u, 0u, 0u, 0u},     /* STUTTER: the snares rolled in 4 and 6 */
+    {60u, 7u, 30u, 42u, 0u, 0u, 0u, 3u, 0u},    /* GLITCH: seven against the bar, pitched and cut */
+    {80u, 3u, 70u, 9u, 1u, 1u, 2u, 1u, 0u}};    /* FILLS: the loop's second bar only, every loop a new one */
 static void chaos_value(int i, char *t)
 {
     t[0] = 0;
+    if (ui.chpg) {
+        uint32_t v = set2.ch[i & 3] > CH2_MAX[i & 3] ? 0u : set2.ch[i & 3];
+        text_cat(t, i == 0 ? CH_EVOLVE[v] : i == 1 ? CH_TARGET[v] : i == 2 ? CH_WHERE[v] : CH_COLOR[v]);
+        return;
+    }
     if (i == 1) {
         if (!kx2.chaos[1])
             text_cat(t, "OFF");
-        else
-            int_text(kx2.chaos[1], t);
+        else {
+            char *e = t;
+            if (CH_SHIFT)
+                text_cat(t, "SHIFT ");
+            while (*e)
+                e++;
+            int_text(kx2.chaos[1], e);
+        }
     } else if ((i == 0 || i == 2) && !kx2.chaos[i])
         text_cat(t, "OFF");
     else
         int_text(kx2.chaos[i & 3], t);
 }
+static void chaos_on(void)               /* (a knob turned here: CHAOS heard again, the CHS key's switch on) */
+{
+    if (kx2.ch_tag != CH_TAG)
+        memset(kx2.chaos, 0, sizeof kx2.chaos);
+    kx2.ch_tag = CH_TAG;
+    kx2.ch_sw = CH_SW;
+}
 static void chaos_turn(int i, int32_t d)
 {
     static const char *const CN[4] = {"CHAOS", "MATH", "ROLLS", "SEED"};
     char t[16];
-    kx2.ch_tag = CH_TAG;
-    kx2.ch_sw = CH_SW;                   /* (0.9.76: a knob turned here, CHAOS heard again: the CHS key's switch on) */
-    if (i == 1)
-        kx2.chaos[1] = CH_MATH[(uint32_t)clamp((int32_t)chaos_math_idx() + (d > 0 ? 1 : -1), 0, 5)];
-    else if (i == 3)
+    chaos_on();
+    if (ui.chpg)
+        set2.ch[i & 3] = (uint8_t)clamp((int32_t)(set2.ch[i & 3] > CH2_MAX[i & 3] ? 0u : set2.ch[i & 3]) + (d > 0 ? 1 : -1), 0,
+                                        CH2_MAX[i & 3]);
+    else if (i == 1) {
+        uint32_t m = (uint32_t)clamp((int32_t)chaos_math_idx() + (d > 0 ? 1 : -1), 0, 8);
+        kx2.chaos[1] = CH_MATH[m];
+        set2.ch[4] = (uint8_t)(m >= 6u ? set2.ch[4] | 2u : set2.ch[4] & ~2u);
+    } else if (i == 3)
         kx2.chaos[3] = (uint8_t)clamp((int32_t)kx2.chaos[3] + d, 0, 99);
     else
         kx2.chaos[i] = (uint8_t)clamp((int32_t)kx2.chaos[i] + d * 2, 0, 100);
     chaos_push();
     set_dirty = 1u;
     chaos_value(i, t);
-    app_say(CN[i & 3], t);
+    app_say(ui.chpg ? CH2_NAME[i & 3] : CN[i & 3], t);
     ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
+static void chaos_style(uint32_t n)      /* (a style: both parts' settings at once) */
+{
+    const uint8_t *c = CH_STYLE[n % CH_STYLES];
+    chaos_on();
+    memcpy(kx2.chaos, c, 4u);
+    memcpy(set2.ch, c + 4, 4u);
+    set2.ch[4] = (uint8_t)((set2.ch[4] & ~2u) | (c[8] ? 2u : 0u));
+    set2.ch[5] = (uint8_t)(n % CH_STYLES + 1u);
+    chaos_push();
+    set_dirty = 1u;
+    app_say("CHAOS STYLE", CH_STYLE_NAME[n % CH_STYLES]);
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
+static void undo_mark(uint32_t what);
+static uint8_t ch_prn;                   /* (PRINT's five detents: how many so far, and the last one's time) */
+static uint32_t ch_prt;
+static void chaos_print(void)            /* (CHAOS+'s PRINT: this loop's chaos into the pattern's break steps: each
+                                          * step a slice starts on, its slice, reverse, ratchet (4 at most) and pitch; CUT
+                                          * isn't kept by the patterns) */
+{
+    uint32_t k;
+    undo_mark(1u);                       /* (UNDO_RANDOM: SEL + SAVE takes it back) */
+    for (k = 0; k < PAT_STEPS; k++) {
+        brk_step_t s;
+        brk_step_get(k, &s);
+        brk_chaos_peek(k, &s);
+        brk_step_set(k, &s);
+    }
+    pat_read_back();
+    kx2.ch_sw = (uint8_t)(CH_SW | 1u);   /* (CHAOS off: the pattern plays it as written; CHS or a knob: on again) */
+    chaos_push();
+    set_dirty = 1u;
+    app_say("CHAOS", "PRINTED: SEL + SAVE UNDOES");
+    ui.redraw |= RG_BLOCKS | RG_FOOT;
+}
+static void chaos_preset_turn(int32_t d) /* PRESETS on the page: CHAOS the styles; CHAOS+ PRINT */
+{
+    uint32_t now = plat_ms();
+    if (!ui.chpg) {
+        uint32_t n = set2.ch[5] && set2.ch[5] <= CH_STYLES ? set2.ch[5] - 1u : (d > 0 ? CH_STYLES - 1u : 0u);
+        chaos_style((n + (d > 0 ? 1u : CH_STYLES - 1u)) % CH_STYLES);
+        return;
+    }
+    ch_prn = (uint8_t)(d < 0 || now - ch_prt >= 2000u ? 0u : ch_prn);
+    ch_prt = now;
+    if (d > 0 && ++ch_prn >= 5u) {
+        ch_prn = 0u;
+        chaos_print();
+    } else
+        app_say("PRINT", d > 0 ? "TURN 5X >" : "");
+    ui.redraw |= RG_BLOCKS;
 }
 /* the four as cards, then the break's slices with what the Slice Map heard in each (K kick, S snare, H hat, P perc) */
 static void draw_chaos(void)
@@ -948,10 +1044,12 @@ static void draw_chaos(void)
     cv_begin(240, 52, C_BLACK);
     for (i = 0; i < 4u; i++) {
         int32_t x = 2 + (int32_t)i * 60;
+        int lit = ui.chpg ? set2.ch[i] != 0u : i == 3u ? on : kx2.chaos[i] != 0u;
         cv_rect(x, 0, 56, 50, C_BLOCK);
-        cv_text(x + 4, 3, &FONT_XS, N[i], C_GRAY);
+        cv_text(x + 4, 3, &FONT_XS, ui.chpg ? CH2_NAME[i] : N[i], C_GRAY);
         chaos_value((int)i, t);
-        cv_text(x + 4, 32, &FONT_T, t, i == 3 ? (on ? C_WHITE : C_DIM) : kx2.chaos[i] ? C_HI : C_DIM);
+        cv_text(x + 4, 32, text_w(&FONT_T, t) > 50 ? &FONT_XS : &FONT_T, t,
+                !ui.chpg && i == 3u ? (on ? C_WHITE : C_DIM) : lit ? C_HI : C_DIM);
     }
     cv_blit(0, 88);
     cv_begin(240, 52, C_BLACK);
@@ -967,9 +1065,23 @@ static void draw_chaos(void)
         if (l[0] && x1 - x0 >= 6)
             cv_text(x0 + (x1 - x0 - text_w(&FONT_XS, l)) / 2, 4, &FONT_XS, l, c);
     }
-    cv_text(6, 24, &FONT_XS, on ? "SCRAMBLED BY ROLE, SAME EVERY LOOP" : chaos_off ? "OFF BY THE CHS KEY: A KNOB, ON" :
-            "K1: EACH HIT SWAPPED FOR ITS ROLE", on ? C_AMB : C_DIM);
-    cv_text(6, 36, &FONT_XS, "K4 SEED: ANOTHER VARIATION", C_DIM);
+    if (ui.chpg) {
+        t[0] = 0;
+        if (ch_prn) {
+            int_text(5 - (int32_t)ch_prn, t);
+            text_cat(t, " MORE >: PRINT");
+        }
+        cv_text(6, 24, &FONT_XS, chaos_off ? "OFF BY THE CHS KEY: A KNOB, ON" : "WHO, WHERE, HOW IT CHANGES",
+                chaos_off ? C_DIM : C_AMB);
+        cv_text(6, 36, &FONT_XS, ch_prn ? t : "PRESETS 5X >: PRINT INTO THE PATTERN", ch_prn ? C_HI : C_DIM);
+    } else {
+        t[0] = 0;
+        text_cat(t, "PRESETS: ");
+        text_cat(t, set2.ch[5] && set2.ch[5] <= CH_STYLES ? CH_STYLE_NAME[set2.ch[5] - 1u] : "A STYLE");
+        cv_text(6, 24, &FONT_XS, on ? "SCRAMBLED BY ROLE, SAME EVERY LOOP" : chaos_off ? "OFF BY THE CHS KEY: A KNOB, ON" :
+                "K1: EACH HIT SWAPPED FOR ITS ROLE", on ? C_AMB : C_DIM);
+        cv_text(6, 36, &FONT_XS, t, C_DIM);
+    }
     cv_blit(0, 140);
 }
 static void draw_hset(void)

@@ -1,0 +1,102 @@
+# LOAF BREAKER (0.9.95, FLEXOR: "ok pour les presets de chaos mais pas de mention mathcore ... ok pour la page CHAOS +
+# ... ok pour le comportement de la touche noire quand elle est maintenue"): HOME › CHAOS's PRESETS the styles; K2 MATH
+# on past 13 to SHIFT 3 5 7; HOME again CHAOS+ (K1 EVOLVE, K2 TARGET, K3 WHERE, K4 COLOR; PRESETS five detents right:
+# PRINT, the chaos written into the pattern's break steps, CHAOS off); the CHS key held: K1 LATCH (OFF: CHAOS while
+# held), K2 SEED, over SEL + K1-K4. SAVE keeps CHAOS+ through a restart (set2).
+#   app/build/host/loaf-breaker_host tests/scenarios/chaosplus.txt app/build/scenarios
+wait 4200
+tap HOME
+wait 150
+tap HOME
+wait 150
+tap HOME
+wait 150
+expect page 13
+expect chpg 0
+turn PRESET 1 10
+wait 200
+expect chsty 1
+expect chaos 24
+expect chtg 1
+turn PRESET 1 10
+wait 200
+expect chsty 2
+expect cmath 5
+expect chfl 2
+shot chaos_style.png
+turn K2 -1 60
+wait 100
+expect cmath 3
+expect chfl 2
+turn K2 -1 60
+wait 100
+expect cmath 13
+expect chfl 0
+# CHAOS+
+tap HOME
+wait 200
+expect page 13
+expect chpg 1
+turn K1 2 60
+wait 100
+expect chev 2
+turn K2 1 60
+turn K3 2 60
+turn K4 3 60
+wait 200
+expect chtg 1
+expect chwh 2
+expect chco 3
+shot chaosplus.png
+# PRINT: playing, five detents right
+tap PLAY
+wait 1500
+expect pslices 0
+expect chpg 1
+turn PRESET 4 60
+wait 100
+expect pslices 0
+turn PRESET 1 60
+wait 300
+expect pslices >0
+expect chsw 0
+# the CHS key (FLEXOR LAYOUT's key 10): held, K1 LATCH OFF, K2 SEED; SEL pressed while it is held: its knobs still
+key b9 down
+wait 100
+expect chsw 1
+press SEL
+wait 100
+turn K1 -1 60
+turn K2 3 60
+wait 100
+release SEL
+key b9 up
+wait 200
+expect chfl 1
+expect cseed 14
+expect selk1_fn 5
+expect chsw 0   # (LATCH OFF now: let go, CHAOS off)
+# LATCH OFF: CHAOS while held
+key b9 down
+wait 300
+expect chsw 1
+key b9 up
+wait 300
+expect chsw 0
+key b9 down
+wait 100
+expect chsw 1
+key b9 up
+wait 100
+expect chsw 0
+# SAVE, a restart: CHAOS+ kept (set2)
+tap PLAY
+wait 300
+tap SAVE
+wait 800
+reboot
+wait 4200
+expect chev 2
+expect chco 3
+expect chsty 2
+expect chfl 1

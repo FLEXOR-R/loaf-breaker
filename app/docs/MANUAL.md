@@ -286,13 +286,31 @@ does. When a break loads, the FM-1 hears what each slice is (CHOPPAH's Slice Map
 | Knob | Does |
 | --- | --- |
 | K1 CHAOS | OFF … 100: a hit is swapped for another of **its own role** (a kick for a kick, a snare for a snare), up to 8 in 10; from 50 some are played backwards too |
-| K2 MATH | OFF · 3 · 5 · 7 · 11 · 13: each bar's first N 16ths go round and round against the bar (5 against 16: a math loop) |
-| K3 ROLLS | OFF … 100: snares rolled in three, hats in two |
+| K2 MATH | OFF · 3 · 5 · 7 · 11 · 13: each bar's first N 16ths go round and round against the bar (5 against 16: an odd-meter loop) · then SHIFT 3 · 5 · 7: the N 16ths go round on across the bars instead of starting again with each bar, so the loop slides against the beat |
+| K3 ROLLS | OFF … 100: snares rolled in three, hats in two; past 50, rolls in 4 and 6 too, their pitch climbing or falling |
 | K4 SEED | 0 … 99: which variation. The same seed gives **the same chaos every loop**, so it grooves; turn it for another |
 
+**PRESETS** on this page picks a **style**, every setting of CHAOS and CHAOS+ at once: LIGHT (a few hits swapped,
+never the kick), ODD METER (five against four, sliding), BREAKCORE (hard, backwards, big rolls, pitched, a new
+variation every two loops), STUTTER (the snares rolled), GLITCH (seven against the bar, pitched and cut), FILLS (the
+loop's second bar only, a new one every loop). Then tune it with the knobs.
+
+**HOME again: CHAOS+**, who, where and how:
+
+| Knob | Does |
+| --- | --- |
+| K1 EVOLVE | OFF, or a new variation every 1, 2, 4 or 8 loops (it keeps moving, and comes back the same each time you play) |
+| K2 TARGET | ALL, NO KICK (the kicks stay where they are: the groove holds even at 100), SNARES, HATS |
+| K3 WHERE | ALL, BAR END (each bar's last beat), BAR 2 (the loop's second bar), 1 LOOP/2 (every other loop): a clean break that goes wild at the end of the phrase |
+| K4 COLOR | OFF, PITCH (some hits -12, -7, +7 or +12 semitones), CUT (some hits cut short, a stab), BOTH; how many follows K1 CHAOS |
+
+**PRESETS on CHAOS+: PRINT.** Five detents right (within 2 seconds) write the chaos of this loop into the pattern's
+break steps: each step's slice, reverse, ratchet (up to 4) and pitch; CUT is not kept. CHAOS turns off so the pattern
+plays as written; edit it on SEQ. **SEL + SAVE** takes it back, as for the other wipes.
+
 It works on whatever the break plays: its loop, the GENERATOR's slices, the pattern's. The kick and the drums are
-not touched. SAVE keeps the four; RESET ALL turns them off. A black key set to **CHS** turns CHAOS off and on in one
-press, its settings kept (§4). While the TUTORIAL runs, HOME passes over this tab.
+not touched. SAVE keeps CHAOS and CHAOS+; RESET ALL turns them off. A black key set to **CHS** turns CHAOS off and on
+(§4). While the TUTORIAL runs, HOME passes over these tabs.
 
 ### Backup and restore
 
@@ -531,7 +549,7 @@ Which key does what is a **layout** (ARP › BLK, §5), keys 1–11 left to righ
 | DRV | A switch: a press turns the kick's DRIVE off, the next on again; its amount is never touched. Lit while it is ON; the kick's own (KICK 1–20), as DST; a built-in kick picked with a DRIVE puts it on again | | | | |
 | SDR | SUB DRIVE: a press puts the kick's SUB layer through its DRIVE (EDIT's SUB FX set to DRIVE; its mix up from nothing, the SUB FX switch on again so it is heard), the next press turns that effect OFF. Lit while on. SUB stays the SUB FX switch beside it (whichever effect, untouched) | | | | |
 | KBR | KILL BREAK: the break out while held (the kick and the drums play on), back when let go | MODE: FADE (out over TIME), CUT (out at once), BAR END (out at the bar's end, its last 8th thrown into the reverb: the FX chain's REVERB, or a plate of its own if there is none; its tail rings on), END FADE (the break plays on to the end of its loop, its two bars, then fades out over TIME) | TIME: FADE's and END FADE's length, 1/16, 1/8, 1/4, 1/2, 1 BAR, 2 BARS. On BAR END, **ECHO**: its last 8th also thrown into an echo that repeats and fades, OFF, 1/8, 3/16 (to start), 1/4, 3/8 apart (the DUB delay, or the FX chain's DELAY if there is one) | REVERB: BAR END's, how much of its last 8th goes in (0–100 %) | LATCH: ON, a press out, the next back |
-| CHS | CHAOS on / off: a press turns HOME › CHAOS off (its settings kept), the next on again; on with nothing set, CHAOS 40 to hear it. Lit while CHAOS is heard; a CHAOS knob turned on its page turns it back on | | | | |
+| CHS | CHAOS on / off: a press turns HOME › CHAOS off (its settings kept), the next on again; on with nothing set, CHAOS 40 to hear it. Lit while CHAOS is heard; a CHAOS knob turned on its page turns it back on | LATCH: ON, a press on and the next off; OFF, CHAOS only while you hold the key (a fill by hand) | SEED: another variation, while you hold it | | |
 | SPL | SPLIT on / off: a press turns the break playing's SPLIT (HOME › SPLIT K1) on, its B and bars as they were (B the break after it until one is picked), the next off; the break comes back at the next bar. Lit while the split is on | | | | |
 | KCK · SNR · HAT · CLP | **The drums on black keys**: a press plays the kick, the snare, the hat or the clap, on any page, stopped or playing; with **REC** on and playing it is written into that drum's lane at the nearest 16th (as MIDI notes 36, 38, 42, 39): finger-drum a pattern without leaving HOME. Lit while held. As SEL functions (SEL BLK; SEL twice locks SEL) they make a whole layer of drum keys | | | | |
 | XSB | **SUB SPLIT on / off**, to play it live: a press mutes the kick's SUB SPLIT (KICK › DIST › SUB SPLIT), its X FREQ kept, the next brings it back: an on / off, nothing else (with no X FREQ set, there is no split to hear). Each kick its own, saved. Lit while the split is heard; turning X FREQ (on its page, or a knob given XSUB FREQ) switches it back on | | | | |

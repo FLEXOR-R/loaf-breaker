@@ -761,6 +761,31 @@ static void test_chaos(void)
     for (ok = nc == na, i = 0; ok && i < nc; i++)
         ok = c[i] == a[i];
     CHECK(ok, "CHAOS off: the loop as ever");
+    /* (0.9.95, CHAOS+) TARGET NO KICK: every kick as the loop has it; WHERE BAR 2: the loop's first bar as it is;
+     * EVOLVE 1 LOOP: the second loop another chaos */
+    brk_chaos2(1u << 3);
+    chaos_run(100u | 1u << 24, d, &nd);
+    for (ok = 1, diff = 0, i = 0; i < nd && i < na; i++) {
+        if (a[i] >= 0 && brk.roles[a[i]] >> BRK_ROLE_KICK & 1 && d[i] != a[i])
+            ok = 0;
+        diff += d[i] != a[i];
+    }
+    CHECK(ok && diff > 2, "TARGET NO KICK: the kicks as they are, %d others swapped", diff);
+    brk_chaos2(2u << 5);
+    chaos_run(100u | 1u << 24, d, &nd);
+    for (ok = 1, diff = 0, i = 0; i < nd && i < na; i++) {
+        if (i % (int32_t)(brk.bars * 16u) < (int32_t)(brk.bars * 8u) && d[i] != a[i])
+            ok = 0;                      /* (BAR 2: the loop's second half) */
+        diff += d[i] != a[i];
+    }
+    CHECK(ok && diff > 2, "WHERE BAR 2: the loop's first half as it is, %d of the second's changed", diff);
+    brk_chaos2(1u);
+    chaos_run(100u | 1u << 24, d, &nd);
+    for (diff = 0, i = 0; i + 32 < nd; i++)
+        diff += d[i] != d[i + 32];
+    CHECK(diff > 2, "EVOLVE 1 LOOP: the next loop another chaos (%d steps differ)", diff);
+    brk_chaos2(0u);
+    brk_chaos(0u);
 }
 
 static void test_split(void)

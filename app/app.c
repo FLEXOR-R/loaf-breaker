@@ -612,6 +612,8 @@ static void chaos_push(void)             /* (HOME › CHAOS to the engine: brk.h
     else
         brk_chaos((uint32_t)kx2.chaos[0] | (uint32_t)kx2.chaos[1] << 8 | (uint32_t)kx2.chaos[2] << 16 |
                   (uint32_t)kx2.chaos[3] << 24);
+    brk_chaos2((uint32_t)(set2.ch[0] & 7u) | (uint32_t)(set2.ch[1] & 3u) << 3 | (uint32_t)(set2.ch[2] & 3u) << 5 |
+               (uint32_t)(set2.ch[3] & 3u) << 7 | (uint32_t)(set2.ch[4] >> 1 & 1u) << 9);   /* (0.9.95: CHAOS+) */
 }
 #define SP_TAG 0x5Bu                     /* (0.9.71's release: one split for all) */
 #define SP_TAG2 0x5Cu                    /* (each break its own: kx2.sp) */

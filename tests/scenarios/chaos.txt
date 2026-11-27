@@ -38,7 +38,7 @@ shot chaos_page.png
 # MATH all the way, then off again
 turn K2 9 10
 wait 200
-expect cmath 13
+expect cmath 7   # (0.9.95: past 13, SHIFT 3 5 7)
 turn K2 -9 10
 wait 200
 expect cmath 0
@@ -62,6 +62,11 @@ expect rkick >0
 expect rsnare >0
 # back on CHAOS after the restart; HOME: PERFORM, then GENERATOR, SPLIT, CHAOS
 expect page 13
+expect chpg 0
+tap HOME
+wait 150
+expect page 13
+expect chpg 1   # (0.9.95: CHAOS+ after CHAOS)
 tap HOME
 wait 150
 expect page 0
@@ -72,6 +77,9 @@ wait 150
 tap HOME
 wait 150
 expect page 13
+expect chpg 0
+tap HOME
+wait 150
 tap HOME
 wait 150
 expect page 0
