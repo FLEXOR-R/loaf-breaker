@@ -45,6 +45,7 @@ typedef struct {
                                           * against the SUB's (0: not split yet) */
     float pq[3][2], xl[4][2], xe;        /* (0.9.82) the PRE EQ's bells, the SUB SPLIT's two low-passes and two
                                           * high-passes, its fall */
+    float xw;                            /* (0.9.92) the SUB SPLIT's weight now (-1: taken at the first sample) */
 } kv_t;
 
 /* the block's settings, mapped */
@@ -93,10 +94,12 @@ typedef struct {
     float pq_a1[3], pq_a2[3], pq_a3[3], pq_m1[3];   /* each bell's coefficients (Simper's SVF) */
     float xa1, xa2, xa3, xg, xn, xdec;   /* the split's low-pass (LR4: two Butterworths), the lows' drive and their
                                           * make-up, their fall a sample (1: as the kick) */
+    float xw;                            /* (0.9.92) the split's weight: 1 on, down to 0 as X FREQ goes OFF (a fade) */
 } kc_t;
 static volatile kick_x2_t p_x2;          /* (0.9.45) kick_set_x2 */
 BRK_COLD void kick_set_x2(const kick_x2_t *x) { *(kick_x2_t *)&p_x2 = *x; }
 static volatile kick_px_t p_px;          /* (0.9.82) kick_set_px */
+static float xk_s[6];                    /* (0.9.92) the SUB SPLIT's last settings (xw_fix) */
 BRK_COLD void kick_set_px(const kick_px_t *x) { *(kick_px_t *)&p_px = *x; }
 static volatile float p_glide, p_rbl, p_rbs, p_rbk, p_spb = 15562.0f;   /* (TEST) kick_set_bass, kick_set_beat */
 void kick_set_bass(float glide_ms, float rb_level, float rb_start, float rb_curve)
@@ -408,11 +411,11 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c, const volatile int8_t *sy
         static const float F0[3] = {80.0f, 600.0f, 3000.0f};
         static const int8_t FLO[3] = {-24, -24, -18}, FHI[3] = {24, 30, 18};
         uint32_t b, n = 0u;
-        for (b = 0; b < 3u; b++) {
+        for (b = 0; b < 3u; b++) {       /* (0.9.92, FLEXOR: "plus doux": each band its own bell, even at 0 dB (none
+                                          * then, bit for bit): a band coming in or going no longer moves the others' */
             int32_t gd = x.eq_g[b], fs = x.eq_f[b], qs;
             float A, g, k, q;
-            if (!gd)
-                continue;
+            n |= gd != 0;
             gd = gd < -KICK_PX_DB ? -KICK_PX_DB : gd > KICK_PX_DB ? KICK_PX_DB : gd;
             fs = fs < FLO[b] ? FLO[b] : fs > FHI[b] ? FHI[b] : fs;
             qs = b == 1u ? x.eq_q : x.eq_qe[b >> 1];   /* (0.9.87: LOW's and HIGH's Q too, 0.8 at 0; its own variable
@@ -422,14 +425,14 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c, const volatile int8_t *sy
             A = brk_exp2f_c((float)gd * 0.0830482f);   /* (10^(dB / 40)) */
             g = brk_tan_pi_c(F0[b] * brk_exp2f_c((float)fs * (1.0f / 12.0f)) / (float)BRK_SR);
             k = 1.0f / (q * A);
-            c->pq_a1[n] = 1.0f / (1.0f + g * (g + k));
-            c->pq_a2[n] = g * c->pq_a1[n];
-            c->pq_a3[n] = g * c->pq_a2[n];
-            c->pq_m1[n] = k * (A * A - 1.0f);
-            n++;
+            c->pq_a1[b] = 1.0f / (1.0f + g * (g + k));
+            c->pq_a2[b] = g * c->pq_a1[b];
+            c->pq_a3[b] = g * c->pq_a2[b];
+            c->pq_m1[b] = k * (A * A - 1.0f);
         }
-        c->pq_n = (uint8_t)n;
+        c->pq_n = (uint8_t)(n ? 3u : 0u);
         c->xo = x.xo && x.xo <= KICK_XO_N;
+        c->xw = c->xo ? 1.0f : 0.0f;     /* (0.9.92: where each voice's weight goes, xw_fix) */
         if (c->xo) {
             float g = brk_tan_pi_c((40.0f + 5.0f * (float)(x.xo - 1u)) / (float)BRK_SR), k = 1.41421356f;
             float dr = 1.0f + 0.07f * (float)(x.sdrv > 100u ? 100u : x.sdrv);
@@ -472,6 +475,7 @@ static void kv_hit(kv_t *v)
     for (i = 0; i < 4u; i++)
         v->xl[i][0] = v->xl[i][1] = 0.0f;
     v->xe = 1.0f;
+    v->xw = -1.0f;
     v->sp_env = v->sp_g = 0.0f;          /* (0.9.71: SPLIT from this hit) */
 }
 
@@ -635,8 +639,10 @@ static inline float kv_tick(kv_t *v, const kc_t *c)
             else
                 hi = z - 1.41421356f * v1 - v2;
         }
-        xlow = lo;
-        y = hi;
+        v->xw = v->xw < 0.0f ? c->xw : v->xw + (c->xw - v->xw) * 0.0015f;   /* (0.9.92: ~15 ms a sample at a time) */
+        v->xw = v->xw > 0.9995f ? 1.0f : v->xw;
+        xlow = lo * v->xw;               /* (going OFF: the lows back into the drive) */
+        y = hi + lo * (1.0f - v->xw);
     }
     /* the sum: a drive into a clip, soft and then (INTENSITY over half) hard: the distorted kick */
     d = y * c->g;
@@ -847,6 +853,18 @@ static inline float kk_tick(const kc_t *c, const kc_t *c2)
         kv2.last = kv2.declick = 0.0f;
     return (p_solo == 2u ? 0.0f : a * (1.0f - x)) + (p_solo == 1u ? 0.0f : b * x);
 }
+/* (0.9.92, FLEXOR: "du sub split à 40 % jusqu'à off, que ce soit pas brutal"): X FREQ turned OFF (or the XSB key),
+ * the split goes on at its last frequency while its lows go back into the drive, sample by sample over ~15 ms (each
+ * voice's xw, kv_tick); on again, the same the other way. The render's alone: the pictures draw it as set */
+static void xw_fix(kc_t *c)
+{
+    if (c->xo) {
+        xk_s[0] = c->xa1, xk_s[1] = c->xa2, xk_s[2] = c->xa3, xk_s[3] = c->xg, xk_s[4] = c->xn, xk_s[5] = c->xdec;
+    } else if (kv.xw > 0.002f || kv2.xw > 0.002f) {
+        c->xo = 1u;                      /* (c->xw stays 0: where the voices go) */
+        c->xa1 = xk_s[0], c->xa2 = xk_s[1], c->xa3 = xk_s[2], c->xg = xk_s[3], c->xn = xk_s[4], c->xdec = xk_s[5];
+    }
+}
 void kick_render(float *out, uint32_t n, const uint16_t *at, uint32_t nat)
 {
     kick_t k = *(const kick_t *)&p_k;
@@ -871,10 +889,12 @@ void kick_render(float *out, uint32_t n, const uint16_t *at, uint32_t nat)
         return;
     }
     kc_make(&k, &c, p_syn, &lab);
+    xw_fix(&c);
     if (st_on) {                         /* (the attack's settings: no rumble, reverse bass or clean sub of its own) */
         kick_t ak = *(const kick_t *)&p_ak;
         kick_lab_t al = *(const kick_lab_t *)&p_alab;
         kc_make(&ak, &c2, p_asyn, &al);
+        xw_fix(&c2);
         c2.rum = c2.rb_lvl = c2.csub = 0.0f;
         c2.tok_lvl = 0.0f;               /* (0.9.45: TOK and the gate the tail kick's alone) */
         c2.g_len = 0u;

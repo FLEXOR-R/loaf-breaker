@@ -41,6 +41,15 @@ static volatile uint32_t p_kecho;        /* LOAF BREAKER (0.9.60): KILL BREAK's 
                                           * 1/4 3/8), the delay after the chain set for it while the DUB pad isn't held */
 void brk_fx_kill_echo(uint32_t t) { p_kecho = t; }
 static float djk_s;                      /* its smoothed position */
+static float wet_s;                      /* (0.9.92) the chain's FX amount, smoothed */
+static float ps_s[BRK_FX_SLOTS][3];      /* (0.9.92) each slot's knobs, smoothed */
+static uint8_t ps_t[BRK_FX_SLOTS];       /* (the effect they were smoothed for) */
+static uint8_t fx_snap;                  /* (brk_fx_init: the next block snaps them) */
+static float glide(float s, float t, float a) /* (0.9.92) a step toward t, there once within a thousandth */
+{
+    s += (t - s) * a;
+    return s - t < 1e-3f && t - s < 1e-3f ? t : s;
+}
 const char *const BRK_FXT_NAME[BRK_NFXT] = {"EMPTY", "FILTER", "CRUNCH", "DRIVE", "PUNCH", "FLANGER", "RING MOD",
                                             "TREMOLO", "REVERB", "DELAY", "EQ", "TAPE", "MB COMP", "CLIP"};
 const char *const BRK_DLY_DIV_NAME[BRK_DLY_DIVS] = {"1/16", "1/8", "3/16", "1/4", "3/8", "1/2", "1/8T", "1/4T"};
@@ -53,6 +62,7 @@ typedef struct {
     uint8_t type;                        /* the effect this state is for */
     svf_t f[2];                          /* FILTER */
     float hz_s;                          /* FILTER: the cutoff, smoothed */
+    float mix_s;                         /* (0.9.92) its MIX, smoothed (from 0 when the effect is put in: it fades in) */
     float ph, ph2;                       /* RING, FLANGER, TREMOLO: phases */
     float hold[2], hph;                  /* CRUNCH: held samples, the rate's phase */
     float lp[2];                         /* DRIVE: its tone */
@@ -489,7 +499,8 @@ BRK_COLD void brk_fx_drums_dj(float *x, float *y, uint32_t n, float pos)
     svf_c c;
     uint32_t i, t = p_dft;
     int hp;
-    djk_s += (d - djk_s) * 0.3f;
+    djk_s += (d - djk_s) * 0.07f;      /* (0.9.92, FLEXOR: "plus doux ... adapté au live": ~80 ms, a detent a glide;
+                                          * 0.3 (~17 ms) before: each step heard) */
     a = brk_absf(djk_s);
     if (a < 0.01f) {
         dj_k1 = dj_p1 = 0.0f;
@@ -529,6 +540,7 @@ BRK_COLD void brk_fx_kick_dj(float *x, uint32_t n, float pos) { brk_fx_drums_dj(
 
 BRK_COLD void brk_fx_init(void)
 {
+    fx_snap = 1u;                        /* (0.9.92: the first block takes the knobs as set, no glide) */
     rv_clear();
     brk_fx_t d;
     brk_mbc_t m;
@@ -742,10 +754,10 @@ BRK_COLD static void slot_block(uint32_t k, const float *x)
     }
     c->type = (uint8_t)t;
     c->on = (uint8_t)(f->on && t != FXT_EMPTY);
-    c->mix = brk_clampf(f->mix, 0.0f, 1.0f);
+    c->mix = s->mix_s = glide(s->mix_s, brk_clampf(f->mix, 0.0f, 1.0f), 0.25f);   /* (0.9.92: no step, ~20 ms) */
     switch (t) {
     case FXT_FILTER:                     /* the cutoff glides (no zipper noise, PRD A-41) */
-        s->hz_s += (30.0f * c_exp2(p0 * 9.06f) - s->hz_s) * 0.3f;
+        s->hz_s += (30.0f * c_exp2(p0 * 9.06f) - s->hz_s) * 0.3f;   /* (its knob smoothed before, ps_s; the MOD fast) */
         c->c = svf_coef(brk_clampf(s->hz_s, 20.0f, 18000.0f), p1 * 0.95f);
         c->mode = (uint8_t)(p2 < 0.33f ? 0u : p2 < 0.67f ? 1u : 2u);
         /* extras: q[0] the drive (1: none), q[1] its make-up (a 0.7 peak stays 0.7), qi 24 dB; e[0] the right's */
@@ -1288,10 +1300,21 @@ void brk_fx_process(const float *in, const float *thru, const float *echo, const
     dl_c_t dub_c;
     int dj_hp, throw = (pads >> PAD_FILTER) & 1u, dub_on = (pads >> PAD_DUB) & 1u;
     fx = *(const brk_fx_t *)&p_fx;
-    wet = brk_clampf(fx.wet, 0.0f, 1.0f);
+    wet = wet_s = glide(wet_s, brk_clampf(fx.wet, 0.0f, 1.0f), fx_snap ? 1.0f : 0.15f);   /* (0.9.92: the FX amount glides, ~35 ms) */
+    for (k = 0; k < BRK_FX_SLOTS; k++) { /* (0.9.92, FLEXOR: "plus doux ... adapté au live") each slot's knobs glide
+                                          * (~35 ms), before its MOD (which stays as fast); a new effect takes them as set */
+        brk_fxslot_t *f = &fx.slot[k];
+        for (i = 0; i < 3u; i++) {
+            ps_s[k][i] = ps_t[k] != f->type || fx_snap ? f->p[i] : glide(ps_s[k][i], f->p[i], 0.15f);
+            f->p[i] = ps_s[k][i];
+        }
+        ps_t[k] = f->type;
+    }
+    fx_snap = 0u;
     /* the FILTER pad throws the DJ filter to its target at its speed, with its resonance */
     dj = throw ? brk_clampf(fx.flt_target, -1.0f, 1.0f) : brk_clampf(fx.dj, -1.0f, 1.0f);
-    dj_s += (dj - dj_s) * (throw ? 0.01f + 0.3f * brk_clampf(fx.flt_speed, 0.0f, 1.0f) : 0.3f);
+    dj_s += (dj - dj_s) * (throw ? 0.01f + 0.3f * brk_clampf(fx.flt_speed, 0.0f, 1.0f) : 0.07f);   /* (0.9.92: HOME's
+                                          * filter ~80 ms, a detent a glide; the FILTER pad's throw as ever) */
     dj_hp = dj_s > 0.0f;
     /* -1 .. 0: low-pass 18 kHz down to 80 Hz; 0 .. 1: high-pass 20 Hz up to 6 kHz (exponential sweeps) */
     dj_hz = dj_hp ? 20.0f * brk_exp2f(dj_s * 8.2f) : 18000.0f * brk_exp2f(dj_s * 7.8f);

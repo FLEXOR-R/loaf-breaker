@@ -200,6 +200,15 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - SEQ's rows to the foot (27 Nov 2026, FLEXOR: "les 64 steps ne prennent pas toute la place il y a un écart en bas"):
   seq.c seq_picture spreads the height's remainder over the drum rows (each row's y and pitch from (SQ_H - y0) / nd,
   not one integer pitch); scenario seqfill (the break's two rows, every drum 64).
+- Smoother for live (27 Nov 2026, 0.9.92, FLEXOR: "le changement se fait trop brut ... des settings adaptés au live ...
+  plus doux"; for every player, no option for now): brk_fx.c HOME's DJ filter (`dj_s`) and the drums' (`djk_s`) 0.07 a
+  block (~80 ms, 0.3 before); each main-chain slot's p[0..2] glide (`ps_s`, 0.15 a block, before its MOD so a LFO stays
+  fast; a new effect takes them as set), its MIX (`mix_s`, 0.25) and the FX amount (`wet_s`, 0.15) through `glide()`
+  (lands exactly once within 1e-3: 0 stays 0); `fx_snap` (brk_fx_init) takes them as set at the start. kick.c: the PRE EQ
+  runs its bells by band (a band at 0 dB is no bell, bit for bit; one switched no longer shifts the others' state), the
+  SUB SPLIT going OFF (X FREQ or XSB) fades its lows back into the drive per sample over ~15 ms (`kv_t.xw`, `xw_fix`
+  keeps its last settings, `xk_s`). Engine tests: HOME's filter glides; X FREQ OFF mid-kick no step (1.04 a sample
+  without the fade). The kick's other settings still change at the next block (5.8 ms).
 - Black keys over the pictures (26 Nov 2026, 0.9.86, FLEXOR: "utiliser des touches noires par dessus la waveform, les eq,
   ou le xsub fait un flickering bizarre"): a held key's picture (ui.shown != -1) holds the strip; main.c drops RG_BLOCKS
   again right before drawing (kv_poll and the kick's live scope set it after the frame's first clear: the page drew over

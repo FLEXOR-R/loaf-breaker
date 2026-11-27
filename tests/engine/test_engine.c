@@ -360,6 +360,20 @@ static void test_fx(void)
         if (fabsf(bl[i] - ref[i]) > 1e-4f)
             same = 0;
     CHECK(same, "FX 0: the chain on but all dry");
+    {                                    /* (0.9.92, FLEXOR: "plus doux ... adapté au live") HOME's filter turned all the
+                                          * way at once: it glides there (a few % after a block, there after 0.4 s) */
+        float d1, d2;
+        brk_fx_defaults(&p);
+        fx_run(&p, BLOCK);
+        p.dj = -1.0f;
+        brk_fx_set(&p);
+        brk_fx_process(buf, 0, 0, 0, 0, bl, br, BLOCK, 0u);
+        d1 = brk_fx_dj_now();
+        for (i = 0; i < BRK_SR * 2u / 5u; i += BLOCK)
+            brk_fx_process(buf, 0, 0, 0, 0, bl, br, BLOCK, 0u);
+        d2 = brk_fx_dj_now();
+        CHECK(d1 > -0.12f && d2 < -0.99f, "HOME's filter glides: %.3f after a block, %.3f after 0.4 s", d1, d2);
+    }
 }
 
 /* an IMA ADPCM encoder for the test only (tools/prep_breaks.py has the real one) */
@@ -1430,6 +1444,7 @@ static float tone_peak_a(float hz, float amp, int type, float p0, float p1, floa
     float pk = 0.0f;
     for (i = 0; i < n; i++)
         buf[i] = amp * sinf(6.2831853f * hz * (float)i / (float)BRK_SR);
+    brk_fx_init();                       /* (0.9.92: a fresh chain, its knobs taken as set: no glide from the last) */
     brk_fx_defaults(&p);
     brk_fx_slot_defaults(&p.slot[0], type);
     p.slot[0].on = 1u;
@@ -1735,6 +1750,7 @@ static void fx1(int type, float p0, float p1, float p2, float mix, const brk_fxx
     brk_fx_t p;
     brk_fxx_t d;
     uint32_t i;
+    brk_fx_init();                       /* (0.9.92: a fresh chain, its knobs taken as set: no glide from the last) */
     brk_fx_defaults(&p);
     brk_fx_slot_defaults(&p.slot[0], type);
     p.slot[0].on = 1u;
@@ -2248,6 +2264,31 @@ static void test_kick_lab(void)
         kick_run(&a, BRK_SR / 2, 0u);
         d1 = span_peak(BRK_SR / 4, BRK_SR / 2);
         CHECK(d1 < d0 * 0.5f, "SUB SPLIT: its DECAY 30 ms, the tail gone (%.3f, %.3f open)", d1, d0);
+        {                                /* (0.9.92, FLEXOR: "du sub split à 40 % jusqu'à off, que ce soit pas brutal") X FREQ
+                                          * turned OFF in the middle of a kick, its lows at 200 %: they go back over a
+                                          * fade, no step (the biggest sample-to-sample move after it as before it) */
+            uint32_t at0 = 0u, i0 = (BRK_SR / 25u / BLOCK + 1u) * BLOCK, j0;   /* (the switch: a block's start, ~46 ms) */
+            float mb = 0.0f, ma = 0.0f;
+            px.sdec = 0u;
+            px.sg = 50;
+            kick_set_px(&px);
+            kick_set(&a);
+            kick_init();
+            for (j0 = 0; j0 < BRK_SR / 5u; j0 += BLOCK) {
+                uint16_t at = (uint16_t)at0;
+                if (j0 == i0) {
+                    px.xo = 0u;
+                    kick_set_px(&px);
+                }
+                kick_render(kick_buf + j0, BLOCK, &at, j0 == 0u ? 1u : 0u);
+            }
+            for (j0 = i0 - 2u * BLOCK; j0 + 1u < i0; j0++)
+                mb = fabsf(kick_buf[j0 + 1u] - kick_buf[j0]) > mb ? fabsf(kick_buf[j0 + 1u] - kick_buf[j0]) : mb;
+            for (j0 = i0 - 1u; j0 < i0 + 2u * BLOCK; j0++)
+                ma = fabsf(kick_buf[j0 + 1u] - kick_buf[j0]) > ma ? fabsf(kick_buf[j0 + 1u] - kick_buf[j0]) : ma;
+            CHECK(ma < mb * 2.0f, "SUB SPLIT to OFF mid-kick: no step (%.4f a sample at most after, %.4f before)", ma, mb);
+            px.sg = 0;
+        }
         memset(&px, 0, sizeof px);
         kick_set_px(&px);
     }
