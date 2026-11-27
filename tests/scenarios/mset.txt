@@ -80,7 +80,7 @@ expect mused 5
 turn SELECT 2 10
 wait 150
 expect opage 1
-turn K3 -2 60   # (R8 to MOT, the last but PEQ, 0.9.93)
+turn K3 -6 60   # (R8 to MOT, the last but PEQ, 0.9.93; 0.9.96 KDR KSN KHH KCP last)
 wait 200
 expect bk_fn 28
 tap HOME

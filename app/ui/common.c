@@ -386,12 +386,13 @@ enum { PG_HOME, PG_GEN, PG_FX, PG_GLOBAL, PG_KICK, PG_MIX, PG_SEQ, PG_PERC, PG_T
 /* LOAF BREAKER (11 Nov 2026): the black keys' functions' names (app.c BKF_*), as the strip shows them */
 static const char *const BKF_NAME[BKF_N] = {"R8", "R16", "R32", "REV", "FRZ", "HLF", "VNL", "GAT", "RND", "FLT", "DUB",
                                             "ARP", "KIL", "DST", "SUB", "DRV", "X2", "X4", "TRI", "SDR", "KBR", "CHS", "SPL",
-                                            "KCK", "SNR", "HAT", "CLP", "XSB", "MOT", "PEQ"};
+                                            "KCK", "SNR", "HAT", "CLP", "XSB", "MOT", "PEQ", "KDR", "KSN", "KHH", "KCP"};
 static const char *const BKF_LONG[BKF_N] = {"ROLL 1/8", "ROLL 1/16", "ROLL 1/32", "REVERSE", "FREEZE", "HALF SPEED",
                                             "VINYL BREAK", "GATE", "RANDOM", "FILTER", "DUB", "ARP (OVERLAY)",
                                             "KICKS OFF", "DISTO", "SUB FX", "DRIVE", "KICKS X2",
                                             "KICKS X4", "KICK TRIPLETS", "SUB DRIVE", "KILL BREAK", "CHAOS", "SPLIT",
-                                            "KICK", "SNARE", "HI-HAT", "CLAP", "SUB SPLIT", "MOTION", "PRE EQ"};
+                                            "KICK", "SNARE", "HI-HAT", "CLAP", "SUB SPLIT", "MOTION", "PRE EQ",
+                                            "KILL DRUMS", "KILL SNARE", "KILL HI-HAT", "KILL CLAP"};
 static const char *const BKP_NAME[BKP_N] = {"CHOPPAH", "FLEXOR LAYOUT", "CUSTOM"};
 static const uint8_t WK[16] = PLAT_WHITE_KEYS, BK[11] = PLAT_BLACK_KEYS;
 /* LOAF BREAKER: what the TUTORIAL (tutor.c) watches, counted where it happens: white keys pressed, black keys pressed
@@ -426,6 +427,9 @@ static uint32_t bkf_mask(uint32_t f)
     return m;
 }
 #define PAD_BIT(i) bkf_mask((uint32_t)(i))
+/* LOAF BREAKER (0.9.96): the KSN KHH KCP keys' drums in drum_mute (app.c), KDR all three */
+static const uint8_t KDR_BIT[3] = {1u << PV_SNARE, 1u << PV_HAT, 1u << PV_CLAP};
+#define KDR_ALL ((uint8_t)(1u << PV_SNARE | 1u << PV_HAT | 1u << PV_CLAP))
 
 static struct {
     uint32_t keys, btn;

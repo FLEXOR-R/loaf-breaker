@@ -555,9 +555,10 @@ Which key does what is a **layout** (ARP › BLK, §5), keys 1–11 left to righ
 | XSB | **SUB SPLIT on / off**, to play it live: a press mutes the kick's SUB SPLIT (KICK › DIST › SUB SPLIT), its X FREQ kept, the next brings it back: an on / off, nothing else (with no X FREQ set, there is no split to hear). Each kick its own, saved. Lit while the split is heard; turning X FREQ (on its page, or a knob given XSUB FREQ) switches it back on | | | | |
 | MOT | **MOTION on / off**: a press stops the motions playing (ARP › MOTION), what they hold kept; the next plays them again. Lit while on | | | | |
 | PEQ | **PRE EQ on / off**, to play it live: a press switches the kick's whole PRE EQ (KICK › DIST › PRE L, PRE M, PRE H) flat, every band's DB, FREQ and Q kept, the next brings it back as it was: an on / off, nothing else. Each kick its own, saved. Lit while the PRE EQ is heard (a band set and the switch on); a band edited on PRE L / M / H switches it back on | | | | |
+| KDR · KSN · KHH · KCP | **The drums off and on**, to play them live: a press of KDR quiets the snare, the hat and the clap (the kicks play on), the next brings them back; KSN, KHH and KCP do the same for the snare, the hi-hat or the clap alone (KDR with some already off: all off). The sequencer's hits, the MIDI notes and the KCK..CLP keys alike; the pattern is never touched. Lit while off. Not saved: everything on at each start | | | | |
 
 FLEXOR LAYOUT has X2, X4, TRI and CHS on its keys, and SPL, CHS, PEQ, XSB, DRV, DST and KBR on its REC layer. SDR,
-MOT, KCK, SNR, HAT and CLP are in no preset layout: put them on a key of CUSTOM, as a SEL function or as a REC
+MOT, KCK, SNR, HAT, CLP, KDR, KSN, KHH and KCP are in no preset layout: put them on a key of CUSTOM, as a SEL function or as a REC
 function.
 
 ![ROLL held: the caught slice repeating, each copy quieter](img/pad-roll8.png "ROLL held")
@@ -649,7 +650,8 @@ or back to the left; **ARP** again goes back to HOME.
 - **K2 KEY** (or **ALGORITHM**): the key you edit; or press it (here a black key picks itself and plays nothing).
 - **K3 EFFECT**: what it does: R8, R16, R32, REV, FRZ, HLF, VNL, GAT, RND, FLT, DUB, ARP, KIL, DST, SUB, DRV, X2, X4,
   TRI, SDR (SUB DRIVE), KBR (KILL BREAK), CHS (CHAOS on / off), SPL (SPLIT on / off), KCK, SNR, HAT, CLP (a drum each),
-  XSB (SUB SPLIT on / off), MOT (MOTION on / off), PEQ (PRE EQ on / off). Turned on a preset, K3 makes a CUSTOM of it
+  XSB (SUB SPLIT on / off), MOT (MOTION on / off), PEQ (PRE EQ on / off), KDR KSN KHH KCP (the drums, the
+  snare, the hi-hat, the clap off / on). Turned on a preset, K3 makes a CUSTOM of it
   first, that key changed (keys outlined amber differ from CHOPPAH's).
 - **K4 ARP FX**, on an ARP key: its own effect (several ARP keys, each with its own, play at once).
 

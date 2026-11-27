@@ -1340,6 +1340,23 @@ static void input(void)
         app_say("PRE EQ", x->xoff & 2u ? "OFF" : "ON");
         ui.redraw |= RG_FOOT | RG_BLOCKS;
     }
+    if (kdn & PAD_BIT(BKF_KDR)) {        /* LOAF BREAKER (0.9.96, FLEXOR: "une touche noire pour kill all drum, kill snare,
+                                          * kill clap, kill hh pour pouvoir les activer ou désactiver"): KDR, a switch: the
+                                          * snare, the hat and the clap off (any on: all off), the next press all back */
+        drum_mute = drum_mute == KDR_ALL ? 0u : KDR_ALL;
+        app_say("DRUMS", drum_mute ? "OFF" : "ON");
+        ui.redraw |= RG_FOOT | RG_BLOCKS;
+    }
+    {                                    /* (0.9.96: KSN KHH KCP, a drum each, a press off, the next back) */
+        static const char *const KN[3] = {"SNARE", "HI-HAT", "CLAP"};
+        uint32_t d;
+        for (d = 0; d < 3u; d++)
+            if (kdn & PAD_BIT(BKF_KSN + d)) {
+                drum_mute ^= KDR_BIT[d];
+                app_say(KN[d], drum_mute & KDR_BIT[d] ? "OFF" : "ON");
+                ui.redraw |= RG_FOOT | RG_BLOCKS;
+            }
+    }
     if (kdn & PAD_BIT(BKF_XSB)) {        /* LOAF BREAKER (0.9.86, FLEXOR: "une touche noire assignable pour le ON/OFF xsub
                                           * freq afin de jouer en live"): XSB, a switch: the kick's SUB SPLIT muted (its X FREQ
                                           * kept) or on again */
@@ -4413,8 +4430,8 @@ int app_expect(const char *what, int *got)
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
                                     "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15", "broll", "stut", "fxwet", "tempo10", "kitsel", "kit0kick", "vthru", "dafter",
-                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold", "subfa", "dft", "swon", "strip", "kl_amt", "dbrk", "split", "split_at", "half", "half_ask", "layer", "split_b", "kdec0", "bpitch", "chaos", "cmath", "crolls", "cseed", "rkick", "rsnare", "rhat", "chsw", "ctl", "ctln", "ctllast", "ctllitk", "ctlmidk", "ctlmaster", "pxlow", "pxmid", "pxhigh", "pxmidf", "pxq", "pxlof", "xo", "xsg", "xdrv", "xdec", "phits", "kilwhat", "mo", "morec", "mofn0", "mon0", "blkdraws", "xoff", "hgate", "homek4", "mocur", "mused", "moset", "rain", "rainhop", "pxql", "pxqh", "peqoff", "recmode", "reclock", "recb", "reck1", "bkfn0", "rret", "chpg", "chev", "chtg", "chwh", "chco", "chfl", "chsty", "pslices"};
-    int v[260];
+                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold", "subfa", "dft", "swon", "strip", "kl_amt", "dbrk", "split", "split_at", "half", "half_ask", "layer", "split_b", "kdec0", "bpitch", "chaos", "cmath", "crolls", "cseed", "rkick", "rsnare", "rhat", "chsw", "ctl", "ctln", "ctllast", "ctllitk", "ctlmidk", "ctlmaster", "pxlow", "pxmid", "pxhigh", "pxmidf", "pxq", "pxlof", "xo", "xsg", "xdrv", "xdec", "phits", "kilwhat", "mo", "morec", "mofn0", "mon0", "blkdraws", "xoff", "hgate", "homek4", "mocur", "mused", "moset", "rain", "rainhop", "pxql", "pxqh", "peqoff", "recmode", "reclock", "recb", "reck1", "bkfn0", "rret", "chpg", "chev", "chtg", "chwh", "chco", "chfl", "chsty", "pslices", "dmute"};
+    int v[261];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -4722,6 +4739,7 @@ int app_expect(const char *what, int *got)
     v[259] = 0;                          /* (0.9.95: the pattern playing's break steps given a slice: CHAOS's PRINT) */
     for (i = 0; i < (int)PAT_STEPS; i++)
         v[259] += pats.p[set.pattern % NPAT].st[i][0] >= 2u;
+    v[260] = drum_mute;                  /* (0.9.96: KDR KSN KHH KCP, a bit a drum: 1 snare, 2 hat, 4 clap) */
     v[161] = set.vinyl & 3u;             /* (0.9.54: VINYL BREAK's THRU, 0 BOTH 1 BREAK 2 KICK) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */
     v[141] = kx2_at(set.kslot)->gate;    /* (its TAIL GATE's division) */

@@ -245,7 +245,9 @@ static settings_t set;
  * A layout: the function of each key, left to right. Presets: CHOPPAH (CHOPPAH's keys; BEGINNER's only), FLEXOR LAYOUT
  * (LOAF BREAKER's until 0.244), CUSTOM (each key its own: ARP › BLACK KEYS) */
 enum { BKF_ARP = BRK_NPADS, BKF_KIL, BKF_DST, BKF_SUB, BKF_DRV, BKF_X2, BKF_X4, BKF_TRI, BKF_SDR, BKF_KBR, BKF_CHS, BKF_SPL,
-       BKF_KCK, BKF_SNR, BKF_HAT, BKF_CLP, BKF_XSB, BKF_MOT, BKF_PEQ, BKF_N };   /* (0.9.93, FLEXOR: "un setting touche noire on / off pour
+       BKF_KCK, BKF_SNR, BKF_HAT, BKF_CLP, BKF_XSB, BKF_MOT, BKF_PEQ, BKF_KDR, BKF_KSN, BKF_KHH, BKF_KCP, BKF_N };   /* (0.9.96, FLEXOR: "une touche
+                                          * noire pour kill all drum, kill snare, kill clap, kill hh pour pouvoir les
+                                          * activer ou désactiver": KDR KSN KHH KCP, switches, drum_mute) */   /* (0.9.93, FLEXOR: "un setting touche noire on / off pour
                                           * la totalité des eq pré disto": PEQ, the kick's PRE EQ, its three bands kept: kx2.px
                                           * xoff bit 1) */   /* (0.9.86, FLEXOR: "une touche noire motion on off":
                                           * MOT, the motions played or not, their recording kept) */   /* (0.9.86, FLEXOR: "une touche noire assignable pour le
@@ -1712,6 +1714,9 @@ static volatile uint8_t kroll;
 #define KSC_N 11025u
 static volatile int16_t kscope[KSC_W];
 static volatile uint32_t kscope_hit;
+static volatile uint8_t drum_mute;       /* LOAF BREAKER (0.9.96, FLEXOR): the KDR KSN KHH KCP keys' switches, a bit a drum
+                                          * (1u << PV_SNARE, PV_HAT, PV_CLAP): its hits quiet, the sequencer's, the MIDI
+                                          * notes' and the KCK..CLP keys' alike; RAM only, never saved */
 static volatile uint8_t kick_hold;       /* LOAF BREAKER: KIL (the tenth black key) held: the sequencer's kicks quiet */
 /* (0.9.85, FLEXOR, from issue #5: "mute the entire drum section"): KIL's K2 MUTES, what it quiets: KICKS (0: as before,
  * older saves), DRUMS (snare, hat, clap), ALL; set.half_mt_off bits 6-7 (3 read as KICKS) */
@@ -3205,6 +3210,15 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             }
             brk_fx_kick_eq(kick, m);    /* LOAF BREAKER: HOME's KICK EQ */
             brk_fx_kick(kick, m);        /* and its KICK FX */
+            if (drum_mute) {             /* (0.9.96: KDR KSN KHH KCP: the drums switched off quiet) */
+                uint32_t a, b = 0u;
+                for (a = 0; a < np; a++)
+                    if ((who[a] &= (uint8_t)~drum_mute) != 0u) {
+                        pa[b] = pa[a];
+                        who[b++] = who[a];
+                    }
+                np = b;
+            }
             perc_hit_n += np;
             perc_render(perc, m, pa, who, np);
             if (set.duck) {              /* LOAF BREAKER (crossbreed): DUCK: the break (and its throws; DRUMS: the

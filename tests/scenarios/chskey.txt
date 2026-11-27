@@ -11,7 +11,7 @@ tap ARP
 wait 300
 turn SELECT 1 10
 wait 300
-turn K3 -9 60   # (0.9.81: KCK SNR HAT CLP last; 0.9.86 XSB, MOT last; 0.9.93 PEQ last)
+turn K3 -13 60   # (0.9.81: KCK SNR HAT CLP last; 0.9.86 XSB, MOT last; 0.9.93 PEQ last; 0.9.96 KDR KSN KHH KCP last)
 wait 300
 expect bk_pre 2
 tap HOME

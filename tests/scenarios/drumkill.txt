@@ -1,0 +1,167 @@
+# LOAF BREAKER (27 Nov 2026, 0.9.96, FLEXOR: "une touche noire pour kill all drum, kill snare, kill clap, kill hh pour
+# pouvoir les activer ou désactiver"): KDR KSN KHH KCP, the last black-key functions (ARP › BLACK K3, left of R8): a
+# press quiets the drums (KDR: the snare, the hat and the clap; the others one each), the next brings them back; the
+# kicks play on. The kick on 1, 5, 9, 13 of its four bars, the snare on 5 and 13 of two (SEQ), as kilmutes.
+#   app/build/host/loaf-breaker_host tests/scenarios/drumkill.txt app/build/scenarios
+wait 4200
+tap SEQ
+wait 200
+key w0 down
+wait 30
+key w0 up
+key w4 down
+wait 30
+key w4 up
+key w8 down
+wait 30
+key w8 up
+key w12 down
+wait 30
+key w12 up
+turn ALGO 1 10
+wait 100
+key w0 down
+wait 30
+key w0 up
+key w4 down
+wait 30
+key w4 up
+key w8 down
+wait 30
+key w8 up
+key w12 down
+wait 30
+key w12 up
+turn ALGO 1 10
+wait 100
+key w0 down
+wait 30
+key w0 up
+key w4 down
+wait 30
+key w4 up
+key w8 down
+wait 30
+key w8 up
+key w12 down
+wait 30
+key w12 up
+turn ALGO 1 10
+wait 100
+key w0 down
+wait 30
+key w0 up
+key w4 down
+wait 30
+key w4 up
+key w8 down
+wait 30
+key w8 up
+key w12 down
+wait 30
+key w12 up
+turn ALGO 1 10
+wait 100
+key w4 down
+wait 30
+key w4 up
+key w12 down
+wait 30
+key w12 up
+turn ALGO 1 10
+wait 100
+key w4 down
+wait 30
+key w4 up
+key w12 down
+wait 30
+key w12 up
+layout_0961   # (written as CUSTOM on the 0.9.61-0.9.77 layout)
+tap ARP
+wait 300
+turn SELECT 1 10
+wait 300
+turn K3 -4 60   # (key 1: R8 to KDR)
+wait 200
+expect bk_fn 30
+turn ALGO 1 10
+wait 200
+turn K3 -4 60   # (key 2: R16 to KSN)
+wait 200
+expect bk_fn 31
+turn ALGO 1 10
+wait 200
+turn K3 -4 60   # (key 3: R32 to KHH)
+wait 200
+expect bk_fn 32
+turn ALGO 1 10
+wait 200
+turn K3 22 60   # (key 4: ARP to KCP)
+wait 200
+expect bk_fn 33
+tap HOME
+wait 300
+tap PLAY
+wait 1300
+expect khits >0
+expect phits >0
+expect dmute 0
+# KDR: every drum quiet, the kicks on; again: back
+key b0 down
+wait 60
+key b0 up
+wait 100
+expect dmute 7
+shot drumkill.png
+expect khits >-1
+expect phits >-1
+wait 1300
+expect khits >0
+expect phits 0
+key b0 down
+wait 60
+key b0 up
+wait 100
+expect dmute 0
+expect phits >-1
+wait 1300
+expect phits >0
+# KSN: the snare alone (the hats still heard); KHH, KCP: every drum off, one key each; KSN again: the snare back
+key b1 down
+wait 60
+key b1 up
+wait 100
+expect dmute 1
+key b2 down
+wait 60
+key b2 up
+wait 100
+expect dmute 3
+key b3 down
+wait 60
+key b3 up
+wait 100
+expect dmute 7
+expect phits >-1
+wait 1300
+expect phits 0
+expect khits >0
+key b1 down
+wait 60
+key b1 up
+wait 100
+expect dmute 6
+expect phits >-1
+wait 1300
+expect phits >0
+# KDR with some off: all off; again: all back
+key b0 down
+wait 60
+key b0 up
+wait 100
+expect dmute 7
+key b0 down
+wait 60
+key b0 up
+wait 100
+expect dmute 0

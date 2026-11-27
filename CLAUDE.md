@@ -231,6 +231,13 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   kick_set_px eq_g 0 then, the bands' DB / FREQ / Q never touched; lit while heard (a band's DB set, bit 1 clear); a band
   edited on its page (kpx_turn) clears bit 1, the knob functions (SK_PRE.., motions) don't. Probe peqoff; scenario
   peqkey; the scenarios turning K3 left of R8 one more (and mset's R8 to MOT, -2).
+- KDR KSN KHH KCP (27 Nov 2026, 0.9.96, FLEXOR: "une touche noire pour kill all drum, kill snare, kill clap, kill hh
+  pour pouvoir les activer ou désactiver"): `BKF_KDR`..`BKF_KCP`, last in BKF_* (after PEQ; BKF_N 34: PAD_BIT is a
+  mask of keys, not of functions, so BKF_N may pass 32; a function a byte, 1 + BKF_*, up to 254): switches, app.c
+  `drum_mute` (RAM only, never saved: all on at a start; a bit a drum, 1u << PV_SNARE / PV_HAT / PV_CLAP, common.c
+  `KDR_BIT`, `KDR_ALL`), the render's hits filtered before perc_render (the sequencer's, MIDI's, KCK..CLP's); KDR any
+  on: all off, else all on; lit while off. CUSTOM / SEL BLACK / REC; probe dmute; scenario drumkill; the scenarios
+  turning K3 left of R8 four more.
 - REC MODE, REC as a second SEL (27 Nov 2026, 0.9.93, FLEXOR: "une toute nouvelle section de touches noires grâce à la
   touche REC qui fonctionnera comme SEL ... si je reste appuyé sur rec, et il se bloquera lui aussi si je double clique
   ... rec + K1 jusqu'à K4 avec une page d'assignation ... les onglets relatifs à rec dans Arp s'afficheront seulement si
