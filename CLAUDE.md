@@ -200,6 +200,13 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - SEQ's rows to the foot (27 Nov 2026, FLEXOR: "les 64 steps ne prennent pas toute la place il y a un écart en bas"):
   seq.c seq_picture spreads the height's remainder over the drum rows (each row's y and pitch from (SQ_H - y0) / nd,
   not one integer pitch); scenario seqfill (the break's two rows, every drum 64).
+- PRE EQ anywhere, K4 RESET (27 Nov 2026, 0.9.92, FLEXOR: "placer les 3 points des EQ absolument où je veux ... une
+  option reset, avec 5 tours de potard"): each PRE band's FREQ 20 Hz .. 12 kHz (ui/kick.c KPX_FLO / KPX_FHI {-24,-59,-87}
+  .. {86,51,24} semitones from 80 / 600 / 3000 Hz, kick.c FLO / FHI the same; the knob functions' frequencies follow), K4
+  RESET on PRE L / M / H (KN_KICK "RESET"; `kpx_rn` / `kpx_rt`: five detents right within 2 s, a detent left starts
+  again, the foot TURN 5X > / n MORE >): the band's DB, FREQ and Q back to 0. Room: the splash's near-black dither
+  specks smoothed (tools/make_egg.py `--smooth`, greys 0-2 only, nothing seen; regenerate it with `--fit 240x228
+  --smooth`): 1,205 B; image 580,524 B (~1 KB left). Scenario prereset.
 - Smoother for live (27 Nov 2026, 0.9.92, FLEXOR: "le changement se fait trop brut ... des settings adaptés au live ...
   plus doux"; for every player, no option for now): brk_fx.c HOME's DJ filter (`dj_s`) and the drums' (`djk_s`) 0.07 a
   block (~80 ms, 0.3 before); each slot's p[0..2] and MIX (p[3]: mix follows p[] in brk_fxslot_t, `pm`) glide in

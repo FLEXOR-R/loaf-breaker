@@ -1,0 +1,46 @@
+# LOAF BREAKER (27 Nov 2026, 0.9.92, FLEXOR: "placer les 3 points des EQ absolument où je veux ... une option reset, avec
+# 5 tours de potard"): KICK › DIST › PRE L: its FREQ from 20 Hz to 12 kHz (the band's semitones -24 .. 86 from 80 Hz),
+# K4 RESET: four detents right say how many more, the fifth puts the band back (0 dB, 80 Hz, its Q); a detent left
+# starts the count again.
+#   app/build/host/loaf-breaker_host tests/scenarios/prereset.txt app/build/scenarios
+wait 4200
+tap EDIT
+wait 300
+turn SELECT 3 10
+wait 300
+expect ksect 3
+turn ALGO 3 10
+wait 300
+expect kpage 22
+turn K1 6 60
+wait 200
+expect pxlow 6
+turn K2 120 20
+wait 400
+expect pxlof 86
+turn K2 -200 20
+wait 600
+expect pxlof -24
+turn K2 60 20
+wait 400
+expect pxlof 36
+turn K3 3 60
+wait 200
+expect pxql 3
+shot prereset_set.png
+turn K4 4 60
+wait 200
+expect pxlow 6
+expect pxlof 36
+turn K4 -1 60
+wait 100
+turn K4 4 60
+wait 200
+expect pxlow 6
+shot prereset_count.png
+turn K4 1 60
+wait 300
+expect pxlow 0
+expect pxlof 0
+expect pxql 0
+shot prereset_done.png

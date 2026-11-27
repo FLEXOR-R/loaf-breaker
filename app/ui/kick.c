@@ -467,9 +467,9 @@ static const char *const KN_KICK[KPAGES][4] = {{"SUB", "PUNCH", "GRIT", "CLICK"}
                                                {"ATTACK", "CROSS", "FADE", "SOLO"}, {"MUTATE", "A/B", "EDIT VIEW", "DRUM ZOOM"},
                                                {"PRESET", "", "", ""},
                                                {"LEVEL", "TYPE", "PITCH", "LENGTH"}, {"DIVISION", "LENGTH", "FADE IN", ""},
-                                               {"LOW DB", "LOW FREQ", "LOW Q", ""}, {"MID DB", "MID FREQ", "MID Q", ""},
+                                               {"LOW DB", "LOW FREQ", "LOW Q", "RESET"}, {"MID DB", "MID FREQ", "MID Q", "RESET"},
                                                {"X FREQ", "SUB LEVEL", "SUB DIRT", "SUB DECAY"},
-                                               {"HIGH DB", "HIGH FREQ", "HIGH Q", ""}};   /* (0.9.82: PRE
+                                               {"HIGH DB", "HIGH FREQ", "HIGH Q", "RESET"}};   /* (0.9.82: PRE
                                           * EQ LOW and MID each beside its frequency, PRE EQ + HIGH's and the MID's Q, 0.9.83,
                                           * FLEXOR;
                                           * SUB SPLIT) */   /* (KNOBS,
@@ -565,7 +565,10 @@ static void kx2_turn(int i, int32_t d)
  * bells on the layers before the drive and the DISTOs; SUB SPLIT (K1 X FREQ: OFF, 40 .. 300 Hz; K2 SUB LEVEL, K3 SUB
  * DIRT, K4 SUB DECAY), the lows around the dirt. Each kick its own (kx2.px, kick.h kick_px_t) */
 static const float KPX_F0[3] = {80.0f, 600.0f, 3000.0f};
-static const int8_t KPX_FLO[3] = {-24, -24, -18}, KPX_FHI[3] = {24, 30, 18};
+static const int8_t KPX_FLO[3] = {-24, -59, -87}, KPX_FHI[3] = {86, 51, 24};   /* (0.9.92, FLEXOR: "placer les 3 points
+                                          * des EQ absolument où je veux": each band 20 Hz .. 12 kHz, the picture's span) */
+static uint8_t kpx_rn;                   /* (0.9.92) K4 RESET: its detents so far (five right within 2 s, as MOTION's CLEAR) */
+static uint32_t kpx_rt;
 static float kpx_hz(const kick_px_t *x, uint32_t b) { return KPX_F0[b] * brk_exp2f_c((float)x->eq_f[b] * (1.0f / 12.0f)); }
 /* (0.9.87, FLEXOR: "PRL PRM PRH comme onglets avec chacun ... DB, FREQ, et Q ... faire des pics comme je veux"; 0.9.83's
  * PRE EQ / PRE EQ + before) each band its own part: K1 its gain, K2 its frequency, K3 its Q, K4 nothing. The knob's
@@ -580,7 +583,7 @@ static float kpx_qv(const kick_px_t *x, uint32_t b)   /* (the band's Q: the MID'
 {
     return (b == 1u ? 1.0f : 0.8f) * brk_exp2f_c((float)*kpx_q((kick_px_t *)x, b) * 0.25f);
 }
-static void kpx_value(int i, char *t)
+__attribute__((noinline)) static void kpx_value(int i, char *t)
 {
     const kick_px_t *x = kpx_at(set.kslot);
     t[0] = 0;
@@ -599,6 +602,11 @@ static void kpx_value(int i, char *t)
             hz_text(kpx_hz(x, b), t);
         else if ((m & 0x30u) == KPX_Q)
             hundredths_text(kpx_qv(x, b), t);
+        else if (kpx_rn && plat_ms() - kpx_rt < 2000u) {   /* (0.9.92) K4 RESET: how many more */
+            int_text(5 - kpx_rn, t);
+            text_cat(t, " MORE >");
+        } else
+            text_cat(t, "TURN 5X >");
         return;
     }
     if (i == 0) {
@@ -637,7 +645,7 @@ static float kpx_norm(int i)
     return i == 0 ? (float)x->xo / (float)KICK_XO_N : i == 1 ? (float)(x->sg + 50) * 0.01f
            : i == 2 ? (float)x->sdrv * 0.01f : (float)x->sdec * 0.01f;
 }
-static void kpx_turn(int i, int32_t d)
+__attribute__((noinline)) static void kpx_turn(int i, int32_t d)
 {
     kick_px_t *x = kpx_at(set.kslot);
     int dir = d > 0 ? 1 : -1;
@@ -650,8 +658,16 @@ static void kpx_turn(int i, int32_t d)
             x->eq_f[b] = (int8_t)clamp((int32_t)x->eq_f[b] + d, KPX_FLO[b], KPX_FHI[b]);
         else if ((m & 0x30u) == KPX_Q)
             *kpx_q(x, b) = (int8_t)clamp((int32_t)*kpx_q(x, b) + dir, -8, 12);
-        else
-            return;
+        else {                           /* (0.9.92, FLEXOR: "une option reset avec 5 tours de potard") K4: five detents
+                                          * right within 2 s, the band flat at its own frequency and Q */
+            uint32_t now = plat_ms();
+            kpx_rn = d < 0 || now - kpx_rt >= 2000u ? 0u : kpx_rn;
+            kpx_rt = now;
+            if (d > 0 && ++kpx_rn >= 5u) {
+                x->eq_g[b] = x->eq_f[b] = *kpx_q(x, b) = 0;
+                kpx_rn = 0u;
+            }
+        }
     } else if (i == 0) {
         x->xo = (uint8_t)clamp((int32_t)x->xo + d, 0, (int32_t)KICK_XO_N);
         x->xoff = 0u;                    /* (0.9.86: X FREQ turned: the XSB switch on again) */

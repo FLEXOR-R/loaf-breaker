@@ -3,7 +3,7 @@
 """GLOUPI BREAKS' grey pictures (LOAF LORD's egg, LOAF BREAKER's splash and title): a picture -> a C header.
 
   tools/make_egg.py art/loaf_lord.webp app/egg_data.h                       # the egg: 240 x 240, centred
-  tools/make_egg.py art/loaf_breaker.webp app/splash_data.h --name SPLASH --trim --fit 240x226
+  tools/make_egg.py art/loaf_breaker.webp app/splash_data.h --name SPLASH --trim --fit 240x228 --smooth
   tools/make_egg.py art/loaf_breaker.webp app/title_data.h --name TITLE --rows 890:1254 --trim --fit 232x42
 
 --rows A:B keeps the source's rows A..B-1 (before anything else); --trim cuts the transparent margins (alpha over 40);
@@ -30,6 +30,9 @@ def main():
     ap.add_argument("--levels", type=int, default=16)
     ap.add_argument("--bg", type=int, default=0, help="the grey under its transparent parts and in the margins (0 black)")
     ap.add_argument("--preview", type=Path)
+    ap.add_argument("--smooth", action="store_true", help="in the three darkest greys, a pixel one grey off both its "
+                    "neighbours, which agree: theirs (0.9.92: the dither's lone specks in the near-black gone, its runs "
+                    "longer: the splash 1.2 KB smaller, nothing seen)")
     a = ap.parse_args()
     n = max(2, min(16, a.levels))
     src = Image.open(a.src).convert("RGBA")
@@ -59,6 +62,12 @@ def main():
     q = img.convert("RGB").quantize(palette=pal, dither=Image.Dither.FLOYDSTEINBERG)
     q = q.point(lambda i: i if i < n else 0)
     px = q.load()
+    if a.smooth:
+        for y in range(h):
+            for x in range(1, w - 1):
+                l, c, r = px[x - 1, y], px[x, y], px[x + 1, y]
+                if l == r and abs(c - l) == 1 and max(c, l) <= 2:
+                    px[x, y] = l
     data = bytearray()
     for y in range(h):
         x = 0

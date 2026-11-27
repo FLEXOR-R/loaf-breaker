@@ -409,7 +409,7 @@ BRK_COLD static void kc_make(const kick_t *k, kc_t *c, const volatile int8_t *sy
     {                                    /* (0.9.82) the PRE EQ and the SUB SPLIT: the kick playing's (kick_set_px) */
         kick_px_t x = *(const kick_px_t *)&p_px;
         static const float F0[3] = {80.0f, 600.0f, 3000.0f};
-        static const int8_t FLO[3] = {-24, -24, -18}, FHI[3] = {24, 30, 18};
+        static const int8_t FLO[3] = {-24, -59, -87}, FHI[3] = {86, 51, 24};   /* (0.9.92: 20 Hz .. 12 kHz each) */
         uint32_t b, n = 0u;
         for (b = 0; b < 3u; b++) {       /* (0.9.92, FLEXOR: "plus doux": each band its own bell, even at 0 dB (none
                                           * then, bit for bit): a band coming in or going no longer moves the others' */
