@@ -984,7 +984,8 @@ static void input(void)
             if (!rk_held) {
                 rk_held = 1u;
                 rk_key = 0u;             /* (0.9.93, FLEXOR: no REC key among the black keys any more) */
-                rk_mod = (uint8_t)(!rk_key && rec_bk() && !(btn >> B_SEL & 1u));   /* (0.9.93: REC MODE BLACK KEYS, REC
+                rk_mod = (uint8_t)(!rk_key && rec_bk() && !sel_now);   /* (0.9.94: SEL locked, not held: REC still as
+                                          * SEL, so REC x2 there locks REC and frees SEL) */   /* (0.9.93: REC MODE BLACK KEYS, REC
                                           * as SEL; SEL + REC as ever: the clear, an effect back to its start) */
                 if (rk_mod && rm_lock) {
                     rm_lock = 0u;
@@ -1009,6 +1010,7 @@ static void input(void)
                 if (rm_clicks >= 2u) {
                     rm_clicks = 0u;
                     rm_lock = 1u;
+                    ui.sel_lock = 0u;    /* (0.9.94: SEL freed, one locked at a time) */
                     app_say("REC", "LOCKED: PRESS TO FREE");
                 }
             }
@@ -1784,6 +1786,7 @@ static void input(void)
             if (ui.sel_clicks == 2u) {   /* LOAF BREAKER: SEL x2: locked down, lit, until pressed again */
                 ui.sel_clicks = 0u;
                 ui.sel_lock = 1u;
+                rm_lock = 0u;            /* (0.9.94, FLEXOR: one locked at a time, SEL or REC: the other freed) */
                 app_say("SEL", "LOCKED: PRESS TO FREE");
             }
         } else

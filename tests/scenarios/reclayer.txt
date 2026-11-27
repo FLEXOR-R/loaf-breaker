@@ -92,6 +92,28 @@ tap REC
 wait 200
 expect reclock 0
 expect recording 0
+# (0.9.94, FLEXOR: one locked at a time) REC locked, then SEL x2: SEL locked, REC freed; REC x2: REC locked, SEL freed
+tap REC
+wait 100
+tap REC
+wait 200
+expect reclock 1
+tap SEL
+wait 100
+tap SEL
+wait 200
+expect sel_lock 1
+expect reclock 0
+tap REC
+wait 100
+tap REC
+wait 200
+expect reclock 1
+expect sel_lock 0
+tap REC
+wait 200
+expect reclock 0
+expect sel_lock 0
 # CLASSIC again: REC as ever (here FLEXOR LAYOUT's VINYL BREAK), no REC layer, the REC tabs gone
 tap ARP
 wait 300
