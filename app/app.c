@@ -710,11 +710,11 @@ static void kb_put(uint32_t mode, uint32_t latch, uint32_t time, uint32_t rev)
  * that function, REC alone records. kx2.rsv[50]: 0x80 | its function (untagged: KILL BREAK); rsv[51]: 0xA0 | assigned
  * (untagged: NONE) */
 #define RK_RSV 50u
-static uint32_t rec_key_on(void)
+static uint32_t rec_key_on(void)        /* (0.9.93, FLEXOR: "enlever la touche REC qui fonctionne comme une touche noire
+                                          * ... rec sera utilisé comme SEL": never; REC records (REC MODE CLASSIC) or is a
+                                          * second SEL (BLACK KEYS); its bytes kept, unread) */
 {
-    if (bk_preset() == BKP_FLEXOR)       /* (0.9.78: FLEXOR LAYOUT's REC, VINYL BREAK) */
-        return 1u;
-    return (kx2.rsv[RK_RSV + 1u] & 0xF0u) == 0xA0u && (kx2.rsv[RK_RSV + 1u] & 1u);
+    return 0u;
 }
 static uint32_t rec_fn(void)             /* (its own, whatever the layout, 0.9.70; untagged KILL BREAK) */
 {
@@ -723,7 +723,7 @@ static uint32_t rec_fn(void)             /* (its own, whatever the layout, 0.9.7
         return FLX_REC;
     return kx2.rsv[RK_RSV] & 0x80u && f < BKF_N && f != BKF_ARP ? f : BKF_KBR;
 }
-static uint32_t nbk(void) { return 12u; }   /* (the black keys, REC's with them: always since 0.9.70) */
+static uint32_t nbk(void) { return 11u; }   /* (0.9.93: the eleven, REC no longer one of them) */   /* (the black keys, REC's with them: always since 0.9.70) */
 /* LOAF BREAKER (0.9.93, FLEXOR: "une toute nouvelle section de touches noires grâce à la touche REC qui fonctionnera
  * comme SEL ... si je reste appuyé sur rec, et il se bloquera lui aussi si je double clique ... rec + K1 jusqu'à K4 avec
  * une page d'assignation"): REC MODE (ARP › SEL BLK K4) CLASSIC, REC as ever, or BLACK KEYS: REC a second SEL, held or
@@ -798,9 +798,9 @@ static void ovl_order_fix(void)
 }
 static uint32_t selb_fn(uint32_t j)      /* (black key j's SEL function, 1 + BKF_*; 0: none) */
 {
-    uint32_t f = j < 11u ? kx2.selk[j] : j == 11u ? kx2.selrec : 0u;   /* (the REC key, 11: its own since 0.9.70) */
+    uint32_t f = j < 11u ? kx2.selk[j] : 0u;   /* (the REC key's, 11, 0.9.70-0.9.92: gone, 0.9.93) */
     if (bk_preset() == BKP_FLEXOR)       /* (0.9.78: FLEXOR LAYOUT's own SEL layer) */
-        f = j < 12u ? FLX_SEL[j] : 0u;
+        f = j < 11u ? FLX_SEL[j] : 0u;
     return f <= BKF_N ? f : 0u;
 }
 static void klab_defaults(void)

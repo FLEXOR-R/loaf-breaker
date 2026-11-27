@@ -211,7 +211,11 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   the page's knob), ui.sel_foot 2 the REC foot, the REC LED lit held / blinking locked; ARP's tabs `OP_ORD` / `op_at`
   / `op_n` (7 REC BLK "REC", 8 REC ASN "REC K", after SEL BLK, BLACK KEYS only, pad 1 to fit nine), ovl.c's SEL BLK
   code for 7, track.c's ASSIGN for 8 (`as_rec`, `as_kf`, `AS_NONE`, -1 the NONE place). RESET's SEL KEYS clears the
-  layer (mode kept), RESET ALL all. Probes recmode reclock recb reck1 bkfn0; scenario reclayer. Image 550,488 B
+  layer (mode kept), RESET ALL all. REC is no longer a black key (FLEXOR, the same day: "enlever la touche REC qui
+  fonctionne comme une touche noire ... rec sera utilisé comme SEL"): app.c `rec_key_on` always 0, `nbk` 11, selb_fn
+  no key 11 (kx2.rsv[50..51], kx2.selrec, FLX_REC, FLX_SEL[11] kept, unread; the REC_KEY code paths unreached), main.c's
+  rk_key never; SEL + REC as ever (the clear, an effect back), REC not the modifier then; scenarios reckey and recsel
+  gone, flexlay without its REC. Probes recmode reclock recb reck1 bkfn0; scenario reclayer. Image 550,488 B
   (AMEN06 169 out, seven breaks: ~31 KB left).
 - SEQ without the black keys' row (26 Nov 2026, 0.9.86, FLEXOR: "enlève la ligne des touches noires au dessus des
   carrés de knob pour gagner de la place pour le séquenceur"): seq.c SQ_H 162 (44..205, 148 before), main.c draw_foot on

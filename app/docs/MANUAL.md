@@ -564,7 +564,7 @@ slices you marked ring out, the classic dub throw. (Without a DELAY slot, ECHO g
 
 The black keys act while held and combine. Which key does what is a **layout** (ARP › BLACK, below): CHOPPAH's,
 left to right R8 R16 R32 REV FRZ HLF VNL GAT RND FLT DUB (a new FM-1's, after RESET ALL too; BEGINNER keeps the layout EXPERT left, 0.9.23),
-FLEXOR LAYOUT (R8 R16 R32 DUB ARP TRI X4 X2 ARP CHS KIL since 0.9.78, FLEXOR: two ARP keys, key 5 on RISE, key 9 on CHOP; REC, as a key, VINYL BREAK; and its own SEL layer: SEL + key 4 ARP, 5 GATE, 6 FILTER, 7 RANDOM, 8 FREEZE, 9 SUB FX, 10 DISTO, SEL + REC KILL BREAK, while FLEXOR LAYOUT is in use (your own SEL BLACK stays for the other layouts; edited on FLEXOR LAYOUT, it all becomes a CUSTOM); R8 R16 R32 ARP ARP TRI X4 X2 SUB DST KIL in 0.9.61-0.9.77, REC KILL BREAK; VNL GAT FLT ARP ARP from key 4 in 0.9.53-0.9.57, RND HLF FLT ARP VNL in 0.9.26-0.9.52) or CUSTOM, each key any of the functions below. (HOME's K1 is
+FLEXOR LAYOUT (R8 R16 R32 DUB ARP TRI X4 X2 ARP CHS KIL since 0.9.78, FLEXOR: two ARP keys, key 5 on RISE, key 9 on CHOP; and its own SEL layer: SEL + key 4 ARP, 5 GATE, 6 FILTER, 7 RANDOM, 8 FREEZE, 9 SUB FX, 10 DISTO, while FLEXOR LAYOUT is in use (your own SEL BLACK stays for the other layouts; edited on FLEXOR LAYOUT, it all becomes a CUSTOM); R8 R16 R32 ARP ARP TRI X4 X2 SUB DST KIL in 0.9.61-0.9.77, REC KILL BREAK; VNL GAT FLT ARP ARP from key 4 in 0.9.53-0.9.57, RND HLF FLT ARP VNL in 0.9.26-0.9.52) or CUSTOM, each key any of the functions below. (HOME's K1 is
 the gate and K2 the DJ filter as well.) While a pad is held, the slice blocks give way to an
 animation of what it does, and **K1–K4 tune that pad** (the foot shows its settings; SAVE keeps them):
 
@@ -730,9 +730,8 @@ since 0.9.50, FLEXOR; BLACK and SEL BLACK in full since 0.9.53): **ARP** (the ef
 key not among them), FLEXOR LAYOUT (R8 R16 R32 DUB ARP TRI X4 X2 ARP CHS KIL since 0.9.78, with its own SEL layer and REC) or CUSTOM; **K2 KEY** (or **ALGORITHM**, 0.9.26), the key you edit (or press it:
 here a black key picks itself and plays nothing); **K3 EFFECT**, what it does: any of R8, R16, R32, REV, FRZ, HLF, VNL,
 GAT, RND, FLT, DUB, ARP, KIL, DST, SUB, DRV, X2, X4, TRI, SDR (SUB DRIVE, 0.9.57), KBR (KILL BREAK, 0.9.58), CHS (CHAOS on / off, 0.9.76), SPL (SPLIT on / off, 0.9.78), KCK, SNR, HAT, CLP (a drum each, 0.9.81); on an ARP key, **K4 ARP FX** its own effect (0.9.45: several ARP keys, each with its own, play at once). Turned on a preset, K3 makes a CUSTOM of it first, that key changed (keys
-outlined amber differ from CHOPPAH's). SAVE keeps the layout. The **REC** button is the last key, right (0.9.58; press REC
-here to pick it): **NONE** at first, REC records as ever; given any function but ARP on K3, REC is that black key and
-records no more, whatever the layout (the preset kept; 0.9.70, FLEXOR: the SYSTEM › MIDI K4 REC KEY switch gone). BEGINNER keeps the layout in use (0.9.23; a new FM-1 and RESET ALL start on
+outlined amber differ from CHOPPAH's). SAVE keeps the layout. (The REC button was a twelfth black key from 0.9.58 to
+0.9.92; since 0.9.93, FLEXOR, it records, or with REC MODE BLACK KEYS it is a second SEL, below.) BEGINNER keeps the layout in use (0.9.23; a new FM-1 and RESET ALL start on
 CHOPPAH's).
 
 ![ARP › BLACK: the FLEXOR LAYOUT, key 1 edited](img/screen-blackkeys.png "BLACK")
@@ -741,16 +740,14 @@ CHOPPAH's).
 locked (SEL twice): **K2 KEY** (or **ALGORITHM**, or press the key: it picks itself), **K3 SEL +**, what that key does
 with SEL: **ITS OWN** (the same as without SEL, exactly: 0.9.56, FLEXOR; SEL + R8 / R16 / R32 rolled the kick alone until 0.9.55) or any
 function of the list. While SEL is held or locked the strip and the lights show the SEL functions. A key pressed with
-SEL keeps that function until you let it go. SAVE keeps them; RESET's SEL KEYS and RESET ALL clear them. The **REC**
-key, last on the right, has one too (0.9.70, FLEXOR; press REC on this tab to pick it): any function but ARP; SEL + REC
-plays it, REC alone does what BLACK gives it (NONE: it records).
+SEL keeps that function until you let it go. SAVE keeps them; RESET's SEL KEYS and RESET ALL clear them.
 
 ![SEL BLACK: key 11 with SEL, KICKS X2 (without SEL: SUB FX)](img/screen-selblack.png "SEL BLACK")
 
 **REC MODE: REC as a second SEL** (0.9.93, FLEXOR). SEL BLACK's **K4 REC MODE**: **CLASSIC** (to start: REC as it
 always was) or **BLACK KEYS**. In BLACK KEYS, REC works exactly as SEL: **hold REC**, or **press it twice** to lock
 it (it blinks; press it again to free it), and the black keys play their **REC functions**, the knobs their **REC +
-K1–K4** functions. REC alone does nothing then (back to CLASSIC to record, or to play the REC key's function). Two
+K1–K4** functions. REC alone does nothing then (back to CLASSIC to record); SEL + REC still clears, as ever. Two
 tabs appear after SEL BLACK, only in BLACK KEYS:
 - **REC** (REC BLACK): as SEL BLACK, **K2 KEY** (or ALGORITHM, or press the key), **K3 REC +**: what that key does
   with REC, ITS OWN or any function. The eleven black keys (REC is the one you hold).

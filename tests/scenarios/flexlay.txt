@@ -1,6 +1,6 @@
 # LOAF BREAKER (0.9.78, FLEXOR, on https://claude.ai/artifact/DVMkj5gTUY7xE9uHSZwkiV): FLEXOR LAYOUT: R8 R16 R32 DUB
-# ARP(RISE) TRI X4 X2 ARP(CHOP) CHS KIL, REC VINYL BREAK; with SEL: key 4 ARP, 5 GAT, 6 FLT, 7 RND, 8 FRZ, 9 SUB, 10 DST,
-# REC KILL BREAK (the preset's own: the player's SEL BLACK kept for the other layouts). (0.9.58-0.9.77: R8 R16 R32 ARP
+# ARP(RISE) TRI X4 X2 ARP(CHOP) CHS KIL (REC VINYL BREAK until 0.9.92); with SEL: key 4 ARP, 5 GAT, 6 FLT, 7 RND, 8 FRZ, 9 SUB, 10 DST,
+# (REC KILL BREAK until 0.9.92) (the preset's own: the player's SEL BLACK kept for the other layouts). (0.9.58-0.9.77: R8 R16 R32 ARP
 # ARP TRI X4 X2 SUB DST KIL, scenarios on it: layout_0961.)
 #   app/build/host/loaf-breaker_host tests/scenarios/flexlay.txt app/build/scenarios
 wait 4200
@@ -9,8 +9,6 @@ wait 300
 turn SELECT 1 10
 wait 300
 expect bk_pre 1
-expect reckey 1
-expect recfn 6
 key b3 down
 wait 50
 key b3 up

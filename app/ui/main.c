@@ -983,9 +983,9 @@ static void input(void)
         if (btn >> B_REC & 1u) {
             if (!rk_held) {
                 rk_held = 1u;
-                rk_key = (uint8_t)((!rec_bk() && rec_key_on()) || (btn >> B_SEL & 1u && selb_fn(11u)) ||
-                                   (ui.page == PG_OVL && ui.opage >= 1u && ui.opage <= 2u && !set.novice));
-                rk_mod = (uint8_t)(!rk_key && rec_bk());   /* (0.9.93: REC MODE BLACK KEYS, REC as SEL) */
+                rk_key = 0u;             /* (0.9.93, FLEXOR: no REC key among the black keys any more) */
+                rk_mod = (uint8_t)(!rk_key && rec_bk() && !(btn >> B_SEL & 1u));   /* (0.9.93: REC MODE BLACK KEYS, REC
+                                          * as SEL; SEL + REC as ever: the clear, an effect back to its start) */
                 if (rk_mod && rm_lock) {
                     rm_lock = 0u;
                     rm_free = 1u;        /* (that press frees it, no click) */

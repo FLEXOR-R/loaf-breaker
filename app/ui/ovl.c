@@ -235,7 +235,7 @@ static void bk_turn(int i, int32_t d)
         flexor_lay_fix(1);               /* (0.9.58: its key 5 RISE) */
         app_say("BLACK KEYS", BKP_NAME[p]);
     } else if (i == 1) {
-        ui.bk_sel = (uint8_t)clamp((int32_t)ui.bk_sel + dir, 0, (int32_t)nbk() - (ui.opage == 7u ? 2 : 1));   /* (0.9.58: the
+        ui.bk_sel = (uint8_t)clamp((int32_t)ui.bk_sel + dir, 0, (int32_t)nbk() - 1);   /* (0.9.58: the
                                           * REC key last; 0.9.93 not on REC BLK: REC is held there) */
         bk_say();
         ui.redraw |= RG_BLOCKS | RG_FOOT;
