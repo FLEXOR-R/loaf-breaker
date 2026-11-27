@@ -347,6 +347,9 @@ static uint32_t bk_preset(void)          /* the preset in use (0.9.23, FLEXOR: B
 }
 static uint32_t selb_fn(uint32_t j);     /* (0.9.49: its SEL layer's, below) */
 static uint16_t bk_sel_dn;               /* (0.9.49: the black keys pressed with SEL, their SEL function: bit j) */
+static uint32_t recb_fn(uint32_t j);     /* (0.9.93: its REC layer's, below) */
+static uint16_t bk_rec_dn;               /* (0.9.93: the black keys pressed with REC (REC MODE BLACK KEYS), their REC
+                                          * function: bit j) */
 #define REC_KEY (1u << 27)               /* (0.9.58, FLEXOR: REC as a twelfth black key: its bit among the keys, past the
                                           * 27 keys) */
 static uint32_t rec_fn(void);            /* (its function: below, with OBJ_KX2) */
@@ -359,6 +362,8 @@ static uint32_t bk_fn(uint32_t j)        /* black key j's (0..10) function (0.9.
     j %= 11u;
     if (bk_sel_dn >> j & 1u && selb_fn(j))
         return selb_fn(j) - 1u;
+    if (bk_rec_dn >> j & 1u && recb_fn(j))
+        return recb_fn(j) - 1u;
     if (p != BKP_CUSTOM)
         return BK_LAY[p][j];
     f = set.bkeys.bk[2u + j];
@@ -719,11 +724,42 @@ static uint32_t rec_fn(void)             /* (its own, whatever the layout, 0.9.7
     return kx2.rsv[RK_RSV] & 0x80u && f < BKF_N && f != BKF_ARP ? f : BKF_KBR;
 }
 static uint32_t nbk(void) { return 12u; }   /* (the black keys, REC's with them: always since 0.9.70) */
+/* LOAF BREAKER (0.9.93, FLEXOR: "une toute nouvelle section de touches noires grâce à la touche REC qui fonctionnera
+ * comme SEL ... si je reste appuyé sur rec, et il se bloquera lui aussi si je double clique ... rec + K1 jusqu'à K4 avec
+ * une page d'assignation"): REC MODE (ARP › SEL BLK K4) CLASSIC, REC as ever, or BLACK KEYS: REC a second SEL, held or
+ * locked (REC x2), each black key its REC function (ARP › REC BLK), K1-K4 theirs (ARP › REC ASN); REC alone nothing
+ * (FLEXOR). kx2.rsv[32]: RL_TAG | bit 0 BLACK KEYS (untagged: CLASSIC; the KITS' tempos of 0.9.54-0.9.70 there before,
+ * cleared when tagged), rsv[33..43] the eleven keys' (1 + BKF_*, 0 their own), rsv[44..47] REC + K1-K4's (1 + SK_*, 0
+ * the knob as without REC) */
+#define RL_RSV 32u
+#define RL_TAG 0xB0u
+static uint32_t rl_ok(void) { return (kx2.rsv[RL_RSV] & 0xF0u) == RL_TAG; }
+static uint32_t rec_bk(void) { return !set.novice && rl_ok() && (kx2.rsv[RL_RSV] & 1u); }
+static uint8_t *rl_at(uint32_t i)        /* (i 0..14: the keys', then the knobs'; tagged first) */
+{
+    if (!rl_ok()) {
+        memset(&kx2.rsv[RL_RSV], 0, 16u);
+        kx2.rsv[RL_RSV] = RL_TAG;
+    }
+    return &kx2.rsv[RL_RSV + 1u + i % 15u];
+}
+static uint32_t recb_fn(uint32_t j)      /* (black key j's REC function, 1 + BKF_*; 0: none) */
+{
+    uint32_t f = j < 11u && rl_ok() ? kx2.rsv[RL_RSV + 1u + j] : 0u;
+    return f <= BKF_N ? f : 0u;
+}
+static uint32_t reck_fn(uint32_t k)      /* (REC + K(k + 1)'s function, 1 + SK_*; 0: none) */
+{
+    uint32_t f = rl_ok() ? kx2.rsv[RL_RSV + 12u + (k & 3u)] : 0u;
+    return f <= 31u ? f : 0u;
+}
 static void selk_clear(void)             /* (0.9.49: the SEL layer, none: RESET ALL, RESET's PADS) */
 {
     memset(kx2.selk, 0, sizeof kx2.selk);
     kx2.selrec = 0u;
     memset(kx2.rsv, 0, KIT_BPM0);        /* (SEL WHITE's 32 bytes, unused since 0.9.71) */
+    if (rl_ok())                         /* (0.9.93: the REC layer's keys and knobs too, REC MODE kept) */
+        memset(&kx2.rsv[RL_RSV + 1u], 0, 15u);
 }
 /* LOAF BREAKER (0.9.55, FLEXOR): the ARP's 16 effects in a new order, WAH, WOBBLE and REESE gone, KICK X2, X4, TRI last.
  * A save from before (bk[23] untagged or 0x7C): each effect's AMOUNT and THRU, the ARP keys' effects and SEL WHITE's
@@ -809,7 +845,7 @@ static int bk_has(uint32_t f)            /* (a black key of the layout in use do
         if (bk_fn(j) == f)
             return 1;
     for (j = 0; j < 12u; j++)
-        if (selb_fn(j) == f + 1u)
+        if (selb_fn(j) == f + 1u || (rec_bk() && recb_fn(j) == f + 1u))
             return 1;
     return rec_key_on() && rec_fn() == f;
 }

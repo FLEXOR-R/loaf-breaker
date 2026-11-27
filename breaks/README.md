@@ -3,7 +3,7 @@
 The source of the breaks built into LOAF BREAKER, and which of them go in: [`breaks.txt`](breaks.txt) lists every WAV here
 with its tempo, its bars and a name, and marks with `*` the ones in the firmware; ALGORITHM steps through them by
 tempo, slowest first (the slowest is the break at power-on). All paths are relative to this folder. The firmware has
-eight: AMEN10 135, AMEN05 158, AMEN20 164, UPDOWN 165, AMEN06 169, AMEN19 172, AMEN13 173 (seven of Cyberworm's Amens,
+seven: AMEN10 135, AMEN05 158, AMEN20 164, UPDOWN 165, AMEN19 172, AMEN13 173 (six of Cyberworm's Amens,
 from `cw/` and `huge/`) and FOCUZ 175 (from `flexor/`); every other line is in the site's library.
 
 ## classics/: the records
@@ -38,8 +38,8 @@ and labels, published by FLEXOR's choice. Their list, the records they come from
 ## cw/, huge/: Cyberworm's Amens
 
 60 Amen loops by Dmitriy "Cyberworm" Vasilyev (rhythm-lab.com), who offers them royalty free (`huge/info.txt`): 20 in
-`cw/` (tempo in the name), 40 from the "Huge Amen Break Loops Collection" in `huge/`. 16-bit 44.1 kHz WAV. Seven of
-the firmware's eight are theirs (0.9.70): AMEN10, AMEN05, AMEN20, AMEN06, AMEN19 and AMEN13 from `cw/`, UPDOWN from
+`cw/` (tempo in the name), 40 from the "Huge Amen Break Loops Collection" in `huge/`. 16-bit 44.1 kHz WAV. Six of
+the firmware's seven are theirs (0.9.93; AMEN06 in the library since): AMEN10, AMEN05, AMEN20, AMEN19 and AMEN13 from `cw/`, UPDOWN from
 `huge/`.
 
 ## How the bank is made

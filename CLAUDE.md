@@ -78,7 +78,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   reads it) in the library as AMEN 145, on an even grid (CHOPPAH's are on the hits: `played_slices` not taken); THINK
   114 at 22 kHz again (16 kHz: never). Every line of breaks.txt `*=` / `-=`: the firmware's, the site's library and the
   VST's bank all on the grid.
-- Bank and strip (20 Nov 2026, 0.9.70, FLEXOR's Break Lab 3, https://claude.ai/artifact/XTFcM7rNcos7EK8c2hDHQw, store `lab3/choix`; supersedes the bank above): 8 breaks, by BPM: AMEN10 135 (a new FM-1's first), AMEN05 158, AMEN20 164, UPDOWN 165, AMEN06 169, AMEN19 172, AMEN13 173, FOCUZ 175 (LOUDER, SATAN, PANTHER, BANGPHS, NIGHT to the library); every break of breaks.txt on an even grid (`*=` / `-=`, FLEXOR: "absolument tous") and at -12 LUFS (prep_breaks.py / break_lib.py default, -16 before; the BREAKS page's level and EVEN GRID defaults too); never 16 kHz (FLEXOR: "terriblement naze"). Image 550,628 B. The strip over the master's wave (screen.c draw_wave): SYSTEM › DISPLAY's PRESETS, RGB (the start), 3 BAND, BLUE, SERATO, GREY (as before), common.c `strip_style` in set.bta_codec (0xC0 | it, untagged RGB; RESET SCREEN), coloured from app.c `wave_b` (pool: each column's level as heard^0.8 and its three bands, wave_build) over the beats' grid; WAVE TYPE (set.wstyle) RGB, SERATO, 3 BAND, BLUE (`WS_*`, common.c `wave_col`: the CDJ view, the kick's and the drums' pictures, the strip; the Studio's editor.js `colOf` / drawRGB alike). Scenario strip.
+- Bank and strip (20 Nov 2026, 0.9.70, FLEXOR's Break Lab 3, https://claude.ai/artifact/XTFcM7rNcos7EK8c2hDHQw, store `lab3/choix`; supersedes the bank above): 8 breaks, by BPM: AMEN10 135 (a new FM-1's first), AMEN05 158, AMEN20 164, UPDOWN 165, AMEN06 169, AMEN19 172, AMEN13 173, FOCUZ 175 (LOUDER, SATAN, PANTHER, BANGPHS, NIGHT to the library; 0.9.93, FLEXOR: AMEN06 169 to the library too, for the REC layer's room: seven); every break of breaks.txt on an even grid (`*=` / `-=`, FLEXOR: "absolument tous") and at -12 LUFS (prep_breaks.py / break_lib.py default, -16 before; the BREAKS page's level and EVEN GRID defaults too); never 16 kHz (FLEXOR: "terriblement naze"). Image 550,628 B. The strip over the master's wave (screen.c draw_wave): SYSTEM › DISPLAY's PRESETS, RGB (the start), 3 BAND, BLUE, SERATO, GREY (as before), common.c `strip_style` in set.bta_codec (0xC0 | it, untagged RGB; RESET SCREEN), coloured from app.c `wave_b` (pool: each column's level as heard^0.8 and its three bands, wave_build) over the beats' grid; WAVE TYPE (set.wstyle) RGB, SERATO, 3 BAND, BLUE (`WS_*`, common.c `wave_col`: the CDJ view, the kick's and the drums' pictures, the strip; the Studio's editor.js `colOf` / drawRGB alike). Scenario strip.
 - Patterns (10 Nov 2026, 0.197): 64, four groups of 16 (`NGRP`, `NPAT_ALL`); the group in RAM is pats.p/kn/hits and
   steps.b (`set.pgrp`; `set.pattern` its slot; `pat_cur()` 0..63; `pat_go()` brings one in). Each group has its own
   objects (OBJ_PG0/KG0/SG0 + g; NG0's first is KICK 11-20 since 0.9.2, the others unused); SAVE (`store_all`) writes 11 (with OBJ_KLAB, OBJ_KMEM2, OBJ_KFXM, OBJ_DX, OBJ_KX2 since 0.9.45). Every drum 16, 32 or 64 steps (0.9.30, FLEXOR): the snare's, hat's, clap's bars 3-4 of all four groups in `dx` (OBJ_DX = OBJ_NG0 + 2, read through `dx_of`; `dx_tp` for a drop's pattern from another group), 64 = PAT_LEN bits 5-7 (`LEN64`), SEQ lanes S3 S4 H3 H4 C3 C4; their steps 33-64 share 1-32's stepb. Leaving a group with unsaved changes while playing is
@@ -200,6 +200,19 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   kick_set_px eq_g 0 then, the bands' DB / FREQ / Q never touched; lit while heard (a band's DB set, bit 1 clear); a band
   edited on its page (kpx_turn) clears bit 1, the knob functions (SK_PRE.., motions) don't. Probe peqoff; scenario
   peqkey; the scenarios turning K3 left of R8 one more (and mset's R8 to MOT, -2).
+- REC MODE, REC as a second SEL (27 Nov 2026, 0.9.93, FLEXOR: "une toute nouvelle section de touches noires grâce à la
+  touche REC qui fonctionnera comme SEL ... si je reste appuyé sur rec, et il se bloquera lui aussi si je double clique
+  ... rec + K1 jusqu'à K4 avec une page d'assignation ... les onglets relatifs à rec dans Arp s'afficheront seulement si
+  le mode rec est sur black keys"; his choices: REC MODE on SEL BLK's K4, REC alone nothing, AMEN06 169 out for the
+  room): app.c `rec_bk`, `rl_ok`, `rl_at`, `recb_fn` (1 + BKF_*), `reck_fn` (1 + SK_*), kx2.rsv[32] RL_TAG 0xB0 | bit 0
+  BLACK KEYS (the KITS' old tempo bytes: untagged CLASSIC, cleared when tagged), rsv[33..43] the keys', rsv[44..47] the
+  knobs'; `bk_rec_dn` (bk_fn after SEL's); main.c `rm_hold` / `rm_lock` / `rec_mod()` (the REC button stripped from
+  btn, two clicks within 400 ms lock, a press frees, a key or knob with it no click), REC + K1-K4 before SEL's (none:
+  the page's knob), ui.sel_foot 2 the REC foot, the REC LED lit held / blinking locked; ARP's tabs `OP_ORD` / `op_at`
+  / `op_n` (7 REC BLK "REC", 8 REC ASN "REC K", after SEL BLK, BLACK KEYS only, pad 1 to fit nine), ovl.c's SEL BLK
+  code for 7, track.c's ASSIGN for 8 (`as_rec`, `as_kf`, `AS_NONE`, -1 the NONE place). RESET's SEL KEYS clears the
+  layer (mode kept), RESET ALL all. Probes recmode reclock recb reck1 bkfn0; scenario reclayer. Image 550,488 B
+  (AMEN06 169 out, seven breaks: ~31 KB left).
 - SEQ without the black keys' row (26 Nov 2026, 0.9.86, FLEXOR: "enlève la ligne des touches noires au dessus des
   carrés de knob pour gagner de la place pour le séquenceur"): seq.c SQ_H 162 (44..205, 148 before), main.c draw_foot on
   PG_SEQ its cards alone, 34 rows blitted at 206 (cv_oy -15).

@@ -5,6 +5,15 @@
 /* LOAF BREAKER: KICK FX: the FX page on the kick's slots (4, 5); (TEST) EDIT KICK's FX 1, FX 2 parts */
 #define IS_KFX() (ui.page == PG_FX && ui.fx_focus >= BRK_FX_SLOTS)
 static void page_say(void);
+/* LOAF BREAKER (0.9.93, FLEXOR): REC MODE BLACK KEYS: REC as SEL, held (rm_hold) or locked (REC x2, rm_lock: pressed
+ * again, free); a black key or a knob with it: its REC function (app.c recb_fn, reck_fn); REC alone nothing */
+static uint8_t rm_hold, rm_lock, rm_combo, rm_free, rm_clicks;
+static uint32_t rm_t, rm_click_t;
+static uint32_t rec_mod(void) { return rec_bk() && (rm_hold || rm_lock); }
+static const uint8_t OP_ORD[9] = {0u, 1u, 2u, 7u, 8u, 3u, 4u, 5u, 6u};   /* (ARP's tabs in order: REC BLK and REC ASN
+                                          * after SEL BLK, shown in REC MODE BLACK KEYS only) */
+static uint32_t op_n(void) { return rec_bk() ? 9u : 7u; }
+static uint32_t op_at(uint32_t i) { return rec_bk() ? OP_ORD[i % 9u] : i % 7u; }   /* (the i-th tab's page) */
 static void home_back(void)              /* (LOAF BREAKER, 0.9.2, FLEXOR: a page's button again, where SELECT and
                                           * ALGORITHM move in it: back to HOME, the main page) */
 {
@@ -360,6 +369,7 @@ static void reset_all(void)
     selk_clear();                        /* (0.9.49: no SEL layer) */
     kx2.rsv[KB_RSV] = kx2.rsv[KB_RSV + 1u] = 0u;   /* (0.9.58: KILL BREAK as it starts) */
     kx2.rsv[RK_RSV] = kx2.rsv[RK_RSV + 1u] = 0u;   /* (0.9.58: REC records, its key's function KILL BREAK) */
+    memset(&kx2.rsv[RL_RSV], 0, 16u);    /* (0.9.93: REC MODE CLASSIC, no REC layer) */
     kbrk_hold = 0u;
     kfx_all();                           /* (0.9.26: every kick's FX section as the defaults left it) */
     kmem_extras();                       /* (0.9.33: KICK 7 TERROR, KICK 8 SPINE, whole) */
@@ -644,6 +654,15 @@ static void enc_one(int k, int32_t d, uint32_t btn)   /* an encoder turned d (in
         clr_arm = 0u;
         return;
     }
+    if (k >= EN_K1 && k <= EN_K4 && rec_mod() && !(btn & 1u << B_SEL) && !bk_knobs_held()) {
+        rm_combo = 1u;                   /* (0.9.93: REC + K1-K4, REC held or locked: its REC function; none, the knob
+                                          * as without REC) */
+        if (reck_fn((uint32_t)(k - EN_K1))) {
+            selk_turn(reck_fn((uint32_t)(k - EN_K1)) - 1u, 0, d);
+            ui.redraw |= RG_FOOT;
+            return;
+        }
+    }
     if (k >= EN_K1 && k <= EN_K4 && btn & 1u << B_SEL && !bk_knobs_held()) {   /* LOAF BREAKER: SEL + K1 DUCK, K2 TERROR 2, K3 COMP
                                       * (was LIMIT), K4 TERROR, on any page: its amount (its settings: ENV's KNOB) */
         selk_turn(selk_fn((uint32_t)(k - EN_K1)), 0, d);
@@ -715,7 +734,11 @@ static void enc_one(int k, int32_t d, uint32_t btn)   /* an encoder turned d (in
         return;
     }
     if (k == EN_SELECT && ui.page == PG_OVL && !set.novice) {   /* (0.9.2, FLEXOR: OVERLAY, SELECT its tabs) */
-        ui.opage = (uint8_t)((ui.opage + (d > 0 ? 1u : 6u)) % 7u);   /* (0.9.86: M SET, the seventh) */   /* (0.9.85: ASSIGN, then MOTION; 0.9.86 HOME K4 between) */   /* (0.9.52, FLEXOR: both ways; 0.9.71 SEL WHITE
+        uint32_t n = op_n(), o;
+        for (o = 0; o < n && op_at(o) != ui.opage; o++)
+            ;
+        ui.opage = (uint8_t)op_at((o + (d > 0 ? 1u : n - 1u)) % n);   /* (0.9.93: REC BLK and REC ASN after SEL BLK, REC MODE
+                                          * BLACK KEYS only) */   /* (0.9.86: M SET, the seventh) */   /* (0.9.85: ASSIGN, then MOTION; 0.9.86 HOME K4 between) */   /* (0.9.52, FLEXOR: both ways; 0.9.71 SEL WHITE
                                       * and KITS gone: ARP, BLACK, SEL BLACK) */
         page_say();
         ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
@@ -776,8 +799,10 @@ static void enc_one(int k, int32_t d, uint32_t btn)   /* an encoder turned d (in
             mo_turn(2, d);
         else if (ui.page == PG_OVL && ui.opage == 4u)
             hk_fam_turn(d);          /* (0.9.86: HOME K4, ALGORITHM a family on) */
-        else if (ui.page == PG_OVL && ui.opage == 3u)
-            as_fam_turn(d);          /* (0.9.86: ASSIGN, ALGORITHM the knob touched last a family on) */           /* (0.9.85: MOTION, ALGORITHM the lane, as K3) */
+        else if (ui.page == PG_OVL && (ui.opage == 3u || ui.opage == 8u)) {
+            as_rec = ui.opage == 8u;     /* (0.9.93: REC ASN alike) */
+            as_fam_turn(d);
+        }          /* (0.9.86: ASSIGN, ALGORITHM the knob touched last a family on) */           /* (0.9.85: MOTION, ALGORITHM the lane, as K3) */
         else if (ui.page == PG_OVL && ui.opage >= 1u)
             bk_turn(1, d);           /* (0.9.26, FLEXOR: ARP › BLACK KEYS, ALGORITHM the key, as K2) */
         else if (ui.page == PG_TRACK && ui.tpage == 0u)
@@ -954,19 +979,43 @@ static void input(void)
                                           * 0.9.70, FLEXOR: when it has a function on BLACK, or a SEL function and SEL is
                                           * held or locked as it goes down, or on ARP's BLACK tabs to pick it; else it
                                           * records; decided as it goes down, kept until it is let go) */
-        static uint8_t rk_held, rk_key;
+        static uint8_t rk_held, rk_key, rk_mod;
         if (btn >> B_REC & 1u) {
             if (!rk_held) {
                 rk_held = 1u;
-                rk_key = (uint8_t)(rec_key_on() || (btn >> B_SEL & 1u && selb_fn(11u)) ||
+                rk_key = (uint8_t)((!rec_bk() && rec_key_on()) || (btn >> B_SEL & 1u && selb_fn(11u)) ||
                                    (ui.page == PG_OVL && ui.opage >= 1u && ui.opage <= 2u && !set.novice));
+                rk_mod = (uint8_t)(!rk_key && rec_bk());   /* (0.9.93: REC MODE BLACK KEYS, REC as SEL) */
+                if (rk_mod && rm_lock) {
+                    rm_lock = 0u;
+                    rm_free = 1u;        /* (that press frees it, no click) */
+                    app_say("REC", "FREE");
+                } else if (rk_mod) {
+                    rm_free = rm_combo = 0u;
+                    rm_t = now;
+                }
+                rm_hold = rk_mod;
             }
             if (rk_key) {
                 keys |= REC_KEY;
                 btn &= ~(1u << B_REC);
+            } else if (rk_mod)
+                btn &= ~(1u << B_REC);   /* (it records no more: REC alone nothing, FLEXOR) */
+        } else {
+            if (rk_mod && !rm_free && !rm_combo && now - rm_t < 400u) {   /* (up alone, a click: two within 400 ms,
+                                          * locked) */
+                rm_clicks = (uint8_t)(now - rm_click_t < 400u && rm_clicks ? rm_clicks + 1u : 1u);
+                rm_click_t = now;
+                if (rm_clicks >= 2u) {
+                    rm_clicks = 0u;
+                    rm_lock = 1u;
+                    app_say("REC", "LOCKED: PRESS TO FREE");
+                }
             }
-        } else
-            rk_held = rk_key = 0u;
+            rk_held = rk_key = rk_mod = rm_hold = 0u;
+        }
+        if (!rec_bk())
+            rm_lock = 0u;
     }
     if (sel_now && !ui.sel_raw)
         ui.sel_t = now;                  /* (LOAF BREAKER: SEL down: held a moment, the foot shows its knobs) */
@@ -1105,7 +1154,7 @@ static void input(void)
                     ui.key_since = now;
                 }
     }
-    if (ui.page == PG_OVL && ui.opage >= 1u && ui.opage <= 2u) {   /* LOAF BREAKER: ARP › BLACK KEYS (0.9.49: and SEL KEYS): a black key
+    if (ui.page == PG_OVL && ((ui.opage >= 1u && ui.opage <= 2u) || ui.opage == 7u)) {   /* (0.9.93: REC BLK too) LOAF BREAKER: ARP › BLACK KEYS (0.9.49: and SEL KEYS): a black key
                                           * picks itself (what was held lets go as ever; nothing new starts) */
         for (i = 0; i < 11u; i++)
             if (kdn >> BK[i] & 1u)
@@ -1125,6 +1174,12 @@ static void input(void)
                 bk_sel_dn |= (uint16_t)(1u << i);
             else
                 bk_sel_dn &= (uint16_t)~(1u << i);
+            if (rec_mod())               /* (0.9.93: REC held or locked: its REC function, when it has one) */
+                rm_combo = 1u;
+            if (rec_mod() && !(bk_sel_dn >> i & 1u) && recb_fn(i))
+                bk_rec_dn |= (uint16_t)(1u << i);
+            else
+                bk_rec_dn &= (uint16_t)~(1u << i);
         }
     if (kdn & REC_KEY) {                 /* (0.9.70, FLEXOR: the REC key's SEL function, as the black keys') */
         if (btn & 1u << B_SEL)
@@ -1385,9 +1440,11 @@ static void input(void)
             if ((keys & PAD_BIT(i)))
                 ui.pad_focus = (int8_t)i;
     }
-    for (i = 0; i < 11u; i++)            /* (0.9.49: let go: its own function again) */
-        if (!(keys >> BK[i] & 1u))
+    for (i = 0; i < 11u; i++)            /* (0.9.49: let go: its own function again; 0.9.93 the REC layer's too) */
+        if (!(keys >> BK[i] & 1u)) {
             bk_sel_dn &= (uint16_t)~(1u << i);
+            bk_rec_dn &= (uint16_t)~(1u << i);
+        }
     if (!(keys & REC_KEY))               /* (0.9.70: the REC key too) */
         bk_sel_dn &= (uint16_t)~(1u << 11);
     if (bdn & 1u << B_PLAY) {
@@ -1839,7 +1896,9 @@ static void leds(void)
                                              B_EDIT, B_GLO, B_HOME, B_HOME};   /* (TEST: KICK EQ under EDIT; 0.9.56 SETTINGS under GLO) */
     b |= 1u << (IS_KFX() || (ui.page == PG_GLOBAL && ui.gpage == GP_BREAK) ? B_EDIT : ui.page == PG_GLOBAL &&
                 ui.gpage == GP_FILL ? B_SEQ : PAGE_BTN[ui.page]);   /* (LOAF BREAKER: SOUNDS' BREAK, PATTERN's GROOVE) */
-    if (rec_key_on() ? bkf_lit(rec_fn(), &st) != 0 : ui.rec != 0u)   /* (0.9.58: the REC key lit as its function) */
+    if (rec_bk() ? (rm_lock ? (plat_ms() / 250u) & 1u : rm_hold) != 0u   /* (0.9.93: REC as SEL: lit held, blinking
+                                          * locked) */
+        : rec_key_on() ? bkf_lit(rec_fn(), &st) != 0 : ui.rec != 0u)   /* (0.9.58: the REC key lit as its function) */
         b |= 1u << B_REC;
     if (set_dirty)
         b |= 1u << B_SAVE;
@@ -1865,7 +1924,8 @@ static void leds(void)
         uint32_t f = bk_fn_shown(i);
         if (f == BKF_ARP ? arpk_on(i) : bkf_lit(f, &st))
             k |= 1u << BK[i];
-        if (sel && selb_fn(i))           /* (0.9.57: SEL held or locked: the keys with a SEL function, mid) */
+        if ((sel && selb_fn(i)) || (rec_mod() && recb_fn(i)))   /* (0.9.57: SEL held or locked: the keys with a SEL
+                                          * function, mid; 0.9.93 REC's alike) */
             mk |= 1u << BK[i];
     }
     if (sel) {                           /* (0.9.57: the buttons with a SEL combination, mid) */
@@ -2043,7 +2103,7 @@ static void knob_value(int i, char *t)  /* the page's knob i (0..3), as shown un
 /* the tab bar under the header: the button's name, then the page's parts as tabs (the one you are on lit: the
  * button again, or ALGORITHM, goes to the next); EDIT and FX also name the part edited, "< SUB FX >" */
 static int8_t build_stut = -1;          /* (a build's break roll: the roll pad it holds, -1 none) */
-static const char *const OPAGE_NAME[7] = {"ARP", "BLK", "SEL BLK", "ASSIGN", "K4", "MOTION", "M SET"};   /* (0.9.86, FLEXOR:
+static const char *const OPAGE_NAME[9] = {"ARP", "BLK", "SEL BLK", "ASSIGN", "K4", "MOTION", "M SET", "REC", "REC K"};   /* (0.9.93: REC BLK, REC ASN: their headers REC BLACK, REC KNOB ASSIGN) */   /* (0.9.86, FLEXOR:
                                           * "raccourcir le nom de certains trucs dans arp pour avoir + d'onglets": BLK, SEL
                                           * BLK, K4 (the header says HOME K4), M SET (MOTION SETTINGS)) */   /* (0.9.85: MOTION, a TEST) */   /* (0.9.53, FLEXOR: BLACK, there is room) */   /* (SETTINGS 0.9.50-0.9.51) */   /* (LOAF BREAKER: ARP's tabs) */
 #if LB_BIG
@@ -2118,9 +2178,9 @@ static void draw_tabs(void)
             x = tab_glo(x, GLO_ORD[i], GLO_ORD[i] == GLO_HSET);
     else if (ui.page == PG_OVL) {        /* (LOAF BREAKER: EXPERT, its three tabs; BEGINNER, ARP EFFECTS alone: no tab) */
         if (!set.novice)
-            for (i = 0; i < 7u; i++)     /* (0.259, FLEXOR: MORE gone for now; 0.9.49 SEL KEYS; SEL WHITE and KITS
-                                          * 0.9.50-0.9.70) */
-                x = tab(x, OPAGE_NAME[i], i == ui.opage);
+            for (i = 0; i < op_n(); i++)   /* (0.259, FLEXOR: MORE gone for now; 0.9.49 SEL KEYS; SEL WHITE and KITS
+                                          * 0.9.50-0.9.70; 0.9.93 REC BLK, REC ASN) */
+                x = tab_pad(x, OPAGE_NAME[op_at(i)], op_at(i) == ui.opage, op_n() > 7u ? 1 : 4, op_n() > 7u ? 1 : 3);
     }
     else if (ui.page == PG_TRACK)        /* LOAF BREAKER: ENV: TRACKS, PLAY, DROP */
         for (i = 0; i < NTORD; i++)   /* (TRACKS, PLAY, DROP, BUILD: no "ENV" before them, for the room; 0.9.69:
@@ -2216,7 +2276,7 @@ static void page_say(void)
     case PG_MIX: text_cat(t, ui.mpage == 3u ? "DYNAMICS" : ui.mpage == 2u ? "MASTER" : ui.mpage ? "ROUTING" : "LEVELS"); break;
     case PG_SEQ: text_cat(t, SEQ_BRK ? "BREAK" : SEQ_LANE_NAME[ui.seq_lane % NSEQL]); break;
     case PG_TRACK: text_cat(t, TPART[ui.tpage % NTPART]); break;
-    case PG_OVL: text_cat(t, ui.opage == 6u ? "MOTION SETTINGS" : ui.opage == 4u ? "HOME K4" : ui.opage == 3u ? "KNOB ASSIGN" : ui.opage == 2u ? "SEL BLACK" : ui.opage == 1u ? "BLACK" : ui.opage % 7u ? OPAGE_NAME[ui.opage % 7u] : "EFFECTS"); break;   /* (LOAF BREAKER: its tabs;
+    case PG_OVL: text_cat(t, ui.opage == 8u ? "REC KNOB ASSIGN" : ui.opage == 7u ? "REC BLACK" : ui.opage == 6u ? "MOTION SETTINGS" : ui.opage == 4u ? "HOME K4" : ui.opage == 3u ? "KNOB ASSIGN" : ui.opage == 2u ? "SEL BLACK" : ui.opage == 1u ? "BLACK" : ui.opage % 9u ? OPAGE_NAME[ui.opage % 9u] : "EFFECTS"); break;   /* (LOAF BREAKER: its tabs;
                                           * 0.9.69: its first EFFECTS, not "ARP ARP") */
     case PG_FX:
         text_cat(t, IS_KFX() ? "KICK FX " : "SLOT ");
@@ -2364,13 +2424,14 @@ static const char *knob_name(int i)
                                              {"BREAK", "ROLL FROM", "GAP KEEPS", ""},   /* (0.9.58: K3 GAP KEEPS) */
                                              {"DROP", "BUILD", "STYLE", "AFTER"}};   /* (0.9.58: DROPS) */   /* (0.9.50: SONG › BREAK) */
     static const char *const KN_FILL[4] = {"SWING", "BREAK ROWS", "FOLLOW", ""};   /* (LOAF BREAKER: GROOVE; 0.244 FILL gone) */
-    static const char *const KN_BK[3][4] = {{"PRESET", "KEY", "EFFECT", ""}, {"", "KEY", "SEL +", ""},
+    static const char *const KN_BK[3][4] = {{"PRESET", "KEY", "EFFECT", ""}, {"", "KEY", "SEL +", "REC MODE"},
                                               {"", "KEY", "KIND", "VALUE"}};   /* (ARP's
                                       * BLACK KEYS, MORE) */
     static const char *const KN_LIGHTS[4] = {"GLOW", "PULSE", "PULSE ON", "STYLE"};   /* (0.9.57: SYSTEM › LIGHTS) */
-    static const char *const AS_KNOB[4] = {"SEL+K1", "SEL+K2", "SEL+K3", "SEL+K4"};
+    static const char *const AS_KNOB[2][4] = {{"SEL+K1", "SEL+K2", "SEL+K3", "SEL+K4"}, {"REC+K1", "REC+K2", "REC+K3", "REC+K4"}};
+    static const char *const KN_RB[4] = {"", "KEY", "REC +", ""};   /* (0.9.93: REC BLK) */
     static const char *const HK_KNOB[4] = {"HOME K4", "", "", ""};
-    const char *name = ui.page == PG_OVL && ui.opage == 6u ? MS_KNOB[i] : ui.page == PG_OVL && ui.opage == 5u ? MO_KNOB[i] : ui.page == PG_OVL && ui.opage == 4u ? HK_KNOB[i] : ui.page == PG_OVL && ui.opage == 3u ? AS_KNOB[i] : ui.page == PG_OVL && ui.opage ? KN_BK[(ui.opage - 1u) % 2u][i] :
+    const char *name = ui.page == PG_OVL && ui.opage == 6u ? MS_KNOB[i] : ui.page == PG_OVL && ui.opage == 5u ? MO_KNOB[i] : ui.page == PG_OVL && ui.opage == 4u ? HK_KNOB[i] : ui.page == PG_OVL && (ui.opage == 3u || ui.opage == 8u) ? AS_KNOB[ui.opage == 8u][i] : ui.page == PG_OVL && ui.opage == 7u ? KN_RB[i] : ui.page == PG_OVL && ui.opage ? KN_BK[(ui.opage - 1u) % 2u][i] :
                        ui.page == PG_GLOBAL && ui.gpage == GP_FILL ? KN_FILL[i] : ui.page == PG_GLOBAL &&
                        ui.gpage == GP_LIGHTS ? KN_LIGHTS[i] : RST_ON ? KN_TRK[3][i] : ui.page == PG_TRACK &&
                        ui.tpage ? KN_TRK[ui.tpage == 7u ? 5u : ui.tpage == 6u ? 4u : ui.tpage == 4u ? 2u : (ui.tpage - 1u) & 1u][i] : ui.page == PG_GLOBAL &&
@@ -2476,7 +2537,13 @@ static void draw_foot(const brk_status_t *st)
     }
     for (i = 0; i < 4u; i++) {
         const char *name = knob_name((int)i);
-        if (ui.sel_foot) {               /* LOAF BREAKER (0.258, FLEXOR): SEL held or locked (SEL x2): the knobs are
+        if (ui.sel_foot == 2u && reck_fn(i)) {   /* (0.9.93: REC + K1-K4: those given a function; the others the
+                                          * page's, below) */
+            selk_value(reck_fn(i) - 1u, 0, t);
+            foot_card(i, SK_NAME[(reck_fn(i) - 1u) % SK_N], C_HI, t, sk_norm(reck_fn(i) - 1u, 0), 0);
+            continue;
+        }
+        if (ui.sel_foot == 1u) {         /* LOAF BREAKER (0.258, FLEXOR): SEL held or locked (SEL x2): the knobs are
                                           * SEL + K1-K4's, their functions (EDIT KICK › KNOBS) and their values */
             selk_value(selk_fn(i), 0, t);
             foot_card(i, SK_NAME[selk_fn(i)], C_AMB, t, sk_norm(selk_fn(i), 0), 0);
@@ -2910,7 +2977,9 @@ void app_frame(void)
     }
     {                                    /* LOAF BREAKER (0.258): SEL held a moment (not a click) or locked: the foot
                                           * shows SEL + K1-K4; let go, the page's again */
-        uint8_t sf = (uint8_t)((ui.sel_lock || (ui.sel_raw && now - ui.sel_t >= 300u)) && !bk_knobs_held());   /* (0.9.57,
+        uint8_t sf = (uint8_t)((ui.sel_lock || (ui.sel_raw && now - ui.sel_t >= 300u)) && !bk_knobs_held());
+        if (!sf && (rm_lock || (rm_hold && now - rm_t >= 300u)) && rec_bk() && !bk_knobs_held())
+            sf = 2u;                     /* (0.9.93: REC held a moment or locked: the foot shows REC + K1-K4) */   /* (0.9.57,
                                           * FLEXOR: a black key held with SEL: its own knobs shown and turned) */
         if (sf != ui.sel_foot) {
             ui.sel_foot = sf;
@@ -4289,8 +4358,8 @@ int app_expect(const char *what, int *got)
                                     "lane_hat", "pattern", "brk", "brk_next", "help", "drums_chain", "lobo",
                                     "ovl_on", "ovl_last", "ovl_latch", "roll_pitch_x10", "demo", "fx_page",
                                     "mb_solo", "mb_thr_low", "mb_slot2_thr_low", "trk_on", "trk_pos", "fx_p1", "kfx_fa", "kfx", "knotes", "comp", "knfn", "half_on", "intensity", "kpage", "t_type", "t_screech", "drop_style", "selk1", "selk3_fn", "khits", "trk_cur", "trk_it", "fx_type", "mb_kick", "mb_pre", "fill", "kbass1", "accel", "trk_from", "arp_fx", "arp_amt", "arp_more", "arp_thru", "ovl_rate", "kpreset", "aud_d", "kslot", "dirty", "brk_lvl", "kick_vol", "sfx_on", "sel_lock", "kick_dj", "csub", "kmorph", "kmorph_to", "ktune", "pbig", "playing", "kbar1", "kbar2", "kbar3", "selk1_fn", "selk4_fn", "kdrop", "ter_off", "terror", "mpage", "pgrp", "grp_dirty", "piano", "pcur", "hvn1", "hvn2", "hvn3", "minst", "mel_vol", "einst", "kpre", "kl_mode", "kl_note", "kl_src", "kl_end", "ab", "kview", "ksect", "wstyle", "kfocus", "rst_cool", "tut", "ezoom", "kv_ms", "beat", "lane_mask", "swing", "drop_bars", "ppre", "pfx", "pdirt", "proom", "lane_steps", "fx_scene", "keasy", "subdrv", "seq_brk", "brkview", "bk_pre", "bk_fn", "bk_key", "frz_len", "opage", "auto_save", "bhalf", "wiped", "skin", "bstut", "bgapm", "pads", "padlat", "fthru", "key", "key_n", "klen0", "rdiv0", "n_user", "n_breaks", "brk_dj", "rthru", "drv_off", "sub_off", "tok", "gate", "arp_bits", "bk_arpfx", "kit", "psmp", "kx2on", "selk", "swcat", "swval", "swfx", "building", "wslayer", "klen15", "kdec15", "broll", "stut", "fxwet", "tempo10", "kitsel", "kit0kick", "vthru", "dafter",
-                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold", "subfa", "dft", "swon", "strip", "kl_amt", "dbrk", "split", "split_at", "half", "half_ask", "layer", "split_b", "kdec0", "bpitch", "chaos", "cmath", "crolls", "cseed", "rkick", "rsnare", "rhat", "chsw", "ctl", "ctln", "ctllast", "ctllitk", "ctlmidk", "ctlmaster", "pxlow", "pxmid", "pxhigh", "pxmidf", "pxq", "pxlof", "xo", "xsg", "xdrv", "xdec", "phits", "kilwhat", "mo", "morec", "mofn0", "mon0", "blkdraws", "xoff", "hgate", "homek4", "mocur", "mused", "moset", "rain", "rainhop", "pxql", "pxqh", "peqoff"};
-    int v[246];
+                                    "lglow", "lpulse", "lon", "lstyle", "llitk", "lmidk", "ldimk", "llitb", "lmidb", "ldimb", "keqflat", "dsel", "dbars", "tpage", "kbrk", "kbmode", "kbgain", "reckey", "recfn", "recording", "trkwant", "bstep", "trk", "notesin", "duckwhat", "kswitch", "kickhold", "subfa", "dft", "swon", "strip", "kl_amt", "dbrk", "split", "split_at", "half", "half_ask", "layer", "split_b", "kdec0", "bpitch", "chaos", "cmath", "crolls", "cseed", "rkick", "rsnare", "rhat", "chsw", "ctl", "ctln", "ctllast", "ctllitk", "ctlmidk", "ctlmaster", "pxlow", "pxmid", "pxhigh", "pxmidf", "pxq", "pxlof", "xo", "xsg", "xdrv", "xdec", "phits", "kilwhat", "mo", "morec", "mofn0", "mon0", "blkdraws", "xoff", "hgate", "homek4", "mocur", "mused", "moset", "rain", "rainhop", "pxql", "pxqh", "peqoff", "recmode", "reclock", "recb", "reck1", "bkfn0"};
+    int v[251];
     uint32_t i;
     v[0] = ui.page;
     v[1] = ui.gpage;
@@ -4585,6 +4654,12 @@ int app_expect(const char *what, int *got)
     v[243] = kpx_at(set.kslot)->eq_qe[0];   /* (0.9.87: PRL's and PRH's Q) */
     v[244] = kpx_at(set.kslot)->eq_qe[1];
     v[245] = kpx_at(set.kslot)->xoff >> 1 & 1u;   /* (0.9.93: the PEQ switch off) */
+    v[246] = (int)rec_bk();              /* (0.9.93: REC MODE BLACK KEYS, REC locked, the key's REC function, REC + K1's,
+                                          * black key 1's function as it plays now) */
+    v[247] = rm_lock;
+    v[248] = (int)recb_fn(ui.bk_sel);
+    v[249] = (int)reck_fn(0u);
+    v[250] = (int)bk_fn(0u);
     v[161] = set.vinyl & 3u;             /* (0.9.54: VINYL BREAK's THRU, 0 BOTH 1 BREAK 2 KICK) */
     v[140] = kx2_at(set.kslot)->tok;     /* (0.9.45: the kick's TOK level) */
     v[141] = kx2_at(set.kslot)->gate;    /* (its TAIL GATE's division) */

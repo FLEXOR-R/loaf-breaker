@@ -747,6 +747,23 @@ plays it, REC alone does what BLACK gives it (NONE: it records).
 
 ![SEL BLACK: key 11 with SEL, KICKS X2 (without SEL: SUB FX)](img/screen-selblack.png "SEL BLACK")
 
+**REC MODE: REC as a second SEL** (0.9.93, FLEXOR). SEL BLACK's **K4 REC MODE**: **CLASSIC** (to start: REC as it
+always was) or **BLACK KEYS**. In BLACK KEYS, REC works exactly as SEL: **hold REC**, or **press it twice** to lock
+it (it blinks; press it again to free it), and the black keys play their **REC functions**, the knobs their **REC +
+K1–K4** functions. REC alone does nothing then (back to CLASSIC to record, or to play the REC key's function). Two
+tabs appear after SEL BLACK, only in BLACK KEYS:
+- **REC** (REC BLACK): as SEL BLACK, **K2 KEY** (or ALGORITHM, or press the key), **K3 REC +**: what that key does
+  with REC, ITS OWN or any function. The eleven black keys (REC is the one you hold).
+- **REC K** (REC KNOB ASSIGN): as ASSIGN, the four knobs on the left, every function on the right by family; turn
+  K1–K4 to give REC + that knob a function, ALGORITHM jumps a family. Left of the first one, **NONE**: that knob
+  stays the page's own while REC is held.
+
+While REC is held or locked, the foot shows the REC + K1–K4 functions (the others the page's), the strip and the
+lights the black keys' REC functions. SAVE keeps them; RESET's SEL KEYS clears the REC layer too (REC MODE kept),
+RESET ALL all of it.
+
+![ARP › REC: key 1 with REC, KICKS OFF](img/reclayer_recblk.png "REC BLACK")
+
 **LIGHTS** (0.9.57, FLEXOR; after SCREEN SET): the FM-1's lights. They have four levels, each with a meaning: **off**,
 the **glow** (at rest: there, it does something), **mid** (assigned, or where the sequencer is) and **lit** (on,
 playing). Every button and key glows at rest (the keys too, since 0.9.57); a lit one is lit; on a lane's page (SEQ, a

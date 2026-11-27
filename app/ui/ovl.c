@@ -139,15 +139,18 @@ static void bk_say(void)
     if (ui.bk_sel >= nbk())
         ui.bk_sel = 0u;
     bk_key_name(ui.bk_sel, t);
-    if (ui.opage == 2u) {                /* (0.9.49: SEL KEYS, SEL + the key) */
-        text_cat(t, " + SEL");
-        app_say(t, selb_fn(ui.bk_sel) ? BKF_LONG[selb_fn(ui.bk_sel) - 1u] : "ITS OWN");
+    if (ui.opage == 2u || ui.opage == 7u) {   /* (0.9.49: SEL KEYS, SEL + the key; 0.9.93 REC BLK, REC + it) */
+        uint32_t f = ui.opage == 7u ? recb_fn(ui.bk_sel) : selb_fn(ui.bk_sel);
+        text_cat(t, ui.opage == 7u ? " + REC" : " + SEL");
+        app_say(t, f ? BKF_LONG[f - 1u] : "ITS OWN");
         return;
     }
     app_say(t, bk_long(ui.bk_sel));
 }
 static void bk_pick(uint32_t j)          /* a black key pressed on BLACK KEYS */
 {
+    if (ui.opage == 7u && j >= 11u)      /* (0.9.93: REC BLK, REC is the layer's own key) */
+        return;
     ui.bk_sel = (uint8_t)(j % nbk());
     bk_say();
     ui.redraw |= RG_BLOCKS | RG_FOOT;
@@ -155,13 +158,17 @@ static void bk_pick(uint32_t j)          /* a black key pressed on BLACK KEYS */
 static void bk_value(int i, char *t)
 {
     t[0] = 0;
-    if (ui.opage == 2u) {                /* (0.9.49: SEL KEYS: K2 the key, K3 its SEL function) */
+    if (ui.opage == 2u || ui.opage == 7u) {   /* (0.9.49: SEL KEYS: K2 the key, K3 its SEL function; 0.9.93 REC BLK
+                                          * alike, SEL BLK's K4 REC MODE) */
+        uint32_t f = ui.opage == 7u ? recb_fn(ui.bk_sel) : selb_fn(ui.bk_sel);
         if (i == 1 && ui.bk_sel == 11u)
             text_cat(t, "REC");
         else if (i == 1)
             int_text((int32_t)ui.bk_sel % 11 + 1, t);
         else if (i == 2)
-            text_cat(t, selb_fn(ui.bk_sel) ? BKF_LONG[selb_fn(ui.bk_sel) - 1u] : "ITS OWN");   /* (0.9.70: REC too) */
+            text_cat(t, f ? BKF_LONG[f - 1u] : "ITS OWN");   /* (0.9.70: REC too) */
+        else if (i == 3 && ui.opage == 2u)
+            text_cat(t, rec_bk() ? "BLACK KEYS" : "CLASSIC");
         return;
     }
     if (i == 0)
@@ -181,6 +188,28 @@ static void bk_turn(int i, int32_t d)
     uint32_t j;
     if (set.novice)
         return;
+    if (ui.opage == 2u && i == 3) {      /* (0.9.93, FLEXOR: SEL BLK's K4 REC MODE: CLASSIC, REC as ever; BLACK KEYS, REC
+                                          * as SEL, its tabs REC BLK and REC ASN in ARP) */
+        (void)rl_at(0u);
+        kx2.rsv[RL_RSV] = (uint8_t)(RL_TAG | (d > 0 ? 1u : 0u));
+        bk_release_all();
+        app_say("REC MODE", rec_bk() ? "BLACK KEYS" : "CLASSIC");
+        set_dirty = 1u;
+        ui.redraw |= RG_HEAD | RG_BLOCKS | RG_FOOT;
+        return;
+    }
+    if (ui.opage == 7u && i != 1) {      /* (0.9.93: REC BLK: K3 the key's function with REC, ITS OWN then every
+                                          * function, round) */
+        uint8_t *v = rl_at(ui.bk_sel % 11u);
+        if (i != 2)
+            return;
+        bk_release_all();
+        *v = (uint8_t)((recb_fn(ui.bk_sel) + (uint32_t)(dir > 0 ? 1 : BKF_N)) % (BKF_N + 1u));
+        bk_say();
+        set_dirty = 1u;
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        return;
+    }
     if (ui.opage == 2u && i != 1) {      /* (0.9.49, FLEXOR: SEL KEYS: K3 the key's function with SEL, ITS OWN (none)
                                           * then every function, round) */
         uint8_t *v = ui.bk_sel == 11u ? &kx2.selrec : &kx2.selk[ui.bk_sel % 11u];   /* (0.9.70, FLEXOR: the REC key's too) */
@@ -206,7 +235,8 @@ static void bk_turn(int i, int32_t d)
         flexor_lay_fix(1);               /* (0.9.58: its key 5 RISE) */
         app_say("BLACK KEYS", BKP_NAME[p]);
     } else if (i == 1) {
-        ui.bk_sel = (uint8_t)clamp((int32_t)ui.bk_sel + dir, 0, (int32_t)nbk() - 1);   /* (0.9.58: the REC key last) */
+        ui.bk_sel = (uint8_t)clamp((int32_t)ui.bk_sel + dir, 0, (int32_t)nbk() - (ui.opage == 7u ? 2 : 1));   /* (0.9.58: the
+                                          * REC key last; 0.9.93 not on REC BLK: REC is held there) */
         bk_say();
         ui.redraw |= RG_BLOCKS | RG_FOOT;
         return;
@@ -252,14 +282,14 @@ static void draw_bk(void)
 {
     static const uint8_t GRP[11] = {0, 0, 0, 1, 1, 2, 2, 2, 3, 3, 4};
     uint32_t band, j, p = bk_preset();
-    int sl = ui.opage == 2u;             /* (0.9.49: SEL KEYS) */
+    int sl = ui.opage == 2u || ui.opage == 7u, rl = ui.opage == 7u;   /* (0.9.49: SEL KEYS; 0.9.93 REC BLK) */
     char t[40];
     for (band = 0; band < 2u; band++) {
         cv_begin(240, 52, C_BLACK);
         cv_oy = -(int32_t)band * 52;
         for (j = 0; j < nbk(); j++) {    /* (0.9.58: the REC key last, right, narrower keys to fit) */
             int rk = j == 11u;
-            uint32_t f = bk_fn(j), sf = selb_fn(j);   /* (0.9.70: the REC key's SEL function too) */
+            uint32_t f = bk_fn(j), sf = rl ? recb_fn(j) : selb_fn(j);   /* (0.9.70: the REC key's SEL function too) */
             int32_t kw = nbk() > 11u ? 15 : 17, x = nbk() > 11u ? (rk ? 212 : 4 + (int32_t)j * 17 + (int32_t)GRP[j] * 4)
                                                                 : 4 + (int32_t)j * 19 + (int32_t)GRP[j] * 6;
             int sel = j == ui.bk_sel, chop = rk ? 0 : sl ? !sf : f == BK_LAY[0][j];
@@ -278,14 +308,15 @@ static void draw_bk(void)
         }
         bk_key_name(ui.bk_sel, t);
         if (sl) {                        /* (0.9.49, FLEXOR: SEL KEYS: what each key does pressed with SEL) */
-            text_cat(t, " WITH SEL");
+            uint32_t f = rl ? recb_fn(ui.bk_sel) : selb_fn(ui.bk_sel);
+            text_cat(t, rl ? " WITH REC" : " WITH SEL");
             cv_text(6, 40, &FONT_XS, t, C_GRAY);
-            cv_text(6, 50, &FONT_B, selb_fn(ui.bk_sel) ? BKF_LONG[selb_fn(ui.bk_sel) - 1u] : "ITS OWN", C_HI);
+            cv_text(6, 50, &FONT_B, f ? BKF_LONG[f - 1u] : "ITS OWN", C_HI);
             t[0] = 0;
             text_cat(t, "WITHOUT: ");
             text_cat(t, ui.bk_sel == 11u && !rec_key_on() ? "IT RECORDS" : bk_long(ui.bk_sel));
             cv_text(6, 72, &FONT_XS, t, C_GRAY);
-            cv_text(6, 86, &FONT_XS, "SEL + THIS KEY PLAYS THE ONE ABOVE", C_DIM);
+            cv_text(6, 86, &FONT_XS, rl ? "REC + THIS KEY PLAYS THE ONE ABOVE" : "SEL + THIS KEY PLAYS THE ONE ABOVE", C_DIM);
             cv_oy = 0;
             cv_blit(0, 88u + band * 52u);
             continue;
@@ -324,6 +355,7 @@ static void mo_value(int i, char *t);   /* (0.9.85: ARP › MOTION, track.c) */
 static void mo_turn(int i, int32_t d);
 static void draw_motion(void);
 static void as_value(int i, char *t);   /* (0.9.85: ARP › ASSIGN, track.c) */
+static uint8_t as_rec;                   /* (0.9.93: REC ASN: track.c's ASSIGN page for REC + K1-K4) */
 static void as_turn(int i, int32_t d);
 static void draw_assign(void);
 static void hk_value(int i, char *t);   /* (0.9.86: ARP › HOME K4, track.c) */
@@ -347,7 +379,8 @@ static void ovl_value(int i, char *t)
         hk_value(i, t);
         return;
     }
-    if (ui.opage == 3u) {
+    if (ui.opage == 3u || ui.opage == 8u) {   /* (0.9.93: REC ASN, the same page for REC + K1-K4) */
+        as_rec = ui.opage == 8u;
         as_value(i, t);
         return;
     }
@@ -386,7 +419,8 @@ static void ovl_turn(int i, int32_t d)
         hk_turn(i, d);
         return;
     }
-    if (ui.opage == 3u) {
+    if (ui.opage == 3u || ui.opage == 8u) {
+        as_rec = ui.opage == 8u;
         as_turn(i, d);
         return;
     }
@@ -436,10 +470,12 @@ static void draw_ovl(void)
         return;
     }
     if (ui.opage == 4u) {                /* (0.9.86: HOME K4) */
+        as_rec = 0u;
         draw_hk4();
         return;
     }
-    if (ui.opage == 3u) {                /* (0.9.85: ASSIGN) */
+    if (ui.opage == 3u || ui.opage == 8u) {   /* (0.9.85: ASSIGN; 0.9.93 REC ASN) */
+        as_rec = ui.opage == 8u;
         draw_assign();
         return;
     }

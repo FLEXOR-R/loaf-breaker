@@ -2491,6 +2491,13 @@ static const uint8_t AS_ORD[] = {3u, 1u, 5u, 21u, 4u, 6u, 7u, 8u,            /* 
 #define AS_N (sizeof AS_ORD / sizeof AS_ORD[0])
 static const uint8_t AS_FAM_AT[AS_FAM] = {0u, 8u, 18u, 24u, 25u};   /* (each family's first place in AS_ORD) */
 static uint8_t as_foc;                   /* (the knob touched last) */
+static uint8_t as_rec;                   /* (0.9.93: ARP › REC ASN, the same page for REC + K1-K4: ovl.c sets it) */
+#define AS_NONE 0xFFu                    /* (REC + K with no function: the knob as without REC) */
+static uint32_t as_kf(uint32_t k)        /* (the knob's function on this page; REC's none: AS_NONE) */
+{
+    return as_rec ? (reck_fn(k) ? reck_fn(k) - 1u : AS_NONE) : selk_fn(k & 3u);
+}
+static const char *as_kname(uint32_t k) { return as_rec ? "REC + K" : "SEL + K"; }
 static uint32_t as_at(uint32_t f)        /* a function's place in the list (one not there: 0) */
 {
     uint32_t i;
@@ -2506,23 +2513,35 @@ static uint32_t as_fam(uint32_t at)
         g--;
     return g;
 }
-static void as_set(uint32_t kn, uint32_t at)   /* knob kn to the list's place at */
+static int32_t as_cur(uint32_t k)        /* (its place in the list; REC's none: -1) */
 {
-    uint32_t c, f = AS_ORD[at % AS_N];
-    char n[12] = "SEL + K";
-    for (c = 0; c < SK_CODES && SK_CODE[c] != f; c++)
-        ;
-    sk_code_set(kn & 3u, c + 1u);
+    uint32_t f = as_kf(k);
+    return f == AS_NONE ? -1 : (int32_t)as_at(f);
+}
+static void as_set(uint32_t kn, int32_t at)   /* knob kn to the list's place at (REC's: -1 none) */
+{
+    uint32_t c, f = AS_ORD[(uint32_t)(at < 0 ? 0 : at) % AS_N];
+    char n[12];
+    n[0] = 0;
+    text_cat(n, as_kname(kn));
+    if (as_rec)                          /* (0.9.93: REC + K's own bytes, app.c rl_at) */
+        *rl_at(11u + (kn & 3u)) = (uint8_t)(at < 0 ? 0u : 1u + f);
+    else {
+        for (c = 0; c < SK_CODES && SK_CODE[c] != f; c++)
+            ;
+        sk_code_set(kn & 3u, c + 1u);
+    }
     n[7] = (char)('1' + (kn & 3u));
     n[8] = 0;
-    app_say(n, SK_NAME[f % SK_N]);
+    app_say(n, at < 0 ? "NONE" : SK_NAME[f % SK_N]);
     changed();
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
 static void as_value(int i, char *t)
 {
+    uint32_t f = as_kf((uint32_t)i & 3u);
     t[0] = 0;
-    text_cat(t, sk_short(selk_fn((uint32_t)i & 3u)));
+    text_cat(t, f == AS_NONE ? "-" : sk_short(f));
 }
 /* (0.9.86, FLEXOR: "bouger un cran de knob pour faire bouger le knob surligné sur un autre ne fait pas bouger
  * l'assignation ... et se débloque au bout d'un temps pertinent"): a detent of a knob not lit only lights it; its
@@ -2533,24 +2552,26 @@ static void as_turn(int i, int32_t d)    /* K1-K4: that knob a function on (or b
 {
     uint32_t now = plat_ms();
     if ((uint32_t)(i & 3) != as_foc) {   /* (another knob: lit, nothing changed) */
-        char n[12] = "SEL + K";
+        char n[12];
+        n[0] = 0;
+        text_cat(n, as_kname(0u));
         as_foc = (uint8_t)(i & 3);
         as_lock_t = now | 1u;
         n[7] = (char)('1' + as_foc);
         n[8] = 0;
-        app_say(n, SK_NAME[selk_fn(as_foc) % SK_N]);
+        app_say(n, as_kf(as_foc) == AS_NONE ? "NONE" : SK_NAME[as_kf(as_foc) % SK_N]);
         ui.redraw |= RG_BLOCKS | RG_FOOT;
         return;
     }
     if (as_lock_t && now - as_lock_t < AS_LOCK_MS)
         return;                          /* (just lit: the turn that lit it changes nothing) */
     as_lock_t = 0u;
-    as_set(as_foc, (uint32_t)clamp((int32_t)as_at(selk_fn(as_foc)) + (d > 0 ? 1 : -1), 0, (int32_t)AS_N - 1));
+    as_set(as_foc, clamp(as_cur(as_foc) + (d > 0 ? 1 : -1), as_rec ? -1 : 0, (int32_t)AS_N - 1));
 }
 static void as_fam_turn(int32_t d)       /* ALGORITHM: the focused knob to the next family's first (or the one before) */
 {
-    int32_t g = (int32_t)as_fam(as_at(selk_fn(as_foc))) + (d > 0 ? 1 : -1);
-    as_set(as_foc, AS_FAM_AT[clamp(g, 0, (int32_t)AS_FAM - 1)]);
+    int32_t c = as_cur(as_foc), g = (c < 0 ? -1 : (int32_t)as_fam((uint32_t)c)) + (d > 0 ? 1 : -1);
+    as_set(as_foc, g < 0 && as_rec ? -1 : (int32_t)AS_FAM_AT[clamp(g, 0, (int32_t)AS_FAM - 1)]);
 }
 static void draw_list(int hk);
 static void draw_assign(void) { draw_list(0); }
@@ -2579,9 +2600,10 @@ static void hk_fam_turn(int32_t d)
 static void draw_hk4(void) { draw_list(1); }
 static void draw_list(int hk)
 {
-    uint32_t band, k, r, cur = as_at(hk ? home_k4() : selk_fn(as_foc)), top;
+    int32_t cur = hk ? (int32_t)as_at(home_k4()) : as_cur(as_foc);
+    uint32_t band, k, r, top;
     char t[16];
-    top = cur < 3u ? 0u : cur - 3u;      /* (the list's eight rows, the knob's own the fourth when it can) */
+    top = cur < 3 ? 0u : (uint32_t)cur - 3u;   /* (the list's eight rows, the knob's own the fourth when it can) */
     if (top > AS_N - 8u)
         top = AS_N - 8u;
     for (band = 0; band < 2u; band++) {
@@ -2601,20 +2623,21 @@ static void draw_list(int hk)
         for (k = band * 2u; !hk && k < band * 2u + 2u; k++) {   /* (left: the four knobs) */
             int32_t y = (int32_t)(k % 2u) * 26;
             int on = k == as_foc;
-            uint32_t f = selk_fn(k);
+            uint32_t f = as_kf(k);
             cv_rect(0, y, 92, 25, on ? C_BLOCK_HI : C_BLOCK);
             t[0] = 0;
-            text_cat(t, "SEL + K");
+            text_cat(t, as_kname(k));
             int_text((int32_t)k + 1, t + 7);
             cv_text(3, y + 2, &FONT_T, t, on ? C_BLACK : C_DIM);
-            cv_text(3, y + 11, &FONT_XS, sk_short(f), on ? C_BLACK : C_WHITE);
+            cv_text(3, y + 11, &FONT_XS, f == AS_NONE ? "-" : sk_short(f), on ? C_BLACK : C_WHITE);
             cv_rect(60, y + 21, 29, 2, on ? C_BLACK : C_LINE);   /* (its value's bar) */
-            cv_rect(60, y + 21, (int32_t)(sk_norm(f, 0) * 29.0f + 0.5f), 2, on ? C_WHITE : C_HI);
+            if (f != AS_NONE)
+                cv_rect(60, y + 21, (int32_t)(sk_norm(f, 0) * 29.0f + 0.5f), 2, on ? C_WHITE : C_HI);
         }
         for (r = band * 4u; r < band * 4u + 4u; r++) {   /* (right: the list, 13 rows each) */
             uint32_t at = top + r, f = AS_ORD[at], g = as_fam(at), j;
             int32_t y = (int32_t)(r % 4u) * 13;
-            int on = at == cur;
+            int on = (int32_t)at == cur;
             uint16_t fc = (g & 1u) ? C_WHITE : C_AMB;   /* (0.9.86, FLEXOR: "des délimitations pleines pour toutes les
                                           * tuiles", the families' names alternating in colour: every row a full tile,
                                           * a stripe of its family's colour on its left) */
@@ -2624,7 +2647,7 @@ static void draw_list(int hk)
                 cv_text(99, y + 1, &FONT_T, AS_FAM_NAME[g], on ? C_BLACK : fc);
             cv_text(134, y + 1, &FONT_XS, SK_NAME[f % SK_N], on ? C_BLACK : C_WHITE);
             for (j = 0; j < 4u; j++)     /* (the other knobs that have it) */
-                if ((hk || j != as_foc) && selk_fn(j) == f) {
+                if ((hk || j != as_foc) && as_kf(j) == f) {
                     t[0] = 'K';
                     t[1] = (char)('1' + j);
                     t[2] = 0;

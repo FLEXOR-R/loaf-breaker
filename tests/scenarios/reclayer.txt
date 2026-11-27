@@ -1,0 +1,103 @@
+# LOAF BREAKER (27 Nov 2026, 0.9.93, FLEXOR: "une toute nouvelle section de touches noires grâce à la touche REC qui
+# fonctionnera comme SEL ... si je reste appuyé sur rec, et il se bloquera lui aussi si je double clique ... un onglet
+# REC dans la section ARP ... rec + K1 jusqu'à K4 avec une page d'assignation ... seulement si le mode rec est sur
+# black keys"): ARP › SEL BLK K4 REC MODE CLASSIC / BLACK KEYS; BLACK KEYS: the tabs REC BLK and REC ASN after SEL BLK,
+# REC held or locked (REC x2) a second SEL: the black keys' REC functions, REC + K1-K4's; REC alone nothing.
+#   app/build/host/loaf-breaker_host tests/scenarios/reclayer.txt app/build/scenarios
+wait 4200
+tap ARP
+wait 300
+turn SELECT 2 10
+wait 300
+expect opage 2
+expect recmode 0
+shot reclayer_classic.png
+turn K4 1 60
+wait 200
+expect recmode 1
+turn SELECT 1 10
+wait 300
+expect opage 7
+turn K3 13 20
+wait 200
+expect recb 13
+shot reclayer_recblk.png
+turn SELECT 1 10
+wait 300
+expect opage 8
+turn K1 1 60
+wait 200
+expect reck1 4
+shot reclayer_recasn.png
+turn SELECT 1 10
+wait 300
+expect opage 3
+tap HOME
+wait 300
+# REC + K1, REC held: its REC function, DISTO, turned (4 detents, 2 a detent)
+expect terror 0
+press REC
+wait 400
+turn K1 4 60
+wait 100
+shot reclayer_knob.png
+release REC
+wait 100
+expect terror 8
+# REC held: key 1 plays its REC function (KIL), its own (R8) again without
+expect bkfn0 0
+press REC
+wait 100
+key b0 down
+wait 100
+expect bkfn0 12
+shot reclayer_held.png
+key b0 up
+wait 100
+release REC
+wait 100
+expect bkfn0 0
+expect recording 0
+# REC alone: nothing (no recording)
+tap REC
+wait 600
+expect recording 0
+expect reclock 0
+# REC x2: locked, the layer without holding it
+tap REC
+wait 100
+tap REC
+wait 200
+expect reclock 1
+key b0 down
+wait 100
+expect bkfn0 12
+key b0 up
+wait 100
+shot reclayer_locked.png
+tap REC
+wait 200
+expect reclock 0
+expect recording 0
+# CLASSIC again: REC as ever (here FLEXOR LAYOUT's VINYL BREAK), no REC layer, the REC tabs gone
+tap ARP
+wait 300
+turn SELECT 2 10   # (ARP opens on its first tab)
+wait 300
+expect opage 2
+turn K4 -1 60
+wait 200
+expect recmode 0
+turn SELECT 1 10
+wait 300
+expect opage 3
+tap HOME
+wait 300
+press REC
+wait 100
+key b0 down
+wait 100
+expect bkfn0 0
+key b0 up
+release REC
+wait 300

@@ -15,7 +15,7 @@
 #
 # LOAF BREAKER's base (0.9.70, FLEXOR's Break Lab 3, https://claude.ai/artifact/XTFcM7rNcos7EK8c2hDHQw, store `lab3/choix`):
 # 8 breaks, sorted by BPM: AMEN10 135 (at power-on), AMEN05 158, AMEN20 164, UPDOWN 165, AMEN06 169, AMEN19 172, AMEN13
-# 173, FOCUZ 175; LOUDER, SATAN, PANTHER, BANGPHS and NIGHT to the library. Every break on an even grid (*= / -=, FLEXOR:
+# 173, FOCUZ 175 (0.9.93, FLEXOR: AMEN06 169 out to the library, for the REC layer's room: seven); LOUDER, SATAN, PANTHER, BANGPHS and NIGHT to the library. Every break on an even grid (*= / -=, FLEXOR:
 # "absolument tous les breaks ... sur grille") and at -12 LUFS (prep_breaks.py's default since 0.9.70, FLEXOR: every
 # break at the same level); no 16 kHz (FLEXOR: "la qualité est terriblement naze").
 # Before: the 9 breaks (0.9.50, FLEXOR: DETEST 175 out, TIMES 175 out for BANGPHS 155: the library's). FLEXOR's Break
@@ -112,7 +112,7 @@
 -=  huge/cw_amen_italian.wav                    166.49  2     4   ITALIAN 166
 -=  cw/cw_amen03_167.wav                        167     2     2   AMEN03 167
 -=  cw/cw_amen16_167.wav                        167     2     4   AMEN16 167
-*=  cw/cw_amen06_169.wav                        169     2     2   AMEN06 169
+-=  cw/cw_amen06_169.wav                        169     2     2   AMEN06 169
 -=  huge/cw_amen_early.wav                      170     2     2   EARLY 170
 -=  huge/cw_amen_finger.wav                     170     2     2   FINGER 170
 -=  cw/cw_amen07_172.wav                        172     2     2   AMEN07 172
