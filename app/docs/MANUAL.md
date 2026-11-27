@@ -201,7 +201,7 @@ the pages without any: what SEL + K1–K4 turn). SEL again, or any other button,
 | SEL + SAVE | **Undo** the last pattern wipe (SEL + REC, a drum lane's FILL, CLR / 4X4 or COPY); again: redo |
 | OCT− / OCT+ | Pitch in semitones (hold to go faster). Both: back to 0. Back to 0 at every start too (0.9.73) |
 | PRESETS | The pattern, P1–P64 (§5); while playing the new one starts at the end of the loop |
-| SEQ · REC | The sequencer; recording the keys into the pattern (§5). SEL + REC: clear the pattern (SEL + SAVE takes it back) |
+| SEQ · REC | The sequencer; recording the keys into the pattern (§5). SEL + REC on SEQ: clear the lane shown (SEL + SAVE takes it back) |
 | MIDI notes | Notes 48–63 (C3–D#4) play slices 1–16, held like the white keys; 36 the kick, 38 the snare, 39 the clap, 42 / 44 / 46 the hat (§8); any channel. SYSTEM › MIDI's PRESETS, NOTES IN: ALL, DRUMS (the drums alone), OFF |
 | ALGORITHM | (HOME, MIXER; SEL held: any page) The next or previous break: its name shows at once (amber in the header) and, while playing, it comes in at the next bar (the old one goes quiet for the bar's last 16th meanwhile); stopped, at once. AMEN10 135, AMEN05 158, AMEN20 164, UPDOWN 165, AMEN06 169, AMEN19 172, AMEN13 173 (the Amens: The Winstons, cut by Cyberworm), FOCUZ 175 (DNGN DRGNS, "Focuz (DNGN DRGNS Remix)"): 2 bars each, slowest first, played at the tempo you set; then **your own breaks**, if you sent some (below) |
 | MASTER | Volume |
@@ -693,8 +693,8 @@ or reverse), the step playing lit; the lower strip all three drum lanes.
 
 **REC** records: while it is lit and the break plays, every white key you press (on HOME and the other pages where
 the keys play slices) is written into the pattern at the step it lands on, and so are MIDI notes: 48–63 as slices,
-36 / 38 / 42 into the kick, snare and hat lanes. REC again stops. **SEL + REC** clears: on SEQ the lane shown, on any
-other page the whole pattern. **SEL + SAVE undoes**
+36 / 38 / 42 into the kick, snare and hat lanes. REC again stops. **SEL + REC** clears the lane shown, on SEQ only
+(elsewhere it does nothing, so the pattern is never wiped by accident). **SEL + SAVE undoes**
 either (and FILL, CLR / 4X4 and COPY on a drum lane, and the SEQ-held moves below); press it again to redo. SAVE keeps
 all 16.
 
@@ -747,7 +747,7 @@ SEL keeps that function until you let it go. SAVE keeps them; RESET's SEL KEYS a
 **REC MODE: REC as a second SEL** (0.9.93, FLEXOR). SEL BLACK's **K4 REC MODE**: **CLASSIC** (to start: REC as it
 always was) or **BLACK KEYS**. In BLACK KEYS, REC works exactly as SEL: **hold REC**, or **press it twice** to lock
 it (it blinks; press it again to free it), and the black keys play their **REC functions**, the knobs their **REC +
-K1–K4** functions. REC alone does nothing then (back to CLASSIC to record); SEL + REC still clears, as ever. Two
+K1–K4** functions. REC alone does nothing then (back to CLASSIC to record); SEL + REC still clears the lane on SEQ. Two
 tabs appear after SEL BLACK, only in BLACK KEYS:
 - **REC** (REC BLACK): as SEL BLACK, **K2 KEY** (or ALGORITHM, or press the key), **K3 REC +**: what that key does
   with REC, ITS OWN or any function. The eleven black keys (REC is the one you hold).

@@ -546,8 +546,8 @@ static void seq_key(uint32_t i)          /* a white key on SEQ: the step to edit
     say_int("STEP", (int32_t)ui.seq_step + 1, "");
     ui.redraw |= RG_BLOCKS | RG_FOOT;
 }
-/* SEL + REC: 0 the whole pattern (elsewhere), 1 on SEQ the lane shown; LOAF BREAKER: 2 REC held on SEQ, the break's
- * steps, both halves (1-16, 17-32), the drums kept */
+/* 0 the whole pattern (SEQ x2's clear; SEL + REC elsewhere until 0.9.94), 1 SEL + REC on SEQ the lane shown;
+ * LOAF BREAKER: 2 REC held on SEQ, the break's steps, both halves (1-16, 17-32), the drums kept */
 static void seq_clear(int mode)
 {
     pat_t *p = pat_now();

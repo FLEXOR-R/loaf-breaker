@@ -136,3 +136,27 @@ expect bkfn0 0
 key b0 up
 release REC
 wait 300
+# (0.9.94, FLEXOR: "sur le séquenceur, pas sur le reste") SEL + REC clears on SEQ only: on HOME nothing
+tap SEQ
+wait 300
+expect seq_lane 2
+turn K1 4 10
+wait 100
+expect lane_kick 4369
+tap SEQ
+wait 300
+expect page 0
+expect recording 1
+press SEL
+tap REC
+release SEL
+wait 300
+expect lane_kick 4369
+expect recording 1
+tap SEQ
+wait 300
+press SEL
+tap REC
+release SEL
+wait 300
+expect lane_kick 0

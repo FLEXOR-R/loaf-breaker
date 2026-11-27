@@ -194,7 +194,7 @@
       { n: "A STEP HELD", k: ["NOTE", "HITS", "COND", "NUDGE"], strip: "THAT STEP'S OWN (THE FOOT NAMES THEM)", note: "COND: ALWAYS 75% 50% 25% 1:2 2:2" },
       { n: "GROOVE", k: ["SWING", "BREAK ROWS", "FOLLOW", ""], strip: "THE THREE, LARGE · THE BAR'S 16THS, SWUNG", note: "SELECT's third view (GROOVE until 0.9.30, SETTINGS 0.9.31-0.9.67); also SEL + ARP; BREAK ROWS: 16 or 32 in FULL; FOLLOW: the grid on the bar playing" } ],
       algo: "Every lane, top to bottom, round", presets: "Pattern P1–P64 (SEL + PRESETS: the kick)", keys: "steps", sel: "The view: FULL, DRUMS, GROOVE (SEL: drum filter)",
-      notes: [["REC", "Record the keys and MIDI notes into the pattern"], ["SEL + REC", "Clear: the lane here, the pattern elsewhere"],
+      notes: [["REC", "Record the keys and MIDI notes into the pattern"], ["SEL + REC", "Clear the lane shown (on SEQ only)"],
               ["SEQ held, then SEQ", "Clear the whole pattern (SEL + SAVE undoes)"], ["SEL + SEQ", "Copy the pattern; on another: paste"],
               ["EDIT (a drum lane)", "That drum's sound"], ["SEQ held + white key 1–4", "The bar shown copied onto that bar"],
               ["SEQ held + K1", "The whole lane a step later / earlier, round"], ["SEQ held + REC", "Every drum lane cleared, the break kept"],
@@ -297,7 +297,7 @@
   $("nav").innerHTML = PAGES.map(p => '<div class="navrow"><span class="cap">' + p.btn + '</span><div class="chain">' +
     p.subs.map((s, i) => '<span class="chip' + (i ? "" : " first") + '">' + s.n + "</span>").join('<span class="arr">→</span>') +
     (p.subs.length > 1 ? '<span class="arr">↺</span>' : "") + '</div><span class="again' + (p.again === "nothing" ? " none" : "") + '">again: ' + p.again + "</span></div>").join("") +
-    '<div class="navrow"><span class="cap">REC</span><div class="chain"><span class="chip">record on / off</span></div><span class="again">SEL + REC: clear</span></div>' +
+    '<div class="navrow"><span class="cap">REC</span><div class="chain"><span class="chip">record on / off</span></div><span class="again">SEL + REC on SEQ: clear the lane</span></div>' +
     '<div class="navrow"><span class="cap">SAVE</span><div class="chain"><span class="chip">settings, the patterns, the tracks, the steps</span></div><span class="again">SEL + SAVE: undo</span></div>' +
     '<div class="navrow"><span class="cap">OCT ±</span><div class="chain"><span class="chip">pitch in semitones</span></div><span class="again">both: back to 0</span></div>';
 

@@ -1668,8 +1668,11 @@ static void input(void)
                                           * SEL x2) */
     else if (bdn & 1u << B_REC && btn & 1u << B_SEL && ui.page == PG_KICK && ui.kpage == KP_FX)
         kfx_reset();                     /* (EDIT KICK's FX: the layer's effect) */
-    else if (bdn & 1u << B_REC && btn & 1u << B_SEL) {   /* SEL + REC: clear (on SEQ its lane; else the pattern) */
-        seq_clear(ui.page == PG_SEQ);
+    else if (bdn & 1u << B_REC && btn & 1u << B_SEL) {   /* SEL + REC: on SEQ the lane shown cleared; elsewhere
+                                          * nothing (0.9.94, FLEXOR: "sur le séquenceur, pas sur le reste": it wiped the
+                                          * pattern from any page) */
+        if (ui.page == PG_SEQ)
+            seq_clear(1);
     } else if (bdn & 1u << B_REC) {      /* REC: record the keys and MIDI notes into the pattern while playing */
         rec_t = now;                     /* (LOAF BREAKER: on SEQ, at its release: held, it clears the break) */
         rec_wait = ui.page == PG_SEQ;
@@ -2340,7 +2343,10 @@ static void draw_help(void)
         cv_text(46, (int32_t)i * 13, &FONT_XS, i != 3u ? G[i][1] : ui.page == PG_PERC ? "COPY DRUM"
                 : ui.page == PG_KICK || ui.page == PG_KEQ || IS_KFX() ? "COPY KICK" : G[i][1], C_WHITE);
         cv_text(124, (int32_t)i * 13, &FONT_XS, G[i + 4u][0], C_HI);
-        cv_text(170, (int32_t)i * 13, &FONT_XS, i == 2u && sel_bt_page() ? "BREAK TIME" : G[i + 4u][1], C_WHITE);
+        cv_text(170, (int32_t)i * 13, &FONT_XS, i == 2u && sel_bt_page() ? "BREAK TIME" : i == 0u
+                ? (ui.page == PG_SEQ ? "CLEAR LANE" : ui.page == PG_FX || (ui.page == PG_KICK && ui.kpage == KP_FX)
+                ? "RESET EFFECT"
+                : "ON SEQ ONLY") : G[i + 4u][1], C_WHITE);
     }
     cv_blit(0, 88u);
     cv_begin(240, 52, C_BLACK);
