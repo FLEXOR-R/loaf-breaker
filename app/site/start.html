@@ -1,0 +1,95 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<!-- LOAF BREAKER's "Start in 5 minutes" page (27 Nov 2026, FLEXOR: "la page start in 5 minutes ... un bouton blanc comme
+     install ... dans la page d'accueil"): the first five things to do once LOAF BREAKER is on the FM-1, a screen each,
+     then where to go next. tools/site_style.py puts it at start/ with the site's style and header; its pictures are
+     the manual's (../manual/img/). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LOAF BREAKER · Start in 5 minutes</title>
+<meta name="description" content="LOAF BREAKER on your FM-1: the five things to do first, from pressing PLAY to the drop.">
+<style>/*SITE_CSS*/
+.go { display: grid; gap: 18px; margin: 0 0 34px; counter-reset: go; }
+.go article { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 24px; align-items: start;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 3px; padding: 20px 22px; }
+.go img { width: 240px; height: 240px; image-rendering: pixelated; border: 1px solid var(--line); border-radius: 3px;
+  display: block; background: #000; }
+.go h2 { font: 700 30px/1.05 var(--f-display); text-transform: uppercase; letter-spacing: .02em; margin: 0 0 10px;
+  padding: 0; border: 0; display: flex; gap: 12px; align-items: baseline; }
+.go h2::before { counter-increment: go; content: counter(go); font: 800 44px/1 var(--f-display); color: var(--fg);
+  min-width: 26px; }
+.go p { margin: 0 0 10px; color: var(--dim); max-width: 62ch; }
+.go p b, .go li b { color: var(--fg); }
+.go ul { margin: 0; padding-left: 20px; color: var(--dim); }
+.go li { margin: 0 0 6px; }
+.tip { border-left: 3px solid var(--fg); padding: 6px 0 6px 16px; max-width: 72ch; margin: 0 0 30px; }
+.tip p { margin: 0 0 10px; color: var(--dim); }
+.tip b { color: var(--fg); }
+.next { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 40px; }
+@media (max-width: 700px) {
+  .go article { grid-template-columns: 1fr; }
+  .go img { width: 100%; height: auto; max-width: 320px; }
+}
+</style>
+</head>
+<body>
+<!--HEADER-->
+<div class="page">
+<main id="content">
+<div class="intro-lb"><div class="eyebrow">Start in 5 minutes</div><h1>Your first five minutes</h1>
+<p>LOAF BREAKER is on your FM-1? <b>These five steps are all you need to start.</b> The FM-1 begins in BEGINNER mode,
+which keeps the advanced pages out of the way until you want them.</p></div>
+
+<div class="tip">
+<p><b>Or let the FM-1 show you.</b> A new FM-1 asks at its first start: <b>TUTORIAL</b>, <b>BEGINNER</b> or
+<b>EXPERT</b> (turn a knob, PLAY to choose). The tutorial tells you one thing at a time on the screen and blinks the
+button to press. You play the real firmware the whole way. <b>GLO</b> leaves it, and SYSTEM › SETUP K3 starts it again.</p>
+</div>
+
+<div class="go">
+  <article><img src="../manual/img/screen-slicer.png" alt="The FM-1's screen: a breakbeat scrolling by, cut into sixteen slices" loading="lazy">
+    <div><h2>Press PLAY</h2>
+    <p>A breakbeat starts with a kick under it. <b>ALGORITHM</b> picks another break (it changes at the next bar),
+    <b>SELECT</b> sets the tempo, <b>PRESETS</b> another pattern. PLAY again stops.</p></div></article>
+
+  <article><img src="../manual/img/screen-held.png" alt="The FM-1's screen: one slice held and looping" loading="lazy">
+    <div><h2>Play the white keys</h2>
+    <p>The 16 white keys are the break's 16 slices. <b>Tap one</b> to play that slice, <b>hold one</b> to loop it in
+    time until you let go. Play two or three in turn: you're already chopping.</p></div></article>
+
+  <article><img src="../manual/img/screen-blackkeys.png" alt="The FM-1's screen: the black keys' effects" loading="lazy">
+    <div><h2>Hold a black key</h2>
+    <p>The black keys are effects: they work while you hold them, and you can hold several. Rolls, reverse, freeze,
+    half speed, a vinyl stop, gate, filter, echo… <b>While one is held, K1–K4 tune it.</b></p></div></article>
+
+  <article><img src="../manual/img/screen-kick.png" alt="The FM-1's screen: the kick drawn as a waveform" loading="lazy">
+    <div><h2>EDIT the kick</h2>
+    <p><b>EDIT</b> opens the kick, drawn big. <b>K1–K4</b> change what's on screen, <b>ALGORITHM</b> goes to the next
+    part, <b>SELECT</b> to the next section. Start with a ready-made kick (909, Rotterdam, Gabber, Terror…), then add
+    DISTO to make it hard. <b>PRESETS</b> holds your twenty kicks, each with its own sound.</p></div></article>
+
+  <article><img src="../manual/img/screen-seq.png" alt="The FM-1's screen: the step sequencer with kick, snare, hat and clap" loading="lazy">
+    <div><h2>Build, drop, write</h2>
+    <p><b>SEL + ENV</b>: a build-up from the next bar, then the drop. Then write your own beats on <b>SEQ</b> (the white
+    keys are the steps, ALGORITHM picks the lane) and chain them into a set on <b>ENV</b>.</p></div></article>
+</div>
+
+<div class="tip">
+<p><b>Three things to remember.</b></p>
+<p><b>SEL + K1–K4</b>, on any page: four knobs that change the kick while it plays. Press <b>SEL twice</b> to lock it
+and keep both hands free.</p>
+<p><b>SEL</b> tapped alone shows the shortcuts of the page you're on. A page's button pressed again takes you back
+<b>HOME</b>.</p>
+<p><b>SAVE</b> keeps everything (or turn on AUTO SAVE in SYSTEM › SETUP).</p>
+</div>
+
+<p>When you know your way around, switch to <b>EXPERT</b> (SYSTEM › SETUP, K3) to see every page. The manual covers
+the rest.</p>
+<div class="next"><a class="btn p" href="../manual/">Read the manual</a><a class="btn" href="../manual/#controls">The control map</a><a class="btn" href="../emu/">Try it in your browser</a></div>
+</main>
+</div>
+<!--FOOT-->
+</body>
+</html>
