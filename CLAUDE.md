@@ -343,6 +343,9 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
 - Release notes (24 Nov 2026, FLEXOR: "mettre à jour aussi le github"; this session can't edit releases): docs/NEXT.md
   lists, for the players, what the next firmware release adds (not the site's changes: they go up on their own); loaf.yml puts it at the top of the release's notes (its
   comment stripped). Add a line there with each change worth telling; empty it (the comment kept) after a release.
+- Testing (27 Nov 2026, FLEXOR: "la machine est testée quotidiennement et pendant les sessions de clauding"): FLEXOR
+  plays every TEST on his FM-1 daily and during the sessions; no separate stabilisation phase or hand testing to
+  propose, the CI's scenarios and engine tests besides.
 - **A saved setting never changes at a restart** (FLEXOR, 12 Nov 2026): defaults are for a new FM-1 and resets only;
   never force a value at power-on once it has been saved. The one exception, his own (0.9.73): the breaks' PITCH (`set.pitch`, OCT- / OCT+, SOUNDS ›
   BREAK K1) is 0 at every start (app_init; probe bpitch, scenario pitchboot).
