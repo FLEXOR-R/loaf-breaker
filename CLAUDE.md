@@ -12,6 +12,16 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   pushed to `loaf` (`git push origin dev:loaf`, a fast-forward), whose every push is a release `loaf-vA.B.C` (0.9.1 on; 0.02-0.267 were X.YY)
   (`.github/workflows/loaf.yml`; CLAUDE.md alone releases nothing) and updates the site, https://flexor-r.github.io/loaf-breaker/ (0.261: the firmware on it
   open, no install code; tools/site_lock.py and the secret LOAF_INSTALL_CODE no longer used). Never write that old code anywhere.
+- **Publish only what changed** (27 Nov 2026, FLEXOR: "pousser juste le site internet, juste le firmware ou juste le VST
+  quand ça a du sens. Il faut pas publier pour rien ... garder cette logique à partir de maintenant"): the site, the
+  firmware and the VST each go out on their own, and only when they changed. A push to `loaf` whose changes since the
+  last `loaf-v` tag are all outside the firmware (loaf.yml `SITE_ONLY`: app/site, app/docs, docs, art, the site's tools
+  and page tests, fmhub.json, README, CLAUDE.md, loaf.yml, breaks' READMEs) puts the site up (and the hub's card, read on
+  `loaf`) under the last release's number: no release, no tag, no new number, no changelog row (`SITE=1`); a dev push of
+  such files alone keeps the TEST draft. So site and hub changes go to `loaf` when they're ready (FLEXOR's go-ahead
+  given once for this, 27 Nov 2026), firmware changes still wait for his "publie". docs/NEXT.md holds the firmware's
+  news only (the players' release notes). The VST is published only when the firmware change reaches it (the sound, the
+  menus, the shared code) or the VST itself changed; its number then jumps to the firmware's of the time.
 - **Download links** (26 Nov 2026, FLEXOR: "j'apprécie quand tu me mets un lien de téléchargement directement ici pour
   les tests du firmware ou VST"): every reply that brings a TEST (or a release) gives its direct download link (the
   draft's asset: `gh api repos/FLEXOR-R/loaf-breaker/releases?per_page=1`, the VST's `vst-test` likewise) once its
@@ -256,7 +266,7 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   FX by default (`drums_chain` 0 in the defaults; a saved THRU stays). On HOME, SEL + PRESETS the kick (0.9.26, FLEXOR;
   elsewhere the pattern).
 - Release notes (24 Nov 2026, FLEXOR: "mettre à jour aussi le github"; this session can't edit releases): docs/NEXT.md
-  lists, for the players, what the next release adds; loaf.yml puts it at the top of the release's notes (its
+  lists, for the players, what the next firmware release adds (not the site's changes: they go up on their own); loaf.yml puts it at the top of the release's notes (its
   comment stripped). Add a line there with each change worth telling; empty it (the comment kept) after a release.
 - **A saved setting never changes at a restart** (FLEXOR, 12 Nov 2026): defaults are for a new FM-1 and resets only;
   never force a value at power-on once it has been saved. The one exception, his own (0.9.73): the breaks' PITCH (`set.pitch`, OCT- / OCT+, SOUNDS ›

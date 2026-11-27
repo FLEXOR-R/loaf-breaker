@@ -47,6 +47,22 @@ jobs:
           TAGS="$(git ls-remote --tags origin 'refs/tags/loaf-v*' 'refs/tags/gloupi-v*' | sed 's|\^{}$||')"
           V="$(printf '%s\n' "$TAGS" | grep "^$GITHUB_SHA" | sed 's|.*refs/tags/[a-z]*-v||' | head -1)"
           [ -n "$V" ] && [ "$GITHUB_REF_NAME" = loaf ] || V="$(scripts/loaf_version.sh next $(printf '%s\n' "$TAGS" | sed -n 's|.*refs/tags/[a-z]*-v||p'))"
+          # (27 Nov 2026, FLEXOR: "pousser juste le site internet, juste le firmware ou juste le VST quand ça a du sens ...
+          # il faut pas publier pour rien"): files that are not the firmware (the site, the hub's card, the docs, this
+          # workflow). On loaf, nothing else changed since the last release: SITE=1, the site goes up under the last
+          # release's number, no new release, no tag. On dev, nothing else changed in this push: the TEST draft stays.
+          SITE_ONLY='^(app/site/|app/docs/|docs/|art/|tools/(site_style|break_lib|readme_shots|make_site_logo)\.py$|tools/site_shots\.sh$|tests/[a-z_]*_page\.(sh|mjs)$|fmhub\.json$|README\.md$|CLAUDE\.md$|\.github/workflows/loaf\.yml$|breaks/([^/]*/)*README\.md$)'
+          LAST="$(printf '%s\n' "$TAGS" | sed -n 's|.*refs/tags/loaf-v||p' | sort -V | tail -1)"
+          if [ "$GITHUB_REF_NAME" = loaf ] && [ "$V" != "$LAST" ] && [ -n "$LAST" ] && git rev-parse -q --verify "refs/tags/loaf-v$LAST" > /dev/null; then
+            FW="$(git diff --name-only "loaf-v$LAST" HEAD | grep -Ev "$SITE_ONLY" || true)"
+            if [ -z "$FW" ]; then
+              V="$LAST"; echo "SITE=1" >> "$GITHUB_ENV"
+              echo "Site only: nothing of the firmware changed since loaf-v$LAST (no release)" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          elif [ "$GITHUB_REF_NAME" = dev ] && git cat-file -e "${{ github.event.before }}^{commit}" 2> /dev/null; then
+            FW="$(git diff --name-only "${{ github.event.before }}" HEAD | grep -Ev "$SITE_ONLY" || true)"
+            [ -n "$FW" ] || { echo "SITE=1" >> "$GITHUB_ENV"; echo "Site only: the TEST draft kept" >> "$GITHUB_STEP_SUMMARY"; }
+          fi
           PKG="$(scripts/loaf_version.sh pkg "$V")"
           SHOW="$V"
           if [ "$GITHUB_REF_NAME" = dev ]; then   # (a TEST: the next release's number, its commits since loaf)
@@ -204,7 +220,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: TEST draft release (dev, the one before it replaced)
-        if: env.TEST == '1'
+        if: env.TEST == '1' && env.SITE != '1'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -226,7 +242,7 @@ jobs:
             "app/build/loaf-breaker-$VERSION.fwsc"
 
       - name: Release notes (docs/NEXT.md, what changed since the last release, then the install words)
-        if: env.TEST != '1'
+        if: env.TEST != '1' && env.SITE != '1'
         run: |
           NEW="$(sed '/^<!--/,/-->$/d' docs/NEXT.md 2>/dev/null || true)"
           { if [ -n "$(printf '%s' "$NEW" | tr -d '[:space:]')" ]; then echo "**What's new in $VERSION**"; echo; printf '%s\n\n' "$NEW"; fi
@@ -235,7 +251,7 @@ jobs:
             echo "installer, emulator, manual), open its index.html; loaf-breaker-screens-$VERSION.zip: the"
             echo "simulator's screens."; } > release-notes.md
       - uses: softprops/action-gh-release@v2
-        if: env.TEST != '1'
+        if: env.TEST != '1' && env.SITE != '1'
         with:
           tag_name: loaf-v${{ env.VERSION }}
           target_commitish: ${{ github.sha }}
