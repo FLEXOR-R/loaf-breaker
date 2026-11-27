@@ -399,9 +399,9 @@ def home(site):
     s = s.replace("<style>/*SITE_CSS*/", FONTS + "<style>" + css, 1).replace("<!--HEADER-->", top("", ""), 1)
     s = s.replace("<!--FOOT-->", FOOT.replace("{up}", ""), 1).replace("{{VERSION}}", v.group(1) if v else "dev")
     page.write_text(s, encoding="utf-8")
-    for f in ("lord_title.png", "lord_face.png"):
+    for f in ("lb_title.png", "lord_face.png"):
         src = APP / "site" / "img" / f
-        if src.exists() and not (site / "img" / f).exists():
+        if src.exists():
             (site / "img").mkdir(parents=True, exist_ok=True)
             shutil.copyfile(src, site / "img" / f)
 

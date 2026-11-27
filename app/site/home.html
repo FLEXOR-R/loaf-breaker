@@ -18,17 +18,15 @@
 <style>/*SITE_CSS*/
 body.home main { display: block; }
 .hero { display: grid; grid-template-columns: 1.15fr .85fr; gap: 24px; align-items: center; padding: 26px 0 48px; }
-.hero .name { width: min(430px, 100%); display: block; mix-blend-mode: screen; }
+.hero .name { width: min(520px, 100%); height: auto; display: block; }   /* (FLEXOR: the LOAF BREAKER lettering of the start, its shadows) */
 .hero h1 { font-size: clamp(36px, 4.8vw, 56px); line-height: 1.02; margin: 18px 0 14px; max-width: 18ch; }
 .hero p { margin: 0 0 24px; color: var(--dim); font-size: 19px; max-width: 46ch; }
 .hero p b { color: var(--fg); font-weight: 600; }
 .paths { display: flex; gap: 10px; flex-wrap: wrap; }
 .small { margin-top: 16px; font: 500 14px/1.45 var(--f-body); color: var(--faint); max-width: 60ch; }
 .small a { color: var(--dim); }
-.face { justify-self: center; width: min(360px, 100%); aspect-ratio: 1; display: grid; place-items: center;
-  background: radial-gradient(circle at 50% 45%, rgba(235, 229, 216, .13), transparent 62%); }
-.face img { width: 94%; filter: contrast(1.15) brightness(1.05);
-  -webkit-mask: radial-gradient(circle, #000 55%, transparent 72%); mask: radial-gradient(circle, #000 55%, transparent 72%); }
+.face { justify-self: center; width: min(380px, 100%); }
+.face img { width: 100%; height: auto; display: block; }   /* (27 Nov 2026, FLEXOR: the poster's own slice, cut to its shape: no ring) */
 .sec { border-top: 1px solid var(--line); padding: 54px 0; display: grid; gap: 26px; }
 .sec h2 { font-size: clamp(30px, 4vw, 42px); line-height: 1.05; margin: 8px 0 0; padding: 0; border: 0; display: block; }
 .does { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
@@ -67,7 +65,7 @@ body.home main { display: block; }
 
 <section class="hero">
   <div>
-    <img class="name" src="img/lord_title.png" alt="Loaf Lord" width="456" height="180">
+    <img class="name" src="img/lb_title.png" alt="Loaf Breaker" width="900" height="282">
     <h1>Hardcore kicks and breakbeats on your FM-1</h1>
     <p>LOAF BREAKER is <b>free firmware for the M-VAVE FM-1</b>. Design your own kick, from a clean thump to a
     distorted gabber kick. Cut a breakbeat into pieces and replay it on the keys. Build beats and play them live.
@@ -76,7 +74,7 @@ body.home main { display: block; }
     <div class="small">Free · Installs from Chrome or Edge in about a minute · The original firmware can go back on at any time ·
     No FM-1? <a href="emu/">Try it in your browser</a></div>
   </div>
-  <div class="face"><img src="img/lord_face.png" alt="The LOAF LORD, the face of LOAF BREAKER" width="360" height="360"></div>
+  <div class="face"><img src="img/lord_face.png" alt="The LOAF LORD, the face of LOAF BREAKER" width="720" height="805"></div>
 </section>
 
 <section class="sec" id="does">
