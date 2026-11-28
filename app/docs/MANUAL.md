@@ -90,7 +90,7 @@ steps of the lane shown; ALGORITHM: the lane; SELECT: the view, FULL, DRUMS or G
 ### Moving around
 
 On every page with tabs, **SELECT turns the tabs at the top** (EFFECTS' slots; SONG's TRACKS, PLAY, DROP, BUILD,
-BUILD BRK, DROP BANK; MIX's LEVELS, ROUTING, MASTER, DYNAMICS; SYSTEM's parts; ARP's tabs; the KICK menu's sections)
+BUILD BRK, DROP BANK; MIX's LEVELS, ROUTING, MASTER, DYNAMICS, FILTERS; SYSTEM's parts; ARP's tabs; the KICK menu's sections)
 and **ALGORITHM those below** (an effect's MAIN, MORE, MOD; the kick's parts). **A page's button pressed again goes
 back to HOME**, the main page (FX, ENV, LFO, GLO, ARP, SEQ); HOME again goes to HOME's next tab, EDIT again to the
 next sound. The tempo is SELECT's on HOME.
@@ -179,7 +179,7 @@ sources, the pattern, the song, the mix, the effects, the system.
 | EDIT | SOUNDS | Three sources, **SEL + EDIT** the next: **KICK** (its menu, by the kick's anatomy: ATTACK, BODY, TAIL, DIST, FX1, FX2, MORE; SELECT its next section; EDIT again the next sound in EXPERT: SNARE, HAT, CLAP, then the KICK), **DRUMS** (SNARE, HAT, CLAP; EDIT again the next), **BREAK** (PITCH, GRAIN, SNAP, LEVEL; ALGORITHM the break) |
 | SEQ | PATTERN | The lanes (ALGORITHM); the views FULL, DRUMS and **GROOVE** (SWING, BREAK ROWS, FOLLOW; also SEL + ARP) on SELECT |
 | ENV | SONG | TRACKS, PLAY, DROP, BUILD, BUILD BRK, DROP BANK |
-| LFO | MIX | LEVELS (BREAK, KICK, PERC), ROUTING (FX, the drums' route, DUCKS, ROLL), MASTER, DYNAMICS |
+| LFO | MIX | LEVELS (BREAK, KICK, PERC), ROUTING (FX, the drums' route, DUCKS, ROLL), MASTER, DYNAMICS, FILTERS |
 | FX | EFFECTS | The four slots: MAIN, MORE, MOD |
 | GLO | SYSTEM | MIDI, SETUP, DISPLAY, SCREEN FX, SCREEN SET, LIGHTS, RESET (§7) |
 
@@ -327,7 +327,7 @@ asks on the screen: **SEL** yes, **HOME** no; the FM-1 then restarts with it.
 - **EDIT** (SOUNDS): the **KICK menu**, the drums and the break's sound (§8).
 - **SEQ** (PATTERN): the sequencer (§5).
 - **ENV** (SONG): TRACKS, PLAY, DROP, BUILD, BUILD BRK, DROP BANK (below).
-- **LFO** (MIX): LEVELS, ROUTING, MASTER, DYNAMICS (§9).
+- **LFO** (MIX): LEVELS, ROUTING, MASTER, DYNAMICS, FILTERS (§9).
 - **FX** (EFFECTS): the FX chain (§6).
 - **ARP**: the ARP effects and, in EXPERT, the black keys' layouts, the knobs' assignments and MOTION (§5).
 - **GLO** (SYSTEM): MIDI, SETUP, DISPLAY, SCREEN FX, SCREEN SET, LIGHTS, RESET (§7).
@@ -540,7 +540,7 @@ Which key does what is a **layout** (ARP › BLK, §5), keys 1–11 left to righ
 | ARP | Its ARP effect over the mix, while held (or latched): DIVE, RISE, RADIO, CRUSH, LO-FI, DIST, RING, CHOP, GATE, DUCK, PAN, BOOM, JET, KICK X2, KICK X4, KICK TRI | EFFECT | AMOUNT (that effect's) | TIME: RATE for CHOP, GATE, PAN; SWEEP for DIVE, RISE | LATCH (on RISE: RETURN, its sweep back down once let go: CUT, 1/4 BAR .. 2 BARS; RISE never latches) |
 | Several ARP keys | Put ARP on more than one key (CUSTOM, ARP › BLK): each is its own, with its own EFFECT and its own LATCH, and they play together (hold two, latch one and hold another…). The knobs tune the ARP key pressed last (its number shows under FX: MORE). Shared by all: ON / OFF, RATE, SWEEP, and each effect's AMOUNT and THRU | | | | |
 | ARP, FX while held (MORE) | | THRU: BREAK, KICK or THRU (everything; the ARP page's the same) | ON / OFF (OFF: K1 browses silent) | RATE (1/4 … 1/32) | SWEEP (1/4 bar … 2 bars) |
-| KIL | While held, the sequencer's kicks are quiet (or its drums, or both: K2 MUTES); let go, they play again (a kick roll still plays). When the kicks come back, the drums' filter (SEL + SELECT) goes back to OFF at once, so a drop is never filtered by mistake, unless you turned it while the kicks were quiet: then they come back through the filter you set. SYSTEM › SCREEN FX K4 KICK SWITCH sets this: SMART (to start, as just said), FLT OFF (always back to OFF), FLT KEEP (never) | LATCH: ON, a press quiets them and the next brings them back | MUTES: KICKS (to start), DRUMS (the snare, the hat and the clap: the break and the kicks play on), ALL (kicks and drums) | | |
+| KIL | While held, the sequencer's kicks are quiet (or its drums, or both: K2 MUTES); let go, they play again (a kick roll still plays). When the kicks come back, the drums' filter (SEL + SELECT) goes back to OFF at once, so a drop is never filtered by mistake, unless you turned it while the kicks were quiet: then they come back through the filter you set. MIX › FILTERS K4 KICK SWITCH sets this: SMART (to start, as just said), FLT OFF (always back to OFF), FLT KEEP (never) | LATCH: ON, a press quiets them and the next brings them back | MUTES: KICKS (to start), DRUMS (the snare, the hat and the clap: the break and the kicks play on), ALL (kicks and drums) | | |
 | X2 | KICKS X2: the kicks doubled, for a beat twice as violent. Every odd step (1, 3, 5 … 15) of a bar that has kicks plays one, with the last kick's note: four to the floor becomes eight; the even steps play as programmed. KIL still silences them | LATCH: ON at first, a press doubles them and the next brings them back; OFF, doubled while held | | | |
 | X4 | KICKS X4: a kick on every step of a bar that has kicks (four to the floor becomes sixteen), with the last kick's note. KIL still silences them | LATCH: ON at first, a press on and the next off; OFF, while held | | | |
 | TRI | KICK TRIPLETS: the kicks in 8th-note triplets, three a beat, from the next beat, the pattern's kicks out meanwhile (a roll key's KICK ROLL plays over it). KIL quiets the triplets while held and leaves TRI as it is: let go, they play on; TRI turns on and off whatever KIL does | LATCH: ON at first, a press on and the next off; OFF, while held | | | |
@@ -799,10 +799,8 @@ SAVE**.
 
 **SCREEN FX**: the screen's effects, several at once, white keys 1–8 each on or off, K1 **EFFECT** and K2 **ON / OFF**
 too. Each effect's card is a small picture with that effect done to it, lit when on. Effect 8 is **LOAF LORD**: LOAF
-LORDS (32 px, the face in 15 tones) falling, bouncing once on the bottom, then through it. Two more settings sit on
-this page: K3 **DRUM FILTER**, the kind of the drums' filter (CLASSIC; SMOOTH, a DJ
-mixer's taper; SOFT, a gentle 6 dB; RESO, with a peak), and K4 **KICK SWITCH**, what KIL does to the drums'
-filter (§4).
+LORDS (32 px, the face in 15 tones) falling, bouncing once on the bottom, then through it. (The drums' filter's
+kind and KICK SWITCH were this page's K3 and K4 until 0.9.96: they are on MIX › FILTERS now, §9.)
 
 **SCREEN SET**: the screen effects' settings: K1 **AMOUNT** (for LOAF LORD, the steady rain), K2 **ON A KICK** (a loaf
 on the kicks), K3 **AT THE DROP** (a burst), K4 **LENGTH**.
@@ -1213,7 +1211,7 @@ ALL; WIPE MEMORY erases them.
 ## 9. The mixer
 
 **LFO** opens the MIXER: three channels side by side, each a fader (BREAK, KICK and PERC with a level meter).
-**SELECT** turns to ROUTING, MASTER and DYNAMICS; **LFO again** goes back to HOME. **LFO held + K1–K4**, on any page:
+**SELECT** turns to ROUTING, MASTER, DYNAMICS and FILTERS; **LFO again** goes back to HOME. **LFO held + K1–K4**, on any page:
 the break's, the kick's and the drums' level, and (K4) the FX fader, 5 % a detent (on the MIXER's own page: 2 %), the
 page staying where it is (LFO let go after a turn opens nothing): the mix moved without going into the MIXER.
 
@@ -1225,6 +1223,7 @@ page staying where it is (LFO let go after a turn opens nothing): the mix moved 
 | ROUTING | FX: the master FX chain against the dry sound | DRUMS: through the FX chain or around it | DUCKS: what MASTER's DUCK pushes down at each kick: BREAK (the break and its echoes), PERC (the snare, hats and clap alone: the kick in front of the snare, the break untouched), BOTH. The same as DYNAMICS' K4 | ROLL: what R8 · R16 · R32 roll: BREAK, KICK (the kick hit at the roll's rate instead of its pattern; the break plays on) or BOTH |
 | MASTER | COMP (its reduction metered) | RATIO (COMP's) | DUCK | MAX OUT |
 | DYNAMICS | COMP's ATTACK | COMP's RELEASE | DUCK's RELEASE | DUCKS: BREAK, PERC or BOTH |
+| FILTERS | BREAK FLT: the kind of HOME's break filter: CLASSIC (as it always was), SMOOTH (a DJ mixer's: flatter, the first part of the turn moves it little), SOFT (a gentle 6 dB), RESO (with a peak) | DRUM FLT: the same four for the drums' filter (SEL + SELECT, HOME's K3) | RESO: a resonance added to both filters, 0 % each kind as it is, up to 100 % a sharp peak (SOFT has none) | KICK SWITCH: what KIL does to the drums' filter when the kicks come back (§4): SMART, FLT OFF, FLT KEEP |
 
 FX is how much of the chain you hear (the drums routed around it stay dry). Bring BREAK down to drop the break and
 let the drums run alone, then up again for the drop. HOME keeps the gate (K1), the drums' filter (K3) and the SUB's
@@ -1262,6 +1261,7 @@ all the way up: −3 dB to start with (headroom for the FM-1's output and your s
 | LFO, ROUTING (SELECT) | FX (the chain, dry to wet) | Drums: through the chain or around it | Ducks: BREAK, PERC or BOTH | Roll: break, kick or both |
 | LFO, MASTER | Comp | Ratio | Duck | Max out |
 | LFO, DYNAMICS | Comp attack | Comp release | Duck release | Ducks: BREAK, PERC (the drums alone) or BOTH |
+| LFO, FILTERS | Break filter's kind | Drum filter's kind | Reso (both filters) | Kick switch |
 | FX (the chain; SELECT the slot, ALGORITHM its part) | the focused slot's effect: its three settings (ALGORITHM: its MORE and MOD parts; an MB COMP its six, see §6) | | | Its mix |
 | ARP | Amount (the effect touched last) | Thru | Rate / Sweep | Latch (RISE: Return) |
 | ARP, BLK | Preset | Key | Effect | ARP FX (an ARP key) |

@@ -231,6 +231,14 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   kick_set_px eq_g 0 then, the bands' DB / FREQ / Q never touched; lit while heard (a band's DB set, bit 1 clear); a band
   edited on its page (kpx_turn) clears bit 1, the knob functions (SK_PRE.., motions) don't. Probe peqoff; scenario
   peqkey; the scenarios turning K3 left of R8 one more (and mset's R8 to MOT, -2).
+- MIX › FILTERS (28 Nov 2026, 0.9.97, FLEXOR: "go pour la page filter dans LFO", the page stored on the menus page,
+  `choix/menus` filters): MIX's fifth tab (ui.mpage 4, EXPERT; the tabs tab_pad 2/2 so five fit): K1 BREAK FLT, HOME's
+  break filter's kind (set2.bft, BRK_DFT_*: CLASSIC as it always was, SMOOTH a Butterworth with a mixer's taper, SOFT one
+  pole (fx_samples' dj_b1..dj_d1, q.soft / q.g1), RESO a peak; brk_fx.c `brk_fx_brk_type`, `brk_fx_brk_hz` (pads.c
+  dj_text's Hz too); the FILTER pad's throw stays CLASSIC with its own RESO), K2 DRUM FLT (dft_kind, SCREEN FX's K3
+  until 0.9.96), K3 RESO (set2.freso 0..100, 2 % a detent, `brk_fx_reso`: `res_of` adds it to both filters' 12 dB
+  kinds, 0 bit for bit as before, 100 k 0.2), K4 KICK SWITCH (SCREEN FX's K4 until 0.9.96); SCREEN FX's K3 and K4
+  empty. Probes bft freso; scenario filters (drumflt, kill moved there); engine test (each kind at the cutoff).
 - KDR KSN KHH KCP (27 Nov 2026, 0.9.96, FLEXOR: "une touche noire pour kill all drum, kill snare, kill clap, kill hh
   pour pouvoir les activer ou désactiver"): `BKF_KDR`..`BKF_KCP`, last in BKF_* (after PEQ; BKF_N 34: PAD_BIT is a
   mask of keys, not of functions, so BKF_N may pass 32; a function a byte, 1 + BKF_*, up to 254): switches, app.c

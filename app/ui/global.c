@@ -97,11 +97,7 @@ static void global_value(int i, char *t)
             text_cat(t, SFX_NAME[e]);
         else if (i == 1)
             text_cat(t, SFX_ON(e) ? "ON" : "OFF");
-        else if (i == 2)
-            text_cat(t, DFT_NAME[dft_kind()]);   /* (0.9.67, FLEXOR: DRUM FILTER, its kind) */
-        else if (i == 3)
-            text_cat(t, KSW_NAME[ksw_mode()]);   /* (0.9.64, FLEXOR: KICK SWITCH) */
-        return;                          /* (K4 EDIT VIEW and PRESETS DRUM VIEW ZOOM until 0.9.28: KICK › KNOBS › TOOLS) */
+        return;                          /* (K3 DRUM FILTER and K4 KICK SWITCH until 0.9.96: MIX › FILTERS since) */                          /* (K4 EDIT VIEW and PRESETS DRUM VIEW ZOOM until 0.9.28: KICK › KNOBS › TOOLS) */
     }
     if (ui.gpage == 2u) {                /* SETUP (FLEXOR, 0.213: the knobs in the screen's order, top to bottom): K1 SKIN,
                                           * K2 WAVE ZOOM, K3 MODE, K4 AUTO SAVE */
@@ -227,20 +223,7 @@ static void global_turn(int i, int32_t d)
             ui.redraw |= RG_BLOCKS | RG_FOOT;
         } else if (i == 1)
             sfx_toggle(e, d > 0);
-        else if (i == 2) {               /* (0.9.67, FLEXOR: K3 DRUM FILTER, the drums' filter's kind: CLASSIC,
-                                          * SMOOTH (a club mixer's), SOFT (6 dB), RESO) */
-            set.click_gone = (uint8_t)(0x60u | (uint32_t)clamp((int32_t)dft_kind() + (d > 0 ? 1 : -1), 0, BRK_DFTS - 1));
-            set_dirty = 1u;
-            app_say("DRUM FILTER", dft_kind() == BRK_DFT_SOFT ? "SOFT (6 DB)" : DFT_NAME[dft_kind()]);
-            ui.redraw |= RG_FOOT;
-        } else if (i == 3) {             /* (0.9.64, FLEXOR: K4 KICK SWITCH, the drums' filter as KIL brings the kicks
-                                          * back: SMART, FLT OFF, FLT KEEP) */
-            ksw_put((uint32_t)clamp((int32_t)ksw_mode() + (d > 0 ? 1 : -1), 0, KSW_N - 1));
-            set_dirty = 1u;
-            app_say("KICK SWITCH", ksw_mode() == KSW_SMART ? "SMART: FILTER SET DURING KIL STAYS"
-                    : ksw_mode() == KSW_OFF ? "FILTER OFF AT KICKS BACK" : "FILTER ALWAYS KEPT");
-            ui.redraw |= RG_FOOT;
-        }
+                                         /* (K3 DRUM FILTER, K4 KICK SWITCH until 0.9.96: MIX › FILTERS since, FLEXOR) */
                                          /* (K3 WAVE until 0.9.24: HOME's SETTINGS K2 alone; K4 EDIT VIEW until 0.9.28:
                                           * KICK › MORE › TOOLS, FLEXOR; neither named here since 0.9.30) */
         return;

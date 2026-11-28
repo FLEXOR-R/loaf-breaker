@@ -7,6 +7,16 @@ static void selk_value(uint32_t f, int i, char *t);
 static void mix_value(uint32_t h, int i, char *t)
 {
     t[0] = 0;
+    if (h == 4u) {                       /* LOAF BREAKER (0.9.97, FLEXOR): FILTERS: BREAK FLT, DRUM FLT, RESO, KICK SWITCH */
+        if (i == 0 || i == 1)
+            text_cat(t, DFT_NAME[i ? dft_kind() : set2.bft % BRK_DFTS]);
+        else if (i == 2) {
+            int_text(set2.freso, t);
+            text_cat(t, "%");
+        } else
+            text_cat(t, KSW_NAME[ksw_mode()]);
+        return;
+    }
     if (h == 3u) {                       /* LOAF BREAKER: DYNAMICS: COMP's attack, release; DUCK's release, what it ducks */
         selk_value(i < 2 ? 2u : 0u, i == 0 ? 2 : i == 1 ? 3 : i == 2 ? 2 : 3, t);
         return;
@@ -69,17 +79,34 @@ static void mix_fader(int32_t x, float v, int on)   /* 0..1 from the bottom */
 }
 static void mix_picture(int32_t top)
 {
-    static const char *const NAME[4][4] = {{"BREAK", "KICK", "PERC", ""}, {"FX", "DRUMS", "DUCKS", "ROLL"},
+    static const char *const NAME[5][4] = {{"BREAK", "KICK", "PERC", ""}, {"FX", "DRUMS", "DUCKS", "ROLL"},
                                            {"COMP", "RATIO", "DUCK", "MAX OUT"},
-                                           {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"}};
+                                           {"C ATTACK", "C RELEASE", "D RELEASE", "DUCKS"},
+                                           {"BREAK FLT", "DRUM FLT", "RESO", "KICK SW"}};
     uint32_t c;
     cv_oy = -top;                        /* (this strip's rows of the picture) */
     for (c = 0; c < 4u; c++) {
         int32_t x = (int32_t)c * 60;
         if (c)
             cv_rect(x, 4, 1, 96, C_LINE);
-        if (NAME[ui.mpage % 4u][c][0])
-            cv_text(x + 6, 1, &FONT_XS, NAME[ui.mpage % 4u][c], C_GRAY);
+        if (NAME[ui.mpage % 5u][c][0])
+            cv_text(x + 6, 1, &FONT_XS, NAME[ui.mpage % 5u][c], C_GRAY);
+    }
+    if (ui.mpage == 4u) {                /* FILTERS (0.9.97): each kind a box, the one taken lit; RESO a fader */
+        uint32_t j;
+        for (c = 0; c < 2u; c++)
+            for (j = 0; j < BRK_DFTS; j++) {
+                int on = (c ? dft_kind() : set2.bft % BRK_DFTS) == j;
+                cv_rect((int32_t)c * 60 + 6, 16 + (int32_t)j * 21, 48, 18, on ? C_BLOCK_HI : C_BLOCK);
+                cv_text((int32_t)c * 60 + 10, 20 + (int32_t)j * 21, &FONT_XS, DFT_NAME[j], on ? C_BLACK : C_GRAY);
+            }
+        mix_fader(150, (float)set2.freso * 0.01f, set2.freso > 0u);
+        for (j = 0; j < KSW_N; j++) {
+            int on = ksw_mode() == j;
+            cv_rect(186, 22 + (int32_t)j * 26, 48, 22, on ? C_BLOCK_HI : C_BLOCK);
+            cv_text(190, 27 + (int32_t)j * 26, &FONT_XS, KSW_NAME[j], on ? C_BLACK : C_GRAY);
+        }
+        return;
     }
     if (ui.mpage == 3u) {                /* DYNAMICS: the four values, large */
         char t[12];

@@ -239,6 +239,12 @@ void brk_fx_drums_dj(float *kick, float *perc, uint32_t n, float pos);   /* LOAF
  * gentlest: 30 Hz .. 1.9 kHz / 20 kHz .. 250 Hz), RESO (12 dB/oct, a resonant peak, CLASSIC's range) */
 enum { BRK_DFT_CLASSIC, BRK_DFT_SMOOTH, BRK_DFT_SOFT, BRK_DFT_RESO, BRK_DFTS };
 void brk_fx_drum_type(uint32_t t);
+/* LOAF BREAKER (0.9.97, FLEXOR: MIX › FILTERS): HOME's break filter (its DJ filter) a kind of its own, the same four
+ * (CLASSIC as it always was), and RESO, 0..100, a resonance added to both filters' 12 dB kinds (0: as they were;
+ * SOFT has none) */
+void brk_fx_brk_type(uint32_t t);
+void brk_fx_reso(uint32_t r);
+float brk_fx_brk_hz(float pos, uint32_t t);   /* the break filter's cutoff at pos (-1 .. 1), for that kind (the screen) */
 float brk_fx_drum_hz(float pos, uint32_t t);   /* its cutoff at pos (-1 .. 1; 0 off), for that kind (the screen's too) */
 #define BRK_KICK_HP_HZ(pos) (50.0f * brk_exp2f((pos) * 7.0f))
 #define BRK_DRUM_LP_HZ(pos) (18000.0f * brk_exp2f((pos) * 7.8f))   /* LOAF BREAKER: pos < 0, its low-pass: 18 kHz down

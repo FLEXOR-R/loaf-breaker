@@ -112,9 +112,9 @@ key b10 up
 wait 100
 expect kick_dj 0
 # FLT OFF (SYSTEM › EFFECTS K4): always OFF, as 0.9.50-0.9.63
-tap GLO
+tap LFO
 wait 200
-turn SELECT 3 10
+turn SELECT 4 10   # (0.9.97: MIX › FILTERS; SYSTEM › SCREEN FX before)
 wait 200
 turn K4 1 10
 wait 200
@@ -133,9 +133,9 @@ key b10 up
 wait 100
 expect kick_dj 0
 # FLT KEEP: never touched
-tap GLO
+tap LFO
 wait 200
-turn SELECT 3 10
+turn SELECT 4 10   # (0.9.97: MIX › FILTERS; SYSTEM › SCREEN FX before)
 wait 200
 turn K4 1 10
 wait 200

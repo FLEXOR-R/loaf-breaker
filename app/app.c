@@ -482,7 +482,8 @@ typedef struct {
     uint8_t hk4;                         /* HOME K4's function: 0 kx2.rsv's (older), else 1 + SK_* */
     uint8_t ch[8];                       /* CHAOS+ (0.9.95): EVOLVE, TARGET, WHERE, COLOR, flags (bit 0 CHS held only,
                                           * bit 1 MATH SHIFT), the CHAOS style picked last, 2 spare */
-    uint8_t rsv[31];
+    uint8_t bft, freso;                  /* MIX › FILTERS (0.9.97): the break filter's kind (BRK_DFT_*), RESO 0..100 */
+    uint8_t rsv[29];
 } set2_t;
 static set2_t set2;
 static void set2_defaults(void)
@@ -3249,6 +3250,8 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                 }
             }
             brk_fx_drum_type(dft_kind());   /* (0.9.67: its kind) */
+            brk_fx_brk_type(set2.bft < BRK_DFTS ? set2.bft : BRK_DFT_CLASSIC);   /* (0.9.97: MIX › FILTERS) */
+            brk_fx_reso(set2.freso);
             brk_fx_drums_dj(kick, perc, m, (float)set.kick_dj * 0.01f);   /* HOME's DRUM FLT (LOAF BREAKER: every drum,
                                           * not the break) */
             build_p = b_on ? (build_len ? (float)b_steps / (float)build_len : 1.0f) : -1.0f;

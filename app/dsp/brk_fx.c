@@ -29,6 +29,23 @@ static svf_t dj_b, dj_e, dj_v;           /* the DJ filter: on the break, its ech
 static svf_t dj_k;                       /* GLOUPI BREAKS: HOME's DJ filter, on the kick (brk_fx_kick_dj) */
 static svf_t dj_p;                       /* LOAF BREAKER: the same on the snare, the hat and the clap */
 static svf_t dj_d;                       /* (0.9.26: the FILTER pad's throw on the drums, its THRU DRUMS or BOTH) */
+static float dj_b1, dj_e1, dj_v1, dj_d1;   /* (0.9.97: the break filter SOFT, one pole each) */
+static volatile uint8_t p_bft, p_reso;   /* (0.9.97: MIX › FILTERS: the break filter's kind, RESO 0..100) */
+void brk_fx_brk_type(uint32_t t) { p_bft = (uint8_t)(t < BRK_DFTS ? t : BRK_DFT_CLASSIC); }
+void brk_fx_reso(uint32_t r) { p_reso = (uint8_t)(r > 100u ? 100u : r); }
+static float res_of(float base)          /* (0.9.97: a kind's own resonance, RESO on top: 0 as it was, 100 k 0.2) */
+{
+    return base + (0.9f - base) * (float)p_reso * 0.01f;
+}
+/* the break filter's cutoff: -1 .. 0 low-pass 18 kHz down to 80 Hz, 0 .. 1 high-pass 20 Hz up to 6 kHz (exponential
+ * sweeps), SMOOTH and SOFT with a mixer's taper (the first part of the turn moves it little) */
+BRK_COLD float brk_fx_brk_hz(float pos, uint32_t t)
+{
+    float a = brk_clampf(brk_absf(pos), 0.0f, 1.0f);
+    if (t == BRK_DFT_SMOOTH || t == BRK_DFT_SOFT)
+        a *= 0.4f + 0.6f * a;
+    return pos > 0.0f ? 20.0f * brk_exp2f(a * 8.2f) : 18000.0f * brk_exp2f(-a * 7.8f);
+}
 static volatile uint32_t p_fthru;        /* (its THRU: 0 BREAK, 1 DRUMS, 2 BOTH) */
 void brk_fx_flt_thru(uint32_t m) { p_fthru = m <= 2u ? m : 0u; }
 static volatile uint32_t p_late;         /* (0.9.31: the limiter left to brk_fx_add_dry, after the ARP's overlays and the
@@ -520,7 +537,8 @@ BRK_COLD void brk_fx_drums_dj(float *x, float *y, uint32_t n, float pos)
         }
         return;
     }
-    c = svf_coef(hz, t == BRK_DFT_SMOOTH ? 0.293f : t == BRK_DFT_RESO ? 0.83f : 0.35f);   /* (SMOOTH k 1.414:
+    c = svf_coef(hz, res_of(t == BRK_DFT_SMOOTH ? 0.293f : t == BRK_DFT_RESO ? 0.83f : 0.35f));   /* (0.9.97: RESO's
+                                          * knob on top) */   /* (SMOOTH k 1.414:
                                           * Butterworth; RESO k 0.34: a ~+9 dB peak; CLASSIC as always) */
     for (i = 0; i < n; i++) {
         if (x) {
@@ -1191,7 +1209,7 @@ BRK_COLD void brk_fx_mb_meter(uint32_t slot, float *gr, float *lvl)
 }
 
 /* the block's samples, all four slots: from RAM on the FM-1 (BRK_RAM, one call a block: nothing in it calls out) */
-typedef struct { svf_c djc; dl_c_t dub_c; float wet; int dj_hp, dub_on; uint32_t k0, k1, kick, fmode, late, tail; } fx_q_t;
+typedef struct { svf_c djc; dl_c_t dub_c; float wet, g1; int dj_hp, dub_on, soft; uint32_t k0, k1, kick, fmode, late, tail; } fx_q_t;
 BRK_RAM static void fx_samples(const fx_q_t *q, const float *in, const float *thru, const float *echo, const float *verb,
                                const float *post, float *l, float *r, uint32_t n)
 {
@@ -1200,6 +1218,21 @@ BRK_RAM static void fx_samples(const fx_q_t *q, const float *in, const float *th
         float x = in[i], xl, xr, lp, ec = echo ? echo[i] : 0.0f, vb = verb ? verb[i] : 0.0f;
         float dv = thru ? thru[i] : post ? post[i] : 0.0f;   /* (the drums, into the chain or around it) */
         int djon = !q->kick && (dj_s < -0.01f || dj_s > 0.01f);
+        if (djon && q->soft) {           /* (0.9.97: MIX › FILTERS' SOFT: one pole, 6 dB) */
+            if (q->fmode) {
+                dj_d1 += q->g1 * (dv - dj_d1);
+                dv = q->dj_hp ? dv - dj_d1 : dj_d1;
+            }
+            if (q->fmode != 1u) {
+                dj_b1 += q->g1 * (x - dj_b1);
+                x = q->dj_hp ? x - dj_b1 : dj_b1;
+                dj_e1 += q->g1 * (ec - dj_e1);
+                ec = q->dj_hp ? ec - dj_e1 : dj_e1;
+                dj_v1 += q->g1 * (vb - dj_v1);
+                vb = q->dj_hp ? vb - dj_v1 : dj_v1;
+            }
+            djon = 0;
+        }
         if (djon && q->fmode) {          /* (0.9.26: the FILTER pad thrown, its THRU DRUMS or BOTH: the drums too) */
             float h = svf_run(&dj_d, &q->djc, dv, &lp);
             dv = q->dj_hp ? h : lp;
@@ -1300,9 +1333,10 @@ void brk_fx_process(const float *in, const float *thru, const float *echo, const
 {
     uint32_t k, i;
     svf_c djc;
-    float dj, dj_hz, wet;
+    float dj, dj_hz, wet, g1;
     dl_c_t dub_c;
-    int dj_hp, throw = (pads >> PAD_FILTER) & 1u, dub_on = (pads >> PAD_DUB) & 1u;
+    int dj_hp, soft, throw = (pads >> PAD_FILTER) & 1u, dub_on = (pads >> PAD_DUB) & 1u;
+    uint32_t bft;
     fx = *(const brk_fx_t *)&p_fx;
     wet = brk_clampf(fx.wet, 0.0f, 1.0f);
 
@@ -1311,9 +1345,17 @@ void brk_fx_process(const float *in, const float *thru, const float *echo, const
     dj_s += (dj - dj_s) * (throw ? 0.01f + 0.3f * brk_clampf(fx.flt_speed, 0.0f, 1.0f) : 0.07f);   /* (0.9.92: HOME's
                                           * filter ~80 ms, a detent a glide; the FILTER pad's throw as ever) */
     dj_hp = dj_s > 0.0f;
-    /* -1 .. 0: low-pass 18 kHz down to 80 Hz; 0 .. 1: high-pass 20 Hz up to 6 kHz (exponential sweeps) */
-    dj_hz = dj_hp ? 20.0f * brk_exp2f(dj_s * 8.2f) : 18000.0f * brk_exp2f(dj_s * 7.8f);
-    djc = svf_coef(dj_hz, throw ? brk_clampf(fx.flt_res, 0.0f, 0.95f) : 0.35f);
+    /* -1 .. 0: low-pass 18 kHz down to 80 Hz; 0 .. 1: high-pass 20 Hz up to 6 kHz (exponential sweeps); its kind
+     * (0.9.97, MIX › FILTERS): CLASSIC as it always was, SMOOTH (Butterworth, a mixer's taper), SOFT (one pole), RESO
+     * (a peak), RESO's knob on top; the FILTER pad's throw its own resonance as ever */
+    bft = throw ? BRK_DFT_CLASSIC : p_bft;
+    dj_hz = brk_fx_brk_hz(dj_s, bft);
+    djc = svf_coef(dj_hz, throw ? brk_clampf(fx.flt_res, 0.0f, 0.95f)
+                   : res_of(bft == BRK_DFT_SMOOTH ? 0.293f : bft == BRK_DFT_RESO ? 0.83f : 0.35f));
+    soft = bft == BRK_DFT_SOFT;
+    g1 = soft ? 1.0f - brk_exp2f(-9.0647f * dj_hz / (float)BRK_SR) : 0.0f;
+    if (!soft || !(dj_s < -0.01f || dj_s > 0.01f))
+        dj_b1 = dj_e1 = dj_v1 = dj_d1 = 0.0f;
     if (dub_n && p_kecho && !dub_on)     /* (0.9.60: KILL BREAK's echo: its time, a fading repeat, at a good level) */
         dl_settings(&dub_c, DUB_DIV_DLY[(p_kecho - 1u) % BRK_DUB_DIVS], 0.55f, 0.45f, 0.8f);
     else if (dub_n)                      /* the delay after the chain (no DELAY slot): the DUB pad's settings */
@@ -1354,6 +1396,8 @@ void brk_fx_process(const float *in, const float *thru, const float *echo, const
         q.dub_c = dub_c;
         q.wet = wet;
         q.dj_hp = dj_hp;
+        q.soft = soft;
+        q.g1 = g1;
         q.dub_on = dub_on;
         q.k0 = 0u;
         q.k1 = BRK_FX_SLOTS;
@@ -1392,7 +1436,8 @@ void brk_fx_kick(float *x, uint32_t n)
         q.tail = 0u;
         q.fmode = 0u;
         q.wet = 1.0f;
-        q.dj_hp = q.dub_on = 0;
+        q.dj_hp = q.dub_on = q.soft = 0;
+        q.g1 = 0.0f;
         fx_samples_p(&q, x, 0, 0, 0, 0, x, x, n);
     }
 }

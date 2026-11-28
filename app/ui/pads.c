@@ -224,12 +224,13 @@ static const char *pad_knob_name(int pad, int k)
     return PAD_KNOB[pad][k & 3];
 }
 /* -1..1 as the DJ filter's frequency: "LP 340HZ" / "HP 1.2K" */
-static void dj_text(float dj, char *t)
+static void dj_text_k(float dj, char *t, uint32_t kind)
 {
     t[0] = 0;
     text_cat(t, dj > 0.0f ? "HP " : "LP ");
-    hz_text(dj > 0.0f ? 20.0f * brk_exp2f(dj * 8.2f) : 18000.0f * brk_exp2f(dj * 7.8f), t + 3);   /* (common.c's) */
+    hz_text(brk_fx_brk_hz(dj, kind), t + 3);   /* (0.9.97: its kind's, MIX › FILTERS) */
 }
+static void dj_text(float dj, char *t) { dj_text_k(dj, t, set2.bft % BRK_DFTS); }
 
 /* LOAF BREAKER: HOME's two filters, K2 the break's and K3 the drums' (SEQ's K2 and the roll pads' the same), work
  * alike: from OFF at the centre, left a low-pass, right a high-pass; away from OFF 2 % a detent, the first already heard; back towards OFF 4 % a detent (out faster
@@ -407,7 +408,7 @@ static void pad_knob_value(int pad, int k, char *t)
         else { int_text((int32_t)p->rnd_pitch, t); text_cat(t, "ST"); }
         break;
     case PAD_FILTER:
-        if (k == 0) dj_text(f->flt_target, t);
+        if (k == 0) dj_text_k(f->flt_target, t, BRK_DFT_CLASSIC);   /* (the FILTER pad's throw: CLASSIC as ever) */
         else if (k == 1) pct_text(f->flt_res, t);
         else if (k == 2) pct_text(f->flt_speed, t);
         else text_cat(t, FTHRU_NAME[bk_fthru()]);

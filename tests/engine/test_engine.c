@@ -374,6 +374,35 @@ static void test_fx(void)
         d2 = brk_fx_dj_now();
         CHECK(d1 > -0.12f && d2 < -0.99f, "HOME's filter glides: %.3f after a block, %.3f after 0.4 s", d1, d2);
     }
+    {                                    /* (0.9.97, FLEXOR: MIX › FILTERS) the break filter's kinds and RESO: a tone at
+                                          * the low-pass's cutoff (HOME's filter half way left: 18 kHz / 2^3.9) */
+        static float tone[BLOCK];
+        float g[5], hz = 18000.0f * powf(2.0f, -3.9f);
+        uint32_t t, b;
+        for (i = 0; i < BLOCK; i++)
+            tone[i] = 0.5f * sinf(6.2831853f * hz * (float)i / (float)BRK_SR);
+        for (t = 0; t < 5u; t++) {
+            double e = 0.0;
+            brk_fx_defaults(&p);
+            p.dj = -0.5f;
+            brk_fx_set(&p);
+            brk_fx_brk_type(t < 4u ? t : BRK_DFT_CLASSIC);
+            brk_fx_reso(t < 4u ? 0u : 100u);
+            for (b = 0; b < 40u; b++) {  /* (0.23 s: the glide there, the filter settled) */
+                for (i = 0; i < BLOCK; i++)
+                    tone[i] = 0.1f * sinf(6.2831853f * hz * (float)(b * BLOCK + i) / (float)BRK_SR);
+                brk_fx_process(tone, 0, 0, 0, 0, bl, br, BLOCK, 0u);
+            }
+            for (i = 0; i < BLOCK; i++)
+                e += (double)bl[i] * bl[i];
+            g[t] = (float)sqrt(e / BLOCK) / (0.1f * 0.70711f);
+        }
+        brk_fx_brk_type(BRK_DFT_CLASSIC);
+        brk_fx_reso(0u);
+        CHECK(g[0] > 0.6f && g[0] < 0.95f && g[3] > 2.0f * g[0] && g[4] > 3.0f * g[0] && fabsf(g[1] - g[0]) > 0.05f && fabsf(g[2] - g[0]) > 0.05f,
+              "break filter at its cutoff: CLASSIC x%.2f, SMOOTH x%.2f, SOFT x%.2f, RESO x%.2f, CLASSIC + RESO 100 x%.2f",
+              g[0], g[1], g[2], g[3], g[4]);
+    }
 }
 
 /* an IMA ADPCM encoder for the test only (tools/prep_breaks.py has the real one) */

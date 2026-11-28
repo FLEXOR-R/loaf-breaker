@@ -1,0 +1,59 @@
+# LOAF BREAKER (28 Nov 2026, 0.9.97, FLEXOR: the FILTERS page planned on the menus page, "go pour la page filter dans
+# LFO"): MIX's fifth tab (LFO, SELECT): K1 BREAK FLT, HOME's break filter's kind (CLASSIC as it always was, SMOOTH,
+# SOFT, RESO), K2 DRUM FLT (SYSTEM › SCREEN FX K3 until 0.9.96), K3 RESO (0 %: each kind as it was; up to 100 % a peak
+# on both filters, SOFT has none), K4 KICK SWITCH (SCREEN FX's K4 until 0.9.96). SCREEN FX's K3 and K4 do nothing now.
+#   app/build/host/loaf-breaker_host tests/scenarios/filters.txt app/build/scenarios
+wait 4200
+expect bft 0
+expect freso 0
+expect dft 0
+expect kswitch 0
+tap LFO
+wait 200
+expect page 5
+turn SELECT 4 10
+wait 200
+expect mpage 4
+turn K1 2 10
+wait 200
+expect bft 2
+turn K1 5 10
+wait 200
+expect bft 3
+turn K3 10 10
+wait 200
+expect freso 20
+turn K3 60 10
+wait 200
+expect freso 100
+turn K2 1 10
+wait 200
+expect dft 1
+turn K4 2 10
+wait 200
+expect kswitch 2
+shot filters.png
+turn SELECT 1 10
+wait 200
+expect mpage 0
+# SCREEN FX's K3 and K4: no longer the drum filter nor KICK SWITCH
+tap GLO
+wait 200
+turn SELECT 3 10
+wait 200
+turn K3 1 10
+turn K4 -1 10
+wait 200
+expect dft 1
+expect kswitch 2
+# kept after a SAVE and a restart
+tap HOME
+wait 200
+tap SAVE
+wait 600
+reboot
+wait 4200
+expect bft 3
+expect freso 100
+expect dft 1
+expect kswitch 2
