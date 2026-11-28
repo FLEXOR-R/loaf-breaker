@@ -26,6 +26,7 @@ typedef struct {
 #define PERC_PRESETS 4u
 extern const char *const PERC_PRESET_NAME[PERC_VOICES][PERC_PRESETS];
 void perc_preset(perc_voice_t *v, uint32_t voice, uint32_t i);
+extern const uint8_t PERC_DEF[PERC_VOICES];   /* (0.9.97: each voice's starting preset, the 909s) */
 void perc_defaults(perc_t *p);           /* each voice's first preset, volume 0.8 */
 float perc_tune_hz(uint32_t voice, float tune);   /* SNARE 120..400 Hz; HAT the lowest of its six, 100..800 Hz;
                                           * CLAP its band, 700..2440 Hz */

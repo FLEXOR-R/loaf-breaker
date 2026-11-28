@@ -180,8 +180,10 @@ static void reset_do(uint32_t w)
         uint32_t v;
         for (v = 0; v < PV_STAB; v++) {  /* (0.9.57: not the STAB's empty place, whose memory is the drums' extras) */
             uint32_t m = *perc_slot(v) % PERC_MEMS;
-            perc_preset(perc_mem(v, m), v, m % PERC_PRESETS);
+            perc_preset(perc_mem(v, m), v, (m + PERC_DEF[v]) % PERC_PRESETS);   /* (0.9.97: memory 1 the 909) */
             *perc_voice(v) = *perc_mem(v, m);
+            memset(perc_xm(v, m), 0, PX_N);   /* (0.9.97: its extras off too, its PRESET named: as it came) */
+            perc_xm(v, m)[PX_PRE] = (uint8_t)((m + PERC_DEF[v]) % PERC_PRESETS);
         }
     } else if (w == RST_MIX) {           /* MIX: the MIXER's four parts as they start */
         brk_fx_t f;

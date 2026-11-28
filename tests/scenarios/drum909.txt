@@ -1,0 +1,22 @@
+# LOAF BREAKER (28 Nov 2026, 0.9.97, FLEXOR: "les drums une base de 909", kit A of his 909 Lab): a new FM-1's drums the
+# 909s, each memory's PRESET named as it plays: the snare's 909 (0), the hat's 909 CH (0), the clap's 909 (1; its
+# first, 808, before). EDIT goes round KICK SN HH CP (EXPERT).
+#   app/build/host/loaf-breaker_host tests/scenarios/drum909.txt app/build/scenarios
+wait 4200
+tap EDIT
+wait 200
+expect einst 0
+tap EDIT
+wait 200
+expect einst 1
+expect ppre 0
+shot d909_sn.png
+tap EDIT
+wait 200
+expect einst 2
+expect ppre 0
+tap EDIT
+wait 200
+expect einst 3
+expect ppre 1
+shot d909_cp.png

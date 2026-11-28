@@ -1168,8 +1168,11 @@ round the same three views (RGB, WAVE, CLASSIC). The lower strip shows the drums
 | Voice | Is | Presets |
 | --- | --- | --- |
 | SNARE | Two tuned sines with a pitch drop (the body) and band-passed noise (the snares), with a crack on the hit | 909 · TIGHT · FAT · GABBER, then the industrial ones: SHRAPNEL · GRINDER · PISTON · CONCRETE · BUNKER · SHRAP CRUSH · GRIND CRUSH · CONCR SMASH · GABBER BITS |
-| HAT | Six square waves at the 808's ratios and noise, through two high-passes | CLOSED · 808 · OPEN · TRASH |
+| HAT | Six square waves at the 808's ratios and noise, through two high-passes | 909 CH · 808 · 909 OH · TRASH |
 | CLAP | Noise bursts and a tail | 808 · 909 · TIGHT · BIG · BUNKER CLAP · FURNACE CLAP |
+
+A new FM-1 (and RESET's DRUMS or EVERYTHING) starts on a 909 kit: the 909 snare, 909 CH (closed hat) and the 909
+clap; 909 OH is the open hat, one PRESETS turn away. Your saved drums stay as you left them.
 
 | Knobs | K1 | K2 | K3 | K4 |
 | --- | --- | --- | --- | --- |

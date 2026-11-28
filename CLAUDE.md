@@ -231,6 +231,12 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   kick_set_px eq_g 0 then, the bands' DB / FREQ / Q never touched; lit while heard (a band's DB set, bit 1 clear); a band
   edited on its page (kpx_turn) clears bit 1, the knob functions (SK_PRE.., motions) don't. Probe peqoff; scenario
   peqkey; the scenarios turning K3 left of R8 one more (and mset's R8 to MOT, -2).
+- 909 drums (28 Nov 2026, 0.9.97, FLEXOR: "les drums une base de 909"; "ok go kit A" on his 909 Lab,
+  https://claude.ai/artifact/QKvcX2fZQJvTg8SfTah86C, store `lab909/choix`, rendered by tests' own perc.c, no host): perc.c
+  PRESET's snare 909 (0.80 0.36 0.50 0.60 0.60 0.10), the hat's 909 CH and 909 OH (CLOSED and OPEN before, their places
+  0 and 2 kept), the clap's 909 (its place 1); `PERC_DEF` {0, 0, 1}: perc_defaults and the memories (app.c defaults,
+  track.c RESET DRUMS: memory m the preset (m + PERC_DEF) % 4, its PX_PRE named so, RESET DRUMS its extras off too). A
+  saved drum never changes. Probe ppre; scenario drum909.
 - MIX › FILTERS (28 Nov 2026, 0.9.97, FLEXOR: "go pour la page filter dans LFO", the page stored on the menus page,
   `choix/menus` filters): MIX's fifth tab (ui.mpage 4, EXPERT; the tabs tab_pad 2/2 so five fit): K1 BREAK FLT, HOME's
   break filter's kind (set2.bft, BRK_DFT_*: CLASSIC as it always was, SMOOTH a Butterworth with a mixer's taper, SOFT one

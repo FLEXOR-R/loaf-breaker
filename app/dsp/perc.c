@@ -9,7 +9,7 @@
 const char *const PERC_VOICE_NAME[PERC_VOICES] = {"SNARE", "HAT", "CLAP", ""};   /* (LOAF BREAKER, 0.209: the fourth,
                                           * the MELODY's, gone: kicks and drums only; its place kept, the saves' layout) */
 const char *const PERC_PRESET_NAME[PERC_VOICES][PERC_PRESETS] = {{"909", "TIGHT", "FAT", "GABBER"},
-                                                                 {"CLOSED", "808", "OPEN", "TRASH"},
+                                                                 {"909 CH", "808", "909 OH", "TRASH"},
                                                                  {"808", "909", "TIGHT", "BIG"},
                                                                  {"", "", "", ""}};
 
@@ -590,16 +590,19 @@ BRK_COLD int perc_pic_step(uint32_t ticks)   /* 1: done (or nothing begun) */
 
 /* the built-in sounds: level, tune, decay, tone, snap (the hat's cut), drive */
 static const float PRESET[PERC_VOICES][PERC_PRESETS][6] = {
-    {{0.80f, 0.45f, 0.40f, 0.50f, 0.55f, 0.10f},    /* 909 */
+    {{0.80f, 0.36f, 0.50f, 0.60f, 0.60f, 0.10f},    /* 909 (0.9.97, FLEXOR's 909 Lab, kit A: 185 Hz, brighter noise,
+                                                    * 220 ms; 0.45 0.40 0.50 0.55 before) */
      {0.75f, 0.65f, 0.20f, 0.70f, 0.70f, 0.20f},    /* TIGHT */
      {0.85f, 0.25f, 0.65f, 0.35f, 0.45f, 0.30f},    /* FAT */
      {0.85f, 0.55f, 0.45f, 0.60f, 0.75f, 0.85f}},   /* GABBER */
-    {{0.60f, 0.55f, 0.10f, 0.55f, 0.55f, 0.00f},    /* CLOSED */
+    {{0.60f, 0.65f, 0.25f, 0.60f, 0.70f, 0.00f},    /* 909 CH (0.9.97, kit A: metallic, bright, 70 ms; CLOSED
+                                                    * 0.55 0.10 0.55 0.55 before) */
      {0.60f, 0.35f, 0.18f, 0.20f, 0.45f, 0.10f},    /* 808 */
-     {0.55f, 0.50f, 0.75f, 0.50f, 0.50f, 0.05f},    /* OPEN */
+     {0.55f, 0.65f, 0.68f, 0.60f, 0.70f, 0.00f},    /* 909 OH (0.9.97, kit A: 909 CH's colour, ~430 ms; OPEN before) */
      {0.65f, 0.80f, 0.15f, 0.85f, 0.70f, 0.80f}},   /* TRASH */
     {{0.75f, 0.35f, 0.45f, 0.40f, 0.45f, 0.10f},    /* CLAP 808 (snap: the bursts' spread) */
-     {0.75f, 0.55f, 0.35f, 0.60f, 0.35f, 0.15f},    /* 909 */
+     {0.75f, 0.36f, 0.48f, 0.50f, 0.43f, 0.10f},    /* 909 (0.9.97, kit A: bursts ~10 ms apart, 1.1 kHz, a 250 ms
+                                                    * tail; 0.55 0.35 0.60 0.35 0.15 before) */
      {0.70f, 0.60f, 0.15f, 0.55f, 0.20f, 0.10f},    /* TIGHT */
      {0.80f, 0.30f, 0.65f, 0.35f, 0.70f, 0.30f}},   /* BIG */
     {{0.0f}},                                      /* (the MELODY's place, empty) */
@@ -615,10 +618,13 @@ BRK_COLD void perc_preset(perc_voice_t *v, uint32_t voice, uint32_t i)
     v->drive = p[5];
 }
 
+/* LOAF BREAKER (0.9.97, FLEXOR: "les drums une base de 909", kit A of his 909 Lab): a new FM-1's and RESET's drums,
+ * the preset each voice starts on: the 909s (the clap's is its second) */
+const uint8_t PERC_DEF[PERC_VOICES] = {0u, 0u, 1u, 0u};
 BRK_COLD void perc_defaults(perc_t *p)
 {
     uint32_t k;
     for (k = 0; k < PERC_VOICES; k++)
-        perc_preset(&p->v[k], k, 0u);
+        perc_preset(&p->v[k], k, PERC_DEF[k]);
     p->volume = 0.8f;
 }

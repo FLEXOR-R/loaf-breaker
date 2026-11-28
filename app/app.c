@@ -1014,9 +1014,12 @@ static void settings_defaults(void)
         set.perc.volume = d.volume;
         set.pmore[0] = d.v[PV_CLAP];
         for (k = 0; k < PERC_VOICES * PERC_MEMS; k++)   /* (the memories begin as the presets, again and again) */
-            perc_preset(perc_mem(k / PERC_MEMS, k % PERC_MEMS), k / PERC_MEMS, k % PERC_MEMS % PERC_PRESETS);
+            perc_preset(perc_mem(k / PERC_MEMS, k % PERC_MEMS), k / PERC_MEMS,
+                        (k % PERC_MEMS + PERC_DEF[k / PERC_MEMS]) % PERC_PRESETS);   /* (0.9.97: the first the 909) */
     }
     memset(set.smem, 0, sizeof set.smem);   /* (LOAF BREAKER: the drums' extras: none, as they always sounded) */
+    for (k = 0; k < 3u * PERC_MEMS; k++)   /* (0.9.97: each memory's PRESET named as it is, the first the 909) */
+        perc_xm(k / PERC_MEMS, k % PERC_MEMS)[PX_PRE] = (uint8_t)((k % PERC_MEMS + PERC_DEF[k / PERC_MEMS]) % PERC_PRESETS);
     set.pxv = PX_OK;
     set.brkv = BRKV_TAG | 2u;            /* (LOAF BREAKER: the break's 32 steps on SEQ's grid) */
     for (k = 0; k < 16u; k++)            /* the overlays: full, the sweeps and the dirt a little less */
