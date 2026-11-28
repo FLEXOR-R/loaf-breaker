@@ -310,6 +310,21 @@ static void midi_drum(uint32_t d)        /* a drum note (DR_*): the hit now, and
         set_dirty = 1u;
     }
 }
+static void midi_ohat(void)             /* (0.9.97: MIDI 46, the hat open: the hit now, and with REC into its lane, OH) */
+{
+    perc_hit(PV_STAB);
+    if (ui.rec && playing_now()) {
+        brk_status_t st;
+        uint32_t k, b;
+        brk_status(&st);
+        k = ((uint32_t)(st.bar64 < 0 ? 0 : st.bar64) + (st.phase > 0.5f ? 1u : 0u)) % 64u;
+        b = (k >> 4) % drum_bars(pat_now(), DR_HAT);
+        drum_bar_set(pat_now(), DR_HAT, b, drum_bar(pat_now(), DR_HAT, b) | 1u << (k & 15u));
+        hat_open_set(set.pattern, b * 16u + (k & 15u), 1);
+        pat_lanes_out();
+        set_dirty = 1u;
+    }
+}
 /* K1-K4 on a drum lane (SEQ): FILL n hits spread evenly (Euclidean, from the downbeat), KICK FLT (LOAF BREAKER, in
  * place of ROTATE: the kick's DJ filter, HOME's K3's),
  * CLEAR (left) or four on the floor (right), LENGTH (GLOUPI BREAKS, in place of COPY: the kick 16, 32 or 64 steps, the
@@ -355,8 +370,17 @@ static void lane_knob(int i, int32_t d)
         uint32_t s = ui.note_key - 1u, dr = sl_drum(ui.seq_lane), ks = SL_BAR[ui.seq_lane % NSEQL] * 16u + s;
         uint8_t *b = stepb(set.pattern, dr, ks);
         static const char *const W[4] = {"", "HITS", "COND", "NUDGE"};
+        if (!i && dr == DR_HAT) {        /* (0.9.97, FLEXOR: K1 on a hat step, HH (closed) or OH (open): right open) */
+            hat_open_set(set.pattern, ks, d > 0);
+            ui.note_turned = 1u;
+            set_dirty = 1u;
+            say_int("HAT", (int32_t)ks + 1, "");
+            app_say(ui.msg[0], d > 0 ? "OH: OPEN" : "HH: CLOSED");
+            ui.redraw |= RG_BLOCKS | RG_FOOT;
+            return;
+        }
         if (!i)
-            return;                      /* (K1: the snare, the hat, the clap have no note) */
+            return;                      /* (K1: the snare and the clap have no note) */
         if (i == 1)
             *b = (uint8_t)((*b & ~3u) | (uint32_t)clamp((int32_t)(*b & 3u) + (d > 0 ? 1 : -1), 0, 3));
         else if (i == 2)                 /* (LOAF BREAKER TEST: ALWAYS, 75 %, 50 %, 25 %, 1:2, 2:2, FILL, NOT FILL) */
@@ -493,7 +517,8 @@ static void seq_rotate(int32_t d)
         }
         on[s] = (uint8_t)(drum_bar(p, dr, s >> 4) >> (s & 15u) & 1u);
         sb[s] = *stepb(set.pattern, dr, s);
-        nt[s] = (int8_t)(dr == DR_KICK ? kick_note(p, s) : 0);
+        nt[s] = (int8_t)(dr == DR_KICK ? kick_note(p, s) : dr == DR_HAT ? hat_open(set.pattern, s) : 0);   /* (0.9.97:
+                                          * the hat's OPEN marks with their steps) */
     }
     for (s = 0; s < n; s++) {            /* (each step takes the one before it, or after it) */
         uint32_t f = (s + (d > 0 ? n - 1u : 1u)) % n;
@@ -506,6 +531,8 @@ static void seq_rotate(int32_t d)
         *stepb(set.pattern, dr, s) = sb[f];
         if (dr == DR_KICK)
             kick_note_set(p, s, nt[f]);
+        else if (dr == DR_HAT)
+            hat_open_set(set.pattern, s, nt[f] != 0);
     }
     if (sl >= SL_KICK) {
         for (k = 0; k < n / 16u; k++) {
@@ -599,7 +626,9 @@ static void seq_value(int i, char *t)    /* the step edited: SLICE, PITCH, HITS,
         uint32_t ks = SL_BAR[ui.seq_lane % NSEQL] * 16u + ui.note_key - 1u, dr = sl_drum(ui.seq_lane);
         uint32_t sb = *stepb(set.pattern, dr, ks);
         if (i == 0) {
-            if (!sl_tuned(ui.seq_lane))
+            if (dr == DR_HAT)            /* (0.9.97: the hat's step closed or open) */
+                text_cat(t, hat_open(set.pattern, ks) ? "OH" : "HH");
+            else if (!sl_tuned(ui.seq_lane))
                 text_cat(t, "-");
             else {
                 int32_t v = kick_note(pat_now(), ks);
@@ -850,6 +879,9 @@ static void seq_picture(const brk_status_t *st, int32_t top)
             }
             if (at == (int32_t)i && ch > 6)
                 cv_rect(x + 2, y + 2, w - 4, ch - 4, m >> i & 1u ? C_BLOCK_HI : C_BLOCK);
+            if (m >> i & 1u && ch > 6 && w > 6 && sl_drum(sl) == DR_HAT && at != (int32_t)i &&
+                hat_open(set.pattern, SL_BAR[sl % NSEQL] * 16u + i))   /* (0.9.97: an open hat, OH: hollow) */
+                cv_rect(x + 2, y + 2, w - 4, ch / 2 - 2, C_BLACK);
             if (ch > 5 && sl_kick(sl) && kick_note(p, SL_BAR[sl] * 16u + i))
                                           /* (a step with a note: a white line on top) */
                 cv_rect(x + 1, y, w - 2, 2, C_WHITE);

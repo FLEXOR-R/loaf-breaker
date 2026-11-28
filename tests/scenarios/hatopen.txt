@@ -1,0 +1,61 @@
+# LOAF BREAKER (28 Nov 2026, 0.9.97, FLEXOR: "pouvoir choisir entre OH et HH"): each hat step closed (HH) or open (OH):
+# a hat step held on SEQ, K1 HH / OH (right open, left closed); an open step drawn hollow; the hat open is the hat's
+# sound with its own decay and level (the hat's page, SPACE: K1 OH DECAY, K2 OH LEVEL); the next hat hit, open or
+# closed, chokes it (one voice, as a 909's). MIDI note 46 plays it.
+#   app/build/host/loaf-breaker_host tests/scenarios/hatopen.txt app/build/scenarios
+wait 4200
+expect hopen 0
+expect ohd 68
+expect ohl 92
+tap SEQ
+tap SEQ
+tap SEQ
+wait 100
+expect seq_lane 2
+turn ALGO 4 10
+wait 100
+expect seq_lane 10
+tapkey w2
+tapkey w6
+wait 100
+expect lane_hat 68
+key w2 down
+wait 100
+turn K1 1 10
+wait 100
+key w2 up
+wait 100
+expect hopen 1
+expect lane_hat 68
+shot hatopen.png
+key w2 down
+wait 100
+turn K1 -1 10
+wait 100
+key w2 up
+wait 100
+expect hopen 0
+key w6 down
+wait 100
+turn K1 1 10
+wait 100
+key w6 up
+wait 100
+expect hopen 1
+tap PLAY
+wait 1500
+expect phits >0
+tap PLAY
+# the hat's page (EDIT from the hat's lane), SPACE (ALGORITHM): K1 OH DECAY, K2 OH LEVEL, 2 % a detent
+tap EDIT
+wait 200
+expect einst 2
+turn ALGO 2 10
+wait 200
+turn K1 5 10
+wait 100
+expect ohd 78
+turn K2 -6 10
+wait 100
+expect ohl 80
+shot hatoh.png

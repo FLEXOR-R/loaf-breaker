@@ -5,7 +5,7 @@
 static const char *const PERC_KNOB[PERC_VOICES][4][4] = {
     {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SNAP", "DRIVE", "PRESET", "DIRT"}, {"DROP", "TIME", "LIFT", "ROOM"},
      {"PRESET", "FX", "LEVEL", "DECAY"}},
-    {{"LEVEL", "TUNE", "DECAY", "METAL/NZ"}, {"CUT", "DRIVE", "PRESET", "DIRT"}, {"", "", "LIFT", "ROOM"},
+    {{"LEVEL", "TUNE", "DECAY", "METAL/NZ"}, {"CUT", "DRIVE", "PRESET", "DIRT"}, {"OH DECAY", "OH LEVEL", "LIFT", "ROOM"},
      {"PRESET", "FX", "LEVEL", "DECAY"}},
     {{"LEVEL", "TUNE", "DECAY", "TONE"}, {"SPREAD", "DRIVE", "PRESET", "DIRT"}, {"", "", "LIFT", "ROOM"},
      {"PRESET", "FX", "LEVEL", "DECAY"}},
@@ -161,6 +161,16 @@ static void perc_value(int i, char *t)
     uint8_t *x = perc_x(ui.pvoice), *xk = perc_xknob(i);
     uint32_t pg = perc_pg(), v = ui.pvoice % PERC_VOICES;
     t[0] = 0;
+    if (pg == 2u && i < 2 && v == PV_HAT) {   /* (0.9.97: the hat open, OH: its DECAY, its LEVEL against the hat's) */
+        if (i == 0) {
+            int_text((int32_t)(perc_decay_ms(PV_HAT, (float)oh_dec() * 0.01f) + 0.5f), t);
+            text_cat(t, " MS");
+        } else {
+            int_text((int32_t)oh_lvl(), t);
+            text_cat(t, "%");
+        }
+        return;
+    }
     if ((pg == 1u && i == 2) || (pg == 3u && i == 0)) {   /* PRESET: the built-in sound it last put back */
         text_cat(t, pp_name(v, x[PX_PRE]));
         return;
@@ -258,6 +268,16 @@ static void perc_turn(int i, int32_t d)
         ui.ppreset[v] = x[PX_PRE];
         perc_value(i, t);
         app_say(i == 1 && pg == 3u ? "FX" : "PRESET", t);
+        ui.redraw |= RG_BLOCKS | RG_FOOT;
+        changed();
+        return;
+    }
+    if (pg == 2u && i < 2 && v == PV_HAT) {   /* (0.9.97: OH DECAY, OH LEVEL, 2 % a detent) */
+        uint8_t *o = i ? &set2.ohl : &set2.ohd;
+        *o = (uint8_t)(1 + clamp((int32_t)(i ? oh_lvl() : oh_dec()) + d * 2, 0, 100));
+        perc_value(i, t);
+        app_say(i ? "OH LEVEL" : "OH DECAY", t);
+        set_dirty = 1u;
         ui.redraw |= RG_BLOCKS | RG_FOOT;
         changed();
         return;

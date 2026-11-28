@@ -172,9 +172,9 @@ static const char *const PAD_KNOB[BKF_N][4] = {   /* (LOAF BREAKER: by function,
 static const char *const PAD_TITLE[BKF_N] = {"ROLL", "ROLL", "ROLL", "REVERSE", "FREEZE", "HALF SPEED",
                                               "VINYL BREAK", "GATE", "RANDOM", "FILTER", "DUB", "OVERLAY", "KICKS OFF",
                                               "DISTO", "SUB FX", "DRIVE", "KICKS X2", "KICKS X4", "KICK TRIPLETS",
-                                              "SUB DRIVE", "KILL BREAK", "CHAOS", "SPLIT", "KICK", "SNARE", "HI-HAT",
+                                              "SUB DRIVE", "KILL BREAK", "CHAOS", "SPLIT", "KICK", "SNARE", "HAT",
                                               "CLAP", "SUB SPLIT", "MOTION", "PRE EQ", "KILL DRUMS", "KILL SNARE",
-                                              "KILL HI-HAT", "KILL CLAP"};
+                                              "KILL HAT", "KILL CLAP"};
 static const char *const FRZ_LEN_NAME[4] = {"SLICE", "1/2", "1/4", "1/8"};
 
 /* LOAF BREAKER: the ARP key's knobs (the OVERLAY page gone, its settings here). MAIN: K1 EFFECT, K2 its AMOUNT, K3

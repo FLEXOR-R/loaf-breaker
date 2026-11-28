@@ -231,6 +231,17 @@ E-*, N-*; milestones M0–M8). Keep the PRD in step when scope changes.
   kick_set_px eq_g 0 then, the bands' DB / FREQ / Q never touched; lit while heard (a band's DB set, bit 1 clear); a band
   edited on its page (kpx_turn) clears bit 1, the knob functions (SK_PRE.., motions) don't. Probe peqoff; scenario
   peqkey; the scenarios turning K3 left of R8 one more (and mset's R8 to MOT, -2).
+- HH / OH (28 Nov 2026, 0.9.97, FLEXOR: "pouvoir choisir entre OH et HH, remplace donc les mentions high hat dans le
+  firmware par hat"): each hat step closed or open, app.c `hat_open` / `hat_open_set` (a bit a step 1-32, 33-64 share
+  them as stepb; steps.b[pi][HO_AT 160..163], 164-165 'O' 'H' the tag: the MELODY's old stepb bytes, an older save's
+  leftovers read as closed; with the groups, undo, copy, clear, RESET STEPS, the rotation); the render's hat hit
+  carries bit PV_STAB (1u << 3) when open; perc.c pc_make(PV_HAT, &s.v[PV_STAB]) its settings (perc_t's fourth voice,
+  the MELODY's place: app.c perc_apply puts the hat there with OH DECAY and OH LEVEL), pv_t `op` the hat voice open or
+  closed (one voice: each hit chokes the last), perc_hit(PV_STAB) the hat open (MIDI 46, seq.c `midi_ohat`, REC writes
+  it open); KHH's filter drops the bit with the hat. set2.ohd / ohl (1 + 0..100, 0 the starting 68 / 92 %: `oh_dec`,
+  `oh_lvl`), the hat's SPACE K1 OH DECAY, K2 OH LEVEL (perc.c). SEQ: a hat step held, K1 HH / OH (main.c's knob name),
+  an open step's upper half hollow. Screens: HI-HAT now HAT (BKF_LONG, PAD_TITLE, KHH's say, the Studio). Probes hopen
+  ohd ohl; scenario hatopen; engine test.
 - 909 drums (28 Nov 2026, 0.9.97, FLEXOR: "les drums une base de 909"; "ok go kit A" on his 909 Lab,
   https://claude.ai/artifact/QKvcX2fZQJvTg8SfTah86C, store `lab909/choix`, rendered by tests' own perc.c, no host): perc.c
   PRESET's snare 909 (0.80 0.36 0.50 0.60 0.60 0.10), the hat's 909 CH and 909 OH (CLOSED and OPEN before, their places

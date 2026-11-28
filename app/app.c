@@ -483,7 +483,9 @@ typedef struct {
     uint8_t ch[8];                       /* CHAOS+ (0.9.95): EVOLVE, TARGET, WHERE, COLOR, flags (bit 0 CHS held only,
                                           * bit 1 MATH SHIFT), the CHAOS style picked last, 2 spare */
     uint8_t bft, freso;                  /* MIX › FILTERS (0.9.97): the break filter's kind (BRK_DFT_*), RESO 0..100 */
-    uint8_t rsv[29];
+    uint8_t ohd, ohl;                    /* the hat open (0.9.97): OH DECAY, OH LEVEL (% of the hat's), 1 + 0..100 (0: the
+                                          * starting 68, 92) */
+    uint8_t rsv[27];
 } set2_t;
 static set2_t set2;
 static void set2_defaults(void)
@@ -491,6 +493,8 @@ static void set2_defaults(void)
     memset(&set2, 0, sizeof set2);
     set2.magic = S2_MAGIC;
 }
+static uint32_t oh_dec(void) { return set2.ohd ? (set2.ohd - 1u > 100u ? 100u : set2.ohd - 1u) : 68u; }
+static uint32_t oh_lvl(void) { return set2.ohl ? (set2.ohl - 1u > 100u ? 100u : set2.ohl - 1u) : 92u; }
 static kick_t *kmem_at(uint32_t n);     /* (the kick memory n, 0..19, wherever it is kept: below) */
 static int8_t *ksmem_at(uint32_t n);
 static kick_lab_t *klmem_at(uint32_t n);
@@ -1099,6 +1103,9 @@ static void perc_apply(void)             /* all the drums' voices for the engine
     uint32_t k;
     for (k = 0; k < PERC_VOICES; k++)
         pa.v[k] = *perc_voice(k);
+    pa.v[PV_STAB] = pa.v[PV_HAT];        /* (0.9.97: the hat open, OH: the hat's sound, its own DECAY and LEVEL) */
+    pa.v[PV_STAB].decay = (float)oh_dec() * 0.01f;
+    pa.v[PV_STAB].level = pa.v[PV_HAT].level * (float)oh_lvl() * 0.01f;
     pa.volume = set.perc.volume;
     perc_set(&pa);
     for (k = 0; k < 3u; k++)             /* (LOAF BREAKER: their extras) */
@@ -1679,6 +1686,30 @@ static uint8_t *stepb(uint32_t pi, uint32_t d, uint32_t s)   /* pattern pi, drum
 {
     d %= NDRUMS;
     return &steps.b[pi % NPAT][d == DR_KICK ? (s & 63u) : 64u + (d - 1u) * 32u + (s & 31u)];
+}
+/* LOAF BREAKER (0.9.97, FLEXOR: "pouvoir choisir entre OH et HH"): each hat step closed (HH) or open (OH), a bit a
+ * step (1-32; 33-64 share them, as stepb), in steps.b's spare bytes 160..163 (the MELODY's old place, 0.198-0.208),
+ * 164-165 'O' 'H' a tag (an older save's leftovers: all closed); with the patterns, their groups and the backup */
+#define HO_AT 160u
+static int hat_open(uint32_t pi, uint32_t s)
+{
+    const uint8_t *b = steps.b[pi % NPAT];
+    s &= 31u;
+    return b[HO_AT + 4u] == 'O' && b[HO_AT + 5u] == 'H' && (b[HO_AT + s / 8u] >> (s & 7u) & 1u);
+}
+static void hat_open_set(uint32_t pi, uint32_t s, int on)
+{
+    uint8_t *b = steps.b[pi % NPAT];
+    s &= 31u;
+    if (b[HO_AT + 4u] != 'O' || b[HO_AT + 5u] != 'H') {
+        b[HO_AT] = b[HO_AT + 1u] = b[HO_AT + 2u] = b[HO_AT + 3u] = 0u;
+        b[HO_AT + 4u] = 'O';
+        b[HO_AT + 5u] = 'H';
+    }
+    if (on)
+        b[HO_AT + s / 8u] |= (uint8_t)(1u << (s & 7u));
+    else
+        b[HO_AT + s / 8u] &= (uint8_t)~(1u << (s & 7u));
 }
 static void steps_defaults(void)          /* (none: from the patterns' HITS) */
 {
@@ -2650,6 +2681,7 @@ void app_init(void)
 #define MIDI_SLICE0 48u                  /* C3: slice 1 */
 static void midi_slice(int s, int on);   /* (with the UI: they play as the keys, and REC records them) */
 static void midi_drum(uint32_t lane);
+static void midi_ohat(void);
 #define MS_PER_SAMPLE (1000.0f / (float)BRK_SR)
 #define CLKQ 64u
 /* (times in plat_ms: the 1 kHz tick sends at that grain anyway, a beat of ticks averages the tempo, and the host
@@ -2743,7 +2775,9 @@ void app_loop(void)
                     mid_held = (uint16_t)(mid_held & ~b);
                     midi_slice((int)(note - MIDI_SLICE0), 0);
                 }
-            } else if (on && ni != NI_OFF && (note == 36u || note == 38u || note == 39u || note == 42u || note == 44u || note == 46u))
+            } else if (on && ni != NI_OFF && note == 46u)
+                midi_ohat();             /* (0.9.97: 46 the hat open, OH) */
+            else if (on && ni != NI_OFF && (note == 36u || note == 38u || note == 39u || note == 42u || note == 44u))
                 midi_drum(note == 36u ? DR_KICK : note == 38u ? DR_SNARE : note == 39u ? DR_CLAP : DR_HAT);   /* (LOAF
                                           * BREAKER: 39 the clap) */
             continue;
@@ -3070,11 +3104,14 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
                     uint32_t dd2, now = 0u;
                     int32_t len = (int32_t)((float)BRK_SR * 15.0f / brk_get_tempo());
                     const pat_t *pp = &pats.p[set.pattern % NPAT];
-                    for (dd2 = DR_SNARE; dd2 < NDRUMS; dd2++)
+                    for (dd2 = DR_SNARE; dd2 < NDRUMS; dd2++) {
+                        uint32_t ds = (bar % drum_bars(pp, dd2)) * 16u + s;
+                        uint8_t wb = (uint8_t)(1u << (dd2 - 1u) |   /* (0.9.97: the hat's step open: bit PV_STAB) */
+                                               (dd2 == DR_HAT && hat_open(set.pattern, ds) ? 1u << PV_STAB : 0u));
                         if (w >> (dd2 - 1u) & 1u &&
-                            step_hit(set.pattern, dd2, (bar % drum_bars(pp, dd2)) * 16u + s, (int32_t)off[k], len, 0u,
-                                     (uint8_t)(1u << (dd2 - 1u)), 1.0f))
-                            now |= 1u << (dd2 - 1u);
+                            step_hit(set.pattern, dd2, ds, (int32_t)off[k], len, 0u, wb, 1.0f))
+                            now |= wb;
+                    }
                     if (now) {
                         pa[np] = off[k];
                         who[np++] = (uint8_t)now;
@@ -3216,11 +3253,15 @@ void app_render(int32_t *lr, uint32_t n, uint32_t master_q12)
             brk_fx_kick(kick, m);        /* and its KICK FX */
             if (drum_mute) {             /* (0.9.96: KDR KSN KHH KCP: the drums switched off quiet) */
                 uint32_t a, b = 0u;
-                for (a = 0; a < np; a++)
-                    if ((who[a] &= (uint8_t)~drum_mute) != 0u) {
+                for (a = 0; a < np; a++) {
+                    uint8_t wv = (uint8_t)(who[a] & ~drum_mute);
+                    if (!(wv & 1u << PV_HAT))    /* (0.9.97: the hat quiet, its OPEN mark with it) */
+                        wv &= (uint8_t)~(1u << PV_STAB);
+                    if ((who[a] = wv) != 0u) {
                         pa[b] = pa[a];
                         who[b++] = who[a];
                     }
+                }
                 np = b;
             }
             perc_hit_n += np;

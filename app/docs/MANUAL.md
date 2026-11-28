@@ -230,7 +230,7 @@ a drum's part; where there is nothing to pick, the break); **PRESETS** the patte
 | OCT− / OCT+ | Pitch in semitones (hold to go faster). Both: back to 0. It is back to 0 at every start too |
 | PRESETS | The pattern, P1–P64 (§5); while playing, the new one starts at the end of the loop |
 | SEQ · REC | The sequencer; recording the keys into the pattern (§5). SEL + REC on SEQ: clear the lane shown (SEL + SAVE takes it back) |
-| MIDI notes | Notes 48–63 (C3–D#4) play slices 1–16, held like the white keys; 36 the kick, 38 the snare, 39 the clap, 42 / 44 / 46 the hat (§8); any channel. SYSTEM › MIDI's PRESETS, NOTES IN: ALL, DRUMS (the drums alone), OFF |
+| MIDI notes | Notes 48–63 (C3–D#4) play slices 1–16, held like the white keys; 36 the kick, 38 the snare, 39 the clap, 42 / 44 the hat, 46 the hat open (§8); any channel. SYSTEM › MIDI's PRESETS, NOTES IN: ALL, DRUMS (the drums alone), OFF |
 | ALGORITHM | (HOME, MIXER; SEL held: any page) The next or previous break: its name shows at once (amber in the header) and, while playing, it comes in at the next bar (the old one goes quiet for the bar's last 16th meanwhile); stopped, at once. The breaks, slowest first, 2 bars each, played at the tempo you set: AMEN10 135, AMEN20 164, UPDOWN 165, AMEN19 172, FOCUZ 175, DETEST 175, AMEN14 175 (the Amens and UPDOWN: The Winstons, cut by Cyberworm; FOCUZ: DNGN DRGNS, "Focuz (DNGN DRGNS Remix)"; DETEST: Detest & Tripped, "Hardcore To The Penis"); then **your own breaks**, if you sent some (below) |
 | MASTER | Volume |
 | Tempo, fine and tap | **SELECT** on HOME: 1 BPM a click. **SYSTEM › MIDI K4 BPM FINE TUNE**: 0.1 BPM a click. On SYSTEM › MIDI **any white key is a tap**. While CLOCK IN follows an outside clock, the clock has the tempo (EXT CLOCK). See §7 |
@@ -555,7 +555,7 @@ Which key does what is a **layout** (ARP › BLK, §5), keys 1–11 left to righ
 | XSB | **SUB SPLIT on / off**, to play it live: a press mutes the kick's SUB SPLIT (KICK › DIST › SUB SPLIT), its X FREQ kept, the next brings it back: an on / off, nothing else (with no X FREQ set, there is no split to hear). Each kick its own, saved. Lit while the split is heard; turning X FREQ (on its page, or a knob given XSUB FREQ) switches it back on | | | | |
 | MOT | **MOTION on / off**: a press stops the motions playing (ARP › MOTION), what they hold kept; the next plays them again. Lit while on | | | | |
 | PEQ | **PRE EQ on / off**, to play it live: a press switches the kick's whole PRE EQ (KICK › DIST › PRE L, PRE M, PRE H) flat, every band's DB, FREQ and Q kept, the next brings it back as it was: an on / off, nothing else. Each kick its own, saved. Lit while the PRE EQ is heard (a band set and the switch on); a band edited on PRE L / M / H switches it back on | | | | |
-| KDR · KSN · KHH · KCP | **The drums off and on**, to play them live: a press of KDR quiets the snare, the hat and the clap (the kicks play on), the next brings them back; KSN, KHH and KCP do the same for the snare, the hi-hat or the clap alone (KDR with some already off: all off). The sequencer's hits, the MIDI notes and the KCK..CLP keys alike; the pattern is never touched. Lit while off. Not saved: everything on at each start | | | | |
+| KDR · KSN · KHH · KCP | **The drums off and on**, to play them live: a press of KDR quiets the snare, the hat and the clap (the kicks play on), the next brings them back; KSN, KHH and KCP do the same for the snare, the hat or the clap alone (KDR with some already off: all off). The sequencer's hits, the MIDI notes and the KCK..CLP keys alike; the pattern is never touched. Lit while off. Not saved: everything on at each start | | | | |
 
 FLEXOR LAYOUT has X2, X4, TRI and CHS on its keys, and SPL, CHS, PEQ, XSB, DRV, DST and KBR on its REC layer. SDR,
 MOT, KCK, SNR, HAT, CLP, KDR, KSN, KHH and KCP are in no preset layout: put them on a key of CUSTOM, as a SEL function or as a REC
@@ -589,7 +589,7 @@ FOLLOW). **SEQ again** goes back to HOME.
 | --- | --- | --- | --- | --- | --- |
 | STEPS 1-16, STEPS 17-32 | Pick a step to edit (outlined) | SLICE: OFF · LOOP · 1–16 | PITCH: −12 … +12 | HITS: ×1–×4 (a ratchet in the step) | REVERSE |
 | KICK, SNARE, HAT, CLAP | That lane's 16 steps, on and off (as the key comes up) | FILL: 0–16 hits spread evenly from the downbeat (Euclidean) | KICK (the kick lane: KICK 1–20) or SOUND (a drum lane: the drum's memory) | Left CLEAR, right 4X4 (the lane's bar shown) | LENGTH: 16, 32 or 64 steps, every drum (a drum's steps 33–64 share the HITS, COND and NUDGE of 1–32) |
-| **A step held** (a drum lane) | its own, the foot naming them | NOTE: −8 … +7 semitones (the kick's) | **HITS**: 1–4, the step taps that many times in its 16th | **COND**: ALWAYS, 75 %, 50 %, 25 % (it plays that often), 1:2 (the first loop of two), 2:2 (the second) | **NUDGE**: on time .. 7/16 of a step late |
+| **A step held** (a drum lane) | its own, the foot naming them | NOTE: −8 … +7 semitones (the kick's); on the HAT, **HH / OH**: the step closed (HH) or open (OH, drawn hollow) | **HITS**: 1–4, the step taps that many times in its 16th | **COND**: ALWAYS, 75 %, 50 %, 25 % (it plays that often), 1:2 (the first loop of two), 2:2 (the second) | **NUDGE**: on time .. 7/16 of a step late |
 
 The upper strip shows the half's 16 steps (a number: its own slice; a dot: LOOP; a dash: off; a mark under it: hits
 or reverse), the step playing lit; the lower strip the drum lanes.
@@ -651,7 +651,7 @@ or back to the left; **ARP** again goes back to HOME.
 - **K3 EFFECT**: what it does: R8, R16, R32, REV, FRZ, HLF, VNL, GAT, RND, FLT, DUB, ARP, KIL, DST, SUB, DRV, X2, X4,
   TRI, SDR (SUB DRIVE), KBR (KILL BREAK), CHS (CHAOS on / off), SPL (SPLIT on / off), KCK, SNR, HAT, CLP (a drum each),
   XSB (SUB SPLIT on / off), MOT (MOTION on / off), PEQ (PRE EQ on / off), KDR KSN KHH KCP (the drums, the
-  snare, the hi-hat, the clap off / on). Turned on a preset, K3 makes a CUSTOM of it
+  snare, the hat, the clap off / on). Turned on a preset, K3 makes a CUSTOM of it
   first, that key changed (keys outlined amber differ from CHOPPAH's).
 - **K4 ARP FX**, on an ARP key: its own effect (several ARP keys, each with its own, play at once).
 
@@ -1171,6 +1171,11 @@ round the same three views (RGB, WAVE, CLASSIC). The lower strip shows the drums
 | HAT | Six square waves at the 808's ratios and noise, through two high-passes | 909 CH · 808 · 909 OH · TRASH |
 | CLAP | Noise bursts and a tail | 808 · 909 · TIGHT · BIG · BUNKER CLAP · FURNACE CLAP |
 
+**HH and OH**: each step of the HAT lane is closed (HH, as ever) or open (OH): hold the step on SEQ and turn K1
+(right OH, left HH); an open step is drawn hollow. The open hat is the hat's own sound with a longer tail: the hat's
+SPACE page sets it, K1 **OH DECAY** and K2 **OH LEVEL** (against the hat's). As on a 909 the hat is one voice: the next
+hat, open or closed, cuts the open one off. MIDI note 46 plays it open (and REC writes it open).
+
 A new FM-1 (and RESET's DRUMS or EVERYTHING) starts on a 909 kit: the 909 snare, 909 CH (closed hat) and the 909
 clap; 909 OH is the open hat, one PRESETS turn away. Your saved drums stay as you left them.
 
@@ -1178,14 +1183,14 @@ clap; 909 OH is the open hat, one PRESETS turn away. Your saved drums stay as yo
 | --- | --- | --- | --- | --- |
 | SOUND | Level | Tune | Decay | Tone (the hat: METAL / NOISE) |
 | SHAPE | Snap (the hat: CUT, the high-pass; the clap: SPREAD) | Drive | PRESET | **DIRT**: SOFT, HARD (a hard clip), FOLD (folded back, as the kick's DISTO), BITS (5 bits) |
-| SPACE | **DROP** (the snare: how far its body falls, x1.7 to x6) | **TIME** (how fast it falls, 3 to 140 ms) | **LIFT** (the tail brought up, the hit held down) | **ROOM** (a short room closed sharply after the hit: its level and its length) |
+| SPACE | **DROP** (the snare: how far its body falls, x1.7 to x6; the hat: **OH DECAY**, its open hat's tail) | **TIME** (how fast it falls, 3 to 140 ms; the hat: **OH LEVEL**, its open hat against it) | **LIFT** (the tail brought up, the hit held down) | **ROOM** (a short room closed sharply after the hit: its level and its length) |
 | BEGINNER | **PRESET** | **FX**: DRY · ROOM · CRUSH · SMASH (twice the drive, the tail lifted, a longer room) · SMASH+BITS | Level | Tune |
 
 **ALGORITHM** goes through SOUND, SHAPE and SPACE. The industrial snares each come with the FX they were chosen with
 (the drop, the dirt, the lift and the room); in BEGINNER the FX changes on the same preset (its LEVEL and TUNE kept). Each memory (SNARE
 1-10 ..) keeps its own.
 
-MIDI notes 38 (D1) play the snare, 39 the clap, 42, 44 and 46 the hat, also while stopped. SAVE keeps the drums with
+MIDI notes 38 (D1) play the snare, 39 the clap, 42 and 44 the hat, 46 the hat open, also while stopped. SAVE keeps the drums with
 the rest.
 
 ### Your own snare, hat and clap (IMPORT)

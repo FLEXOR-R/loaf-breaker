@@ -42,6 +42,7 @@ typedef struct {                         /* a voice sounding */
     uint32_t spos;                       /* the two read between, how far between; playing) */
     float sa, sb, sf;
     uint8_t sact;
+    uint8_t op;                          /* (0.9.97: the hat, hit open: the OH sound, perc_t's fourth voice) */
 } pv_t;
 typedef struct {                         /* a voice's settings, mapped for the block */
     float f, dec, dec2, lvl, hpk, lpk, body, noise, crack, g, make;
@@ -338,7 +339,7 @@ BRK_COLD void perc_init(void)
 BRK_COLD void perc_set(const perc_t *p) { *(perc_t *)&p_p = *p; }
 void perc_hit(uint32_t voice)
 {
-    if (voice < PV_STAB)                 /* (the drums: the MELODY's place empty) */
+    if (voice <= PV_STAB)                /* (the drums; PV_STAB, the MELODY's place: the hat open, 0.9.97) */
         p_hits[voice]++;
 }
 
@@ -353,12 +354,15 @@ void perc_render(float *out, uint32_t n, const uint16_t *at, const uint8_t *who,
     pc_t c[PERC_VOICES];
     uint32_t i, j, k, hit = nat ? 1u : 0u;
     uint32_t mh = 0u;
-    for (k = 0; k < PV_STAB; k++)
-        if (p_hits[k] != hits_seen[k]) {     /* a MIDI note: now */
+    for (k = 0; k <= PV_STAB; k++)
+        if (p_hits[k] != hits_seen[k]) {     /* a MIDI note: now (0.9.97: PV_STAB's, the hat open) */
+            uint32_t kv = k == PV_STAB ? PV_HAT : k;
             hits_seen[k] = p_hits[k];
-            pv_hit(&pv[k]);
+            pv_hit(&pv[kv]);
+            if (kv == PV_HAT)
+                pv[PV_HAT].op = (uint8_t)(k == PV_STAB);
             hit = 1u;
-            mh |= 1u << k;
+            mh |= 1u << kv;
         }
     if (!hit && !rm_open && rm_g < 1e-4f && !(pv[0].sact | pv[1].sact | pv[2].sact) && pv[0].env < 3e-5f && pv[0].env2 < 3e-5f && pv[1].env < 3e-5f && pv[2].env < 3e-5f &&
         pv[2].pe < 3e-5f && brk_absf(pv[0].declick) + brk_absf(pv[1].declick) + brk_absf(pv[2].declick) < 1e-5f) {
@@ -368,6 +372,8 @@ void perc_render(float *out, uint32_t n, const uint16_t *at, const uint8_t *who,
         vs_on = 0u;
         return;
     }
+    pc_make(PV_HAT, &s.v[PV_STAB], s.volume, &c[PV_STAB]);   /* (0.9.97: the hat open, OH: perc_t's fourth voice,
+                                          * the hat's extras) */
     for (k = 0; k < PV_STAB; k++) {      /* (the drums: snare, hat, clap) */
         pc_make(k, &s.v[k], s.volume, &c[k]);
         if (mh >> k & 1u && c[k].room > 0.0f && c[k].gate > rm_open)
@@ -383,9 +389,12 @@ void perc_render(float *out, uint32_t n, const uint16_t *at, const uint8_t *who,
         while (j < nat && at[j] <= i) {
             for (k = 0; k < PV_STAB; k++)
                 if ((who[j] >> k) & 1u) {
+                    const pc_t *ck = k == PV_HAT && who[j] >> PV_STAB & 1u ? &c[PV_STAB] : &c[k];
                     pv_hit(&pv[k]);
-                    if (c[k].room > 0.0f && c[k].gate > rm_open)
-                        rm_open = c[k].gate;   /* (LOAF BREAKER: its room open for its length) */
+                    if (k == PV_HAT)     /* (0.9.97: open (bit PV_STAB) or closed; one voice: each chokes the other) */
+                        pv[k].op = (uint8_t)(who[j] >> PV_STAB & 1u);
+                    if (ck->room > 0.0f && ck->gate > rm_open)
+                        rm_open = ck->gate;   /* (LOAF BREAKER: its room open for its length) */
                 }
             j++;
         }
@@ -402,15 +411,16 @@ void perc_render(float *out, uint32_t n, const uint16_t *at, const uint8_t *who,
             float rs = 0.0f;             /* (LOAF BREAKER: what goes to the room) */
             for (k = 0; k < PV_STAB; k++) {
                 pv_t *v = &pv[k];
+                const pc_t *ck = k == PV_HAT && v->op ? &c[PV_STAB] : &c[k];   /* (0.9.97: OH or HH) */
                 float x = 0.0f;
-                if (c[k].sdat ? v->sact : v->env > 1e-5f || (k == PV_SNARE && (v->env2 > 1e-5f)) ||
+                if (ck->sdat ? v->sact : v->env > 1e-5f || (k == PV_SNARE && (v->env2 > 1e-5f)) ||
                     (k == PV_CLAP && (v->pe > 1e-5f || v->ph[1] < 3.0f)))   /* (LOAF BREAKER, 0.226: a voice gone
                                           * quiet costs nothing) */
-                    x = voice_out(v, &c[k], voice_tick(k, v, &c[k]));
+                    x = voice_out(v, ck, voice_tick(k, v, ck));
                 v->last = x;
                 y += x + v->declick;
                 v->declick *= 0.985f;
-                rs += x * c[k].room;
+                rs += x * ck->room;
             }
             if (rs != 0.0f || rm_open || rm_g > 1e-4f)
                 y += room_tick(rs * 0.25f);

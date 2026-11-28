@@ -2054,6 +2054,36 @@ static void test_perc(void)
             }
         }
     CHECK(bounded, "snare and hat: every preset silent before its hit, in range, and gone in half a second");
+    {                                    /* (0.9.97, FLEXOR: HH and OH) the hat open (bit PV_STAB with the hat's: perc_t's
+                                          * fourth voice, the hat with a longer decay) rings past 150 ms; a closed hat
+                                          * after it chokes it (one voice) */
+        float e[3] = {0.0f, 0.0f, 0.0f};
+        uint32_t t;
+        for (t = 0; t < 3u; t++) {
+            uint16_t at[2] = {100u, 4410u};
+            uint8_t who[2] = {(uint8_t)(t ? 2u | 8u : 2u), 2u};
+            perc_defaults(&p);
+            p.v[PV_STAB] = p.v[PV_HAT];
+            p.v[PV_STAB].decay = 0.68f;
+            perc_set(&p);
+            perc_init();
+            for (i = 0; i < n; i += BLOCK) {
+                uint32_t m = n - i < BLOCK ? n - i : BLOCK, nh = 0u;
+                uint16_t a2[2];
+                uint8_t w2[2];
+                for (k = 0; k < (t == 2u ? 2u : 1u); k++)
+                    if (at[k] >= i && at[k] < i + m) {
+                        a2[nh] = (uint16_t)(at[k] - i);
+                        w2[nh++] = who[k];
+                    }
+                perc_render(o + i, m, a2, w2, nh);
+            }
+            for (i = 6615u; i < 11025u; i++)   /* (150 .. 250 ms) */
+                e[t] += o[i] * o[i];
+        }
+        CHECK(e[1] > 20.0f * e[0] && e[2] < 0.1f * e[1], "the hat open rings on (%.3g against closed %.3g), a closed hat chokes it (%.3g)",
+              (double)e[1], (double)e[0], (double)e[2]);
+    }
     /* the snare's body alone (no noise, no drive) rings at its tune */
     perc_defaults(&p);
     p.v[PV_SNARE].snap = 0.0f;
