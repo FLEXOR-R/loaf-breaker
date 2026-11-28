@@ -1,7 +1,7 @@
 <!doctype html>
 <!-- SPDX-License-Identifier: MPL-2.0 -->
 <!-- LOAF BREAKER's VST page (24 Nov 2026, FLEXOR: "faire un onglet VST sur le site, et mettre en avant le côté VST"):
-     the plugin, LOAF BREAKER on the computer (VST3 and Standalone, Windows), what it adds to the FM-1, its pictures
+     the plugin, LOAF BREAKER on the computer (VST3 and Standalone on Windows; VST3, AU and Standalone on a Mac), what it adds to the FM-1, its pictures
      (app/site/vst_img/, copied to vst/ by tools/site_style.py `vst`), where to get it. tools/site_style.py puts it at
      vst/ on the site, with the site's style and header. -->
 <html lang="en">
@@ -9,11 +9,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>LOAF BREAKER · VST</title>
-<meta name="description" content="LOAF BREAKER as a plugin: the FM-1's firmware running in your DAW (VST3 and Standalone, Windows), with real menus, a full sequencer, 98 breaks in CD quality and a kick library.">
+<meta name="description" content="LOAF BREAKER as a plugin: the FM-1's firmware running in your DAW (VST3 and Standalone on Windows; VST3, AU and Standalone on a Mac), with real menus, a full sequencer, 98 breaks in CD quality and a kick library.">
 <!-- (26 Nov 2026, FLEXOR: the VST's picture wherever its link is shared, the sequencer in its base colours, LOAF LORD's black and bone) -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="LOAF BREAKER · VST">
-<meta property="og:description" content="The FM-1's firmware in your DAW (VST3 and Standalone, Windows): real menus, a full sequencer, 98 breaks in CD quality, a kick library.">
+<meta property="og:description" content="The FM-1's firmware in your DAW (Windows and Mac): real menus, a full sequencer, 98 breaks in CD quality, a kick library.">
 <meta property="og:image" content="https://flexor-r.github.io/loaf-breaker/vst/sequencer.png">
 <meta property="og:url" content="https://flexor-r.github.io/loaf-breaker/vst/">
 <meta name="twitter:card" content="summary_large_image">
@@ -51,10 +51,10 @@ does.</p></div>
 <p class="wipnote">The plugin is being built right now: things move from one version to the next, some pages are still
 being redrawn, and bugs are expected. Your projects stay yours, but keep a backup of anything that matters.</p>
 <p class="lede">The FM-1's firmware as a plugin: the very same code, breaks, kicks and effects, running in your DAW (VST3) or on
-its own (Standalone), on Windows. No 240 × 240 screen any more: every page as real menus, a full sequencer, and the
+its own (Standalone), on Windows and on a Mac. No 240 × 240 screen any more: every page as real menus, a full sequencer, and the
 FM-1's limits lifted.</p>
 <div class="cta">
-  <a class="go" href="https://github.com/FLEXOR-R/loaf-breaker-vst/releases/latest">Download (Windows)</a>
+  <a class="go" href="https://github.com/FLEXOR-R/loaf-breaker-vst/releases/latest">Download (Windows, Mac)</a>
   <a href="../breaks/">The breaks</a>
   <a href="../manual/">The manual</a>
 </div>
@@ -95,8 +95,10 @@ FM-1's limits lifted.</p>
   <li>CTRL+B the breaks · C / V the playlist · CTRL+G the manager</li>
   <li>QWERTYUI ASDFGHJK the 16 slices · 1–0 and - the pads</li>
 </ul>
-<p class="note">Windows 10 or 11, 64-bit. Unzip, copy <b>LOAF BREAKER.vst3</b> into C:\Program Files\Common Files\VST3, rescan in
-your DAW. LOAF BREAKER is FLEXOR's, built on CHOPPAH by Laurens Profittlich (profikid).</p>
+<p class="note">Windows 10 or 11, 64-bit: unzip, copy <b>LOAF BREAKER.vst3</b> into C:\Program Files\Common Files\VST3, rescan in
+your DAW. Mac (macOS 11 or later, Apple Silicon or Intel): the Mac zip has the VST3, the AU (Logic) and the app; it is not
+signed by Apple, so run <b>xattr -cr</b> on the unzipped folder once (its LISEZ-MOI says how), then copy the plugins into
+~/Library/Audio/Plug-Ins. LOAF BREAKER is FLEXOR's, built on CHOPPAH by Laurens Profittlich (profikid).</p>
 </main>
 </body>
 </html>
